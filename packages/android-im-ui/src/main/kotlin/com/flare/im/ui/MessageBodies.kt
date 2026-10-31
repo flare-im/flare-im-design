@@ -626,7 +626,9 @@ fun FileMessage(
  * location — the static map over title / address. Spec: Message/LocationMessage (`LocationMessage`).
  *
  * Without [snapshotUrl], and while it loads or when it fails, the card draws a map ground with a centre pin, never a
- * blank. Without an address the line under the title is the coordinate ([FlareLocationFormat.label]).
+ * blank. Under it the place's lines ([FlareLocationFormat.cardLines], `cardLines`): never a blank line — without a title
+ * the address moves up, the coordinate ([FlareLocationFormat.label]) stands in for what is missing, and without any of
+ * them the card reads `locationCardPlace`.
  *
  * A tap goes to [onOpen]. Without it the card opens the device's map app with the `geo:` URI
  * ([FlareLocationFormat.geoLink], the `geo` column of `spec/location-vectors.json`) through [LocalUriHandler], and the
@@ -662,7 +664,7 @@ internal fun LocationMessageBody(
     val colors = flareColors()
     val strings = flareStrings()
     val uriHandler = LocalUriHandler.current
-    val detail = locationMessageDetail(address, latitude, longitude)
+    val lines = FlareLocationFormat.cardLines(title, address, latitude, longitude, strings.locationCardPlace)
     val tap: (() -> Unit)? = onOpen ?: FlareLocationFormat.links(latitude, longitude, title, provider)?.takeIf { openMaps }?.let { links ->
         { openLocationLinks(links) { uriHandler.openUri(it) } }
     }
@@ -678,26 +680,18 @@ internal fun LocationMessageBody(
             Modifier.padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
             verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
         ) {
-            Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium,
+            Text(lines.primary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
-            if (detail.isNotEmpty()) {
-                Text(detail, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            lines.secondary?.let {
+                Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXs, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }
 }
 
-/** The location card's width and its map's height. */
-internal val LOCATION_CARD_WIDTH = 264.dp
-internal val LOCATION_MAP_HEIGHT = 120.dp
-
-/** The line under a location's title: the address, else the coordinate, else nothing. */
-internal fun locationMessageDetail(address: String, latitude: Double?, longitude: Double?): String {
-    val trimmed = address.trim()
-    if (trimmed.isNotEmpty()) return trimmed
-    if (latitude == null || longitude == null) return ""
-    return FlareLocationFormat.label(latitude, longitude).orEmpty()
-}
+/** The location card's width and its map's height (`cardMap`). */
+internal val LOCATION_CARD_WIDTH = FlareLocationFormat.CARD_MAP_WIDTH.dp
+internal val LOCATION_MAP_HEIGHT = FlareLocationFormat.CARD_MAP_HEIGHT.dp
 
 /**
  * Opens a location without a host handler: the `geo:` URI, and the web map when no app takes it (an emulator, a

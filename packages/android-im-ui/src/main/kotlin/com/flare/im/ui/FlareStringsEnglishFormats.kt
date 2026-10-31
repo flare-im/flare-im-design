@@ -80,6 +80,7 @@ internal fun FlareStringsBuilder.englishFormats() {
     previewForwardCount = { count -> english(count, "[Forward] {count} message", "[Forward] {count} messages") }
     previewImageGroupCount = { count -> "[Album] $count" }
     systemEventGroupProfileUpdatedNamed = { name -> "Group renamed to $name" }
+    displayNameMembersMore = { names, count -> names + english(count, " and {count} other", " and {count} others") }
     conversationHeaderIdentityLabel = { title, action -> "$title, $action" }
     momentAudienceSheetSelected = { count -> english(count, "{count} person selected", "{count} people selected") }
     announcementReadBarReadCount = { read, total -> "$read/$total read" }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite or out of range (latitude -90..90, longitude -180..180): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees. `providerFrom` is flareLocationProviderFrom: a `chat.location` config value as a provider — the string amap (trimmed, any case) is amap, anything else (osm, an unknown name, blank, null, not a string) is osm. `webMapUrl` is flareLocationWebMapUrl: the web map a host opens for a location message — `input` is the message's content (the title is its name; its provider is osm when it names none) and `provider`, when the row has one, the argument that wins over the content's; the `web` link of `links` for that provider, or null when the content has no coordinate: one of the pair missing, out of range, or exactly 0, 0 (the wire writes an absent coordinate as 0, 0).",
+  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite, out of range (latitude -90..90, longitude -180..180) or exactly 0, 0 (the wire writes an absent coordinate as 0, 0, and the SDK never sends it): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate, 0, 0 included. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees. `providerFrom` is flareLocationProviderFrom: a `chat.location` config value as a provider — the string amap (trimmed, any case) is amap, anything else (osm, an unknown name, blank, null, not a string) is osm. `webMapUrl` is flareLocationWebMapUrl: the web map a host opens for a location message — `input` is the message's content (the title is its name; its provider is osm when it names none) and `provider`, when the row has one, the argument that wins over the content's; the `web` link of `links` for that provider, or null when the content has no coordinate: one of the pair missing, out of range, or exactly 0, 0 (the wire writes an absent coordinate as 0, 0). `cardLines` is flareLocationCardLines: the lines a LocationMessage draws under its map, by locale. The title and the address are trimmed; a title with an address reads title / address; a title alone reads title / the coordinate label; an address alone moves up and the coordinate label goes under it; neither reads the coordinate label alone, and without a valid coordinate the localized word for a location (zh-CN 位置, en-US Location). A missing coordinate label drops its line; a line is never blank. `cardMap` is the card's map area in logical units (CSS px, dp, pt); the social SDK asks for the card's static map at twice it (528×264).",
   "coordinateFormat": {
     "decimals": 6,
     "trimTrailingZeros": true,
@@ -111,9 +111,9 @@
         "longitude": 0,
         "title": "Null Island"
       },
-      "web": "https://www.openstreetmap.org/?mlat=0&mlon=0#map=17/0/0",
-      "apple": "http://maps.apple.com/?ll=0,0&q=Null%20Island",
-      "geo": "geo:0,0?q=0,0(Null%20Island)"
+      "web": null,
+      "apple": null,
+      "geo": null
     },
     {
       "id": "negative-zero-after-rounding",
@@ -244,6 +244,14 @@
         "longitude": 180
       },
       "output": "0.00000, 180.00000"
+    },
+    {
+      "id": "label-zero-zero",
+      "input": {
+        "latitude": 0,
+        "longitude": 0
+      },
+      "output": null
     },
     {
       "id": "label-invalid",
@@ -569,5 +577,219 @@
       },
       "output": null
     }
-  ]
+  ],
+  "cardLines": [
+    {
+      "id": "title-and-address",
+      "input": {
+        "title": "天安门广场",
+        "address": "北京市东城区",
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "lines": {
+        "zh-CN": [
+          "天安门广场",
+          "北京市东城区"
+        ],
+        "en-US": [
+          "天安门广场",
+          "北京市东城区"
+        ]
+      }
+    },
+    {
+      "id": "title-without-address",
+      "input": {
+        "title": "天安门广场",
+        "address": "",
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "lines": {
+        "zh-CN": [
+          "天安门广场",
+          "39.90870, 116.39750"
+        ],
+        "en-US": [
+          "天安门广场",
+          "39.90870, 116.39750"
+        ]
+      }
+    },
+    {
+      "id": "address-without-title",
+      "input": {
+        "title": "",
+        "address": "北京市东城区东长安街",
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "lines": {
+        "zh-CN": [
+          "北京市东城区东长安街",
+          "39.90870, 116.39750"
+        ],
+        "en-US": [
+          "北京市东城区东长安街",
+          "39.90870, 116.39750"
+        ]
+      }
+    },
+    {
+      "id": "neither-with-coordinate",
+      "input": {
+        "title": "",
+        "address": "",
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "lines": {
+        "zh-CN": [
+          "39.90870, 116.39750"
+        ],
+        "en-US": [
+          "39.90870, 116.39750"
+        ]
+      }
+    },
+    {
+      "id": "neither-without-coordinate",
+      "input": {
+        "title": "",
+        "address": ""
+      },
+      "lines": {
+        "zh-CN": [
+          "位置"
+        ],
+        "en-US": [
+          "Location"
+        ]
+      }
+    },
+    {
+      "id": "neither-at-zero-zero",
+      "input": {
+        "title": "",
+        "address": "",
+        "latitude": 0,
+        "longitude": 0
+      },
+      "lines": {
+        "zh-CN": [
+          "位置"
+        ],
+        "en-US": [
+          "Location"
+        ]
+      }
+    },
+    {
+      "id": "neither-out-of-range",
+      "input": {
+        "title": "",
+        "address": "",
+        "latitude": 91,
+        "longitude": 10
+      },
+      "lines": {
+        "zh-CN": [
+          "位置"
+        ],
+        "en-US": [
+          "Location"
+        ]
+      }
+    },
+    {
+      "id": "blank-is-empty",
+      "input": {
+        "title": "   ",
+        "address": " \t",
+        "latitude": 39.9087,
+        "longitude": 116.3975
+      },
+      "lines": {
+        "zh-CN": [
+          "39.90870, 116.39750"
+        ],
+        "en-US": [
+          "39.90870, 116.39750"
+        ]
+      }
+    },
+    {
+      "id": "trimmed",
+      "input": {
+        "title": "  故宫  ",
+        "address": " 东城区景山前街4号 ",
+        "latitude": 39.9163,
+        "longitude": 116.3972
+      },
+      "lines": {
+        "zh-CN": [
+          "故宫",
+          "东城区景山前街4号"
+        ],
+        "en-US": [
+          "故宫",
+          "东城区景山前街4号"
+        ]
+      }
+    },
+    {
+      "id": "title-without-coordinate",
+      "input": {
+        "title": "故宫",
+        "address": ""
+      },
+      "lines": {
+        "zh-CN": [
+          "故宫"
+        ],
+        "en-US": [
+          "故宫"
+        ]
+      }
+    },
+    {
+      "id": "address-without-coordinate",
+      "input": {
+        "title": "",
+        "address": "东城区",
+        "latitude": 0,
+        "longitude": 0
+      },
+      "lines": {
+        "zh-CN": [
+          "东城区"
+        ],
+        "en-US": [
+          "东城区"
+        ]
+      }
+    },
+    {
+      "id": "title-and-address-without-coordinate",
+      "input": {
+        "title": "Sydney Opera House",
+        "address": "Bennelong Point"
+      },
+      "lines": {
+        "zh-CN": [
+          "Sydney Opera House",
+          "Bennelong Point"
+        ],
+        "en-US": [
+          "Sydney Opera House",
+          "Bennelong Point"
+        ]
+      }
+    }
+  ],
+  "cardMap": {
+    "width": 264,
+    "height": 132
+  }
 }

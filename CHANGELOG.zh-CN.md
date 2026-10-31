@@ -6,6 +6,15 @@
 
 ### 设计系统与跨端组件
 
+- **投影出来的名字四端读成同一段文字**（契约与四端 Kit）。
+  - `FlareDisplayName` 就是核心 SDK 的 `DisplayName`，wire 为 camelCase：`named`（`text`、`source`）、`members`（`names`、`total`）、`unnamed`（`entity`、`idTail`），配 `FlareDisplayNameSource` 与 `FlareDisplayNameEntity`。`flareDisplayNameText(name, strings)` 把它写成文字：有名字照原文；成员拼接（「张三、李四」），多出来的人加「等 N 人」/「and N others」，N = total − names − 1，本人不计入；无名的人「用户 9876」，没有 id 末四位时「未知用户」；未命名群「群聊」，系统会话「系统通知」，其余类型为 AI 助手、客服、频道、广播、临时会话。
+  - 原生 `FlareStrings` 新增 `displayNameUser(idTail)`、`displayNameUnknownUser`、`displayNameGroup`、`displayNameSystem`、`displayNameAi`、`displayNameCustomer`、`displayNameChannel`、`displayNameBroadcast`、`displayNameTemp`、`displayNameSeparator`、`displayNameMembersMore(names, count)`，中文默认值与英文预设都有；Vue 在 zh-CN、en-US 新增 `displayName.*`。
+  - `flareIdTail(id)`：id 去首尾空白后的末 4 个 Unicode 标量（不按 UTF-16 码元，也不按字形簇）。四端 `flarePluginFallbackName`（原生 `PluginViewFormat.fallbackName`）改为调用它，首尾有空白或以 emoji 结尾的 id 各端截出来不再不一样。
+  - `spec/display-name-vectors.json` 收录 id 末四位与每种形态的中英文字，四端都跑。组件属性仍是字符串，宿主在接线处调用 `flareDisplayNameText`（`docs/display-names.md`）。
+- **位置卡不再画空白行**（契约与四端 Kit）。
+  - 地图下方按 `cardLines` 画：地点名 / 地址、地点名 / 坐标、地址 / 坐标、只有坐标、只有本地化的「位置」（`locationCardPlace`，Vue `location.place`）。原来没有地点名时四端都画一行空白粗体。纯函数为 `flareLocationCardLines`（Vue、Flutter）与 `FlareLocationFormat.cardLines`（SwiftUI、Compose）。
+  - 坐标恰为 0, 0 视为没有坐标：没有链接、没有坐标行，选点器也不能发出它。`spec/location-vectors.json` 的 `links.integer-zero` 改为 null，与 `webMapUrl` 一致；`label` 新增 `label-zero-zero`。
+  - 四端卡片地图区都是 264 × 132（`cardMap`），SwiftUI 与 Compose 原来画成 120 高。社交 SDK 按两倍请求卡片静态图。
 - **没有服务端文案的群系统消息四端都能说清**（契约与四端 Kit）。
   - 事件名以社交服务端写的 `SystemContent.event_kind` 为准。新增 `group.profile_updated`（改群名，带事件参数里的新群名：群名称已改为「周末徒步群」，参数里没有名字时为「群名称已更新」）、`group.member_roles_changed`、`group.muted` 与 `group.unmuted`（开启、解除全员禁言）。群公告的事件名是 `group.announcement`，Kit 原来写成服务端从不发的 `group.announcement_updated`，没有文案的公告消息读成「[系统消息]」。去掉没人发的 `group.member_removed` 别名，服务端发的是 `group.member_kicked`。
   - 原生 `FlareStrings` 新增 `systemEventGroupProfileUpdated`、`systemEventGroupProfileUpdatedNamed(name)`、`systemEventGroupMemberRolesChanged`、`systemEventGroupMuted`、`systemEventGroupUnmuted`；Vue `systemEvent.group.*` 补齐同一组事件，`announcement_updated` / `member_removed` 改为 `announcement`，带名字的写法在 `systemEventNamed.group.profile_updated`。

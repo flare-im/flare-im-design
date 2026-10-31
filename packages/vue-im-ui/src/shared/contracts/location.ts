@@ -49,10 +49,17 @@ export interface FlareLocationMapLinks {
   geo: string;
 }
 
-/** Whether a coordinate can be drawn and opened: finite, latitude -90..90, longitude -180..180. */
+/** The map area of a LocationMessage, in CSS px; the social SDK asks for its static map at twice it (528×264). */
+export const FLARE_LOCATION_CARD_MAP: Readonly<{ width: number; height: number }> = Object.freeze({ width: 264, height: 132 });
+
+/**
+ * Whether a coordinate can be drawn and opened: finite, latitude -90..90, longitude -180..180, and not exactly 0, 0 —
+ * the wire writes an absent coordinate as 0, 0, and the SDK never sends it (spec/location-vectors.json).
+ */
 export function isValidFlareLocation(latitude: number, longitude: number): boolean {
   return Number.isFinite(latitude) && Number.isFinite(longitude)
-    && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+    && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180
+    && !(latitude === 0 && longitude === 0);
 }
 
 /** One coordinate in a link: 6 decimals, trailing zeros and a trailing point dropped, never "-0". */
@@ -134,6 +141,29 @@ function fixed5(value: number): string {
 /** The coordinate line shown where there is no map: "39.90870, 116.39750"; null when not valid. */
 export function flareLocationCoordinateLabel(latitude: number, longitude: number): string | null {
   return isValidFlareLocation(latitude, longitude) ? `${fixed5(latitude)}, ${fixed5(longitude)}` : null;
+}
+
+/** The lines a LocationMessage draws under its map: the first always, the second when there is one. */
+export interface FlareLocationCardLines {
+  primary: string;
+  secondary: string | null;
+}
+
+/**
+ * The card's lines (spec/location-vectors.json `cardLines`): the trimmed title over the trimmed address; a title alone
+ * over the coordinate label; an address alone moves up over the coordinate label; neither, the coordinate label alone,
+ * or `place` (the localized word for a location, `location.place`) without a valid coordinate. Never a blank line.
+ */
+export function flareLocationCardLines(
+  location: { title?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null },
+  place: string,
+): FlareLocationCardLines {
+  const title = (location.title ?? "").trim();
+  const address = (location.address ?? "").trim();
+  const label = flareLocationCoordinateLabel(location.latitude ?? Number.NaN, location.longitude ?? Number.NaN);
+  if (title) return { primary: title, secondary: address || label };
+  if (address) return { primary: address, secondary: label };
+  return { primary: label ?? place, secondary: null };
 }
 
 /**

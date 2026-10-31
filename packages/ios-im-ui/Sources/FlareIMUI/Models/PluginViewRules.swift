@@ -29,9 +29,10 @@ struct PluginWallClock: Equatable, Sendable {
 enum PluginViewFormat {
     static let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-    /// The name drawn for a user id the host could not resolve: its last 4 characters (the whole id when shorter).
+    /// The name drawn for a user id the host could not resolve: the id's tail, ``flareIdTail(_:)`` (its last 4
+    /// scalars).
     static func fallbackName(_ userId: String) -> String {
-        userId.count > 4 ? String(userId.suffix(4)) : userId
+        flareIdTail(userId)
     }
 
     /// The user drawn for an id: the host's answer, else initials over the fallback name.

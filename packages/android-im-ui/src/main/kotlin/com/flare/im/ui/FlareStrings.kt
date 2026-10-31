@@ -409,6 +409,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["locationOpenInMaps"] as? (String)) ?: "在地图中打开"
     val locationCurrent: String
         get() = (overrides["locationCurrent"] as? (String)) ?: "当前位置"
+    /** The first line of a location card with no title, no address and no coordinate (spec/location-vectors.json cardLines). */
+    val locationCardPlace: String
+        get() = (overrides["locationCardPlace"] as? (String)) ?: "位置"
 
     // 选择联系人
     val contactPickerTitle: String
@@ -1173,6 +1176,29 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["systemEventGroupMuted"] as? (String)) ?: "已开启全员禁言"
     val systemEventGroupUnmuted: String
         get() = (overrides["systemEventGroupUnmuted"] as? (String)) ?: "已解除全员禁言"
+    // 名字（spec/display-name-vectors.json，flareDisplayNameText）：没有名字的人、群与各类会话，与成员拼接
+    val displayNameUser: (String) -> String
+        get() = (overrides["displayNameUser"] as? ((String) -> String)) ?: { "用户 $it" }
+    val displayNameUnknownUser: String
+        get() = (overrides["displayNameUnknownUser"] as? (String)) ?: "未知用户"
+    val displayNameGroup: String
+        get() = (overrides["displayNameGroup"] as? (String)) ?: "群聊"
+    val displayNameSystem: String
+        get() = (overrides["displayNameSystem"] as? (String)) ?: "系统通知"
+    val displayNameAi: String
+        get() = (overrides["displayNameAi"] as? (String)) ?: "AI 助手"
+    val displayNameCustomer: String
+        get() = (overrides["displayNameCustomer"] as? (String)) ?: "客服"
+    val displayNameChannel: String
+        get() = (overrides["displayNameChannel"] as? (String)) ?: "频道"
+    val displayNameBroadcast: String
+        get() = (overrides["displayNameBroadcast"] as? (String)) ?: "广播"
+    val displayNameTemp: String
+        get() = (overrides["displayNameTemp"] as? (String)) ?: "临时会话"
+    val displayNameSeparator: String
+        get() = (overrides["displayNameSeparator"] as? (String)) ?: "、"
+    val displayNameMembersMore: (String, Int) -> String
+        get() = (overrides["displayNameMembersMore"] as? ((String, Int) -> String)) ?: { names, count -> "${names}等 $count 人" }
 
     // 会话头身份区作为按钮时的名字（标题 + 动作）；en: "{title}, {action}"
     val conversationHeaderIdentityLabel: (String, String) -> String
@@ -2397,6 +2423,9 @@ class FlareStringsBuilder internal constructor() {
     var locationCurrent: String
         get() = (values["locationCurrent"] as? (String)) ?: "当前位置"
         set(value) { values["locationCurrent"] = value }
+    var locationCardPlace: String
+        get() = (values["locationCardPlace"] as? (String)) ?: "位置"
+        set(value) { values["locationCardPlace"] = value }
 
     var contactPickerTitle: String
         get() = (values["contactPickerTitle"] as? (String)) ?: "选择联系人"
@@ -3742,6 +3771,40 @@ class FlareStringsBuilder internal constructor() {
     var systemEventGroupUnmuted: String
         get() = (values["systemEventGroupUnmuted"] as? (String)) ?: "已解除全员禁言"
         set(value) { values["systemEventGroupUnmuted"] = value }
+    // 名字（spec/display-name-vectors.json，flareDisplayNameText）
+    var displayNameUser: (String) -> String
+        get() = (values["displayNameUser"] as? ((String) -> String)) ?: { "用户 $it" }
+        set(value) { values["displayNameUser"] = value }
+    var displayNameUnknownUser: String
+        get() = (values["displayNameUnknownUser"] as? (String)) ?: "未知用户"
+        set(value) { values["displayNameUnknownUser"] = value }
+    var displayNameGroup: String
+        get() = (values["displayNameGroup"] as? (String)) ?: "群聊"
+        set(value) { values["displayNameGroup"] = value }
+    var displayNameSystem: String
+        get() = (values["displayNameSystem"] as? (String)) ?: "系统通知"
+        set(value) { values["displayNameSystem"] = value }
+    var displayNameAi: String
+        get() = (values["displayNameAi"] as? (String)) ?: "AI 助手"
+        set(value) { values["displayNameAi"] = value }
+    var displayNameCustomer: String
+        get() = (values["displayNameCustomer"] as? (String)) ?: "客服"
+        set(value) { values["displayNameCustomer"] = value }
+    var displayNameChannel: String
+        get() = (values["displayNameChannel"] as? (String)) ?: "频道"
+        set(value) { values["displayNameChannel"] = value }
+    var displayNameBroadcast: String
+        get() = (values["displayNameBroadcast"] as? (String)) ?: "广播"
+        set(value) { values["displayNameBroadcast"] = value }
+    var displayNameTemp: String
+        get() = (values["displayNameTemp"] as? (String)) ?: "临时会话"
+        set(value) { values["displayNameTemp"] = value }
+    var displayNameSeparator: String
+        get() = (values["displayNameSeparator"] as? (String)) ?: "、"
+        set(value) { values["displayNameSeparator"] = value }
+    var displayNameMembersMore: (String, Int) -> String
+        get() = (values["displayNameMembersMore"] as? ((String, Int) -> String)) ?: { names, count -> "${names}等 $count 人" }
+        set(value) { values["displayNameMembersMore"] = value }
 
     var conversationHeaderIdentityLabel: (String, String) -> String
         get() = (values["conversationHeaderIdentityLabel"] as? ((String, String) -> String)) ?: { title, action -> "$title，$action" }

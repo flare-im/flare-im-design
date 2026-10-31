@@ -46,16 +46,46 @@ public struct FlareLocationPlace: Identifiable, Sendable, Equatable {
     public var coordinate: FlareLocationCoordinate { .init(latitude: latitude, longitude: longitude) }
 }
 
+/// The lines a location card draws under its map: `primary` always, `secondary` when there is one.
+public struct FlareLocationCardLines: Equatable, Sendable {
+    public let primary: String
+    public let secondary: String?
+
+    public init(primary: String, secondary: String?) {
+        self.primary = primary; self.secondary = secondary
+    }
+}
+
 /// The location rules every kit shares (`spec/location-vectors.json`): the default links a location opens, the
-/// coordinate line shown when there is no map, and a place's distance.
+/// coordinate line shown when there is no map, the card's lines, and a place's distance.
 public enum FlareLocationFormat {
     /// The zoom the OpenStreetMap link opens at (`osmZoom`).
     public static let osmZoom = 17
 
-    /// Whether the pair is a coordinate: finite, latitude within ±90 and longitude within ±180.
+    /// The map area of a location card (`cardMap`), in points; the social SDK asks for its static map at twice it
+    /// (528×264).
+    public static let cardMapWidth: Double = 264
+    public static let cardMapHeight: Double = 132
+
+    /// Whether the pair is a coordinate: finite, latitude within ±90, longitude within ±180, and not exactly 0, 0 — the
+    /// wire writes an absent coordinate as 0, 0, and the SDK never sends it.
     public static func isValid(latitude: Double?, longitude: Double?) -> Bool {
         guard let latitude, let longitude, latitude.isFinite, longitude.isFinite else { return false }
-        return (-90...90).contains(latitude) && (-180...180).contains(longitude)
+        return (-90...90).contains(latitude) && (-180...180).contains(longitude) && !(latitude == 0 && longitude == 0)
+    }
+
+    /// The lines a location card draws under its map (`cardLines`): the trimmed title over the trimmed address; a title
+    /// alone over the coordinate label; an address alone moves up over the coordinate label; neither, the coordinate
+    /// label alone, or `place` (`locationCardPlace`) without a valid coordinate. Never a blank line.
+    public static func cardLines(title: String?, address: String?, latitude: Double?, longitude: Double?,
+                                 place: String) -> FlareLocationCardLines {
+        let name = (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let line = (address ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        var coordinate: String?
+        if let latitude, let longitude { coordinate = label(latitude: latitude, longitude: longitude) }
+        if !name.isEmpty { return FlareLocationCardLines(primary: name, secondary: line.isEmpty ? coordinate : line) }
+        if !line.isEmpty { return FlareLocationCardLines(primary: line, secondary: coordinate) }
+        return FlareLocationCardLines(primary: coordinate ?? place, secondary: nil)
     }
 
     /// A coordinate in a link: fixed to 6 decimals, trailing zeros and a trailing point dropped, `-0` written `0`.

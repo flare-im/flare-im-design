@@ -80,6 +80,8 @@ String _previewForwardCountEnglish(int count) =>
 String _previewImageGroupCountEnglish(int count) => '[Album] $count';
 String _systemEventGroupProfileUpdatedNamedEnglish(String name) =>
     'Group renamed to $name';
+String _displayNameMembersMoreEnglish(String names, int count) =>
+    '$names${_english(count, ' and {count} other', ' and {count} others')}';
 String _announcementReadBarReadCountEnglish(int read, int total) =>
     '$read/$total read';
 String _groupDetailMemberCountEnglish(int count) =>

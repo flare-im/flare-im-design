@@ -339,7 +339,14 @@ export {
   sanitizeRedPacketCount,
 } from "./red-packet";
 export type {
+  FlareDisplayName,
+  FlareDisplayNameEntity,
+  FlareDisplayNameSource,
+} from "./display-name";
+export { flareIdTail } from "./display-name";
+export type {
   FlareLocationProvider,
+  FlareLocationCardLines,
   FlareLocationCoordinate,
   FlareLocationAddress,
   FlareLocationPlace,
@@ -347,6 +354,7 @@ export type {
   FlareLocationMapLinks,
 } from "./location";
 export {
+  FLARE_LOCATION_CARD_MAP,
   FLARE_LOCATION_CURRENT_ID,
   FLARE_LOCATION_OSM_ZOOM,
   isValidFlareLocation,
@@ -356,6 +364,7 @@ export {
   flareLocationProviderFrom,
   flareLocationWebMapUrl,
   flareLocationCoordinateLabel,
+  flareLocationCardLines,
   flareLocationDistanceLabel,
   flareLocationPreviewSize,
 } from "./location";

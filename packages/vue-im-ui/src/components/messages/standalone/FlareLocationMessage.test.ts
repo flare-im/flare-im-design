@@ -10,12 +10,14 @@ import FlareContactMessage from "./FlareContactMessage.vue";
 
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/location-vectors.json"), "utf8")) as {
   links: Array<{ id: string; input: { latitude: number; longitude: number; title?: string; provider?: "osm" | "amap" }; web: string | null }>;
+  cardLines: Array<{ id: string; input: { title: string; address: string; latitude?: number; longitude?: number }; lines: Record<"zh-CN" | "en-US", string[]> }>;
+  cardMap: { width: number; height: number };
 };
 
-function render(component: unknown, props: Record<string, unknown>) {
+function render(component: unknown, props: Record<string, unknown>, locale = "zh-CN") {
   return mount(defineComponent({
     setup() {
-      useFlareI18nProvider("zh-CN");
+      useFlareI18nProvider(locale);
       return () => h(component as never, props);
     },
   }));
@@ -63,6 +65,34 @@ describe("FlareLocationMessage", () => {
       expect(link.attributes("target")).toBe("_blank");
       expect(link.attributes("rel")).toBe("noopener noreferrer");
     }
+  });
+
+  it.each(vectors.cardLines.flatMap((v) => (["zh-CN", "en-US"] as const).map((locale) => [`${v.id} ${locale}`, v, locale] as const)))(
+    "draws the shared card lines: %s",
+    (_, v, locale) => {
+      const card = render(FlareLocationMessage, v.input, locale);
+      const drawn = card.findAll(".fm-loc__meta > *").map((line) => line.text());
+      expect(drawn).toEqual(v.lines[locale]);
+      expect(card.get(".fm-loc").attributes("aria-label")).toBe(v.lines[locale].join(", "));
+    },
+  );
+
+  it("never draws a blank bold line for a place without a name", () => {
+    const untitled = render(FlareLocationMessage, { latitude: 39.9087, longitude: 116.3975, title: "", address: "" });
+    const bold = untitled.get("b.fm-loc__title");
+    expect(bold.text()).toBe("39.90870, 116.39750");
+    expect(untitled.find(".fm-loc__address").exists()).toBe(false);
+    const nowhere = render(FlareLocationMessage, { title: "  ", address: "" });
+    expect(nowhere.get("b.fm-loc__title").text()).toBe("位置");
+    expect(nowhere.findAll(".fm-loc__meta > *").every((line) => line.text().trim() !== "")).toBe(true);
+    const english = render(FlareLocationMessage, { latitude: 0, longitude: 0, title: "" }, "en-US");
+    expect(english.get("b.fm-loc__title").text()).toBe("Location");
+  });
+
+  it("draws its map at the shared card size", () => {
+    const card = render(FlareLocationMessage, { latitude: 39.9087, longitude: 116.3975, title: "天安门广场" });
+    expect(card.get(".fm-loc").attributes("style")).toContain(`width: ${vectors.cardMap.width}px`);
+    expect(card.get(".fm-loc__map").attributes("style")).toContain(`height: ${vectors.cardMap.height}px`);
   });
 
   it("is a button that hands the tap to a host that listens", async () => {

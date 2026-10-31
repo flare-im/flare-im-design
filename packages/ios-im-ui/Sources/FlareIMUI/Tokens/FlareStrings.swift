@@ -222,6 +222,8 @@ public struct FlareStrings: Sendable {
     public var locationMapUnavailable: String
     public var locationOpenInMaps: String
     public var locationCurrent: String
+    /// The first line of a location card with no title, no address and no coordinate (spec/location-vectors.json cardLines).
+    public var locationCardPlace: String
     // Contact picker
     public var contactPickerTitle: String
     public var contactPickerFriends: String
@@ -897,6 +899,18 @@ public struct FlareStrings: Sendable {
     public var systemEventGroupMuted: String
     /// en: "All members were unmuted"
     public var systemEventGroupUnmuted: String
+    // 名字（spec/display-name-vectors.json，flareDisplayNameText）：没有名字的人、群与各类会话，与成员拼接
+    public var displayNameUser: @Sendable (String) -> String
+    public var displayNameUnknownUser: String
+    public var displayNameGroup: String
+    public var displayNameSystem: String
+    public var displayNameAi: String
+    public var displayNameCustomer: String
+    public var displayNameChannel: String
+    public var displayNameBroadcast: String
+    public var displayNameTemp: String
+    public var displayNameSeparator: String
+    public var displayNameMembersMore: @Sendable (String, Int) -> String
     // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
     // `{count}`, `{time}` and `{n}` are replaced by the component.
     public var pluginViewSubmit: String
@@ -1213,6 +1227,7 @@ public struct FlareStrings: Sendable {
         locationMapUnavailable: String = "地图暂不可用",
         locationOpenInMaps: String = "在地图中打开",
         locationCurrent: String = "当前位置",
+        locationCardPlace: String = "位置",
         contactPickerTitle: String = "选择联系人",
         contactPickerFriends: String = "好友",
         contactPickerGroupMembers: String = "群成员",
@@ -1726,6 +1741,17 @@ public struct FlareStrings: Sendable {
         systemEventGroupMemberRolesChanged: String = "有成员的群角色已变更",
         systemEventGroupMuted: String = "已开启全员禁言",
         systemEventGroupUnmuted: String = "已解除全员禁言",
+        displayNameUser: @escaping @Sendable (String) -> String = { "用户 \($0)" },
+        displayNameUnknownUser: String = "未知用户",
+        displayNameGroup: String = "群聊",
+        displayNameSystem: String = "系统通知",
+        displayNameAi: String = "AI 助手",
+        displayNameCustomer: String = "客服",
+        displayNameChannel: String = "频道",
+        displayNameBroadcast: String = "广播",
+        displayNameTemp: String = "临时会话",
+        displayNameSeparator: String = "、",
+        displayNameMembersMore: @escaping @Sendable (String, Int) -> String = { "\($0)等 \($1) 人" },
         pluginViewSubmit: String = "提交",
         pluginViewEnded: String = "已结束",
         pluginViewDeadlinePassed: String = "已截止",
@@ -2016,6 +2042,7 @@ public struct FlareStrings: Sendable {
         self.locationMapUnavailable = locationMapUnavailable
         self.locationOpenInMaps = locationOpenInMaps
         self.locationCurrent = locationCurrent
+        self.locationCardPlace = locationCardPlace
         self.contactPickerTitle = contactPickerTitle
         self.contactPickerFriends = contactPickerFriends
         self.contactPickerGroupMembers = contactPickerGroupMembers
@@ -2491,6 +2518,17 @@ public struct FlareStrings: Sendable {
         self.systemEventGroupMemberRolesChanged = systemEventGroupMemberRolesChanged
         self.systemEventGroupMuted = systemEventGroupMuted
         self.systemEventGroupUnmuted = systemEventGroupUnmuted
+        self.displayNameUser = displayNameUser
+        self.displayNameUnknownUser = displayNameUnknownUser
+        self.displayNameGroup = displayNameGroup
+        self.displayNameSystem = displayNameSystem
+        self.displayNameAi = displayNameAi
+        self.displayNameCustomer = displayNameCustomer
+        self.displayNameChannel = displayNameChannel
+        self.displayNameBroadcast = displayNameBroadcast
+        self.displayNameTemp = displayNameTemp
+        self.displayNameSeparator = displayNameSeparator
+        self.displayNameMembersMore = displayNameMembersMore
         self.pluginViewSubmit = pluginViewSubmit
         self.pluginViewEnded = pluginViewEnded
         self.pluginViewDeadlinePassed = pluginViewDeadlinePassed

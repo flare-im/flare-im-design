@@ -1039,6 +1039,47 @@
       "kits": [
         "ios"
       ]
+    },
+    {
+      "field": "displayNameUser",
+      "args": [
+        "9876"
+      ],
+      "en": "User 9876",
+      "zh": "用户 9876",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "displayNameMembersMore",
+      "args": [
+        "张三、李四、王五",
+        8
+      ],
+      "en": "张三、李四、王五 and 8 others",
+      "zh": "张三、李四、王五等 8 人",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "displayNameMembersMore",
+      "args": [
+        "Alice, Bob",
+        1
+      ],
+      "en": "Alice, Bob and 1 other",
+      "zh": "Alice, Bob等 1 人",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
     }
   ]
 }

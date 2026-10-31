@@ -739,7 +739,9 @@ private struct FlareFileKeyDisc<Content: View>: View {
 /// location — the static map over title / address. Spec: Message/LocationMessage (`LocationMessageView`).
 ///
 /// Without `snapshotUrl`, and while it loads or when it fails, the card draws a map ground with a centre pin, never a
-/// blank. Without an address the line under the title is the coordinate (``FlareLocationFormat/label``).
+/// blank. Under it the place's lines (``FlareLocationFormat/cardLines(title:address:latitude:longitude:place:)``,
+/// `cardLines`): never a blank line — without a title the address moves up, the coordinate stands in for what is
+/// missing, and without any of them the card reads `locationCardPlace`.
 ///
 /// A tap goes to `onOpen`. Without it the card opens Apple Maps at the point (``FlareLocationFormat/appleLink``, the
 /// `apple` column of `spec/location-vectors.json`); a card with no valid coordinate and no `onOpen` has no tap.
@@ -761,9 +763,9 @@ public struct LocationMessageView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.flareInMessageCardShell) private var inCardShell
 
-    /// The card's width and its map's height.
-    static let width: CGFloat = 264
-    static let mapHeight: CGFloat = 120
+    /// The card's width and its map's height (`cardMap`).
+    static let width = CGFloat(FlareLocationFormat.cardMapWidth)
+    static let mapHeight = CGFloat(FlareLocationFormat.cardMapHeight)
 
     public init(title: String, address: String = "", latitude: Double? = nil, longitude: Double? = nil,
                 snapshotUrl: String? = nil, provider: FlareLocationProvider = .osm, onOpen: (() -> Void)? = nil) {
@@ -779,13 +781,6 @@ public struct LocationMessageView: View {
         return URL(string: link)
     }
 
-    /// The line under the title: the address, else the coordinate, else nothing.
-    static func detail(address: String, latitude: Double?, longitude: Double?) -> String {
-        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty { return trimmed }
-        guard let latitude, let longitude else { return "" }
-        return FlareLocationFormat.label(latitude: latitude, longitude: longitude) ?? ""
-    }
 
     private var tap: (() -> Void)? {
         if let onOpen { return onOpen }
@@ -795,16 +790,17 @@ public struct LocationMessageView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let detail = Self.detail(address: address, latitude: latitude, longitude: longitude)
+        let lines = FlareLocationFormat.cardLines(title: title, address: address, latitude: latitude,
+                                                  longitude: longitude, place: strings.locationCardPlace)
         let card = VStack(spacing: 0) {
             FlareMapSnapshot(url: snapshotUrl, attribution: FlareMapSnapshot.attribution(provider, strings))
                 .frame(height: Self.mapHeight).frame(maxWidth: .infinity).clipped()
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
-                Text(title).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
+                Text(lines.primary).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
                     .foregroundColor(bodyForeground ?? colors.textPrimary).lineLimit(2)
-                if !detail.isEmpty {
-                    Text(detail).font(.system(size: FlareSizes.fontSizeXs * textScale))
+                if let secondary = lines.secondary {
+                    Text(secondary).font(.system(size: FlareSizes.fontSizeXs * textScale))
                         .foregroundColor(bodyForeground ?? colors.textTertiary).lineLimit(2)
                 }
             }
@@ -819,7 +815,7 @@ public struct LocationMessageView: View {
             Button(action: tap) { card }
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel(detail.isEmpty ? title : "\(title), \(detail)")
+                .accessibilityLabel(lines.secondary.map { "\(lines.primary), \($0)" } ?? lines.primary)
                 .accessibilityHint(strings.locationOpenInMaps)
         } else {
             card.accessibilityElement(children: .combine)

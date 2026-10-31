@@ -94,6 +94,7 @@ extension FlareStrings {
         s.previewForwardCount = { englishCount($0, "[Forward] {count} message", "[Forward] {count} messages") }
         s.previewImageGroupCount = { "[Album] \($0)" }
         s.systemEventGroupProfileUpdatedNamed = { "Group renamed to \($0)" }
+        s.displayNameMembersMore = { names, count in names + englishCount(count, " and {count} other", " and {count} others") }
         return s
     }
 }

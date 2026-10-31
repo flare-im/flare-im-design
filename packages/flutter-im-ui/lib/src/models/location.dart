@@ -117,14 +117,64 @@ class FlareLocationMapLinks {
 }
 
 /// Whether a coordinate can be drawn and opened: finite, latitude -90..90,
-/// longitude -180..180.
+/// longitude -180..180, and not exactly 0, 0 — the wire writes an absent
+/// coordinate as 0, 0, and the SDK never sends it.
 bool isValidFlareLocation(double latitude, double longitude) =>
     latitude.isFinite &&
     longitude.isFinite &&
     latitude >= -90 &&
     latitude <= 90 &&
     longitude >= -180 &&
-    longitude <= 180;
+    longitude <= 180 &&
+    !(latitude == 0 && longitude == 0);
+
+/// The lines a location card draws under its map: [primary] always,
+/// [secondary] when there is one.
+@immutable
+class FlareLocationCardLines {
+  const FlareLocationCardLines(this.primary, [this.secondary]);
+
+  final String primary;
+  final String? secondary;
+
+  /// The lines as drawn, first to last.
+  List<String> get lines => [primary, ?secondary];
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlareLocationCardLines &&
+      other.primary == primary &&
+      other.secondary == secondary;
+
+  @override
+  int get hashCode => Object.hash(primary, secondary);
+}
+
+/// The lines a location card draws under its map
+/// (spec/location-vectors.json `cardLines`): the trimmed title over the
+/// trimmed address; a title alone over the coordinate label; an address alone
+/// moves up over the coordinate label; neither, the coordinate label alone, or
+/// [place] (`locationCardPlace`) without a valid coordinate. Never a blank
+/// line.
+FlareLocationCardLines flareLocationCardLines({
+  String? title,
+  String? address,
+  double? latitude,
+  double? longitude,
+  required String place,
+}) {
+  final name = (title ?? '').trim();
+  final line = (address ?? '').trim();
+  final label = flareLocationCoordinateLabel(
+    latitude ?? double.nan,
+    longitude ?? double.nan,
+  );
+  if (name.isNotEmpty) {
+    return FlareLocationCardLines(name, line.isEmpty ? label : line);
+  }
+  if (line.isNotEmpty) return FlareLocationCardLines(line, label);
+  return FlareLocationCardLines(label ?? place);
+}
 
 /// One coordinate in a link: 6 decimals, trailing zeros and a trailing point
 /// dropped, never "-0".

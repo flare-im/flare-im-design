@@ -3,15 +3,16 @@ import { computed, getCurrentInstance } from "vue";
 import LocationMapSurface from "./LocationMapSurface.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import {
-  flareLocationCoordinateLabel,
+  FLARE_LOCATION_CARD_MAP,
+  flareLocationCardLines,
   flareLocationMapLinks,
   type FlareLocationProvider,
 } from "../../../shared/contracts/location";
 
-// A location card: the static map (or a drawn map with a centre pin), then the place and its address.
-// With an `open` listener the card is a button and the host opens the place; without one it is a link
-// to the web map of the tenant's provider (spec/location-vectors.json `web`). A card without a valid
-// coordinate opens nothing.
+// A location card: the static map (or a drawn map with a centre pin), then the place and its address
+// (spec/location-vectors.json `cardLines`; the map area is `cardMap`). With an `open` listener the card is a
+// button and the host opens the place; without one it is a link to the web map of the tenant's provider
+// (spec/location-vectors.json `web`). A card without a valid coordinate opens nothing.
 const props = withDefaults(
   defineProps<{
     /** WGS-84 latitude, -90..90. */
@@ -38,9 +39,12 @@ const links = computed(() => flareLocationMapLinks({
   title: props.title,
   provider: props.provider,
 }));
-// Without an address the coordinate stands in, so the second line is never blank.
-const detail = computed(() => props.address.trim() || flareLocationCoordinateLabel(props.latitude, props.longitude) || "");
-const label = computed(() => [props.title, detail.value].filter(Boolean).join(", "));
+// Never a blank line: without a title the address moves up, the coordinate stands in for what is missing, and
+// without any of them the card reads 「位置」.
+const lines = computed(() => flareLocationCardLines(props, t("location.place")));
+const label = computed(() => [lines.value.primary, lines.value.secondary].filter(Boolean).join(", "));
+const cardStyle = { width: `${FLARE_LOCATION_CARD_MAP.width}px` };
+const mapStyle = { height: `${FLARE_LOCATION_CARD_MAP.height}px` };
 const tag = computed(() => (hostOpens.value ? "button" : links.value ? "a" : "div"));
 // OpenStreetMap's licence (ODbL) asks for its credit wherever its map shows; AMap's static map carries its own.
 const attribution = computed(() => (props.provider === "osm" ? t("location.osmAttribution") : undefined));
@@ -51,6 +55,7 @@ const attribution = computed(() => (props.provider === "osm" ? t("location.osmAt
     :is="tag"
     class="fm-loc"
     :class="{ 'is-interactive': tag !== 'div' }"
+    :style="cardStyle"
     :type="tag === 'button' ? 'button' : undefined"
     :href="tag === 'a' ? links?.web : undefined"
     :target="tag === 'a' ? '_blank' : undefined"
@@ -60,10 +65,10 @@ const attribution = computed(() => (props.provider === "osm" ? t("location.osmAt
     :title="tag === 'div' ? undefined : t('location.openInMaps')"
     @click="hostOpens && emit('open')"
   >
-    <LocationMapSurface class="fm-loc__map" :src="snapshotUrl || undefined" :attribution="attribution" />
+    <LocationMapSurface class="fm-loc__map" :style="mapStyle" :src="snapshotUrl || undefined" :attribution="attribution" />
     <span class="fm-loc__meta">
-      <b class="fm-loc__title">{{ title }}</b>
-      <small v-if="detail" class="fm-loc__address">{{ detail }}</small>
+      <b class="fm-loc__title">{{ lines.primary }}</b>
+      <small v-if="lines.secondary" class="fm-loc__address">{{ lines.secondary }}</small>
     </span>
   </component>
 </template>
@@ -72,7 +77,6 @@ const attribution = computed(() => (props.provider === "osm" ? t("location.osmAt
 .fm-loc {
   display: flex;
   flex-direction: column;
-  width: 264px;
   max-width: 100%;
   padding: 0;
   overflow: hidden;
@@ -88,7 +92,7 @@ const attribution = computed(() => (props.provider === "osm" ? t("location.osmAt
 .fm-loc.is-interactive { cursor: pointer; }
 .fm-loc.is-interactive:hover { border-color: var(--flare-color-border-hover); }
 .fm-loc.is-interactive:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
-.fm-loc__map { height: 132px; flex: none; }
+.fm-loc__map { flex: none; }
 .fm-loc__meta {
   display: flex;
   flex-direction: column;

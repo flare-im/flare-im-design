@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../tokens/flare_strings.dart';
+import 'display_name.dart';
 import 'plural.dart';
 import 'server_clock.dart';
 
@@ -1412,10 +1413,9 @@ String flarePluginEntryGroupHeader(
   if (group.percent != null) '${group.percent}%',
 ].join(' · ');
 
-/// The name drawn for a user id the host could not resolve: its last 4
-/// characters.
-String flarePluginFallbackName(String userId) =>
-    userId.length > 4 ? userId.substring(userId.length - 4) : userId;
+/// The name drawn for a user id the host could not resolve: the id's tail,
+/// [flareIdTail] (its last 4 scalars).
+String flarePluginFallbackName(String userId) => flareIdTail(userId);
 
 // ── forms ──────────────────────────────────────────────────────────────────
 

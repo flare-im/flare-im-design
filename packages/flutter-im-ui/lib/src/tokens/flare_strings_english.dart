@@ -198,6 +198,16 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   currentDevice: 'This device',
   decrease: 'Decrease',
   delete: 'Delete',
+  displayNameAi: 'AI assistant',
+  displayNameBroadcast: 'Broadcast',
+  displayNameChannel: 'Channel',
+  displayNameCustomer: 'Customer service',
+  displayNameGroup: 'Group chat',
+  displayNameSeparator: ', ',
+  displayNameSystem: 'System notifications',
+  displayNameTemp: 'Temporary chat',
+  displayNameUnknownUser: 'Unknown user',
+  displayNameUser: _displayNameUserEnglish,
   download: 'Download',
   downloaded: 'Downloaded',
   downloading: 'Downloading',
@@ -327,6 +337,7 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   inviteCodeValid: 'Invite code accepted',
   like: 'Like',
   loading: 'Loading…',
+  locationCardPlace: 'Location',
   locationCurrent: 'Current location',
   locationDenied: 'Location unavailable — search for a place',
   locationLocateMe: 'Use current location',
@@ -775,6 +786,7 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   previewForwardCount: _previewForwardCountEnglish,
   previewImageGroupCount: _previewImageGroupCountEnglish,
   systemEventGroupProfileUpdatedNamed: _systemEventGroupProfileUpdatedNamedEnglish,
+  displayNameMembersMore: _displayNameMembersMoreEnglish,
   announcementReadBarReadCount: _announcementReadBarReadCountEnglish,
   groupDetailMemberCount: _groupDetailMemberCountEnglish,
   groupDetailInviteConfirm: _groupDetailInviteConfirmEnglish,
@@ -794,4 +806,5 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   momentReplyToComment: _momentReplyToCommentEnglish,
 );
 
+String _displayNameUserEnglish(String value) => 'User ' + value;
 String _packetFromSenderEnglish(String value) => 'Red packet from ' + value;

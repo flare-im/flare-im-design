@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { resolveFlareMessage } from "../i18n/messages";
 import {
+  FLARE_LOCATION_CARD_MAP,
+  flareLocationCardLines,
   flareLocationCoordinateLabel,
   flareLocationDistanceLabel,
   flareLocationMapLinks,
@@ -30,8 +33,16 @@ interface WebMapUrlVector {
   output: string | null;
 }
 
+interface CardLinesVector {
+  id: string;
+  input: { title: string; address: string; latitude?: number; longitude?: number };
+  lines: Record<"zh-CN" | "en-US", string[]>;
+}
+
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/location-vectors.json"), "utf8")) as {
   links: LinkVector[];
+  cardLines: CardLinesVector[];
+  cardMap: { width: number; height: number };
   label: LabelVector[];
   distance: DistanceVector[];
   previewSize: PreviewSizeVector[];
@@ -65,6 +76,19 @@ describe("location vectors (spec/location-vectors.json)", () => {
 
   it.each(vectors.webMapUrl.map((v) => [v.id, v] as const))("webMapUrl: %s", (_, v) => {
     expect(flareLocationWebMapUrl(v.input, v.provider)).toBe(v.output);
+  });
+
+  it.each(vectors.cardLines.flatMap((v) => (["zh-CN", "en-US"] as const).map((locale) => [`${v.id} ${locale}`, v, locale] as const)))(
+    "cardLines: %s",
+    (_, v, locale) => {
+      const lines = flareLocationCardLines(v.input, resolveFlareMessage(locale, "location.place"));
+      expect([lines.primary, ...(lines.secondary === null ? [] : [lines.secondary])]).toEqual(v.lines[locale]);
+    },
+  );
+
+  it("draws the card map at the shared size", () => {
+    expect(vectors.cardLines.length).toBeGreaterThanOrEqual(12);
+    expect(FLARE_LOCATION_CARD_MAP).toEqual(vectors.cardMap);
   });
 
   it("takes the location value a timeline reports, whose missing coordinate is NaN", () => {

@@ -32,6 +32,9 @@ final Map<String, _Call> _calls = {
   'selfSuffix': (s, a) => s.selfSuffix(_s(a[0])),
   'selectedCount': (s, a) => s.selectedCount(_i(a[0])),
   'packetFromSender': (s, a) => s.packetFromSender(_s(a[0])),
+  'displayNameUser': (s, a) => s.displayNameUser(_s(a[0])),
+  'displayNameMembersMore': (s, a) =>
+      s.displayNameMembersMore(_s(a[0]), _i(a[1])),
   'translatedBy': (s, a) => s.translatedBy(_s(a[0])),
   'pollOptionHint': (s, a) => s.pollOptionHint(_i(a[0])),
   'yearMonth': (s, a) => s.yearMonth(_i(a[0]), _i(a[1])),

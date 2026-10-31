@@ -7172,5 +7172,109 @@
       "ios"
     ],
     "zh": "语音暂时无法加载"
+  },
+  "displayNameUser": {
+    "en": "User ",
+    "zh": "用户 {idTail}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "appendArgumentKits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "displayNameUnknownUser": {
+    "en": "Unknown user",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知用户"
+  },
+  "displayNameGroup": {
+    "en": "Group chat",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "群聊"
+  },
+  "displayNameSystem": {
+    "en": "System notifications",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "系统通知"
+  },
+  "displayNameAi": {
+    "en": "AI assistant",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "AI 助手"
+  },
+  "displayNameCustomer": {
+    "en": "Customer service",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "客服"
+  },
+  "displayNameChannel": {
+    "en": "Channel",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "频道"
+  },
+  "displayNameBroadcast": {
+    "en": "Broadcast",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "广播"
+  },
+  "displayNameTemp": {
+    "en": "Temporary chat",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "临时会话"
+  },
+  "displayNameSeparator": {
+    "en": ", ",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "、"
+  },
+  "locationCardPlace": {
+    "en": "Location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "位置"
   }
 }

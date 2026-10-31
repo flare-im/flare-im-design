@@ -47,6 +47,9 @@ data class FlareLocationPlace(
 /** The links a location opens without a host handler, for one point (`spec/location-vectors.json`). */
 data class FlareLocationLinks(val web: String, val apple: String, val geo: String)
 
+/** The lines a location card draws under its map: [primary] always, [secondary] when there is one. */
+data class FlareLocationCardLines(val primary: String, val secondary: String?)
+
 /**
  * The location rules every kit shares (`spec/location-vectors.json`): the default links a location opens, the
  * coordinate line shown when there is no map, and a place's distance. Numbers are written with [Locale.ROOT], so a
@@ -56,10 +59,17 @@ object FlareLocationFormat {
     /** The zoom the OpenStreetMap link opens at (`osmZoom`). */
     const val OSM_ZOOM = 17
 
-    /** Whether the pair is a coordinate: finite, latitude within ±90 and longitude within ±180. */
+    /** The map area of a [LocationMessage] (`cardMap`); the social SDK asks for its static map at twice it (528×264). */
+    const val CARD_MAP_WIDTH = 264
+    const val CARD_MAP_HEIGHT = 132
+
+    /**
+     * Whether the pair is a coordinate: finite, latitude within ±90, longitude within ±180, and not exactly 0, 0 — the
+     * wire writes an absent coordinate as 0, 0, and the SDK never sends it.
+     */
     fun isValid(latitude: Double?, longitude: Double?): Boolean =
         latitude != null && longitude != null && latitude.isFinite() && longitude.isFinite() &&
-            latitude in -90.0..90.0 && longitude in -180.0..180.0
+            latitude in -90.0..90.0 && longitude in -180.0..180.0 && !(latitude == 0.0 && longitude == 0.0)
 
     /** A coordinate in a link: fixed to 6 decimals, trailing zeros and a trailing point dropped, `-0` written `0`. */
     fun coordinate(value: Double): String {
@@ -131,6 +141,22 @@ object FlareLocationFormat {
         if (!isValid(latitude, longitude)) return null
         fun fixed(value: Double): String = String.format(Locale.ROOT, "%.5f", value).let { if (it == "-0.00000") "0.00000" else it }
         return "${fixed(latitude)}, ${fixed(longitude)}"
+    }
+
+    /**
+     * The lines a [LocationMessage] draws under its map (`cardLines`): the trimmed title over the trimmed address; a title
+     * alone over the coordinate label; an address alone moves up over the coordinate label; neither, the coordinate label
+     * alone, or [place] (`locationCardPlace`) without a valid coordinate. Never a blank line.
+     */
+    fun cardLines(title: String?, address: String?, latitude: Double?, longitude: Double?, place: String): FlareLocationCardLines {
+        val name = title?.trim().orEmpty()
+        val line = address?.trim().orEmpty()
+        val label = if (latitude != null && longitude != null) label(latitude, longitude) else null
+        return when {
+            name.isNotEmpty() -> FlareLocationCardLines(name, line.ifEmpty { null } ?: label)
+            line.isNotEmpty() -> FlareLocationCardLines(line, label)
+            else -> FlareLocationCardLines(label ?: place, null)
+        }
     }
 
     /**

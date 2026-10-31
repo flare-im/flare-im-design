@@ -6,6 +6,8 @@
  * spec/plugin-view-vectors.json.
  */
 
+import { flareIdTail } from "./display-name";
+
 export type FlarePluginTone = "neutral" | "info" | "success" | "warning" | "danger";
 export type FlarePluginActionStyle = "primary" | "danger";
 
@@ -372,9 +374,9 @@ export function flarePluginReasonLine(reasonText: string, displayName?: string):
   return name ? `${name} · ${reasonText}` : reasonText;
 }
 
-/** The name drawn for a user id the host could not resolve: its last 4 characters. */
+/** The name drawn for a user id the host could not resolve: the id's tail, {@link flareIdTail} (its last 4 scalars). */
 export function flarePluginFallbackName(userId: string): string {
-  return userId.length > 4 ? userId.slice(-4) : userId;
+  return flareIdTail(userId);
 }
 
 // ── badges and the choices limit ─────────────────────────────────────────────

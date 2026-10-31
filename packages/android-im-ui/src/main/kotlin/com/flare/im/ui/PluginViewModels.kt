@@ -590,8 +590,8 @@ internal data class PluginRowLines(val primary: String, val secondary: String?)
 internal object PluginViewFormat {
     private val MONTHS = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
-    /** The name drawn for a user id the host could not resolve: its last 4 characters (the whole id when shorter). */
-    fun fallbackName(userId: String): String = if (userId.length > 4) userId.takeLast(4) else userId
+    /** The name drawn for a user id the host could not resolve: the id's tail, [flareIdTail] (its last 4 scalars). */
+    fun fallbackName(userId: String): String = flareIdTail(userId)
 
     /** The user drawn for an id: the host's answer, else initials over the fallback name. */
     fun user(userId: String, resolved: Map<String, PluginUser>): PluginUser = resolved[userId] ?: PluginUser(fallbackName(userId))

@@ -829,8 +829,10 @@ class FlareFileMessage extends StatelessWidget {
 /// place and its address. The card is a control only with [onOpen]; inside
 /// [FlareMessageContentView] a host without its own handler gets the default
 /// map link of the platform (`spec/location-vectors.json`) through `onOpenLink`.
-/// Without an address the coordinate line stands in, so the second line is
-/// never blank. Spec: Message/LocationMessage.
+/// The lines under the map are [flareLocationCardLines] (`cardLines`): never a
+/// blank line — without a title the address moves up, the coordinate stands in
+/// for what is missing, and without any of them the card reads
+/// `locationCardPlace`. Spec: Message/LocationMessage.
 class FlareLocationMessage extends StatelessWidget {
   const FlareLocationMessage({
     super.key,
@@ -860,8 +862,8 @@ class FlareLocationMessage extends StatelessWidget {
   final FlareLocationProvider provider;
   final VoidCallback? onOpen;
 
-  /// The card's width and its map's height; request the snapshot at twice
-  /// that.
+  /// The card's width and its map's height (`cardMap`); the social SDK asks
+  /// for the snapshot at twice that.
   static const Size mapSize = Size(264, 132);
 
   /// The default links of this card, or null without a valid coordinate.
@@ -876,13 +878,13 @@ class FlareLocationMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    final detail = address.trim().isNotEmpty
-        ? address.trim()
-        : (flareLocationCoordinateLabel(
-                latitude ?? double.nan,
-                longitude ?? double.nan,
-              ) ??
-              '');
+    final lines = flareLocationCardLines(
+      title: title,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      place: strings.locationCardPlace,
+    );
     final card = ClipRRect(
       borderRadius: _bubbleRadius(),
       child: Container(
@@ -917,7 +919,7 @@ class FlareLocationMessage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    title,
+                    lines.primary,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -926,9 +928,9 @@ class FlareLocationMessage extends StatelessWidget {
                       color: c.textPrimary,
                     ),
                   ),
-                  if (detail.isNotEmpty)
+                  if (lines.secondary case final secondary?)
                     Text(
-                      detail,
+                      secondary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -943,7 +945,7 @@ class FlareLocationMessage extends StatelessWidget {
         ),
       ),
     );
-    final label = [title, detail].where((part) => part.isNotEmpty).join(', ');
+    final label = lines.lines.join(', ');
     return Semantics(
       container: true,
       button: onOpen != null,

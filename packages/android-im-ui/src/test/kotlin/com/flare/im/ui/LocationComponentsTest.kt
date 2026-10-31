@@ -117,10 +117,32 @@ class LocationComponentsTest {
 
     // Message card
 
-    @Test fun theLineUnderTheTitleIsTheAddressElseTheCoordinate() {
-        assertEquals("杭州", locationMessageDetail(" 杭州 ", 30.2741, 120.1551))
-        assertEquals("30.27410, 120.15510", locationMessageDetail("", 30.2741, 120.1551))
-        assertEquals("", locationMessageDetail("", null, null))
+    @Test fun cardLinesFollowTheSharedTable() {
+        val table = vectors()
+        val rows = table["cardLines"] as List<*>
+        assertTrue(rows.size >= 12, "the shared table lost cases: ${rows.size}")
+        for (raw in rows) {
+            val row = raw as Map<*, *>
+            val id = row["id"] as String
+            val input = row["input"] as Map<*, *>
+            val expected = row["lines"] as Map<*, *>
+            for ((locale, strings) in listOf("zh-CN" to s, "en-US" to flareStringsEnglish())) {
+                val lines = FlareLocationFormat.cardLines(
+                    input["title"] as String?, input["address"] as String?,
+                    (input["latitude"] as Number?)?.toDouble(), (input["longitude"] as Number?)?.toDouble(),
+                    strings.locationCardPlace,
+                )
+                assertEquals(expected[locale], listOfNotNull(lines.primary, lines.secondary), "$id $locale")
+            }
+        }
+    }
+
+    @Test fun theCardMapIsTheSharedSize() {
+        val map = vectors()["cardMap"] as Map<*, *>
+        assertEquals((map["width"] as Number).toInt(), FlareLocationFormat.CARD_MAP_WIDTH)
+        assertEquals((map["height"] as Number).toInt(), FlareLocationFormat.CARD_MAP_HEIGHT)
+        assertEquals(FlareLocationFormat.CARD_MAP_WIDTH.toFloat(), LOCATION_CARD_WIDTH.value)
+        assertEquals(FlareLocationFormat.CARD_MAP_HEIGHT.toFloat(), LOCATION_MAP_HEIGHT.value)
     }
 
     @Test fun theCardOpensTheMapAppElseTheWebMap() {

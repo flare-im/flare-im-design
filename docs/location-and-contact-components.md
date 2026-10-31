@@ -17,8 +17,18 @@
 
 `latitude`、`longitude`（WGS-84）、`title`、`address?`、`snapshotUrl?`、`provider`（`osm` / `amap`，默认 `osm`）；回调 `open`。
 
-- 上方地图区 264 × 132：有 `snapshotUrl` 时画静态图（地图代理签名、自带中心点），没有或加载失败时画地图底纹（街区网格加两条路，取主题面色）和中心点，不留空白。静态图按两倍尺寸请求。
-- 下方地点名一行、地址一行；没有地址时显示坐标行（vectors → `label`，如「39.90870, 116.39750」）。
+- 上方地图区 264 × 132（vectors → `cardMap`，四端一致）：有 `snapshotUrl` 时画静态图（地图代理签名、自带中心点），没有或加载失败时画地图底纹（街区网格加两条路，取主题面色）和中心点，不留空白。社交 SDK 按两倍尺寸（528 × 264）请求静态图。
+- 下方按 vectors → `cardLines` 画一到两行，不画空白行（四端同一个纯函数：Vue `flareLocationCardLines(location, place)`，SwiftUI `FlareLocationFormat.cardLines(title:address:latitude:longitude:place:)`，Compose `FlareLocationFormat.cardLines(title, address, latitude, longitude, place)`，Flutter `flareLocationCardLines(title:, address:, latitude:, longitude:, place:)`）：
+
+| 地点名 | 地址 | 第一行 | 第二行 |
+|---|---|---|---|
+| 有 | 有 | 地点名 | 地址 |
+| 有 | 空 | 地点名 | 坐标行（vectors → `label`，如「39.90870, 116.39750」） |
+| 空 | 有 | 地址 | 坐标行 |
+| 空 | 空，坐标有效 | 坐标行 | 不画 |
+| 空 | 空，没有坐标 | 本地化的「位置」（Vue `location.place`，原生 `locationCardPlace`） | 不画 |
+
+  地点名与地址先去首尾空白；没有坐标时坐标行那一行不画。按社交 SDK 的 `create_location_message` 发出的消息不会出现「地点名空、地址有」，这一行是收到旧格式或其他客户端消息时的兜底。
 - **破坏性**：`mapImage` 改名为 `snapshotUrl`。
 - 点击：宿主处理 `open` 时交给宿主。不处理时按 vectors → `links` 打开默认链接：
 
@@ -29,8 +39,8 @@
 | Compose | `geo`：`geo:纬,经?q=纬,经(标题)`（没有标题时不带括号） |
 | Flutter | 按运行平台（vectors → `flutterTargets`）：iOS、macOS 用 `apple`，Android 用 `geo`，其余与 Web 用 `web`。Flutter Kit 不自带 URL 启动器，`FlareMessageContentView` 把链接交给宿主的 `onOpenLink` |
 
-- 坐标：保留 6 位小数，去掉末尾的 0 和小数点，负零写作 0；坐标不是有限数或超出范围时不生成链接，卡片不可点。标题去掉首尾空白后按 UTF-8 百分号编码，只保留 `A-Z a-z 0-9 - . _ ~`，空格写作 `%20`。消息里一律是 WGS-84，高德链接用 `coordinate=wgs84` 告诉对方。
-- 时间线适配层把线上的 0, 0 当作没有坐标（proto3 不写坐标时就是 0）。
+- 坐标：保留 6 位小数，去掉末尾的 0 和小数点，负零写作 0；坐标不是有限数、超出范围或恰为 0, 0 时不生成链接，卡片不可点。标题去掉首尾空白后按 UTF-8 百分号编码，只保留 `A-Z a-z 0-9 - . _ ~`，空格写作 `%20`。消息里一律是 WGS-84，高德链接用 `coordinate=wgs84` 告诉对方。
+- 0, 0 在四端都当作没有坐标：没有链接、没有坐标行，选点器也不能发出它（proto3 不写坐标时就是 0，社交 SDK 也不会发出 0, 0）。
 
 ### 宿主自己打开地点：网页地图地址与服务商
 

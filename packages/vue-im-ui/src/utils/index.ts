@@ -15,6 +15,7 @@ export type { MessageActionAvailability } from "./messageActionAvailability";
 export * from "./contentData";
 export * from "./contentElem";
 export * from "./messagePreview";
+export * from "./displayName";
 export * from "./locateMessage";
 export * from "./typingSignal";
 export * from "./draftAutosave";

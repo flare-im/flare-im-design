@@ -7895,8 +7895,8 @@
           "type": "number",
           "required": false,
           "description": {
-            "en": "WGS-84 latitude, -90..90. Without a valid pair the card opens nothing.",
-            "zh": "WGS-84 纬度，-90..90。坐标无效时卡片不可打开。"
+            "en": "WGS-84 latitude, -90..90. Without a valid pair (0, 0 is none: the wire writes an absent coordinate so) the card opens nothing.",
+            "zh": "WGS-84 纬度，-90..90。坐标无效时卡片不可打开；0, 0 视为没有坐标（线上不写坐标时就是 0, 0）。"
           }
         },
         {
@@ -7913,8 +7913,8 @@
           "type": "string",
           "required": true,
           "description": {
-            "en": "Place name.",
-            "zh": "地点名。"
+            "en": "Place name. Blank (after trimming), the address moves up into its line, else the coordinate label, else the localized word for a location (locationCardPlace / location.place) — never a blank line (spec/location-vectors.json cardLines).",
+            "zh": "地点名。去掉首尾空白后为空时，第一行改为地址，没有地址时为坐标行，没有坐标时为本地化的「位置」（locationCardPlace / location.place），不画空白行（spec/location-vectors.json 的 cardLines）。"
           }
         },
         {
@@ -7922,8 +7922,8 @@
           "type": "string",
           "required": false,
           "description": {
-            "en": "Full address line; without it the coordinate line (spec/location-vectors.json label) stands in.",
-            "zh": "详细地址；没有时显示坐标行（spec/location-vectors.json 的 label），第二行不留空。"
+            "en": "Full address line; without it the coordinate line (spec/location-vectors.json label) stands in under the title, and a card without a coordinate draws one line (cardLines).",
+            "zh": "详细地址；没有时标题下显示坐标行（spec/location-vectors.json 的 label），没有坐标时只画一行（cardLines），第二行不留空。"
           }
         },
         {
@@ -7965,8 +7965,8 @@
         }
       },
       "notes": {
-        "en": "Without a host `open` handler the card opens its default link from spec/location-vectors.json: Vue the `web` link by provider (OpenStreetMap marker or uri.amap.com marker, WGS-84), SwiftUI the `apple` link (maps.apple.com), Compose the `geo:` URI; Flutter has no URL launcher, so MessageContentView hands the platform's link (flutterTargets) to `onOpenLink`. The map area is 264 × 132 logical px: request the snapshot at twice that. The snapshot carries its own centre marker (the geo proxy draws it); the kit draws its pin only on the texture. `mapImage` is gone (breaking): it is `snapshotUrl`. A coordinate of exactly 0, 0 from the wire is treated as no coordinate by the timeline adapters. With provider osm the static map carries OpenStreetMap's credit (ODbL): locationOsmAttribution (\"© OpenStreetMap contributors\", the same in every language) as a small line in the bottom-right corner of the picture, secondary text on a translucent ground, clear of the centre marker; not on the drawn texture, and never for amap. A host that opens the place itself (a tapped card under the tenant's map service) takes the web map from the kit instead of rebuilding the rule: `flareLocationWebMapUrl` on all four — Vue `flareLocationWebMapUrl(location, provider?)` (./contracts), Flutter `flareLocationWebMapUrl(content, provider:)`, SwiftUI `flareLocationWebMapUrl(_:provider:)`, Compose `flareLocationWebMapUrl(location, provider)`. The provider argument wins over the content's, which is osm when it names none; the answer is null without a coordinate — one of the pair missing, out of range, or the wire's 0, 0 (spec/location-vectors.json webMapUrl). A `chat.location` config value becomes a provider through `flareLocationProviderFrom(value)` on all four: amap (trimmed, any case) is AMap, anything else OpenStreetMap (providerFrom).",
-        "zh": "宿主不处理 `open` 时按 spec/location-vectors.json 打开默认链接：Vue 按服务商打开 `web` 链接（OpenStreetMap 标记或 uri.amap.com 标记，WGS-84），SwiftUI 打开 `apple` 链接（maps.apple.com），Compose 打开 `geo:` URI；Flutter 没有 URL 启动器，由 MessageContentView 按运行平台（flutterTargets）把链接交给 `onOpenLink`。地图区 264 × 132 逻辑像素，静态图按两倍请求。静态图自带中心点（地图代理绘制），Kit 只在底纹上画中心点。**破坏性**：`mapImage` 改名为 `snapshotUrl`。时间线适配层把线上的 0, 0 当作没有坐标。provider 为 osm 时，静态图上显示 OpenStreetMap 的署名（ODbL）：文案 locationOsmAttribution（「© OpenStreetMap contributors」，各语言相同），在图片右下角一行小字，secondary 文本色、半透明底，不遮中心点；手绘底图上不显示，amap 时不显示。宿主自己打开地点时（按租户地图服务打开被点的卡片），从 Kit 取网页地图地址，不再照抄规则：四端都叫 `flareLocationWebMapUrl` —— Vue `flareLocationWebMapUrl(location, provider?)`（./contracts），Flutter `flareLocationWebMapUrl(content, provider:)`，SwiftUI `flareLocationWebMapUrl(_:provider:)`，Compose `flareLocationWebMapUrl(location, provider)`。传了 provider 参数时以它为准，否则用内容里的，内容没写时为 osm；没有坐标时返回空 —— 缺一个、超出范围，或线上的 0, 0（spec/location-vectors.json 的 webMapUrl）。`chat.location` 的配置值经四端同名的 `flareLocationProviderFrom(value)` 转成服务商：amap（去掉首尾空白、不区分大小写）为高德，其他一律为 OpenStreetMap（providerFrom）。"
+        "en": "Without a host `open` handler the card opens its default link from spec/location-vectors.json: Vue the `web` link by provider (OpenStreetMap marker or uri.amap.com marker, WGS-84), SwiftUI the `apple` link (maps.apple.com), Compose the `geo:` URI; Flutter has no URL launcher, so MessageContentView hands the platform's link (flutterTargets) to `onOpenLink`. The map area is 264 × 132 logical px on all four kits (spec/location-vectors.json cardMap): the social SDK requests the snapshot at twice that, 528 × 264. The snapshot carries its own centre marker (the geo proxy draws it); the kit draws its pin only on the texture. `mapImage` is gone (breaking): it is `snapshotUrl`. A coordinate of exactly 0, 0 is no coordinate on all four kits — no link, no coordinate label (the wire writes an absent coordinate as 0, 0, and the SDK never sends it). Under the map the card draws `cardLines`: title / address, title / coordinate, address / coordinate, the coordinate alone, or the localized word for a location alone — never a blank line. With provider osm the static map carries OpenStreetMap's credit (ODbL): locationOsmAttribution (\"© OpenStreetMap contributors\", the same in every language) as a small line in the bottom-right corner of the picture, secondary text on a translucent ground, clear of the centre marker; not on the drawn texture, and never for amap. A host that opens the place itself (a tapped card under the tenant's map service) takes the web map from the kit instead of rebuilding the rule: `flareLocationWebMapUrl` on all four — Vue `flareLocationWebMapUrl(location, provider?)` (./contracts), Flutter `flareLocationWebMapUrl(content, provider:)`, SwiftUI `flareLocationWebMapUrl(_:provider:)`, Compose `flareLocationWebMapUrl(location, provider)`. The provider argument wins over the content's, which is osm when it names none; the answer is null without a coordinate — one of the pair missing, out of range, or the wire's 0, 0 (spec/location-vectors.json webMapUrl). A `chat.location` config value becomes a provider through `flareLocationProviderFrom(value)` on all four: amap (trimmed, any case) is AMap, anything else OpenStreetMap (providerFrom).",
+        "zh": "宿主不处理 `open` 时按 spec/location-vectors.json 打开默认链接：Vue 按服务商打开 `web` 链接（OpenStreetMap 标记或 uri.amap.com 标记，WGS-84），SwiftUI 打开 `apple` 链接（maps.apple.com），Compose 打开 `geo:` URI；Flutter 没有 URL 启动器，由 MessageContentView 按运行平台（flutterTargets）把链接交给 `onOpenLink`。四端地图区都是 264 × 132 逻辑像素（spec/location-vectors.json 的 cardMap），社交 SDK 按两倍（528 × 264）请求静态图。静态图自带中心点（地图代理绘制），Kit 只在底纹上画中心点。**破坏性**：`mapImage` 改名为 `snapshotUrl`。四端都把 0, 0 当作没有坐标：不生成链接，也没有坐标行（线上不写坐标时就是 0, 0，SDK 也不会发出它）。地图下方按 `cardLines` 画：地点名 / 地址、地点名 / 坐标、地址 / 坐标、只有坐标、只有本地化的「位置」，不画空白行。provider 为 osm 时，静态图上显示 OpenStreetMap 的署名（ODbL）：文案 locationOsmAttribution（「© OpenStreetMap contributors」，各语言相同），在图片右下角一行小字，secondary 文本色、半透明底，不遮中心点；手绘底图上不显示，amap 时不显示。宿主自己打开地点时（按租户地图服务打开被点的卡片），从 Kit 取网页地图地址，不再照抄规则：四端都叫 `flareLocationWebMapUrl` —— Vue `flareLocationWebMapUrl(location, provider?)`（./contracts），Flutter `flareLocationWebMapUrl(content, provider:)`，SwiftUI `flareLocationWebMapUrl(_:provider:)`，Compose `flareLocationWebMapUrl(location, provider)`。传了 provider 参数时以它为准，否则用内容里的，内容没写时为 osm；没有坐标时返回空 —— 缺一个、超出范围，或线上的 0, 0（spec/location-vectors.json 的 webMapUrl）。`chat.location` 的配置值经四端同名的 `flareLocationProviderFrom(value)` 转成服务商：amap（去掉首尾空白、不区分大小写）为高德，其他一律为 OpenStreetMap（providerFrom）。"
       },
       "accessibility": {
         "role": "button",

@@ -28,10 +28,20 @@ final class LocationComponentsTests: XCTestCase {
         struct Point: Decodable { let latitude: Double; let longitude: Double }
         struct Label: Decodable { let id: String; let input: Point; let output: String? }
         struct Distance: Decodable { let id: String; let input: Double?; let output: String? }
+        struct CardLinesInput: Decodable {
+            let title: String
+            let address: String
+            let latitude: Double?
+            let longitude: Double?
+        }
+        struct CardLines: Decodable { let id: String; let input: CardLinesInput; let lines: [String: [String]] }
+        struct CardMap: Decodable { let width: Double; let height: Double }
         let osmZoom: Int
         let links: [Link]
         let label: [Label]
         let distance: [Distance]
+        let cardLines: [CardLines]
+        let cardMap: CardMap
     }
 
     private func vectors() throws -> Vectors {
@@ -119,11 +129,35 @@ final class LocationComponentsTests: XCTestCase {
         XCTAssertNoThrow(try mapped.find(ViewType.AsyncImage.self), "a snapshot loads over the ground")
     }
 
-    func testTheLineUnderTheTitleIsTheAddressElseTheCoordinate() {
-        XCTAssertEqual(LocationMessageView.detail(address: " 杭州 ", latitude: 30.2741, longitude: 120.1551), "杭州")
-        XCTAssertEqual(LocationMessageView.detail(address: "", latitude: 30.2741, longitude: 120.1551),
-                       "30.27410, 120.15510")
-        XCTAssertEqual(LocationMessageView.detail(address: "", latitude: nil, longitude: nil), "")
+    func testCardLinesFollowTheSharedTable() throws {
+        let table = try vectors()
+        XCTAssertGreaterThanOrEqual(table.cardLines.count, 12, "the shared table lost cases")
+        for row in table.cardLines {
+            let i = row.input
+            for (locale, strings) in [("zh-CN", s), ("en-US", FlareStrings.english)] {
+                let lines = FlareLocationFormat.cardLines(title: i.title, address: i.address, latitude: i.latitude,
+                                                          longitude: i.longitude, place: strings.locationCardPlace)
+                XCTAssertEqual([lines.primary] + (lines.secondary.map { [$0] } ?? []), row.lines[locale],
+                               "\(row.id) \(locale)")
+            }
+        }
+    }
+
+    func testTheCardMapIsTheSharedSize() throws {
+        let map = try vectors().cardMap
+        XCTAssertEqual(FlareLocationFormat.cardMapWidth, map.width)
+        XCTAssertEqual(FlareLocationFormat.cardMapHeight, map.height)
+        XCTAssertEqual(LocationMessageView.width, CGFloat(map.width))
+        XCTAssertEqual(LocationMessageView.mapHeight, CGFloat(map.height))
+    }
+
+    @MainActor
+    func testACardWithoutANameDrawsNoBlankLine() throws {
+        let untitled = try LocationMessageView(title: "", latitude: 39.9087, longitude: 116.3975).inspect()
+        let texts = try untitled.findAll(ViewType.Text.self).map { try $0.string() }
+        XCTAssertEqual(texts, ["39.90870, 116.39750"])
+        let nowhere = try LocationMessageView(title: "  ").inspect()
+        XCTAssertEqual(try nowhere.findAll(ViewType.Text.self).map { try $0.string() }, [s.locationCardPlace])
     }
 
     @MainActor

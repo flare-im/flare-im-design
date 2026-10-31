@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "note": "How the four kits write a DisplayName (the core SDK's projected name, camelCase on the wire: title, lastSender, sender, name) as text: flareDisplayNameText(name, strings). `named` reads its text as it is. `members` joins its names with the locale's separator (zh-CN 、, en-US \", \"), blank names dropped; when total > names + 1 it adds the others, N = total - names - 1 (the reader is a member and is never counted), zh-CN 「等 N 人」, en-US \"and N other(s)\" (the one form at 1); with no name left it reads as an unnamed group. `unnamed` reads by entity: person with an idTail 「用户 <idTail>」/ \"User <idTail>\", person without one 「未知用户」/ \"Unknown user\"; group, system, ai, customer, channel, broadcast and temp their own word, whatever the idTail. The kit writes no id and no shape guess: what the core projected is all it reads. `idTail` is flareIdTail, the rule the core uses to make one and flarePluginFallbackName reads: the id trimmed of surrounding white space, then its last 4 Unicode scalars (not UTF-16 units, not graphemes); a shorter id whole; a blank id the empty string. zh-CN is each kit's default strings, en-US its English preset (Vue: the en-US message tree).",
+  "idTail": [
+    {
+      "id": "ascii",
+      "input": "u_dave9876",
+      "output": "9876"
+    },
+    {
+      "id": "exactly-four",
+      "input": "abcd",
+      "output": "abcd"
+    },
+    {
+      "id": "shorter",
+      "input": "ab",
+      "output": "ab"
+    },
+    {
+      "id": "five",
+      "input": "x_12345",
+      "output": "2345"
+    },
+    {
+      "id": "trimmed",
+      "input": "  u_dave9876 \n",
+      "output": "9876"
+    },
+    {
+      "id": "ideographic-space-trimmed",
+      "input": "　u_42　",
+      "output": "u_42"
+    },
+    {
+      "id": "empty",
+      "input": "",
+      "output": ""
+    },
+    {
+      "id": "blank",
+      "input": "   ",
+      "output": ""
+    },
+    {
+      "id": "han",
+      "input": "用户张三李四王五",
+      "output": "李四王五"
+    },
+    {
+      "id": "astral-scalars",
+      "input": "a😀b😀c",
+      "output": "😀b😀c"
+    },
+    {
+      "id": "astral-shorter",
+      "input": "ab😀",
+      "output": "ab😀"
+    },
+    {
+      "id": "combining-mark-is-a-scalar",
+      "input": "café",
+      "output": "afé"
+    }
+  ],
+  "text": [
+    {
+      "id": "named-alias",
+      "name": {
+        "kind": "named",
+        "text": "Alice",
+        "source": "alias"
+      },
+      "text": {
+        "zh-CN": "Alice",
+        "en-US": "Alice"
+      }
+    },
+    {
+      "id": "named-member-nickname",
+      "name": {
+        "kind": "named",
+        "text": "群里的小林",
+        "source": "memberNickname"
+      },
+      "text": {
+        "zh-CN": "群里的小林",
+        "en-US": "群里的小林"
+      }
+    },
+    {
+      "id": "named-without-source",
+      "name": {
+        "kind": "named",
+        "text": "林夏"
+      },
+      "text": {
+        "zh-CN": "林夏",
+        "en-US": "林夏"
+      }
+    },
+    {
+      "id": "named-digits-are-a-name",
+      "name": {
+        "kind": "named",
+        "text": "0401",
+        "source": "profile"
+      },
+      "text": {
+        "zh-CN": "0401",
+        "en-US": "0401"
+      }
+    },
+    {
+      "id": "named-id-shaped-is-a-name",
+      "name": {
+        "kind": "named",
+        "text": "2am_club",
+        "source": "name"
+      },
+      "text": {
+        "zh-CN": "2am_club",
+        "en-US": "2am_club"
+      }
+    },
+    {
+      "id": "members-everyone-shown",
+      "name": {
+        "kind": "members",
+        "names": [
+          "张三",
+          "李四"
+        ],
+        "total": 3
+      },
+      "text": {
+        "zh-CN": "张三、李四",
+        "en-US": "张三, 李四"
+      }
+    },
+    {
+      "id": "members-one-shown-of-two",
+      "name": {
+        "kind": "members",
+        "names": [
+          "Alice"
+        ],
+        "total": 2
+      },
+      "text": {
+        "zh-CN": "Alice",
+        "en-US": "Alice"
+      }
+    },
+    {
+      "id": "members-total-below-names",
+      "name": {
+        "kind": "members",
+        "names": [
+          "张三",
+          "李四",
+          "王五"
+        ],
+        "total": 2
+      },
+      "text": {
+        "zh-CN": "张三、李四、王五",
+        "en-US": "张三, 李四, 王五"
+      }
+    },
+    {
+      "id": "members-others",
+      "name": {
+        "kind": "members",
+        "names": [
+          "张三",
+          "李四",
+          "王五"
+        ],
+        "total": 12
+      },
+      "text": {
+        "zh-CN": "张三、李四、王五等 8 人",
+        "en-US": "张三, 李四, 王五 and 8 others"
+      }
+    },
+    {
+      "id": "members-one-other",
+      "name": {
+        "kind": "members",
+        "names": [
+          "Alice",
+          "Bob"
+        ],
+        "total": 4
+      },
+      "text": {
+        "zh-CN": "Alice、Bob等 1 人",
+        "en-US": "Alice, Bob and 1 other"
+      }
+    },
+    {
+      "id": "members-one-name-many-others",
+      "name": {
+        "kind": "members",
+        "names": [
+          "林夏"
+        ],
+        "total": 100
+      },
+      "text": {
+        "zh-CN": "林夏等 98 人",
+        "en-US": "林夏 and 98 others"
+      }
+    },
+    {
+      "id": "members-blank-names-dropped",
+      "name": {
+        "kind": "members",
+        "names": [
+          "",
+          "李四",
+          "  "
+        ],
+        "total": 2
+      },
+      "text": {
+        "zh-CN": "李四",
+        "en-US": "李四"
+      }
+    },
+    {
+      "id": "members-no-names-is-a-group",
+      "name": {
+        "kind": "members",
+        "names": [],
+        "total": 5
+      },
+      "text": {
+        "zh-CN": "群聊",
+        "en-US": "Group chat"
+      }
+    },
+    {
+      "id": "unnamed-person",
+      "name": {
+        "kind": "unnamed",
+        "entity": "person",
+        "idTail": "9876"
+      },
+      "text": {
+        "zh-CN": "用户 9876",
+        "en-US": "User 9876"
+      }
+    },
+    {
+      "id": "unnamed-person-short-id",
+      "name": {
+        "kind": "unnamed",
+        "entity": "person",
+        "idTail": "ab"
+      },
+      "text": {
+        "zh-CN": "用户 ab",
+        "en-US": "User ab"
+      }
+    },
+    {
+      "id": "unnamed-person-without-id",
+      "name": {
+        "kind": "unnamed",
+        "entity": "person",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "未知用户",
+        "en-US": "Unknown user"
+      }
+    },
+    {
+      "id": "unnamed-group",
+      "name": {
+        "kind": "unnamed",
+        "entity": "group",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "群聊",
+        "en-US": "Group chat"
+      }
+    },
+    {
+      "id": "unnamed-group-ignores-id",
+      "name": {
+        "kind": "unnamed",
+        "entity": "group",
+        "idTail": "1234"
+      },
+      "text": {
+        "zh-CN": "群聊",
+        "en-US": "Group chat"
+      }
+    },
+    {
+      "id": "unnamed-system",
+      "name": {
+        "kind": "unnamed",
+        "entity": "system",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "系统通知",
+        "en-US": "System notifications"
+      }
+    },
+    {
+      "id": "unnamed-ai",
+      "name": {
+        "kind": "unnamed",
+        "entity": "ai",
+        "idTail": "0001"
+      },
+      "text": {
+        "zh-CN": "AI 助手",
+        "en-US": "AI assistant"
+      }
+    },
+    {
+      "id": "unnamed-customer",
+      "name": {
+        "kind": "unnamed",
+        "entity": "customer",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "客服",
+        "en-US": "Customer service"
+      }
+    },
+    {
+      "id": "unnamed-channel",
+      "name": {
+        "kind": "unnamed",
+        "entity": "channel",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "频道",
+        "en-US": "Channel"
+      }
+    },
+    {
+      "id": "unnamed-broadcast",
+      "name": {
+        "kind": "unnamed",
+        "entity": "broadcast",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "广播",
+        "en-US": "Broadcast"
+      }
+    },
+    {
+      "id": "unnamed-temp",
+      "name": {
+        "kind": "unnamed",
+        "entity": "temp",
+        "idTail": "77"
+      },
+      "text": {
+        "zh-CN": "临时会话",
+        "en-US": "Temporary chat"
+      }
+    }
+  ]
+}

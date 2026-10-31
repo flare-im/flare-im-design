@@ -218,6 +218,7 @@ class FlareStrings {
     this.locationMapUnavailable = '地图暂不可用',
     this.locationOpenInMaps = '在地图中打开',
     this.locationCurrent = '当前位置',
+    this.locationCardPlace = '位置', // en: Location
     this.contactPickerTitle = '选择联系人',
     this.contactPickerFriends = '好友',
     this.contactPickerGroupMembers = '群成员',
@@ -521,6 +522,17 @@ class FlareStrings {
     this.systemEventGroupMemberRolesChanged = '有成员的群角色已变更', // en: A member's group role was changed
     this.systemEventGroupMuted = '已开启全员禁言', // en: All members were muted
     this.systemEventGroupUnmuted = '已解除全员禁言', // en: All members were unmuted
+    this.displayNameUser = _displayNameUser, // en: User {idTail}
+    this.displayNameUnknownUser = '未知用户', // en: Unknown user
+    this.displayNameGroup = '群聊', // en: Group chat
+    this.displayNameSystem = '系统通知', // en: System notifications
+    this.displayNameAi = 'AI 助手', // en: AI assistant
+    this.displayNameCustomer = '客服', // en: Customer service
+    this.displayNameChannel = '频道', // en: Channel
+    this.displayNameBroadcast = '广播', // en: Broadcast
+    this.displayNameTemp = '临时会话', // en: Temporary chat
+    this.displayNameSeparator = '、', // en: , 
+    this.displayNameMembersMore = _displayNameMembersMore, // en: {names} and {count} others
     this.unknownMessageHint = '当前版本无法显示这条消息',
     this.unknownMessageUnsupported = '不支持的消息类型',
     this.unknownMessageDiagnostic = '消息类型',
@@ -1099,6 +1111,9 @@ class FlareStrings {
   final String locationMapUnavailable;
   final String locationOpenInMaps;
   final String locationCurrent;
+  /// The first line of a location card with no title, no address and no
+  /// coordinate (spec/location-vectors.json cardLines).
+  final String locationCardPlace;
   final String contactPickerTitle;
   final String contactPickerFriends;
   final String contactPickerGroupMembers;
@@ -1444,6 +1459,19 @@ class FlareStrings {
   final String systemEventGroupMemberRolesChanged;
   final String systemEventGroupMuted;
   final String systemEventGroupUnmuted;
+  /// Names (spec/display-name-vectors.json, flareDisplayNameText): an unnamed
+  /// person, group or conversation, and a group named by its members.
+  final String Function(String idTail) displayNameUser;
+  final String displayNameUnknownUser;
+  final String displayNameGroup;
+  final String displayNameSystem;
+  final String displayNameAi;
+  final String displayNameCustomer;
+  final String displayNameChannel;
+  final String displayNameBroadcast;
+  final String displayNameTemp;
+  final String displayNameSeparator;
+  final String Function(String names, int count) displayNameMembersMore;
   final String unknownMessageHint;
   final String unknownMessageUnsupported;
   final String unknownMessageDiagnostic;
@@ -1990,6 +2018,7 @@ class FlareStrings {
     String? locationMapUnavailable,
     String? locationOpenInMaps,
     String? locationCurrent,
+    String? locationCardPlace,
     String? contactPickerTitle,
     String? contactPickerFriends,
     String? contactPickerGroupMembers,
@@ -2276,6 +2305,17 @@ class FlareStrings {
     String? systemEventGroupMemberRolesChanged,
     String? systemEventGroupMuted,
     String? systemEventGroupUnmuted,
+    String Function(String idTail)? displayNameUser,
+    String? displayNameUnknownUser,
+    String? displayNameGroup,
+    String? displayNameSystem,
+    String? displayNameAi,
+    String? displayNameCustomer,
+    String? displayNameChannel,
+    String? displayNameBroadcast,
+    String? displayNameTemp,
+    String? displayNameSeparator,
+    String Function(String names, int count)? displayNameMembersMore,
     String? unknownMessageHint,
     String? unknownMessageUnsupported,
     String? unknownMessageDiagnostic,
@@ -2776,6 +2816,7 @@ class FlareStrings {
       locationMapUnavailable: locationMapUnavailable ?? this.locationMapUnavailable,
       locationOpenInMaps: locationOpenInMaps ?? this.locationOpenInMaps,
       locationCurrent: locationCurrent ?? this.locationCurrent,
+      locationCardPlace: locationCardPlace ?? this.locationCardPlace,
       contactPickerTitle: contactPickerTitle ?? this.contactPickerTitle,
       contactPickerFriends: contactPickerFriends ?? this.contactPickerFriends,
       contactPickerGroupMembers: contactPickerGroupMembers ?? this.contactPickerGroupMembers,
@@ -3088,6 +3129,17 @@ class FlareStrings {
       systemEventGroupMemberRolesChanged: systemEventGroupMemberRolesChanged ?? this.systemEventGroupMemberRolesChanged,
       systemEventGroupMuted: systemEventGroupMuted ?? this.systemEventGroupMuted,
       systemEventGroupUnmuted: systemEventGroupUnmuted ?? this.systemEventGroupUnmuted,
+      displayNameUser: displayNameUser ?? this.displayNameUser,
+      displayNameUnknownUser: displayNameUnknownUser ?? this.displayNameUnknownUser,
+      displayNameGroup: displayNameGroup ?? this.displayNameGroup,
+      displayNameSystem: displayNameSystem ?? this.displayNameSystem,
+      displayNameAi: displayNameAi ?? this.displayNameAi,
+      displayNameCustomer: displayNameCustomer ?? this.displayNameCustomer,
+      displayNameChannel: displayNameChannel ?? this.displayNameChannel,
+      displayNameBroadcast: displayNameBroadcast ?? this.displayNameBroadcast,
+      displayNameTemp: displayNameTemp ?? this.displayNameTemp,
+      displayNameSeparator: displayNameSeparator ?? this.displayNameSeparator,
+      displayNameMembersMore: displayNameMembersMore ?? this.displayNameMembersMore,
       unknownMessageHint: unknownMessageHint ?? this.unknownMessageHint,
       unknownMessageUnsupported:
           unknownMessageUnsupported ?? this.unknownMessageUnsupported,
@@ -3678,6 +3730,9 @@ class FlareStrings {
   static String _previewImageGroupCount(int count) => '[多图] $count 张';
   static String _systemEventGroupProfileUpdatedNamed(String name) =>
       '群名称已改为「$name」';
+  static String _displayNameUser(String idTail) => '用户 $idTail';
+  static String _displayNameMembersMore(String names, int count) =>
+      '$names等 $count 人';
   static String _messageImageGroupLabel(int count) => '$count 张图片';
   static String _imagePreviewPosition(int index, int count) =>
       '第 $index 张，共 $count 张';
