@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { flareLocateMaxPages, flareLocateMessage, flareLocateSettleAttempts } from "./locateMessage";
+import {
+  flareLocateMaxPages,
+  flareLocateMessage,
+  flareLocateMessageAround,
+  flareLocateSettleAttempts,
+  type FlareLocateAnchor,
+} from "./locateMessage";
 
 /**
  * The shared locate table (`spec/locate-orchestration-vectors.json`) is the one trip four kits make when a
@@ -18,9 +24,20 @@ type Vector = {
   expected: { outcome: string; pagesRead: number; showCalls: number };
 };
 
+type AroundVector = {
+  id: string;
+  anchor: FlareLocateAnchor;
+  loaded: boolean;
+  openAnswer: string | null;
+  drawnFromShow: number;
+  cancelAfterShows?: number;
+  cancelAfterOpen?: boolean;
+  expected: { outcome: string; openCalls: number; showCalls: number; askedIds: string[] };
+};
+
 const table = JSON.parse(
   readFileSync(resolve(__dirname, "../../../../spec/locate-orchestration-vectors.json"), "utf8"),
-) as { maxPages: number; settleAttempts: number; cases: Vector[] };
+) as { maxPages: number; settleAttempts: number; cases: Vector[]; around: { settleAttempts: number; cases: AroundVector[] } };
 
 describe("the trip a tapped quote takes", () => {
   it("is the budget this kit was built with", () => {
@@ -49,6 +66,43 @@ describe("the trip a tapped quote takes", () => {
         settle: () => {},
       });
       expect({ outcome, pagesRead: pages, showCalls: shows }).toEqual(vector.expected);
+    });
+  }
+});
+
+describe("the trip when the host opens a window around the message", () => {
+  it("settles as many times as the table says", () => {
+    expect(table.around.settleAttempts).toBe(flareLocateSettleAttempts);
+    expect(table.around.cases.length).toBeGreaterThanOrEqual(13);
+  });
+
+  for (const vector of table.around.cases) {
+    it(`locate around: ${vector.id}`, async () => {
+      let opens = 0;
+      let opened = false;
+      const asked: string[] = [];
+      const handed: FlareLocateAnchor[] = [];
+      const key = vector.openAnswer?.trim() ?? "";
+      const outcome = await flareLocateMessageAround({
+        anchor: vector.anchor,
+        isCurrent: () =>
+          (vector.cancelAfterShows === undefined || asked.length < vector.cancelAfterShows) &&
+          !(vector.cancelAfterOpen && opened),
+        showInList: (id) => {
+          asked.push(id);
+          if (vector.loaded && id === vector.anchor.messageId) return true;
+          return opened && key !== "" && id === key && asked.length >= vector.drawnFromShow;
+        },
+        openAround: (anchor) => {
+          opens += 1;
+          handed.push(anchor);
+          opened = true;
+          return vector.openAnswer;
+        },
+        settle: () => {},
+      });
+      expect({ outcome, openCalls: opens, showCalls: asked.length, askedIds: asked }).toEqual(vector.expected);
+      for (const anchor of handed) expect(anchor).toEqual(vector.anchor);
     });
   }
 });

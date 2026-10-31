@@ -394,6 +394,7 @@ public extension FlareStrings {
             conversationRowMention: "[Mentioned you] ",
             messageListEmpty: "No messages yet",
             messageListLoadOlder: "Load earlier messages",
+            messageListLoadNewer: "Load newer messages",
             messageRecalledSelf: "You unsent a message",
             messageRecalledPeer: "unsent a message",
             yesterday: "Yesterday",

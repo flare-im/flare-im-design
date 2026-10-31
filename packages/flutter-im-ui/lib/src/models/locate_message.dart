@@ -59,3 +59,61 @@ Future<FlareLocateOutcome> flareLocateMessage({
   }
   return FlareLocateOutcome.notInHistory;
 }
+
+/// The message a locate opens a window around: its id (server or client), and
+/// its seq when the caller has it.
+class FlareLocateAnchor {
+  const FlareLocateAnchor({required this.messageId, this.seq});
+
+  final String messageId;
+  final int? seq;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlareLocateAnchor &&
+      other.messageId == messageId &&
+      other.seq == seq;
+
+  @override
+  int get hashCode => Object.hash(messageId, seq);
+
+  @override
+  String toString() => 'FlareLocateAnchor($messageId, seq: $seq)';
+}
+
+/// The same trip when the host can open a window around the message (a
+/// timeline view opened with an anchor) instead of paging back to it: ask the
+/// list, open once around the anchor, then let the list draw and ask for the
+/// anchor key up to [flareLocateSettleAttempts] times
+/// (`spec/locate-orchestration-vectors.json` `around`). The list scrolls to the
+/// row and marks it itself.
+///
+/// - [showInList] asks the list to show the message with this id and answers
+///   whether it had it — on this kit that is
+///   `FlareMessageListController.scrollToMessage`.
+/// - [openAround] opens the timeline around the anchor and answers the anchor
+///   key — the row key the list will draw the message with — or null (or a
+///   blank key) when the message is not in the history. A failed open answers
+///   null.
+/// - [settle] lets the list draw one pass.
+/// - [isCurrent] is false once the reader has left this conversation.
+Future<FlareLocateOutcome> flareLocateMessageAround({
+  required FlareLocateAnchor anchor,
+  required FutureOr<bool> Function(String messageId) showInList,
+  required FutureOr<String?> Function(FlareLocateAnchor anchor) openAround,
+  required FutureOr<void> Function() settle,
+  required bool Function() isCurrent,
+}) async {
+  if (!isCurrent()) return FlareLocateOutcome.cancelled;
+  if (await showInList(anchor.messageId)) return FlareLocateOutcome.shown;
+  if (!isCurrent()) return FlareLocateOutcome.cancelled;
+  final key = ((await openAround(anchor)) ?? '').trim();
+  if (!isCurrent()) return FlareLocateOutcome.cancelled;
+  if (key.isEmpty) return FlareLocateOutcome.notInHistory;
+  for (var attempt = 0; attempt < flareLocateSettleAttempts; attempt++) {
+    if (!isCurrent()) return FlareLocateOutcome.cancelled;
+    await settle();
+    if (await showInList(key)) return FlareLocateOutcome.shown;
+  }
+  return FlareLocateOutcome.notInHistory;
+}

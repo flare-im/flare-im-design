@@ -2058,6 +2058,13 @@
       "docExamples": {
         "variants": [
           {
+            "name": "newerError",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
             "name": "olderError",
             "values": [
               "string",
@@ -2069,23 +2076,27 @@
           "loading",
           "empty",
           "loadingOlder",
+          "loadingNewer",
           "atBottom",
           "multiSelect",
-          "olderError"
+          "olderError",
+          "newerError"
         ]
       },
       "summary": {
-        "en": "The virtualised message thread — grouping, load-older, multi-select, per-message actions, media state.",
-        "zh": "虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+        "en": "The virtualised message thread — grouping, load-older and load-newer, back to latest, multi-select, per-message actions, media state.",
+        "zh": "虚拟化消息线程 —— 分组、加载更早与更新、回到最新、多选、逐条操作、媒体状态。"
       },
       "aliases": [
         "Message",
         "loading",
         "empty",
         "loadingOlder",
+        "loadingNewer",
         "atBottom",
         "multiSelect",
         "olderError",
+        "newerError",
         "atBottomChange",
         "react",
         "reply",
@@ -2099,6 +2110,8 @@
         "resend",
         "mediaAction",
         "loadOlder",
+        "loadNewer",
+        "jumpToLatest",
         "toggleSelect",
         "messageLongPress",
         "avatarTap",
@@ -2120,9 +2133,11 @@
         "loading",
         "empty",
         "loadingOlder",
+        "loadingNewer",
         "atBottom",
         "multiSelect",
-        "olderError"
+        "olderError",
+        "newerError"
       ],
       "interactions": [
         "atBottomChange",
@@ -2139,6 +2154,8 @@
         "mediaAction",
         "multiSelect",
         "loadOlder",
+        "loadNewer",
+        "jumpToLatest",
         "toggleSelect",
         "messageLongPress",
         "avatarTap",
@@ -2196,7 +2213,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MessageList",
-      "searchText": "messagelist message im-ui stable message loading empty loadingolder atbottom multiselect oldererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早、多选、逐条操作、媒体状态。"
+      "searchText": "messagelist message im-ui stable message loading empty loadingolder loadingnewer atbottom multiselect oldererror newererror atbottomchange react reply edit delete recall forward pin mark preview resend mediaaction multiselect loadolder loadnewer jumptolatest toggleselect messagelongpress avatartap locatemessage swipereply action copy openfile mediadownload mediareveal openlink vote tasktoggle cardopen locationopen readreceiptopen supportsconfiguration supportscustomcontent supportsslots supportsresponsive the virtualised message thread — grouping, load-older and load-newer, back to latest, multi-select, per-message actions, media state. 虚拟化消息线程 —— 分组、加载更早与更新、回到最新、多选、逐条操作、媒体状态。"
     },
     {
       "name": "ConversationHeader",

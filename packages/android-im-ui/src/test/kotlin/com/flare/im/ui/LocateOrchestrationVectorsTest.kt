@@ -51,6 +51,46 @@ class LocateOrchestrationVectorsTest {
             assertEquals((expected["showCalls"] as Number).toInt(), shows, "$id asks")
         }
     }
+
+    @Test fun everyRunAroundTheMessageEndsTheSameWayHere() = runBlocking {
+        val table = FlareJson.parse(vectorsFile().readText()) as Map<*, *>
+        val around = table["around"] as Map<*, *>
+        assertEquals(FLARE_LOCATE_SETTLE_ATTEMPTS, (around["settleAttempts"] as Number).toInt())
+        val cases = around["cases"] as List<*>
+        assertTrue(cases.size >= 13, "the shared table lost around cases: ${cases.size}")
+        for (raw in cases) {
+            val case = raw as Map<*, *>
+            val id = case["id"] as String
+            val anchorMap = case["anchor"] as Map<*, *>
+            val anchor = FlareLocateAnchor(anchorMap["messageId"] as String, (anchorMap["seq"] as Number?)?.toLong())
+            val loaded = case["loaded"] as Boolean
+            val answer = case["openAnswer"] as String?
+            val key = answer?.trim().orEmpty()
+            val drawnFrom = (case["drawnFromShow"] as Number).toInt()
+            val cancelAfterShows = (case["cancelAfterShows"] as Number?)?.toInt()
+            val cancelAfterOpen = case["cancelAfterOpen"] == true
+            var opens = 0
+            var opened = false
+            val asked = mutableListOf<String>()
+            val handed = mutableListOf<FlareLocateAnchor>()
+            val outcome = flareLocateMessageAround(
+                anchor = anchor,
+                showInList = { askedId ->
+                    asked += askedId
+                    (loaded && askedId == anchor.messageId) || (opened && key.isNotEmpty() && askedId == key && asked.size >= drawnFrom)
+                },
+                openAround = { given -> opens += 1; handed += given; opened = true; answer },
+                settle = {},
+                isCurrent = { (cancelAfterShows == null || asked.size < cancelAfterShows) && !(cancelAfterOpen && opened) },
+            )
+            val expected = case["expected"] as Map<*, *>
+            assertEquals(expected["outcome"], outcome.name.replaceFirstChar { it.lowercase() }, "$id outcome")
+            assertEquals((expected["openCalls"] as Number).toInt(), opens, "$id opens")
+            assertEquals((expected["showCalls"] as Number).toInt(), asked.size, "$id asks")
+            assertEquals((expected["askedIds"] as List<*>).map { it as String }, asked, "$id asked ids")
+            handed.forEach { assertEquals(anchor, it, "$id anchor handed over") }
+        }
+    }
 }
 
 /** The table lives beside the four kits, so find the repository root from the module's directory. */

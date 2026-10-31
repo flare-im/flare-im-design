@@ -51,3 +51,46 @@ export async function flareLocateMessage(options: FlareLocateOptions): Promise<F
   }
   return "notInHistory";
 }
+
+/** The message a locate opens a window around: its id (server or client), and its seq when the caller has it. */
+export interface FlareLocateAnchor {
+  messageId: string;
+  seq?: number;
+}
+
+export interface FlareLocateAroundOptions {
+  /** The message to show. */
+  anchor: FlareLocateAnchor;
+  /** Asks the list to show the message with this id; answers whether the list had it. */
+  showInList: (messageId: string) => boolean | Promise<boolean>;
+  /**
+   * Opens the timeline around the anchor (a timeline view opened with an anchor). Answers the anchor key — the row
+   * key the list will draw the message with — or nothing (null, empty or blank) when the message is not in the
+   * history. A failed open answers nothing too.
+   */
+  openAround: (anchor: FlareLocateAnchor) => string | null | undefined | Promise<string | null | undefined>;
+  /** Lets the list draw one pass, so the window the host has just opened can be found. */
+  settle: () => void | Promise<void>;
+  /** False once the reader has left this conversation: the trip then ends without a word. */
+  isCurrent: () => boolean;
+}
+
+/**
+ * The same trip when the host can open a window around the message instead of paging back to it: ask the list,
+ * open once around the anchor, then let the list draw and ask for the anchor key up to `flareLocateSettleAttempts`
+ * times (`spec/locate-orchestration-vectors.json` `around`). The list scrolls to the row and marks it itself.
+ */
+export async function flareLocateMessageAround(options: FlareLocateAroundOptions): Promise<FlareLocateOutcome> {
+  if (!options.isCurrent()) return "cancelled";
+  if (await options.showInList(options.anchor.messageId)) return "shown";
+  if (!options.isCurrent()) return "cancelled";
+  const key = String((await options.openAround(options.anchor)) ?? "").trim();
+  if (!options.isCurrent()) return "cancelled";
+  if (!key) return "notInHistory";
+  for (let attempt = 0; attempt < flareLocateSettleAttempts; attempt += 1) {
+    if (!options.isCurrent()) return "cancelled";
+    await options.settle();
+    if (await options.showInList(key)) return "shown";
+  }
+  return "notInHistory";
+}

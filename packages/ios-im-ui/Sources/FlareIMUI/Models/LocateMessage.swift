@@ -62,3 +62,52 @@ public enum FlareLocate {
         return .notInHistory
     }
 }
+
+/// The message a locate opens a window around: its id (server or client), and its seq when the caller has it.
+public struct FlareLocateAnchor: Equatable, Sendable {
+    public var messageId: String
+    public var seq: Int64?
+
+    public init(messageId: String, seq: Int64? = nil) {
+        self.messageId = messageId
+        self.seq = seq
+    }
+}
+
+extension FlareLocate {
+    /// The same trip when the host can open a window around the message (a timeline view opened with an anchor)
+    /// instead of paging back to it: ask the list, open once around the anchor, then let the list draw and ask for
+    /// the anchor key up to ``settleAttempts`` times (`spec/locate-orchestration-vectors.json` `around`). The list
+    /// scrolls to the row and marks it itself.
+    ///
+    /// - Parameters:
+    ///   - anchor: The message to show.
+    ///   - showInList: Asks the list to show the message with this id; answers whether it had it. On this kit that is
+    ///     `FlareMessageListController.scrollToMessage`.
+    ///   - openAround: Opens the timeline around the anchor and answers the anchor key — the row key the list will
+    ///     draw the message with — or nil (or a blank key) when the message is not in the history. A failed open
+    ///     answers nil.
+    ///   - settle: Lets the list draw one pass.
+    ///   - isCurrent: False once the reader has left this conversation.
+    @MainActor
+    public static func runAround(
+        anchor: FlareLocateAnchor,
+        showInList: @MainActor (String) async -> Bool,
+        openAround: @MainActor (FlareLocateAnchor) async -> String?,
+        settle: @MainActor () async -> Void,
+        isCurrent: @MainActor () -> Bool
+    ) async -> FlareLocateOutcome {
+        if !isCurrent() { return .cancelled }
+        if await showInList(anchor.messageId) { return .shown }
+        if !isCurrent() { return .cancelled }
+        let key = (await openAround(anchor) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if !isCurrent() { return .cancelled }
+        if key.isEmpty { return .notInHistory }
+        for _ in 0..<settleAttempts {
+            if !isCurrent() { return .cancelled }
+            await settle()
+            if await showInList(key) { return .shown }
+        }
+        return .notInHistory
+    }
+}

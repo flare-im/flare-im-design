@@ -499,6 +499,8 @@ public struct FlareStrings: Sendable {
     // MessageListView
     public var messageListEmpty: String
     public var messageListLoadOlder: String
+    /// The load button below a window detached from the latest (spec/message-list-paging-vectors.json).
+    public var messageListLoadNewer: String
     // MessageBubbleView (recalled notice)
     public var messageRecalledSelf: String
     public var messageRecalledPeer: String
@@ -1500,6 +1502,7 @@ public struct FlareStrings: Sendable {
         conversationRowMention: String = "[@我] ",
         messageListEmpty: String = "还没有消息",
         messageListLoadOlder: String = "加载更早消息",
+        messageListLoadNewer: String = "加载更新的消息",
         messageRecalledSelf: String = "你撤回了一条消息",
         messageRecalledPeer: String = "对方撤回了一条消息",
         messageRecalledGroupOther: @escaping @Sendable (String) -> String = { "\($0) 撤回了一条消息" },
@@ -2277,6 +2280,7 @@ public struct FlareStrings: Sendable {
         self.conversationRowMention = conversationRowMention
         self.messageListEmpty = messageListEmpty
         self.messageListLoadOlder = messageListLoadOlder
+        self.messageListLoadNewer = messageListLoadNewer
         self.messageRecalledSelf = messageRecalledSelf
         self.messageRecalledPeer = messageRecalledPeer
         self.messageRecalledGroupOther = messageRecalledGroupOther

@@ -1,0 +1,674 @@
+{
+  "note": "Shared truth for the two ends of the message list and its back-to-latest key, on all four kits. A window is the run of messages the host hands the list. `older` and `newer` describe its two ends the same way: `has` (there is more to read past that end: Vue `hasOlder` / `hasNewer`), `loading` (`loadingOlder` / `loadingNewer`), `error` (`olderError` / `newerError`; null, empty or blank is no error) and `handled` (the host takes that intent: Vue listens to `load-older` / `load-newer`, the native kits got `onLoadOlder` / `onLoadNewer`). `edges` is what one end draws, the same rule for both ends: while loading, a spinner and nothing else (the last error is not repeated while it is being retried); otherwise the error when there is one, and the load or retry button while there is more to read and the host takes the intent. The older end sits above the timeline and the newer end below it. `requests` is when the list asks for a page by itself as the reader scrolls: `fromTop` is how far the first row's top is above the viewport's top, `fromBottom` how far the end of the timeline is below the viewport's bottom, in logical pixels (CSS px, dp, pt); an end asks when it is within `autoRequest` of its edge (inclusive), has more, is not loading, has no error (after a failure only the retry button asks again) and the host takes the intent. Both ends may ask in the same pass. Each kit also asks at most once per end until that end's `loading` settles. `jumpToLatest` is the floating key at the bottom: while the window is detached from the latest (`hasNewer`) and the host takes `jumpToLatest`, it is shown without a count and asks the host to replace the window with the latest one; rows below a detached reader are history read in, not news. Otherwise it is the existing new-messages key: shown with `belowCount` (messages that arrived below a reader who scrolled up) and it scrolls to the bottom. With every new parameter left at its default (`hasNewer` false, no newer handler) a list draws no newer end, never asks for newer and has no back-to-latest key beyond the new-messages one.",
+  "autoRequest": {
+    "olderWithin": 160,
+    "newerWithin": 160
+  },
+  "edges": [
+    {
+      "id": "nothing-more",
+      "has": false,
+      "loading": false,
+      "error": null,
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": false,
+        "button": false
+      }
+    },
+    {
+      "id": "more-to-read",
+      "has": true,
+      "loading": false,
+      "error": null,
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": false,
+        "button": true
+      }
+    },
+    {
+      "id": "more-but-nobody-reads-it",
+      "has": true,
+      "loading": false,
+      "error": null,
+      "handled": false,
+      "expected": {
+        "spinner": false,
+        "error": false,
+        "button": false
+      }
+    },
+    {
+      "id": "loading",
+      "has": true,
+      "loading": true,
+      "error": null,
+      "handled": true,
+      "expected": {
+        "spinner": true,
+        "error": false,
+        "button": false
+      }
+    },
+    {
+      "id": "loading-hides-the-last-error",
+      "has": true,
+      "loading": true,
+      "error": "Could not load",
+      "handled": true,
+      "expected": {
+        "spinner": true,
+        "error": false,
+        "button": false
+      }
+    },
+    {
+      "id": "loading-without-a-reader",
+      "has": true,
+      "loading": true,
+      "error": null,
+      "handled": false,
+      "expected": {
+        "spinner": true,
+        "error": false,
+        "button": false
+      }
+    },
+    {
+      "id": "failed-with-more-left",
+      "has": true,
+      "loading": false,
+      "error": "Could not load",
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": true,
+        "button": true
+      }
+    },
+    {
+      "id": "failed-at-the-end",
+      "has": false,
+      "loading": false,
+      "error": "Could not load",
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": true,
+        "button": false
+      }
+    },
+    {
+      "id": "failed-without-a-reader",
+      "has": true,
+      "loading": false,
+      "error": "Could not load",
+      "handled": false,
+      "expected": {
+        "spinner": false,
+        "error": true,
+        "button": false
+      }
+    },
+    {
+      "id": "a-blank-error-is-no-error",
+      "has": true,
+      "loading": false,
+      "error": "   ",
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": false,
+        "button": true
+      }
+    },
+    {
+      "id": "an-empty-error-is-no-error",
+      "has": true,
+      "loading": false,
+      "error": "",
+      "handled": true,
+      "expected": {
+        "spinner": false,
+        "error": false,
+        "button": true
+      }
+    }
+  ],
+  "requests": [
+    {
+      "id": "reading-the-middle",
+      "fromTop": 800,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "near-the-top",
+      "fromTop": 100,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": true,
+        "newer": false
+      }
+    },
+    {
+      "id": "at-the-very-top",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": true,
+        "newer": false
+      }
+    },
+    {
+      "id": "top-on-the-threshold",
+      "fromTop": 160,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": true,
+        "newer": false
+      }
+    },
+    {
+      "id": "top-one-past-the-threshold",
+      "fromTop": 161,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "near-the-bottom",
+      "fromTop": 800,
+      "fromBottom": 120,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": true
+      }
+    },
+    {
+      "id": "at-the-very-bottom",
+      "fromTop": 800,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": true
+      }
+    },
+    {
+      "id": "bottom-on-the-threshold",
+      "fromTop": 800,
+      "fromBottom": 160,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": true
+      }
+    },
+    {
+      "id": "bottom-one-past-the-threshold",
+      "fromTop": 800,
+      "fromBottom": 161,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "attached-to-the-latest",
+      "fromTop": 800,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": false,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "at-the-start-of-history",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": false,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "older-already-loading",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": true,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "newer-already-loading",
+      "fromTop": 800,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": true,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "older-failed-waits-for-a-retry",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": "Could not load",
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "newer-failed-waits-for-a-retry",
+      "fromTop": 800,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": "Could not load",
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "a-blank-older-error-does-not-stop-it",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": "  ",
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": true,
+        "newer": false
+      }
+    },
+    {
+      "id": "older-without-a-reader",
+      "fromTop": 0,
+      "fromBottom": 800,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": false
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "newer-without-a-reader",
+      "fromTop": 800,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": false
+      },
+      "expected": {
+        "older": false,
+        "newer": false
+      }
+    },
+    {
+      "id": "a-short-window-asks-both-ways",
+      "fromTop": 0,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": true,
+        "newer": true
+      }
+    },
+    {
+      "id": "one-side-failing-does-not-stop-the-other",
+      "fromTop": 0,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": "Could not load",
+        "handled": true
+      },
+      "newer": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "expected": {
+        "older": false,
+        "newer": true
+      }
+    },
+    {
+      "id": "the-default-list-never-asks-for-newer",
+      "fromTop": 0,
+      "fromBottom": 0,
+      "older": {
+        "has": true,
+        "loading": false,
+        "error": null,
+        "handled": true
+      },
+      "newer": {
+        "has": false,
+        "loading": false,
+        "error": null,
+        "handled": false
+      },
+      "expected": {
+        "older": true,
+        "newer": false
+      }
+    }
+  ],
+  "jumpToLatest": [
+    {
+      "id": "attached-at-the-bottom",
+      "hasNewer": false,
+      "handled": true,
+      "belowCount": 0,
+      "expected": {
+        "shown": false,
+        "count": 0,
+        "action": null
+      }
+    },
+    {
+      "id": "attached-with-new-messages-below",
+      "hasNewer": false,
+      "handled": true,
+      "belowCount": 3,
+      "expected": {
+        "shown": true,
+        "count": 3,
+        "action": "scrollToBottom"
+      }
+    },
+    {
+      "id": "attached-new-messages-need-no-host",
+      "hasNewer": false,
+      "handled": false,
+      "belowCount": 3,
+      "expected": {
+        "shown": true,
+        "count": 3,
+        "action": "scrollToBottom"
+      }
+    },
+    {
+      "id": "attached-a-large-count-stays-exact",
+      "hasNewer": false,
+      "handled": true,
+      "belowCount": 120,
+      "expected": {
+        "shown": true,
+        "count": 120,
+        "action": "scrollToBottom"
+      }
+    },
+    {
+      "id": "detached",
+      "hasNewer": true,
+      "handled": true,
+      "belowCount": 0,
+      "expected": {
+        "shown": true,
+        "count": 0,
+        "action": "jumpToLatest"
+      }
+    },
+    {
+      "id": "detached-rows-below-are-history-not-news",
+      "hasNewer": true,
+      "handled": true,
+      "belowCount": 5,
+      "expected": {
+        "shown": true,
+        "count": 0,
+        "action": "jumpToLatest"
+      }
+    },
+    {
+      "id": "detached-without-a-host-to-jump",
+      "hasNewer": true,
+      "handled": false,
+      "belowCount": 0,
+      "expected": {
+        "shown": false,
+        "count": 0,
+        "action": null
+      }
+    },
+    {
+      "id": "detached-without-a-host-rows-below",
+      "hasNewer": true,
+      "handled": false,
+      "belowCount": 4,
+      "expected": {
+        "shown": false,
+        "count": 0,
+        "action": null
+      }
+    }
+  ]
+}

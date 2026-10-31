@@ -12,13 +12,32 @@ import SwiftUI
 /// where they are and gets ``ScrollToLatestView`` with the count of the messages below. Older messages added
 /// above keep the visible message in place, and a viewport that resizes keeps a reader at the bottom there
 /// (``TimelineFollow``, the Vue list's rules). Jumps are not animated.
+///
+/// Paging (`spec/message-list-paging-vectors.json`): the older end above the timeline and, for a window detached from
+/// the latest (`hasNewer`), the newer end below it draw a spinner while loading, else the error and the load or retry
+/// button. The list asks for a page by itself (`onLoadOlder`, `onLoadNewer`) when the reader moves within 160 pt of
+/// that edge. A detached window shows ``ScrollToLatestView`` without a count, which asks the host for the latest
+/// window (`onJumpToLatest`); that window opens at its newest message. A newer page read into a detached window keeps
+/// the reader on the rows they are reading.
 public struct MessageListView: View {
     private let hasOlder: Bool
     private let olderError: String?
     private let loadOlderText: String?
     private let onLoadOlder: (() -> Void)?
+    private let hasNewer: Bool
+    private let loadingNewer: Bool
+    private let newerError: String?
+    private let onLoadNewer: (() -> Void)?
+    private let onJumpToLatest: (() -> Void)?
     private let conversationId: String?
     @State private var requested = false
+    @State private var requestedNewer = false
+    /// Whether the reader asked for the latest window, and whether the window was detached since the rows last changed.
+    @State private var paging = TimelinePaging()
+    /// How far the first row's top is above the viewport's top and the end below its bottom, as last reported;
+    /// nil until the row is laid out.
+    @State private var pagingFromTop: CGFloat?
+    @State private var pagingFromBottom: CGFloat?
     /// The bottom-most visible row (iOS 17 and later): the reading position the scroll view keeps when rows are
     /// added above it.
     @State private var visibleId: String?
@@ -141,6 +160,15 @@ public struct MessageListView: View {
     ///     ``FlareMessageListController/scrollToMessage(_:)``, which answers whether the list had it.
     ///     It is the same locate path a quote tap takes, so the host that paged a quoted message in
     ///     can finish the jump instead of asking for a second tap.
+    ///   - hasNewer: The window is detached from the latest messages (it was opened around a message): there is newer
+    ///     history past its last row. The list draws its newer end below the timeline, asks for newer pages as the
+    ///     reader nears the bottom (`onLoadNewer`) and offers the way back to the latest (`onJumpToLatest`). Left at
+    ///     the defaults the list draws no newer end, never asks for newer and keeps only the new-messages key.
+    ///   - loadingNewer: A newer page is being read: the newer end shows a spinner.
+    ///   - newerError: The last newer page failed: the newer end shows it with a retry.
+    ///   - onLoadNewer: Reads the next newer page.
+    ///   - onJumpToLatest: The back-to-latest key of a detached window: the host replaces the window with the latest
+    ///     messages.
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
     ///     fills its read receipt list from the SDK. Without it the summary is plain text.
     ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
@@ -173,7 +201,10 @@ public struct MessageListView: View {
         onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)? = nil,
         onResend: ((FlareMessageData) -> Void)? = nil,
         hasOlder: Bool = false, olderError: String? = nil, loadOlderText: String? = nil,
-        onLoadOlder: (() -> Void)? = nil, conversationId: String? = nil,
+        onLoadOlder: (() -> Void)? = nil,
+        hasNewer: Bool = false, loadingNewer: Bool = false, newerError: String? = nil,
+        onLoadNewer: (() -> Void)? = nil, onJumpToLatest: (() -> Void)? = nil,
+        conversationId: String? = nil,
         multiSelectMode: Bool = false,
         selectedIds: Set<String> = [],
         onToggleSelect: ((String) -> Void)? = nil,
@@ -195,6 +226,9 @@ public struct MessageListView: View {
     ) {
         self.hasOlder = hasOlder; self.olderError = olderError; self.loadOlderText = loadOlderText
         self.onLoadOlder = onLoadOlder; self.conversationId = conversationId
+        self.hasNewer = hasNewer; self.loadingNewer = loadingNewer; self.newerError = newerError
+        self.onLoadNewer = onLoadNewer; self.onJumpToLatest = onJumpToLatest
+        self._paging = State(initialValue: TimelinePaging(detachedSinceRows: hasNewer))
         self.messages = messages
         self.currentUserId = currentUserId
         self.conversationKind = conversationKind
@@ -423,16 +457,58 @@ public struct MessageListView: View {
         })
     }
 
+    /// The two ends of the window (`spec/message-list-paging-vectors.json`): one rule above and below the timeline.
+    private var olderEnd: FlareMessageListPaging.End {
+        .init(has: hasOlder, loading: loadingOlder, error: olderError, handled: onLoadOlder != nil)
+    }
+    private var newerEnd: FlareMessageListPaging.End {
+        .init(has: hasNewer, loading: loadingNewer, error: newerError, handled: onLoadNewer != nil)
+    }
+
+    private func askOlder(retry: Bool) {
+        guard !requested, !loadingOlder, hasOlder, let onLoadOlder, retry || !olderEnd.failed else { return }
+        requested = true
+        onLoadOlder()
+    }
+
+    private func askNewer(retry: Bool) {
+        guard !requestedNewer, !loadingNewer, hasNewer, let onLoadNewer, retry || !newerEnd.failed else { return }
+        requestedNewer = true
+        // The row at the bottom holds the reading position while the page grows under it, rather than the end
+        // of the timeline, which would carry the reader down with the new rows.
+        if visibleId == Self.timelineEndId { visibleId = messages.last?.id }
+        onLoadNewer()
+    }
+
+    /// One end of the window: the spinner while a page loads, else the error and the load or retry button.
+    @ViewBuilder
+    private func endBand(_ edge: FlareMessageListPaging.Edge, error: String?, label: String, disabled: Bool,
+                         colors: FlareColors, load: @escaping () -> Void) -> some View {
+        if edge.error, let error { Text(error).foregroundColor(colors.textPrimary).padding(.horizontal, 12) }
+        if edge.spinner { ProgressView().frame(minHeight: 48) }
+        else if edge.button {
+            Button(action: load) { Text(label).frame(minWidth: 48, minHeight: 48) }.disabled(disabled)
+        }
+    }
+
+    /// The reader moved: an edge row reported a new position. Pages are asked for within the shared distance of
+    /// either edge; the first report of a window only records where it is.
+    private func pagingMoved(fromTop: CGFloat?? = .none, fromBottom: CGFloat?? = .none) {
+        var moved = false
+        if case .some(let top) = fromTop, top != pagingFromTop { moved = pagingFromTop != nil; pagingFromTop = top }
+        if case .some(let bottom) = fromBottom, bottom != pagingFromBottom { moved = moved || pagingFromBottom != nil; pagingFromBottom = bottom }
+        guard moved else { return }
+        let wanted = FlareMessageListPaging.requests(fromTop: pagingFromTop ?? .infinity, fromBottom: pagingFromBottom ?? .infinity,
+                                                     older: olderEnd, newer: newerEnd)
+        if wanted.older { askOlder(retry: false) }
+        if wanted.newer { askNewer(retry: false) }
+    }
+
     @ViewBuilder
     private func timelineBody(_ colors: FlareColors) -> some View {
         VStack(spacing: 0) {
-            if let olderError { Text(olderError).foregroundColor(colors.textPrimary).padding(.horizontal, 12) }
-            if loadingOlder { ProgressView().frame(minHeight: 48) }
-            else if hasOlder, let onLoadOlder {
-                Button { if !requested { requested = true; onLoadOlder() } } label: {
-                    Text(loadOlderText ?? strings.messageListLoadOlder).frame(minWidth: 48, minHeight: 48)
-                }.disabled(requested)
-            }
+            endBand(FlareMessageListPaging.edge(olderEnd), error: olderError, label: loadOlderText ?? strings.messageListLoadOlder,
+                    disabled: requested, colors: colors) { askOlder(retry: true) }
             if messages.isEmpty {
                 Group {
                     if loading { ProgressView() }
@@ -443,13 +519,20 @@ public struct MessageListView: View {
             } else {
                 timeline.id(conversationId)
             }
+            endBand(FlareMessageListPaging.edge(newerEnd), error: newerError, label: strings.messageListLoadNewer,
+                    disabled: requestedNewer, colors: colors) { askNewer(retry: true) }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(colors.bgSecondary)
             .onChange(of: loadingOlder) { if !$0 { requested = false } }
             .onChange(of: messages.first?.id) { _ in requested = false }
             .onChange(of: olderError) { _ in requested = false }
+            .onChange(of: loadingNewer) { if !$0 { requestedNewer = false } }
+            .onChange(of: messages.last?.id) { _ in requestedNewer = false }
+            .onChange(of: newerError) { _ in requestedNewer = false }
             .onChange(of: conversationId) { _ in
                 requested = false; visibleId = nil; rowFrames = [:]; restorationGeneration += 1; locatedId = nil
+                requestedNewer = false; paging = TimelinePaging(detachedSinceRows: hasNewer)
+                pagingFromTop = nil; pagingFromBottom = nil
                 follow = TimelineFollow()
                 mediaSession.voice.stop()
             }
@@ -500,6 +583,7 @@ public struct MessageListView: View {
         // What the follow rules read from the messages; the change handlers get it as their new value, because
         // their closures still see the previous messages.
         let followRows = messages.map { TimelineFollow.Row(id: $0.id, own: $0.senderId == currentUserId) }
+        let pagingRows = TimelinePagingRows(rows: followRows, detached: hasNewer)
         GeometryReader { viewport in
             if #available(iOS 17.0, macOS 14.0, *), !legacyTimelineScrolling {
                 ScrollViewReader { proxy in
@@ -516,9 +600,18 @@ public struct MessageListView: View {
                         // where the end was when the content was last laid out, which is not where the
                         // reader went (a macOS scroll never lays the content out again).
                         .onChange(of: visibleId) { id in syncAnchor(id) }
-                        .onChange(of: followRows) { rows in
-                            if rowsChanged(rows) { goToLatest(tailId: rows.last?.id) }
+                        .onChange(of: pagingRows) { value in
+                            let previousLast = timelineIds.last
+                            switch rowsChanged(value) {
+                            case .latest: goToLatest(tailId: value.rows.last?.id)
+                            case .newerPage:
+                                // The row at the bottom holds the place rather than the end, which the new rows moved.
+                                if visibleId == Self.timelineEndId { visibleId = previousLast }
+                            case .keep: break
+                            }
                         }
+                        .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
+                        .onPreferenceChange(TimelineEnd.self) { pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) })) }
                         .onChange(of: jumpGeneration) { _ in goToLatest(tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
                             if follow.followTail || follow.atBottom { goToLatest(tailId: timelineIds.last) }
@@ -556,13 +649,18 @@ public struct MessageListView: View {
                             DispatchQueue.main.async { scrollToLocated(proxy) }
                         }
                         .onPreferenceChange(TimelineRowFrames.self) { rowFrames = $0 }
-                        .onPreferenceChange(TimelineEnd.self) { syncPosition($0) }
+                        .onPreferenceChange(TimelineEnd.self) {
+                            syncPosition($0)
+                            pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) }))
+                        }
+                        .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
                         .onChange(of: jumpGeneration) { _ in scrollToEnd(proxy, tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
                             if follow.followTail || follow.atBottom { scrollToEnd(proxy, tailId: timelineIds.last) }
                         }
-                        .onChange(of: followRows) { rows in
-                            if rowsChanged(rows) {
+                        .onChange(of: pagingRows) { value in
+                            let rows = value.rows
+                            if rowsChanged(value) == .latest {
                                 scrollToEnd(proxy, tailId: rows.last?.id)
                                 return
                             }
@@ -587,27 +685,37 @@ public struct MessageListView: View {
         .onChange(of: follow.pendingBelowCount(messages)) { count in timelineBelowCountObserver?(count) }
     }
 
-    /// The scroll-to-latest key while messages arrived below a reader who scrolled up.
+    /// The floating key (``FlareMessageListPaging/latestEntry(hasNewer:handled:belowCount:)``): back to the latest
+    /// messages for a detached window, else the count of the messages that arrived below a reader who scrolled up.
     @ViewBuilder private var scrollToLatestKey: some View {
-        let below = follow.pendingBelowCount(messages)
-        if below > 0 {
-            ScrollToLatestView(count: below) { jumpGeneration += 1 }
-                .padding(FlareSizes.spacingLg)
+        let entry = FlareMessageListPaging.latestEntry(hasNewer: hasNewer, handled: onJumpToLatest != nil,
+                                                       belowCount: follow.pendingBelowCount(messages))
+        if entry.shown {
+            ScrollToLatestView(count: entry.count) {
+                if entry.action == .jumpToLatest {
+                    paging.jumpRequested = true
+                    onJumpToLatest?()
+                } else {
+                    jumpGeneration += 1
+                }
+            }
+            .padding(FlareSizes.spacingLg)
         }
     }
 
-    /// The rows changed: records their ids and says whether the list goes to the newest message
-    /// (``TimelineFollow/rowsChanged(from:to:)``).
-    private func rowsChanged(_ rows: [TimelineFollow.Row]) -> Bool {
+    /// The rows or the detached state changed: records the ids and says what the reading position does
+    /// (``TimelinePaging/rowsChanged(from:to:follow:)``).
+    private func rowsChanged(_ value: TimelinePagingRows) -> TimelinePaging.RowsChange {
         let previous = timelineIds
-        timelineIds = rows.map(\.id)
-        return follow.rowsChanged(from: previous, to: rows)
+        timelineIds = value.rows.map(\.id)
+        return paging.rowsChanged(from: previous, to: value, follow: &follow)
     }
 
     /// The reader's position from the end of the timeline, written only when what it decides changes.
     private func syncPosition(_ end: TimelineEnd.Position?) {
         var next = follow
         next.sync(distanceToBottom: end?.distanceToBottom ?? .infinity, tailId: end?.tailId)
+        if hasNewer { next.detach() }
         if next != follow { follow = next }
     }
 
@@ -617,6 +725,7 @@ public struct MessageListView: View {
         guard let id else { return }
         var next = follow
         next.sync(atEnd: id == Self.timelineEndId || id == messages.last?.id, tailId: messages.last?.id)
+        if hasNewer { next.detach() }
         if next != follow { follow = next }
     }
 
@@ -754,6 +863,14 @@ public struct MessageListView: View {
                 }
                 .id(msg.id)
                 .background {
+                    // The first row says how far the top of the timeline is above the viewport, for paging.
+                    if index == 0 {
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: TimelineStart.self, value: proxy.frame(in: .named(coordinateSpace)).minY)
+                        }
+                    }
+                }
+                .background {
                     // Row frames restore the reading position on iOS 16; later systems keep it themselves.
                     if reportsRowFrames {
                         GeometryReader { proxy in
@@ -825,6 +942,60 @@ private struct TimelineEnd: PreferenceKey {
     }
     static let defaultValue: Position? = nil
     static func reduce(value: inout Position?, nextValue: () -> Position?) { value = nextValue() ?? value }
+}
+
+/// Where the first row's top is, relative to the top of the viewport (negative once it scrolled above it); nil while
+/// that row is not laid out.
+private struct TimelineStart: PreferenceKey {
+    static let defaultValue: CGFloat? = nil
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) { value = nextValue() ?? value }
+}
+
+/// The rows the follow rules read, with whether the window is detached from the latest: one change value, so a
+/// handler sees both as they are now.
+struct TimelinePagingRows: Equatable {
+    let rows: [TimelineFollow.Row]
+    let detached: Bool
+}
+
+/// What a change of the rows does to the reading position of a window that may be detached from the latest.
+struct TimelinePaging: Equatable {
+    /// The window has been detached since the rows last changed: rows appended now are a newer page. Sticky, so a
+    /// host that clears `hasNewer` an update before it hands over the page that attached the window still has that
+    /// page kept in place.
+    var detachedSinceRows = false
+    /// The reader asked for the latest messages: the window the host replaces this one with opens at its newest.
+    var jumpRequested = false
+
+    enum RowsChange: Equatable {
+        /// Go to the newest message.
+        case latest
+        /// A newer page grew under a detached window's reader, who stays where they are.
+        case newerPage
+        /// Keep the reading position.
+        case keep
+    }
+
+    /// The latest window the reader asked for opens at its newest message; rows appended to a window that was
+    /// detached are a newer page; everything else follows ``TimelineFollow/rowsChanged(from:to:)``.
+    mutating func rowsChanged(from previous: [String], to value: TimelinePagingRows, follow: inout TimelineFollow) -> RowsChange {
+        if value.detached { detachedSinceRows = true }
+        if jumpRequested && !value.detached {
+            jumpRequested = false
+            detachedSinceRows = false
+            follow.reachedBottom(tailId: value.rows.last?.id)
+            return .latest
+        }
+        let ids = value.rows.map(\.id)
+        guard previous != ids else { return .keep }
+        let wasDetached = detachedSinceRows
+        detachedSinceRows = value.detached
+        if FlareMessageListPaging.isNewerPage(from: previous, to: ids, wasDetached: wasDetached) {
+            follow.readNewerPage(tailId: ids.last)
+            return .newerPage
+        }
+        return follow.rowsChanged(from: previous, to: value.rows) ? .latest : .keep
+    }
 }
 
 /// Reads the bottom-most visible row from the scroll view, where the system offers it (iOS 17,

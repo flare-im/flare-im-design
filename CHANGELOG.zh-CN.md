@@ -6,6 +6,14 @@
 
 ### 设计系统与跨端组件
 
+- **消息列表能往新翻页、能回到最新**（契约与四端 Kit）。
+  - 四端消息列表新增 `hasNewer`、`loadingNewer`、`newerError` 与两个意图：往新加载（Vue `load-newer`，原生 `onLoadNewer`）、回到最新（Vue `jump-to-latest`，原生 `onJumpToLatest`）。全部缺省为关：一个都不传的列表不画往新的一端、从不请求往新，浮动键只有原来的新消息键。
+  - 脱离最新的窗口（`hasNewer`，即围绕某条消息打开的窗口）在时间线下方画往新的一端，规则与往旧一端相同：加载中只显示转圈，否则显示错误与加载或重试按钮。它显示不带计数的 `ScrollToLatest`，点了发出回到最新；宿主换上的最新窗口打开在最新一条。往这个窗口里读进更新的一页时，读者留在正在读的行上，即使这一页以自己的消息结尾。
+  - 四端都在距任一边 160 个逻辑像素以内自动请求下一页；原来 Compose 与 SwiftUI 只有加载更早的按钮，Vue 在 72 px 以内才请求。失败后只有重试按钮会请求。加载中一端只显示转圈；原来三个原生端还同时显示上一次的错误。
+  - `spec/message-list-paging-vectors.json` 收录每一端画什么、什么时候请求、回到最新键什么时候出现与点了做什么，四端都跑。原生 `FlareStrings` 新增 `messageListLoadNewer`；Vue 新增 `chat.loadNewer`、`chat.loadingNewer`（`docs/message-list-paging.md`）。
+- **定位可以围绕目标打开窗口**（契约与四端 Kit）。
+  - `flareLocateMessageAround`（Vue、Flutter、Compose）与 `FlareLocate.runAround`（SwiftUI）先问列表，再调一次宿主的 `openAround(anchor)`——它回答列表画这条消息用的锚点键，或什么都不回答——然后让列表画一遍、用这个键再问，最多六次；列表自己滚到这一行并标记。`FlareLocateAnchor` 带消息 id，知道时也带 seq。
+  - `spec/locate-orchestration-vectors.json` 新增 `around` 组，13 条脚本化 run，连宿主调用次数、问的次数与每次问的 id 一起对，四端都跑。逐页往上翻的 `flareLocateMessage` / `FlareLocate.run` 保留到五个 app 切到时间线视图之后。
 - **投影出来的名字四端读成同一段文字**（契约与四端 Kit）。
   - `FlareDisplayName` 就是核心 SDK 的 `DisplayName`，wire 为 camelCase：`named`（`text`、`source`）、`members`（`names`、`total`）、`unnamed`（`entity`、`idTail`），配 `FlareDisplayNameSource` 与 `FlareDisplayNameEntity`。`flareDisplayNameText(name, strings)` 把它写成文字：有名字照原文；成员拼接（「张三、李四」），成员多于名字数加本人时加后缀，两种语言各按自己的读法计数：中文「等 N 人」的 N 是含本人的总数（「张三、李四、王五等 12 人」），英文「and N others」的 N 是名字以外、不含本人的其他成员（「and 8 others」，1 时为「and 1 other」）；无名的人「用户 9876」，没有 id 末四位时「未知用户」；未命名群「群聊」，系统会话「系统通知」，其余类型为 AI 助手、客服、频道、广播、临时会话。
   - 原生 `FlareStrings` 新增 `displayNameUser(idTail)`、`displayNameUnknownUser`、`displayNameGroup`、`displayNameSystem`、`displayNameAi`、`displayNameCustomer`、`displayNameChannel`、`displayNameBroadcast`、`displayNameTemp`、`displayNameSeparator`、`displayNameMembersMore(names, total, others)`，中文默认值与英文预设都有；Vue 在 zh-CN、en-US 新增 `displayName.*`。

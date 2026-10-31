@@ -140,5 +140,257 @@
         "showCalls": 7
       }
     }
-  ]
+  ],
+  "around": {
+    "note": "The same trip when the host can open a window around the message (a timeline view opened with an anchor) instead of paging back to it. The loop: ask the list for `anchor.messageId`, so a message already on screen opens nothing; otherwise call `openAround(anchor)` once — it answers the anchor key, the row key the list will draw the message with, or nothing (null, empty or blank) when the message is not in the history; then settle and ask the list for that key up to `settleAttempts` times. `isCurrent` is checked before every ask, before opening, after opening and before every settle, and `cancelled` ends the trip silently. A shown message is scrolled to and marked by the list itself. Each case scripts one run: `loaded` means the list already has the message; `openAnswer` is what the host answers; the list finds the key from the `drawnFromShow`-th ask on (counting the first ask); `cancelAfterShows` turns `isCurrent` false after that many asks; `cancelAfterOpen` turns it false once the host has answered. `expected` counts the host calls and the asks, and lists the id of every ask in order; the anchor handed to the host is the one given, unchanged.",
+    "settleAttempts": 6,
+    "cases": [
+      {
+        "id": "already-loaded",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": true,
+        "openAnswer": "m-1",
+        "drawnFromShow": 2,
+        "expected": {
+          "outcome": "shown",
+          "openCalls": 0,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "opened-and-drawn-at-once",
+        "anchor": {
+          "messageId": "m-1",
+          "seq": 81234
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 2,
+        "expected": {
+          "outcome": "shown",
+          "openCalls": 1,
+          "showCalls": 2,
+          "askedIds": [
+            "m-1",
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "the-list-is-asked-by-the-anchor-key",
+        "anchor": {
+          "messageId": "srv-9",
+          "seq": 512
+        },
+        "loaded": false,
+        "openAnswer": "cm-7f3a",
+        "drawnFromShow": 2,
+        "expected": {
+          "outcome": "shown",
+          "openCalls": 1,
+          "showCalls": 2,
+          "askedIds": [
+            "srv-9",
+            "cm-7f3a"
+          ]
+        }
+      },
+      {
+        "id": "the-window-is-drawn-late",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 5,
+        "expected": {
+          "outcome": "shown",
+          "openCalls": 1,
+          "showCalls": 5,
+          "askedIds": [
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "drawn-on-the-last-allowed-ask",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 7,
+        "expected": {
+          "outcome": "shown",
+          "openCalls": 1,
+          "showCalls": 7,
+          "askedIds": [
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "one-ask-past-the-last-allowed-one",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 8,
+        "expected": {
+          "outcome": "notInHistory",
+          "openCalls": 1,
+          "showCalls": 7,
+          "askedIds": [
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1",
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "the-host-cannot-find-it",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": null,
+        "drawnFromShow": 2,
+        "expected": {
+          "outcome": "notInHistory",
+          "openCalls": 1,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "a-blank-anchor-key-is-not-found",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "   ",
+        "drawnFromShow": 2,
+        "expected": {
+          "outcome": "notInHistory",
+          "openCalls": 1,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "gone-before-the-first-ask",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 2,
+        "cancelAfterShows": 0,
+        "expected": {
+          "outcome": "cancelled",
+          "openCalls": 0,
+          "showCalls": 0,
+          "askedIds": []
+        }
+      },
+      {
+        "id": "gone-before-opening",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 2,
+        "cancelAfterShows": 1,
+        "expected": {
+          "outcome": "cancelled",
+          "openCalls": 0,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "gone-while-opening",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 2,
+        "cancelAfterOpen": true,
+        "expected": {
+          "outcome": "cancelled",
+          "openCalls": 1,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "gone-while-waiting-for-the-window",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": "m-1",
+        "drawnFromShow": 10,
+        "cancelAfterShows": 3,
+        "expected": {
+          "outcome": "cancelled",
+          "openCalls": 1,
+          "showCalls": 3,
+          "askedIds": [
+            "m-1",
+            "m-1",
+            "m-1"
+          ]
+        }
+      },
+      {
+        "id": "not-found-and-gone",
+        "anchor": {
+          "messageId": "m-1"
+        },
+        "loaded": false,
+        "openAnswer": null,
+        "drawnFromShow": 2,
+        "cancelAfterOpen": true,
+        "expected": {
+          "outcome": "cancelled",
+          "openCalls": 1,
+          "showCalls": 1,
+          "askedIds": [
+            "m-1"
+          ]
+        }
+      }
+    ]
+  }
 }

@@ -378,6 +378,12 @@ internal class MessageListTail {
     /** The reader asked for older messages (the kit's load-older control); the next prepend keeps their place. */
     var olderRequested = false
 
+    /** The window has been detached since the rows last changed: rows appended now are a newer page. */
+    var detached = false
+
+    /** The reader asked for the latest messages: the window the host replaces this one with opens at its newest. */
+    var jumpRequested = false
+
     /** The list is about to jump to a located message; the move that lands it decides like the reader's scroll. */
     var located = false
 
@@ -411,6 +417,13 @@ internal suspend fun LazyListState.scrollToMessageListEnd(rows: Int) {
  * [ScrollToLatest] with the number of messages below (tap: the newest). Loading older messages keeps the visible
  * message in place, and a keyboard, a resize or a growing last message keeps a reader at the bottom there. No
  * scroll animates.
+ *
+ * Paging (`spec/message-list-paging-vectors.json`): the older end above the timeline and, for a window detached from
+ * the latest ([hasNewer]), the newer end below it draw a spinner while loading, else the error and the load or retry
+ * button. The list asks for a page by itself ([onLoadOlder], [onLoadNewer]) when the reader moves within 160 dp of
+ * that edge. A detached window shows [ScrollToLatest] without a count, which asks the host for the latest window
+ * ([onJumpToLatest]); that window opens at its newest message. A newer page read into a detached window keeps the
+ * reader on the rows they are reading.
  *
  * Multi-select (names shared with Flutter/iOS): [multiSelectMode] + [selectedIds]
  * are host state; [onToggleSelect] receives the message id. While in
@@ -467,6 +480,18 @@ fun MessageList(
     olderError: String? = null,
     loadOlderText: String? = null,
     onLoadOlder: (() -> Unit)? = null,
+    /**
+     * The window is detached from the latest messages (it was opened around a message): there is newer history past
+     * its last row. The list then draws its newer end below the timeline, asks for newer pages as the reader nears the
+     * bottom ([onLoadNewer]) and offers the way back to the latest ([onJumpToLatest]). Left at the defaults the list
+     * draws no newer end, never asks for newer and keeps only the new-messages key.
+     */
+    hasNewer: Boolean = false,
+    loadingNewer: Boolean = false,
+    newerError: String? = null,
+    onLoadNewer: (() -> Unit)? = null,
+    /** The back-to-latest key of a detached window: the host replaces the window with the latest messages. */
+    onJumpToLatest: (() -> Unit)? = null,
     conversationId: String? = null,
     state: FlareMessageListState = rememberFlareMessageListState(),
     multiSelectMode: Boolean = false,
@@ -580,21 +605,62 @@ fun MessageList(
     val media = rememberFlareMediaHost()
     var requested by remember(conversationId) { mutableStateOf(false) }
     LaunchedEffect(loadingOlder, messages.firstOrNull()?.id, olderError) { if (!loadingOlder) requested = false }
+    var requestedNewer by remember(conversationId) { mutableStateOf(false) }
+    LaunchedEffect(loadingNewer, messages.lastOrNull()?.id, newerError) { if (!loadingNewer) requestedNewer = false }
+    // The two ends of the window (spec/message-list-paging-vectors.json): one rule above and below the timeline.
+    val olderEnd = MessageListEnd(hasOlder, loadingOlder, olderError, handled = onLoadOlder != null)
+    val newerEnd = MessageListEnd(hasNewer, loadingNewer, newerError, handled = onLoadNewer != null)
+    val askOlder: (Boolean) -> Unit = { retry ->
+        if (!requested && !loadingOlder && hasOlder && onLoadOlder != null && (retry || !olderEnd.failed)) {
+            requested = true; tail.olderRequested = true; onLoadOlder()
+        }
+    }
+    val askNewer: (Boolean) -> Unit = { retry ->
+        if (!requestedNewer && !loadingNewer && hasNewer && onLoadNewer != null && (retry || !newerEnd.failed)) {
+            requestedNewer = true; onLoadNewer()
+        }
+    }
+    val currentOlderEnd by rememberUpdatedState(olderEnd)
+    val currentNewerEnd by rememberUpdatedState(newerEnd)
+    val currentAskOlder by rememberUpdatedState(askOlder)
+    val currentAskNewer by rememberUpdatedState(askNewer)
+    val currentHasNewer by rememberUpdatedState(hasNewer)
 
     val density = LocalDensity.current
     val slackPx = with(density) { MessageListBottomSlack.roundToPx() }
     SideEffect {
+        if (hasNewer) tail.detached = true
+        if (tail.jumpRequested && !hasNewer) {
+            // The latest window the reader asked for: it opens at its newest message, wherever the old window was.
+            tail.jumpRequested = false
+            tail.detached = false
+            tail.rendered = messages
+            tail.renderedIds = messages.mapTo(HashSet(messages.size)) { it.id }
+            tail.follow()
+            if (rows.isNotEmpty()) listState.requestScrollToItem(rows.lastIndex)
+            return@SideEffect
+        }
         if (tail.rendered === messages) return@SideEffect
         val previousIds = tail.renderedIds
         val previousNewest = tail.rendered?.lastOrNull()?.id
         tail.rendered = messages
         tail.renderedIds = messages.mapTo(HashSet(messages.size)) { it.id }
+        val wasDetached = tail.detached
+        tail.detached = hasNewer
         if (messages.isEmpty()) { tail.follow(); tail.olderRequested = false; return@SideEffect }
         val before = Snapshot.withoutReadObservation { listState.layoutInfo }
         val growth = messageListGrowth(previousIds, messages)
         val keepPlace = growth != null && growth.prepended > 0 && (tail.olderRequested || !tail.followTail)
         when {
-            growth == null -> { tail.follow(); listState.requestScrollToItem(rows.lastIndex) }
+            // A newer page read into a detached window grows under the reader, who stays on the rows they are reading
+            // even when it ends in one of their own messages; what arrives later is counted from its last row.
+            messageListNewerPage(growth, wasDetached) -> { tail.followTail = false; tail.anchorId = messages.last().id }
+            growth == null -> {
+                // A window of its own opens at its newest row; a detached one has nothing arriving there to follow.
+                tail.follow()
+                if (hasNewer) tail.followTail = false
+                listState.requestScrollToItem(rows.lastIndex)
+            }
             growth.prepended > 0 && !keepPlace -> listState.requestScrollToItem(rows.lastIndex)
             keepPlace -> {
                 tail.browse(previousNewest)
@@ -623,9 +689,19 @@ fun MessageList(
                 return@collect
             }
             val located = tail.located
-            if (located && messageListViewportMoved(last, viewport)) tail.located = false
+            val moved = messageListViewportMoved(last, viewport)
+            if (located && moved) tail.located = false
+            // Pages are asked for within the shared distance of either edge, when the reader moves (never on the
+            // first layout of a window).
+            if (moved) {
+                val (fromTop, fromBottom) = messageListEdgeDistances(listState.layoutInfo)
+                val wanted = messageListRequests(fromTop / density.density, fromBottom / density.density, currentOlderEnd, currentNewerEnd)
+                if (wanted.older) currentAskOlder(false)
+                if (wanted.newer) currentAskNewer(false)
+            }
             when (messageListTailAction(last, viewport, tail.followTail, slackPx, located)) {
-                MessageListTailAction.Follow -> tail.follow()
+                // The bottom of a detached window is not the latest message: nothing arrives there to follow.
+                MessageListTailAction.Follow -> if (currentHasNewer) tail.browse(currentMessages.lastOrNull()?.id) else tail.follow()
                 MessageListTailAction.Browse -> tail.browse(currentMessages.lastOrNull()?.id)
                 MessageListTailAction.SettleAtEnd -> listState.scrollToMessageListEnd(viewport.totalRows)
                 MessageListTailAction.None -> Unit
@@ -663,14 +739,7 @@ fun MessageList(
         LocalFlareConversationId provides conversationId,
     ) {
         Column(Modifier.fillMaxSize().background(colors.bgSecondary)) {
-            if (hasOlder || loadingOlder || olderError != null) {
-                if (olderError != null) Text(olderError, color = colors.textPrimary, modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))
-                if (loadingOlder) Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                else if (hasOlder && onLoadOlder != null) TextButton(
-                    onClick = { if (!requested && !loadingOlder) { requested = true; tail.olderRequested = true; onLoadOlder() } }, enabled = !requested,
-                    modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                ) { Text(loadOlderText) }
-            }
+            MessageListEndBand(messageListEdge(olderEnd), olderError, loadOlderText, enabled = !requested) { askOlder(true) }
             if (messages.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (loading) CircularProgressIndicator()
@@ -787,14 +856,40 @@ fun MessageList(
                     // The `footer` slot: its own item so it stays under the newest row and scrolls with it.
                     if (footer != null) item(key = "flare-timeline-footer", contentType = "footer") { footer() }
                 } }
-                if (below > 0) {
+                val latest = messageListLatestEntry(hasNewer, handled = onJumpToLatest != null, belowCount = below)
+                if (latest.shown) {
                     Box(Modifier.align(Alignment.BottomEnd).padding(FlareSizes.spacingMd)) {
-                        ScrollToLatest(count = below, onTap = { tail.follow(); scope.launch { listState.scrollToMessageListEnd(rows.size + footerRows) } })
+                        ScrollToLatest(count = latest.count, onTap = {
+                            if (latest.action == MessageListLatestAction.JumpToLatest) {
+                                tail.jumpRequested = true
+                                onJumpToLatest?.invoke()
+                            } else {
+                                tail.follow()
+                                scope.launch { listState.scrollToMessageListEnd(rows.size + footerRows) }
+                            }
+                        })
                     }
                 }
             }
+            MessageListEndBand(messageListEdge(newerEnd), newerError, strings.messageListLoadNewer, enabled = !requestedNewer) { askNewer(true) }
         }
     }
     // The open preview or player reads the states of this composition, so its key follows them.
     FlareMediaOverlay(media) { id -> id?.let { mediaDownloadStates[it] } }
+}
+
+/**
+ * One end of the window ([messageListEdge]): the spinner while a page loads, else the error and the load or retry
+ * button. The older end sits above the timeline and the newer end below it; both draw the same way.
+ */
+@Composable
+private fun MessageListEndBand(edge: MessageListEdge, error: String?, label: String, enabled: Boolean, onLoad: () -> Unit) {
+    if (!edge.visible) return
+    val colors = flareColors()
+    if (edge.error && error != null) Text(error, color = colors.textPrimary, modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))
+    if (edge.spinner) Box(Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+    else if (edge.button) TextButton(
+        onClick = onLoad, enabled = enabled,
+        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+    ) { Text(label) }
 }

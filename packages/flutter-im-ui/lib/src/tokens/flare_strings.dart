@@ -464,6 +464,7 @@ class FlareStrings {
     this.inlineVoiceDiscard = '删除录音',
     // MessageList / UnknownMessage / EmojiPicker / StickerPanel / QuickPhrases / QrCard
     this.messageListLoadOlder = '加载更早消息',
+    this.messageListLoadNewer = '加载更新的消息',
     this.messageRecalledSelf = '你撤回了一条消息',
     this.messageRecalledPeer = '对方撤回了一条消息',
     this.messageRecalledGroupOther = _messageRecalledGroupOther,
@@ -1397,6 +1398,9 @@ class FlareStrings {
   final String inlineVoiceDiscard;
   // MessageList / UnknownMessage / EmojiPicker / StickerPanel / QuickPhrases / QrCard
   final String messageListLoadOlder;
+
+  /// The load button below a window detached from the latest (spec/message-list-paging-vectors.json).
+  final String messageListLoadNewer;
   final String messageRecalledSelf;
   final String messageRecalledPeer;
   final String Function(String name) messageRecalledGroupOther;
@@ -2256,6 +2260,7 @@ class FlareStrings {
     String? inlineVoiceResume,
     String? inlineVoiceDiscard,
     String? messageListLoadOlder,
+    String? messageListLoadNewer,
     String? messageRecalledSelf,
     String? messageRecalledPeer,
     String Function(String name)? messageRecalledGroupOther,
@@ -3077,6 +3082,7 @@ class FlareStrings {
       inlineVoiceResume: inlineVoiceResume ?? this.inlineVoiceResume,
       inlineVoiceDiscard: inlineVoiceDiscard ?? this.inlineVoiceDiscard,
       messageListLoadOlder: messageListLoadOlder ?? this.messageListLoadOlder,
+      messageListLoadNewer: messageListLoadNewer ?? this.messageListLoadNewer,
       messageRecalledSelf: messageRecalledSelf ?? this.messageRecalledSelf,
       messageRecalledPeer: messageRecalledPeer ?? this.messageRecalledPeer,
       messageRecalledGroupOther:

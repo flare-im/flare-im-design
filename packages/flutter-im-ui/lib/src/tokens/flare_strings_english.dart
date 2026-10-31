@@ -397,6 +397,7 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   messageEdited: 'Edited',
   messageExpired: 'Expired',
   messageFailed: 'Not sent',
+  messageListLoadNewer: 'Load newer messages',
   messageListLoadOlder: 'Load earlier messages',
   messageMenuLoading: 'Loading…',
   messagePending: 'Waiting to send',

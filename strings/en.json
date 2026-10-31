@@ -7276,5 +7276,14 @@
       "ios"
     ],
     "zh": "位置"
+  },
+  "messageListLoadNewer": {
+    "en": "Load newer messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载更新的消息"
   }
 }

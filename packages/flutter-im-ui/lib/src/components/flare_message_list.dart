@@ -12,6 +12,7 @@ import '../models/message_data.dart';
 import '../models/haptics.dart';
 import '../models/locate_highlight.dart';
 import '../models/message_grouping.dart';
+import '../models/message_list_paging.dart';
 import '../models/message_preview.dart';
 import '../models/message_surface.dart';
 import '../models/swipe_reply.dart';
@@ -59,6 +60,16 @@ import 'flare_unread_divider.dart';
 ///
 /// A host that has to show one particular message passes a
 /// [FlareMessageListController].
+///
+/// Paging (`spec/message-list-paging-vectors.json`): the older end above the
+/// timeline and, for a window detached from the latest ([hasNewer]), the newer
+/// end below it draw a spinner while loading, else the error and the load or
+/// retry button. The list asks for a page by itself ([onLoadOlder],
+/// [onLoadNewer]) when the reader drags within 160 logical pixels of that edge.
+/// A detached window shows [FlareScrollToLatest] without a count, which asks
+/// the host for the latest window ([onJumpToLatest]); that window opens at its
+/// newest message. A newer page read into a detached window keeps the reader
+/// on the rows they are reading.
 class FlareMessageList extends StatefulWidget {
   const FlareMessageList({
     super.key,
@@ -71,6 +82,11 @@ class FlareMessageList extends StatefulWidget {
     this.hasOlder = false,
     this.olderError,
     this.loadOlderText,
+    this.hasNewer = false,
+    this.loadingNewer = false,
+    this.newerError,
+    this.onLoadNewer,
+    this.onJumpToLatest,
     this.conversationId,
     this.loading = false,
     this.emptyText,
@@ -115,6 +131,27 @@ class FlareMessageList extends StatefulWidget {
   final bool hasOlder;
   final String? olderError;
   final String? loadOlderText;
+
+  /// The window is detached from the latest messages (it was opened around a
+  /// message): there is newer history past its last row. The list draws its
+  /// newer end below the timeline, asks for newer pages as the reader nears
+  /// the bottom ([onLoadNewer]) and offers the way back to the latest
+  /// ([onJumpToLatest]). Left at the defaults the list draws no newer end,
+  /// never asks for newer and keeps only the new-messages key.
+  final bool hasNewer;
+
+  /// A newer page is being read: the newer end shows a spinner.
+  final bool loadingNewer;
+
+  /// The last newer page failed: the newer end shows it with a retry.
+  final String? newerError;
+
+  /// Reads the next newer page.
+  final VoidCallback? onLoadNewer;
+
+  /// The back-to-latest key of a detached window: the host replaces the
+  /// window with the latest messages.
+  final VoidCallback? onJumpToLatest;
   final String? conversationId;
   final bool loading;
 
@@ -411,6 +448,15 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// so offset 0 shows the newest message at the bottom.
   String? _pivotId;
   bool _requested = false;
+  bool _requestedNewer = false;
+
+  /// The reader asked for the latest messages: the window the host replaces
+  /// this one with opens at its newest.
+  bool _jumpRequested = false;
+
+  /// The window has been detached since the rows last changed: rows appended
+  /// now are a newer page.
+  bool _detachedSinceRows = false;
   FlareMessageListController get _handle => widget.controller ?? _ownedHandle;
   ScrollController get _controller => _handle.scroll;
 
@@ -662,7 +708,11 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// bottom; leaving it starts the count of messages below.
   void _syncFollow(ScrollMetrics metrics) {
     if (!_trackScroll) return;
-    final atBottom = metrics.pixels <= metrics.minScrollExtent + _bottomSlop;
+    // The bottom of a detached window is not the latest message: nothing
+    // arrives there to follow.
+    final atBottom =
+        metrics.pixels <= metrics.minScrollExtent + _bottomSlop &&
+        !widget.hasNewer;
     if (atBottom == _followTail) return;
     void apply() {
       if (!mounted) return;
@@ -706,6 +756,12 @@ class _FlareMessageListState extends State<FlareMessageList>
   }
 
   @override
+  void initState() {
+    super.initState();
+    _detachedSinceRows = widget.hasNewer;
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _dependencies += 1;
@@ -731,17 +787,44 @@ class _FlareMessageListState extends State<FlareMessageList>
       }
     }
     final surviving = widget.messages.map((m) => m.id).toSet();
+    if (widget.hasNewer) _detachedSinceRows = true;
     if (oldWidget.conversationId != widget.conversationId) {
       // Another conversation: the voice message playing belonged to the last.
       unawaited(_media.stopVoice());
       _requested = false;
+      _requestedNewer = false;
+      _jumpRequested = false;
+      _detachedSinceRows = widget.hasNewer;
+      _showNewest();
+    } else if (_jumpRequested && !widget.hasNewer) {
+      // The latest window the reader asked for: it opens at its newest
+      // message, wherever the old window was.
+      _jumpRequested = false;
+      _detachedSinceRows = false;
       _showNewest();
     } else if (oldWidget.messages != widget.messages) {
+      final wasDetached = _detachedSinceRows;
+      _detachedSinceRows = widget.hasNewer;
       final appended = _appendedCount(oldWidget.messages, widget.messages);
       final ownNewest =
           appended > 0 && widget.messages.last.senderId == widget.currentUserId;
-      if (oldWidget.messages.isEmpty || _followTail || ownNewest) {
+      if (flareMessageListNewerPage(
+        [for (final m in oldWidget.messages) m.id],
+        [for (final m in widget.messages) m.id],
+        wasDetached: wasDetached,
+      )) {
+        // A newer page read into a detached window grows under the reader,
+        // who stays on the rows they are reading even when it ends in one of
+        // their own messages; what arrives later is counted from its last row.
+        _keepReaderInPlace(surviving);
+        _followTail = false;
+        _browseTailId = widget.messages.last.id;
+      } else if (oldWidget.messages.isEmpty || _followTail || ownNewest) {
         _showNewest();
+        if (widget.hasNewer) {
+          _followTail = false;
+          _browseTailId = widget.messages.lastOrNull?.id;
+        }
       } else {
         _keepReaderInPlace(surviving);
       }
@@ -754,6 +837,10 @@ class _FlareMessageListState extends State<FlareMessageList>
         oldWidget.messages.firstOrNull?.id != widget.messages.firstOrNull?.id ||
         oldWidget.olderError != widget.olderError)
       _requested = false;
+    if (oldWidget.loadingNewer && !widget.loadingNewer ||
+        oldWidget.messages.lastOrNull?.id != widget.messages.lastOrNull?.id ||
+        oldWidget.newerError != widget.newerError)
+      _requestedNewer = false;
   }
 
   /// Ids of rows that came on screen this frame, handed to the host's
@@ -941,15 +1028,111 @@ class _FlareMessageListState extends State<FlareMessageList>
     super.dispose();
   }
 
+  /// The two ends of the window (`spec/message-list-paging-vectors.json`):
+  /// one rule above and below the timeline.
+  FlareMessageListEnd get _olderEnd => FlareMessageListEnd(
+    has: widget.hasOlder,
+    loading: widget.loadingOlder,
+    error: widget.olderError,
+    handled: widget.onLoadOlder != null,
+  );
+  FlareMessageListEnd get _newerEnd => FlareMessageListEnd(
+    has: widget.hasNewer,
+    loading: widget.loadingNewer,
+    error: widget.newerError,
+    handled: widget.onLoadNewer != null,
+  );
+
   void _requestOlder({bool retry = false}) {
     if (_requested ||
         widget.loadingOlder ||
         !widget.hasOlder ||
         widget.onLoadOlder == null ||
-        (!retry && widget.olderError != null))
+        (!retry && _olderEnd.failed))
       return;
     setState(() => _requested = true);
     widget.onLoadOlder!();
+  }
+
+  /// Rows read in below the window grow under the reader, so nothing has to
+  /// be anchored first.
+  void _requestNewer({bool retry = false}) {
+    if (_requestedNewer ||
+        widget.loadingNewer ||
+        !widget.hasNewer ||
+        widget.onLoadNewer == null ||
+        (!retry && _newerEnd.failed))
+      return;
+    setState(() => _requestedNewer = true);
+    widget.onLoadNewer!();
+  }
+
+  /// Pages are asked for within the shared distance of either edge while the
+  /// reader drags. The view runs bottom to top, so the top is the far end.
+  void _askForPages(ScrollMetrics metrics) {
+    final wanted = flareMessageListRequests(
+      fromTop: (metrics.maxScrollExtent - metrics.pixels).clamp(
+        0,
+        double.infinity,
+      ),
+      fromBottom: (metrics.pixels - metrics.minScrollExtent).clamp(
+        0,
+        double.infinity,
+      ),
+      older: _olderEnd,
+      newer: _newerEnd,
+    );
+    if (wanted.older) _requestOlder();
+    if (wanted.newer) _requestNewer();
+  }
+
+  /// The floating key: back to the latest messages for a detached window,
+  /// else straight to the newest message.
+  void _onLatestKey(FlareMessageListLatestAction? action) {
+    if (action == FlareMessageListLatestAction.jumpToLatest) {
+      _jumpRequested = true;
+      widget.onJumpToLatest?.call();
+    } else {
+      _goToNewest();
+    }
+  }
+
+  /// One end of the window: the spinner while a page loads, else the error and
+  /// the load or retry button.
+  Widget _endBand(
+    FlareMessageListEdge edge, {
+    required String? error,
+    required String label,
+    required bool requested,
+    required VoidCallback load,
+    required FlareColors colors,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Column(
+        children: [
+          if (edge.error && error != null)
+            Text(error, style: TextStyle(color: colors.textPrimary)),
+          if (edge.spinner)
+            const SizedBox(
+              height: 48,
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (edge.button)
+            TextButton(
+              onPressed: requested ? null : load,
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+              child: Text(label),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _message(int i) {
@@ -1065,6 +1248,13 @@ class _FlareMessageListState extends State<FlareMessageList>
     final before = [for (var i = split - 1; i >= 0; i--) widget.messages[i].id];
     final after = widget.messages.skip(split).map((m) => m.id).toList();
     final newBelow = _newBelow;
+    final olderEdge = flareMessageListEdge(_olderEnd);
+    final newerEdge = flareMessageListEdge(_newerEnd);
+    final latest = flareMessageListLatestEntry(
+      hasNewer: widget.hasNewer,
+      handled: widget.onJumpToLatest != null,
+      belowCount: newBelow,
+    );
     return FlareLocateHighlightScope(
       messageId: _locatedId,
       elapsedMs: _locateElapsed,
@@ -1083,43 +1273,14 @@ class _FlareMessageListState extends State<FlareMessageList>
             color: colors.bgSecondary,
             child: Column(
               children: [
-                if (widget.hasOlder ||
-                    widget.loadingOlder ||
-                    widget.olderError != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Column(
-                      children: [
-                        if (widget.olderError != null)
-                          Text(
-                            widget.olderError!,
-                            style: TextStyle(color: colors.textPrimary),
-                          ),
-                        if (widget.loadingOlder)
-                          const SizedBox(
-                            height: 48,
-                            child: Center(
-                              child: SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                          )
-                        else if (widget.hasOlder && widget.onLoadOlder != null)
-                          TextButton(
-                            onPressed: _requested
-                                ? null
-                                : () => _requestOlder(retry: true),
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(48, 48),
-                            ),
-                            child: Text(_loadOlderText),
-                          ),
-                      ],
-                    ),
+                if (olderEdge.visible)
+                  _endBand(
+                    olderEdge,
+                    error: widget.olderError,
+                    label: _loadOlderText,
+                    requested: _requested,
+                    load: () => _requestOlder(retry: true),
+                    colors: colors,
                   ),
                 Expanded(
                   child: widget.messages.isEmpty
@@ -1142,10 +1303,8 @@ class _FlareMessageListState extends State<FlareMessageList>
                                     onNotification: (n) {
                                       if (n.depth != 0) return false;
                                       if (n is ScrollUpdateNotification) {
-                                        if (n.dragDetails != null &&
-                                            n.metrics.pixels >=
-                                                n.metrics.maxScrollExtent - 160)
-                                          _requestOlder();
+                                        if (n.dragDetails != null)
+                                          _askForPages(n.metrics);
                                         _syncFollow(n.metrics);
                                       } else if (n is ScrollEndNotification) {
                                         _syncFollow(n.metrics);
@@ -1244,18 +1403,27 @@ class _FlareMessageListState extends State<FlareMessageList>
                                 ),
                               ),
                             ),
-                            if (newBelow > 0)
+                            if (latest.shown)
                               PositionedDirectional(
                                 end: FlareSizes.spacingMd,
                                 bottom: FlareSizes.spacingMd,
                                 child: FlareScrollToLatest(
-                                  count: newBelow,
-                                  onTap: _goToNewest,
+                                  count: latest.count,
+                                  onTap: () => _onLatestKey(latest.action),
                                 ),
                               ),
                           ],
                         ),
                 ),
+                if (newerEdge.visible)
+                  _endBand(
+                    newerEdge,
+                    error: widget.newerError,
+                    label: FlareStrings.of(context).messageListLoadNewer,
+                    requested: _requestedNewer,
+                    load: () => _requestNewer(retry: true),
+                    colors: colors,
+                  ),
               ],
             ),
           ),

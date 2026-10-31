@@ -65,3 +65,40 @@ suspend fun flareLocateMessage(
     }
     return FlareLocateOutcome.NotInHistory
 }
+
+/** The message a locate opens a window around: its id (server or client), and its seq when the caller has it. */
+data class FlareLocateAnchor(val messageId: String, val seq: Long? = null)
+
+/**
+ * The same trip when the host can open a window around the message (a timeline view opened with an anchor) instead
+ * of paging back to it: ask the list, open once around the anchor, then let the list draw and ask for the anchor key
+ * up to [FLARE_LOCATE_SETTLE_ATTEMPTS] times (`spec/locate-orchestration-vectors.json` `around`). The list scrolls to
+ * the row and marks it itself.
+ *
+ * @param showInList asks the list to show the message with this id and answers whether it had it — on this kit that
+ *   is [FlareMessageListState.scrollToMessage].
+ * @param openAround opens the timeline around the anchor and answers the anchor key — the row key the list will draw
+ *   the message with — or null (or a blank key) when the message is not in the history. A failed open answers null.
+ * @param settle lets the list draw one pass.
+ * @param isCurrent is false once the reader has left this conversation.
+ */
+suspend fun flareLocateMessageAround(
+    anchor: FlareLocateAnchor,
+    showInList: suspend (String) -> Boolean,
+    openAround: suspend (FlareLocateAnchor) -> String?,
+    settle: suspend () -> Unit,
+    isCurrent: () -> Boolean,
+): FlareLocateOutcome {
+    if (!isCurrent()) return FlareLocateOutcome.Cancelled
+    if (showInList(anchor.messageId)) return FlareLocateOutcome.Shown
+    if (!isCurrent()) return FlareLocateOutcome.Cancelled
+    val key = openAround(anchor)?.trim().orEmpty()
+    if (!isCurrent()) return FlareLocateOutcome.Cancelled
+    if (key.isEmpty()) return FlareLocateOutcome.NotInHistory
+    repeat(FLARE_LOCATE_SETTLE_ATTEMPTS) {
+        if (!isCurrent()) return FlareLocateOutcome.Cancelled
+        settle()
+        if (showInList(key)) return FlareLocateOutcome.Shown
+    }
+    return FlareLocateOutcome.NotInHistory
+}

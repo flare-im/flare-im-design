@@ -410,6 +410,7 @@ fun flareStringsEnglish(): FlareStrings = FlareStrings {
     messageExpired = "Expired"
     messageFailed = "Not sent"
     messageListEmpty = "No messages yet"
+    messageListLoadNewer = "Load newer messages"
     messageListLoadOlder = "Load earlier messages"
     messagePending = "Waiting to send"
     messageRead = "Read"

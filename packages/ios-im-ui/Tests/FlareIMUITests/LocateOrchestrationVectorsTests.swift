@@ -10,6 +10,24 @@ final class LocateOrchestrationVectorsTests: XCTestCase {
         let maxPages: Int
         let settleAttempts: Int
         let cases: [Vector]
+        let around: Around
+    }
+
+    private struct Around: Decodable {
+        struct Anchor: Decodable { let messageId: String; let seq: Int64? }
+        struct Expected: Decodable { let outcome: String; let openCalls: Int; let showCalls: Int; let askedIds: [String] }
+        struct Case: Decodable {
+            let id: String
+            let anchor: Anchor
+            let loaded: Bool
+            let openAnswer: String?
+            let drawnFromShow: Int
+            let cancelAfterShows: Int?
+            let cancelAfterOpen: Bool?
+            let expected: Expected
+        }
+        let settleAttempts: Int
+        let cases: [Case]
     }
 
     private struct Vector: Decodable {
@@ -83,6 +101,43 @@ final class LocateOrchestrationVectorsTests: XCTestCase {
             XCTAssertEqual("\(outcome)", vector.expected.outcome, "\(vector.id) outcome")
             XCTAssertEqual(script.pages, vector.expected.pagesRead, "\(vector.id) pages read")
             XCTAssertEqual(script.shows, vector.expected.showCalls, "\(vector.id) asks")
+        }
+    }
+
+    @MainActor
+    func testEveryRunAroundTheMessageEndsTheSameWayHere() async throws {
+        let around = try table().around
+        XCTAssertEqual(around.settleAttempts, FlareLocate.settleAttempts)
+        XCTAssertGreaterThanOrEqual(around.cases.count, 13)
+        for vector in around.cases {
+            let anchor = FlareLocateAnchor(messageId: vector.anchor.messageId, seq: vector.anchor.seq)
+            let key = (vector.openAnswer ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            var opens = 0
+            var opened = false
+            var asked: [String] = []
+            var handed: [FlareLocateAnchor] = []
+            let outcome = await FlareLocate.runAround(
+                anchor: anchor,
+                showInList: { id in
+                    asked.append(id)
+                    if vector.loaded && id == anchor.messageId { return true }
+                    return opened && !key.isEmpty && id == key && asked.count >= vector.drawnFromShow
+                },
+                openAround: { given in
+                    opens += 1
+                    handed.append(given)
+                    opened = true
+                    return vector.openAnswer
+                },
+                settle: {},
+                isCurrent: {
+                    (vector.cancelAfterShows.map { asked.count < $0 } ?? true) && !((vector.cancelAfterOpen ?? false) && opened)
+                })
+            XCTAssertEqual("\(outcome)", vector.expected.outcome, "\(vector.id) outcome")
+            XCTAssertEqual(opens, vector.expected.openCalls, "\(vector.id) opens")
+            XCTAssertEqual(asked.count, vector.expected.showCalls, "\(vector.id) asks")
+            XCTAssertEqual(asked, vector.expected.askedIds, "\(vector.id) asked ids")
+            for given in handed { XCTAssertEqual(given, anchor, "\(vector.id) anchor handed over") }
         }
     }
 }

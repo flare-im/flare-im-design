@@ -110,3 +110,19 @@ struct TimelineFollow: Equatable {
         return messages.count - 1 - index
     }
 }
+
+extension TimelineFollow {
+    /// A newer page was read in below a detached window: the reader stays on the rows they are reading, even when the
+    /// page ends in one of their own messages, and what arrives later is counted from the page's last row.
+    mutating func readNewerPage(tailId: String?) {
+        atBottom = false
+        followTail = false
+        anchorTailId = tailId
+        syncedTailId = tailId
+    }
+
+    /// The bottom of a detached window is not the latest message: nothing arrives there to follow.
+    mutating func detach() {
+        followTail = false
+    }
+}

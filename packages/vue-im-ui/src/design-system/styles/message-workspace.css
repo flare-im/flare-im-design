@@ -168,8 +168,10 @@
    改前它们是两套呈现：可加载那一条在流内撑开 48px，另外两条是 absolute 浮层 ——
    点一下「加载更早消息」，在流内的带子被换成浮层，整条时间线跳 48px；而浮层长期钉在
    顶部，滚动时消息从它下面穿过去被遮住。现在三态同为流内、同高，既不跳也不遮。
-   也不再做成卡片：白底 + 阴影 + 描边与消息气泡同一套表面语言，控件会被读成内容。 */
+   也不再做成卡片：白底 + 阴影 + 描边与消息气泡同一套表面语言，控件会被读成内容。
+   窗口脱离最新时，时间线底部的往新一端（正在加载更新 / 可加载更新 / 失败）用同一条带子。 */
 .message-list-load-older,
+.message-list-load-newer,
 .message-list-history-end,
 .message-list-pagination {
   display: flex;
@@ -184,6 +186,7 @@
 }
 
 .message-list-load-older,
+.message-list-load-newer,
 .message-list-history-end {
   pointer-events: none;
 }

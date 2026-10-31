@@ -1057,6 +1057,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["messageListEmpty"] as? (String)) ?: "暂无消息"
     val messageListLoadOlder: String
         get() = (overrides["messageListLoadOlder"] as? (String)) ?: "加载更早消息"
+    /** The load button below a window detached from the latest (spec/message-list-paging-vectors.json). */
+    val messageListLoadNewer: String
+        get() = (overrides["messageListLoadNewer"] as? (String)) ?: "加载更新的消息"
     val messageRecalledSelf: String
         get() = (overrides["messageRecalledSelf"] as? (String)) ?: "你撤回了一条消息"
     val messageRecalledPeer: String
@@ -3562,6 +3565,9 @@ class FlareStringsBuilder internal constructor() {
     var messageListLoadOlder: String
         get() = (values["messageListLoadOlder"] as? (String)) ?: "加载更早消息"
         set(value) { values["messageListLoadOlder"] = value }
+    var messageListLoadNewer: String
+        get() = (values["messageListLoadNewer"] as? (String)) ?: "加载更新的消息"
+        set(value) { values["messageListLoadNewer"] = value }
 
     var messageRecalledSelf: String
         get() = (values["messageRecalledSelf"] as? (String)) ?: "你撤回了一条消息"

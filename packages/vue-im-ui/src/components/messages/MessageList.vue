@@ -39,6 +39,12 @@ import {
 } from "../../shared/contracts/message-grouping";
 import type { FlareMessageSurface } from "../../shared/contracts/message-surface";
 import { messageSurfaceOf } from "../../utils/messageSurface";
+import {
+  flareMessageListEdge,
+  flareMessageListLatestEntry,
+  flareMessageListRequests,
+  type FlareMessageListEnd,
+} from "./messageListPaging";
 
 const BOTTOM_STICKY_PX = 80;
 const RESIZE_STICKY_PX = 420;
@@ -66,6 +72,14 @@ const props = withDefaults(defineProps<{
   olderError?: string;
   loadOlderText?: string;
   hasOlder: boolean;
+  /**
+   * The window is detached from the latest messages (it was opened around a message): there is newer history
+   * past its last row. The list then draws its newer end below the timeline, asks for newer pages as the reader
+   * nears the bottom (`load-newer`) and offers the way back to the latest (`jump-to-latest`).
+   */
+  hasNewer?: boolean;
+  loadingNewer?: boolean;
+  newerError?: string;
   bottomInset?: number;
   menuConfig?: MessageMenuConfig;
   /**
@@ -107,6 +121,10 @@ const emit = defineEmits<{
   (event: "toggle-select", messageId: string): void;
   (event: "atBottomChange", atBottom: boolean): void;
   (event: "load-older"): void;
+  /** The reader neared the bottom of a detached window, or tapped its load button: read the next newer page. */
+  (event: "load-newer"): void;
+  /** The back-to-latest key of a detached window: replace the window with the latest messages. */
+  (event: "jump-to-latest"): void;
   (event: "locate-message", messageId: string): void;
   (event: "action", actionId: string, messageId: string): void;
   /** After Copy: `copied` is false when the clipboard refused the text. */
@@ -150,6 +168,21 @@ const bodyIntentListeners = computed(() => ({
     : {}),
 }));
 
+/** Whether the host takes an intent: an end or a key with no listener is never offered and never asks. */
+function listens(handler: "onLoadOlder" | "onLoadNewer" | "onJumpToLatest"): boolean {
+  return Boolean(instance?.vnode.props?.[handler]);
+}
+// The two ends of the window (spec/message-list-paging-vectors.json): the same rule above and below the timeline.
+const olderEnd = computed<FlareMessageListEnd>(() => ({
+  has: props.hasOlder, loading: Boolean(props.loadingOlder), error: props.olderError, handled: listens("onLoadOlder"),
+}));
+const newerEnd = computed<FlareMessageListEnd>(() => ({
+  has: Boolean(props.hasNewer), loading: Boolean(props.loadingNewer), error: props.newerError, handled: listens("onLoadNewer"),
+}));
+const olderEdge = computed(() => flareMessageListEdge(olderEnd.value));
+const newerEdge = computed(() => flareMessageListEdge(newerEnd.value));
+const newerBandShown = computed(() => newerEdge.value.spinner || newerEdge.value.error || newerEdge.value.button);
+
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const footerRef = ref<HTMLElement | null>(null);
 const isAtBottom = ref(true);
@@ -165,6 +198,18 @@ const virtualViewportHeightPx = ref(0);
 const anchorTailId = ref<string | null>(null);
 const pendingTimers = new Set<number>();
 let loadOlderRequested = false;
+let loadNewerRequested = false;
+/** The reader asked for the latest messages: the window the host replaces this one with opens at its bottom. */
+let jumpToLatestRequested = false;
+/**
+ * Whether the window has been detached since each watcher last saw the rows change: rows appended then are a newer
+ * page. Sticky, so a host that clears `hasNewer` a tick before it hands over the page that attached the window still
+ * has that page kept in place.
+ */
+let rowsDetached = false;
+let tailDetached = false;
+/** The rows the tail watcher last saw, to tell a newer page from a message that arrived. */
+let tailSeenMessages: readonly MessageLike[] = [];
 let listResizeObserver: ResizeObserver | null = null;
 let footerResizeObserver: ResizeObserver | null = null;
 type ReadingAnchor = ScrollAnchorSnapshot & { messageId?: string; offset?: number; generation: number };
@@ -492,7 +537,24 @@ const pendingBelowCount = computed(() => {
   return list.length - 1 - anchorIndex;
 });
 
-const showNewMessagesButton = computed(() => pendingBelowCount.value > 0);
+// The floating key: back to the latest messages for a detached window, else the count of new ones below.
+const latestEntry = computed(() =>
+  flareMessageListLatestEntry({
+    hasNewer: Boolean(props.hasNewer),
+    handled: listens("onJumpToLatest"),
+    belowCount: pendingBelowCount.value,
+  }),
+);
+
+function onLatestEntry(): void {
+  if (latestEntry.value.action === "jumpToLatest") requestJumpToLatest();
+  else void scrollToBottom();
+}
+
+function requestJumpToLatest(): void {
+  jumpToLatestRequested = true;
+  emit("jump-to-latest");
+}
 
 const showHistoryStartHint = computed(
   () =>
@@ -508,7 +570,8 @@ function syncAtBottomState(el?: HTMLElement | null): void {
   const next = isNearBottom(root);
   const changed = next !== isAtBottom.value;
   isAtBottom.value = next;
-  if (next) {
+  // The bottom of a detached window is not the latest message: nothing arrives there to follow.
+  if (next && !props.hasNewer) {
     enableTailFollow();
   } else {
     enterBrowseMode();
@@ -541,18 +604,19 @@ function onScroll(event: Event): void {
   const root = event.target as HTMLElement;
   updateVirtualViewport(root);
   syncAtBottomState(root);
-  const reachedTop = root.scrollTop <= 72;
-  if (!reachedTop) {
-    if (root.scrollTop > 120) {
-      hideHistoryStartHint();
-    }
-    return;
-  }
-  if (!props.loadingOlder && !props.hasOlder && displayMessages.value.length > 0) {
+  if (root.scrollTop > 120) {
+    hideHistoryStartHint();
+  } else if (root.scrollTop <= 72 && !props.loadingOlder && !props.hasOlder && displayMessages.value.length > 0) {
     revealHistoryStartHint(root);
-    return;
   }
-  requestOlder(false);
+  // Pages are asked for within the shared distance of either edge (spec/message-list-paging-vectors.json).
+  const wanted = flareMessageListRequests(
+    { fromTop: root.scrollTop, fromBottom: Math.max(0, root.scrollHeight - root.scrollTop - root.clientHeight) },
+    olderEnd.value,
+    newerEnd.value,
+  );
+  if (wanted.older) requestOlder(false);
+  if (wanted.newer) requestNewer(false);
 }
 
 function requestOlder(retry = false): void {
@@ -560,6 +624,13 @@ function requestOlder(retry = false): void {
   loadOlderRequested = true;
   capturePrependAnchor();
   emit("load-older");
+}
+
+/** Rows read in below the window grow under the reader, so nothing has to be anchored first. */
+function requestNewer(retry = false): void {
+  if (loadNewerRequested || props.loadingNewer || !props.hasNewer || (!retry && props.newerError)) return;
+  loadNewerRequested = true;
+  emit("load-newer");
 }
 
 function cancelAnchorRestore(): void {
@@ -717,6 +788,14 @@ function countPrependedMessages(
   return countPrependedItems(prev, next, timelineKey);
 }
 
+/**
+ * Rows appended to a window that was detached are a newer page read in, not messages that arrived: the core appends
+ * nothing to a detached window, and a message sent from one comes back as a new latest window.
+ */
+function isNewerPage(prev: readonly MessageLike[], next: readonly MessageLike[], hadNewer: boolean): boolean {
+  return hadNewer && countPrependedMessages(prev, next) === 0 && countAppendedMessages(prev, next) > 0;
+}
+
 function messageTailSignature(message: MessageLike | undefined): string {
   if (!message) return "";
   return [
@@ -845,9 +924,19 @@ async function scrollToMessage(
 async function handleMessagesGrowth(
   prev: readonly MessageLike[],
   next: readonly MessageLike[],
+  newerPage = false,
 ): Promise<void> {
   const prepended = countPrependedMessages(prev, next);
   const appended = countAppendedMessages(prev, next);
+  if (newerPage) {
+    // A newer page read into a detached window keeps the reader on the rows they are reading, even when it ends in
+    // one of their own messages; what arrives later is counted from its last row.
+    enterBrowseMode();
+    captureBrowseAnchor();
+    await nextTick();
+    syncAtBottomState(getScrollContainer() ?? null);
+    return;
+  }
   if (prepended > 0) {
     const hasPrependAnchor = Boolean(pendingPrependAnchor);
     await preservePrependAnchor();
@@ -879,6 +968,8 @@ watch(
     if (conversationId === previousConversationId) return;
     cancelAnchorRestore();
     loadOlderRequested = false;
+    loadNewerRequested = false;
+    jumpToLatestRequested = false;
     cancelPendingBottomScroll();
     enableTailFollow();
     hideHistoryStartHint();
@@ -893,20 +984,47 @@ function timelineKeyOrEmpty(message: MessageLike | undefined): string { return m
 watch([() => props.loadingOlder, () => props.olderError], ([loading, error], [wasLoading, oldError]) => {
   if ((wasLoading && !loading) || error !== oldError) loadOlderRequested = false;
 });
+watch([() => props.loadingNewer, () => props.newerError], ([loading, error], [wasLoading, oldError]) => {
+  if ((wasLoading && !loading) || error !== oldError) loadNewerRequested = false;
+});
 
+rowsDetached = Boolean(props.hasNewer);
+tailDetached = rowsDetached;
 watch(
-  () => displayMessages.value,
-  async (next, prev) => {
+  () => Boolean(props.hasNewer),
+  (hasNewer) => {
+    if (!hasNewer) return;
+    rowsDetached = true;
+    tailDetached = true;
+  },
+  { flush: "sync" },
+);
+watch(
+  () => [displayMessages.value, Boolean(props.hasNewer)] as const,
+  async ([next, hasNewer], previousState) => {
+    const [prev] = previousState ?? [[], false];
     const previous = prev ?? [];
+    if (jumpToLatestRequested && !hasNewer) {
+      // The latest window the reader asked for: it opens at its bottom, wherever the old window was.
+      jumpToLatestRequested = false;
+      enableTailFollow();
+      await nextTick();
+      await scrollToBottom();
+      return;
+    }
+    if (next === previous) return;
+    const newerPage = isNewerPage(previous, next, rowsDetached);
+    rowsDetached = hasNewer;
     if (countPrependedMessages(previous, next) > 0 && !pendingPrependAnchor) capturePrependAnchor();
     if (timelineKeyOrEmpty(previous[0]) !== timelineKeyOrEmpty(next[0])) loadOlderRequested = false;
+    if (timelineKeyOrEmpty(previous[previous.length - 1]) !== timelineKeyOrEmpty(next[next.length - 1])) loadNewerRequested = false;
     await nextTick();
     updateShortTimelineSpacer();
     if (previous.length === 0 && next.length > 0) {
       await scrollToBottom();
       return;
     }
-    await handleMessagesGrowth(previous, next);
+    await handleMessagesGrowth(previous, next, newerPage);
   },
   { deep: false },
 );
@@ -925,13 +1043,20 @@ watch(
   },
 );
 
+tailSeenMessages = displayMessages.value;
 watch(
   () => {
     const list = displayMessages.value;
     return messageTailSignature(list[list.length - 1]);
   },
   async (nextKey, prevKey) => {
+    const seen = tailSeenMessages;
+    const hadNewer = tailDetached;
+    tailSeenMessages = displayMessages.value;
+    tailDetached = Boolean(props.hasNewer);
     if (!nextKey || nextKey === prevKey) return;
+    // Nothing arrives at the end of a detached window, and a newer page read into one keeps the reader in place.
+    if (props.hasNewer || isNewerPage(seen, displayMessages.value, hadNewer)) return;
     const list = displayMessages.value;
     const last = list[list.length - 1];
     if (followTail.value || isAtBottom.value || last?.senderId === props.currentUserId) {
@@ -1010,13 +1135,13 @@ defineExpose({
 
 <template>
   <div class="message-list-root" role="log">
-    <div v-if="loadingOlder" class="message-list-load-older" aria-live="polite">
+    <div v-if="olderEdge.spinner" class="message-list-load-older" aria-live="polite">
       <span class="runtime-status-dot runtime-status-dot--busy" />
       {{ t("chat.loadOlder") }}
     </div>
-    <div v-else-if="hasOlder || olderError" class="message-list-pagination">
-      <span v-if="olderError" role="status">{{ olderError }}</span>
-      <button v-if="hasOlder" type="button" @click="requestOlder(true)">{{ loadOlderText || t("chat.loadOlder") }}</button>
+    <div v-else-if="olderEdge.error || olderEdge.button" class="message-list-pagination">
+      <span v-if="olderEdge.error" role="status">{{ olderError }}</span>
+      <button v-if="olderEdge.button" type="button" @click="requestOlder(true)">{{ loadOlderText || t("chat.loadOlder") }}</button>
     </div>
     <div
       v-else-if="showHistoryStartHint"
@@ -1103,9 +1228,21 @@ defineExpose({
         </div>
       </div>
     </div>
+    <div v-if="newerEdge.spinner" class="message-list-load-newer" aria-live="polite">
+      <span class="runtime-status-dot runtime-status-dot--busy" />
+      {{ t("chat.loadingNewer") }}
+    </div>
+    <div v-else-if="newerEdge.error || newerEdge.button" class="message-list-pagination message-list-pagination--newer">
+      <span v-if="newerEdge.error" role="status">{{ newerError }}</span>
+      <button v-if="newerEdge.button" type="button" @click="requestNewer(true)">{{ t("chat.loadNewer") }}</button>
+    </div>
     <Transition name="message-list-scroll-latest-fade">
-      <div v-if="showNewMessagesButton" class="message-list-scroll-latest">
-        <FlareScrollToLatest :count="pendingBelowCount" @click="scrollToBottom" />
+      <div
+        v-if="latestEntry.shown"
+        class="message-list-scroll-latest"
+        :class="{ 'message-list-scroll-latest--above-newer': newerBandShown }"
+      >
+        <FlareScrollToLatest :count="latestEntry.count" @click="onLatestEntry" />
       </div>
     </Transition>
     <TimelineGalleryPreview :gallery="imageGallery" />
@@ -1132,6 +1269,8 @@ defineExpose({
 /* 版面在 design-system/styles/message-workspace.css 上，与另外两个顶部状态同一条带子。
    这里只留这一态独有的部分：它是三态中唯一可点的。 */
 .message-list-pagination { flex-wrap: wrap; }
+/* 往新的那一端在时间线下方：浮动键抬到它上面，不压住按钮。 */
+.message-list-scroll-latest--above-newer { bottom: calc(12px + var(--flare-size-layout-touch-target)); }
 /* 文字按钮而不是描边盒子：描边圆角盒子与消息气泡是同一套表面语言，
    放在时间线顶部会被读成一条消息。触达区靠带子的 min-height 给满。 */
 .message-list-pagination button { align-self: stretch; min-width: var(--flare-size-layout-touch-target); padding-inline: var(--flare-size-spacing-sm); color: var(--flare-color-primary-text); background: transparent; border: 0; font-size: inherit; font-weight: 600; cursor: pointer; }
