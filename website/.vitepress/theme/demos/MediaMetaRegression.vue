@@ -13,7 +13,8 @@ const cases = [
   { id: "emoji", content: { contentType: "emoji", emoji: { key: "grinning_face" } } },
   { id: "single-emoji", content: { contentType: "text", text: { text: "[grinning_face]" } } },
   { id: "image", content: { contentType: "image", image: { url: artwork } } },
-  { id: "video", content: { contentType: "video", video: { coverUrl: artwork } } },
+  // A playable video with its cover: a video with no source to play draws as not available, not as media with a footer.
+  { id: "video", content: { contentType: "video", video: { url: "https://media.example.com/release-review.mp4", coverUrl: artwork } } },
   { id: "upload", content: { contentType: "image", image: { url: artwork } } },
   { id: "edited", content: { contentType: "emoji", emoji: { key: "grinning_face" } } },
   { id: "text", content: { contentType: "text", text: { text: "See you tomorrow." } } },
