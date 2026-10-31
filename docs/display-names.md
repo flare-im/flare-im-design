@@ -26,22 +26,28 @@ wire 为 camelCase JSON，三种形态：
 | Compose | `FlareDisplayName`（sealed：`Named` / `Members` / `Unnamed`） | `flareDisplayNameText(name, strings)` | `flareIdTail(id)` | `FlareDisplayName.fromMap` / `fromJson` |
 | Flutter | `FlareDisplayName`（sealed：`FlareNamedDisplayName` / `FlareMembersDisplayName` / `FlareUnnamedDisplayName`） | `flareDisplayNameText(name, strings)` | `flareIdTail(id)` | `FlareDisplayName.fromJson` / `toJson` |
 
-枚举四端同名：`FlareDisplayNameSource`、`FlareDisplayNameEntity`。原生端读到不认识的 `kind` 或 `entity` 时不产出值（Compose、Flutter 返回 null，SwiftUI 解码抛错），宿主按缺字段处理。
+枚举四端同名：`FlareDisplayNameSource`、`FlareDisplayNameEntity`。读 wire 四端都不失败（核心比 Kit 新时会遇到不认识的值）：不认识的 `entity` 按 `person` 读；不认识的 `kind`、缺 `text` 的 `named`、不是对象的值，按 `idTail` 为空的无名的人读，渲染为「未知用户」。Compose `fromMap` / `fromJson` 与 Flutter `fromJson` 返回非空值，SwiftUI 的 `Codable` 不抛错，Vue 用 `flareDisplayNameFrom(value)` 做同样的整理，`flareDisplayNameText` 也先经它。
 
 Vue 的 `strings` 可以是 `useFlareI18n().t`（宿主覆盖的 `displayName.*` 生效），也可以是 locale 字符串；不传时用运行时语言。原生端传 `FlareStrings`（Compose `flareStrings()`、SwiftUI 环境里的 `flareStrings`、Flutter `FlareStrings.of(context)`）。
 
 ## 渲染规则与对照表
 
 - `named`：原文，不裁剪、不改写。`0401`、`2am_club` 这类像 id 的字符串也是真名字，Kit 不按形状猜。
-- `members`：去掉空白的名字后用分隔符拼接；成员多于「名字数 + 本人」时加「等 N 人」，**N = total − names.length − 1**，本人不计入；一个名字都不剩时按未命名群读。
+- `members`：去掉空白的名字后用分隔符拼接；成员多于「名字数 + 本人」（`total > names.length + 1`）时加后缀，两种语言各按自己的读法计数：
+  - 中文「等 N 人」的 **N = total**，即含本人的群成员总数（「张三、李四、王五等 12 人」）；
+  - 英文 "and N others" 的 **N = total − names.length − 1**，即名字以外、不含本人的其他成员（"and 8 others"），N 为 1 时用单数 "and 1 other"；
+  - `total ≤ names.length + 1` 时两种语言都不加后缀；
+  - 一个名字都不剩时按未命名群读。
 - `unnamed`：按 `entity` 读。`person` 有 `idTail` 时为「用户 末四位」，没有时为「未知用户」；其余类型各有一个词，与 `idTail` 无关。
 
 | 形态 | zh-CN | en-US |
 | --- | --- | --- |
 | `named` | 原文 | 原文 |
 | `members`，`total ≤ names.length + 1` | `张三、李四` | `张三, 李四` |
-| `members`，`["张三","李四","王五"]`，`total` 12 | `张三、李四、王五等 8 人` | `张三, 李四, 王五 and 8 others` |
-| `members`，`["Alice","Bob"]`，`total` 4 | `Alice、Bob等 1 人` | `Alice, Bob and 1 other` |
+| `members`，`["张三","李四","王五"]`，`total` 4（names + 1） | `张三、李四、王五` | `张三, 李四, 王五` |
+| `members`，`["张三","李四","王五"]`，`total` 5（names + 2） | `张三、李四、王五等 5 人` | `张三, 李四, 王五 and 1 other` |
+| `members`，`["张三","李四","王五"]`，`total` 12 | `张三、李四、王五等 12 人` | `张三, 李四, 王五 and 8 others` |
+| `members`，`["林夏"]`，`total` 100 | `林夏等 100 人` | `林夏 and 98 others` |
 | `members`，没有可用的名字 | `群聊` | `Group chat` |
 | `unnamed person`，`idTail` 非空 | `用户 9876` | `User 9876` |
 | `unnamed person`，`idTail` 为空 | `未知用户` | `Unknown user` |
@@ -52,6 +58,8 @@ Vue 的 `strings` 可以是 `useFlareI18n().t`（宿主覆盖的 `displayName.*`
 | `unnamed channel` | `频道` | `Channel` |
 | `unnamed broadcast` | `广播` | `Broadcast` |
 | `unnamed temp` | `临时会话` | `Temporary chat` |
+| `unnamed`，不认识的 `entity`，`idTail` 9876 | `用户 9876` | `User 9876` |
+| 不认识的 `kind`，或缺 `text` 的 `named` | `未知用户` | `Unknown user` |
 
 英文在 N 为 1 时用单数（`and 1 other`），与 `spec/plural-vectors.json` 的规则一致。
 
@@ -69,7 +77,7 @@ Vue 的 `strings` 可以是 `useFlareI18n().t`（宿主覆盖的 `displayName.*`
 | 系统会话 | `displayName.system`：`系统通知` / `System notifications` | `displayNameSystem` |
 | AI、客服、频道、广播、临时会话 | `displayName.ai` / `customer` / `channel` / `broadcast` / `temp` | `displayNameAi`、`displayNameCustomer`、`displayNameChannel`、`displayNameBroadcast`、`displayNameTemp` |
 | 成员分隔符 | `displayName.separator`：`、` / `, ` | `displayNameSeparator` |
-| 其余成员 | `displayName.membersMore`：`{names}等 {count} 人` / `{names} and {count} other(s)` | `displayNameMembersMore(names, count)` |
+| 其余成员 | `displayName.membersMore`：`{names}等 {total} 人` / `{names} and {others} other(s)`（参数 `names`、`total`、`others`，`count` = `others` 用于选复数） | `displayNameMembersMore(names, total, others)`：中文默认用 `total`，英文预设用 `others` |
 
 原生英文预设由 `strings/en.json` 生成，函数字段的英文写在各端 `EnglishFormats`，与 `strings/en-formats.json` 对账。
 

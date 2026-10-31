@@ -49,16 +49,22 @@ sealed interface FlareDisplayName {
     data class Unnamed(val entity: FlareDisplayNameEntity, val idTail: String = "") : FlareDisplayName
 
     companion object {
-        /** Reads a parsed wire value (objects as maps, arrays as lists); null for one that is not a name the kit knows. */
-        fun fromMap(map: Map<*, *>): FlareDisplayName? = when (map["kind"]) {
-            "named" -> (map["text"] as? String)?.let { Named(it, FlareDisplayNameSource.fromWire(map["source"] as? String)) }
+        private val UNKNOWN_USER = Unnamed(FlareDisplayNameEntity.Person)
+
+        /**
+         * Reads a parsed wire value (objects as maps, arrays as lists), never failing: an unknown `entity` reads as
+         * [FlareDisplayNameEntity.Person]; an unknown `kind`, or a form missing its text, as an unnamed person without an
+         * id tail (`displayNameUnknownUser`). A core newer than the kit therefore still draws something sensible.
+         */
+        fun fromMap(map: Map<*, *>): FlareDisplayName = when (map["kind"]) {
+            "named" -> (map["text"] as? String)?.let { Named(it, FlareDisplayNameSource.fromWire(map["source"] as? String)) } ?: UNKNOWN_USER
             "members" -> Members((map["names"] as? List<*>).orEmpty().filterIsInstance<String>(), (map["total"] as? Number)?.toInt() ?: 0)
-            "unnamed" -> FlareDisplayNameEntity.fromWire(map["entity"] as? String)?.let { Unnamed(it, map["idTail"] as? String ?: "") }
-            else -> null
+            "unnamed" -> Unnamed(FlareDisplayNameEntity.fromWire(map["entity"] as? String) ?: FlareDisplayNameEntity.Person, map["idTail"] as? String ?: "")
+            else -> UNKNOWN_USER
         }
 
-        /** Reads the wire JSON; null for malformed JSON or a value that is not a name the kit knows. */
-        fun fromJson(json: String): FlareDisplayName? = (runCatching { FlareJson.parse(json) }.getOrNull() as? Map<*, *>)?.let(::fromMap)
+        /** Reads the wire JSON as [fromMap] does; malformed JSON or a value that is not an object reads as an unknown user. */
+        fun fromJson(json: String): FlareDisplayName = (runCatching { FlareJson.parse(json) }.getOrNull() as? Map<*, *>)?.let(::fromMap) ?: UNKNOWN_USER
     }
 }
 
@@ -76,8 +82,9 @@ fun flareIdTail(id: String): String {
 /**
  * The text of a projected name (`spec/display-name-vectors.json`, the same on all four kits). [FlareDisplayName.Named]
  * reads as it is; [FlareDisplayName.Members] joins the non-blank names with `displayNameSeparator` and, when the group
- * has more people than it names besides the reader, adds `displayNameMembersMore` with N = total - names - 1, and with
- * no name left reads as an unnamed group; [FlareDisplayName.Unnamed] reads by entity — a person with an id tail
+ * has more people than it names besides the reader, adds `displayNameMembersMore(names, total, others)` — Chinese counts
+ * the group (total, the reader included), English the others (total - names - 1) — and with no name left reads as an
+ * unnamed group; [FlareDisplayName.Unnamed] reads by entity — a person with an id tail
  * `displayNameUser`, without one `displayNameUnknownUser`, any other entity its own word.
  */
 fun flareDisplayNameText(name: FlareDisplayName, strings: FlareStrings): String = when (name) {
@@ -89,7 +96,7 @@ fun flareDisplayNameText(name: FlareDisplayName, strings: FlareStrings): String 
         } else {
             val joined = names.joinToString(strings.displayNameSeparator)
             val others = name.total - names.size - 1
-            if (others > 0) strings.displayNameMembersMore(joined, others) else joined
+            if (others > 0) strings.displayNameMembersMore(joined, name.total, others) else joined
         }
     }
     is FlareDisplayName.Unnamed -> when (name.entity) {

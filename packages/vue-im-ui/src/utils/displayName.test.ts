@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { flareIdTail, type FlareDisplayName } from "../shared/contracts/display-name";
+import { flareDisplayNameFrom, flareIdTail, type FlareDisplayName } from "../shared/contracts/display-name";
 import { flarePluginFallbackName } from "../shared/contracts/plugin-ui";
 import { resolveFlareMessage } from "../shared/i18n/messages";
 import { flareDisplayNameText } from "./displayName";
@@ -15,7 +15,7 @@ const locales = ["zh-CN", "en-US"] as const;
 describe("display names (spec/display-name-vectors.json)", () => {
   it("keeps every case the other kits run", () => {
     expect(vectors.idTail.length).toBeGreaterThanOrEqual(12);
-    expect(vectors.text.length).toBeGreaterThanOrEqual(24);
+    expect(vectors.text.length).toBeGreaterThanOrEqual(30);
   });
 
   it.each(vectors.idTail.map((v) => [v.id, v] as const))("idTail: %s", (_, v) => {
@@ -30,8 +30,19 @@ describe("display names (spec/display-name-vectors.json)", () => {
       expect(flareDisplayNameText(v.name, locale)).toBe(v.text[locale]);
       // A translator (useFlareI18n's t) reads the same messages.
       expect(flareDisplayNameText(v.name, (key, params) => resolveFlareMessage(locale, key, params))).toBe(v.text[locale]);
+      // The decoder never fails, and what it makes reads the same.
+      expect(flareDisplayNameText(flareDisplayNameFrom(v.name), locale)).toBe(v.text[locale]);
     },
   );
+
+  it("reads anything that is not a name it knows as an unknown user", () => {
+    const unknown = { kind: "unnamed", entity: "person", idTail: "" };
+    for (const value of [null, undefined, "named", 42, [], {}, { kind: "named", text: 7 }]) {
+      expect(flareDisplayNameFrom(value)).toEqual(unknown);
+    }
+    expect(flareDisplayNameFrom({ kind: "unnamed", entity: "robot", idTail: "9876" })).toEqual({ kind: "unnamed", entity: "person", idTail: "9876" });
+    expect(flareDisplayNameFrom({ kind: "named", text: "Alice", source: "nickname" })).toEqual({ kind: "named", text: "Alice" });
+  });
 
   it("reads a host's own words through its translator", () => {
     const own = (key: string, params?: Record<string, string | number>) =>

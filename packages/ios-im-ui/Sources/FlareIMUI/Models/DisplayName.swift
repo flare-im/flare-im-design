@@ -11,8 +11,10 @@ public enum FlareDisplayNameEntity: String, Codable, Sendable, CaseIterable {
 }
 
 /// A name as the core SDK projects it — a conversation's `title` and `lastSender`, a message's `sender`, a
-/// participant's or a contact's `name` — camelCase JSON on the wire, which `Codable` reads and writes. The SDKs carry no
-/// copy: a name that is not known stays structured and every kit writes it with the same table
+/// participant's or a contact's `name` — camelCase JSON on the wire, which `Codable` reads and writes. Decoding never
+/// fails: an unknown `entity` reads as `.person`, and an unknown `kind`, a form missing its text or a value that is not
+/// an object as an unnamed person without an id tail (`displayNameUnknownUser`), so a core newer than the kit still
+/// draws something sensible. The SDKs carry no copy: a name that is not known stays structured and every kit writes it with the same table
 /// (`spec/display-name-vectors.json`) through ``flareDisplayNameText(_:strings:)``. Views keep string parameters; a
 /// host turns the projected value into text where it hands it to one.
 public enum FlareDisplayName: Equatable, Hashable, Sendable, Codable {
@@ -26,19 +28,23 @@ public enum FlareDisplayName: Equatable, Hashable, Sendable, Codable {
     private enum CodingKeys: String, CodingKey { case kind, text, source, names, total, entity, idTail }
 
     public init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        switch try c.decode(String.self, forKey: .kind) {
+        let unknownUser = FlareDisplayName.unnamed(entity: .person, idTail: "")
+        guard let c = try? decoder.container(keyedBy: CodingKeys.self) else { self = unknownUser; return }
+        func text(_ key: CodingKeys) -> String? { try? c.decodeIfPresent(String.self, forKey: key) }
+        switch text(.kind) {
         case "named":
-            self = .named(text: try c.decode(String.self, forKey: .text),
-                          source: try? c.decodeIfPresent(FlareDisplayNameSource.self, forKey: .source))
+            guard let name = text(.text) else { self = unknownUser; return }
+            self = .named(text: name, source: text(.source).flatMap(FlareDisplayNameSource.init(rawValue:)))
         case "members":
-            self = .members(names: try c.decodeIfPresent([String].self, forKey: .names) ?? [],
-                            total: try c.decodeIfPresent(Int.self, forKey: .total) ?? 0)
+            // Strings only, as the other kits read the list; a count is truncated to a whole number.
+            let names = (try? c.decodeIfPresent([PluginJSONValue].self, forKey: .names))?.compactMap(\.stringValue)
+            let total = (try? c.decodeIfPresent(Double.self, forKey: .total)).flatMap { $0.magnitude < 1e15 ? Int($0) : nil }
+            self = .members(names: names ?? [], total: total ?? 0)
         case "unnamed":
-            self = .unnamed(entity: try c.decode(FlareDisplayNameEntity.self, forKey: .entity),
-                            idTail: try c.decodeIfPresent(String.self, forKey: .idTail) ?? "")
-        case let kind:
-            throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "not a display name kind: \(kind)")
+            self = .unnamed(entity: text(.entity).flatMap(FlareDisplayNameEntity.init(rawValue:)) ?? .person,
+                            idTail: text(.idTail) ?? "")
+        default:
+            self = unknownUser
         }
     }
 
@@ -72,8 +78,8 @@ public func flareIdTail(_ id: String) -> String {
 
 /// The text of a projected name (`spec/display-name-vectors.json`, the same on all four kits). `named` reads as it is;
 /// `members` joins the non-blank names with `displayNameSeparator` and, when the group has more people than it names
-/// besides the reader, adds `displayNameMembersMore` with N = total - names - 1, and with no name left reads as an
-/// unnamed group; `unnamed` reads by entity — a person with an id tail `displayNameUser`, without one
+/// besides the reader, adds `displayNameMembersMore(names, total, others)` — Chinese counts the group (total, the
+/// reader included), English the others (total - names - 1) — and with no name left reads as an unnamed group; `unnamed` reads by entity — a person with an id tail `displayNameUser`, without one
 /// `displayNameUnknownUser`, any other entity its own word.
 public func flareDisplayNameText(_ name: FlareDisplayName, strings: FlareStrings) -> String {
     switch name {
@@ -84,7 +90,7 @@ public func flareDisplayNameText(_ name: FlareDisplayName, strings: FlareStrings
         guard !shown.isEmpty else { return strings.displayNameGroup }
         let joined = shown.joined(separator: strings.displayNameSeparator)
         let others = total - shown.count - 1
-        return others > 0 ? strings.displayNameMembersMore(joined, others) : joined
+        return others > 0 ? strings.displayNameMembersMore(joined, total, others) : joined
     case let .unnamed(entity, idTail):
         switch entity {
         case .person: return idTail.isEmpty ? strings.displayNameUnknownUser : strings.displayNameUser(idTail)

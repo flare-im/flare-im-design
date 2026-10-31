@@ -18,7 +18,7 @@ List<Map<String, dynamic>> _rows(String key) =>
 void main() {
   test('the shared table keeps its cases', () {
     expect(_rows('idTail').length, greaterThanOrEqualTo(12));
-    expect(_rows('text').length, greaterThanOrEqualTo(24));
+    expect(_rows('text').length, greaterThanOrEqualTo(30));
   });
 
   group('idTail', () {
@@ -34,9 +34,8 @@ void main() {
     for (final row in _rows('text')) {
       test('${row['id']}', () {
         final name = FlareDisplayName.fromJson(row['name']);
-        expect(name, isNotNull);
         final text = row['text'] as Map<String, dynamic>;
-        expect(flareDisplayNameText(name!, const FlareStrings()), text['zh-CN']);
+        expect(flareDisplayNameText(name, const FlareStrings()), text['zh-CN']);
         expect(flareDisplayNameText(name, flareStringsEnglish), text['en-US']);
         // The wire round-trips.
         expect(FlareDisplayName.fromJson(name.toJson()), name);
@@ -44,10 +43,22 @@ void main() {
     }
   });
 
-  test('refuses what is not a name', () {
-    expect(FlareDisplayName.fromJson({'kind': 'nickname', 'text': 'x'}), isNull);
-    expect(FlareDisplayName.fromJson({'kind': 'unnamed', 'entity': 'robot'}), isNull);
-    expect(FlareDisplayName.fromJson('named'), isNull);
+  test('reads what is not a name it knows, never failing', () {
+    const unknownUser = FlareUnnamedDisplayName(FlareDisplayNameEntity.person);
+    for (final value in [
+      {'kind': 'nickname', 'text': 'x'},
+      {'kind': 'named'},
+      <String, Object?>{},
+      'named',
+      null,
+      [1],
+    ]) {
+      expect(FlareDisplayName.fromJson(value), unknownUser, reason: '$value');
+    }
+    expect(
+      FlareDisplayName.fromJson({'kind': 'unnamed', 'entity': 'robot', 'idTail': '9876'}),
+      const FlareUnnamedDisplayName(FlareDisplayNameEntity.person, idTail: '9876'),
+    );
   });
 
   test("a host's own words win", () {

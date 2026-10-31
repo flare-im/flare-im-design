@@ -343,7 +343,7 @@ export type {
   FlareDisplayNameEntity,
   FlareDisplayNameSource,
 } from "./display-name";
-export { flareIdTail } from "./display-name";
+export { flareDisplayNameFrom, flareIdTail } from "./display-name";
 export type {
   FlareLocationProvider,
   FlareLocationCardLines,

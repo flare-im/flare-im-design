@@ -32,14 +32,14 @@ final class DisplayNameVectorsTests: XCTestCase {
 
     func testNamesReadAsTheSharedTableSaysInBothLanguages() throws {
         let rows = try vectors().text
-        XCTAssertGreaterThanOrEqual(rows.count, 24, "the shared table lost cases")
+        XCTAssertGreaterThanOrEqual(rows.count, 30, "the shared table lost cases")
         for row in rows {
             XCTAssertEqual(flareDisplayNameText(row.name, strings: FlareStrings()), row.text["zh-CN"], "\(row.id) zh-CN")
             XCTAssertEqual(flareDisplayNameText(row.name, strings: .english), row.text["en-US"], "\(row.id) en-US")
         }
     }
 
-    func testTheWireRoundTripsAndRefusesWhatIsNotAName() throws {
+    func testTheWireRoundTripsAndNeverFails() throws {
         let decoder = JSONDecoder()
         let named = try decoder.decode(FlareDisplayName.self, from: Data(#"{"kind":"named","text":"Alice","source":"alias"}"#.utf8))
         XCTAssertEqual(named, .named(text: "Alice", source: .alias))
@@ -47,8 +47,14 @@ final class DisplayNameVectorsTests: XCTestCase {
         XCTAssertEqual(try decoder.decode(FlareDisplayName.self, from: try JSONEncoder().encode(members)), members)
         let unnamed = try decoder.decode(FlareDisplayName.self, from: Data(#"{"kind":"unnamed","entity":"person","idTail":"9876"}"#.utf8))
         XCTAssertEqual(unnamed, .unnamed(entity: .person, idTail: "9876"))
-        XCTAssertThrowsError(try decoder.decode(FlareDisplayName.self, from: Data(#"{"kind":"nickname","text":"x"}"#.utf8)))
-        XCTAssertThrowsError(try decoder.decode(FlareDisplayName.self, from: Data(#"{"kind":"unnamed","entity":"robot"}"#.utf8)))
+        let unknownUser = FlareDisplayName.unnamed(entity: .person, idTail: "")
+        for json in [#"{"kind":"nickname","text":"x"}"#, #"{"kind":"named"}"#, #"{}"#, #""named""#, #"[1]"#] {
+            XCTAssertEqual(try decoder.decode(FlareDisplayName.self, from: Data(json.utf8)), unknownUser, json)
+        }
+        XCTAssertEqual(try decoder.decode(FlareDisplayName.self, from: Data(#"{"kind":"unnamed","entity":"robot","idTail":"9876"}"#.utf8)),
+                       .unnamed(entity: .person, idTail: "9876"))
+        XCTAssertEqual(try decoder.decode([FlareDisplayName].self, from: Data(#"[{"kind":"x"},{"kind":"named","text":"A"}]"#.utf8)),
+                       [unknownUser, .named(text: "A")])
     }
 
     func testAHostsOwnWordsWin() {

@@ -35,7 +35,7 @@ final class EnglishFormatsTests: XCTestCase {
         case "selectedCount": return s.selectedCount(a.int(0))
         case "packetFromSender": return s.packetFromSender(a.text(0))
         case "displayNameUser": return s.displayNameUser(a.text(0))
-        case "displayNameMembersMore": return s.displayNameMembersMore(a.text(0), a.int(0))
+        case "displayNameMembersMore": return s.displayNameMembersMore(a.text(0), a.int(0), a.int(1))
         case "translatedBy": return s.translatedBy(a.text(0))
         case "pollOptionHint": return s.pollOptionHint(a.int(0))
         case "yearMonth": return s.yearMonth(a.int(0), a.int(1))

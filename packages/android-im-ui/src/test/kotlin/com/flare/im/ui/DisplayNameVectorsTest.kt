@@ -2,7 +2,6 @@ package com.flare.im.ui
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -25,17 +24,17 @@ class DisplayNameVectorsTest {
 
     @Test fun namesReadAsTheSharedTableSaysInBothLanguages() {
         val rows = table.items("text")
-        assertTrue(rows.size >= 24, "the shared table lost cases: ${rows.size}")
+        assertTrue(rows.size >= 30, "the shared table lost cases: ${rows.size}")
         for (row in rows) {
             val id = row.str("id")!!
-            val name = FlareDisplayName.fromMap(row["name"] as Map<*, *>) ?: error("$id: not a display name")
+            val name = FlareDisplayName.fromMap(row["name"] as Map<*, *>)
             val text = row["text"] as Map<*, *>
             assertEquals(text["zh-CN"], flareDisplayNameText(name, FlareStrings()), "$id zh-CN")
             assertEquals(text["en-US"], flareDisplayNameText(name, flareStringsEnglish()), "$id en-US")
         }
     }
 
-    @Test fun readsTheWireAndRefusesWhatIsNotAName() {
+    @Test fun readsTheWireAndNeverFails() {
         assertEquals(
             FlareDisplayName.Named("Alice", FlareDisplayNameSource.Alias),
             FlareDisplayName.fromJson("""{"kind":"named","text":"Alice","source":"alias"}"""),
@@ -48,9 +47,15 @@ class DisplayNameVectorsTest {
             FlareDisplayName.Unnamed(FlareDisplayNameEntity.Person, "9876"),
             FlareDisplayName.fromJson("""{"kind":"unnamed","entity":"person","idTail":"9876"}"""),
         )
-        assertNull(FlareDisplayName.fromJson("""{"kind":"unnamed","entity":"robot","idTail":""}"""))
-        assertNull(FlareDisplayName.fromJson("""{"kind":"nickname","text":"x"}"""))
-        assertNull(FlareDisplayName.fromJson("not json"))
+        val unknownUser = FlareDisplayName.Unnamed(FlareDisplayNameEntity.Person, "")
+        assertEquals(
+            FlareDisplayName.Unnamed(FlareDisplayNameEntity.Person, "9876"),
+            FlareDisplayName.fromJson("""{"kind":"unnamed","entity":"robot","idTail":"9876"}"""),
+        )
+        assertEquals(unknownUser, FlareDisplayName.fromJson("""{"kind":"nickname","text":"x"}"""))
+        assertEquals(unknownUser, FlareDisplayName.fromJson("""{"kind":"named"}"""))
+        assertEquals(unknownUser, FlareDisplayName.fromJson("not json"))
+        assertEquals(unknownUser, FlareDisplayName.fromJson("[1, 2]"))
     }
 
     @Test fun aHostsOwnWordsWin() {

@@ -1197,8 +1197,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["displayNameTemp"] as? (String)) ?: "临时会话"
     val displayNameSeparator: String
         get() = (overrides["displayNameSeparator"] as? (String)) ?: "、"
-    val displayNameMembersMore: (String, Int) -> String
-        get() = (overrides["displayNameMembersMore"] as? ((String, Int) -> String)) ?: { names, count -> "${names}等 $count 人" }
+    /** names, total (the group's size, the reader included), others (total - names - 1): Chinese counts the group. */
+    val displayNameMembersMore: (String, Int, Int) -> String
+        get() = (overrides["displayNameMembersMore"] as? ((String, Int, Int) -> String)) ?: { names, total, _ -> "${names}等 $total 人" }
 
     // 会话头身份区作为按钮时的名字（标题 + 动作）；en: "{title}, {action}"
     val conversationHeaderIdentityLabel: (String, String) -> String
@@ -3802,8 +3803,8 @@ class FlareStringsBuilder internal constructor() {
     var displayNameSeparator: String
         get() = (values["displayNameSeparator"] as? (String)) ?: "、"
         set(value) { values["displayNameSeparator"] = value }
-    var displayNameMembersMore: (String, Int) -> String
-        get() = (values["displayNameMembersMore"] as? ((String, Int) -> String)) ?: { names, count -> "${names}等 $count 人" }
+    var displayNameMembersMore: (String, Int, Int) -> String
+        get() = (values["displayNameMembersMore"] as? ((String, Int, Int) -> String)) ?: { names, total, _ -> "${names}等 $total 人" }
         set(value) { values["displayNameMembersMore"] = value }
 
     var conversationHeaderIdentityLabel: (String, String) -> String

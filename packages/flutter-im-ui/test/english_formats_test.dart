@@ -34,7 +34,7 @@ final Map<String, _Call> _calls = {
   'packetFromSender': (s, a) => s.packetFromSender(_s(a[0])),
   'displayNameUser': (s, a) => s.displayNameUser(_s(a[0])),
   'displayNameMembersMore': (s, a) =>
-      s.displayNameMembersMore(_s(a[0]), _i(a[1])),
+      s.displayNameMembersMore(_s(a[0]), _i(a[1]), _i(a[2])),
   'translatedBy': (s, a) => s.translatedBy(_s(a[0])),
   'pollOptionHint': (s, a) => s.pollOptionHint(_i(a[0])),
   'yearMonth': (s, a) => s.yearMonth(_i(a[0]), _i(a[1])),

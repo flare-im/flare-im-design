@@ -910,7 +910,8 @@ public struct FlareStrings: Sendable {
     public var displayNameBroadcast: String
     public var displayNameTemp: String
     public var displayNameSeparator: String
-    public var displayNameMembersMore: @Sendable (String, Int) -> String
+    /// names, total (the group's size, the reader included), others (total - names - 1): Chinese counts the group.
+    public var displayNameMembersMore: @Sendable (String, Int, Int) -> String
     // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
     // `{count}`, `{time}` and `{n}` are replaced by the component.
     public var pluginViewSubmit: String
@@ -1751,7 +1752,7 @@ public struct FlareStrings: Sendable {
         displayNameBroadcast: String = "广播",
         displayNameTemp: String = "临时会话",
         displayNameSeparator: String = "、",
-        displayNameMembersMore: @escaping @Sendable (String, Int) -> String = { "\($0)等 \($1) 人" },
+        displayNameMembersMore: @escaping @Sendable (String, Int, Int) -> String = { names, total, _ in "\(names)等 \(total) 人" },
         pluginViewSubmit: String = "提交",
         pluginViewEnded: String = "已结束",
         pluginViewDeadlinePassed: String = "已截止",

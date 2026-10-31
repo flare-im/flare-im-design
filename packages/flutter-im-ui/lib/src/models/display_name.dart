@@ -53,14 +53,21 @@ enum FlareDisplayNameEntity {
 sealed class FlareDisplayName {
   const FlareDisplayName();
 
-  /// Reads a decoded wire value; null for one that is not a name the kit
-  /// knows.
-  static FlareDisplayName? fromJson(Object? json) {
-    if (json is! Map) return null;
+  static const FlareDisplayName _unknownUser = FlareUnnamedDisplayName(
+    FlareDisplayNameEntity.person,
+  );
+
+  /// Reads a decoded wire value, never failing: an unknown `entity` reads as
+  /// [FlareDisplayNameEntity.person]; an unknown `kind`, a form missing its
+  /// text, or a value that is not a map as an unnamed person without an id
+  /// tail (`displayNameUnknownUser`). A core newer than the kit therefore
+  /// still draws something sensible.
+  static FlareDisplayName fromJson(Object? json) {
+    if (json is! Map) return _unknownUser;
     switch (json['kind']) {
       case 'named':
         final text = json['text'];
-        if (text is! String) return null;
+        if (text is! String) return _unknownUser;
         return FlareNamedDisplayName(
           text,
           source: FlareDisplayNameSource.fromWire(json['source']),
@@ -73,15 +80,14 @@ sealed class FlareDisplayName {
           total: total is num ? total.toInt() : 0,
         );
       case 'unnamed':
-        final entity = FlareDisplayNameEntity.fromWire(json['entity']);
-        if (entity == null) return null;
         final idTail = json['idTail'];
         return FlareUnnamedDisplayName(
-          entity,
+          FlareDisplayNameEntity.fromWire(json['entity']) ??
+              FlareDisplayNameEntity.person,
           idTail: idTail is String ? idTail : '',
         );
     }
-    return null;
+    return _unknownUser;
   }
 
   /// The wire value (camelCase JSON).
@@ -178,8 +184,9 @@ String flareIdTail(String id) {
 /// all four kits). [FlareNamedDisplayName] reads as it is;
 /// [FlareMembersDisplayName] joins the non-blank names with
 /// `displayNameSeparator` and, when the group has more people than it names
-/// besides the reader, adds `displayNameMembersMore` with
-/// N = total - names - 1, and with no name left reads as an unnamed group;
+/// besides the reader, adds `displayNameMembersMore(names, total, others)` —
+/// Chinese counts the group (total, the reader included), English the others
+/// (total - names - 1) — and with no name left reads as an unnamed group;
 /// [FlareUnnamedDisplayName] reads by entity — a person with an id tail
 /// `displayNameUser`, without one `displayNameUnknownUser`, any other entity
 /// its own word.
@@ -192,7 +199,9 @@ String flareDisplayNameText(FlareDisplayName name, FlareStrings strings) {
       if (shown.isEmpty) return strings.displayNameGroup;
       final joined = shown.join(strings.displayNameSeparator);
       final others = total - shown.length - 1;
-      return others > 0 ? strings.displayNameMembersMore(joined, others) : joined;
+      return others > 0
+          ? strings.displayNameMembersMore(joined, total, others)
+          : joined;
     case FlareUnnamedDisplayName(:final entity, :final idTail):
       return switch (entity) {
         FlareDisplayNameEntity.person =>

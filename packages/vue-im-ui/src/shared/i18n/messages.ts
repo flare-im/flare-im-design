@@ -442,7 +442,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       broadcast: "广播",
       temp: "临时会话",
       separator: "、",
-      membersMore: "{names}等 {count} 人",
+      membersMore: "{names}等 {total} 人",
     },
     contactPicker: {
       title: "选择联系人",
@@ -1935,7 +1935,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       broadcast: "Broadcast",
       temp: "Temporary chat",
       separator: ", ",
-      membersMore: { one: "{names} and {count} other", other: "{names} and {count} others" },
+      membersMore: { one: "{names} and {others} other", other: "{names} and {others} others" },
     },
     contactPicker: {
       title: "Choose a contact",

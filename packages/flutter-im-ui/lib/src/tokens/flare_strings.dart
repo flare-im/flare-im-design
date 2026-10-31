@@ -532,7 +532,7 @@ class FlareStrings {
     this.displayNameBroadcast = '广播', // en: Broadcast
     this.displayNameTemp = '临时会话', // en: Temporary chat
     this.displayNameSeparator = '、', // en: , 
-    this.displayNameMembersMore = _displayNameMembersMore, // en: {names} and {count} others
+    this.displayNameMembersMore = _displayNameMembersMore, // en: {names} and {others} others
     this.unknownMessageHint = '当前版本无法显示这条消息',
     this.unknownMessageUnsupported = '不支持的消息类型',
     this.unknownMessageDiagnostic = '消息类型',
@@ -1471,7 +1471,10 @@ class FlareStrings {
   final String displayNameBroadcast;
   final String displayNameTemp;
   final String displayNameSeparator;
-  final String Function(String names, int count) displayNameMembersMore;
+  /// names, total (the group's size, the reader included), others
+  /// (total - names - 1): Chinese counts the group.
+  final String Function(String names, int total, int others)
+  displayNameMembersMore;
   final String unknownMessageHint;
   final String unknownMessageUnsupported;
   final String unknownMessageDiagnostic;
@@ -2315,7 +2318,7 @@ class FlareStrings {
     String? displayNameBroadcast,
     String? displayNameTemp,
     String? displayNameSeparator,
-    String Function(String names, int count)? displayNameMembersMore,
+    String Function(String names, int total, int others)? displayNameMembersMore,
     String? unknownMessageHint,
     String? unknownMessageUnsupported,
     String? unknownMessageDiagnostic,
@@ -3731,8 +3734,8 @@ class FlareStrings {
   static String _systemEventGroupProfileUpdatedNamed(String name) =>
       '群名称已改为「$name」';
   static String _displayNameUser(String idTail) => '用户 $idTail';
-  static String _displayNameMembersMore(String names, int count) =>
-      '$names等 $count 人';
+  static String _displayNameMembersMore(String names, int total, int others) =>
+      '$names等 $total 人';
   static String _messageImageGroupLabel(int count) => '$count 张图片';
   static String _imagePreviewPosition(int index, int count) =>
       '第 $index 张，共 $count 张';
