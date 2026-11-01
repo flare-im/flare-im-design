@@ -6,6 +6,10 @@
 
 ### 设计系统与跨端组件
 
+- **整体换掉的窗口是新窗口，定位让读者停在定位的那一行**（契约与四端 Kit）。
+  - 四端消息列表新增 `windowId`（核心时间线视图的 `viewId`，缺省为空）。名字从一个换成另一个、读者要的最新窗口到了、或者没有共同的行，就是整体替换（`spec/message-list-paging-vectors.json` 的 `windows`，17 例）。新窗口在最新一行打开，作废旧窗口的前插锚点；读者自己移动之前，列表不自动请求，替换本身引起的滚动不算读者的。Vue 原来在点了引用、引用随旧行移除时，滚动位置被留在 0（Chromium 的焦点修正在旧行已删时给尺寸容器里的时间线做了一次布局），列表当成读者到了顶部，自动往旧。
+  - 定位接管阅读位置：定位之前记下的锚点作废；读者移动之前，落下来的一页让定位的那一行留在中间，列表自己的动作（Vue 高度变化时贴底）不把读者带走。Vue 原来在滚动途中落下往旧的一页时，目标行带着高亮却在视口外，现在落在中间。Compose 的 `scrollToMessage` 在列表接管滚动时回答 true，不再抛出。
+  - `locateAfterReplace`（8 例）由 Vue 组件测试（替换后滚动位置在 0 与在末尾各跑一遍）、Flutter 组件测试、Compose 与 SwiftUI 的阅读位置模型逐条核对，Compose 另在设备上跑。
 - **计数角标能表达「还有更多」**（契约与四端 Kit）。
   - 导航的计数角标新增 `more`，筛选标签新增 `badgeMore`，缺省都为 false（Vue `FlareNavigationBadge.more`，Compose 与 SwiftUI `FlareApplicationNavigationBadge.more`，Flutter `FlareNavigationBadge.more`；四端 `FlareFilterTabOption.badgeMore`）；Vue 设置行新增 `FlareSettingsItem.badgeMore`。
   - `flareCountBadgeText(count, more)`：`more` 或超过 99 时写 99+，否则写数字；`flareCountBadgeDrawn(count, more)`：数字大于 0 或 `more`。筛选标签的角标超过 99 时也写 99+（原来写原数，100 及以上照写）；Vue 的筛选标签与设置行不再画 0 以下的数。宿主仍在 `more` 时交一个大于 99 的数的，照样显示 99+。

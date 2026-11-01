@@ -1,5 +1,6 @@
 ## 未发布
 
+- 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`FlareMessageList` 新增 `windowId`，整体替换（名字换了、读者要的最新窗口、没有共同的行）后在最新一行打开；原来读者上滑过时保留旧窗口的像素位置。列表仍只在拖动时自动请求。定位之后、读者拖动之前落下的一页以定位的行为轴心，这一帧之后放回中间；原来以滚动途中的首行为轴心，正在进行的定位滚动按旧坐标落点，目标可能落在视口外。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareNavigationBadge` 新增 `more`，`FlareFilterTabOption` 新增 `badgeMore`，缺省为 false；新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FlareFilterTabs` 超过 99 时也写 99+（原来写原数）。
 - 引用的发送者（`spec/display-name-vectors.json` 的 `quoteSender`）：`FlareReplyTarget` 新增可选的 `senderId`、`sender`（`FlareDisplayName`），新增 `flareQuoteSenderText`；气泡里的引用与回复条没有名字时写「用户 末四位」或「未知用户」（原来不画发送者一行），`flareReplyTargetFor` 带上 `senderId`。
 - 新增 `FlareLocationPlace.fromJson`，把社交 SDK 的 `GeoPlace` 读成地点，坐标不合法时为 null（`spec/location-vectors.json` 的 `placeFrom`）。

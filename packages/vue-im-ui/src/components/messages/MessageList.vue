@@ -43,6 +43,7 @@ import {
   flareMessageListEdge,
   flareMessageListLatestEntry,
   flareMessageListRequests,
+  flareMessageListWindowReplaced,
   type FlareMessageListEnd,
 } from "./messageListPaging";
 
@@ -80,6 +81,14 @@ const props = withDefaults(defineProps<{
   hasNewer?: boolean;
   loadingNewer?: boolean;
   newerError?: string;
+  /**
+   * The host's name for the window it hands the list (the core timeline view's `viewId`). When it changes from one
+   * name to another the window was replaced as a whole, even where the two share rows: the list opens it at its
+   * newest row, keeps nothing of the reader's place in the old one, and asks for no page by itself until the reader
+   * moves it (`spec/message-list-paging-vectors.json` `windows`). Without it a window is replaced when no row is left
+   * in common.
+   */
+  windowId?: string;
   bottomInset?: number;
   menuConfig?: MessageMenuConfig;
   /**
@@ -217,6 +226,18 @@ let anchorGeneration = 0;
 let pendingPrependAnchor: ReadingAnchor | null = null;
 let preservingPrependAnchor = false;
 let bottomScrollGeneration = 0;
+/**
+ * The window was replaced and the reader has not moved since: the list asks for no page by itself. The scroll the
+ * swap itself causes is not the reader's — a browser may leave the offset at 0 (Chromium does when the tapped quote
+ * leaves with the old rows: focus fixup recalculates style, and inside the timeline's size container that lays it out
+ * while it is empty) or at the new end — and neither is the list placing the window or a locate landing near an end.
+ */
+let requestsHeld = false;
+/**
+ * The row a locate took the reader to, until the reader moves: the list's own moves keep it where the locate put it —
+ * a page that lands is anchored on it, and a resize does not pull the reader to the bottom.
+ */
+let locatedRowId: string | null = null;
 
 type TimelineRow =
   | { kind: "time"; key: string; label: string }
@@ -271,7 +292,11 @@ provideTimelineFocus({
   },
 });
 
+/** Keys that move a focused scroller or the reading cursor: the reader moving the list as much as a wheel is. */
+const READER_SCROLL_KEYS: ReadonlySet<string> = new Set([...TIMELINE_FOCUS_KEYS, "PageUp", "PageDown", " "]);
+
 function onTimelineKeydown(event: KeyboardEvent): void {
+  if (READER_SCROLL_KEYS.has(event.key)) onReaderMoves();
   if (!TIMELINE_FOCUS_KEYS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
   const current = event.target as HTMLElement | null;
   const container = scrollContainerRef.value;
@@ -306,6 +331,7 @@ watch(
       appended.push(id);
     }
     if (!appended.length) return; // new ids were prepended (history) → skip
+    if (appended.length === next.length) return; // a window replaced as a whole is not news → skip
     freshIds.value = new Set([...freshIds.value, ...appended]);
     const timer = window.setTimeout(() => {
       const cleared = new Set(freshIds.value);
@@ -609,7 +635,9 @@ function onScroll(event: Event): void {
   } else if (root.scrollTop <= 72 && !props.loadingOlder && !props.hasOlder && displayMessages.value.length > 0) {
     revealHistoryStartHint(root);
   }
-  // Pages are asked for within the shared distance of either edge (spec/message-list-paging-vectors.json).
+  // Pages are asked for within the shared distance of either edge (spec/message-list-paging-vectors.json), once the
+  // reader has moved a replaced window.
+  if (requestsHeld) return;
   const wanted = flareMessageListRequests(
     { fromTop: root.scrollTop, fromBottom: Math.max(0, root.scrollHeight - root.scrollTop - root.clientHeight) },
     olderEnd.value,
@@ -637,6 +665,13 @@ function cancelAnchorRestore(): void {
   anchorGeneration += 1;
   pendingPrependAnchor = null;
   preservingPrependAnchor = false;
+}
+
+/** The reader moves the list (wheel, touch, pointer, key): their place is theirs again, and so is paging. */
+function onReaderMoves(): void {
+  requestsHeld = false;
+  locatedRowId = null;
+  cancelAnchorRestore();
 }
 
 /**
@@ -721,6 +756,21 @@ function capturePrependAnchor(root?: HTMLElement | null): void {
   if (!el) return;
   enterBrowseMode();
   const bounds = el.getBoundingClientRect();
+  // Under a locate the located row is the anchor, at the place the locate puts it (the middle), even while the scroll
+  // that takes it there is still running: the row on screen at this instant is only on the way.
+  const located = locatedRowId
+    ? el.querySelector<HTMLElement>(`[data-message-id="${escapeSelectorValue(locatedRowId)}"]`)
+    : null;
+  if (located) {
+    pendingPrependAnchor = {
+      messageId: locatedRowId!,
+      offset: (el.clientHeight - located.getBoundingClientRect().height) / 2,
+      generation: ++anchorGeneration,
+      scrollTop: el.scrollTop,
+      scrollHeight: el.scrollHeight,
+    };
+    return;
+  }
   const row = Array.from(el.querySelectorAll<HTMLElement>('[data-message-id]'))
     .find(row => row.getBoundingClientRect().bottom > bounds.top && row.getBoundingClientRect().top < bounds.bottom);
   pendingPrependAnchor = {
@@ -810,6 +860,8 @@ function messageTailSignature(message: MessageLike | undefined): string {
 
 async function scrollToBottom(): Promise<void> {
   const generation = ++bottomScrollGeneration;
+  // Going to the newest message leaves the located row: a page that lands later keeps the reader's own place.
+  locatedRowId = null;
   const scrollLast = () => {
     if (generation !== bottomScrollGeneration) return;
     updateShortTimelineSpacer();
@@ -892,6 +944,10 @@ async function scrollToMessage(
   // Locating a message is reading history: stop following the tail and cancel the re-scrolls a
   // just-opened conversation scheduled, or they pull the view back to the bottom within 760 ms.
   enterBrowseMode();
+  // And it takes the reading position (`locateAfterReplace`): a restore anchored before it would pull the reader back
+  // to rows they have left, so it is cancelled, and until the reader moves the located row is what the list keeps.
+  cancelAnchorRestore();
+  locatedRowId = targetId;
   await nextTick();
   const targetIndex = virtualItems.value.findIndex(
     (item) => item.kind === "message" && resolveMessageId(item.message) === targetId,
@@ -967,6 +1023,7 @@ watch(
   async (conversationId, previousConversationId) => {
     if (conversationId === previousConversationId) return;
     cancelAnchorRestore();
+    locatedRowId = null;
     loadOlderRequested = false;
     loadNewerRequested = false;
     jumpToLatestRequested = false;
@@ -1000,15 +1057,28 @@ watch(
   { flush: "sync" },
 );
 watch(
-  () => [displayMessages.value, Boolean(props.hasNewer)] as const,
-  async ([next, hasNewer], previousState) => {
-    const [prev] = previousState ?? [[], false];
+  () => [displayMessages.value, Boolean(props.hasNewer), props.windowId] as const,
+  async ([next, hasNewer, windowId], previousState) => {
+    const [prev, , previousWindowId] = previousState ?? [[], false, undefined];
     const previous = prev ?? [];
-    if (jumpToLatestRequested && !hasNewer) {
-      // The latest window the reader asked for: it opens at its bottom, wherever the old window was.
+    if (flareMessageListWindowReplaced(previous.map(timelineKey), next.map(timelineKey), {
+      jumpRequested: jumpToLatestRequested, hasNewer, previousWindowId, windowId,
+    })) {
+      // A new window (spec/message-list-paging-vectors.json `windows`), and the latest one the reader asked for is
+      // one: nothing of the reader's place in the old window applies. Decided before the swap is drawn, so the scroll
+      // the swap causes already finds the requests held.
       jumpToLatestRequested = false;
+      cancelAnchorRestore();
+      locatedRowId = null;
+      requestsHeld = true;
+      loadOlderRequested = false;
+      loadNewerRequested = false;
+      rowsDetached = hasNewer;
       enableTailFollow();
+      // The bottom of a detached window is not the latest message: nothing arrives there to follow.
+      if (hasNewer) followTail.value = false;
       await nextTick();
+      // It opens at its newest row; a locate that follows takes the reader on from there.
       await scrollToBottom();
       return;
     }
@@ -1094,7 +1164,9 @@ onMounted(() => {
     listResizeObserver = new ResizeObserver(() => {
       updateVirtualViewport(root);
       updateShortTimelineSpacer();
-      if (preservingPrependAnchor) return;
+      // A located row stays where the locate put it: a band or a banner that changes the list's height is not the
+      // reader asking for the bottom.
+      if (preservingPrependAnchor || locatedRowId) return;
       if (followTail.value || isAtBottom.value || isResizeNearBottom(root)) {
         void scrollToBottom();
       }
@@ -1102,7 +1174,7 @@ onMounted(() => {
     listResizeObserver.observe(root);
     // A footer (typing row) that appears or grows keeps a reader at the latest message.
     footerResizeObserver = new ResizeObserver(() => {
-      if (!preservingPrependAnchor && (followTail.value || isAtBottom.value)) void scrollToBottom();
+      if (!preservingPrependAnchor && !locatedRowId && (followTail.value || isAtBottom.value)) void scrollToBottom();
     });
     if (footerRef.value) footerResizeObserver.observe(footerRef.value);
   }
@@ -1156,9 +1228,9 @@ defineExpose({
       class="message-list message-list-virtual"
       @scroll="onScroll"
       @keydown="onTimelineKeydown"
-      @wheel.passive="cancelAnchorRestore"
-      @touchstart.passive="cancelAnchorRestore"
-      @pointerdown="cancelAnchorRestore"
+      @wheel.passive="onReaderMoves"
+      @touchstart.passive="onReaderMoves"
+      @pointerdown="onReaderMoves"
     >
       <div
         class="message-list-content"

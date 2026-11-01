@@ -2065,6 +2065,13 @@
             ]
           },
           {
+            "name": "windowId",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
             "name": "olderError",
             "values": [
               "string",

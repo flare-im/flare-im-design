@@ -1,5 +1,6 @@
 ## 未发布
 
+- 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`FlareMessageList` 新增 `windowId`，名字换了、读者要的最新窗口到了或没有共同的行时是整体替换。替换后在最新一行打开，作废旧窗口的前插锚点，读者用滚轮、触摸、指针或按键移动之前不自动请求。`scrollToMessage` 接管阅读位置：作废之前记下的锚点，之后落下的一页以定位的行为锚点留在中间，高度变化不再把读者拉到底。原来锚点窗口替换后滚动位置会被留在 0（Chromium 焦点修正），触发一次多余的往旧，前插的位置恢复又打断滚到目标。整体替换的窗口不再给每一行播入场动画。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareNavigationBadge` 新增 `more`，`FlareFilterTabOption` 与 `FlareSettingsItem` 新增 `badgeMore`，缺省为 false；`./contracts` 新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FlareFilterTabs` 超过 99 时也写 99+（原来写原数），筛选标签与设置行不再画 0 以下的数。
 - 引用的发送者（`spec/display-name-vectors.json` 的 `quoteSender`）：`./utils` 新增 `flareQuoteSenderText` 与 `FlareQuoteSender`。消息列表的引用读 `quotedSender`（`FlareDisplayName`）、`quotedSenderName`、`quotedSenderId`，没有名字时写「用户 末四位」或「未知用户」，不再显示 `quotedSenderId`。
 - `./contracts` 新增 `flareLocationPlaceFrom`，把社交 SDK 的 `GeoPlace` 读成 `FlareLocationPlace`，坐标不合法时为 null（`spec/location-vectors.json` 的 `placeFrom`）。

@@ -153,3 +153,28 @@ bool flareMessageListNewerPage(
   }
   return true;
 }
+
+/// Whether the host replaced the window as a whole rather than grew or edited
+/// the one the reader is in (`spec/message-list-paging-vectors.json`
+/// `windows`). [previous] and [next] are row keys in timeline order. Both must
+/// have rows, and then any of: the host's name for the window
+/// ([previousWindowId] to [windowId], the core timeline view's `viewId`; null
+/// or empty is none) changed from one name to another; the latest window the
+/// reader asked for arrived ([jumpRequested], attached: not [hasNewer]); no
+/// row of the new window was in the old one.
+bool flareMessageListWindowReplaced(
+  List<String> previous,
+  List<String> next, {
+  bool jumpRequested = false,
+  bool hasNewer = false,
+  String? previousWindowId,
+  String? windowId,
+}) {
+  if (previous.isEmpty || next.isEmpty) return false;
+  final before = previousWindowId ?? '';
+  final after = windowId ?? '';
+  if (before.isNotEmpty && after.isNotEmpty && before != after) return true;
+  if (jumpRequested && !hasNewer) return true;
+  final kept = previous.toSet();
+  return !next.any(kept.contains);
+}

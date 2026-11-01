@@ -4,7 +4,8 @@
  *
  * A window is the run of messages the host hands the list. Its older end (above the timeline) and its newer end
  * (below it) follow one rule: what each end draws, when the list asks for a page by itself, and when the floating key
- * at the bottom takes the reader back to the latest messages instead of to the bottom of the window.
+ * at the bottom takes the reader back to the latest messages instead of to the bottom of the window. A window the host
+ * replaces as a whole is a new one (`windows`), and what that does to the list is `locateAfterReplace`.
  */
 
 /** How close to an edge the reader must scroll before the list asks for the next page there, in CSS pixels. */
@@ -61,6 +62,37 @@ export function flareMessageListRequests(
     older: asks(older, viewport.fromTop, FLARE_MESSAGE_LIST_OLDER_WITHIN_PX),
     newer: asks(newer, viewport.fromBottom, FLARE_MESSAGE_LIST_NEWER_WITHIN_PX),
   };
+}
+
+/** What the list knows about one change of its window besides the rows. */
+export interface FlareMessageListWindowChange {
+  /** The reader asked for the latest messages (the back-to-latest key) and the host has not answered yet. */
+  jumpRequested?: boolean;
+  /** The new window is detached from the latest. */
+  hasNewer?: boolean;
+  /** The host's name for the window before and after the change (the core timeline view's `viewId`); empty is none. */
+  previousWindowId?: string | null;
+  windowId?: string | null;
+}
+
+/**
+ * Whether the host replaced the window as a whole rather than grew or edited the one the reader is in
+ * (`spec/message-list-paging-vectors.json` `windows`). `previous` and `next` are row keys in timeline order. Both
+ * must have rows, and then any of: the host's name for the window changed from one name to another; the latest window
+ * the reader asked for arrived (attached); no row of the new window was in the old one.
+ */
+export function flareMessageListWindowReplaced(
+  previous: readonly string[],
+  next: readonly string[],
+  change: FlareMessageListWindowChange = {},
+): boolean {
+  if (previous.length === 0 || next.length === 0) return false;
+  const before = change.previousWindowId ?? "";
+  const after = change.windowId ?? "";
+  if (before && after && before !== after) return true;
+  if (change.jumpRequested && !change.hasNewer) return true;
+  const kept = new Set(previous);
+  return !next.some((key) => kept.has(key));
 }
 
 /** What the floating key at the bottom does. */

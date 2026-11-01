@@ -84,6 +84,28 @@ void main() {
     });
   }
 
+  final windows =
+      ((table['windows'] as Map<String, dynamic>)['cases'] as List)
+          .cast<Map<String, dynamic>>();
+  test('the window table has its cases', () {
+    expect(windows.length, greaterThanOrEqualTo(17));
+  });
+  for (final raw in windows) {
+    test('window: ${raw['id']}', () {
+      expect(
+        flareMessageListWindowReplaced(
+          (raw['previous'] as List).cast<String>(),
+          (raw['next'] as List).cast<String>(),
+          jumpRequested: raw['jumpRequested'] as bool? ?? false,
+          hasNewer: raw['hasNewer'] as bool? ?? false,
+          previousWindowId: raw['previousWindowId'] as String?,
+          windowId: raw['windowId'] as String?,
+        ),
+        raw['expected'] as bool,
+      );
+    });
+  }
+
   test('rows appended to a detached window are a newer page', () {
     const window = ['m1', 'm2', 'm3'];
     expect(

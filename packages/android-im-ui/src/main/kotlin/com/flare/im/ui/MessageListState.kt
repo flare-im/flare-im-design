@@ -7,6 +7,8 @@ import androidx.compose.runtime.MonotonicFrameClock
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.isActive
 
 /**
  * The host's handle on one [MessageList] (Vue `defineExpose`, Flutter/SwiftUI `FlareMessageListController`).
@@ -104,7 +106,13 @@ class FlareMessageListState(
         // Marked the same way a tapped quote marks it: the reader has to see which row this landed on,
         // whichever entrance asked for the jump.
         onLocated?.invoke(index)
-        listState.scrollToLocatedRow(index, reducedMotion)
+        try {
+            listState.scrollToLocatedRow(index, reducedMotion)
+        } catch (interrupted: CancellationException) {
+            // The list itself took the scroll over — a page landed and it keeps the located row in the middle — so the
+            // row is shown all the same. Only a caller that was itself cancelled hears about it.
+            if (!coroutineContext.isActive) throw interrupted
+        }
         return true
     }
 }

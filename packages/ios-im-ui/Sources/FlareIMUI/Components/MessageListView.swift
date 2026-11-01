@@ -18,7 +18,10 @@ import SwiftUI
 /// button. The list asks for a page by itself (`onLoadOlder`, `onLoadNewer`) when the reader moves within 160 pt of
 /// that edge. A detached window shows ``ScrollToLatestView`` without a count, which asks the host for the latest
 /// window (`onJumpToLatest`); that window opens at its newest message. A newer page read into a detached window keeps
-/// the reader on the rows they are reading.
+/// the reader on the rows they are reading. A window the host replaces as a whole (`windows`: `windowId` changed, the
+/// latest window the reader asked for, or no row left in common) opens at its newest row, keeps nothing of the reader's
+/// place in the old one, and asks for no page by itself until the reader moves it. A located row stays where the
+/// locate put it until the reader moves: a page that lands meanwhile keeps it in the middle (`locateAfterReplace`).
 public struct MessageListView: View {
     private let hasOlder: Bool
     private let olderError: String?
@@ -29,6 +32,7 @@ public struct MessageListView: View {
     private let newerError: String?
     private let onLoadNewer: (() -> Void)?
     private let onJumpToLatest: (() -> Void)?
+    private let windowId: String?
     private let conversationId: String?
     @State private var requested = false
     @State private var requestedNewer = false
@@ -169,6 +173,9 @@ public struct MessageListView: View {
     ///   - onLoadNewer: Reads the next newer page.
     ///   - onJumpToLatest: The back-to-latest key of a detached window: the host replaces the window with the latest
     ///     messages.
+    ///   - windowId: The host's name for the window it hands the list (the core timeline view's `viewId`). When it
+    ///     changes from one name to another the window was replaced as a whole, even where the two share rows. Without
+    ///     it a window is replaced when no row is left in common.
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
     ///     fills its read receipt list from the SDK. Without it the summary is plain text.
     ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
@@ -204,6 +211,7 @@ public struct MessageListView: View {
         onLoadOlder: (() -> Void)? = nil,
         hasNewer: Bool = false, loadingNewer: Bool = false, newerError: String? = nil,
         onLoadNewer: (() -> Void)? = nil, onJumpToLatest: (() -> Void)? = nil,
+        windowId: String? = nil,
         conversationId: String? = nil,
         multiSelectMode: Bool = false,
         selectedIds: Set<String> = [],
@@ -228,7 +236,8 @@ public struct MessageListView: View {
         self.onLoadOlder = onLoadOlder; self.conversationId = conversationId
         self.hasNewer = hasNewer; self.loadingNewer = loadingNewer; self.newerError = newerError
         self.onLoadNewer = onLoadNewer; self.onJumpToLatest = onJumpToLatest
-        self._paging = State(initialValue: TimelinePaging(detachedSinceRows: hasNewer))
+        self.windowId = windowId
+        self._paging = State(initialValue: TimelinePaging(detachedSinceRows: hasNewer, windowId: windowId))
         self.messages = messages
         self.currentUserId = currentUserId
         self.conversationKind = conversationKind
@@ -492,12 +501,14 @@ public struct MessageListView: View {
     }
 
     /// The reader moved: an edge row reported a new position. Pages are asked for within the shared distance of
-    /// either edge; the first report of a window only records where it is.
+    /// either edge; the first report of a window only records where it is, and so does every report of a replaced
+    /// window until the reader moves it.
     private func pagingMoved(fromTop: CGFloat?? = .none, fromBottom: CGFloat?? = .none) {
         var moved = false
         if case .some(let top) = fromTop, top != pagingFromTop { moved = pagingFromTop != nil; pagingFromTop = top }
         if case .some(let bottom) = fromBottom, bottom != pagingFromBottom { moved = moved || pagingFromBottom != nil; pagingFromBottom = bottom }
-        guard moved else { return }
+        // In a replaced window the reader's first move lets the list ask again; its own moves never do.
+        guard moved, paging.mayAsk else { return }
         let wanted = FlareMessageListPaging.requests(fromTop: pagingFromTop ?? .infinity, fromBottom: pagingFromBottom ?? .infinity,
                                                      older: olderEnd, newer: newerEnd)
         if wanted.older { askOlder(retry: false) }
@@ -531,7 +542,7 @@ public struct MessageListView: View {
             .onChange(of: newerError) { _ in requestedNewer = false }
             .onChange(of: conversationId) { _ in
                 requested = false; visibleId = nil; rowFrames = [:]; restorationGeneration += 1; locatedId = nil
-                requestedNewer = false; paging = TimelinePaging(detachedSinceRows: hasNewer)
+                requestedNewer = false; paging = TimelinePaging(detachedSinceRows: hasNewer, windowId: windowId)
                 pagingFromTop = nil; pagingFromBottom = nil
                 follow = TimelineFollow()
                 mediaSession.voice.stop()
@@ -583,7 +594,7 @@ public struct MessageListView: View {
         // What the follow rules read from the messages; the change handlers get it as their new value, because
         // their closures still see the previous messages.
         let followRows = messages.map { TimelineFollow.Row(id: $0.id, own: $0.senderId == currentUserId) }
-        let pagingRows = TimelinePagingRows(rows: followRows, detached: hasNewer)
+        let pagingRows = TimelinePagingRows(rows: followRows, detached: hasNewer, windowId: windowId)
         GeometryReader { viewport in
             if #available(iOS 17.0, macOS 14.0, *), !legacyTimelineScrolling {
                 ScrollViewReader { proxy in
@@ -607,21 +618,28 @@ public struct MessageListView: View {
                             case .newerPage:
                                 // The row at the bottom holds the place rather than the end, which the new rows moved.
                                 if visibleId == Self.timelineEndId { visibleId = previousLast }
-                            case .keep: break
+                                keepLocatedRow(proxy, in: value)
+                            case .keep: keepLocatedRow(proxy, in: value)
                             }
                         }
                         .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
                         .onPreferenceChange(TimelineEnd.self) { pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) })) }
                         .onChange(of: jumpGeneration) { _ in goToLatest(tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
-                            if follow.followTail || follow.atBottom { goToLatest(tailId: timelineIds.last) }
+                            // A located row stays where the locate put it: a band that changes the height is not the
+                            // reader asking for the bottom.
+                            if paging.locatedId == nil, follow.followTail || follow.atBottom {
+                                goToLatest(tailId: timelineIds.last)
+                            }
                         }
                         .onChange(of: locateGeneration) { _ in
                             // A row scrolled to by the proxy is not the bound position; a stale one would pull the
                             // list back to it when the content next changes.
                             visibleId = nil
+                            if let locatedId { paging.located(locatedId) }
                             DispatchQueue.main.async { scrollToLocated(proxy) }
                         }
+                        .modifier(ReaderScrollWatch { readerMoved() })
                 }
             } else {
                 ScrollViewReader { proxy in
@@ -643,11 +661,13 @@ public struct MessageListView: View {
                             // the end this list was sent to, and the located row's mark changing the
                             // content would pull the reader back there.
                             legacyVisibleId = nil
+                            if let locatedId { paging.located(locatedId) }
                             // Let this update finish before asking the proxy to move. In the legacy
                             // path an onAppear/end-restoration scroll can otherwise run later in the
                             // same pass and pull the reader back.
                             DispatchQueue.main.async { scrollToLocated(proxy) }
                         }
+                        .modifier(ReaderScrollWatch { readerMoved() })
                         .onPreferenceChange(TimelineRowFrames.self) { rowFrames = $0 }
                         .onPreferenceChange(TimelineEnd.self) {
                             syncPosition($0)
@@ -656,7 +676,9 @@ public struct MessageListView: View {
                         .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
                         .onChange(of: jumpGeneration) { _ in scrollToEnd(proxy, tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
-                            if follow.followTail || follow.atBottom { scrollToEnd(proxy, tailId: timelineIds.last) }
+                            if paging.locatedId == nil, follow.followTail || follow.atBottom {
+                                scrollToEnd(proxy, tailId: timelineIds.last)
+                            }
                         }
                         .onChange(of: pagingRows) { value in
                             let rows = value.rows
@@ -664,6 +686,7 @@ public struct MessageListView: View {
                                 scrollToEnd(proxy, tailId: rows.last?.id)
                                 return
                             }
+                            if keepLocatedRow(proxy, in: value) { return }
                             let surviving = Set(rows.map(\.id))
                             let anchor = rowFrames.filter { surviving.contains($0.key) && $0.value.maxY > 0 && $0.value.minY < viewport.size.height }
                                 .min { $0.value.minY < $1.value.minY }
@@ -711,6 +734,25 @@ public struct MessageListView: View {
         return paging.rowsChanged(from: previous, to: value, follow: &follow)
     }
 
+    /// Under a locate the located row is what stays (`locateAfterReplace`): once this update is laid out it is put back
+    /// in the middle, where the locate puts it, whatever rows landed around it — the scroll that was taking the reader
+    /// there aimed at an offset measured before. False when there is no located row, or it is gone.
+    @discardableResult
+    private func keepLocatedRow(_ proxy: ScrollViewProxy, in value: TimelinePagingRows) -> Bool {
+        let ids = Set(value.rows.map(\.id))
+        guard let id = paging.prependAnchor(readerRow: nil, loaded: ids.contains) else { return false }
+        DispatchQueue.main.async {
+            guard paging.locatedId == id else { return }
+            proxy.scrollTo(id, anchor: .center)
+        }
+        return true
+    }
+
+    /// The reader moved the list themselves: written only when there is a hold to let go of.
+    private func readerMoved() {
+        if !paging.mayAsk || paging.locatedId != nil { paging.readerMoved() }
+    }
+
     /// The reader's position from the end of the timeline, written only when what it decides changes.
     private func syncPosition(_ end: TimelineEnd.Position?) {
         var next = follow
@@ -733,6 +775,8 @@ public struct MessageListView: View {
     private func goToLatest(tailId: String?) {
         if visibleId != Self.timelineEndId { visibleId = Self.timelineEndId }
         follow.reachedBottom(tailId: tailId)
+        // Going to the newest message leaves the located row.
+        if paging.locatedId != nil { paging.locatedId = nil }
     }
 
     /// Goes to the newest message through the proxy (iOS 16), again once the rows have been laid out.
@@ -747,6 +791,8 @@ public struct MessageListView: View {
         legacyVisibleId = Self.timelineEndId
         proxy.scrollTo(Self.timelineEndId, anchor: .bottom)
         follow.reachedBottom(tailId: tailId)
+        // Going to the newest message leaves the located row.
+        if paging.locatedId != nil { paging.locatedId = nil }
         let locateAtRequest = locateGeneration
         DispatchQueue.main.async {
             guard locateAtRequest == locateGeneration else { return }
@@ -956,6 +1002,8 @@ private struct TimelineStart: PreferenceKey {
 struct TimelinePagingRows: Equatable {
     let rows: [TimelineFollow.Row]
     let detached: Bool
+    /// The host's name for the window (`windowId`), nil when it names none.
+    var windowId: String? = nil
 }
 
 /// What a change of the rows does to the reading position of a window that may be detached from the latest.
@@ -966,6 +1014,14 @@ struct TimelinePaging: Equatable {
     var detachedSinceRows = false
     /// The reader asked for the latest messages: the window the host replaces this one with opens at its newest.
     var jumpRequested = false
+    /// The host's name for the window the rows last came with.
+    var windowId: String?
+    /// The window was replaced and the reader has not moved since: the list asks for no page by itself. Neither the
+    /// list placing the new window nor a locate landing near an end is the reader moving (`locateAfterReplace`).
+    var requestsHeld = false
+    /// The row a locate took the reader to, until the reader moves: a page that lands meanwhile keeps it in the middle,
+    /// where the locate put it.
+    var locatedId: String?
 
     enum RowsChange: Equatable {
         /// Go to the newest message.
@@ -980,6 +1036,23 @@ struct TimelinePaging: Equatable {
     /// detached are a newer page; everything else follows ``TimelineFollow/rowsChanged(from:to:)``.
     mutating func rowsChanged(from previous: [String], to value: TimelinePagingRows, follow: inout TimelineFollow) -> RowsChange {
         if value.detached { detachedSinceRows = true }
+        let previousWindowId = windowId
+        windowId = value.windowId
+        if FlareMessageListPaging.windowReplaced(previous: previous, next: value.rows.map(\.id), jumpRequested: jumpRequested,
+                                                 hasNewer: value.detached, previousWindowId: previousWindowId,
+                                                 windowId: value.windowId) {
+            // A new window (`windows`), and the latest one the reader asked for is one: it opens at its newest row,
+            // nothing of the reader's place in the old one applies, and the list asks for nothing by itself until the
+            // reader moves it.
+            jumpRequested = false
+            detachedSinceRows = value.detached
+            requestsHeld = true
+            locatedId = nil
+            follow.reachedBottom(tailId: value.rows.last?.id)
+            // The bottom of a detached window is not the latest message: nothing arrives there to follow.
+            if value.detached { follow.detach() }
+            return .latest
+        }
         if jumpRequested && !value.detached {
             jumpRequested = false
             detachedSinceRows = false
@@ -995,6 +1068,44 @@ struct TimelinePaging: Equatable {
             return .newerPage
         }
         return follow.rowsChanged(from: previous, to: value.rows) ? .latest : .keep
+    }
+
+    /// A move of the list may ask for pages: always, except in a replaced window the reader has not moved yet.
+    var mayAsk: Bool { !requestsHeld }
+
+    /// The reader moved the list themselves: their place is theirs again, not the located row's, and so is paging.
+    mutating func readerMoved() {
+        requestsHeld = false
+        locatedId = nil
+    }
+
+    /// The list scrolled to a located row.
+    mutating func located(_ id: String) {
+        locatedId = id
+    }
+
+    /// The row to keep in place while older rows land above: the located row while a locate holds the reader there,
+    /// else `readerRow`, the row the reader sees. Nil when neither is still loaded.
+    func prependAnchor(readerRow: String?, loaded: (String) -> Bool) -> String? {
+        if let locatedId, loaded(locatedId) { return locatedId }
+        if let readerRow, loaded(readerRow) { return readerRow }
+        return nil
+    }
+}
+
+/// Tells the list when the reader moves it themselves: the scroll phase where the system reports one (iOS 18,
+/// macOS 15), else a drag on the timeline. The list's own scrolls (the proxy, the bound position) are neither.
+private struct ReaderScrollWatch: ViewModifier {
+    let moved: () -> Void
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            content.onScrollPhaseChange { _, phase in
+                if phase == .interacting { moved() }
+            }
+        } else {
+            content.simultaneousGesture(DragGesture(minimumDistance: 10).onChanged { _ in moved() })
+        }
     }
 }
 

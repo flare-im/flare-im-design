@@ -81,4 +81,19 @@ enum FlareMessageListPaging {
         guard wasDetached, let window = TimelineFollow.window(from: previous, to: next) else { return false }
         return window.prepended == 0 && window.appended > 0
     }
+
+    /// Whether the host replaced the window as a whole rather than grew or edited the one the reader is in (`windows`).
+    /// `previous` and `next` are row keys in timeline order. Both must have rows, and then any of: the host's name for
+    /// the window (`previousWindowId` to `windowId`, the core timeline view's `viewId`; nil or empty is none) changed
+    /// from one name to another; the latest window the reader asked for arrived (`jumpRequested`, attached: not
+    /// `hasNewer`); no row of the new window was in the old one.
+    static func windowReplaced(previous: [String], next: [String], jumpRequested: Bool = false, hasNewer: Bool = false,
+                               previousWindowId: String? = nil, windowId: String? = nil) -> Bool {
+        guard !previous.isEmpty, !next.isEmpty else { return false }
+        let before = previousWindowId ?? "", after = windowId ?? ""
+        if !before.isEmpty, !after.isEmpty, before != after { return true }
+        if jumpRequested && !hasNewer { return true }
+        let kept = Set(previous)
+        return !next.contains(where: kept.contains)
+    }
 }

@@ -70,6 +70,14 @@ import 'flare_unread_divider.dart';
 /// the host for the latest window ([onJumpToLatest]); that window opens at its
 /// newest message. A newer page read into a detached window keeps the reader
 /// on the rows they are reading.
+///
+/// A window the host replaces as a whole (`windows`: [windowId] changed, the
+/// latest window the reader asked for, or no row left in common) opens at its
+/// newest row and keeps nothing of the reader's place in the old one; the list
+/// still asks for pages only while the reader drags. A located row
+/// ([FlareMessageListController.scrollToMessage], a tapped quote) stays where
+/// the locate put it until the reader drags: a page that lands meanwhile grows
+/// around it (`locateAfterReplace`).
 class FlareMessageList extends StatefulWidget {
   const FlareMessageList({
     super.key,
@@ -87,6 +95,7 @@ class FlareMessageList extends StatefulWidget {
     this.newerError,
     this.onLoadNewer,
     this.onJumpToLatest,
+    this.windowId,
     this.conversationId,
     this.loading = false,
     this.emptyText,
@@ -152,6 +161,12 @@ class FlareMessageList extends StatefulWidget {
   /// The back-to-latest key of a detached window: the host replaces the
   /// window with the latest messages.
   final VoidCallback? onJumpToLatest;
+
+  /// The host's name for the window it hands the list (the core timeline
+  /// view's `viewId`). When it changes from one name to another the window was
+  /// replaced as a whole, even where the two share rows. Without it a window is
+  /// replaced when no row is left in common.
+  final String? windowId;
   final String? conversationId;
   final bool loading;
 
@@ -400,13 +415,17 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// when it changes.
   double? _viewportHeight;
 
-  ({String id, double offset})? _visibleAnchor(Set<String> surviving) {
+  ({String id, double offset})? _visibleAnchor(
+    Set<String> surviving, {
+    String? only,
+  }) {
     final viewport = _viewportKey.currentContext?.findRenderObject();
     if (viewport is! RenderBox || !viewport.hasSize) return null;
     final top = viewport.localToGlobal(Offset.zero).dy;
     final rows = <({String id, double offset})>[];
     for (final entry in _rowKeys.entries) {
       if (!surviving.contains(entry.key)) continue;
+      if (only != null && entry.key != only) continue;
       final box = entry.value.currentContext?.findRenderObject();
       if (box is! RenderBox || !box.attached || !box.hasSize) continue;
       final y = box.localToGlobal(Offset.zero).dy - top;
@@ -457,6 +476,10 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// The window has been detached since the rows last changed: rows appended
   /// now are a newer page.
   bool _detachedSinceRows = false;
+
+  /// The row a locate took the reader to, until the reader drags: rows that
+  /// change meanwhile keep it where the locate put it.
+  String? _locatedHoldId;
   FlareMessageListController get _handle => widget.controller ?? _ownedHandle;
   ScrollController get _controller => _handle.scroll;
 
@@ -588,6 +611,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       final row = _rowKeys[id]?.currentContext;
       if (row != null) {
         _markLocated(id);
+        _locatedHoldId = id;
         await Scrollable.ensureVisible(
           row,
           alignment: 0.5,
@@ -684,6 +708,7 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// bottom.
   void _showNewest() {
     _pivotId = null;
+    _locatedHoldId = null;
     _followTail = true;
     _browseTailId = null;
     _correctPixels(0);
@@ -694,6 +719,7 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// it grow downwards. The pivot's top edge is the center, drawn at viewport
   /// height + offset from the top.
   void _keepReaderInPlace(Set<String> surviving) {
+    if (_keepLocatedRow(surviving)) return;
     final viewport = _viewportKey.currentContext?.findRenderObject();
     final anchor = _visibleAnchor(surviving);
     if (anchor == null || viewport is! RenderBox || !viewport.hasSize) {
@@ -702,6 +728,31 @@ class _FlareMessageListState extends State<FlareMessageList>
     }
     _pivotId = anchor.id;
     _correctPixels(anchor.offset - viewport.size.height);
+  }
+
+  /// Under a locate the located row is what stays (`locateAfterReplace`): it
+  /// becomes the pivot, so rows added above it grow upwards from it, and once
+  /// this frame is laid out the scroll that was taking the reader there ends at
+  /// once, with the row in the middle where the locate puts it — that scroll
+  /// aimed at an offset measured before the rows changed. False when there is
+  /// no located row, or it is gone.
+  bool _keepLocatedRow(Set<String> surviving) {
+    final id = _locatedHoldId;
+    if (id == null || !surviving.contains(id)) return false;
+    final viewport = _viewportKey.currentContext?.findRenderObject();
+    final anchor = _visibleAnchor(surviving, only: id);
+    if (anchor != null && viewport is RenderBox && viewport.hasSize) {
+      _pivotId = id;
+      _correctPixels(anchor.offset - viewport.size.height);
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final row = _rowKeys[id]?.currentContext;
+      if (!mounted || _locatedHoldId != id || row == null) return;
+      unawaited(
+        Scrollable.ensureVisible(row, alignment: 0.5, duration: Duration.zero),
+      );
+    });
+    return true;
   }
 
   /// The reader's scrolling decides whether new messages keep them at the
@@ -735,6 +786,7 @@ class _FlareMessageListState extends State<FlareMessageList>
   void _goToNewest() {
     setState(() {
       _pivotId = null;
+      _locatedHoldId = null;
       _followTail = true;
       _browseTailId = null;
     });
@@ -794,14 +846,25 @@ class _FlareMessageListState extends State<FlareMessageList>
       _requested = false;
       _requestedNewer = false;
       _jumpRequested = false;
+      _locatedHoldId = null;
       _detachedSinceRows = widget.hasNewer;
       _showNewest();
-    } else if (_jumpRequested && !widget.hasNewer) {
-      // The latest window the reader asked for: it opens at its newest
-      // message, wherever the old window was.
+    } else if (_replaced(oldWidget)) {
+      // A new window (`windows`), and the latest one the reader asked for is
+      // one: it opens at its newest message, wherever the old window was, and
+      // nothing of the reader's place in the old one applies.
       _jumpRequested = false;
-      _detachedSinceRows = false;
+      _locatedHoldId = null;
+      _requested = false;
+      _requestedNewer = false;
+      _detachedSinceRows = widget.hasNewer;
       _showNewest();
+      // The bottom of a detached window is not the latest message: nothing
+      // arrives there to follow.
+      if (widget.hasNewer) {
+        _followTail = false;
+        _browseTailId = widget.messages.lastOrNull?.id;
+      }
     } else if (oldWidget.messages != widget.messages) {
       final wasDetached = _detachedSinceRows;
       _detachedSinceRows = widget.hasNewer;
@@ -829,6 +892,9 @@ class _FlareMessageListState extends State<FlareMessageList>
         _keepReaderInPlace(surviving);
       }
     }
+    // An attached window answers the jump the reader asked for, whatever it
+    // brought.
+    if (!widget.hasNewer) _jumpRequested = false;
     _rowKeys.removeWhere((id, _) => !surviving.contains(id));
     _publishDownloadStates();
     _openPendingSheet();
@@ -841,6 +907,25 @@ class _FlareMessageListState extends State<FlareMessageList>
         oldWidget.messages.lastOrNull?.id != widget.messages.lastOrNull?.id ||
         oldWidget.newerError != widget.newerError)
       _requestedNewer = false;
+  }
+
+  /// Whether this update hands the list a new window
+  /// ([flareMessageListWindowReplaced]).
+  bool _replaced(FlareMessageList oldWidget) {
+    final jump = _jumpRequested && !widget.hasNewer;
+    if (!jump &&
+        identical(oldWidget.messages, widget.messages) &&
+        oldWidget.windowId == widget.windowId) {
+      return false;
+    }
+    return flareMessageListWindowReplaced(
+      [for (final m in oldWidget.messages) m.id],
+      [for (final m in widget.messages) m.id],
+      jumpRequested: _jumpRequested,
+      hasNewer: widget.hasNewer,
+      previousWindowId: oldWidget.windowId,
+      windowId: widget.windowId,
+    );
   }
 
   /// Ids of rows that came on screen this frame, handed to the host's
@@ -1302,6 +1387,12 @@ class _FlareMessageListState extends State<FlareMessageList>
                                   child: NotificationListener<ScrollNotification>(
                                     onNotification: (n) {
                                       if (n.depth != 0) return false;
+                                      // The reader's own drag: the place is
+                                      // theirs again, not the located row's.
+                                      if (n is ScrollStartNotification &&
+                                          n.dragDetails != null) {
+                                        _locatedHoldId = null;
+                                      }
                                       if (n is ScrollUpdateNotification) {
                                         if (n.dragDetails != null)
                                           _askForPages(n.metrics);

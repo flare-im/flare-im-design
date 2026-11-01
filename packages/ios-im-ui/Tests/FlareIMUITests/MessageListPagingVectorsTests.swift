@@ -91,6 +91,106 @@ final class MessageListPagingVectorsTests: XCTestCase {
         XCTAssertEqual(follow.anchorTailId, "m4")
     }
 
+    // MARK: a window replaced as a whole
+
+    private struct Windows: Decodable {
+        struct Case: Decodable {
+            let id: String; let previous: [String]; let next: [String]
+            let hasNewer: Bool?; let jumpRequested: Bool?; let previousWindowId: String?; let windowId: String?
+            let expected: Bool
+        }
+        struct Locate: Decodable {
+            struct Window: Decodable { let from: Int; let to: Int; let hasNewer: Bool; let windowId: String? }
+            struct Expected: Decodable { let requests: [String]; let locatedInView: Bool; let marked: Bool }
+            struct Case: Decodable {
+                let id: String; let before: Window; let after: Window; let locate: Int
+                let readerAskedOlder: Bool; let pageLands: Bool; let readerMovesTo: String?; let expected: Expected
+            }
+            let rowHeight: CGFloat; let viewportHeight: CGFloat; let pageRows: Int; let cases: [Case]
+        }
+        struct Section: Decodable { let cases: [Case] }
+        let windows: Section
+        let locateAfterReplace: Locate
+    }
+
+    private func windows() throws -> Windows {
+        var root = URL(fileURLWithPath: #filePath)
+        for _ in 0..<5 { root.deleteLastPathComponent() }
+        let url = root.appendingPathComponent("spec/message-list-paging-vectors.json")
+        return try JSONDecoder().decode(Windows.self, from: Data(contentsOf: url))
+    }
+
+    func testAWindowIsReplacedWhenTheTableSaysSo() throws {
+        let cases = try windows().windows.cases
+        XCTAssertGreaterThanOrEqual(cases.count, 17)
+        for vector in cases {
+            XCTAssertEqual(FlareMessageListPaging.windowReplaced(
+                previous: vector.previous, next: vector.next, jumpRequested: vector.jumpRequested ?? false,
+                hasNewer: vector.hasNewer ?? false, previousWindowId: vector.previousWindowId, windowId: vector.windowId),
+                vector.expected, vector.id)
+        }
+    }
+
+    /// The list's reading position through one run of `locateAfterReplace`, on the model ``MessageListView`` keeps: the
+    /// moves the list makes without the reader (the swap leaving the offset at either end, the new window opening at
+    /// its newest row, the locate landing) ask for nothing in a replaced window; the reader's moves do; and a page that
+    /// lands under a locate keeps the located row. Rows are the table's height in its viewport.
+    func testAReplacedWindowAndALocateDoWhatTheTableSays() throws {
+        let spec = try windows().locateAfterReplace
+        XCTAssertGreaterThanOrEqual(spec.cases.count, 8)
+        for vector in spec.cases {
+            var asked: [String] = []
+            var follow = TimelineFollow()
+            var paging = TimelinePaging(detachedSinceRows: vector.before.hasNewer, windowId: vector.before.windowId)
+            var ids = (vector.before.from...vector.before.to).map { "m\($0)" }
+            var hasNewer = vector.before.hasNewer
+            var olderAsked = false, newerAsked = false
+            func span() -> CGFloat { CGFloat(ids.count) * spec.rowHeight - spec.viewportHeight }
+            // One move of the list to `top` (points from the start); it asks the way the list does, once per end.
+            func moved(_ top: CGFloat) {
+                guard paging.mayAsk else { return }
+                let wanted = FlareMessageListPaging.requests(
+                    fromTop: top, fromBottom: span() - top,
+                    older: .init(has: true, loading: olderAsked, error: nil, handled: true),
+                    newer: .init(has: hasNewer, loading: newerAsked, error: nil, handled: true))
+                if wanted.older { olderAsked = true; asked.append("older") }
+                if wanted.newer { newerAsked = true; asked.append("newer") }
+            }
+            if vector.readerAskedOlder { paging.readerMoved(); moved(0) }
+            let next = (vector.after.from...vector.after.to).map { "m\($0)" }
+            let changed = next != ids
+            _ = paging.rowsChanged(from: ids, to: .init(rows: next.map { .init(id: $0, own: false) },
+                                                         detached: vector.after.hasNewer, windowId: vector.after.windowId),
+                                   follow: &follow)
+            ids = next
+            hasNewer = vector.after.hasNewer
+            // The swap leaves the offset at either end, then the new window opens at its newest row: the list's moves.
+            if changed { moved(0); moved(span()) }
+            // The locate lands with the row in the middle.
+            let located = "m\(vector.locate)"
+            let index = CGFloat(ids.firstIndex(of: located) ?? 0)
+            let top = min(max(0, index * spec.rowHeight - (spec.viewportHeight - spec.rowHeight) / 2), span())
+            paging.located(located)
+            moved(top)
+            var inView = true
+            if vector.pageLands {
+                let first = Int(ids[0].dropFirst()) ?? 0
+                let readerRow = ids[Int(top / spec.rowHeight)]
+                ids = ((first - spec.pageRows)...(first - 1)).map { "m\($0)" } + ids
+                let loaded = Set(ids)
+                inView = paging.prependAnchor(readerRow: readerRow, loaded: loaded.contains) == located
+                olderAsked = false
+            }
+            switch vector.readerMovesTo {
+            case "top"?: paging.readerMoved(); moved(0); inView = false
+            case "bottom"?: paging.readerMoved(); moved(span()); inView = false
+            default: break
+            }
+            XCTAssertEqual(asked, vector.expected.requests, vector.id)
+            XCTAssertEqual(inView, vector.expected.locatedInView, vector.id)
+        }
+    }
+
     // MARK: the reading position of a detached window
 
     private func rows(_ range: ClosedRange<Int>, own: Bool = false) -> [TimelineFollow.Row] {

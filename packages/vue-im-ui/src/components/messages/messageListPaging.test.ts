@@ -7,6 +7,7 @@ import {
   flareMessageListEdge,
   flareMessageListLatestEntry,
   flareMessageListRequests,
+  flareMessageListWindowReplaced,
   type FlareMessageListEnd,
 } from "./messageListPaging";
 
@@ -25,6 +26,12 @@ const table = JSON.parse(
     id: string; hasNewer: boolean; handled: boolean; belowCount: number;
     expected: { shown: boolean; count: number; action: string | null };
   }>;
+  windows: {
+    cases: Array<{
+      id: string; previous: string[]; next: string[]; hasNewer?: boolean; jumpRequested?: boolean;
+      previousWindowId?: string | null; windowId?: string | null; expected: boolean;
+    }>;
+  };
 };
 
 describe("the two ends of the message list", () => {
@@ -34,6 +41,7 @@ describe("the two ends of the message list", () => {
     expect(table.edges.length).toBeGreaterThanOrEqual(11);
     expect(table.requests.length).toBeGreaterThanOrEqual(21);
     expect(table.jumpToLatest.length).toBeGreaterThanOrEqual(8);
+    expect(table.windows.cases.length).toBeGreaterThanOrEqual(17);
   });
 
   for (const vector of table.edges) {
@@ -51,6 +59,12 @@ describe("the two ends of the message list", () => {
   for (const vector of table.jumpToLatest) {
     it(`back to latest: ${vector.id}`, () => {
       expect(flareMessageListLatestEntry(vector)).toEqual(vector.expected);
+    });
+  }
+
+  for (const vector of table.windows.cases) {
+    it(`window: ${vector.id}`, () => {
+      expect(flareMessageListWindowReplaced(vector.previous, vector.next, vector)).toBe(vector.expected);
     });
   }
 });

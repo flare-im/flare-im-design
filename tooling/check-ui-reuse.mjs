@@ -62,13 +62,14 @@ for (const [app, file] of [
 // B8: the trip a tapped quote takes when the message it names is not loaded — ask the list, read a page,
 // ask again. All five apps had written it, with five different page budgets (48, 48, 24, 20, 5) and five
 // different ideas about waiting for the list to draw the page it had just read. It is the kit's now, and
-// an app that grows a sixth copy of the loop would pass every other gate.
+// an app that grows a sixth copy of the loop would pass every other gate. An app on the core timeline view
+// takes the kit's other form of the same trip, the one that opens a window around the message.
 for (const [app, file, wired] of [
-  ['flare-social-web-app', 'src/components/ChatArea.vue', /flareLocateMessage\(/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /flareLocateMessage\(/],
-  ['flare-social-flutter-app', 'lib/screens/chat_screen.dart', /flareLocateMessage\(/],
-  ['flare-social-ios-app', 'Sources/FlareSocialApp/ChatView.swift', /FlareLocate\.run\(/],
-  ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/ChatScreen.kt', /flareLocateMessage\(/],
+  ['flare-social-web-app', 'src/components/ChatArea.vue', /flareLocateMessage(?:Around)?\(/],
+  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /flareLocateMessage(?:Around)?\(/],
+  ['flare-social-flutter-app', 'lib/screens/chat_screen.dart', /flareLocateMessage(?:Around)?\(/],
+  ['flare-social-ios-app', 'Sources/FlareSocialApp/ChatView.swift', /FlareLocate\.run(?:Around)?\(/],
+  ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/ChatScreen.kt', /flareLocateMessage(?:Around)?\(/],
 ]) {
   check(`${social}/${app}/${file}`, [wired], /$^/);
 }

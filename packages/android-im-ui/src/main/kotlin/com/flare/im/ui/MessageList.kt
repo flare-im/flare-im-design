@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.runtime.snapshots.Snapshot
@@ -387,13 +388,63 @@ internal class MessageListTail {
     /** The list is about to jump to a located message; the move that lands it decides like the reader's scroll. */
     var located = false
 
+    /** The host's name for the window of the last render ([MessageList]'s `windowId`). */
+    var renderedWindowId: String? = null
+
+    /**
+     * The window was replaced and the reader has not dragged since: the list asks for no page by itself. Neither the
+     * list placing the new window nor a locate landing near an end is the reader moving (`locateAfterReplace`).
+     */
+    var requestsHeld = false
+
+    /**
+     * The row a locate took the reader to, until the reader drags: a page that lands meanwhile keeps it where the
+     * locate put it, in the middle.
+     */
+    var locatedId: String? = null
+
     /** Pixels to scroll back once the list has [shiftRows] rows: an anchor that sat below the viewport's top. */
     var shift = 0
     var shiftRows = -1
 
-    fun follow() { followTail = true; anchorId = null }
+    fun follow() { followTail = true; anchorId = null; locatedId = null }
 
     fun browse(newestId: String?) { followTail = false; if (anchorId == null) anchorId = newestId }
+
+    /**
+     * The host handed a new window ([messageListWindowReplaced]): it opens at its newest row, nothing of the reader's
+     * place in the old one applies, and the list asks for nothing by itself until the reader drags it.
+     */
+    fun openReplaced(messages: List<FlareMessageData>, hasNewer: Boolean) {
+        jumpRequested = false
+        rendered = messages
+        renderedIds = messages.mapTo(HashSet(messages.size)) { it.id }
+        detached = hasNewer
+        olderRequested = false
+        shift = 0
+        shiftRows = -1
+        requestsHeld = true
+        follow()
+        // The bottom of a detached window is not the latest message: nothing arrives there to follow.
+        if (hasNewer) followTail = false
+    }
+
+    /** A move of the list may ask for pages: always, except in a replaced window the reader has not dragged yet. */
+    fun mayAsk(): Boolean = !requestsHeld
+
+    /** The reader's own drag: their place is theirs again, not the located row's, and so is paging. */
+    fun readerDragged() {
+        requestsHeld = false
+        locatedId = null
+    }
+
+    /**
+     * The row to keep in place while older rows land above: the located row while a locate holds the reader there
+     * (in the middle, where the locate puts it, even if the scroll is still on its way), else [readerRowId], the
+     * first row the reader sees. Null when neither is still loaded.
+     */
+    fun prependAnchorId(readerRowId: String?, loaded: (String) -> Boolean): String? =
+        locatedId?.takeIf(loaded) ?: readerRowId?.takeIf(loaded)
 }
 
 /** Scrolls to the very end of [rows] rows: the last row's bottom at the viewport's bottom, even when it is taller than the viewport. */
@@ -423,7 +474,10 @@ internal suspend fun LazyListState.scrollToMessageListEnd(rows: Int) {
  * button. The list asks for a page by itself ([onLoadOlder], [onLoadNewer]) when the reader moves within 160 dp of
  * that edge. A detached window shows [ScrollToLatest] without a count, which asks the host for the latest window
  * ([onJumpToLatest]); that window opens at its newest message. A newer page read into a detached window keeps the
- * reader on the rows they are reading.
+ * reader on the rows they are reading. A window the host replaces as a whole (`windows`: [windowId] changed, the
+ * latest window the reader asked for, or no row left in common) opens at its newest row, keeps nothing of the
+ * reader's place in the old one, and asks for no page by itself until the reader drags it. A located row stays where
+ * the locate put it until the reader drags: a page that lands meanwhile keeps it in the middle (`locateAfterReplace`).
  *
  * Multi-select (names shared with Flutter/iOS): [multiSelectMode] + [selectedIds]
  * are host state; [onToggleSelect] receives the message id. While in
@@ -492,6 +546,12 @@ fun MessageList(
     onLoadNewer: (() -> Unit)? = null,
     /** The back-to-latest key of a detached window: the host replaces the window with the latest messages. */
     onJumpToLatest: (() -> Unit)? = null,
+    /**
+     * The host's name for the window it hands the list (the core timeline view's `viewId`). When it changes from one
+     * name to another the window was replaced as a whole, even where the two share rows. Without it a window is
+     * replaced when no row is left in common.
+     */
+    windowId: String? = null,
     conversationId: String? = null,
     state: FlareMessageListState = rememberFlareMessageListState(),
     multiSelectMode: Boolean = false,
@@ -598,7 +658,10 @@ fun MessageList(
     val tail = remember(conversationId) { MessageListTail() }
     val markLocatedRow: (Int) -> Unit = { index ->
         tail.located = true
-        (rows.getOrNull(index) as? MessageTimelineRow.Message)?.let { markLocated(it.key) }
+        (rows.getOrNull(index) as? MessageTimelineRow.Message)?.let {
+            tail.locatedId = it.key
+            markLocated(it.key)
+        }
     }
     SideEffect { state.attach(handleOwner, rowIndexById, reducedMotion, markLocatedRow) }
     DisposableEffect(state, handleOwner) { onDispose { state.detach(handleOwner) } }
@@ -630,6 +693,21 @@ fun MessageList(
     val slackPx = with(density) { MessageListBottomSlack.roundToPx() }
     SideEffect {
         if (hasNewer) tail.detached = true
+        val previousWindowId = tail.renderedWindowId
+        tail.renderedWindowId = windowId
+        val previousRows = tail.rendered
+        if ((previousRows !== messages || previousWindowId != windowId || (tail.jumpRequested && !hasNewer)) &&
+            messageListWindowReplaced(
+                previousRows.orEmpty().map { it.id }, messages.map { it.id },
+                jumpRequested = tail.jumpRequested, hasNewer = hasNewer,
+                previousWindowId = previousWindowId, windowId = windowId,
+            )
+        ) {
+            // A new window (`windows`), and the latest one the reader asked for is one.
+            tail.openReplaced(messages, hasNewer)
+            if (rows.isNotEmpty()) listState.requestScrollToItem(rows.lastIndex)
+            return@SideEffect
+        }
         if (tail.jumpRequested && !hasNewer) {
             // The latest window the reader asked for: it opens at its newest message, wherever the old window was.
             tail.jumpRequested = false
@@ -664,7 +742,14 @@ fun MessageList(
             growth.prepended > 0 && !keepPlace -> listState.requestScrollToItem(rows.lastIndex)
             keepPlace -> {
                 tail.browse(previousNewest)
-                messageListReadingAnchor(before.visibleItemsInfo.map { it.key to it.offset }, rowIndexById)?.let { (index, offset) ->
+                // Under a locate the located row is the anchor, in the middle where the locate puts it, even while the
+                // scroll that takes it there is still running: the row on screen at this instant is only on the way.
+                val located = tail.prependAnchorId(null, rowIndexById::containsKey)?.let { id ->
+                    val laidOut = before.visibleItemsInfo.firstOrNull { it.key == id }?.size
+                    rowIndexById.getValue(id) to
+                        -centeredRowOffset(viewportSizeOf(before), estimatedRowSize(before.visibleItemsInfo.map { it.size }, laidOut))
+                }
+                (located ?: messageListReadingAnchor(before.visibleItemsInfo.map { it.key to it.offset }, rowIndexById))?.let { (index, offset) ->
                     listState.requestScrollToItem(index, maxOf(0, -offset))
                     if (offset > 0) { tail.shift = offset; tail.shiftRows = rows.size + footerRows }
                 }
@@ -677,6 +762,12 @@ fun MessageList(
         if (growth != null && growth.prepended > 0) tail.olderRequested = false
     }
     val currentMessages by rememberUpdatedState(messages)
+    // The reader's own drag: their place is theirs again, not the located row's, and so is paging.
+    LaunchedEffect(listState, tail) {
+        listState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) tail.readerDragged()
+        }
+    }
     LaunchedEffect(listState, tail) {
         var previous: MessageListViewport? = null
         snapshotFlow { messageListViewport(listState.layoutInfo, listState.isScrollInProgress) }.collect { viewport ->
@@ -692,8 +783,8 @@ fun MessageList(
             val moved = messageListViewportMoved(last, viewport)
             if (located && moved) tail.located = false
             // Pages are asked for within the shared distance of either edge, when the reader moves (never on the
-            // first layout of a window).
-            if (moved) {
+            // first layout of a window, and not in a replaced one before the reader drags it).
+            if (moved && tail.mayAsk()) {
                 val (fromTop, fromBottom) = messageListEdgeDistances(listState.layoutInfo)
                 val wanted = messageListRequests(fromTop / density.density, fromBottom / density.density, currentOlderEnd, currentNewerEnd)
                 if (wanted.older) currentAskOlder(false)

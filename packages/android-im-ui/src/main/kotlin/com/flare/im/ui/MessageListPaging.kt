@@ -91,3 +91,27 @@ internal fun messageListEdgeDistances(info: LazyListLayoutInfo): Pair<Float, Flo
  */
 internal fun messageListNewerPage(growth: MessageListGrowth?, hadNewer: Boolean): Boolean =
     hadNewer && growth != null && growth.prepended == 0 && growth.appended.isNotEmpty()
+
+/**
+ * Whether the host replaced the window as a whole rather than grew or edited the one the reader is in
+ * (`spec/message-list-paging-vectors.json` `windows`). [previous] and [next] are row keys in timeline order. Both must
+ * have rows, and then any of: the host's name for the window ([previousWindowId] to [windowId], the core timeline
+ * view's `viewId`; null or empty is none) changed from one name to another; the latest window the reader asked for
+ * arrived ([jumpRequested], attached: not [hasNewer]); no row of the new window was in the old one.
+ */
+internal fun messageListWindowReplaced(
+    previous: List<String>,
+    next: List<String>,
+    jumpRequested: Boolean = false,
+    hasNewer: Boolean = false,
+    previousWindowId: String? = null,
+    windowId: String? = null,
+): Boolean {
+    if (previous.isEmpty() || next.isEmpty()) return false
+    val before = previousWindowId.orEmpty()
+    val after = windowId.orEmpty()
+    if (before.isNotEmpty() && after.isNotEmpty() && before != after) return true
+    if (jumpRequested && !hasNewer) return true
+    val kept = previous.toHashSet()
+    return next.none(kept::contains)
+}

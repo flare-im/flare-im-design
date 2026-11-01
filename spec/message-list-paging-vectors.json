@@ -1,5 +1,5 @@
 {
-  "note": "Shared truth for the two ends of the message list and its back-to-latest key, on all four kits. A window is the run of messages the host hands the list. `older` and `newer` describe its two ends the same way: `has` (there is more to read past that end: Vue `hasOlder` / `hasNewer`), `loading` (`loadingOlder` / `loadingNewer`), `error` (`olderError` / `newerError`; null, empty or blank is no error) and `handled` (the host takes that intent: Vue listens to `load-older` / `load-newer`, the native kits got `onLoadOlder` / `onLoadNewer`). `edges` is what one end draws, the same rule for both ends: while loading, a spinner and nothing else (the last error is not repeated while it is being retried); otherwise the error when there is one, and the load or retry button while there is more to read and the host takes the intent. The older end sits above the timeline and the newer end below it. `requests` is when the list asks for a page by itself as the reader scrolls: `fromTop` is how far the first row's top is above the viewport's top, `fromBottom` how far the end of the timeline is below the viewport's bottom, in logical pixels (CSS px, dp, pt); an end asks when it is within `autoRequest` of its edge (inclusive), has more, is not loading, has no error (after a failure only the retry button asks again) and the host takes the intent. Both ends may ask in the same pass. Each kit also asks at most once per end until that end's `loading` settles. `jumpToLatest` is the floating key at the bottom: while the window is detached from the latest (`hasNewer`) and the host takes `jumpToLatest`, it is shown without a count and asks the host to replace the window with the latest one; rows below a detached reader are history read in, not news. Otherwise it is the existing new-messages key: shown with `belowCount` (messages that arrived below a reader who scrolled up) and it scrolls to the bottom. With every new parameter left at its default (`hasNewer` false, no newer handler) a list draws no newer end, never asks for newer and has no back-to-latest key beyond the new-messages one.",
+  "note": "Shared truth for the two ends of the message list and its back-to-latest key, on all four kits. A window is the run of messages the host hands the list. `older` and `newer` describe its two ends the same way: `has` (there is more to read past that end: Vue `hasOlder` / `hasNewer`), `loading` (`loadingOlder` / `loadingNewer`), `error` (`olderError` / `newerError`; null, empty or blank is no error) and `handled` (the host takes that intent: Vue listens to `load-older` / `load-newer`, the native kits got `onLoadOlder` / `onLoadNewer`). `edges` is what one end draws, the same rule for both ends: while loading, a spinner and nothing else (the last error is not repeated while it is being retried); otherwise the error when there is one, and the load or retry button while there is more to read and the host takes the intent. The older end sits above the timeline and the newer end below it. `requests` is when the list asks for a page by itself as the reader scrolls: `fromTop` is how far the first row's top is above the viewport's top, `fromBottom` how far the end of the timeline is below the viewport's bottom, in logical pixels (CSS px, dp, pt); an end asks when it is within `autoRequest` of its edge (inclusive), has more, is not loading, has no error (after a failure only the retry button asks again) and the host takes the intent. Both ends may ask in the same pass. Each kit also asks at most once per end until that end's `loading` settles. `jumpToLatest` is the floating key at the bottom: while the window is detached from the latest (`hasNewer`) and the host takes `jumpToLatest`, it is shown without a count and asks the host to replace the window with the latest one; rows below a detached reader are history read in, not news. Otherwise it is the existing new-messages key: shown with `belowCount` (messages that arrived below a reader who scrolled up) and it scrolls to the bottom. With every new parameter left at its default (`hasNewer` false, no newer handler) a list draws no newer end, never asks for newer and has no back-to-latest key beyond the new-messages one. `windows` says when the host replaced the window as a whole rather than grew or edited it, and `locateAfterReplace` what a replacement and a locate do to the list: no page asked for before the reader moves it, and the located row kept in view.",
   "autoRequest": {
     "olderWithin": 160,
     "newerWithin": 160
@@ -670,5 +670,447 @@
         "action": null
       }
     }
-  ]
+  ],
+  "windows": {
+    "note": "Whether the host replaced the window as a whole, rather than growing or editing the one the reader is in. `previous` and `next` are the row keys (`clientMsgId || serverId`) of the window before and after one change, in timeline order. The window is replaced when both have rows and any of three holds: the host names its windows (`windowId`, the core timeline view's `viewId`; null or empty is no name) and the name changed from one name to another; the reader asked for the latest messages (`jumpRequested`, the back-to-latest key) and the new window is attached (`hasNewer` false); or no row of the new window was in the old one. A first window (`previous` empty) opens and an emptied one starts over; neither is a replacement. Rows that overlap without a new name are the same window changed: a page, an arrival, an edit, a removal, or a core snapshot of rows that are still there. What a replacement does to the list is in `locateAfterReplace`.",
+    "cases": [
+      {
+        "id": "the-first-window",
+        "previous": [],
+        "next": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "expected": false
+      },
+      {
+        "id": "emptied",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [],
+        "expected": false
+      },
+      {
+        "id": "the-same-rows",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "expected": false
+      },
+      {
+        "id": "an-older-page",
+        "previous": [
+          "m3",
+          "m4"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "expected": false
+      },
+      {
+        "id": "a-newer-page",
+        "previous": [
+          "m1",
+          "m2"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "hasNewer": true,
+        "expected": false
+      },
+      {
+        "id": "a-message-arrived",
+        "previous": [
+          "m1",
+          "m2"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "expected": false
+      },
+      {
+        "id": "a-row-removed",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m1",
+          "m3"
+        ],
+        "expected": false
+      },
+      {
+        "id": "one-row-left-in-common",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m3",
+          "m4",
+          "m5"
+        ],
+        "hasNewer": true,
+        "expected": false
+      },
+      {
+        "id": "no-row-in-common",
+        "previous": [
+          "m5",
+          "m6",
+          "m7"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "hasNewer": true,
+        "expected": true
+      },
+      {
+        "id": "no-row-in-common-and-attached",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m7",
+          "m8",
+          "m9"
+        ],
+        "expected": true
+      },
+      {
+        "id": "another-window-the-host-names",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "previousWindowId": "timeline:1",
+        "windowId": "timeline:2",
+        "hasNewer": true,
+        "expected": true
+      },
+      {
+        "id": "the-same-name-again",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "previousWindowId": "timeline:1",
+        "windowId": "timeline:1",
+        "expected": false
+      },
+      {
+        "id": "named-for-the-first-time",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "previousWindowId": null,
+        "windowId": "timeline:1",
+        "expected": false
+      },
+      {
+        "id": "an-empty-name-is-no-name",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "previousWindowId": "timeline:1",
+        "windowId": "",
+        "expected": false
+      },
+      {
+        "id": "the-same-name-with-no-row-in-common",
+        "previous": [
+          "m1",
+          "m2"
+        ],
+        "next": [
+          "m8",
+          "m9"
+        ],
+        "previousWindowId": "timeline:1",
+        "windowId": "timeline:1",
+        "hasNewer": true,
+        "expected": true
+      },
+      {
+        "id": "the-latest-window-the-reader-asked-for",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m3",
+          "m4",
+          "m5"
+        ],
+        "jumpRequested": true,
+        "expected": true
+      },
+      {
+        "id": "asked-for-the-latest-but-still-detached",
+        "previous": [
+          "m1",
+          "m2",
+          "m3"
+        ],
+        "next": [
+          "m1",
+          "m2",
+          "m3",
+          "m4"
+        ],
+        "jumpRequested": true,
+        "hasNewer": true,
+        "expected": false
+      }
+    ]
+  },
+  "locateAfterReplace": {
+    "note": "A window replaced as a whole (`windows`) and a locate that lands in it, on the component. Rows are messages `m<from>` to `m<to>` in timeline order, all `rowHeight` high, in a viewport `viewportHeight` high (logical pixels); both ends of every window have more to read and the host takes every intent. One run: (1) the list shows `before` with the reader at its bottom; (2) when `readerAskedOlder`, the reader scrolls to the top of `before` and the list asks for an older page, which the host keeps until step 5; (3) the host hands the list `after` (with `windowId` when the case names one); (4) the host asks the list to show `locate`, as the locate trip does once `openAround` has answered, and the list scrolls there; (5) when `pageLands`, the host prepends `pageRows` older rows; (6) when `readerMovesTo` is `top` or `bottom`, the reader scrolls to that end of the window. The rules: a replaced window opens at its newest row; after a replacement the list asks for no page by itself until the reader moves it, and neither the scroll the swap itself causes (a browser may leave the offset at 0 or at the new end), nor the list placing the window, nor a locate landing near an end is the reader moving; a prepend anchor kept for the old window is dropped. A locate takes the reading position: a restore anchored before it is cancelled, a page that lands before the reader moves keeps the located row where the locate put it, and nothing the list does by itself moves the reader off it. `expected.requests` lists every page the list asked for by itself during the run, in order; `expected.locatedInView` is whether the located row is inside the viewport at the end; `expected.marked` is whether it wore the locate mark when the locate landed. A web list runs every case twice, with the offset the swap leaves at 0 and at the end of the new window; a native list runs it once.",
+    "rowHeight": 100,
+    "viewportHeight": 400,
+    "pageRows": 40,
+    "cases": [
+      {
+        "id": "opened-around-a-message-in-another-window",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 941,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "located-near-the-start-of-the-new-window",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 922,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "located-near-the-end-of-the-new-window",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 959,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "another-window-the-host-names-that-shares-rows",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false,
+          "windowId": "timeline:1"
+        },
+        "after": {
+          "from": 941,
+          "to": 980,
+          "hasNewer": true,
+          "windowId": "timeline:2"
+        },
+        "locate": 945,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "a-page-lands-under-the-located-row",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 941,
+        "readerAskedOlder": false,
+        "pageLands": true,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "the-page-the-reader-asked-for-lands-after-the-locate",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "locate": 990,
+        "readerAskedOlder": true,
+        "pageLands": true,
+        "readerMovesTo": null,
+        "expected": {
+          "requests": [
+            "older"
+          ],
+          "locatedInView": true,
+          "marked": true
+        }
+      },
+      {
+        "id": "the-reader-scrolls-to-the-top-afterwards",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 941,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": "top",
+        "expected": {
+          "requests": [
+            "older"
+          ],
+          "locatedInView": false,
+          "marked": true
+        }
+      },
+      {
+        "id": "the-reader-scrolls-to-the-bottom-afterwards",
+        "before": {
+          "from": 961,
+          "to": 1000,
+          "hasNewer": false
+        },
+        "after": {
+          "from": 921,
+          "to": 960,
+          "hasNewer": true
+        },
+        "locate": 941,
+        "readerAskedOlder": false,
+        "pageLands": false,
+        "readerMovesTo": "bottom",
+        "expected": {
+          "requests": [
+            "newer"
+          ],
+          "locatedInView": false,
+          "marked": true
+        }
+      }
+    ]
+  }
 }
