@@ -1,5 +1,6 @@
 ## 未发布
 
+- 读者是否在底部（`spec/message-list-paging-vectors.json` 的 `atBottom`，四端同一份）：`FlareMessageList` 新增 `onAtBottomChange: ValueChanged<bool>?`，缺省为 null，在决定它的那一帧之后按顺序回调。末尾低于视口底部不超过 80 个逻辑像素算在底部（`pixels − minScrollExtent`），只在回答变化时回调，每个会话第一次布局后回调一次，空列表在底部。整体替换（读者没要求）与定位立即回答 false 并保持，直到读者滚动列表（拖动或滚轮）、点新消息键、自己的消息追加在末尾、读者要的最新窗口到了或窗口被清空。app 不用再读 `FlareMessageListController.scroll` 自己算余量。
 - 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`FlareMessageList` 新增 `windowId`，整体替换（名字换了、读者要的最新窗口、没有共同的行）后在最新一行打开；原来读者上滑过时保留旧窗口的像素位置。列表仍只在拖动时自动请求。定位之后、读者拖动之前落下的一页以定位的行为轴心，这一帧之后放回中间；原来以滚动途中的首行为轴心，正在进行的定位滚动按旧坐标落点，目标可能落在视口外。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareNavigationBadge` 新增 `more`，`FlareFilterTabOption` 新增 `badgeMore`，缺省为 false；新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FlareFilterTabs` 超过 99 时也写 99+（原来写原数）。
 - 引用的发送者（`spec/display-name-vectors.json` 的 `quoteSender`）：`FlareReplyTarget` 新增可选的 `senderId`、`sender`（`FlareDisplayName`），新增 `flareQuoteSenderText`；气泡里的引用与回复条没有名字时写「用户 末四位」或「未知用户」（原来不画发送者一行），`flareReplyTargetFor` 带上 `senderId`。

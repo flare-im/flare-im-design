@@ -40,6 +40,8 @@ import {
 import type { FlareMessageSurface } from "../../shared/contracts/message-surface";
 import { messageSurfaceOf } from "../../utils/messageSurface";
 import {
+  FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX,
+  FlareMessageListBottomReport,
   flareMessageListEdge,
   flareMessageListLatestEntry,
   flareMessageListRequests,
@@ -47,7 +49,7 @@ import {
   type FlareMessageListEnd,
 } from "./messageListPaging";
 
-const BOTTOM_STICKY_PX = 80;
+const BOTTOM_STICKY_PX = FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX;
 const RESIZE_STICKY_PX = 420;
 const MESSAGE_LIST_TOP_PADDING = 22;
 /** How long the start-of-history hint stays; it floats where the first date separator sits. */
@@ -128,6 +130,13 @@ const emit = defineEmits<{
   (event: "resend", clientMsgId: string): void;
   (event: "multiSelect", messageId: string): void;
   (event: "toggle-select", messageId: string): void;
+  /**
+   * Whether the reader is at the bottom of the window (`spec/message-list-paging-vectors.json` `atBottom`): the end of
+   * the timeline at most 80 CSS px below the viewport. Emitted when the answer changes and once after the list's first
+   * layout (and another conversation's). A window replaced without the reader asking for it and a locate answer false
+   * until the reader moves the list, goes to the newest row (the new-messages key, a message of their own) or gets
+   * the latest window they asked for. It is the bottom of the window shown, attached to the latest or not.
+   */
   (event: "atBottomChange", atBottom: boolean): void;
   (event: "load-older"): void;
   /** The reader neared the bottom of a detached window, or tapped its load button: read the next newer page. */
@@ -238,6 +247,9 @@ let requestsHeld = false;
  * a page that lands is anchored on it, and a resize does not pull the reader to the bottom.
  */
 let locatedRowId: string | null = null;
+/** What the list tells the host about the reader being at the bottom (`atBottom`), for the conversation it last saw. */
+const bottomReport = new FlareMessageListBottomReport();
+let bottomConversationId = props.conversationId;
 
 type TimelineRow =
   | { kind: "time"; key: string; label: string }
@@ -574,7 +586,10 @@ const latestEntry = computed(() =>
 
 function onLatestEntry(): void {
   if (latestEntry.value.action === "jumpToLatest") requestJumpToLatest();
-  else void scrollToBottom();
+  else {
+    tellBottom(bottomReport.wentToLatest());
+    void scrollToBottom();
+  }
 }
 
 function requestJumpToLatest(): void {
@@ -594,7 +609,6 @@ function syncAtBottomState(el?: HTMLElement | null): void {
   const root = el ?? getScrollContainer();
   if (!root) return;
   const next = isNearBottom(root);
-  const changed = next !== isAtBottom.value;
   isAtBottom.value = next;
   // The bottom of a detached window is not the latest message: nothing arrives there to follow.
   if (next && !props.hasNewer) {
@@ -602,7 +616,25 @@ function syncAtBottomState(el?: HTMLElement | null): void {
   } else {
     enterBrowseMode();
   }
-  if (changed) emit("atBottomChange", next);
+  measureBottom(root);
+}
+
+/** Tells the host what one step of the reading position changed about the reader being at the bottom, if anything. */
+function tellBottom(answer: boolean | null): void {
+  if (answer !== null) emit("atBottomChange", answer);
+}
+
+/** One layout or scroll, as the bottom report reads it: how far the end of the timeline is below the viewport. */
+function measureBottom(root: HTMLElement): void {
+  tellBottom(bottomReport.layout(Math.max(0, root.scrollHeight - root.scrollTop - root.clientHeight)));
+}
+
+/** Another conversation starts the bottom report over: it answers once more after the first layout. */
+function bottomForConversation(): boolean {
+  if (props.conversationId === bottomConversationId) return false;
+  bottomConversationId = props.conversationId;
+  bottomReport.anotherConversation();
+  return true;
 }
 
 function hideHistoryStartHint(): void {
@@ -672,6 +704,7 @@ function onReaderMoves(): void {
   requestsHeld = false;
   locatedRowId = null;
   cancelAnchorRestore();
+  tellBottom(bottomReport.readerMoved());
 }
 
 /**
@@ -748,6 +781,9 @@ function shouldAutoScrollForBatch(batch: readonly MessageLike[]): boolean {
 }
 
 function shouldFollowAppendedBatch(batch: readonly MessageLike[]): boolean {
+  // A message of the reader's own, added at the end, takes them to the newest row: that is the reader arriving there.
+  // The newest row of a window the host replaced is not, even when it is theirs.
+  if (shouldAutoScrollForBatch(batch)) tellBottom(bottomReport.wentToLatest());
   return followTail.value || isAtBottom.value || shouldAutoScrollForBatch(batch);
 }
 
@@ -894,7 +930,8 @@ async function scrollToBottom(): Promise<void> {
   if (generation !== bottomScrollGeneration) return;
   enableTailFollow();
   isAtBottom.value = true;
-  emit("atBottomChange", true);
+  const root = getScrollContainer();
+  if (root) measureBottom(root);
 }
 
 function escapeSelectorValue(value: string): string {
@@ -948,6 +985,7 @@ async function scrollToMessage(
   // to rows they have left, so it is cancelled, and until the reader moves the located row is what the list keeps.
   cancelAnchorRestore();
   locatedRowId = targetId;
+  tellBottom(bottomReport.located());
   await nextTick();
   const targetIndex = virtualItems.value.findIndex(
     (item) => item.kind === "message" && resolveMessageId(item.message) === targetId,
@@ -1022,6 +1060,7 @@ watch(
   () => props.conversationId,
   async (conversationId, previousConversationId) => {
     if (conversationId === previousConversationId) return;
+    bottomForConversation();
     cancelAnchorRestore();
     locatedRowId = null;
     loadOlderRequested = false;
@@ -1061,12 +1100,18 @@ watch(
   async ([next, hasNewer, windowId], previousState) => {
     const [prev, , previousWindowId] = previousState ?? [[], false, undefined];
     const previous = prev ?? [];
+    const anotherConversation = bottomForConversation();
     if (flareMessageListWindowReplaced(previous.map(timelineKey), next.map(timelineKey), {
       jumpRequested: jumpToLatestRequested, hasNewer, previousWindowId, windowId,
     })) {
       // A new window (spec/message-list-paging-vectors.json `windows`), and the latest one the reader asked for is
       // one: nothing of the reader's place in the old window applies. Decided before the swap is drawn, so the scroll
       // the swap causes already finds the requests held.
+      // The reader is not at the bottom of a window they did not ask for (`atBottom`) until they move it. The scroll
+      // the swap causes cannot reach the report first: the window is placed in the microtasks that follow the patch.
+      if (!anotherConversation) {
+        tellBottom(jumpToLatestRequested && !hasNewer ? bottomReport.jumpedToLatest() : bottomReport.replaced());
+      }
       jumpToLatestRequested = false;
       cancelAnchorRestore();
       locatedRowId = null;
@@ -1105,6 +1150,9 @@ watch(
     if (length === 0) {
       clearBrowseAnchor();
       shortTimelineTopSpacerPx.value = 0;
+      // An empty list is at its bottom.
+      bottomForConversation();
+      tellBottom(bottomReport.emptied());
       return;
     }
     if (length > 0 && (prevLength ?? 0) === 0) {
@@ -1158,6 +1206,9 @@ onMounted(() => {
   updateVirtualViewport();
   if (displayMessages.value.length > 0) {
     void scrollToBottom();
+  } else {
+    // An empty list is at its bottom: the first layout answers that.
+    tellBottom(bottomReport.emptied());
   }
   const root = getScrollContainer();
   if (root && typeof ResizeObserver !== "undefined") {

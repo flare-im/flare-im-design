@@ -241,8 +241,8 @@ internal fun messageRunAtDividers(position: MessageGroupPosition, dividerBefore:
  * Every scroll is instant: nothing animates, so reduced motion needs no exception.
  */
 
-/** How far above the end still counts as "at the bottom" (Vue `BOTTOM_STICKY_PX`). */
-internal val MessageListBottomSlack = 80.dp
+/** How far above the end still counts as "at the bottom" (`spec/message-list-paging-vectors.json` `atBottom`). */
+internal val MessageListBottomSlack = MESSAGE_LIST_BOTTOM_WITHIN_DP.dp
 
 /**
  * How the loaded messages changed since the last render (Vue `countPrependedItems` / `countAppendedItems`):
@@ -294,6 +294,14 @@ internal data class MessageListViewport(
 
     /** The last row is laid out and ends within [slackPx] of the viewport's end. */
     fun atBottom(slackPx: Int): Boolean = totalRows == 0 || (lastIndex == totalRows - 1 && lastEnd <= viewportEnd + slackPx)
+
+    /** How far the end of the list is below the viewport's end, in pixels: unknown (infinite) while the last row is not laid out. */
+    val fromBottomPx: Float
+        get() = when {
+            totalRows == 0 -> 0f
+            lastIndex == totalRows - 1 -> maxOf(0, lastEnd - viewportEnd).toFloat()
+            else -> Float.POSITIVE_INFINITY
+        }
 }
 
 /** The first row moved between two layouts. */
@@ -447,6 +455,9 @@ internal class MessageListTail {
         locatedId?.takeIf(loaded) ?: readerRowId?.takeIf(loaded)
 }
 
+/** The lazy list key of the `footer` slot's item. */
+internal const val MESSAGE_LIST_FOOTER_KEY = "flare-timeline-footer"
+
 /** Scrolls to the very end of [rows] rows: the last row's bottom at the viewport's bottom, even when it is taller than the viewport. */
 internal suspend fun LazyListState.scrollToMessageListEnd(rows: Int) {
     if (rows <= 0) return
@@ -552,6 +563,14 @@ fun MessageList(
      * replaced when no row is left in common.
      */
     windowId: String? = null,
+    /**
+     * Whether the reader is at the bottom of the window (`spec/message-list-paging-vectors.json` `atBottom`): the end of
+     * the timeline at most 80 dp below the viewport. Called when the answer changes and once after the first layout of
+     * each conversation. A window replaced without the reader asking for it and a locate answer false until the reader
+     * drags the list, goes to the newest row (the new-messages key, a message of their own) or gets the latest window
+     * they asked for. It is the bottom of the window shown, attached to the latest or not (Vue `atBottomChange`).
+     */
+    onAtBottomChange: ((Boolean) -> Unit)? = null,
     conversationId: String? = null,
     state: FlareMessageListState = rememberFlareMessageListState(),
     multiSelectMode: Boolean = false,
@@ -656,12 +675,17 @@ fun MessageList(
     }
     // Reading position: decide what this change of the messages does before the new rows are measured.
     val tail = remember(conversationId) { MessageListTail() }
+    // Whether the reader is at the bottom (`atBottom`): one report per conversation, so another one answers again.
+    val bottom = remember(conversationId) { MessageListBottomReport() }
+    val currentOnAtBottomChange by rememberUpdatedState(onAtBottomChange)
+    val tellBottom: (Boolean?) -> Unit = { answer -> if (answer != null) currentOnAtBottomChange?.invoke(answer) }
     val markLocatedRow: (Int) -> Unit = { index ->
         tail.located = true
         (rows.getOrNull(index) as? MessageTimelineRow.Message)?.let {
             tail.locatedId = it.key
             markLocated(it.key)
         }
+        tellBottom(bottom.located())
     }
     SideEffect { state.attach(handleOwner, rowIndexById, reducedMotion, markLocatedRow) }
     DisposableEffect(state, handleOwner) { onDispose { state.detach(handleOwner) } }
@@ -703,13 +727,16 @@ fun MessageList(
                 previousWindowId = previousWindowId, windowId = windowId,
             )
         ) {
-            // A new window (`windows`), and the latest one the reader asked for is one.
+            // A new window (`windows`), and the latest one the reader asked for is one. The reader is not at the bottom
+            // of a window they did not ask for (`atBottom`) until they move it.
+            tellBottom(if (tail.jumpRequested && !hasNewer) bottom.jumpedToLatest() else bottom.replaced())
             tail.openReplaced(messages, hasNewer)
             if (rows.isNotEmpty()) listState.requestScrollToItem(rows.lastIndex)
             return@SideEffect
         }
         if (tail.jumpRequested && !hasNewer) {
             // The latest window the reader asked for: it opens at its newest message, wherever the old window was.
+            tellBottom(bottom.jumpedToLatest())
             tail.jumpRequested = false
             tail.detached = false
             tail.rendered = messages
@@ -725,7 +752,12 @@ fun MessageList(
         tail.renderedIds = messages.mapTo(HashSet(messages.size)) { it.id }
         val wasDetached = tail.detached
         tail.detached = hasNewer
-        if (messages.isEmpty()) { tail.follow(); tail.olderRequested = false; return@SideEffect }
+        if (messages.isEmpty()) {
+            tail.follow(); tail.olderRequested = false
+            // An empty list is at its bottom.
+            tellBottom(bottom.emptied())
+            return@SideEffect
+        }
         val before = Snapshot.withoutReadObservation { listState.layoutInfo }
         val growth = messageListGrowth(previousIds, messages)
         val keepPlace = growth != null && growth.prepended > 0 && (tail.olderRequested || !tail.followTail)
@@ -756,6 +788,8 @@ fun MessageList(
             }
             messageListFollowsAppend(tail.followTail, messageListViewport(before, scrolling = false).atBottom(slackPx), growth.appended, currentUserId) -> {
                 tail.follow()
+                // A message of the reader's own, added at the end, takes them to the newest row: the reader arriving there.
+                if (growth.appended.any { it.senderId == currentUserId }) tellBottom(bottom.wentToLatest())
                 listState.requestScrollToItem(rows.lastIndex)
             }
         }
@@ -763,12 +797,19 @@ fun MessageList(
     }
     val currentMessages by rememberUpdatedState(messages)
     // The reader's own drag: their place is theirs again, not the located row's, and so is paging.
-    LaunchedEffect(listState, tail) {
+    LaunchedEffect(listState, tail, bottom) {
         listState.interactionSource.interactions.collect { interaction ->
-            if (interaction is DragInteraction.Start) tail.readerDragged()
+            if (interaction is DragInteraction.Start) {
+                tail.readerDragged()
+                tellBottom(bottom.readerMoved())
+            }
         }
     }
-    LaunchedEffect(listState, tail) {
+    // The rows a layout must hold to be this list's: the list state outlives a conversation, and its first layout
+    // after a switch can still be the last one of the conversation before.
+    val rowKeys = remember(rows) { rows.mapTo(HashSet(rows.size + 1)) { it.key }.apply { add(MESSAGE_LIST_FOOTER_KEY) } }
+    val currentRowKeys by rememberUpdatedState(rowKeys)
+    LaunchedEffect(listState, tail, bottom) {
         var previous: MessageListViewport? = null
         snapshotFlow { messageListViewport(listState.layoutInfo, listState.isScrollInProgress) }.collect { viewport ->
             val last = previous
@@ -790,12 +831,20 @@ fun MessageList(
                 if (wanted.older) currentAskOlder(false)
                 if (wanted.newer) currentAskNewer(false)
             }
-            when (messageListTailAction(last, viewport, tail.followTail, slackPx, located)) {
+            val action = messageListTailAction(last, viewport, tail.followTail, slackPx, located)
+            when (action) {
                 // The bottom of a detached window is not the latest message: nothing arrives there to follow.
                 MessageListTailAction.Follow -> if (currentHasNewer) tail.browse(currentMessages.lastOrNull()?.id) else tail.follow()
                 MessageListTailAction.Browse -> tail.browse(currentMessages.lastOrNull()?.id)
                 MessageListTailAction.SettleAtEnd -> listState.scrollToMessageListEnd(viewport.totalRows)
                 MessageListTailAction.None -> Unit
+            }
+            // Where the reader is (`atBottom`), from a layout of this list's rows. A list settling back at its end has
+            // not left the bottom: the layout after the settle answers.
+            if (action != MessageListTailAction.SettleAtEnd && currentMessages.isNotEmpty() &&
+                (viewport.lastKey as? String)?.let(currentRowKeys::contains) == true
+            ) {
+                tellBottom(bottom.layout(viewport.fromBottomPx / density.density))
             }
         }
     }
@@ -945,7 +994,7 @@ fun MessageList(
                         }
                     }
                     // The `footer` slot: its own item so it stays under the newest row and scrolls with it.
-                    if (footer != null) item(key = "flare-timeline-footer", contentType = "footer") { footer() }
+                    if (footer != null) item(key = MESSAGE_LIST_FOOTER_KEY, contentType = "footer") { footer() }
                 } }
                 val latest = messageListLatestEntry(hasNewer, handled = onJumpToLatest != null, belowCount = below)
                 if (latest.shown) {
@@ -955,6 +1004,7 @@ fun MessageList(
                                 tail.jumpRequested = true
                                 onJumpToLatest?.invoke()
                             } else {
+                                tellBottom(bottom.wentToLatest())
                                 tail.follow()
                                 scope.launch { listState.scrollToMessageListEnd(rows.size + footerRows) }
                             }

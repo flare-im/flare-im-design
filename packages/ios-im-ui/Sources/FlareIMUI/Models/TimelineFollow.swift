@@ -6,8 +6,9 @@ import CoreGraphics
 /// stays where they are and is told how many messages arrived below; older messages added above never move
 /// what the reader is looking at.
 struct TimelineFollow: Equatable {
-    /// How far above the end of the timeline still counts as being at the newest message (Vue `BOTTOM_STICKY_PX`).
-    static let stickyDistance: CGFloat = 80
+    /// How far above the end of the timeline still counts as being at the newest message
+    /// (`spec/message-list-paging-vectors.json` `atBottom`).
+    static let stickyDistance: CGFloat = FlareMessageListPaging.bottomWithin
 
     /// The reader is at the newest message.
     private(set) var atBottom = true

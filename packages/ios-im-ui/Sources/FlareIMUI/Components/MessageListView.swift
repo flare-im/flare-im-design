@@ -33,7 +33,11 @@ public struct MessageListView: View {
     private let onLoadNewer: (() -> Void)?
     private let onJumpToLatest: (() -> Void)?
     private let windowId: String?
+    private let onAtBottomChange: ((Bool) -> Void)?
     private let conversationId: String?
+    /// Whether the reader is at the bottom (`atBottom`), as last told to the host, for ``bottomConversationId``.
+    @State private var bottom = FlareMessageListPaging.BottomReport()
+    @State private var bottomConversationId: String?
     @State private var requested = false
     @State private var requestedNewer = false
     /// Whether the reader asked for the latest window, and whether the window was detached since the rows last changed.
@@ -176,6 +180,12 @@ public struct MessageListView: View {
     ///   - windowId: The host's name for the window it hands the list (the core timeline view's `viewId`). When it
     ///     changes from one name to another the window was replaced as a whole, even where the two share rows. Without
     ///     it a window is replaced when no row is left in common.
+    ///   - onAtBottomChange: Whether the reader is at the bottom of the window (`spec/message-list-paging-vectors.json`
+    ///     `atBottom`): the end of the timeline at most 80 pt below the viewport. Called when the answer changes and once
+    ///     after the first layout of each conversation. A window replaced without the reader asking for it and a locate
+    ///     answer false until the reader moves the list, goes to the newest row (the new-messages key, a message of
+    ///     their own) or gets the latest window they asked for. It is the bottom of the window shown, attached to the
+    ///     latest or not (Vue `atBottomChange`).
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
     ///     fills its read receipt list from the SDK. Without it the summary is plain text.
     ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
@@ -212,6 +222,7 @@ public struct MessageListView: View {
         hasNewer: Bool = false, loadingNewer: Bool = false, newerError: String? = nil,
         onLoadNewer: (() -> Void)? = nil, onJumpToLatest: (() -> Void)? = nil,
         windowId: String? = nil,
+        onAtBottomChange: ((Bool) -> Void)? = nil,
         conversationId: String? = nil,
         multiSelectMode: Bool = false,
         selectedIds: Set<String> = [],
@@ -237,7 +248,9 @@ public struct MessageListView: View {
         self.hasNewer = hasNewer; self.loadingNewer = loadingNewer; self.newerError = newerError
         self.onLoadNewer = onLoadNewer; self.onJumpToLatest = onJumpToLatest
         self.windowId = windowId
+        self.onAtBottomChange = onAtBottomChange
         self._paging = State(initialValue: TimelinePaging(detachedSinceRows: hasNewer, windowId: windowId))
+        self._bottomConversationId = State(initialValue: conversationId)
         self.messages = messages
         self.currentUserId = currentUserId
         self.conversationKind = conversationKind
@@ -545,8 +558,13 @@ public struct MessageListView: View {
                 requestedNewer = false; paging = TimelinePaging(detachedSinceRows: hasNewer, windowId: windowId)
                 pagingFromTop = nil; pagingFromBottom = nil
                 follow = TimelineFollow()
+                bottomForConversation()
                 mediaSession.voice.stop()
             }
+            // An empty list is at its bottom (`atBottom`): the first layout of one answers that, and so does a window
+            // that loses all its rows.
+            .onAppear { if messages.isEmpty { tellBottom { $0.emptied() } } }
+            .onChange(of: messages.isEmpty) { empty in if empty { tellBottom { $0.emptied() } } }
             // A list that comes back without its body being evaluated again takes the handle back;
             // a list that goes away lets go of it, so the handle answers false instead of writing to
             // a view that is no longer there.
@@ -623,7 +641,11 @@ public struct MessageListView: View {
                             }
                         }
                         .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
-                        .onPreferenceChange(TimelineEnd.self) { pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) })) }
+                        .onPreferenceChange(TimelineEnd.self) {
+                            pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) }))
+                            measureBottomFromEndRow($0)
+                        }
+                        .modifier(ScrollBottomDistance { measureBottom($0) })
                         .onChange(of: jumpGeneration) { _ in goToLatest(tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
                             // A located row stays where the locate put it: a band that changes the height is not the
@@ -636,7 +658,7 @@ public struct MessageListView: View {
                             // A row scrolled to by the proxy is not the bound position; a stale one would pull the
                             // list back to it when the content next changes.
                             visibleId = nil
-                            if let locatedId { paging.located(locatedId) }
+                            if let locatedId { paging.located(locatedId); tellBottom { $0.located() } }
                             DispatchQueue.main.async { scrollToLocated(proxy) }
                         }
                         .modifier(ReaderScrollWatch { readerMoved() })
@@ -661,7 +683,7 @@ public struct MessageListView: View {
                             // the end this list was sent to, and the located row's mark changing the
                             // content would pull the reader back there.
                             legacyVisibleId = nil
-                            if let locatedId { paging.located(locatedId) }
+                            if let locatedId { paging.located(locatedId); tellBottom { $0.located() } }
                             // Let this update finish before asking the proxy to move. In the legacy
                             // path an onAppear/end-restoration scroll can otherwise run later in the
                             // same pass and pull the reader back.
@@ -672,7 +694,9 @@ public struct MessageListView: View {
                         .onPreferenceChange(TimelineEnd.self) {
                             syncPosition($0)
                             pagingMoved(fromBottom: .some($0.map { max(0, $0.distanceToBottom) }))
+                            measureBottomFromEndRow($0)
                         }
+                        .modifier(ScrollBottomDistance { measureBottom($0) })
                         .onPreferenceChange(TimelineStart.self) { pagingMoved(fromTop: .some($0.map { max(0, -$0) })) }
                         .onChange(of: jumpGeneration) { _ in scrollToEnd(proxy, tailId: timelineIds.last) }
                         .onChange(of: viewport.size.height) { _ in
@@ -719,6 +743,7 @@ public struct MessageListView: View {
                     paging.jumpRequested = true
                     onJumpToLatest?()
                 } else {
+                    tellBottom { $0.wentToLatest() }
                     jumpGeneration += 1
                 }
             }
@@ -731,7 +756,43 @@ public struct MessageListView: View {
     private func rowsChanged(_ value: TimelinePagingRows) -> TimelinePaging.RowsChange {
         let previous = timelineIds
         timelineIds = value.rows.map(\.id)
-        return paging.rowsChanged(from: previous, to: value, follow: &follow)
+        let change = paging.rowsChanged(from: previous, to: value, follow: &follow)
+        switch paging.bottomStep {
+        case .replaced: tellBottom { $0.replaced() }
+        case .jumpedToLatest: tellBottom { $0.jumpedToLatest() }
+        case .ownArrived: tellBottom { $0.wentToLatest() }
+        case .none: break
+        }
+        return change
+    }
+
+    /// Another conversation starts the bottom report over: it answers once more after the first layout.
+    private func bottomForConversation() {
+        guard bottomConversationId != conversationId else { return }
+        bottomConversationId = conversationId
+        bottom.anotherConversation()
+    }
+
+    /// Takes one step of the bottom report (``FlareMessageListPaging/BottomReport``) and tells the host what it
+    /// changed about the reader being at the bottom, if anything.
+    private func tellBottom(_ step: (inout FlareMessageListPaging.BottomReport) -> Bool?) {
+        bottomForConversation()
+        var report = bottom
+        let answer = step(&report)
+        if report != bottom { bottom = report }
+        if let answer { onAtBottomChange?(answer) }
+    }
+
+    /// One layout or scroll, as the bottom report reads it: how far the end of the timeline is below the viewport.
+    private func measureBottom(_ fromBottom: CGFloat) {
+        tellBottom { $0.layout(fromBottom: max(0, fromBottom)) }
+    }
+
+    /// Where the scroll view does not report its geometry (before iOS 18 and macOS 15), the end row's position is the
+    /// layout the bottom report reads.
+    private func measureBottomFromEndRow(_ end: TimelineEnd.Position?) {
+        guard let end else { return }
+        if #unavailable(iOS 18.0, macOS 15.0) { measureBottom(end.distanceToBottom) }
     }
 
     /// Under a locate the located row is what stays (`locateAfterReplace`): once this update is laid out it is put back
@@ -751,6 +812,7 @@ public struct MessageListView: View {
     /// The reader moved the list themselves: written only when there is a hold to let go of.
     private func readerMoved() {
         if !paging.mayAsk || paging.locatedId != nil { paging.readerMoved() }
+        tellBottom { $0.readerMoved() }
     }
 
     /// The reader's position from the end of the timeline, written only when what it decides changes.
@@ -1022,6 +1084,19 @@ struct TimelinePaging: Equatable {
     /// The row a locate took the reader to, until the reader moves: a page that lands meanwhile keeps it in the middle,
     /// where the locate put it.
     var locatedId: String?
+    /// What the last change of the rows was to the bottom report (``FlareMessageListPaging/BottomReport``).
+    private(set) var bottomStep: BottomStep = .none
+
+    /// A change of the rows as the bottom report reads it.
+    enum BottomStep: Equatable {
+        case none
+        /// A window that replaces the one shown, without the reader asking for it.
+        case replaced
+        /// The latest window the reader asked for.
+        case jumpedToLatest
+        /// A message of the reader's own, added at the end.
+        case ownArrived
+    }
 
     enum RowsChange: Equatable {
         /// Go to the newest message.
@@ -1035,6 +1110,7 @@ struct TimelinePaging: Equatable {
     /// The latest window the reader asked for opens at its newest message; rows appended to a window that was
     /// detached are a newer page; everything else follows ``TimelineFollow/rowsChanged(from:to:)``.
     mutating func rowsChanged(from previous: [String], to value: TimelinePagingRows, follow: inout TimelineFollow) -> RowsChange {
+        bottomStep = .none
         if value.detached { detachedSinceRows = true }
         let previousWindowId = windowId
         windowId = value.windowId
@@ -1043,7 +1119,8 @@ struct TimelinePaging: Equatable {
                                                  windowId: value.windowId) {
             // A new window (`windows`), and the latest one the reader asked for is one: it opens at its newest row,
             // nothing of the reader's place in the old one applies, and the list asks for nothing by itself until the
-            // reader moves it.
+            // reader moves it. The reader is not at the bottom of a window they did not ask for until they move it.
+            bottomStep = jumpRequested && !value.detached ? .jumpedToLatest : .replaced
             jumpRequested = false
             detachedSinceRows = value.detached
             requestsHeld = true
@@ -1054,6 +1131,7 @@ struct TimelinePaging: Equatable {
             return .latest
         }
         if jumpRequested && !value.detached {
+            bottomStep = .jumpedToLatest
             jumpRequested = false
             detachedSinceRows = false
             follow.reachedBottom(tailId: value.rows.last?.id)
@@ -1066,6 +1144,11 @@ struct TimelinePaging: Equatable {
         if FlareMessageListPaging.isNewerPage(from: previous, to: ids, wasDetached: wasDetached) {
             follow.readNewerPage(tailId: ids.last)
             return .newerPage
+        }
+        // A message of the reader's own added at the end takes them to the newest row: the reader arriving there.
+        if let window = TimelineFollow.window(from: previous, to: ids), window.appended > 0,
+           value.rows.suffix(window.appended).contains(where: \.own) {
+            bottomStep = .ownArrived
         }
         return follow.rowsChanged(from: previous, to: value.rows) ? .latest : .keep
     }
@@ -1105,6 +1188,25 @@ private struct ReaderScrollWatch: ViewModifier {
             }
         } else {
             content.simultaneousGesture(DragGesture(minimumDistance: 10).onChanged { _ in moved() })
+        }
+    }
+}
+
+/// How far the end of the content is below the bottom of the scroll view, from the scroll view's own geometry where the
+/// system reports it (iOS 18, macOS 15): it follows every scroll, which a geometry preference inside the content does
+/// not on a Mac. Older systems read the end row's position instead.
+private struct ScrollBottomDistance: ViewModifier {
+    let measured: (CGFloat) -> Void
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            content.onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.bottom - geometry.contentOffset.y - geometry.containerSize.height
+            } action: { _, distance in
+                measured(distance)
+            }
+        } else {
+            content
         }
     }
 }

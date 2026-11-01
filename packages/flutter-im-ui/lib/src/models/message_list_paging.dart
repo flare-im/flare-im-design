@@ -2,7 +2,8 @@
 /// (`spec/message-list-paging-vectors.json`, read by the Vue, SwiftUI and
 /// Compose kits too). A window is the run of messages the host hands the list;
 /// its older end (above the timeline) and its newer end (below it) follow one
-/// rule.
+/// rule. Whether the reader is at the bottom of the window, as the list tells
+/// the host, is `atBottom`.
 library;
 
 /// How close to an edge the reader must scroll before the list asks for the
@@ -177,4 +178,86 @@ bool flareMessageListWindowReplaced(
   if (jumpRequested && !hasNewer) return true;
   final kept = previous.toSet();
   return !next.any(kept.contains);
+}
+
+/// How far the end of the timeline may be below the viewport's bottom with
+/// the reader still at the bottom, in logical pixels.
+const double flareMessageListBottomWithin = 80;
+
+/// The reader is at the bottom: the end of the timeline is at most
+/// [flareMessageListBottomWithin] below the viewport.
+bool flareMessageListAtBottom(double fromBottom) =>
+    fromBottom <= flareMessageListBottomWithin;
+
+/// What the list tells the host about the reader being at the bottom of the
+/// window (`atBottom` in `spec/message-list-paging-vectors.json`). Each method
+/// is one step and answers what to tell the host after it: true, false, or
+/// null for nothing. The list tells the host only when the answer changes, and
+/// once after its first layout. A window replaced without the reader asking
+/// for it and a locate hold the answer at not at the bottom until the reader
+/// moves the list, the list goes to its newest row for the reader, the latest
+/// window the reader asked for arrives or the window empties; ending a hold
+/// answers from the last layout.
+class FlareMessageListBottomReport {
+  bool? _reported;
+  bool _held = false;
+  double? _last;
+
+  /// The answer last told to the host; null before the first one.
+  bool? get reported => _reported;
+
+  /// A layout or a scroll the list measured: [fromBottom] is how far the end
+  /// of the timeline is below the viewport's bottom.
+  bool? layout(double fromBottom) {
+    _last = fromBottom;
+    return _tell(!_held && flareMessageListAtBottom(fromBottom));
+  }
+
+  /// The host handed a window that replaces the one shown, without the reader
+  /// asking for it.
+  bool? replaced() => _hold();
+
+  /// The latest window the reader asked for (the back-to-latest key) arrived.
+  bool? jumpedToLatest() => _release();
+
+  /// A locate took the reading position.
+  bool? located() => _hold();
+
+  /// The reader moved the list themselves.
+  bool? readerMoved() => _release();
+
+  /// The list went to its newest row for the reader: the new-messages key, or
+  /// a message of the reader's own.
+  bool? wentToLatest() => _release();
+
+  /// The window lost all its rows: an empty list is at its bottom.
+  bool? emptied() {
+    _held = false;
+    return layout(0);
+  }
+
+  /// Another conversation: the list starts over and answers once more after
+  /// its first layout.
+  void anotherConversation() {
+    _reported = null;
+    _held = false;
+    _last = null;
+  }
+
+  bool? _hold() {
+    _held = true;
+    return _reported == true ? _tell(false) : null;
+  }
+
+  bool? _release() {
+    _held = false;
+    final last = _last;
+    return last == null ? null : layout(last);
+  }
+
+  bool? _tell(bool atBottom) {
+    if (_reported == atBottom) return null;
+    _reported = atBottom;
+    return atBottom;
+  }
 }

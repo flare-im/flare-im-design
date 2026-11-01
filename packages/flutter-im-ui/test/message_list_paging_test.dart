@@ -308,4 +308,36 @@ void main() {
       expect(find.byType(FlareScrollToLatest), findsNothing);
     });
   });
+
+  group('at the bottom', () {
+    final bottom = table['atBottom'] as Map<String, dynamic>;
+    test('within the distance the table names', () {
+      expect(bottom['within'], flareMessageListBottomWithin);
+      expect((bottom['cases'] as List).length, greaterThanOrEqualTo(18));
+    });
+    for (final raw in (bottom['cases'] as List).cast<Map<String, dynamic>>()) {
+      test('reports: ${raw['id']}', () {
+        final report = FlareMessageListBottomReport();
+        final steps = (raw['steps'] as List).cast<Map<String, dynamic>>();
+        final told = [
+          for (final step in steps)
+            switch (step['do'] as String) {
+              'layout' => report.layout((step['fromBottom'] as num).toDouble()),
+              'replaced' => report.replaced(),
+              'jumpedToLatest' => report.jumpedToLatest(),
+              'located' => report.located(),
+              'readerMoved' => report.readerMoved(),
+              'wentToLatest' => report.wentToLatest(),
+              'emptied' => report.emptied(),
+              'anotherConversation' => (() {
+                report.anotherConversation();
+                return null;
+              })(),
+              final other => throw StateError('unknown step $other'),
+            },
+        ];
+        expect(told, [for (final step in steps) step['reports'] as bool?]);
+      });
+    }
+  });
 }

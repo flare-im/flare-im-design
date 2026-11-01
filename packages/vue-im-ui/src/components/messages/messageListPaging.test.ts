@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX,
   FLARE_MESSAGE_LIST_NEWER_WITHIN_PX,
   FLARE_MESSAGE_LIST_OLDER_WITHIN_PX,
   flareMessageListEdge,
   flareMessageListLatestEntry,
   flareMessageListRequests,
   flareMessageListWindowReplaced,
+  FlareMessageListBottomReport,
   type FlareMessageListEnd,
 } from "./messageListPaging";
 
@@ -32,7 +34,26 @@ const table = JSON.parse(
       previousWindowId?: string | null; windowId?: string | null; expected: boolean;
     }>;
   };
+  atBottom: {
+    within: number;
+    cases: Array<{ id: string; steps: Array<{ do: string; fromBottom?: number; reports: boolean | null }> }>;
+  };
 };
+
+/** One step of an `atBottom` case on the list's report: what it tells the host after the step. */
+function bottomStep(report: FlareMessageListBottomReport, step: { do: string; fromBottom?: number }): boolean | null {
+  switch (step.do) {
+    case "layout": return report.layout(step.fromBottom!);
+    case "replaced": return report.replaced();
+    case "jumpedToLatest": return report.jumpedToLatest();
+    case "located": return report.located();
+    case "readerMoved": return report.readerMoved();
+    case "wentToLatest": return report.wentToLatest();
+    case "emptied": return report.emptied();
+    case "anotherConversation": report.anotherConversation(); return null;
+    default: throw new Error(`unknown step ${step.do}`);
+  }
+}
 
 describe("the two ends of the message list", () => {
   it("asks within the distances the table names", () => {
@@ -42,6 +63,8 @@ describe("the two ends of the message list", () => {
     expect(table.requests.length).toBeGreaterThanOrEqual(21);
     expect(table.jumpToLatest.length).toBeGreaterThanOrEqual(8);
     expect(table.windows.cases.length).toBeGreaterThanOrEqual(17);
+    expect(FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX).toBe(table.atBottom.within);
+    expect(table.atBottom.cases.length).toBeGreaterThanOrEqual(18);
   });
 
   for (const vector of table.edges) {
@@ -65,6 +88,13 @@ describe("the two ends of the message list", () => {
   for (const vector of table.windows.cases) {
     it(`window: ${vector.id}`, () => {
       expect(flareMessageListWindowReplaced(vector.previous, vector.next, vector)).toBe(vector.expected);
+    });
+  }
+
+  for (const vector of table.atBottom.cases) {
+    it(`at the bottom: ${vector.id}`, () => {
+      const report = new FlareMessageListBottomReport();
+      expect(vector.steps.map((step) => bottomStep(report, step))).toEqual(vector.steps.map((step) => step.reports));
     });
   }
 });

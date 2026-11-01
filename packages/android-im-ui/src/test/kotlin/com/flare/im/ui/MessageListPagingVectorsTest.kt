@@ -1,6 +1,7 @@
 package com.flare.im.ui
 
 import java.io.File
+import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -170,6 +171,47 @@ class MessageListPagingVectorsTest {
             assertEquals((expected["requests"] as List<*>).map { it as String }, asked, id)
             assertEquals(expected["locatedInView"] as Boolean, inView, id)
         }
+    }
+
+    @Test fun theReaderIsAtTheBottomWhereTheTableSays() {
+        val group = table["atBottom"] as Map<*, *>
+        assertEquals(MESSAGE_LIST_BOTTOM_WITHIN_DP, (group["within"] as Number).toInt())
+        assertEquals(MESSAGE_LIST_BOTTOM_WITHIN_DP.dp, MessageListBottomSlack)
+        val cases = group["cases"] as List<*>
+        assertTrue(cases.size >= 18, "the shared table lost at-bottom cases: ${cases.size}")
+        for (raw in cases) {
+            val case = raw as Map<*, *>
+            // Another conversation is another report: the list remembers one per conversation.
+            var report = MessageListBottomReport()
+            val told = (case["steps"] as List<*>).map { rawStep ->
+                val step = rawStep as Map<*, *>
+                when (val name = step["do"] as String) {
+                    "layout" -> report.layout((step["fromBottom"] as Number).toFloat())
+                    "replaced" -> report.replaced()
+                    "jumpedToLatest" -> report.jumpedToLatest()
+                    "located" -> report.located()
+                    "readerMoved" -> report.readerMoved()
+                    "wentToLatest" -> report.wentToLatest()
+                    "emptied" -> report.emptied()
+                    "anotherConversation" -> { report = MessageListBottomReport(); null }
+                    else -> error("unknown step $name")
+                }
+            }
+            assertEquals((case["steps"] as List<*>).map { (it as Map<*, *>)["reports"] as Boolean? }, told, case["id"] as String)
+        }
+    }
+
+    // The layout the report reads: the end of the list below the viewport, unknown while the last row is not laid out.
+    @Test fun aLayoutSaysHowFarTheEndOfTheListIsBelowTheViewport() {
+        fun viewport(lastIndex: Int, lastEnd: Int, totalRows: Int) = MessageListViewport(
+            firstKey = "m1", firstOffset = 0, lastIndex = lastIndex, lastKey = "m$lastIndex", lastEnd = lastEnd, lastSize = 100,
+            totalRows = totalRows, viewportEnd = 400, viewportSize = 400, scrolling = false,
+        )
+        assertEquals(0f, viewport(lastIndex = 39, lastEnd = 400, totalRows = 40).fromBottomPx)
+        assertEquals(0f, viewport(lastIndex = 39, lastEnd = 380, totalRows = 40).fromBottomPx, "a short list sits on the bottom")
+        assertEquals(160f, viewport(lastIndex = 39, lastEnd = 560, totalRows = 40).fromBottomPx)
+        assertEquals(Float.POSITIVE_INFINITY, viewport(lastIndex = 30, lastEnd = 400, totalRows = 40).fromBottomPx)
+        assertEquals(0f, viewport(lastIndex = -1, lastEnd = 0, totalRows = 0).fromBottomPx)
     }
 
     // A newer page and a message that arrived look alike to the growth rule; only a detached window tells them apart.

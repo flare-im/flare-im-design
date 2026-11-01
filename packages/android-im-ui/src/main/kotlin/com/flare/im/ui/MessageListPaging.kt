@@ -5,7 +5,8 @@ import androidx.compose.foundation.lazy.LazyListLayoutInfo
 /*
  * The two ends of the message list and its back-to-latest key (`spec/message-list-paging-vectors.json`, read by the
  * Vue, Flutter and SwiftUI kits too). A window is the run of messages the host hands the list; its older end (above
- * the timeline) and its newer end (below it) follow one rule.
+ * the timeline) and its newer end (below it) follow one rule. Whether the reader is at the bottom of the window, as the
+ * list tells the host, is `atBottom`.
  */
 
 /** How close to an edge the reader must scroll before the list asks for the next page there, in dp. */
@@ -114,4 +115,69 @@ internal fun messageListWindowReplaced(
     if (jumpRequested && !hasNewer) return true
     val kept = previous.toHashSet()
     return next.none(kept::contains)
+}
+
+/** How far the end of the timeline may be below the viewport's bottom with the reader still at the bottom, in dp. */
+internal const val MESSAGE_LIST_BOTTOM_WITHIN_DP = 80
+
+/** The reader is at the bottom: the end of the timeline is at most [MESSAGE_LIST_BOTTOM_WITHIN_DP] below the viewport. */
+internal fun messageListAtBottom(fromBottomDp: Float): Boolean = fromBottomDp <= MESSAGE_LIST_BOTTOM_WITHIN_DP
+
+/**
+ * What the list tells the host about the reader being at the bottom of the window (`atBottom` in
+ * `spec/message-list-paging-vectors.json`). Each method is one step and answers what to tell the host after it: true,
+ * false, or null for nothing. The list tells the host only when the answer changes, and once after its first layout. A
+ * window replaced without the reader asking for it and a locate hold the answer at not at the bottom until the reader
+ * moves the list, the list goes to its newest row for the reader, the latest window the reader asked for arrives or the
+ * window empties; ending a hold answers from the last layout. One report per conversation: another one starts over.
+ */
+internal class MessageListBottomReport {
+    /** The answer last told to the host; null before the first one. */
+    var reported: Boolean? = null
+        private set
+    private var held = false
+    private var last: Float? = null
+
+    /** A layout or a scroll the list measured: [fromBottomDp] is how far the end of the timeline is below the viewport. */
+    fun layout(fromBottomDp: Float): Boolean? {
+        last = fromBottomDp
+        return tell(!held && messageListAtBottom(fromBottomDp))
+    }
+
+    /** The host handed a window that replaces the one shown, without the reader asking for it. */
+    fun replaced(): Boolean? = hold()
+
+    /** The latest window the reader asked for (the back-to-latest key) arrived. */
+    fun jumpedToLatest(): Boolean? = release()
+
+    /** A locate took the reading position. */
+    fun located(): Boolean? = hold()
+
+    /** The reader moved the list themselves. */
+    fun readerMoved(): Boolean? = release()
+
+    /** The list went to its newest row for the reader: the new-messages key, or a message of the reader's own. */
+    fun wentToLatest(): Boolean? = release()
+
+    /** The window lost all its rows: an empty list is at its bottom. */
+    fun emptied(): Boolean? {
+        held = false
+        return layout(0f)
+    }
+
+    private fun hold(): Boolean? {
+        held = true
+        return if (reported == true) tell(false) else null
+    }
+
+    private fun release(): Boolean? {
+        held = false
+        return last?.let(::layout)
+    }
+
+    private fun tell(atBottom: Boolean): Boolean? {
+        if (reported == atBottom) return null
+        reported = atBottom
+        return atBottom
+    }
 }

@@ -1,5 +1,5 @@
 {
-  "note": "Shared truth for the two ends of the message list and its back-to-latest key, on all four kits. A window is the run of messages the host hands the list. `older` and `newer` describe its two ends the same way: `has` (there is more to read past that end: Vue `hasOlder` / `hasNewer`), `loading` (`loadingOlder` / `loadingNewer`), `error` (`olderError` / `newerError`; null, empty or blank is no error) and `handled` (the host takes that intent: Vue listens to `load-older` / `load-newer`, the native kits got `onLoadOlder` / `onLoadNewer`). `edges` is what one end draws, the same rule for both ends: while loading, a spinner and nothing else (the last error is not repeated while it is being retried); otherwise the error when there is one, and the load or retry button while there is more to read and the host takes the intent. The older end sits above the timeline and the newer end below it. `requests` is when the list asks for a page by itself as the reader scrolls: `fromTop` is how far the first row's top is above the viewport's top, `fromBottom` how far the end of the timeline is below the viewport's bottom, in logical pixels (CSS px, dp, pt); an end asks when it is within `autoRequest` of its edge (inclusive), has more, is not loading, has no error (after a failure only the retry button asks again) and the host takes the intent. Both ends may ask in the same pass. Each kit also asks at most once per end until that end's `loading` settles. `jumpToLatest` is the floating key at the bottom: while the window is detached from the latest (`hasNewer`) and the host takes `jumpToLatest`, it is shown without a count and asks the host to replace the window with the latest one; rows below a detached reader are history read in, not news. Otherwise it is the existing new-messages key: shown with `belowCount` (messages that arrived below a reader who scrolled up) and it scrolls to the bottom. With every new parameter left at its default (`hasNewer` false, no newer handler) a list draws no newer end, never asks for newer and has no back-to-latest key beyond the new-messages one. `windows` says when the host replaced the window as a whole rather than grew or edited it, and `locateAfterReplace` what a replacement and a locate do to the list: no page asked for before the reader moves it, and the located row kept in view.",
+  "note": "Shared truth for the two ends of the message list and its back-to-latest key, on all four kits. A window is the run of messages the host hands the list. `older` and `newer` describe its two ends the same way: `has` (there is more to read past that end: Vue `hasOlder` / `hasNewer`), `loading` (`loadingOlder` / `loadingNewer`), `error` (`olderError` / `newerError`; null, empty or blank is no error) and `handled` (the host takes that intent: Vue listens to `load-older` / `load-newer`, the native kits got `onLoadOlder` / `onLoadNewer`). `edges` is what one end draws, the same rule for both ends: while loading, a spinner and nothing else (the last error is not repeated while it is being retried); otherwise the error when there is one, and the load or retry button while there is more to read and the host takes the intent. The older end sits above the timeline and the newer end below it. `requests` is when the list asks for a page by itself as the reader scrolls: `fromTop` is how far the first row's top is above the viewport's top, `fromBottom` how far the end of the timeline is below the viewport's bottom, in logical pixels (CSS px, dp, pt); an end asks when it is within `autoRequest` of its edge (inclusive), has more, is not loading, has no error (after a failure only the retry button asks again) and the host takes the intent. Both ends may ask in the same pass. Each kit also asks at most once per end until that end's `loading` settles. `jumpToLatest` is the floating key at the bottom: while the window is detached from the latest (`hasNewer`) and the host takes `jumpToLatest`, it is shown without a count and asks the host to replace the window with the latest one; rows below a detached reader are history read in, not news. Otherwise it is the existing new-messages key: shown with `belowCount` (messages that arrived below a reader who scrolled up) and it scrolls to the bottom. With every new parameter left at its default (`hasNewer` false, no newer handler) a list draws no newer end, never asks for newer and has no back-to-latest key beyond the new-messages one. `windows` says when the host replaced the window as a whole rather than grew or edited it, and `locateAfterReplace` what a replacement and a locate do to the list: no page asked for before the reader moves it, and the located row kept in view. `atBottom` is whether the reader is at the bottom of the window, as the list tells the host.",
   "autoRequest": {
     "olderWithin": 160,
     "newerWithin": 160
@@ -1110,6 +1110,415 @@
           "locatedInView": false,
           "marked": true
         }
+      }
+    ]
+  },
+  "atBottom": {
+    "note": "Whether the reader is at the bottom of the window, as the list tells the host (Vue `atBottomChange`, the native kits `onAtBottomChange`). The reader is at the bottom when the end of the timeline is at most `within` logical pixels (CSS px, dp, pt) below the viewport's bottom, inclusive: `fromBottom` is that distance, as in `requests`. It is the bottom of the window the list shows, attached to the latest or not; a host that marks messages read checks that the window is attached itself. The list tells the host only when the answer changes, and once after the first layout of a list (or of another conversation), whatever the answer is. One case is one list, step by step: `layout` is a layout or a scroll the list measured; `replaced` is the host handing a window that replaces the one shown (`windows`) without the reader asking for it, `jumpedToLatest` the latest window the reader asked for with the back-to-latest key; `located` is a locate taking the reading position (`locateAfterReplace`); `readerMoved` is the reader moving the list themselves; `wentToLatest` is the list going to its newest row for the reader: the new-messages key, or a message of the reader's own arriving; `emptied` is the window losing all its rows (an empty list is at its bottom); `anotherConversation` starts the list over. A replacement the reader did not ask for and a locate hold the answer at not at the bottom, at once, until the reader moves the list, the list goes to its newest row for the reader, the latest window the reader asked for arrives or the window empties: the list placing a window it was handed at its newest row, and a locate landing near the end, are not the reader arriving there. Ending a hold answers from the last layout. `reports` is what the list tells the host after that step: true, false, or null for nothing. Each kit also runs the same steps on the component (scrolled to the bottom, scrolled up, a message arriving at the bottom, a window replaced).",
+    "within": 80,
+    "cases": [
+      {
+        "id": "opens-at-its-newest-row",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "the-first-layout-reports-away-from-the-bottom-too",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 400,
+            "reports": false
+          }
+        ]
+      },
+      {
+        "id": "the-distance-is-inclusive",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 80,
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 81,
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 80,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "moves-within-the-distance-report-nothing",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 40,
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 80,
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          }
+        ]
+      },
+      {
+        "id": "scrolled-up-and-back-down",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 300,
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 1200,
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 60,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "a-message-arrives-under-a-reader-at-the-bottom",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          }
+        ]
+      },
+      {
+        "id": "a-window-replaced-without-the-reader-asking",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "replaced",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 40,
+            "reports": null
+          },
+          {
+            "do": "readerMoved",
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 300,
+            "reports": false
+          }
+        ]
+      },
+      {
+        "id": "replaced-before-the-first-layout",
+        "steps": [
+          {
+            "do": "replaced",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": false
+          },
+          {
+            "do": "readerMoved",
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "the-latest-window-the-reader-asked-for",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 900,
+            "reports": false
+          },
+          {
+            "do": "jumpedToLatest",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "asked-for-the-latest-after-a-replacement",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "replaced",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          },
+          {
+            "do": "jumpedToLatest",
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          }
+        ]
+      },
+      {
+        "id": "a-locate-holds-the-reading-position",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "located",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 300,
+            "reports": null
+          },
+          {
+            "do": "readerMoved",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "the-new-messages-key-ends-a-locate",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "located",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 700,
+            "reports": null
+          },
+          {
+            "do": "wentToLatest",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "a-message-of-the-readers-own-ends-a-hold",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "replaced",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          },
+          {
+            "do": "wentToLatest",
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "a-locate-in-a-replaced-window",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "replaced",
+            "reports": false
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          },
+          {
+            "do": "located",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 300,
+            "reports": null
+          },
+          {
+            "do": "readerMoved",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 40,
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "an-emptied-window-is-at-its-bottom",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 500,
+            "reports": false
+          },
+          {
+            "do": "emptied",
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "emptying-ends-a-hold",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "located",
+            "reports": false
+          },
+          {
+            "do": "emptied",
+            "reports": true
+          }
+        ]
+      },
+      {
+        "id": "another-conversation-reports-once-more",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "anotherConversation",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": null
+          }
+        ]
+      },
+      {
+        "id": "another-conversation-ends-a-hold",
+        "steps": [
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          },
+          {
+            "do": "located",
+            "reports": false
+          },
+          {
+            "do": "anotherConversation",
+            "reports": null
+          },
+          {
+            "do": "layout",
+            "fromBottom": 0,
+            "reports": true
+          }
+        ]
       }
     ]
   }

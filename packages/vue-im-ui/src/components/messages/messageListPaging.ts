@@ -5,7 +5,8 @@
  * A window is the run of messages the host hands the list. Its older end (above the timeline) and its newer end
  * (below it) follow one rule: what each end draws, when the list asks for a page by itself, and when the floating key
  * at the bottom takes the reader back to the latest messages instead of to the bottom of the window. A window the host
- * replaces as a whole is a new one (`windows`), and what that does to the list is `locateAfterReplace`.
+ * replaces as a whole is a new one (`windows`), and what that does to the list is `locateAfterReplace`. Whether the
+ * reader is at the bottom of the window, as the list tells the host, is `atBottom`.
  */
 
 /** How close to an edge the reader must scroll before the list asks for the next page there, in CSS pixels. */
@@ -117,4 +118,91 @@ export function flareMessageListLatestEntry(state: { hasNewer: boolean; handled:
   return state.belowCount > 0
     ? { shown: true, count: state.belowCount, action: "scrollToBottom" }
     : { shown: false, count: 0, action: null };
+}
+
+/** How far the end of the timeline may be below the viewport's bottom with the reader still at the bottom, in CSS pixels. */
+export const FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX = 80;
+
+/** The reader is at the bottom: the end of the timeline is at most `FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX` below it. */
+export function flareMessageListAtBottom(fromBottom: number): boolean {
+  return fromBottom <= FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX;
+}
+
+/**
+ * What the list tells the host about the reader being at the bottom of the window (`atBottom` in
+ * `spec/message-list-paging-vectors.json`). Each method is one step and answers what to tell the host after it: true,
+ * false, or null for nothing. The list tells the host only when the answer changes, and once after its first layout.
+ * A window replaced without the reader asking for it and a locate hold the answer at not at the bottom until the reader
+ * moves the list, the list goes to its newest row for the reader, the latest window the reader asked for arrives or the
+ * window empties; ending a hold answers from the last layout.
+ */
+export class FlareMessageListBottomReport {
+  private reported: boolean | null = null;
+  private held = false;
+  private last: number | null = null;
+
+  /** The answer last told to the host; null before the first one. */
+  get value(): boolean | null {
+    return this.reported;
+  }
+
+  /** A layout or a scroll the list measured: `fromBottom` is how far the end of the timeline is below the viewport. */
+  layout(fromBottom: number): boolean | null {
+    this.last = fromBottom;
+    return this.tell(!this.held && flareMessageListAtBottom(fromBottom));
+  }
+
+  /** The host handed a window that replaces the one shown, without the reader asking for it. */
+  replaced(): boolean | null {
+    return this.hold();
+  }
+
+  /** The latest window the reader asked for (the back-to-latest key) arrived. */
+  jumpedToLatest(): boolean | null {
+    return this.release();
+  }
+
+  /** A locate took the reading position. */
+  located(): boolean | null {
+    return this.hold();
+  }
+
+  /** The reader moved the list themselves. */
+  readerMoved(): boolean | null {
+    return this.release();
+  }
+
+  /** The list went to its newest row for the reader: the new-messages key, or a message of the reader's own. */
+  wentToLatest(): boolean | null {
+    return this.release();
+  }
+
+  /** The window lost all its rows: an empty list is at its bottom. */
+  emptied(): boolean | null {
+    this.held = false;
+    return this.layout(0);
+  }
+
+  /** Another conversation: the list starts over and answers once more after its first layout. */
+  anotherConversation(): void {
+    this.reported = null;
+    this.held = false;
+    this.last = null;
+  }
+
+  private hold(): boolean | null {
+    this.held = true;
+    return this.reported === true ? this.tell(false) : null;
+  }
+
+  private release(): boolean | null {
+    this.held = false;
+    return this.last === null ? null : this.layout(this.last);
+  }
+
+  private tell(atBottom: boolean): boolean | null {
+    if (this.reported === atBottom) return null;
+    this.reported = atBottom;
+    return atBottom;
+  }
 }

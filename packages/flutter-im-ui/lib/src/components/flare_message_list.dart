@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'dart:async';
 
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
 
@@ -96,6 +97,7 @@ class FlareMessageList extends StatefulWidget {
     this.onLoadNewer,
     this.onJumpToLatest,
     this.windowId,
+    this.onAtBottomChange,
     this.conversationId,
     this.loading = false,
     this.emptyText,
@@ -167,6 +169,17 @@ class FlareMessageList extends StatefulWidget {
   /// replaced as a whole, even where the two share rows. Without it a window is
   /// replaced when no row is left in common.
   final String? windowId;
+
+  /// Whether the reader is at the bottom of the window
+  /// (`spec/message-list-paging-vectors.json` `atBottom`): the end of the
+  /// timeline at most 80 logical pixels below the viewport. Called when the
+  /// answer changes and once after the first layout of each conversation, after
+  /// the frame that decided it. A window replaced without the reader asking for
+  /// it and a locate answer false until the reader scrolls the list (a drag or a
+  /// wheel), goes to the newest row (the new-messages key, a message of their
+  /// own) or gets the latest window they asked for. It is the bottom of the
+  /// window shown, attached to the latest or not (Vue `atBottomChange`).
+  final ValueChanged<bool>? onAtBottomChange;
   final String? conversationId;
   final bool loading;
 
@@ -480,6 +493,66 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// The row a locate took the reader to, until the reader drags: rows that
   /// change meanwhile keep it where the locate put it.
   String? _locatedHoldId;
+
+  /// Whether the reader is at the bottom (`atBottom`), as told to the host.
+  final _bottom = FlareMessageListBottomReport();
+
+  /// Answers not told yet: the host hears them after the frame that decided
+  /// them, in order, so it may rebuild in response.
+  final List<bool> _bottomPending = [];
+  bool _bottomFlushScheduled = false;
+  bool _bottomMeasureScheduled = false;
+
+  void _tellBottom(bool? answer) {
+    if (answer == null) return;
+    _bottomPending.add(answer);
+    if (_bottomFlushScheduled) return;
+    _bottomFlushScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) => _flushBottom());
+    SchedulerBinding.instance.ensureVisualUpdate();
+  }
+
+  void _flushBottom() {
+    _bottomFlushScheduled = false;
+    if (!mounted) return;
+    final answers = List.of(_bottomPending);
+    _bottomPending.clear();
+    for (final answer in answers) {
+      widget.onAtBottomChange?.call(answer);
+    }
+  }
+
+  /// One layout or scroll, as the bottom report reads it: the view runs bottom
+  /// to top, so the end of the timeline is at the smallest offset.
+  void _measureBottom(ScrollMetrics metrics) {
+    if (widget.messages.isEmpty) return;
+    _tellBottom(
+      _bottom.layout(
+        (metrics.pixels - metrics.minScrollExtent).clamp(0, double.infinity),
+      ),
+    );
+  }
+
+  /// Reads where the list is once the frame being built is laid out: the first
+  /// layout, a window placed at its newest row, rows added or removed. An empty
+  /// list is at its bottom.
+  void _measureBottomAfterFrame() {
+    if (_bottomMeasureScheduled) return;
+    _bottomMeasureScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _bottomMeasureScheduled = false;
+      if (!mounted) return;
+      if (widget.messages.isEmpty) {
+        _tellBottom(_bottom.emptied());
+        return;
+      }
+      final controller = _laidOutController ?? _controller;
+      if (!controller.hasClients) return;
+      final position = controller.position;
+      if (!position.hasContentDimensions || !position.hasPixels) return;
+      _measureBottom(position);
+    });
+  }
   FlareMessageListController get _handle => widget.controller ?? _ownedHandle;
   ScrollController get _controller => _handle.scroll;
 
@@ -612,6 +685,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       if (row != null) {
         _markLocated(id);
         _locatedHoldId = id;
+        _tellBottom(_bottom.located());
         await Scrollable.ensureVisible(
           row,
           alignment: 0.5,
@@ -784,6 +858,7 @@ class _FlareMessageListState extends State<FlareMessageList>
 
   /// [FlareScrollToLatest]: straight to the newest message, without animation.
   void _goToNewest() {
+    _tellBottom(_bottom.wentToLatest());
     setState(() {
       _pivotId = null;
       _locatedHoldId = null;
@@ -848,11 +923,18 @@ class _FlareMessageListState extends State<FlareMessageList>
       _jumpRequested = false;
       _locatedHoldId = null;
       _detachedSinceRows = widget.hasNewer;
+      _bottom.anotherConversation();
       _showNewest();
     } else if (_replaced(oldWidget)) {
       // A new window (`windows`), and the latest one the reader asked for is
       // one: it opens at its newest message, wherever the old window was, and
-      // nothing of the reader's place in the old one applies.
+      // nothing of the reader's place in the old one applies. The reader is
+      // not at the bottom of a window they did not ask for until they move it.
+      _tellBottom(
+        _jumpRequested && !widget.hasNewer
+            ? _bottom.jumpedToLatest()
+            : _bottom.replaced(),
+      );
       _jumpRequested = false;
       _locatedHoldId = null;
       _requested = false;
@@ -883,6 +965,9 @@ class _FlareMessageListState extends State<FlareMessageList>
         _followTail = false;
         _browseTailId = widget.messages.last.id;
       } else if (oldWidget.messages.isEmpty || _followTail || ownNewest) {
+        // A message of the reader's own takes them to the newest row: the
+        // reader arriving there.
+        if (ownNewest) _tellBottom(_bottom.wentToLatest());
         _showNewest();
         if (widget.hasNewer) {
           _followTail = false;
@@ -1328,6 +1413,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     _indexTimeline();
     // The rows a host handle answers for are this build's rows.
     _handle._attach(this, _locatable);
+    _measureBottomAfterFrame();
     final pivot = _pivotId == null ? null : _indexes[_pivotId];
     final split = pivot ?? widget.messages.length;
     final before = [for (var i = split - 1; i >= 0; i--) widget.messages[i].id];
@@ -1384,21 +1470,36 @@ class _FlareMessageListState extends State<FlareMessageList>
                                     maxWidth: FlareSizes
                                         .messageTimelineContentMaxWidth,
                                   ),
-                                  child: NotificationListener<ScrollNotification>(
+                                  child: NotificationListener<Notification>(
                                     onNotification: (n) {
-                                      if (n.depth != 0) return false;
+                                      // Content that grew or shrank without a
+                                      // scroll moves the end of the timeline.
+                                      if (n is ScrollMetricsNotification) {
+                                        if (n.depth == 0) _measureBottom(n.metrics);
+                                        return false;
+                                      }
+                                      if (n is! ScrollNotification || n.depth != 0)
+                                        return false;
                                       // The reader's own drag: the place is
                                       // theirs again, not the located row's.
                                       if (n is ScrollStartNotification &&
                                           n.dragDetails != null) {
                                         _locatedHoldId = null;
                                       }
+                                      // The reader scrolling the list (a drag or
+                                      // a wheel) ends a hold on the answer.
+                                      if (n is UserScrollNotification &&
+                                          n.direction != ScrollDirection.idle) {
+                                        _tellBottom(_bottom.readerMoved());
+                                      }
                                       if (n is ScrollUpdateNotification) {
                                         if (n.dragDetails != null)
                                           _askForPages(n.metrics);
                                         _syncFollow(n.metrics);
+                                        _measureBottom(n.metrics);
                                       } else if (n is ScrollEndNotification) {
                                         _syncFollow(n.metrics);
+                                        _measureBottom(n.metrics);
                                       }
                                       return false;
                                     },

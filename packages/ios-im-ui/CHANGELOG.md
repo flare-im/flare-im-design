@@ -1,5 +1,6 @@
 ## 未发布
 
+- 读者是否在底部（`spec/message-list-paging-vectors.json` 的 `atBottom`，四端同一份）：`MessageListView` 新增 `onAtBottomChange: ((Bool) -> Void)?`（在 `windowId` 之后），缺省为 nil。末尾低于视口底部不超过 80 pt 算在底部（`TimelineFollow.stickyDistance` 改读同一个值），只在回答变化时回调，每个会话第一次布局后回调一次，空列表在底部。iOS 18 / macOS 15 读滚动视图自己的几何（`onScrollGeometryChange`），更早的系统读时间线末尾那一行的位置。整体替换（读者没要求）与定位立即回答 false 并保持，直到读者移动、点新消息键、自己的消息追加在末尾、读者要的最新窗口到了或窗口被清空。
 - 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`MessageListView` 新增 `windowId`，整体替换（名字换了、读者要的最新窗口、没有共同的行）后在最新一行打开，读者移动之前不自动请求（iOS 18 / macOS 15 读滚动阶段，更早的系统读拖动手势）；原来边缘位置的基线沿用旧窗口，替换后的位置变化被当成读者移动。定位之后、读者移动之前行变了，定位的行放回中间；iOS 16 路径原来按首个可见行恢复，会覆盖定位。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareApplicationNavigationBadge` 新增 `more`，`FlareFilterTabOption` 新增 `badgeMore`，缺省为 false；新增 `flareCountBadgeText(count:more:)`、`flareCountBadgeDrawn(count:more:)`。`more` 或超过 99 时写 99+；`FilterTabsView` 超过 99 时也写 99+（原来写原数）。
 - 引用的发送者（`spec/display-name-vectors.json` 的 `quoteSender`）：`FlareReplyTarget` 新增可选的 `senderId`、`sender`（`FlareDisplayName`），新增 `flareQuoteSenderText(_:strings:)`；气泡里的引用与回复条没有名字时写「用户 末四位」或「未知用户」（原来不画发送者一行），`FlareReplyTarget(replyingTo:strings:)` 带上 `senderId`。
