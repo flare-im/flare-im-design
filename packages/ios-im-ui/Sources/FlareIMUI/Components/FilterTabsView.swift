@@ -1,18 +1,21 @@
 import SwiftUI
 
 /// One option in a `FilterTabsView`.
+/// `badge` is drawn when it is above 0 or `badgeMore` says there are more than it (the server had more than it counted),
+/// and reads 99+ above 99 or with `badgeMore` (`spec/count-badge-vectors.json`).
 public struct FlareFilterTabOption: Identifiable, Sendable {
     public let value: String
     public let label: String
     public let badge: Int?
+    public let badgeMore: Bool
     /// Optional leading SF Symbol name.
     /// Semantic kit icon name (``flareIconNames``) before the label; nil draws none.
     public let icon: String?
 
     public var id: String { value }
 
-    public init(value: String, label: String, badge: Int? = nil, icon: String? = nil) {
-        self.value = value; self.label = label; self.badge = badge; self.icon = icon
+    public init(value: String, label: String, badge: Int? = nil, badgeMore: Bool = false, icon: String? = nil) {
+        self.value = value; self.label = label; self.badge = badge; self.badgeMore = badgeMore; self.icon = icon
     }
 }
 
@@ -49,8 +52,8 @@ public struct FilterTabsView: View {
                             }
                             Text(option.label)
                                 .font(.system(size: FlareSizes.fontSizeMd, weight: active ? .semibold : .medium))
-                            if let badge = option.badge, badge > 0 {
-                                Text("\(badge)")
+                            if flareCountBadgeDrawn(count: option.badge, more: option.badgeMore) {
+                                Text(flareCountBadgeText(count: option.badge, more: option.badgeMore))
                                     .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 5)

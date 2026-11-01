@@ -44,6 +44,29 @@ public struct FlareLocationPlace: Identifiable, Sendable, Equatable {
     }
 
     public var coordinate: FlareLocationCoordinate { .init(latitude: latitude, longitude: longitude) }
+
+    /// Reads a place as the social SDK's geo search hands it (`GeoPlace`: `id`, `title`, `address`, `lat`, `lng`,
+    /// `distanceM`) from JSON a host already decoded — the dictionaries, strings and numbers of `JSONSerialization`, or
+    /// the same built in Swift (`spec/location-vectors.json` placeFrom, the same on all four kits). The coordinate is
+    /// `lat` / `lng`, or `latitude` / `longitude` when those are missing, and only a number counts (not text, not a
+    /// boolean); a pair that is not a valid coordinate (``FlareLocationFormat/isValid(latitude:longitude:)``, so also
+    /// 0, 0) or a value that is not an object reads as nil. The id, title and address are trimmed text ("" when missing
+    /// or not text); `distanceM` is kept when it is a number not below 0.
+    public init?(json value: Any?) {
+        guard let json = value as? [String: Any] else { return nil }
+        func number(_ key: String) -> Double? {
+            guard let number = json[key] as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+            let value = number.doubleValue
+            return value.isFinite ? value : nil
+        }
+        func text(_ key: String) -> String {
+            (json[key] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        }
+        guard let latitude = number("lat") ?? number("latitude"), let longitude = number("lng") ?? number("longitude"),
+              FlareLocationFormat.isValid(latitude: latitude, longitude: longitude) else { return nil }
+        self.init(id: text("id"), title: text("title"), address: text("address"), latitude: latitude,
+                  longitude: longitude, distanceM: number("distanceM").flatMap { $0 >= 0 ? $0 : nil })
+    }
 }
 
 /// The lines a location card draws under its map: `primary` always, `secondary` when there is one.

@@ -163,7 +163,8 @@ final class MessagePreviewVectorsTests: XCTestCase {
     func testTheReplyTargetNamesTheSenderAndTheMessageItQuotes() {
         let message = FlareMessageData(id: "m9", senderId: "u1", senderName: "Bob", content: FlareTextContent("明天见"))
         let target = FlareReplyTarget(replyingTo: message, strings: FlareStrings())
-        XCTAssertEqual(target, FlareReplyTarget(senderName: "Bob", summary: "明天见", messageId: "m9"))
+        // The sender id travels too: a quote of someone without a name reads 「用户 末四位」, never the id.
+        XCTAssertEqual(target, FlareReplyTarget(senderName: "Bob", summary: "明天见", messageId: "m9", senderId: "u1"))
         // A row that has reached the server is quoted by the id every other client knows it by, not
         // by the id this device draws it with (FR-114); the three kits and the apps agree on that.
         let sent = FlareMessageData(id: "client-9", senderId: "u1", senderName: "Bob",

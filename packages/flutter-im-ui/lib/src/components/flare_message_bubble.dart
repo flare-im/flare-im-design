@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../models/directory_data.dart' show FlareControlSize;
+import '../models/display_name.dart' show flareQuoteSenderText;
 import '../models/message_content.dart';
 import '../models/message_data.dart';
 import '../models/locate_highlight.dart';
@@ -838,6 +839,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
     FlareReplyTarget quote, {
     bool onCard = false,
   }) {
+    final sender = flareQuoteSenderText(quote, FlareStrings.of(context));
     final decoration = BoxDecoration(
       color: colors.messageReplyBackground,
       borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
@@ -860,17 +862,18 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (quote.senderName.isNotEmpty)
-              Text(
-                quote.senderName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: FlareSizes.fontSizeSm,
-                  fontWeight: FontWeight.w500,
-                ),
+            // Never blank and never an id: the projected sender, the host's
+            // name, else the kit's unnamed person.
+            Text(
+              sender,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: FlareSizes.fontSizeSm,
+                fontWeight: FontWeight.w500,
               ),
+            ),
             Text(
               quote.summary,
               maxLines: 1,
@@ -895,7 +898,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
             button: true,
             label: FlareStrings.of(
               context,
-            ).quotedMessage(quote.senderName, quote.summary),
+            ).quotedMessage(sender, quote.summary),
             onTap: () => locate(id),
             excludeSemantics: true,
             // Ink on a surface of its own, so the pressed state shows above

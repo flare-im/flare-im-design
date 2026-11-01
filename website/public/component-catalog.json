@@ -6142,8 +6142,8 @@
         ]
       },
       "summary": {
-        "en": "Scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event.",
-        "zh": "可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。"
+        "en": "Scrollable filter tablist ({value,label,badge?,badgeMore?}) with a v-model active value and a change event. A badge reads 99+ above 99 or with badgeMore (spec/count-badge-vectors.json).",
+        "zh": "可横滚筛选标签（{value,label,badge?,badgeMore?}）—— v-model 绑定当前值 + change 事件。角标超过 99 或 badgeMore 时写 99+（spec/count-badge-vectors.json）。"
       },
       "aliases": [
         "Navigation",
@@ -6202,7 +6202,7 @@
         "gallery": true
       },
       "sourceOfTruth": "spec/components.json#FilterTabs",
-      "searchText": "filtertabs navigation general-ui stable navigation default active disabled change update:modelvalue supportsconfiguration scrollable filter tablist ({value,label,badge?}) with a v-model active value and a change event. 可横滚筛选标签（{value,label,badge?}）—— v-model 绑定当前值 + change 事件。"
+      "searchText": "filtertabs navigation general-ui stable navigation default active disabled change update:modelvalue supportsconfiguration scrollable filter tablist ({value,label,badge?,badgemore?}) with a v-model active value and a change event. a badge reads 99+ above 99 or with badgemore (spec/count-badge-vectors.json). 可横滚筛选标签（{value,label,badge?,badgemore?}）—— v-model 绑定当前值 + change 事件。角标超过 99 或 badgemore 时写 99+（spec/count-badge-vectors.json）。"
     },
     {
       "name": "ContactList",

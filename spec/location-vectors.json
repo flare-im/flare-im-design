@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite, out of range (latitude -90..90, longitude -180..180) or exactly 0, 0 (the wire writes an absent coordinate as 0, 0, and the SDK never sends it): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate, 0, 0 included. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees. `providerFrom` is flareLocationProviderFrom: a `chat.location` config value as a provider — the string amap (trimmed, any case) is amap, anything else (osm, an unknown name, blank, null, not a string) is osm. `webMapUrl` is flareLocationWebMapUrl: the web map a host opens for a location message — `input` is the message's content (the title is its name; its provider is osm when it names none) and `provider`, when the row has one, the argument that wins over the content's; the `web` link of `links` for that provider, or null when the content has no coordinate: one of the pair missing, out of range, or exactly 0, 0 (the wire writes an absent coordinate as 0, 0). `cardLines` is flareLocationCardLines: the lines a LocationMessage draws under its map, by locale. The title and the address are trimmed; a title with an address reads title / address; a title alone reads title / the coordinate label; an address alone moves up and the coordinate label goes under it; neither reads the coordinate label alone, and without a valid coordinate the localized word for a location (zh-CN 位置, en-US Location). A missing coordinate label drops its line; a line is never blank. `cardMap` is the card's map area in logical units (CSS px, dp, pt); the social SDK asks for the card's static map at twice it (528×264).",
+  "note": "Shared location rules for the four kits. `links` is the default place a LocationMessage opens when the host takes no `open`: `web` (Vue and the Flutter web/desktop target) by `provider` (osm when omitted), `apple` (SwiftUI, and Flutter on iOS and macOS) and `geo` (Compose, and Flutter on Android); `flutterTargets` maps Flutter's TargetPlatform to the column it uses (kIsWeb uses web). All three are null when a coordinate is not finite, out of range (latitude -90..90, longitude -180..180) or exactly 0, 0 (the wire writes an absent coordinate as 0, 0, and the SDK never sends it): the card then opens nothing. Coordinates are WGS-84 as stored in the message; Amap is told so (coordinate=wgs84). `coordinateFormat`: each number fixed to 6 decimals, then trailing zeros and a trailing point dropped, and a negative zero written 0. `titleEncoding`: the title is trimmed (blank = no title) and percent-encoded as UTF-8 bytes, every byte except A-Z a-z 0-9 - . _ ~ written %XX in capitals (space is %20, never +). Without a title the Amap link has no name, the Apple link's q is the coordinate pair and the geo link has no parenthesised label. `label` is the coordinate line the picker and the card show when there is no map: each number fixed to 5 decimals (a negative zero written 0.00000), joined by \", \"; null for an invalid coordinate, 0, 0 included. `distance` is a POI row's distance: metres rounded half up below 1000, else kilometres fixed to 1 decimal; null for a missing, negative or non-finite value. `previewSize` is what LocationPicker passes to previewUrl: the map area's logical width and height times the screen scale clamped to 1..2, each rounded half up — device pixels on every platform (Compose converts dp with the density, never passes dp). Inputs avoid exact rounding ties so every platform's formatter agrees. `providerFrom` is flareLocationProviderFrom: a `chat.location` config value as a provider — the string amap (trimmed, any case) is amap, anything else (osm, an unknown name, blank, null, not a string) is osm. `webMapUrl` is flareLocationWebMapUrl: the web map a host opens for a location message — `input` is the message's content (the title is its name; its provider is osm when it names none) and `provider`, when the row has one, the argument that wins over the content's; the `web` link of `links` for that provider, or null when the content has no coordinate: one of the pair missing, out of range, or exactly 0, 0 (the wire writes an absent coordinate as 0, 0). `cardLines` is flareLocationCardLines: the lines a LocationMessage draws under its map, by locale. The title and the address are trimmed; a title with an address reads title / address; a title alone reads title / the coordinate label; an address alone moves up and the coordinate label goes under it; neither reads the coordinate label alone, and without a valid coordinate the localized word for a location (zh-CN 位置, en-US Location). A missing coordinate label drops its line; a line is never blank. `cardMap` is the card's map area in logical units (CSS px, dp, pt); the social SDK asks for the card's static map at twice it (528×264). placeFrom: a place as the social SDK's geo search hands it (GeoPlace: id, title, address, lat, lng, distanceM) read into the kit's place (Vue flareLocationPlaceFrom, Compose FlareLocationPlace.fromMap / fromJson, SwiftUI FlareLocationPlace(json:), Flutter FlareLocationPlace.fromJson): the coordinate is `lat` / `lng`, or the kit's own `latitude` / `longitude` when those are missing, and only a JSON number counts (not text, not a boolean); a pair that is not a valid coordinate (isValid, so also 0, 0) or a value that is not an object reads as no place (null). id, title and address are trimmed text, \"\" when missing or not text; distanceM is a number not below 0, else none.",
   "coordinateFormat": {
     "decimals": 6,
     "trimTrailingZeros": true,
@@ -791,5 +791,275 @@
   "cardMap": {
     "width": 264,
     "height": 132
-  }
+  },
+  "placeFrom": [
+    {
+      "id": "nearby-row",
+      "input": {
+        "id": "amap:B000A8UIN8",
+        "title": "天安门",
+        "address": "东城区东长安街",
+        "lat": 39.9087,
+        "lng": 116.3975,
+        "distanceM": 12
+      },
+      "output": {
+        "id": "amap:B000A8UIN8",
+        "title": "天安门",
+        "address": "东城区东长安街",
+        "latitude": 39.9087,
+        "longitude": 116.3975,
+        "distanceM": 12
+      }
+    },
+    {
+      "id": "keyword-row-without-distance",
+      "input": {
+        "id": "osm:node/1",
+        "title": "Sydney Opera House",
+        "address": "Bennelong Point",
+        "lat": -33.8568,
+        "lng": 151.2153
+      },
+      "output": {
+        "id": "osm:node/1",
+        "title": "Sydney Opera House",
+        "address": "Bennelong Point",
+        "latitude": -33.8568,
+        "longitude": 151.2153,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "text-trimmed",
+      "input": {
+        "id": " geo:1,2 ",
+        "title": "  天安门 ",
+        "address": "\n东长安街 ",
+        "lat": 1,
+        "lng": 2
+      },
+      "output": {
+        "id": "geo:1,2",
+        "title": "天安门",
+        "address": "东长安街",
+        "latitude": 1,
+        "longitude": 2,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "whole-number-coordinate",
+      "input": {
+        "id": "geo:40,116",
+        "title": "A",
+        "address": "",
+        "lat": 40,
+        "lng": 116,
+        "distanceM": 0
+      },
+      "output": {
+        "id": "geo:40,116",
+        "title": "A",
+        "address": "",
+        "latitude": 40,
+        "longitude": 116,
+        "distanceM": 0
+      }
+    },
+    {
+      "id": "kit-field-names",
+      "input": {
+        "id": "current",
+        "title": "我的位置",
+        "address": "",
+        "latitude": 31.2304,
+        "longitude": 121.4737
+      },
+      "output": {
+        "id": "current",
+        "title": "我的位置",
+        "address": "",
+        "latitude": 31.2304,
+        "longitude": 121.4737,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "wire-names-first",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 10,
+        "lng": 20,
+        "latitude": 30,
+        "longitude": 40
+      },
+      "output": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "latitude": 10,
+        "longitude": 20,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "text-fields-missing",
+      "input": {
+        "lat": 39.9087,
+        "lng": 116.3975
+      },
+      "output": {
+        "id": "",
+        "title": "",
+        "address": "",
+        "latitude": 39.9087,
+        "longitude": 116.3975,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "text-fields-not-text",
+      "input": {
+        "id": 7,
+        "title": null,
+        "address": [
+          "a"
+        ],
+        "lat": 39.9087,
+        "lng": 116.3975
+      },
+      "output": {
+        "id": "",
+        "title": "",
+        "address": "",
+        "latitude": 39.9087,
+        "longitude": 116.3975,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "distance-negative",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 1,
+        "lng": 2,
+        "distanceM": -5
+      },
+      "output": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "latitude": 1,
+        "longitude": 2,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "distance-as-text",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 1,
+        "lng": 2,
+        "distanceM": "12"
+      },
+      "output": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "latitude": 1,
+        "longitude": 2,
+        "distanceM": null
+      }
+    },
+    {
+      "id": "latitude-missing",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lng": 116.3975
+      },
+      "output": null
+    },
+    {
+      "id": "coordinate-as-text",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": "39.9087",
+        "lng": "116.3975"
+      },
+      "output": null
+    },
+    {
+      "id": "coordinate-as-boolean",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": true,
+        "lng": true
+      },
+      "output": null
+    },
+    {
+      "id": "zero-zero",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 0,
+        "lng": 0
+      },
+      "output": null
+    },
+    {
+      "id": "latitude-out-of-range",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 91,
+        "lng": 116.3975
+      },
+      "output": null
+    },
+    {
+      "id": "longitude-out-of-range",
+      "input": {
+        "id": "x",
+        "title": "x",
+        "address": "",
+        "lat": 39.9,
+        "lng": -180.5
+      },
+      "output": null
+    },
+    {
+      "id": "null",
+      "input": null,
+      "output": null
+    },
+    {
+      "id": "text",
+      "input": "天安门",
+      "output": null
+    },
+    {
+      "id": "list",
+      "input": [
+        39.9087,
+        116.3975
+      ],
+      "output": null
+    }
+  ]
 }

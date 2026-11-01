@@ -1,4 +1,4 @@
-import { flareDisplayNameFrom, type FlareDisplayName, type FlareDisplayNameEntity } from "../shared/contracts/display-name";
+import { flareDisplayNameFrom, flareIdTail, type FlareDisplayName, type FlareDisplayNameEntity } from "../shared/contracts/display-name";
 import { resolveFlareMessage, translateFlare, type FlareLocale } from "../shared/i18n/messages";
 
 /**
@@ -48,4 +48,32 @@ export function flareDisplayNameText(value: FlareDisplayName, strings?: FlareDis
       return name.idTail ? t("displayName.user", { idTail: name.idTail }) : t("displayName.unknownUser");
     }
   }
+}
+
+/** Who a quote says it quotes: the projected name when the quote carries one, a name, and the sender's id. */
+export interface FlareQuoteSender {
+  /** The core's projected name for the quoted message's sender (a `FlareDisplayName` on the wire), when there is one. */
+  sender?: unknown;
+  /** A name the host already holds for the sender. */
+  senderName?: string | null;
+  /** The quoted message's sender id. */
+  senderId?: string | null;
+}
+
+/**
+ * The sender a quote shows (spec/display-name-vectors.json `quoteSender`, the same on all four kits), never blank and
+ * never an id: the projected `sender` written by {@link flareDisplayNameText} when the quote carries one; else
+ * `senderName`, trimmed, when it is not blank; else the unnamed person of `senderId` — 「用户 9876」 with the tail of the
+ * id (`flareIdTail`), 「未知用户」 without one. A projected sender that writes as blank text falls through the same way.
+ * The message list's quote reads the three from the quote's `quotedSender`, `quotedSenderName` and `quotedSenderId`.
+ */
+export function flareQuoteSenderText(quote: FlareQuoteSender, strings?: FlareDisplayNameStrings): string {
+  if (quote.sender !== undefined && quote.sender !== null) {
+    const projected = flareDisplayNameText(quote.sender as FlareDisplayName, strings).trim();
+    if (projected) return projected;
+  }
+  const name = typeof quote.senderName === "string" ? quote.senderName.trim() : "";
+  if (name) return name;
+  const idTail = flareIdTail(typeof quote.senderId === "string" ? quote.senderId : "");
+  return flareDisplayNameText({ kind: "unnamed", entity: "person", idTail }, strings);
 }

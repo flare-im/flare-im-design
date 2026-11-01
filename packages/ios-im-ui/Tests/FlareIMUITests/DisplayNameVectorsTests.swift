@@ -104,6 +104,30 @@ final class DisplayNameVectorsTests: XCTestCase {
         XCTAssertEqual(FlareDisplayName(json: "Alice"), .unnamed(entity: .person), "text is not a name the SDK projected")
     }
 
+    func testQuoteSendersReadAsTheSharedTableSaysInBothLanguages() throws {
+        struct Quotes: Decodable {
+            struct Case: Decodable {
+                let id: String
+                let sender: FlareDisplayName?
+                let senderName: String?
+                let senderId: String?
+                let text: [String: String]
+            }
+            let quoteSender: [Case]
+        }
+        var root = URL(fileURLWithPath: #filePath).resolvingSymlinksInPath()
+        for _ in 0..<5 { root.deleteLastPathComponent() }
+        let rows = try JSONDecoder().decode(
+            Quotes.self, from: Data(contentsOf: root.appendingPathComponent("spec/display-name-vectors.json"))).quoteSender
+        XCTAssertGreaterThanOrEqual(rows.count, 14, "the shared table lost cases")
+        for row in rows {
+            let target = FlareReplyTarget(senderName: row.senderName ?? "", summary: "上一条消息", senderId: row.senderId,
+                                          sender: row.sender)
+            XCTAssertEqual(flareQuoteSenderText(target, strings: FlareStrings()), row.text["zh-CN"], "\(row.id) zh-CN")
+            XCTAssertEqual(flareQuoteSenderText(target, strings: .english), row.text["en-US"], "\(row.id) en-US")
+        }
+    }
+
     func testAHostsOwnWordsWin() {
         var strings = FlareStrings()
         strings.displayNameUser = { "访客 \($0)" }

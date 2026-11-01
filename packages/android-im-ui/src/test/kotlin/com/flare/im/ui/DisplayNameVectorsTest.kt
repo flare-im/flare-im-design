@@ -58,6 +58,23 @@ class DisplayNameVectorsTest {
         assertEquals(unknownUser, FlareDisplayName.fromJson("[1, 2]"))
     }
 
+    @Test fun quoteSendersReadAsTheSharedTableSaysInBothLanguages() {
+        val rows = table.items("quoteSender")
+        assertTrue(rows.size >= 14, "the shared table lost cases: ${rows.size}")
+        for (row in rows) {
+            val id = row.str("id")!!
+            val target = FlareReplyTarget(
+                senderName = row.str("senderName").orEmpty(),
+                summary = "上一条消息",
+                senderId = row.str("senderId"),
+                sender = row.obj("sender")?.let(FlareDisplayName::fromMap),
+            )
+            val text = row["text"] as Map<*, *>
+            assertEquals(text["zh-CN"], flareQuoteSenderText(target, FlareStrings()), "$id zh-CN")
+            assertEquals(text["en-US"], flareQuoteSenderText(target, flareStringsEnglish()), "$id en-US")
+        }
+    }
+
     @Test fun aHostsOwnWordsWin() {
         val strings = FlareStrings { displayNameUser = { "访客 $it" } }
         assertEquals("访客 9876", flareDisplayNameText(FlareDisplayName.Unnamed(FlareDisplayNameEntity.Person, "9876"), strings))

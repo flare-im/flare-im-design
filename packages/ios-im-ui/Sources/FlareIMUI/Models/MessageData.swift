@@ -10,8 +10,15 @@ public struct FlareReplyTarget: Equatable, Sendable {
     public let senderName: String
     public let summary: String
     public let messageId: String?
-    public init(senderName: String, summary: String, messageId: String? = nil) {
+    /// The quoted message's sender id: with no name, the quote reads 「用户 9876」 by its tail
+    /// (``flareQuoteSenderText(_:strings:)``).
+    public let senderId: String?
+    /// The core's projected name for the quoted message's sender; written before `senderName` when given.
+    public let sender: FlareDisplayName?
+    public init(senderName: String, summary: String, messageId: String? = nil, senderId: String? = nil,
+                sender: FlareDisplayName? = nil) {
         self.senderName = senderName; self.summary = summary; self.messageId = messageId
+        self.senderId = senderId; self.sender = sender
     }
 }
 

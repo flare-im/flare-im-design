@@ -6,6 +6,15 @@
 
 ### 设计系统与跨端组件
 
+- **计数角标能表达「还有更多」**（契约与四端 Kit）。
+  - 导航的计数角标新增 `more`，筛选标签新增 `badgeMore`，缺省都为 false（Vue `FlareNavigationBadge.more`，Compose 与 SwiftUI `FlareApplicationNavigationBadge.more`，Flutter `FlareNavigationBadge.more`；四端 `FlareFilterTabOption.badgeMore`）；Vue 设置行新增 `FlareSettingsItem.badgeMore`。
+  - `flareCountBadgeText(count, more)`：`more` 或超过 99 时写 99+，否则写数字；`flareCountBadgeDrawn(count, more)`：数字大于 0 或 `more`。筛选标签的角标超过 99 时也写 99+（原来写原数，100 及以上照写）；Vue 的筛选标签与设置行不再画 0 以下的数。宿主仍在 `more` 时交一个大于 99 的数的，照样显示 99+。
+  - `spec/count-badge-vectors.json` 收录 14 例，四端都跑，Vue 另在三个组件上逐例核对。
+- **引用不再显示发送者的 id**（契约与四端 Kit）。
+  - `flareQuoteSenderText`：引用带投影名字时写它，否则写名字，再否则写 id 对应的无名的人：「用户 9876」/ "User 9876"，没有 id 时「未知用户」/ "Unknown user"。原来 Vue 没有名字时显示 `quotedSenderId`，三个原生端不画发送者一行。
+  - Vue 读引用的 `quotedSender`（`FlareDisplayName`）、`quotedSenderName`、`quotedSenderId`；原生 `FlareReplyTarget` 新增可选的 `senderId` 与 `sender`，气泡里的引用与输入框上方的回复条都读它们，Kit 自己的回复目标构造函数会填 `senderId`。
+  - `spec/display-name-vectors.json` 新增 `quoteSender` 组 14 例，中英两种语言，四端都跑，Vue 另在 `QuoteView` 上逐例核对。
+- **四端都能直接读社交 SDK 的地点**：Vue `flareLocationPlaceFrom`，Compose `FlareLocationPlace.fromMap` / `fromJson`，SwiftUI `FlareLocationPlace(json:)`，Flutter `FlareLocationPlace.fromJson` 读 `GeoPlace` 的一行（`lat` / `lng`，或 `latitude` / `longitude`），坐标不合法时为空；`spec/location-vectors.json` 新增 `placeFrom` 组 19 例。
 - **消息列表能往新翻页、能回到最新**（契约与四端 Kit）。
   - 四端消息列表新增 `hasNewer`、`loadingNewer`、`newerError` 与两个意图：往新加载（Vue `load-newer`，原生 `onLoadNewer`）、回到最新（Vue `jump-to-latest`，原生 `onJumpToLatest`）。全部缺省为关：一个都不传的列表不画往新的一端、从不请求往新，浮动键只有原来的新消息键。
   - 脱离最新的窗口（`hasNewer`，即围绕某条消息打开的窗口）在时间线下方画往新的一端，规则与往旧一端相同：加载中只显示转圈，否则显示错误与加载或重试按钮。它显示不带计数的 `ScrollToLatest`，点了发出回到最新；宿主换上的最新窗口打开在最新一条。往这个窗口里读进更新的一页时，读者留在正在读的行上，即使这一页以自己的消息结尾。

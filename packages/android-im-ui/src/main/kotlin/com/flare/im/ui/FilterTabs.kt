@@ -35,8 +35,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** One option in a [FilterTabs] row. */
-data class FlareFilterTabOption(val value: String, val label: String, val badge: Int? = null)
+/**
+ * One option in a [FilterTabs] row. [badge] is drawn when it is above 0 or [badgeMore] says there are more than it (the
+ * server had more than it counted), and reads 99+ above 99 or with [badgeMore] (`spec/count-badge-vectors.json`).
+ */
+data class FlareFilterTabOption(val value: String, val label: String, val badge: Int? = null, val badgeMore: Boolean = false)
 
 /**
  * A horizontal, scrollable tablist for filtering (conversations, search kinds…).
@@ -102,8 +105,7 @@ fun FilterTabs(
                         fontSize = FlareSizes.fontSizeMd.value.sp,
                         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
                     )
-                    val badge = option.badge
-                    if (badge != null && badge > 0) {
+                    if (flareCountBadgeDrawn(option.badge, option.badgeMore)) {
                         Spacer(Modifier.width(FlareSizes.spacingXs))
                         Box(
                             modifier = Modifier
@@ -115,7 +117,7 @@ fun FilterTabs(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                badge.toString(),
+                                flareCountBadgeText(option.badge, option.badgeMore),
                                 color = Color.White,
                                 fontSize = FlareSizes.fontSizeXs.value.sp,
                                 fontWeight = FontWeight.SemiBold,

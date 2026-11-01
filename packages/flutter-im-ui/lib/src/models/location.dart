@@ -82,6 +82,47 @@ class FlareLocationPlace {
   @override
   String toString() =>
       'FlareLocationPlace($id, $title, $latitude, $longitude)';
+
+  /// A place as the social SDK's geo search hands it (`GeoPlace`: `id`,
+  /// `title`, `address`, `lat`, `lng`, `distanceM`;
+  /// spec/location-vectors.json `placeFrom`, the same on all four kits). The
+  /// coordinate is `lat` / `lng`, or `latitude` / `longitude` when those are
+  /// missing, and only a number counts (not text, not a boolean); a pair that
+  /// is not a valid coordinate ([isValidFlareLocation], so also 0, 0) or a
+  /// value that is not a map reads as null. The id, title and address are
+  /// trimmed text ("" when missing or not text); [distanceM] is kept when it
+  /// is a number not below 0.
+  static FlareLocationPlace? fromJson(Object? json) {
+    if (json is! Map) return null;
+    double? number(String key) {
+      final value = json[key];
+      if (value is! num) return null;
+      final number = value.toDouble();
+      return number.isFinite ? number : null;
+    }
+
+    String text(String key) {
+      final value = json[key];
+      return value is String ? value.trim() : '';
+    }
+
+    final latitude = number('lat') ?? number('latitude');
+    final longitude = number('lng') ?? number('longitude');
+    if (latitude == null ||
+        longitude == null ||
+        !isValidFlareLocation(latitude, longitude)) {
+      return null;
+    }
+    final distance = number('distanceM');
+    return FlareLocationPlace(
+      id: text('id'),
+      title: text('title'),
+      address: text('address'),
+      latitude: latitude,
+      longitude: longitude,
+      distanceM: distance != null && distance >= 0 ? distance : null,
+    );
+  }
 }
 
 /// The id of the picker's first row: the coordinate the device reported.

@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "note": "How the four kits write a count badge: a navigation item's count badge, a filter tab's badge and (Vue) a settings row's badge. A badge takes a count and `more`, which says there are more than the count (the server had more than the one page it counted) and is false when left out. The text is flareCountBadgeText(count, more): 99+ when `more` or when the count is above 99, else the count, with a missing or negative count written 0. A filter tab and a settings row draw their badge only when flareCountBadgeDrawn(count, more): a count above 0, or `more`. A navigation item draws the badge the host hands it. A host that still hands a count above 99 for `more` reads 99+ as before.",
+  "cap": 99,
+  "overflow": "99+",
+  "cases": [
+    {
+      "id": "zero",
+      "count": 0,
+      "more": false,
+      "text": "0",
+      "drawn": false
+    },
+    {
+      "id": "one",
+      "count": 1,
+      "more": false,
+      "text": "1",
+      "drawn": true
+    },
+    {
+      "id": "ninety-nine",
+      "count": 99,
+      "more": false,
+      "text": "99",
+      "drawn": true
+    },
+    {
+      "id": "one-hundred",
+      "count": 100,
+      "more": false,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "thousands",
+      "count": 12345,
+      "more": false,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "negative",
+      "count": -3,
+      "more": false,
+      "text": "0",
+      "drawn": false
+    },
+    {
+      "id": "count-left-out",
+      "text": "0",
+      "drawn": false
+    },
+    {
+      "id": "more-left-out",
+      "count": 7,
+      "text": "7",
+      "drawn": true
+    },
+    {
+      "id": "more-with-a-few",
+      "count": 5,
+      "more": true,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "more-with-ninety-nine",
+      "count": 99,
+      "more": true,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "more-above-the-cap",
+      "count": 120,
+      "more": true,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "more-with-none-counted",
+      "count": 0,
+      "more": true,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "more-without-a-count",
+      "more": true,
+      "text": "99+",
+      "drawn": true
+    },
+    {
+      "id": "stand-in-above-the-cap-for-more",
+      "count": 100,
+      "text": "99+",
+      "drawn": true
+    }
+  ]
+}

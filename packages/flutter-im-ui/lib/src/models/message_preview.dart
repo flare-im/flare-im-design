@@ -216,6 +216,7 @@ FlareReplyTarget flareReplyTargetFor(
     senderName: message.senderName,
     summary: summary.isEmpty ? strings.previewMessage : summary,
     messageId: coreId.isEmpty ? message.id : coreId,
+    senderId: message.senderId,
   );
 }
 

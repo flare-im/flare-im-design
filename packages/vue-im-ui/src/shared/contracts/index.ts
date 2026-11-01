@@ -12,6 +12,7 @@ export type {
 } from "./call";
 export { flareCallRecordStatus, flareCallRecordTone, flareCallRecordAction, flareCallDurationLabel } from "./call";
 export * from "./application";
+export { flareCountBadgeDrawn, flareCountBadgeText } from "./count-badge";
 export type {
   FlareConversationRowModel,
   FlareConversationListSection,
@@ -361,6 +362,7 @@ export {
   formatFlareLocationCoordinate,
   encodeFlareLocationTitle,
   flareLocationMapLinks,
+  flareLocationPlaceFrom,
   flareLocationProviderFrom,
   flareLocationWebMapUrl,
   flareLocationCoordinateLabel,

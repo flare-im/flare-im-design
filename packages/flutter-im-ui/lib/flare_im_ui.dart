@@ -19,6 +19,7 @@ export 'src/models/workspace_layout.dart';
 export 'src/models/message_content.dart';
 export 'src/models/location.dart';
 export 'src/models/display_name.dart';
+export 'src/models/count_badge.dart';
 export 'src/models/contact_picker.dart';
 export 'src/models/invite_data.dart';
 export 'src/models/rich_doc.dart';

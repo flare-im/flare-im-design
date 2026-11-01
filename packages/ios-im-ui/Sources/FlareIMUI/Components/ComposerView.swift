@@ -439,7 +439,7 @@ public struct ComposerView: View {
     private func replyStrip(_ r: FlareReplyTarget, _ colors: FlareColors, _ m: ComposerMetrics) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
-                Text("\(copy.replyLabel) \(r.senderName)").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                Text("\(copy.replyLabel) \(flareQuoteSenderText(r, strings: strings))").font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
                     .foregroundColor(colors.primaryText)
                 Text(r.summary).font(.system(size: FlareSizes.fontSizeSm))
                     .foregroundColor(colors.textSecondary).lineLimit(1)

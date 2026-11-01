@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/count_badge.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Visual treatment for a filter row. [quiet] is the persistent inbox style:
@@ -12,11 +13,17 @@ class FlareFilterTabOption {
     required this.value,
     required this.label,
     this.badge,
+    this.badgeMore = false,
   });
 
   final String value;
   final String label;
+
+  /// Drawn when it is above 0 or [badgeMore] says there are more than it (the
+  /// server had more than it counted); reads 99+ above 99 or with [badgeMore]
+  /// (spec/count-badge-vectors.json).
   final int? badge;
+  final bool badgeMore;
 }
 
 /// A horizontal, scrollable tablist for filtering (conversations, search
@@ -141,7 +148,7 @@ class _FilterTab extends StatelessWidget {
               height: 1.2,
             ),
           ),
-          if (option.badge != null && option.badge! > 0) ...[
+          if (flareCountBadgeDrawn(option.badge, more: option.badgeMore)) ...[
             const SizedBox(width: 6),
             Container(
               constraints: const BoxConstraints(minWidth: 16),
@@ -153,7 +160,7 @@ class _FilterTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
               ),
               child: Text(
-                '${option.badge}',
+                flareCountBadgeText(option.badge, more: option.badgeMore),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: FlareSizes.fontSizeXs,

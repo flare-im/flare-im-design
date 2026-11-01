@@ -80,8 +80,10 @@ export interface FlareSettingsItem {
   kind?: FlareSettingKind;
   value?: boolean;
   detail?: string;
-  /** Optional red count badge (e.g. pending friend requests) on a navigation row. */
+  /** Optional red count badge (e.g. pending friend requests) on a navigation row; 99+ above 99. */
   badge?: number;
+  /** There are more than `badge` (the server had more than it counted): the badge reads 99+ (spec/count-badge-vectors.json). */
+  badgeMore?: boolean;
   /**
    * 这一行就是另一栏正在显示的那一项。设置列表被当成导航列用时（左边四个入口、
    * 右边加载对应列表）必须标出来，否则读的人看不出左右的对应关系。

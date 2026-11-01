@@ -139,7 +139,8 @@ class MessageQuoteInteractionTest {
                 onLocateMessage = { located += it },
             )
         } }
-        compose.onNodeWithContentDescription(strings.messageQuoteLabel("", "很早以前的消息")).performClick()
+        // A quote without a name reads the kit's unnamed person, never a blank sender.
+        compose.onNodeWithContentDescription(strings.messageQuoteLabel(strings.displayNameUnknownUser, "很早以前的消息")).performClick()
         compose.runOnIdle { assertEquals(listOf("old"), located) }
     }
 

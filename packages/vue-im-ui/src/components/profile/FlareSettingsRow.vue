@@ -10,6 +10,7 @@ import { NIcon } from "naive-ui";
 import { ChevronForwardOutline } from "../../shared/icon-glyphs";
 import FlareGlyph from "../general/FlareGlyph.vue";
 import type { FlareSettingsItem } from "../../shared/contracts";
+import { flareCountBadgeDrawn, flareCountBadgeText } from "../../shared/contracts/count-badge";
 
 const props = defineProps<{ item: FlareSettingsItem }>();
 const emit = defineEmits<{
@@ -53,7 +54,7 @@ function activate() {
       aria-hidden="true"
     ><span /></span>
     <template v-else>
-      <span v-if="item.badge" class="flare-settings__badge">{{ item.badge > 99 ? "99+" : item.badge }}</span>
+      <span v-if="flareCountBadgeDrawn(item.badge, item.badgeMore)" class="flare-settings__badge">{{ flareCountBadgeText(item.badge, item.badgeMore) }}</span>
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
       <span v-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" /></span>
     </template>

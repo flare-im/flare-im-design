@@ -16,14 +16,17 @@ public enum FlareApplicationViewStatus: String, Sendable {
     case loading, ready, empty, error, offline
 }
 
+/// A navigation item's badge. A `.count` badge reads `count`, or 99+ above 99 or when `more` says there are more than
+/// the count (the server had more than it counted) — ``flareCountBadgeText(count:more:)``, `spec/count-badge-vectors.json`.
 public struct FlareApplicationNavigationBadge: Sendable, Equatable {
     public enum Kind: String, Sendable { case dot, count, mention }
     public var kind: Kind
     public var count: Int
     public var label: String?
+    public var more: Bool
 
-    public init(kind: Kind = .count, count: Int = 0, label: String? = nil) {
-        self.kind = kind; self.count = count; self.label = label
+    public init(kind: Kind = .count, count: Int = 0, label: String? = nil, more: Bool = false) {
+        self.kind = kind; self.count = count; self.label = label; self.more = more
     }
 }
 
@@ -372,7 +375,7 @@ public struct AdaptiveNavigationView: View {
         switch badge.kind {
         case .dot: return ""
         case .mention: return badge.label ?? "@"
-        case .count: return badge.count > 99 ? "99+" : "\(max(0, badge.count))"
+        case .count: return flareCountBadgeText(count: badge.count, more: badge.more)
         }
     }
 

@@ -41,6 +41,30 @@ data class FlareLocationPlace(
     companion object {
         /** The id of the picker's first row, the user's own position. */
         const val CURRENT_ID = "current"
+
+        /**
+         * A place as the social SDK's geo search hands it (`GeoPlace`: `id`, `title`, `address`, `lat`, `lng`,
+         * `distanceM`; `spec/location-vectors.json` placeFrom, the same on all four kits). The coordinate is `lat` /
+         * `lng`, or `latitude` / `longitude` when those are missing, and only a number counts; a pair that is not a
+         * valid coordinate ([FlareLocationFormat.isValid], so also 0, 0) reads as null. The id, title and address are
+         * trimmed text ("" when missing or not text); [distanceM] is kept when it is a number not below 0.
+         */
+        fun fromMap(map: Map<*, *>): FlareLocationPlace? {
+            fun number(key: String): Double? = (map[key] as? Number)?.toDouble()?.takeIf { it.isFinite() }
+            fun text(key: String): String = (map[key] as? String)?.trim().orEmpty()
+            val latitude = number("lat") ?: number("latitude")
+            val longitude = number("lng") ?: number("longitude")
+            if (!FlareLocationFormat.isValid(latitude, longitude)) return null
+            return FlareLocationPlace(
+                id = text("id"), title = text("title"), address = text("address"),
+                latitude = latitude!!, longitude = longitude!!,
+                distanceM = number("distanceM")?.takeIf { it >= 0 },
+            )
+        }
+
+        /** Reads a place's JSON as [fromMap] does; malformed JSON or a value that is not an object reads as null. */
+        fun fromJson(json: String): FlareLocationPlace? =
+            (runCatching { FlareJson.parse(json) }.getOrNull() as? Map<*, *>)?.let(::fromMap)
     }
 }
 

@@ -98,6 +98,7 @@ fun flareReplyTarget(message: FlareMessageData, strings: FlareStrings, locale: S
     senderName = message.senderName,
     summary = flareMessageReplySummary(message.content, strings, locale),
     messageId = message.serverId ?: message.id,
+    senderId = message.senderId,
 )
 
 /**

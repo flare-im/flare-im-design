@@ -71,6 +71,12 @@
 
 其余参数：`initialLocation`（上次位置，立即显示）、`zoom`（默认 16）、`locateTimeoutMs`（默认 5000）、`sending`（宿主发送中：发送键转圈并禁用，防止重复发送）。
 
+`searchNearby` 的结果直接用社交 SDK 的行：Vue `flareLocationPlaceFrom(row)`、Compose `FlareLocationPlace.fromMap(map)` / `fromJson(json)`、SwiftUI `FlareLocationPlace(json: row)`、Flutter `FlareLocationPlace.fromJson(row)` 把 `geo.searchNearby` 的一行（`GeoPlace`：`id`、`title`、`address`、`lat`、`lng`、`distanceM`）读成 `LocationPlace`，四端同一条规则（vectors → `placeFrom`）：
+
+- 坐标取 `lat` / `lng`，缺了再取 `latitude` / `longitude`（Kit 自己的字段名，例如宿主存下的上次位置），只认 JSON 数字，不认文字和布尔值；
+- 坐标不合法（`isValidFlareLocation` / `FlareLocationFormat.isValid`，含 0, 0）或不是对象时为空，宿主丢掉这一行；
+- `id`、`title`、`address` 去首尾空白，缺了或不是文字时为空串；`distanceM` 是不小于 0 的数字时保留，否则没有。
+
 Web 与 Tauri 不用自己写定位适配：Vue 的 `createFlareBrowserLocationHost()`（`@flare-im/vue-ui/utils`）给出 `ensurePermission` 和 `requestCurrentLocation` 两个回调，直接传给 `FlareLocationPicker`。
 
 - `ensurePermission`：先查 Permissions API（granted 为 true，denied 为 false）；结果为 prompt 或浏览器答不上来时，发起一次定位请求弹出浏览器的授权框，只有拒绝算 false，拿到定位、超时或定位不可用都算 true。没有安全上下文（非 HTTPS）或没有 `navigator.geolocation` 时直接为 false，组件进入 `denied`、转手动搜索。

@@ -8,6 +8,7 @@ import {
   flareLocationCoordinateLabel,
   flareLocationDistanceLabel,
   flareLocationMapLinks,
+  flareLocationPlaceFrom,
   flareLocationPreviewSize,
   flareLocationProviderFrom,
   flareLocationWebMapUrl,
@@ -48,6 +49,7 @@ const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/
   previewSize: PreviewSizeVector[];
   providerFrom: ProviderFromVector[];
   webMapUrl: WebMapUrlVector[];
+  placeFrom: Array<{ id: string; input: unknown; output: Record<string, unknown> | null }>;
 };
 
 describe("location vectors (spec/location-vectors.json)", () => {
@@ -72,6 +74,18 @@ describe("location vectors (spec/location-vectors.json)", () => {
 
   it.each(vectors.providerFrom.map((v) => [v.id, v] as const))("providerFrom: %s", (_, v) => {
     expect(flareLocationProviderFrom(v.input)).toBe(v.output);
+  });
+
+  it.each(vectors.placeFrom.map((v) => [v.id, v] as const))("placeFrom: %s", (_, v) => {
+    const place = flareLocationPlaceFrom(v.input);
+    // The table writes a place without a distance as distanceM null; the kit's place leaves the field out.
+    expect(place === null ? null : { ...place, distanceM: place.distanceM ?? null }).toEqual(v.output);
+  });
+
+  it("reads no place from a coordinate the JSON cannot carry", () => {
+    expect(flareLocationPlaceFrom({ id: "x", title: "x", address: "", lat: Number.NaN, lng: 116 })).toBeNull();
+    expect(flareLocationPlaceFrom({ id: "x", title: "x", address: "", lat: 39.9, lng: Number.POSITIVE_INFINITY })).toBeNull();
+    expect(flareLocationPlaceFrom({ id: "x", title: "x", address: "", lat: 1, lng: 2, distanceM: Number.NaN })?.distanceM).toBeUndefined();
   });
 
   it.each(vectors.webMapUrl.map((v) => [v.id, v] as const))("webMapUrl: %s", (_, v) => {

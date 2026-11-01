@@ -173,7 +173,8 @@ public extension FlareReplyTarget {
         self.init(
             senderName: message.senderName,
             summary: summary.isEmpty ? strings.previewMessage : summary,
-            messageId: quotedId.isEmpty ? nil : quotedId
+            messageId: quotedId.isEmpty ? nil : quotedId,
+            senderId: message.senderId
         )
     }
 }

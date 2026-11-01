@@ -82,6 +82,51 @@ void main() {
       });
     }
 
+    test('placeFrom keeps its cases', () {
+      expect(_rows('placeFrom').length, greaterThanOrEqualTo(19));
+    });
+
+    for (final row in _rows('placeFrom')) {
+      test('placeFrom: ${row['id']}', () {
+        final output = row['output'] as Map<String, dynamic>?;
+        final place = FlareLocationPlace.fromJson(row['input']);
+        if (output == null) {
+          expect(place, isNull);
+          return;
+        }
+        expect(
+          place,
+          FlareLocationPlace(
+            id: output['id'] as String,
+            title: output['title'] as String,
+            address: output['address'] as String,
+            latitude: (output['latitude'] as num).toDouble(),
+            longitude: (output['longitude'] as num).toDouble(),
+            distanceM: (output['distanceM'] as num?)?.toDouble(),
+          ),
+        );
+      });
+    }
+
+    test('placeFrom reads no place from a number JSON cannot carry', () {
+      expect(
+        FlareLocationPlace.fromJson({'lat': double.nan, 'lng': 116.0}),
+        isNull,
+      );
+      expect(
+        FlareLocationPlace.fromJson({'lat': 39.9, 'lng': double.infinity}),
+        isNull,
+      );
+      expect(
+        FlareLocationPlace.fromJson({
+          'lat': 1,
+          'lng': 2,
+          'distanceM': double.nan,
+        })?.distanceM,
+        isNull,
+      );
+    });
+
     for (final row in _rows('webMapUrl')) {
       test('webMapUrl: ${row['id']}', () {
         final input = row['input'] as Map<String, dynamic>;

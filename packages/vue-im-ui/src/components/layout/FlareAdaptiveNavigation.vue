@@ -13,6 +13,7 @@ import FlareAvatar from "../conversation/FlareAvatar.vue";
 import FlareGlyph from "../general/FlareGlyph.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { safeNavigationHref } from "../../shared/contracts/url-safety";
+import { flareCountBadgeText } from "../../shared/contracts/count-badge";
 
 const props = withDefaults(defineProps<{
   groups: readonly FlareNavigationGroup[];
@@ -75,8 +76,7 @@ function badgeText(item: FlareNavigationItem): string {
   if (!item.badge) return "";
   if (item.badge.kind === "dot") return "";
   if (item.badge.kind === "mention") return item.badge.label ?? "@";
-  const count = Math.max(0, item.badge.count ?? 0);
-  return count > 99 ? "99+" : String(count);
+  return flareCountBadgeText(item.badge.count, item.badge.more);
 }
 
 function badgeLabel(item: FlareNavigationItem): string | undefined {

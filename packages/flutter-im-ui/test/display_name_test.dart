@@ -43,6 +43,27 @@ void main() {
     }
   });
 
+  group('quoteSender', () {
+    test('the shared table keeps its cases', () {
+      expect(_rows('quoteSender').length, greaterThanOrEqualTo(14));
+    });
+    for (final row in _rows('quoteSender')) {
+      test('${row['id']}', () {
+        final target = FlareReplyTarget(
+          senderName: row['senderName'] as String? ?? '',
+          summary: '上一条消息',
+          senderId: row['senderId'] as String?,
+          sender: row.containsKey('sender')
+              ? FlareDisplayName.fromJson(row['sender'])
+              : null,
+        );
+        final text = row['text'] as Map<String, dynamic>;
+        expect(flareQuoteSenderText(target, const FlareStrings()), text['zh-CN']);
+        expect(flareQuoteSenderText(target, flareStringsEnglish), text['en-US']);
+      });
+    }
+  });
+
   test('reads what is not a name it knows, never failing', () {
     const unknownUser = FlareUnnamedDisplayName(FlareDisplayNameEntity.person);
     for (final value in [

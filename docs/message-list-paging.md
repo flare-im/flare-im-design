@@ -98,16 +98,70 @@
 
 结局是 `shown` / `notInHistory` / `cancelled`。列表自己滚到这一行并标记（`spec/locate-highlight-vectors.json`）；只有 `notInHistory` 需要宿主说一句话，措辞由宿主决定。`anchor.seq` 原样交给宿主，核心找不到本地行时用它。
 
-## 宿主接线
+## 宿主接线：核心时间线视图
+
+列表的输入都来自核心时间线视图（`view.timeline.*`，社交包的 `views` 门面原样转发）。视图的 wire 如下，字段都是 camelCase：
+
+| op | 请求 | 返回 |
+| --- | --- | --- |
+| `view.timeline.open` | `{ conversationId, messageLimit?, anchor?: { messageId?, seq? } }` | `{ viewId, revision, snapshot }` |
+| `view.timeline.load_older` | `{ viewId, messageLimit? }` | `{ viewId, loadedCount, revision }` |
+| `view.timeline.load_newer` | `{ viewId, messageLimit? }` | `{ viewId, loadedCount, revision }` |
+| `view.timeline.jump_to_latest` | `{ viewId }` | `{ viewId, loadedCount, revision }` |
+| `view.timeline.snapshot` | `{ viewId }` | `{ viewId, revision, snapshot }` |
+| `view.close` | `{ viewId }` | — |
+
+- 不带 `anchor` 的 `open` 是最新窗口；带 `anchor` 时围绕那条消息打开，`messageId` 是服务端 id 或客户端 id，本地找不到时用 `seq`，两者都找不到时失败为 `sdk.view.anchor_not_found`。`messageLimit` 不传，用核心默认的 40。
+- `snapshot` 是 `{ viewType: "timeline", data }`，`data` 为 `{ conversation, messages, hasOlder, hasNewer, attachedToLatest, anchorKey? }`。`messages` 按时间线顺序排列，`anchorKey` 只在围绕某条消息打开时出现，是目标行的行键。
+- 三个翻页 op 不返回行：返回值只说这一页在哪个版本里（`revision`）、读进了几行（`loadedCount`；回到最新时是新窗口的行数）。行本身只经 `view.updated` 事件推出。视图已关闭时三者静默返回 `{ loadedCount: 0, revision: 0 }`。
+
+**`view.updated`**：`{ viewId, revision, kind, snapshot?, delta? }`，`revision` 在同一视图里严格递增。
+
+- `kind: "snapshot"`：整体替换窗口，见于回到最新、核心判断增量不划算、行全部换掉或行键重复时。
+- `kind: "delta"`：`delta` 为 `{ viewType: "timeline", prepend, append, upsert, remove, reorder?, hasOlder, hasNewer, attachedToLatest, conversation? }`。四个数组总在；`remove` 是行键；`reorder` 只在前四步表达不了顺序时给，列出全部行键；`conversation` 只在会话摘要变了时带。
+
+**应用规则**（`flare-im-core-client-sdk/sdk-spec/golden/view/timeline-delta.json`，各端应用器读同一份）：
+
+1. `revision` 不大于已应用的版本：丢弃（`stale`），这是快照返回之前就在路上的旧事件。
+2. `revision` 不是已应用版本加 1：不应用，调 `view.timeline.snapshot` 取当前快照整体替换（`snapshotRequired`）。
+3. 否则依次：删掉 `remove` 里的行；`upsert` 按行键原位替换；`prepend` 放最前、`append` 放最后（都已按时间线顺序）；`reorder` 非空时按它重排；最后取三个状态字段，有 `conversation` 时换掉会话摘要。
+
+行键是 `clientMsgId || serverId || "seq:<conversationId>:<conversationSeq>"`（判空不去空白），与 Kit 的 `resolveMessageId` 相同，所以列表的前插保持位置、定位都不用改。增量里通常不带会话 id，应用器自己记着。
+
+**交给列表的值**：
+
+| Kit 输入 / 意图 | 来自视图 |
+| --- | --- |
+| `messages` | 应用器按时间线顺序维护的行 |
+| `hasOlder` / `hasNewer` | 同名状态字段（`hasNewer` 为 false 当且仅当 `attachedToLatest`） |
+| `loadingOlder` / `loadingNewer` | 宿主在调用 `load_older` / `load_newer` 期间置 true，op 返回（或对应 `revision` 的 `view.updated` 应用完）后置 false |
+| `olderError` / `newerError` | op 失败时宿主的本地化文案；失败前已在已证实区间里读到的行会先随事件到达 |
+| 往旧 / 往新 / 回到最新 | `load_older` / `load_newer` / `jump_to_latest`；在脱离最新的窗口里发消息时，核心自己先把窗口换成最新，宿主不用先调 `jump_to_latest` |
+| 定位的 `openAround(anchor)` | 带 `anchor` 的 `open`，返回快照的 `anchorKey`；`anchor_not_found` 或打开失败时返回 null |
+
+翻页返回的 `revision` 大于已应用的版本时，这一页还没有画到列表里。宿主如果要在 await 之后立刻读到这一页（例如定位编排的 `settle`），先调一次 `snapshot` 换上。
 
 ```ts
 import { flareLocateMessageAround } from "@flare-im/vue-ui/utils";
+
+// 打开：应用器从 open 的返回 { viewId, revision, snapshot } 起步，之后每条 view.updated 交给它。
+const opened = await views.open(conversationId);
+const view = TimelineViewState.from(opened);
+views.onViewUpdated(async (update) => {
+  if (update.viewId !== view.viewId) return;
+  if (view.apply(update) === "snapshotRequired") view.replace(await views.snapshot(view.viewId));
+});
 
 // 定位：先问列表，再围绕目标打开，列表滚过去并标记。
 const outcome = await flareLocateMessageAround({
   anchor: { messageId: id, seq },
   showInList: (key) => list.value?.scrollToMessage(key) ?? false,
-  openAround: async (anchor) => (await views.open({ conversationId, anchor })).anchorKey ?? null,
+  openAround: async (anchor) => {
+    const around = await views.open(conversationId, { anchor }).catch(() => null);
+    if (!around) return null;
+    view.replace(around);
+    return around.snapshot.data.anchorKey ?? null;
+  },
   settle: () => nextTick(),
   isCurrent: () => activeConversationId.value === conversationId,
 });
@@ -128,4 +182,4 @@ const outcome = await flareLocateMessageAround({
 />
 ```
 
-原生端同理：把视图状态的 `hasOlder` / `hasNewer` 交给列表，`onLoadOlder` / `onLoadNewer` / `onJumpToLatest` 转给视图的 `load_older` / `load_newer` / `jump_to_latest`，定位时用 `openAround` 调带 `anchor` 的 `open`，把快照里的 `anchorKey` 交回。
+`views` 是社交包的视图门面，`TimelineViewState` 是各端社交包的应用器（各语言按习惯命名），两者都在社交包里，Kit 不依赖它们。原生端同理：把应用器的 `hasOlder` / `hasNewer` 交给列表，`onLoadOlder` / `onLoadNewer` / `onJumpToLatest` 转给视图的 `load_older` / `load_newer` / `jump_to_latest`，定位时用 `openAround` 调带 `anchor` 的 `open`，把快照里的 `anchorKey` 交回。

@@ -5,6 +5,8 @@ export interface FlareFilterTabOption {
   value: string;
   label: string;
   badge?: number;
+  /** There are more than `badge` (the server had more than it counted): the badge reads 99+ (spec/count-badge-vectors.json). */
+  badgeMore?: boolean;
   /** Optional leading icon (any Vue component, e.g. a `@vicons` glyph). */
   icon?: Component;
 }
@@ -13,6 +15,7 @@ export interface FlareFilterTabOption {
 <script setup lang="ts">
 import { computed, type CSSProperties } from "vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { flareCountBadgeDrawn, flareCountBadgeText } from "../../shared/contracts/count-badge";
 
 // Replaces per-app filter rows. Grid mode keeps every option visible in a
 // fixed-width pane instead of introducing horizontal scrolling.
@@ -80,7 +83,7 @@ function select(value: string): void {
     >
       <component :is="option.icon" v-if="option.icon" class="flare-filter-tab__icon" />
       {{ option.label }}
-      <span v-if="option.badge" class="flare-filter-tab__badge">{{ option.badge }}</span>
+      <span v-if="flareCountBadgeDrawn(option.badge, option.badgeMore)" class="flare-filter-tab__badge">{{ flareCountBadgeText(option.badge, option.badgeMore) }}</span>
     </button>
   </div>
 </template>

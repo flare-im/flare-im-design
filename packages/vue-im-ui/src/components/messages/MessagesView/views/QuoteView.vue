@@ -7,6 +7,7 @@ import { pickNestedPayload } from "../../../../utils/contentElem";
 import { readString } from "../../../../utils/contentData";
 import PlainTextEmojiRich from "../../../shared/PlainTextEmojiRich.vue";
 import { useFlareI18nOptional } from "../../../../shared/i18n/useFlareI18n";
+import { flareQuoteSenderText } from "../../../../utils/displayName";
 
 const props = withDefaults(
   defineProps<{ content: ContentElem; isSelf: boolean; messageExtra?: Record<string, unknown> }>(),
@@ -28,8 +29,16 @@ const payload = computed(() => {
 const quotedMessageId = computed(() => readString(payload.value, "quotedMessageId"));
 /** The list says whether a tap would reach the quoted message; on its own, assume it would. */
 const locatable = computed(() => readString(props.messageExtra, "quoteLocatable") !== "0");
+// Never the id: the projected sender, a name the host wrote in, else the kit's unnamed person (spec quoteSender).
 const quotedSender = computed(() =>
-  readString(payload.value, "quotedSenderName", "quotedSenderId"),
+  flareQuoteSenderText(
+    {
+      sender: payload.value.quotedSender,
+      senderName: readString(payload.value, "quotedSenderName"),
+      senderId: readString(payload.value, "quotedSenderId"),
+    },
+    t,
+  ),
 );
 const quotedPreview = computed(() => readString(payload.value, "quotedTextPreview", "preview"));
 const currentText = computed(() => {
@@ -55,12 +64,12 @@ const currentText = computed(() => {
       @click.stop="emit('locate-message', quotedMessageId)"
     >
       <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
-      <span>{{ quotedSender || t("quote.originalMessage") }}</span>
+      <span>{{ quotedSender }}</span>
       <strong>{{ quotedPreview || t("preview.message") }}</strong>
     </button>
     <div v-else class="im-quote__source">
       <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
-      <span>{{ quotedSender || t("quote.originalMessage") }}</span>
+      <span>{{ quotedSender }}</span>
       <strong>{{ quotedPreview || t("preview.message") }}</strong>
     </div>
     <PlainTextEmojiRich class="im-quote__body" :text="currentText" />

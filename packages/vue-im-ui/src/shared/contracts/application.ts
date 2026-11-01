@@ -14,6 +14,11 @@ export type FlareNavigationBadgeKind = "dot" | "count" | "mention";
 export interface FlareNavigationBadge {
   kind: FlareNavigationBadgeKind;
   count?: number;
+  /**
+   * `count` badges: there are more than `count` (the server had more than it counted). The badge then reads 99+, as it
+   * does above 99 (`flareCountBadgeText`, spec/count-badge-vectors.json).
+   */
+  more?: boolean;
   label?: string;
 }
 

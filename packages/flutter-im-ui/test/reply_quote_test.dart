@@ -34,7 +34,7 @@ const _quote = FlareReplyTarget(
 
 void main() {
   group('FlareMessageBubble quote', () {
-    testWidgets('shows who said what, and drops an unknown sender line', (
+    testWidgets('shows who said what, and an unknown sender as the kit unnamed person', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -62,6 +62,8 @@ void main() {
       expect(find.text('Bob'), findsOneWidget);
       expect(find.text('see you at nine'), findsOneWidget);
       expect(find.text('no name here'), findsOneWidget);
+      // Never a blank line: no name and no id read 「未知用户」.
+      expect(find.text(const FlareStrings().displayNameUnknownUser), findsOneWidget);
       expect(find.text('message m1'), findsOneWidget);
       expect(find.text('message m2'), findsOneWidget);
     });

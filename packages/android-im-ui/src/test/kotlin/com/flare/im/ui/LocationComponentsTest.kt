@@ -92,6 +92,42 @@ class LocationComponentsTest {
         }
     }
 
+    @Test fun placesReadAsTheSharedTableSays() {
+        val rows = vectors()["placeFrom"] as List<*>
+        assertTrue(rows.size >= 19, "the shared table lost cases: ${rows.size}")
+        for (raw in rows) {
+            val row = raw as Map<*, *>
+            val id = row["id"] as String
+            val place = (row["input"] as? Map<*, *>)?.let(FlareLocationPlace::fromMap)
+            val output = row["output"] as? Map<*, *>
+            if (output == null) {
+                assertNull(place, id)
+                continue
+            }
+            assertEquals(
+                FlareLocationPlace(
+                    id = output["id"] as String, title = output["title"] as String, address = output["address"] as String,
+                    latitude = (output["latitude"] as Number).toDouble(), longitude = (output["longitude"] as Number).toDouble(),
+                    distanceM = (output["distanceM"] as? Number)?.toDouble(),
+                ),
+                place,
+                id,
+            )
+        }
+    }
+
+    @Test fun aPlaceReadsFromItsJsonAndNeverFromSomethingElse() {
+        assertEquals(
+            FlareLocationPlace("amap:B0", "天安门", "东长安街", 39.9087, 116.3975, 12.0),
+            FlareLocationPlace.fromJson("""{"id":"amap:B0","title":"天安门","address":"东长安街","lat":39.9087,"lng":116.3975,"distanceM":12}"""),
+        )
+        assertNull(FlareLocationPlace.fromJson("not json"))
+        assertNull(FlareLocationPlace.fromJson("[39.9, 116.4]"))
+        assertNull(FlareLocationPlace.fromMap(mapOf("lat" to Double.NaN, "lng" to 116.0)))
+        assertNull(FlareLocationPlace.fromMap(mapOf("lat" to 39.9, "lng" to Double.POSITIVE_INFINITY)))
+        assertNull(FlareLocationPlace.fromMap(mapOf("id" to "x", "title" to "x", "lat" to 1, "lng" to 2, "distanceM" to Double.NaN))?.distanceM)
+    }
+
     @Test fun webMapUrlsFollowTheSharedTable() {
         val rows = vectors()["webMapUrl"] as List<*>
         assertTrue(rows.size >= 10, "the shared table lost cases: ${rows.size}")

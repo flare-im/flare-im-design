@@ -640,7 +640,9 @@ private fun QuotedBody(quote: @Composable () -> Unit, body: @Composable () -> Un
  */
 @Composable
 private fun MessageQuote(quote: FlareReplyTarget, colors: FlareColors, onLocate: (() -> Unit)?, onCard: Boolean = false) {
-    val label = flareStrings().messageQuoteLabel(quote.senderName, quote.summary)
+    // Never blank and never an id: the projected sender, the host's name, else the kit's unnamed person.
+    val sender = flareQuoteSenderText(quote, flareStrings())
+    val label = flareStrings().messageQuoteLabel(sender, quote.summary)
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     // The 3dp accent rule; radius.xs is the token that carries 3dp.
     val bar = FlareSizes.radiusXs
@@ -662,10 +664,8 @@ private fun MessageQuote(quote: FlareReplyTarget, colors: FlareColors, onLocate:
             .padding(start = bar + FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacingXs, bottom = FlareSizes.spacingXs),
         verticalArrangement = Arrangement.Center,
     ) {
-        if (quote.senderName.isNotEmpty()) {
-            Text(quote.senderName, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp,
-                fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+        Text(sender, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp,
+            fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(quote.summary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeSm.value.sp,
             maxLines = 1, overflow = TextOverflow.Ellipsis)
     }

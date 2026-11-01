@@ -69,6 +69,19 @@ sealed interface FlareDisplayName {
 }
 
 /**
+ * The sender a quote shows (`spec/display-name-vectors.json` quoteSender, the same on all four kits), never blank and
+ * never an id: [FlareReplyTarget.sender] written by [flareDisplayNameText] when the quote carries one; else
+ * [FlareReplyTarget.senderName], trimmed, when it is not blank; else the unnamed person of [FlareReplyTarget.senderId] —
+ * `displayNameUser` with the tail of the id ([flareIdTail]), `displayNameUnknownUser` without one. A projected sender
+ * that writes as blank text falls through the same way. The bubble's quote and the composer's reply strip both read it.
+ */
+fun flareQuoteSenderText(target: FlareReplyTarget, strings: FlareStrings): String {
+    target.sender?.let { flareDisplayNameText(it, strings).trim() }?.takeIf { it.isNotEmpty() }?.let { return it }
+    target.senderName.trim().takeIf { it.isNotEmpty() }?.let { return it }
+    return flareDisplayNameText(FlareDisplayName.Unnamed(FlareDisplayNameEntity.Person, flareIdTail(target.senderId.orEmpty())), strings)
+}
+
+/**
  * The tail of an id the kits show for a person without a name: the id trimmed of surrounding white space, then its last
  * 4 Unicode scalars — code points, so an emoji is one — or the whole id when it has 4 or fewer; a blank id gives "". The
  * core SDK makes `idTail` with the same rule (`spec/display-name-vectors.json` idTail).

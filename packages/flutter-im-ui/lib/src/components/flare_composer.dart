@@ -18,6 +18,7 @@ import 'composer/flare_composer_action_panel.dart';
 import 'composer/flare_composer_parts.dart';
 import '../models/directory_data.dart' show FlareMentionCandidate;
 import '../models/form_behavior.dart';
+import '../models/display_name.dart' show flareQuoteSenderText;
 import '../models/message_data.dart' show FlareReplyTarget;
 import '../platform/flare_platform.dart';
 
@@ -1109,7 +1110,10 @@ class FlareComposerState extends State<FlareComposer> {
                 if (widget.replyTo != null)
                   FlareComposerReplyStrip(
                     label: _replyLabel,
-                    senderName: widget.replyTo!.senderName,
+                    senderName: flareQuoteSenderText(
+                      widget.replyTo!,
+                      FlareStrings.of(context),
+                    ),
                     summary: widget.replyTo!.summary,
                     onCancel: widget.onCancelReply,
                     flush: !m.wide,

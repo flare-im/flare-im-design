@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "How the four kits write a DisplayName (the core SDK's projected name, camelCase on the wire: title, lastSender, sender, name) as text: flareDisplayNameText(name, strings). `named` reads its text as it is. `members` joins its names with the locale's separator (zh-CN 、, en-US \", \"), blank names dropped; when total > names + 1 it adds the rest, counted per language: zh-CN 「等 N 人」 with N = total, the group's size with the reader (「张三、李四、王五等 12 人」), en-US \"and N other(s)\" with N = total - names - 1, the members beyond the names and the reader (\"and 8 others\", the one form at 1); with no name left it reads as an unnamed group. `unnamed` reads by entity: person with an idTail 「用户 <idTail>」/ \"User <idTail>\", person without one 「未知用户」/ \"Unknown user\"; group, system, ai, customer, channel, broadcast and temp their own word, whatever the idTail. A value the kit does not know never fails to decode: an unknown entity reads as person, and an unknown kind (or a form missing its text) as an unnamed person without an idTail, 「未知用户」. The kit writes no id and no shape guess: what the core projected is all it reads. `idTail` is flareIdTail, the rule the core uses to make one and flarePluginFallbackName reads: the id trimmed of surrounding white space, then its last 4 Unicode scalars (not UTF-16 units, not graphemes); a shorter id whole; a blank id the empty string. zh-CN is each kit's default strings, en-US its English preset (Vue: the en-US message tree).",
+  "note": "How the four kits write a DisplayName (the core SDK's projected name, camelCase on the wire: title, lastSender, sender, name) as text: flareDisplayNameText(name, strings). `named` reads its text as it is. `members` joins its names with the locale's separator (zh-CN 、, en-US \", \"), blank names dropped; when total > names + 1 it adds the rest, counted per language: zh-CN 「等 N 人」 with N = total, the group's size with the reader (「张三、李四、王五等 12 人」), en-US \"and N other(s)\" with N = total - names - 1, the members beyond the names and the reader (\"and 8 others\", the one form at 1); with no name left it reads as an unnamed group. `unnamed` reads by entity: person with an idTail 「用户 <idTail>」/ \"User <idTail>\", person without one 「未知用户」/ \"Unknown user\"; group, system, ai, customer, channel, broadcast and temp their own word, whatever the idTail. A value the kit does not know never fails to decode: an unknown entity reads as person, and an unknown kind (or a form missing its text) as an unnamed person without an idTail, 「未知用户」. The kit writes no id and no shape guess: what the core projected is all it reads. `idTail` is flareIdTail, the rule the core uses to make one and flarePluginFallbackName reads: the id trimmed of surrounding white space, then its last 4 Unicode scalars (not UTF-16 units, not graphemes); a shorter id whole; a blank id the empty string. zh-CN is each kit's default strings, en-US its English preset (Vue: the en-US message tree). A quote's sender (`quoteSender`, flareQuoteSenderText) is never blank and never an id: the projected `sender` when the quote carries one, written as above; else `senderName`, trimmed, when it is not blank; else the unnamed person of `senderId`, its idTail made by flareIdTail, so 「用户 9876」 / \"User 9876\", or 「未知用户」 / \"Unknown user\" without an id. A projected sender that writes as blank text falls through the same way. Vue reads the three from a quote's `quotedSender`, `quotedSenderName` and `quotedSenderId`; the native kits from FlareReplyTarget's `sender`, `senderName` and `senderId`.",
   "idTail": [
     {
       "id": "ascii",
@@ -449,6 +449,145 @@
       "name": {
         "kind": "named"
       },
+      "text": {
+        "zh-CN": "未知用户",
+        "en-US": "Unknown user"
+      }
+    }
+  ],
+  "quoteSender": [
+    {
+      "id": "name",
+      "senderName": "Alice",
+      "text": {
+        "zh-CN": "Alice",
+        "en-US": "Alice"
+      }
+    },
+    {
+      "id": "name-over-id",
+      "senderName": "林夏",
+      "senderId": "u_dave9876",
+      "text": {
+        "zh-CN": "林夏",
+        "en-US": "林夏"
+      }
+    },
+    {
+      "id": "name-trimmed",
+      "senderName": "  Alice \n",
+      "text": {
+        "zh-CN": "Alice",
+        "en-US": "Alice"
+      }
+    },
+    {
+      "id": "id-without-name",
+      "senderId": "u_dave9876",
+      "text": {
+        "zh-CN": "用户 9876",
+        "en-US": "User 9876"
+      }
+    },
+    {
+      "id": "blank-name-reads-the-id",
+      "senderName": "   ",
+      "senderId": "u_dave9876",
+      "text": {
+        "zh-CN": "用户 9876",
+        "en-US": "User 9876"
+      }
+    },
+    {
+      "id": "short-id",
+      "senderId": "ab",
+      "text": {
+        "zh-CN": "用户 ab",
+        "en-US": "User ab"
+      }
+    },
+    {
+      "id": "id-trimmed",
+      "senderId": "  u_42  ",
+      "text": {
+        "zh-CN": "用户 u_42",
+        "en-US": "User u_42"
+      }
+    },
+    {
+      "id": "nothing",
+      "text": {
+        "zh-CN": "未知用户",
+        "en-US": "Unknown user"
+      }
+    },
+    {
+      "id": "blank-id",
+      "senderName": "",
+      "senderId": "   ",
+      "text": {
+        "zh-CN": "未知用户",
+        "en-US": "Unknown user"
+      }
+    },
+    {
+      "id": "projected-name-first",
+      "sender": {
+        "kind": "named",
+        "text": "林夏",
+        "source": "alias"
+      },
+      "senderName": "旧名字",
+      "senderId": "u_dave9876",
+      "text": {
+        "zh-CN": "林夏",
+        "en-US": "林夏"
+      }
+    },
+    {
+      "id": "projected-unnamed-person",
+      "sender": {
+        "kind": "unnamed",
+        "entity": "person",
+        "idTail": "4321"
+      },
+      "senderId": "u_dave9876",
+      "text": {
+        "zh-CN": "用户 4321",
+        "en-US": "User 4321"
+      }
+    },
+    {
+      "id": "projected-unknown-user",
+      "sender": {
+        "kind": "unnamed",
+        "entity": "person",
+        "idTail": ""
+      },
+      "text": {
+        "zh-CN": "未知用户",
+        "en-US": "Unknown user"
+      }
+    },
+    {
+      "id": "projected-blank-text-falls-through",
+      "sender": {
+        "kind": "named",
+        "text": "  "
+      },
+      "senderName": "Alice",
+      "text": {
+        "zh-CN": "Alice",
+        "en-US": "Alice"
+      }
+    },
+    {
+      "id": "projected-unknown-kind",
+      "sender": {
+        "kind": "nickname",
+        "text": "x"
+      },
+      "senderId": "u_dave9876",
       "text": {
         "zh-CN": "未知用户",
         "en-US": "Unknown user"

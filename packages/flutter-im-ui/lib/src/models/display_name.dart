@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../tokens/flare_strings.dart';
+import 'message_data.dart' show FlareReplyTarget;
 
 /// Where a named value came from (`source` on the wire). For tests and
 /// diagnostics only: every source reads the same.
@@ -190,6 +191,32 @@ String flareIdTail(String id) {
 /// [FlareUnnamedDisplayName] reads by entity — a person with an id tail
 /// `displayNameUser`, without one `displayNameUnknownUser`, any other entity
 /// its own word.
+/// The sender a quote shows (spec/display-name-vectors.json `quoteSender`, the
+/// same on all four kits), never blank and never an id: the target's
+/// [FlareReplyTarget.sender] written by [flareDisplayNameText] when the quote
+/// carries one; else [FlareReplyTarget.senderName], trimmed, when it is not
+/// blank; else the unnamed person of [FlareReplyTarget.senderId] —
+/// `displayNameUser` with the tail of the id ([flareIdTail]),
+/// `displayNameUnknownUser` without one. A projected sender that writes as
+/// blank text falls through the same way. The bubble's quote and the
+/// composer's reply strip both read it.
+String flareQuoteSenderText(FlareReplyTarget target, FlareStrings strings) {
+  final sender = target.sender;
+  if (sender != null) {
+    final projected = flareDisplayNameText(sender, strings).trim();
+    if (projected.isNotEmpty) return projected;
+  }
+  final name = target.senderName.trim();
+  if (name.isNotEmpty) return name;
+  return flareDisplayNameText(
+    FlareUnnamedDisplayName(
+      FlareDisplayNameEntity.person,
+      idTail: flareIdTail(target.senderId ?? ''),
+    ),
+    strings,
+  );
+}
+
 String flareDisplayNameText(FlareDisplayName name, FlareStrings strings) {
   switch (name) {
     case FlareNamedDisplayName(:final text):

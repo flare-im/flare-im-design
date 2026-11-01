@@ -503,7 +503,7 @@ public struct MessageBubbleView: View {
         }
     }
 
-    /// The reply's quote: accent bar, quoted sender (omitted when empty) and a one-line summary.
+    /// The reply's quote: accent bar, quoted sender (``flareQuoteSenderText(_:strings:)``) and a one-line summary.
     /// A button only when it can locate the quoted message; otherwise one plain text element.
     @ViewBuilder
     private func quoteStrip(_ quote: FlareReplyTarget, _ colors: FlareColors) -> some View {
@@ -511,7 +511,7 @@ public struct MessageBubbleView: View {
             Button(action: locate) { quoteLabel(quote, colors, minHeight: FlareSizes.touchTargetMin) }
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(strings.messageQuoteLabel(quote.senderName, quote.summary))
+                .accessibilityLabel(strings.messageQuoteLabel(flareQuoteSenderText(quote, strings: strings), quote.summary))
                 .accessibilityAddTraits(.isButton)
         } else {
             quoteLabel(quote, colors, minHeight: nil).accessibilityElement(children: .combine)
@@ -520,12 +520,11 @@ public struct MessageBubbleView: View {
 
     private func quoteLabel(_ quote: FlareReplyTarget, _ colors: FlareColors, minHeight: CGFloat?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            if !quote.senderName.isEmpty {
-                Text(quote.senderName)
-                    .font(.system(size: quoteTextSize, weight: .medium))
-                    .foregroundColor(colors.textSecondary)
-                    .lineLimit(1)
-            }
+            // Never blank and never an id: the projected sender, the host's name, else the kit's unnamed person.
+            Text(flareQuoteSenderText(quote, strings: strings))
+                .font(.system(size: quoteTextSize, weight: .medium))
+                .foregroundColor(colors.textSecondary)
+                .lineLimit(1)
             Text(quote.summary)
                 .font(.system(size: quoteTextSize))
                 .foregroundColor(colors.textPrimary)

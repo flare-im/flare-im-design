@@ -100,6 +100,31 @@ export function flareLocationMapLinks(input: {
 }
 
 /**
+ * A place as the social SDK's geo search hands it (`GeoPlace`: `id`, `title`, `address`, `lat`, `lng`, `distanceM`)
+ * read into the kit's place (spec/location-vectors.json `placeFrom`; the same on all four kits). The coordinate is
+ * `lat` / `lng`, or `latitude` / `longitude` when those are missing, and only a JSON number counts; a pair that is not
+ * a valid coordinate ({@link isValidFlareLocation}, so also 0, 0) or a value that is not an object reads as null. The
+ * id, title and address are trimmed text ("" when missing or not text); `distanceM` is kept when it is a number not
+ * below 0.
+ */
+export function flareLocationPlaceFrom(value: unknown): FlareLocationPlace | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const number = (key: string): number | undefined => {
+    const field = raw[key];
+    return typeof field === "number" && Number.isFinite(field) ? field : undefined;
+  };
+  const text = (key: string): string => (typeof raw[key] === "string" ? (raw[key] as string).trim() : "");
+  const latitude = number("lat") ?? number("latitude");
+  const longitude = number("lng") ?? number("longitude");
+  if (latitude === undefined || longitude === undefined || !isValidFlareLocation(latitude, longitude)) return null;
+  const distance = number("distanceM");
+  const place: FlareLocationPlace = { id: text("id"), title: text("title"), address: text("address"), latitude, longitude };
+  if (distance !== undefined && distance >= 0) place.distanceM = distance;
+  return place;
+}
+
+/**
  * The map service a `chat.location` config value names: the string `amap` (trimmed, any case) is AMap, anything
  * else — `osm`, an unknown name, blank, null, not a string — is OpenStreetMap (spec/location-vectors.json
  * `providerFrom`; the same on all four kits).

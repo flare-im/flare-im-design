@@ -115,6 +115,21 @@ public func flareIdTail(_ id: String) -> String {
 /// besides the reader, adds `displayNameMembersMore(names, total, others)` — Chinese counts the group (total, the
 /// reader included), English the others (total - names - 1) — and with no name left reads as an unnamed group; `unnamed` reads by entity — a person with an id tail `displayNameUser`, without one
 /// `displayNameUnknownUser`, any other entity its own word.
+/// The sender a quote shows (`spec/display-name-vectors.json` quoteSender, the same on all four kits), never blank and
+/// never an id: the target's `sender` written by ``flareDisplayNameText(_:strings:)`` when the quote carries one; else
+/// `senderName`, trimmed, when it is not blank; else the unnamed person of `senderId` — `displayNameUser` with the tail
+/// of the id (``flareIdTail(_:)``), `displayNameUnknownUser` without one. A projected sender that writes as blank text
+/// falls through the same way. The bubble's quote and the composer's reply strip both read it.
+public func flareQuoteSenderText(_ target: FlareReplyTarget, strings: FlareStrings) -> String {
+    if let sender = target.sender {
+        let projected = flareDisplayNameText(sender, strings: strings).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !projected.isEmpty { return projected }
+    }
+    let name = target.senderName.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !name.isEmpty { return name }
+    return flareDisplayNameText(.unnamed(entity: .person, idTail: flareIdTail(target.senderId ?? "")), strings: strings)
+}
+
 public func flareDisplayNameText(_ name: FlareDisplayName, strings: FlareStrings) -> String {
     switch name {
     case let .named(text, _):

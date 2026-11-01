@@ -63,6 +63,25 @@ Vue 的 `strings` 可以是 `useFlareI18n().t`（宿主覆盖的 `displayName.*`
 
 英文在 N 为 1 时用单数（`and 1 other`），与 `spec/plural-vectors.json` 的规则一致。
 
+## 引用的发送者
+
+引用块与回复条上的发送者用 `flareQuoteSenderText`，四端同一条规则（`spec/display-name-vectors.json` 的 `quoteSender`），从不显示 id，也从不留空：
+
+1. 引用带投影名字时（Vue 引用内容的 `quotedSender`，原生 `FlareReplyTarget.sender`，wire 是 `FlareDisplayName`），按上面的规则写出来；
+2. 否则用宿主给的名字（Vue `quotedSenderName`，原生 `FlareReplyTarget.senderName`），去首尾空白后不为空时；
+3. 否则是无名的人：用 `quotedSenderId` / `FlareReplyTarget.senderId` 的末四位写「用户 9876」/「User 9876」，没有 id 时「未知用户」/「Unknown user」。
+
+投影名字写出来是空白时同样往下取。原生 `flareReplyTarget`（Compose）、`FlareReplyTarget(replyingTo:strings:)`（SwiftUI）、`flareReplyTargetFor`（Flutter）从被引用的行构造目标时已经带上 `senderId`。
+
+| 引用 | zh-CN | en-US |
+| --- | --- | --- |
+| `senderName` Alice | `Alice` | `Alice` |
+| 只有 `senderId` u_dave9876 | `用户 9876` | `User 9876` |
+| `senderName` 全空白，`senderId` u_dave9876 | `用户 9876` | `User 9876` |
+| 什么都没有 | `未知用户` | `Unknown user` |
+| `sender` 为 `named` 林夏，`senderName` 旧名字 | `林夏` | `林夏` |
+| `sender` 为 `unnamed person` 4321，`senderId` u_dave9876 | `用户 4321` | `User 4321` |
+
 ## id 末四位
 
 `flareIdTail(id)`：id 去首尾空白后的末 4 个 Unicode 标量；不足 4 个时取整串；为空时为空串。按标量数，不按 UTF-16 码元（emoji 算一个）也不按字形簇（组合附加符号单独算一个）。核心 SDK 生成 `idTail` 用同一条规则；插件视图里解析不到的用户名（`flarePluginFallbackName`，原生 `PluginViewFormat.fallbackName`）四端都改为调用它，`spec/plugin-view-vectors.json` 的 `fallbackNames` 照旧通过。

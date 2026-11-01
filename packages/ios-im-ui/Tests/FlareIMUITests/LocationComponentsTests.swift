@@ -103,6 +103,40 @@ final class LocationComponentsTests: XCTestCase {
         }
     }
 
+    func testPlacesReadAsTheSharedTableSays() throws {
+        let rows = try looseVectors("placeFrom")
+        XCTAssertGreaterThanOrEqual(rows.count, 19)
+        for row in rows {
+            let id = "\(row["id"] ?? "")"
+            let place = FlareLocationPlace(json: row["input"])
+            guard let output = row["output"] as? [String: Any] else {
+                XCTAssertNil(place, id)
+                continue
+            }
+            let expected = FlareLocationPlace(
+                id: output["id"] as? String ?? "", title: output["title"] as? String ?? "",
+                address: output["address"] as? String ?? "",
+                latitude: (output["latitude"] as? NSNumber)?.doubleValue ?? .nan,
+                longitude: (output["longitude"] as? NSNumber)?.doubleValue ?? .nan,
+                distanceM: (output["distanceM"] as? NSNumber)?.doubleValue)
+            XCTAssertEqual(place, expected, id)
+        }
+    }
+
+    func testAPlaceBuiltInSwiftReadsTheSameAndNeverAnOddNumber() {
+        let built: [String: Any] = ["id": "amap:B0", "title": "天安门", "address": "东长安街", "lat": 39.9087, "lng": 116.3975,
+                                    "distanceM": 12]
+        XCTAssertEqual(FlareLocationPlace(json: built),
+                       FlareLocationPlace(id: "amap:B0", title: "天安门", address: "东长安街", latitude: 39.9087,
+                                          longitude: 116.3975, distanceM: 12))
+        XCTAssertNil(FlareLocationPlace(json: ["lat": Double.nan, "lng": 116.0] as [String: Any]))
+        XCTAssertNil(FlareLocationPlace(json: ["lat": 39.9, "lng": Double.infinity] as [String: Any]))
+        XCTAssertNil(FlareLocationPlace(json: ["lat": true, "lng": true] as [String: Any]), "a boolean is not a coordinate")
+        XCTAssertNil(FlareLocationPlace(json: nil))
+        XCTAssertNil(FlareLocationPlace(json: NSNull()))
+        XCTAssertNil(FlareLocationPlace(json: ["lat": 1, "lng": 2, "distanceM": Double.nan] as [String: Any])?.distanceM)
+    }
+
     func testWebMapUrlsFollowTheSharedTable() throws {
         let rows = try looseVectors("webMapUrl")
         XCTAssertGreaterThanOrEqual(rows.count, 10)

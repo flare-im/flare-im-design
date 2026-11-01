@@ -1,5 +1,6 @@
 import '../components/flare_message_status.dart';
 import 'directory_data.dart' show FlareReactionGroup;
+import 'display_name.dart' show FlareDisplayName;
 import 'message_content.dart';
 import 'message_lifecycle.dart';
 import 'message_surface.dart' show FlareMessageReadSummary;
@@ -14,10 +15,20 @@ class FlareReplyTarget {
     required this.senderName,
     required this.summary,
     this.messageId,
+    this.senderId,
+    this.sender,
   });
   final String senderName;
   final String summary;
   final String? messageId;
+
+  /// The quoted message's sender id: with no name, the quote reads 「用户 9876」
+  /// by its tail ([flareQuoteSenderText]).
+  final String? senderId;
+
+  /// The core's projected name for the quoted message's sender; written before
+  /// [senderName] when given.
+  final FlareDisplayName? sender;
 }
 
 /// Neutral, presentational data for one message in a thread — the spec's

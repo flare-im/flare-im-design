@@ -52,10 +52,15 @@ enum class FlareApplicationWorkspacePane { Primary, Content, Detail }
 
 enum class FlareApplicationViewStatus { Loading, Ready, Empty, Error, Offline }
 
+/**
+ * A navigation item's badge. A [Kind.Count] badge reads [count], or 99+ above 99 or when [more] says there are more than
+ * the count (the server had more than it counted) — [flareCountBadgeText], `spec/count-badge-vectors.json`.
+ */
 data class FlareApplicationNavigationBadge(
     val kind: Kind = Kind.Count,
     val count: Int = 0,
     val label: String? = null,
+    val more: Boolean = false,
 ) {
     enum class Kind { Dot, Count, Mention }
 }
@@ -404,7 +409,7 @@ private fun ApplicationNavigationIcon(item: FlareApplicationNavigationItem) {
                 when (badge.kind) {
                     FlareApplicationNavigationBadge.Kind.Dot -> Unit
                     FlareApplicationNavigationBadge.Kind.Mention -> Text(badge.label ?: "@")
-                    FlareApplicationNavigationBadge.Kind.Count -> Text(if (badge.count > 99) "99+" else badge.count.coerceAtLeast(0).toString())
+                    FlareApplicationNavigationBadge.Kind.Count -> Text(flareCountBadgeText(badge.count, badge.more))
                 }
             }
         }) { icon() }

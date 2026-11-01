@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { flareDisplayNameFrom, flareIdTail, type FlareDisplayName } from "../shared/contracts/display-name";
 import { flarePluginFallbackName } from "../shared/contracts/plugin-ui";
 import { resolveFlareMessage } from "../shared/i18n/messages";
-import { flareDisplayNameText } from "./displayName";
+import { flareDisplayNameText, flareQuoteSenderText } from "./displayName";
 
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../spec/display-name-vectors.json"), "utf8")) as {
   idTail: Array<{ id: string; input: string; output: string }>;
@@ -54,4 +54,22 @@ describe("display names (spec/display-name-vectors.json)", () => {
     const name: FlareDisplayName = { kind: "members", names: ["{count}", "{names}"], total: 5 };
     expect(flareDisplayNameText(name, "en-US")).toBe("{count}, {names} and 2 others");
   });
+});
+
+describe("a quote's sender (spec/display-name-vectors.json quoteSender)", () => {
+  const quoteVectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../spec/display-name-vectors.json"), "utf8")) as {
+    quoteSender: Array<{ id: string; sender?: unknown; senderName?: string; senderId?: string; text: Record<"zh-CN" | "en-US", string> }>;
+  };
+
+  it("keeps every case the other kits run", () => {
+    expect(quoteVectors.quoteSender.length).toBeGreaterThanOrEqual(14);
+  });
+
+  it.each(quoteVectors.quoteSender.flatMap((v) => locales.map((locale) => [`${v.id} ${locale}`, v, locale] as const)))(
+    "%s",
+    (_, v, locale) => {
+      expect(flareQuoteSenderText(v, locale)).toBe(v.text[locale]);
+      expect(flareQuoteSenderText(v, (key, params) => resolveFlareMessage(locale, key, params))).toBe(v.text[locale]);
+    },
+  );
 });

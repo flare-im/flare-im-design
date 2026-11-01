@@ -11,6 +11,7 @@ import '../tokens/flare_tokens.dart';
 import '../components/action_icon.dart';
 import '../components/flare_shell_scope.dart';
 import '../components/workspace_presentation_report.dart';
+import '../models/count_badge.dart';
 import '../models/workspace_layout.dart';
 
 enum FlareNavigationPresentation { bottom, rail, sidebar, expandedSidebar }
@@ -56,11 +57,21 @@ enum FlareWorkspacePane { primary, content, detail }
 
 enum FlareViewStatus { loading, ready, empty, error, offline }
 
+/// A navigation item's badge. A [FlareNavigationBadgeKind.count] badge reads
+/// [count], or 99+ above 99 or when [more] says there are more than the count
+/// (the server had more than it counted) — [flareCountBadgeText],
+/// spec/count-badge-vectors.json.
 class FlareNavigationBadge {
-  const FlareNavigationBadge({required this.kind, this.count, this.label});
+  const FlareNavigationBadge({
+    required this.kind,
+    this.count,
+    this.label,
+    this.more = false,
+  });
   final FlareNavigationBadgeKind kind;
   final int? count;
   final String? label;
+  final bool more;
 }
 
 class FlareNavigationItem {
@@ -550,7 +561,7 @@ class FlareAdaptiveNavigation extends StatelessWidget {
         ? null
         : badge.kind == FlareNavigationBadgeKind.mention
         ? (badge.label ?? '@')
-        : '${(badge.count ?? 0).clamp(0, 99)}${(badge.count ?? 0) > 99 ? '+' : ''}';
+        : flareCountBadgeText(badge.count, more: badge.more);
     return Badge(label: text == null ? null : Text(text), child: icon);
   }
 
@@ -561,10 +572,11 @@ class FlareAdaptiveNavigation extends StatelessWidget {
   }) {
     final colors = FlareColors.of(context);
     final badge = item.badge;
-    final count = badge?.count ?? 0;
     final badgeText = switch (badge?.kind) {
-      FlareNavigationBadgeKind.count =>
-        '${count.clamp(0, 99)}${count > 99 ? '+' : ''}',
+      FlareNavigationBadgeKind.count => flareCountBadgeText(
+        badge?.count,
+        more: badge?.more ?? false,
+      ),
       FlareNavigationBadgeKind.mention => badge?.label ?? '@',
       _ => null,
     };

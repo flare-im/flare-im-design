@@ -138,7 +138,15 @@ internal fun composerExpandKey(strings: FlareStrings, disabled: Boolean, expande
  * locate the original: the list matches it against both ids of each row ([FlareMessageData.id] and
  * [FlareMessageData.serverId]), so a host never converts it to a row id.
  */
-data class FlareReplyTarget(val senderName: String, val summary: String, val messageId: String? = null)
+data class FlareReplyTarget(
+    val senderName: String,
+    val summary: String,
+    val messageId: String? = null,
+    /** The quoted message's sender id: with no name, the quote reads 「用户 9876」 by its tail ([flareQuoteSenderText]). */
+    val senderId: String? = null,
+    /** The core's projected name for the quoted message's sender; written before [senderName] when given. */
+    val sender: FlareDisplayName? = null,
+)
 
 /**
  * The message input — plain or rich text, attach, emoji, send, optional reply
@@ -476,7 +484,7 @@ private fun ReplyStrip(
         Box(Modifier.width(3.dp).size(width = 3.dp, height = 28.dp).background(colors.primary))
         Spacer(Modifier.width(FlareSizes.spacingSm))
         Column(Modifier.weight(1f)) {
-            Text("$label ${reply.senderName}", color = colors.primaryText, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
+            Text("$label ${flareQuoteSenderText(reply, flareStrings())}", color = colors.primaryText, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
             Text(reply.summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         IconButton(onClick = { onCancel?.invoke() }) { Icon(Icons.Rounded.Close, cancelLabel, Modifier.size(18.dp), tint = colors.textTertiary) }
