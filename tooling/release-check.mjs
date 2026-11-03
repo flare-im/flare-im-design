@@ -13,7 +13,7 @@ const sdk = join(root, '../flare-core-sdk');
 const app = (name) => join(sdk, 'examples', `flare-core-${name}-app`);
 // The flare-social apps are the product-shaped consumers; a public rename they have not
 // migrated off must turn this run red (their symbols are also resolved by the check gate).
-const socialApp = (name) => join(root, '../flare-social-server/flare-social-sdk/examples/apps', `flare-social-${name}-app`);
+const socialApp = (name) => join(root, '../flare-social-examples/apps', `flare-social-${name}-app`);
 // Filtering is diagnostic only: a partial run can never certify a release.
 const filter = process.argv.find((arg) => arg.startsWith('--only='))?.slice(7);
 // Release criteria §1: evidence lands in artifacts/release-2.0 (gitignored, outside the
