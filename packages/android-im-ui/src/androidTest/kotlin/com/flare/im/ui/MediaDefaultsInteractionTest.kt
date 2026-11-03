@@ -238,17 +238,21 @@ class MediaDefaultsInteractionTest {
 
     @Test fun aHostMediaHandlerTakesTheTapInsteadOfThePreview() {
         val taps = mutableListOf<String>()
+        val picture = localPicture("flare-host-tap.png", android.graphics.Color.GREEN)
+        val content = FlareImageContent("https://example.invalid/i.jpg", alt = "照片", localPath = picture.absolutePath)
         compose.setContent {
             FlareThemeProvider {
                 MessageList(
-                    messages = listOf(message("i1", FlareImageContent("https://example.invalid/i.jpg", alt = "照片",
-                        localPath = localPicture("flare-host-tap.png", android.graphics.Color.GREEN).absolutePath))),
+                    messages = listOf(message("i1", content)),
                     currentUserId = "me",
                     onMediaAction = { msg, _ -> taps += msg.id },
                 )
             }
         }
-        compose.onNodeWithContentDescription("照片").performClick()
+        compose.onNodeWithContentDescription("照片")
+            .assertIsDisplayed()
+            .assert(clickLabel(strings.imagePreviewOpen))
+            .performClick()
         compose.runOnIdle { assertEquals(listOf("i1"), taps) }
         compose.onNodeWithContentDescription(strings.imagePreviewClose).assertDoesNotExist()
     }
