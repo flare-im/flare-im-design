@@ -6,8 +6,8 @@ This page answers, for every public component: what it is for, who uses it today
 
 ## 1. How consumers were counted
 
-- **Reference apps:** a component counts as used by an app when the app source references its platform symbol: web and Tauri (Vue symbol or tag), Flutter, iOS and Android (Compose symbol with a kit import). Five apps under `flare-social/flare-social-sdk/examples/apps`.
-- **Core examples:** the same scan over `flare-im-core-client-sdk/examples` (web, Electron, Tauri, uni-app, Flutter, iOS, Android). They prove the core contract; they count as consumers here.
+- **Reference apps:** a component counts as used by an app when the app source references its platform symbol: web and Tauri (Vue symbol or tag), Flutter, iOS and Android (Compose symbol with a kit import). Five apps under `flare-social-server/flare-social-sdk/examples/apps`.
+- **Core examples:** the same scan over `flare-core-sdk/examples` (web, Electron, Tauri, uni-app, Flutter, iOS, Android). They prove the core contract; they count as consumers here.
 - **Kit composition:** Vue kit files that import the component's source file. A part rendered by a composite the apps use has a real consumer through that composite.
 - **Limits:** symbol scans do not see dynamic registration, and composition is read from the Vue kit, which is the contract reference; native composition can differ. Friction IDs come from `docs/product/design-system-friction.md`.
 

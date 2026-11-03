@@ -7,7 +7,7 @@
 1. `@flare-im/vue-ui/components` 只导出 catalog 里登记的 Vue symbol；每个 catalog symbol 也必须从这里可达（facade 不得落后于契约）。
 2. 非组件导出各归其入口：hooks → `./composables`（含 P0-5 的 `provideFlareVoiceRecorder` / `useVoiceRecorder` / `useFileDrop` / `useMarkdownShortcuts`），纯函数 / 类型 → `./contracts` / `./utils`，图标名表作为 FlareIcon 的伴随导出留在 `./components`（登记在 `companionExports`）。
 3. 待合并的公开导出登记在 `pendingMerge`（重复对 id + 目标 + 清零步骤）；`--strict` 下门禁一直红到清零，不允许别名 / deprecated 过渡。
-4. 产品代码（工作台外壳、登录页、诊断台）不是 kit API，住在 `flare-im-core-client-sdk/examples/shared/vue-reference`。
+4. 产品代码（工作台外壳、登录页、诊断台）不是 kit API，住在 `flare-core-sdk/examples/shared/vue-reference`。
 
 ## 2. 本轮处置（原 29 个未登记导出）
 

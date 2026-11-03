@@ -63,21 +63,21 @@ Verified at build and unit level; nothing here was run signed in (the signed-in 
 
 | Prefix | Path |
 |---|---|
-| `W:` | `flare-social/flare-social-sdk/examples/apps/flare-social-web-app/src/` |
-| `T:` | `flare-social/flare-social-sdk/examples/apps/flare-social-tauri-app/src/` |
+| `W:` | `flare-social-server/flare-social-sdk/examples/apps/flare-social-web-app/src/` |
+| `T:` | `flare-social-server/flare-social-sdk/examples/apps/flare-social-tauri-app/src/` |
 | `K:` | `flare-im-design/packages/vue-im-ui/src/` |
-| `SDK:` | `flare-social/flare-social-sdk/packages/flare-social-typescript-sdk/src/` |
-| `TB:` | `flare-social/flare-social-sdk/bindings/tauri/src/` |
-| `fl/` | `flare-social/flare-social-sdk/examples/apps/flare-social-flutter-app/lib/` |
-| `ios/` | `flare-social/flare-social-sdk/examples/apps/flare-social-ios-app/Sources/FlareSocialApp/` |
-| `and/` | `flare-social/flare-social-sdk/examples/apps/flare-social-android-app/app/src/main/kotlin/com/flare/social/app/` |
+| `SDK:` | `flare-social-server/flare-social-sdk/packages/flare-social-typescript-sdk/src/` |
+| `TB:` | `flare-social-server/flare-social-sdk/bindings/tauri/src/` |
+| `fl/` | `flare-social-server/flare-social-sdk/examples/apps/flare-social-flutter-app/lib/` |
+| `ios/` | `flare-social-server/flare-social-sdk/examples/apps/flare-social-ios-app/Sources/FlareSocialApp/` |
+| `and/` | `flare-social-server/flare-social-sdk/examples/apps/flare-social-android-app/app/src/main/kotlin/com/flare/social/app/` |
 | `kfl/` | `flare-im-design/packages/flutter-im-ui/lib/src/` |
 | `kios/` | `flare-im-design/packages/ios-im-ui/Sources/FlareIMUI/` |
 | `kand/` | `flare-im-design/packages/android-im-ui/src/main/kotlin/com/flare/im/ui/` |
-| `sdkfl/` | `flare-social/flare-social-sdk/packages/flare-social-flutter-sdk/lib/src/` |
-| `soc/` | `flare-social/flare-social-sdk/src/` |
+| `sdkfl/` | `flare-social-server/flare-social-sdk/packages/flare-social-flutter-sdk/lib/src/` |
+| `soc/` | `flare-social-server/flare-social-sdk/src/` |
 | `core/` | `flare-im-core-sdk/` |
-| `fcore/` | `flare-core/src/` |
+| `fcore/` | `flare-transport/src/` |
 
 States: L = loading, E = empty, Err = error with retry, Off = offline, Perm = permission, Uns = unsupported; ✓ handled, ✗ missing or wrong, partial, – not applicable. Kit component names drop the `Flare` prefix. In table cells a bare `file:line` shares the prefix of the row's own component. Web `Off: G` = only the shell connection banner covers the state; Tauri `Off: C` = only the chat-tab workspace banner covers it. Kit breakpoints on all four kits: mobile < 600, tablet 600–899, desktop 900–1499, wide ≥ 1500.
 

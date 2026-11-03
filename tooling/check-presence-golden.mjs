@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const socialSdk = join(here, "../../flare-social/flare-social-sdk");
+const socialSdk = join(here, "../../flare-social-server/flare-social-sdk");
 const source = join(socialSdk, "sdk-spec/golden/presence-projection.json");
 const copy = join(socialSdk, "examples/apps/flare-social-android-app/app/src/androidTest/assets/presence-projection.json");
 

@@ -1,6 +1,6 @@
 # Composition Proof: the Golden Reference App
 
-Date: 2026-09-14, after Round 4; re-measured 2026-09-16, after Round 5. Subject: `flare-social/flare-social-sdk/examples/apps/flare-social-web-app`, the golden reference app (see `golden-app.md`).
+Date: 2026-09-14, after Round 4; re-measured 2026-09-16, after Round 5. Subject: `flare-social-server/flare-social-sdk/examples/apps/flare-social-web-app`, the golden reference app (see `golden-app.md`).
 
 ## Claim
 

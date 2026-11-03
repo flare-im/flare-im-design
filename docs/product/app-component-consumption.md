@@ -132,7 +132,7 @@ This document maps, per app and per feature, what the apps need, what they take 
 
 ## Catalog coverage
 
-Source: usage census of the 149 components in `flare-im-design/spec/component-catalog.json` over the 5 social apps (direct file references), plus a second census over the `flare-im-core-client-sdk/examples` apps (out of scope, context only).
+Source: usage census of the 149 components in `flare-im-design/spec/component-catalog.json` over the 5 social apps (direct file references), plus a second census over the `flare-core-sdk/examples` apps (out of scope, context only).
 
 | Metric | Count |
 |---|---:|

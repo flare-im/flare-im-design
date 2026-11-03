@@ -23,7 +23,7 @@ const TARGETS = {
   // 开关一直是好的,缺的是第二种语言。参考实现的文案同样要走 provider,否则这笔债会再长回来。
   // 目录是同级 checkout;没有它(单独 clone 本仓)时 walk() 返回空,这一项自动跳过。
   webApp: {
-    dir: "../flare-social/flare-social-sdk/examples/apps/flare-social-web-app/src",
+    dir: "../flare-social-server/flare-social-sdk/examples/apps/flare-social-web-app/src",
     ext: [".vue", ".ts"],
     skip: [/\.test\.ts$/, /\/i18n\//],
   },

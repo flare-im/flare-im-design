@@ -16,10 +16,10 @@ These applications live in `flare-im-core-client-sdk`. They retain real SDK init
 
 These reference apps focus on conversations and messages. They do not expose contact-directory, group-directory, or relationship-graph entry points; group conversations may still appear as messaging targets.
 
-- [Web / Vue](https://github.com/flare-im/flare-im-core-client-sdk/tree/main/examples/flare-core-web-app)
-- [Tauri / Vue](https://github.com/flare-im/flare-im-core-client-sdk/tree/main/examples/flare-core-tauri-app)
-- [Flutter](https://github.com/flare-im/flare-im-core-client-sdk/tree/main/examples/flare-core-flutter-app)
-- [Android / Jetpack Compose](https://github.com/flare-im/flare-im-core-client-sdk/tree/main/examples/flare-core-android-app)
-- [iOS / SwiftUI](https://github.com/flare-im/flare-im-core-client-sdk/tree/main/examples/flare-core-ios-app)
+- [Web / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-web-app)
+- [Tauri / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-tauri-app)
+- [Flutter](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-flutter-app)
+- [Android / Jetpack Compose](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-android-app)
+- [iOS / SwiftUI](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-ios-app)
 
 Use component examples for visual/API inspection. Use reference applications for real SDK assembly, state flow, and platform integration.

@@ -202,7 +202,7 @@ FlareMessageList(
 - `kind: "snapshot"`：整体替换窗口，见于回到最新、核心判断增量不划算、行全部换掉或行键重复时。
 - `kind: "delta"`：`delta` 为 `{ viewType: "timeline", prepend, append, upsert, remove, reorder?, hasOlder, hasNewer, attachedToLatest, conversation? }`。四个数组总在；`remove` 是行键；`reorder` 只在前四步表达不了顺序时给，列出全部行键；`conversation` 只在会话摘要变了时带。
 
-**应用规则**（`flare-im-core-client-sdk/sdk-spec/golden/view/timeline-delta.json`，各端应用器读同一份）：
+**应用规则**（`flare-core-sdk/sdk-spec/golden/view/timeline-delta.json`，各端应用器读同一份）：
 
 1. `revision` 不大于已应用的版本：丢弃（`stale`），这是快照返回之前就在路上的旧事件。
 2. `revision` 不是已应用版本加 1：不应用，调 `view.timeline.snapshot` 取当前快照整体替换（`snapshotRequired`）。

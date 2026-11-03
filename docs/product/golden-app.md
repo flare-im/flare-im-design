@@ -1,6 +1,6 @@
 # Golden Reference Application
 
-Date: 2026-09-14. Scope: the five flare-social example apps under `flare-social/flare-social-sdk/examples/apps` and this kit.
+Date: 2026-09-14. Scope: the five flare-social example apps under `flare-social-server/flare-social-sdk/examples/apps` and this kit.
 
 ## Decision
 
@@ -144,8 +144,8 @@ From the monorepo root:
 
 ```bash
 node flare-im-design/tooling/check-reference-app-consumers.mjs
-npm --prefix flare-social/flare-social-sdk/examples/apps/flare-social-web-app run typecheck
-npm --prefix flare-social/flare-social-sdk/examples/apps/flare-social-web-app test
+npm --prefix flare-social-server/flare-social-sdk/examples/apps/flare-social-web-app run typecheck
+npm --prefix flare-social-server/flare-social-sdk/examples/apps/flare-social-web-app test
 ```
 
 Browser pass after sign-in: 390, 768, 1024, 1440 in light and dark; keyboard walk of conversation switch, message menu, composer send and dialog close.

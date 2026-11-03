@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Reference applications are this kit's real consumers. The five flare-social apps
-// (sibling checkout ../flare-social/flare-social-sdk/examples/apps) compose the public kit
+// (sibling checkout ../flare-social-server/flare-social-sdk/examples/apps) compose the public kit
 // and nothing else, so a public rename or removal they have not migrated off breaks them —
 // and nothing in this repository imports them. On 2026-09-14 all five failed to compile
 // against the kit after removals that the migration record had declared consumer-free.
@@ -18,7 +18,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const appsRoot = resolve(root, process.env.FLARE_REFERENCE_APPS ?? "../flare-social/flare-social-sdk/examples/apps");
+const appsRoot = resolve(root, process.env.FLARE_REFERENCE_APPS ?? "../flare-social-server/flare-social-sdk/examples/apps");
 if (!existsSync(appsRoot)) {
   console.log(`reference app consumers skipped: no sibling checkout at ${relative(root, appsRoot)}`);
   process.exit(0);

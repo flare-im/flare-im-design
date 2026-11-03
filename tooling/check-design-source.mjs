@@ -33,7 +33,7 @@ const catalogNames = new Set(spec.components.map((component) => component.name))
 
 const exampleRoots = [
   join(root, "examples"),
-  join(root, "../flare-im-core-client-sdk/examples"),
+  join(root, "../flare-core-sdk/examples"),
 ].filter(existsSync);
 
 /** The nearest package.json above a file, so an example is judged against the kit it actually consumes. */

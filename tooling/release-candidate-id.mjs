@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 import { captureCandidate } from './release-candidate.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const sdk = join(root, '../flare-im-core-client-sdk');
+const sdk = join(root, '../flare-core-sdk');
 const app = (name) => join(sdk, 'examples', `flare-core-${name}-app`);
 export const candidateRoots = [['design', root], ['sdk', sdk], ...['web', 'tauri', 'flutter', 'android', 'ios'].map((name) => [name, app(name)])];
 

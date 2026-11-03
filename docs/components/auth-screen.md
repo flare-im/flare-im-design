@@ -2,7 +2,7 @@
 
 > **Not part of `@flare-im/vue-ui`.** Since 2.0 this screen is product code in the
 > reference application —
-> `flare-im-core-client-sdk/examples/shared/vue-reference/workbench/app/components/AuthScreen.vue`.
+> `flare-core-sdk/examples/shared/vue-reference/workbench/app/components/AuthScreen.vue`.
 > The kit no longer exports `FlareAuthScreen` (see
 > `docs/release/public-api-2.0.md` §2 and the migration guide). It is composed
 > from public kit parts — `FlareFormField`, `FlareInput`, `FlareSelect`,

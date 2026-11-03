@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const social = 'flare-social/flare-social-sdk/examples/apps';
+const social = 'flare-social-server/flare-social-sdk/examples/apps';
 // Without the sibling checkout (a CI clone of this repository alone) the gate skips, like the
 // reference-app consumer gate does.
 if (!existsSync(resolve(root, social))) {
