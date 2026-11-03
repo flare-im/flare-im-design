@@ -20,6 +20,7 @@ import type { FlareLocationValue } from "../../shared/contracts/location";
 import MessageBubbleHoverToolbar from "./MessageBubbleHoverToolbar.vue";
 import MessageMenu from "./MessageMenu.vue";
 import MessageMeta from "./MessageMeta.vue";
+import FlareReactionSummary from "./FlareReactionSummary.vue";
 import { injectTimelineFocus, messageTakesFocus } from "./timelineFocus";
 import { resolveMessageId, type MessageLike } from "../../shared/contracts/messageRow";
 import {
@@ -157,7 +158,12 @@ const systemText = computed(() => {
 });
 const isRecalled = computed(() => props.message.isRecalled || isDeleted.value);
 const deliveryStatus = computed(() => resolveMessageStatus(props.message));
-const reactions = computed(() => (isRecalled.value ? [] : props.message.reactions ?? []));
+const reactions = computed(() =>
+  (isRecalled.value ? [] : props.message.reactions ?? []).map((reaction) => ({
+    ...reaction,
+    reactedBySelf: reaction.selected,
+  })),
+);
 const messageRenderers = useFlareMessageRenderers();
 // The surface (C1): bubble, bareMedia (the media is the surface), card (the content's own shell is the surface: no
 // bubble background, border, padding or tail around it) or centered (a notice line).
@@ -265,6 +271,7 @@ const messageEphemeral = computed(() => {
   const value = props.message.attributes?.ephemeralState;
   return value === "readOnce" || value === "burnAfterRead" || value === "expired" ? value : "none";
 });
+const showReactionFooter = computed(() => !isSystemLike.value && reactions.value.length > 0);
 const showMessageMeta = computed(() => Boolean(messageTimeText.value || isEdited.value || messageEphemeral.value !== "none" || showMessageStatus.value));
 // Where the time and receipt sit (C2): inline after a text, inside other bubbles, below a picture or a card.
 const metaPlacement = computed(() => flareMessageMetaPlacement(surface.value, contentType.value));
@@ -339,6 +346,34 @@ const canToggleReaction = computed(
       "react",
       buildMessageMenuContext(props.message, props.currentUserId),
     ),
+);
+
+// Both menu layouts use the same footer, so reaction and metadata actions
+// stay in the same order on desktop and touch.
+const ReactionFooter = () => h(
+  FlareReactionSummary,
+  {
+    class: {
+      "message-reactions": true,
+      "message-reactions--two-chips": !isChromelessCard.value && reactions.value.length > 1,
+    },
+    reactions: reactions.value,
+    readOnly: !canToggleReaction.value,
+    hideAdd: true,
+    onToggle: (emoji: string) => emit("react", messageId(), emoji),
+  },
+  {
+    trailing: () => showMessageMeta.value ? h(MessageMeta, {
+      timestamp: messageTimeText.value,
+      edited: isEdited.value,
+      ephemeral: messageEphemeral.value,
+      status: showMessageStatus.value ? deliveryStatus.value : undefined,
+      tone: "default",
+      placement: metaPlacement.value === "inline" ? "bubbleFooter" : metaPlacement.value,
+      readSummary: readSummary.value,
+      ...metaListeners.value,
+    }) : null,
+  },
 );
 
 type MediaHoverActionModel = {
@@ -429,7 +464,7 @@ const fileInlineMediaAction = computed<MediaHoverActionModel | null>(() => {
  *
  * 只对纯文本开：媒体、卡片、富文本各有自己的排版，把 meta 塞进它们的行尾会挤坏。
  */
-const inlineMeta = computed(() => showMessageMeta.value && metaPlacement.value === "inline");
+const inlineMeta = computed(() => showMessageMeta.value && !showReactionFooter.value && metaPlacement.value === "inline");
 
 const bubbleClassNames = computed(() => [
   `message-bubble--${contentType.value}`,
@@ -691,7 +726,7 @@ function onRowClick(event: MouseEvent): void {
               <n-icon aria-hidden="true" :component="mediaHoverAction.icon" />
             </button>
             <MessageMeta
-              v-if="showMessageMeta"
+              v-if="showMessageMeta && !showReactionFooter"
               :timestamp="messageTimeText"
               :edited="isEdited"
               :ephemeral="messageEphemeral"
@@ -723,6 +758,7 @@ function onRowClick(event: MouseEvent): void {
               <n-icon aria-hidden="true" :component="PinOutline" />
             </span>
           </div>
+          <ReactionFooter v-if="showReactionFooter" />
         </MessageMenu>
         <MessageBubbleHoverToolbar
           beside
@@ -837,7 +873,7 @@ function onRowClick(event: MouseEvent): void {
               <n-icon aria-hidden="true" :component="mediaHoverAction.icon" />
             </button>
             <MessageMeta
-              v-if="showMessageMeta"
+              v-if="showMessageMeta && !showReactionFooter"
               :timestamp="messageTimeText"
               :edited="isEdited"
               :ephemeral="messageEphemeral"
@@ -869,6 +905,7 @@ function onRowClick(event: MouseEvent): void {
               <n-icon aria-hidden="true" :component="PinOutline" />
             </span>
           </div>
+          <ReactionFooter v-if="showReactionFooter" />
         </MessageMenu>
 
         <button
@@ -885,26 +922,6 @@ function onRowClick(event: MouseEvent): void {
         >
           <n-icon aria-hidden="true" :component="EllipsisHorizontalOutline" />
         </button>
-      </template>
-    </div>
-
-    <div v-if="reactions.length" class="message-reactions">
-      <template v-if="canToggleReaction">
-        <button
-          v-for="reaction in reactions"
-          :key="reaction.emoji"
-          type="button"
-          :class="{ 'is-selected': reaction.selected }"
-          :aria-pressed="Boolean(reaction.selected)"
-          @click.stop="emit('react', messageId(), reaction.emoji)"
-        >
-          {{ reaction.emoji }} {{ reaction.count }}
-        </button>
-      </template>
-      <template v-else>
-        <span v-for="reaction in reactions" :key="reaction.emoji" :class="{ 'is-selected': reaction.selected }">
-          {{ reaction.emoji }} {{ reaction.count }}
-        </span>
       </template>
     </div>
   </article>

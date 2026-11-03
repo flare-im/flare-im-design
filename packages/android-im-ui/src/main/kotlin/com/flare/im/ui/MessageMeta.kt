@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -85,6 +86,7 @@ internal fun MessageMetaContent(
     onReadReceiptOpen: (() -> Unit)?,
     modifier: Modifier,
     inRow: Boolean,
+    reserveTouchTarget: Boolean = false,
 ) {
     if (placement == FlareMessageMetaPlacement.None) return
     val strings = flareStrings()
@@ -107,6 +109,11 @@ internal fun MessageMetaContent(
     val receipt = effective?.let { flareMessageReceiptPresentation(FlareConversationKind.Group, self = true, status = it, readSummary = readSummary) }
     val retry = effective?.let { flareMessageRetryControl(placement, outgoing, it) }
     val decorative = if (inRow) Modifier.clearAndSetSemantics {} else Modifier
+    val touchTarget = if (reserveTouchTarget) {
+        Modifier.sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+    } else {
+        Modifier.flareTouchTargetAround()
+    }
     Row(
         modifier = modifier.heightIn(min = FlareSizes.iconSizeSm),
         verticalAlignment = Alignment.CenterVertically,
@@ -118,7 +125,7 @@ internal fun MessageMetaContent(
         val failedText = retry == FlareMessageRetryControl.Text && onResend != null
         if (failedText) {
             Box(
-                Modifier.flareTouchTargetAround()
+                touchTarget
                     .clickable(role = Role.Button, onClickLabel = strings.retry) { onResend?.invoke() }
                     .semantics { contentDescription = strings.messageSendFailedRetry },
                 contentAlignment = Alignment.Center,
@@ -144,7 +151,7 @@ internal fun MessageMetaContent(
                 val open = onReadReceiptOpen
                 if (open != null) {
                     Box(
-                        Modifier.flareTouchTargetAround()
+                        touchTarget
                             .clickable(role = Role.Button) { open() }
                             .semantics { contentDescription = text },
                         contentAlignment = Alignment.Center,

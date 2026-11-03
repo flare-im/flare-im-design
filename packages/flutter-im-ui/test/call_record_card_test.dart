@@ -218,7 +218,9 @@ void main() {
     expect(find.byKey(FlareCallRecordCard.actionKey), findsNothing);
   });
 
-  testWidgets('is a card surface as wide as every card', (tester) async {
+  testWidgets('short call records do not occupy the full rich card width', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       host(
         const FlareCallRecordCard(
@@ -234,7 +236,7 @@ void main() {
     expect(find.byKey(FlareMessageCardShell.surfaceKey), findsOneWidget);
     expect(
       tester.getSize(find.byKey(FlareMessageCardShell.surfaceKey)).width,
-      FlareSizes.componentRichCardWidth,
+      lessThan(FlareSizes.componentRichCardWidth),
     );
   });
 

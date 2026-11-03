@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -193,10 +194,14 @@ fun CallRecordCard(
     val accent = if (danger) colors.error else colors.primary
     val ink = if (danger) colors.errorText else colors.primaryText
     Box(modifier) {
-        FlareMessageCardShell(card = true, quote = null) { fill ->
-            Row(fill, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+        FlareMessageCardShell(card = true, quote = null, padded = false, fillWidth = false) { shell ->
+            Row(
+                shell.padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            ) {
                 Box(
-                    Modifier.size(FlareSizes.controlHeightMd).clip(CircleShape).background(accent.copy(alpha = FlareOpacity.tintWeak))
+                    Modifier.size(FlareSizes.controlHeightSm).clip(CircleShape).background(accent.copy(alpha = FlareOpacity.tintWeak))
                         .clearAndSetSemantics {},
                     contentAlignment = Alignment.Center,
                 ) {
@@ -205,7 +210,7 @@ fun CallRecordCard(
                 }
                 // One node for what the card says; the action names itself.
                 Column(
-                    Modifier.weight(1f).clearAndSetSemantics {
+                    Modifier.weight(1f, fill = false).clearAndSetSemantics {
                         contentDescription = mediaText
                         stateDescription = text
                     },

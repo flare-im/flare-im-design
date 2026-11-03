@@ -384,27 +384,29 @@ fun MessageContentView(
  * The shell of a kit card on a card surface: `componentRichCardWidth` wide within the parent, radius lg, the primary
  * ground, a hairline border and the card shadow, with the row's quoted reply inside at the top. [padded] gives the body
  * the shell's md padding (a body that pads itself, or a map that runs to the edges, passes false). Off a card surface
- * (a standalone body, a bubble) the body draws as it is. [content] gets the modifier that makes it fill the shell.
+ * (a standalone body, a bubble) the body draws as it is. [fillWidth] controls whether the shell fills its width cap or follows the content.
  */
 @Composable
 internal fun FlareMessageCardShell(
     card: Boolean,
     quote: (@Composable () -> Unit)?,
     padded: Boolean = true,
+    fillWidth: Boolean = true,
     content: @Composable (Modifier) -> Unit,
 ) {
     if (!card) { content(Modifier); return }
     val colors = flareColors()
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    val fill = if (fillWidth) Modifier.fillMaxWidth() else Modifier
     Column(
-        Modifier.widthIn(max = FlareSizes.componentRichCardWidth).fillMaxWidth()
+        Modifier.widthIn(max = FlareSizes.componentRichCardWidth).then(fill)
             .shadow(flareShadowElevation(flareShadows().card), shape, clip = false)
             .clip(shape)
             .background(colors.bgPrimary)
             .border(1.dp, colors.borderSecondary, shape),
     ) {
         if (quote != null) Box(Modifier.fillMaxWidth().padding(start = FlareSizes.spacingMd, end = FlareSizes.spacingMd, top = FlareSizes.spacingMd)) { quote() }
-        Box(if (padded) Modifier.fillMaxWidth().padding(FlareSizes.spacingMd) else Modifier.fillMaxWidth()) { content(Modifier.fillMaxWidth()) }
+        Box(if (padded) fill.padding(FlareSizes.spacingMd) else fill) { content(fill) }
     }
 }
 

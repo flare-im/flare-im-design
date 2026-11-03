@@ -16,7 +16,7 @@ emoji, count, selected state, picker. Regions use semantic tokens and host-owned
 summary, quick reaction, picker. Choose one variant from task priority, not decoration.
 
 ## Sizes
-touch-target preserving. Minimum interactive targets remain 48 logical pixels.
+In a reacted message, start the shared footer 4 logical units below the surface. Use 22 logical units as the minimum visual pill height and 4 between pills. Use a tinted fill and readable count for the viewer’s reactions. On touch surfaces, reserve a distinct target of at least 44 × 44 logical units for each pill and align the visible pill to its top. Keyboard and pointer users can activate the visible pill directly.
 
 ## States
 idle, pickerOpen, optimistic, confirmed, failed. Loading preserves geometry; errors keep a recovery path.
@@ -31,7 +31,7 @@ Enter/Space toggles; arrow navigation applies inside picker.
 Provide a localized name, role, state, availability, focus order, visible focus, and reduced-motion equivalent. Decorative imagery is hidden.
 
 ## Responsive
-Preserve the primary task. Supporting regions become a drawer, sheet, overlay, or route rather than compressed desktop geometry.
+Align reaction runs with the sender’s side. The timestamp and receipt sit at the trailing edge of the last run when they fit, or on a dedicated trailing line when space runs out. Reserve space for interactive receipt and retry targets so they do not overlap reactions. Unreacted messages use the ordinary metadata placement.
 
 ## Platform differences
 Vue uses ARIA and pointer conventions; Flutter uses Semantics and Focus; Compose uses semantics and native gestures; SwiftUI uses accessibility traits, Dynamic Type, and native presentation. Semantic states and intents remain identical.

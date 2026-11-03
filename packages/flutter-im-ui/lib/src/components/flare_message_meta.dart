@@ -35,6 +35,7 @@ class FlareMessageMeta extends StatelessWidget {
     this.density = FlareMessageMetaDensity.compact,
     this.placement = FlareMessageMetaPlacement.bubbleFooter,
     this.readSummary,
+    this.wrap = false,
     this.tint,
     this.readTint,
     this.onResend,
@@ -51,6 +52,9 @@ class FlareMessageMeta extends StatelessWidget {
   final FlareMessageMetaDensity density;
   final FlareMessageMetaPlacement placement;
   final FlareMessageReadSummary? readSummary;
+
+  /// Allow metadata to wrap when a narrow shared reaction footer needs it.
+  final bool wrap;
 
   /// The text and glyph colour on an outgoing bubble; null is the default
   /// palette (`message.metaForeground`).
@@ -137,8 +141,9 @@ class FlareMessageMeta extends StatelessWidget {
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: FlareSizes.iconSizeSm),
-      child: largeText
+      child: largeText || wrap
           ? Wrap(
+              alignment: wrap ? WrapAlignment.end : WrapAlignment.start,
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: gap,
               children: children,
@@ -176,14 +181,7 @@ class FlareMessageMeta extends StatelessWidget {
       button: true,
       label: strings.messageSendFailedRetry,
       excludeSemantics: true,
-      child: FlareHitSlop(
-        key: retryTextKey,
-        child: GestureDetector(
-          onTap: resend,
-          behavior: HitTestBehavior.opaque,
-          child: text,
-        ),
-      ),
+      child: _action(retryTextKey, resend, text),
     );
   }
 
@@ -212,13 +210,33 @@ class FlareMessageMeta extends StatelessWidget {
       button: true,
       label: label,
       excludeSemantics: true,
-      child: FlareHitSlop(
-        key: readSummaryKey,
-        child: GestureDetector(
-          onTap: open,
-          behavior: HitTestBehavior.opaque,
-          child: text,
+      child: _action(readSummaryKey, open, text),
+    );
+  }
+
+  Widget _action(Key key, VoidCallback onTap, Widget label) {
+    if (wrap) {
+      // A shared footer owns its own targets. No enlarged hit rectangle may
+      // reach into the previous run of pills or into the message above it.
+      return GestureDetector(
+        key: key,
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: FlareSizes.touchTarget,
+            minHeight: FlareSizes.touchTarget,
+          ),
+          child: Align(widthFactor: 1, heightFactor: 1, child: label),
         ),
+      );
+    }
+    return FlareHitSlop(
+      key: key,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: label,
       ),
     );
   }

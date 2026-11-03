@@ -121,7 +121,8 @@ internal fun messageSurfaceChrome(surface: FlareMessageSurface, tail: Boolean): 
  *
  * Meta (spec/message-meta-placement-vectors.json): a text bubble ends its last line with the time and receipt and moves
  * them to their own row when they do not fit; other bubbles keep them in a footer row; bare media and cards have them
- * under the surface at the trailing edge in the default palette, where a failed message reads "Failed to send. Retry".
+ * under the surface at the trailing edge in the default palette. Reacted messages share that footer with their pills.
+ * In the default palette a failed message reads "Failed to send. Retry".
  * The retry — that key, or the failed glyph inside a bubble, which is then the failure surface with its red edge — takes [onResend] with a hit
  * area of at least the touch target. The receipt is the SDK's (spec/message-receipt-vectors.json): five states, no
  * delivered, and in a group the viewer's own messages show [FlareMessageData.readSummary] as "N unread" / "Read by all",
@@ -325,18 +326,9 @@ internal fun MessageBubbleRow(
                     onResend = resend, onMediaAction = onMediaAction, onMediaDownload = onMediaDownload, onMediaReveal = onMediaReveal,
                     onOpenFile = onOpenFile, onOpenLink = onOpenLink, onLocateQuote = onLocateQuote, intents = intents,
                     selectionMode = multiSelectMode,
+                    onToggleReaction = onReact?.takeUnless { multiSelectMode }?.let { cb -> { emoji -> cb(message, emoji) } },
                     onReadReceiptOpen = onReadReceiptOpen?.takeIf { !multiSelectMode }?.let { cb -> { cb(message.serverId ?: message.id) } },
                 )
-                if (message.reactions.isNotEmpty()) {
-                    Box(Modifier.padding(top = FlareSizes.spacingXs)) {
-                        // Multi-select taps select the row; pills toggle only outside it.
-                        ReactionSummary(
-                            message.reactions,
-                            hideAdd = true,
-                            onToggle = onReact?.takeIf { !multiSelectMode }?.let { cb -> { emoji -> cb(message, emoji) } },
-                        )
-                    }
-                }
             }
             if (self && rowPresentation.reserveAvatarSpace) {
                 Spacer(Modifier.width(FlareSizes.spacingSm))
@@ -435,6 +427,7 @@ private fun MessageSurfaceBody(
     onLocateQuote: (() -> Unit)?,
     intents: MessageBodyIntents,
     selectionMode: Boolean,
+    onToggleReaction: ((String) -> Unit)?,
     onReadReceiptOpen: (() -> Unit)?,
 ) {
     val quote = message.replyTo
@@ -471,6 +464,8 @@ private fun MessageSurfaceBody(
             )
         }
     }
+    val hasReactions = message.reactions.isNotEmpty()
+    val metaPlacement = if (hasReactions && placement != FlareMessageMetaPlacement.None) FlareMessageMetaPlacement.Below else placement
     val hasMeta = time.isNotEmpty() || message.edited || message.lifecycle != null || self
     val meta: @Composable (Modifier) -> Unit = { modifier ->
         MessageMetaContent(
@@ -480,25 +475,47 @@ private fun MessageSurfaceBody(
             lifecycle = if (self) message.lifecycle else null,
             ephemeral = message.lifecycle?.ephemeral ?: FlareMessageEphemeralState.None,
             density = FlareMessageMetaDensity.Compact,
-            placement = placement,
+            placement = metaPlacement,
             outgoing = self,
             readSummary = message.readSummary.takeIf { receipt.summary != null },
-            onResend = onResend?.let { cb -> { cb(message) } },
+            onResend = onResend?.takeUnless { hasReactions && selectionMode }?.let { cb -> { cb(message) } },
             onReadReceiptOpen = onReadReceiptOpen,
             modifier = modifier,
             inRow = true,
+            reserveTouchTarget = hasReactions,
         )
+    }
+
+    val withReactionFooter: @Composable (@Composable () -> Unit) -> Unit = { messageBody ->
+        if (hasReactions) {
+            MessageReactionFooter(
+                reactions = message.reactions,
+                outgoing = self,
+                onToggle = onToggleReaction,
+                modifier = Modifier.widthIn(max = maxWidth),
+                metadataNeedsOwnRow = (onResend != null && !selectionMode) ||
+                    (receipt.summary != null && onReadReceiptOpen != null),
+                body = messageBody,
+                metadata = {
+                    if (hasMeta && metaPlacement != FlareMessageMetaPlacement.None) meta(Modifier)
+                },
+            )
+        } else {
+            messageBody()
+        }
     }
 
     if (surface != FlareMessageSurface.Bubble) {
         // Bare media and cards: the content is the surface, the meta goes under it at the trailing edge.
         val markShape = RoundedCornerShape(if (surface == FlareMessageSurface.Card) FlareSizes.radiusLg else FlareSizes.radiusCard)
-        Column(
-            modifier = Modifier.widthIn(max = maxWidth),
-            horizontalAlignment = if (self) Alignment.End else Alignment.Start,
-        ) {
-            Box(Modifier.locateMark(message.id, markShape, colors.primary)) { body() }
-            if (hasMeta) meta(Modifier.align(Alignment.End).padding(top = FlareSizes.spacingXs))
+        withReactionFooter {
+            Column(
+                modifier = Modifier.widthIn(max = maxWidth),
+                horizontalAlignment = if (self) Alignment.End else Alignment.Start,
+            ) {
+                Box(Modifier.locateMark(message.id, markShape, colors.primary)) { body() }
+                if (hasMeta && !hasReactions) meta(Modifier.align(Alignment.End).padding(top = FlareSizes.spacingXs))
+            }
         }
         return
     }
@@ -518,7 +535,7 @@ private fun MessageSurfaceBody(
     }
     val inner: @Composable () -> Unit = {
         when {
-            !hasMeta -> quotedBody()
+            !hasMeta || hasReactions -> quotedBody()
             placement == FlareMessageMetaPlacement.Inline -> InlineMetaLayout(body = quotedBody, meta = { meta(Modifier) }, alignEnd = self)
             else -> Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
                 quotedBody()
@@ -527,17 +544,19 @@ private fun MessageSurfaceBody(
             }
         }
     }
-    Box(
-        Modifier.widthIn(max = maxWidth)
-            .then(Modifier.locateMark(message.id, shape, colors.primary))
-            .then(if (!self && chrome.shadow) Modifier.shadow(2.dp, shape, clip = false) else Modifier)
-            .clip(shape)
-            // Fill only: the incoming surface is a tertiary tone the chat canvas never uses, so the bubble reads as its
-            // own surface without a hairline around it. The failure surface alone keeps an edge.
-            .background(palette.background)
-            .then(palette.edge?.let { Modifier.border(1.dp, it, shape) } ?: Modifier)
-            .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
-    ) { inner() }
+    withReactionFooter {
+        Box(
+            Modifier.widthIn(max = maxWidth)
+                .then(Modifier.locateMark(message.id, shape, colors.primary))
+                .then(if (!self && chrome.shadow) Modifier.shadow(2.dp, shape, clip = false) else Modifier)
+                .clip(shape)
+                // Fill only: the incoming surface is a tertiary tone the chat canvas never uses, so the bubble reads as its
+                // own surface without a hairline around it. The failure surface alone keeps an edge.
+                .background(palette.background)
+                .then(palette.edge?.let { Modifier.border(1.dp, it, shape) } ?: Modifier)
+                .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
+        ) { inner() }
+    }
 }
 
 /**

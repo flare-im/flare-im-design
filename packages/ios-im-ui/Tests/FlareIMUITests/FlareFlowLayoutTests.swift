@@ -23,6 +23,30 @@ final class FlareFlowLayoutTests: XCTestCase {
 #if os(macOS)
 import AppKit
 
+final class MessageReactionFooterLayoutTests: XCTestCase {
+    @MainActor
+    func testMetadataUsesTheFinalReactionLineWhenItFits() {
+        _ = NSApplication.shared
+        var footer = ReactionSummaryView(
+            reactions: [ReactionGroup(emoji: "👍", count: 2), ReactionGroup(emoji: "🎉", count: 1)],
+            hideAdd: true,
+            onToggle: { _ in }
+        )
+        footer.messageSurface = AnyView(Color.clear.frame(width: 64, height: 32))
+        footer.messageMeta = MessageMetaView(timestamp: "10:01", placement: .below)
+        footer.messageMeta?.reservesActionSpace = true
+
+        let host = NSHostingController(rootView: footer)
+        let roomy = host.sizeThatFits(in: CGSize(width: 240, height: 1_000))
+        let narrow = host.sizeThatFits(in: CGSize(width: 96, height: 1_000))
+
+        XCTAssertEqual(roomy.height, 32 + 4 + 44, accuracy: 1, "metadata shares the pill line")
+        XCTAssertLessThan(roomy.width, 240, "the footer stays near the message surface")
+        XCTAssertLessThanOrEqual(narrow.width, 96, "the footer honors the available width")
+        XCTAssertGreaterThan(narrow.height, roomy.height + 16, "metadata wraps when both pills use the first line")
+    }
+}
+
 /// The batch toolbar on a phone: its keys wrap instead of squeezing their labels into clipped columns, or running
 /// past the bar's edge where nobody can reach them.
 final class MessageBatchToolbarLayoutTests: XCTestCase {

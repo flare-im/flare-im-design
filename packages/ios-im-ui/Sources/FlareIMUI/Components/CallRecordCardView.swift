@@ -64,13 +64,13 @@ public struct CallRecordCardView: View {
         let danger = FlareCallRecordRules.tone(status) == .danger
         let accent = danger ? colors.error : colors.primary
         let ink = danger ? colors.errorText : colors.primaryText
-        FlareMessageCardShell(padded: true) {
-            HStack(spacing: FlareSizes.spacingMd) {
+        FlareMessageCardShell(padded: false, fillWidth: false) {
+            HStack(spacing: FlareSizes.spacingSm) {
                 ZStack {
                     Circle().fill(accent.opacity(FlareOpacity.tintWeak))
                     IconView(media == .video ? "video" : "phone", size: FlareSizes.iconSizeMd, color: ink)
                 }
-                .frame(width: FlareSizes.controlHeightMd, height: FlareSizes.controlHeightMd)
+                .frame(width: FlareSizes.controlHeightSm, height: FlareSizes.controlHeightSm)
                 .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
                     Text(statusText)
@@ -82,7 +82,6 @@ public struct CallRecordCardView: View {
                         .foregroundColor(colors.textTertiary)
                         .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 // One element for what the card says; the action names itself.
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(mediaText)
@@ -94,6 +93,8 @@ public struct CallRecordCardView: View {
                         .fixedSize()
                 }
             }
+            .padding(.horizontal, FlareSizes.spacingSm)
+            .padding(.vertical, FlareSizes.spacingXs)
         }
         .accessibilityElement(children: .contain)
     }

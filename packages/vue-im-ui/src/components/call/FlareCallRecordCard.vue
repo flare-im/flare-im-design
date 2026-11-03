@@ -119,18 +119,18 @@ function onAction() {
 </template>
 
 <style scoped>
-/* The kit card shell (spec/message-surface-vectors.json rules.cardShell): richCardWidth like every card, the primary
+/* The kit card shell (spec/message-surface-vectors.json rules.cardShell): content-sized within richCardWidth, the primary
    ground, a hairline and radius lg. Outgoing and incoming records differ by alignment only. */
 .flare-call-record {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--flare-size-spacing-md);
-  width: var(--flare-size-component-rich-card-width);
-  max-width: 100%;
+  gap: var(--flare-size-spacing-sm);
+  width: fit-content;
+  max-width: min(100%, var(--flare-size-component-rich-card-width));
   min-width: 0;
   box-sizing: border-box;
-  padding: var(--flare-size-spacing-md);
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm);
   border: 1px solid var(--flare-color-border-secondary);
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-primary);
@@ -141,8 +141,8 @@ function onAction() {
 .flare-call-record__icon {
   display: grid;
   place-items: center;
-  width: var(--flare-size-layout-control-height-md);
-  height: var(--flare-size-layout-control-height-md);
+  width: var(--flare-size-layout-control-height-sm);
+  height: var(--flare-size-layout-control-height-sm);
   border-radius: var(--flare-size-radius-full);
   color: var(--flare-color-primary-text);
   background: color-mix(in srgb, var(--flare-color-primary) calc(var(--flare-opacity-tint-weak) * 100%), transparent);

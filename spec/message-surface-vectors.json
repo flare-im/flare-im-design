@@ -14,7 +14,7 @@
     "hasQuote": "Input fact: the message replies to another one (replyTo or quotePreview set).",
     "hasCaption": "Input fact: the video carries a description or caption that is not blank.",
     "registration": "A host registers a surface (card or bareMedia) only for a content key the kit does not know. Every custom / plugin content (red packets, polls and all flare.plugin.message.v1 cards) is card by default; the old boolean `bare` option is gone.",
-    "cardShell": "card: the content component's own shell is the surface (PluginView, RedPacketCard, LocationMessage, ContactMessage, ...). MessageBubble draws no background, border, padding, tail or shadow around it, and the shell width comes from richCardWidth, not from bubble padding. Outgoing and incoming cards differ by alignment only (and, in groups, the incoming avatar and name), never by a brand-coloured edge. A quote on a card is drawn inside the shell at its top (the shell's quote slot).",
+    "cardShell": "card: the content component's own shell is the surface (PluginView, RedPacketCard, LocationMessage, ContactMessage, ...). MessageBubble draws no background, border, padding, tail or shadow around it, and richCardWidth caps the shell width. Compact call records size to their content within that cap. Outgoing and incoming cards differ by alignment only (and, in groups, the incoming avatar and name), never by a brand-coloured edge. A quote on a card is drawn inside the shell at its top (the shell's quote slot).",
     "bareMedia": "bareMedia: the media is the surface; no bubble background, padding or tail.",
     "centered": "centered: one centred notice line; no avatar, name, status, menu or selection."
   },

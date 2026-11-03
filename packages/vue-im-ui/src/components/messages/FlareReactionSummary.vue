@@ -8,6 +8,8 @@ defineProps<{
   reactions: FlareReactionGroup[];
   /** Hide the trailing "add reaction" affordance. */
   hideAdd?: boolean;
+  /** Render counts without toggle controls. */
+  readOnly?: boolean;
 }>();
 const emit = defineEmits<{
   (e: "toggle", emoji: string): void;
@@ -23,21 +25,20 @@ function tooltip(group: FlareReactionGroup): string {
 </script>
 
 <template>
-  <div v-if="reactions.length || !hideAdd" class="flare-reaction-summary">
-    <button
+  <div v-if="reactions.length || (!hideAdd && !readOnly)" class="flare-reaction-summary">
+    <component
+      :is="readOnly ? 'span' : 'button'"
       v-for="group in reactions"
       :key="group.emoji"
-      type="button"
+      :type="readOnly ? undefined : 'button'"
       class="flare-reaction-pill"
       :class="{ 'is-self': group.reactedBySelf }"
+      :aria-pressed="readOnly ? undefined : Boolean(group.reactedBySelf)"
       :title="tooltip(group)"
-      @click="emit('toggle', group.emoji)"
-    >
-      <span class="flare-reaction-pill__emoji">{{ group.emoji }}</span>
-      <span class="flare-reaction-pill__count">{{ group.count }}</span>
-    </button>
+      v-on="readOnly ? {} : { click: (event: MouseEvent) => { event.stopPropagation(); emit('toggle', group.emoji); } }"
+    >{{ group.emoji }} {{ group.count }}</component>
     <button
-      v-if="!hideAdd"
+      v-if="!hideAdd && !readOnly"
       type="button"
       class="flare-reaction-pill flare-reaction-pill--add"
       :aria-label="t('reaction.add')"
@@ -45,68 +46,74 @@ function tooltip(group: FlareReactionGroup): string {
     >
       <n-icon aria-hidden="true" :size="15" :component="HappyOutline" />
     </button>
+    <slot name="trailing" />
   </div>
 </template>
 
 <style scoped>
 .flare-reaction-summary {
+  --flare-reaction-pill-height: 22px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  align-items: flex-start;
+  gap: var(--flare-size-spacing-xs);
 }
-/* 只钉高度:宽度由内容撑,钉住就把长反应条截断了。撑到 44 高会把时间线里每一条
-   带反应的消息都拉开一截 —— 而它本来就有 47px 宽,横向够得着,缺的只是纵向,
-   所以纵向用 ::after 补,不动盒子。(机制见 accessibility.css 顶部注释) */
+
 .flare-reaction-pill {
+  --reaction-fill: var(--flare-color-message-reaction-background);
+  --reaction-touch-inset: 0px;
   position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 9px;
-  border-radius: 999px;
-  border: 1px solid var(--flare-color-border-primary);
-  background: var(--flare-color-message-reaction-background);
+  justify-content: center;
+  min-height: var(--flare-reaction-pill-height);
+  min-width: var(--flare-reaction-pill-height);
+  padding: 0 var(--flare-size-spacing-sm) var(--reaction-touch-inset);
+  border: 0;
+  background: transparent;
   color: var(--flare-color-text-secondary);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform var(--flare-transition-fast),
-    background var(--flare-transition-fast),
-    border-color var(--flare-transition-fast);
-}
-/* Feedback that does not move the hit area: a transform shifts the border box,
-   so the bottom 1px a cursor may be resting on leaves the element and hover
-   drops — which re-lowers it, which re-enters hover. */
-.flare-reaction-pill:hover { background: var(--flare-color-bg-hover); border-color: var(--flare-color-border-hover); }
-.flare-reaction-pill:active { transform: scale(0.96); }
-.flare-reaction-pill__emoji { font-size: 14px; }
-.flare-reaction-pill__count {
+  font: inherit;
+  font-size: var(--flare-size-font-size-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: var(--flare-size-font-weight-medium);
+  white-space: pre;
 }
-.flare-reaction-pill::after {
+
+/* The pill sits at the top of its own touch slot so every hit area stays
+   inside its layout box, even next to a timestamp or another line of pills. */
+.flare-reaction-pill::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: max(100%, var(--flare-size-layout-touch-target));
+  z-index: -1;
+  inset: 0 0 var(--reaction-touch-inset);
+  border-radius: var(--flare-size-radius-full);
+  background: var(--reaction-fill);
+}
+button.flare-reaction-pill { cursor: pointer; }
+button.flare-reaction-pill:hover:not(.is-self) { --reaction-fill: var(--flare-color-bg-hover); }
+button.flare-reaction-pill:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 1px;
+  border-radius: var(--flare-size-radius-full);
 }
 .flare-reaction-pill.is-self {
-  border-color: var(--flare-color-primary);
-  background: var(--flare-color-message-reaction-selected);
+  --reaction-fill: var(--flare-color-message-reaction-selected);
   color: var(--flare-color-primary-text);
 }
-.flare-reaction-pill--add {
-  padding: 0 8px;
-  color: var(--flare-color-text-tertiary);
+.flare-reaction-pill--add { color: var(--flare-color-text-tertiary); }
+.flare-reaction-pill--add:hover { color: var(--flare-color-primary-text); }
+
+@media (pointer: coarse) {
+  button.flare-reaction-pill {
+    --reaction-touch-inset: calc(var(--flare-size-layout-touch-target-min) - var(--flare-reaction-pill-height));
+    min-width: var(--flare-size-layout-touch-target-min);
+    min-height: var(--flare-size-layout-touch-target-min);
+  }
 }
-.flare-reaction-pill--add:hover {
-  color: var(--flare-color-primary-text);
-  border-color: var(--flare-color-primary);
+@media (forced-colors: active) {
+  .flare-reaction-pill::before { outline: 1px solid CanvasText; }
+  .flare-reaction-pill.is-self::before { outline-color: Highlight; }
 }
 </style>

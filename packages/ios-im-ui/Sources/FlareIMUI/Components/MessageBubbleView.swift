@@ -87,16 +87,16 @@ struct FlareMessageMetaStack: Layout {
 /// emoji bare; a card (plugin cards, red packets, locations, contact and link cards, polls, tasks …) as its own
 /// shell with nothing drawn around it — a quote then sits inside the shell at its top; a system line, recall or
 /// deletion as a centred notice. The time and receipt sit where `spec/message-meta-placement-vectors.json` puts
-/// them: after a text's last line, in the footer of other bubbles, under bare media and cards (spacing xs, trailing,
-/// default palette). A failed outgoing bubble takes the failure surface with its glyph as the retry key; under a
-/// failed picture or card the text key "发送失败，重试" retries. Both targets are 44pt.
+/// them: after a text's last line, in the footer of other bubbles, or under bare media and cards. On a reacted
+/// message they share the reaction footer. A failed bubble uses its failure glyph as a retry key. Outside the
+/// surface the retry key shows "发送失败，重试". Both targets are 44pt.
 ///
 /// The viewer's own group message shows the SDK's read summary ("N 人未读" / "全部已读") in place of the check;
 /// with `onReadReceiptOpen` it opens the host's read receipt list.
 ///
 /// In multi-select every control of the content is inert and a tap anywhere on the row toggles its selection.
 /// The row is one VoiceOver element: sender, content summary, time and status (`spec/message-receipt-vectors.json`
-/// accessibility); a card row keeps its controls reachable inside it.
+/// accessibility). Card and reaction controls are independently reachable.
 public struct MessageBubbleView: View {
     private let message: FlareMessageData
     private let currentUserId: String
@@ -239,7 +239,8 @@ public struct MessageBubbleView: View {
 
     /// Where the meta sits on this row.
     var metaPlacement: FlareMessageMetaPlacement {
-        flareMessageMetaPlacement(surface: surface, contentType: message.content.specContentType)
+        if hasReactionFooter { return .below }
+        return flareMessageMetaPlacement(surface: surface, contentType: message.content.specContentType)
     }
 
     /// The message body, with this message's media handlers and the timeline's media defaults.
@@ -359,8 +360,8 @@ public struct MessageBubbleView: View {
             .background(selected ? colors.messageSelectedBackground : Color.clear)
             .modifier(RowTap(action: Self.rowTap(multiSelectMode: multiSelectMode, id: message.id,
                                                 onToggleSelect: onToggleSelect)))
-            // One reading unit per message. A card keeps its own controls reachable inside it.
-            .accessibilityElement(children: card && !multiSelectMode ? .contain : .combine)
+            // Cards and reacted messages keep their own controls reachable.
+            .accessibilityElement(children: (card || hasReactionFooter) && !multiSelectMode ? .contain : .combine)
             .accessibilityLabel(Self.accessibilityLabel(message, isSelf: isSelf, conversationKind: conversationKind,
                                                         strings: strings, locale: locale))
             .accessibilityAddTraits(multiSelectMode && selected ? .isSelected : [])
@@ -422,15 +423,25 @@ public struct MessageBubbleView: View {
                     .font(.system(size: smallTextSize))
                     .foregroundColor(colors.textTertiary)
             }
-            surfaceBody(colors)
-            if !message.reactions.isEmpty {
-                // Multi-select taps select the row; pills toggle only outside it.
-                ReactionSummaryView(reactions: message.reactions, hideAdd: true,
-                                    onToggle: Self.reactionToggle(message, onReact: multiSelectMode ? nil : onReact))
-                    .padding(.top, FlareSizes.spacingXs)
+            if hasReactionFooter {
+                reactionFooter(colors)
+            } else {
+                surfaceBody(colors)
             }
         }
         .frame(maxWidth: bubbleMaxWidth, alignment: isSelf ? .trailing : .leading)
+    }
+
+    private var hasReactionFooter: Bool { surface != .centered && !message.reactions.isEmpty }
+
+    private func reactionFooter(_ colors: FlareColors) -> ReactionSummaryView {
+        // Multi-select taps select the row; pills toggle only outside it.
+        var summary = ReactionSummaryView(reactions: message.reactions, hideAdd: true,
+                                          onToggle: Self.reactionToggle(message, onReact: multiSelectMode ? nil : onReact))
+        summary.messageSurface = AnyView(surfaceBody(colors))
+        summary.messageMeta = showsMeta ? meta(.below, reservesActionSpace: true) : nil
+        summary.isOutgoing = isSelf
+        return summary
     }
 
     /// Whether the message has a meta row: a time, an edit or a lifecycle to say, or my delivery status.
@@ -438,8 +449,8 @@ public struct MessageBubbleView: View {
         !message.timeLabel.isEmpty || message.edited || message.lifecycle != nil || isSelf
     }
 
-    private func meta(_ placement: FlareMessageMetaPlacement) -> MessageMetaView {
-        MessageMetaView(
+    private func meta(_ placement: FlareMessageMetaPlacement, reservesActionSpace: Bool = false) -> MessageMetaView {
+        var view = MessageMetaView(
             timestamp: message.timeLabel,
             edited: message.edited,
             status: isSelf ? message.status : nil,
@@ -453,6 +464,8 @@ public struct MessageBubbleView: View {
             onResend: onResend == nil || multiSelectMode ? nil : { onResend?(message) },
             onReadReceiptOpen: onReadReceiptOpen == nil || multiSelectMode ? nil : { onReadReceiptOpen?(message) }
         )
+        view.reservesActionSpace = reservesActionSpace
+        return view
     }
 
     /// The room the inline meta keeps after a text's last line.
@@ -470,8 +483,9 @@ public struct MessageBubbleView: View {
     @ViewBuilder
     private func bubbleInner(_ colors: FlareColors) -> some View {
         let placement = metaPlacement
+        let showsSurfaceMeta = showsMeta && !hasReactionFooter
         Group {
-            if placement == .inline && showsMeta {
+            if placement == .inline && showsSurfaceMeta {
                 // The meta sits at the end of the text's last line: the text keeps its room there (drawn clear),
                 // and wraps it onto a line of its own when the last line is full.
                 quoted {
@@ -480,9 +494,9 @@ public struct MessageBubbleView: View {
                         .overlay(alignment: .bottomTrailing) { meta(.inline) }
                 }
             } else {
-                FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsMeta, spacing: 3) {
+                FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsSurfaceMeta, spacing: 3) {
                     quoted { content }
-                    if showsMeta { meta(.bubbleFooter) }
+                    if showsSurfaceMeta { meta(.bubbleFooter) }
                 }
             }
         }
@@ -548,14 +562,15 @@ public struct MessageBubbleView: View {
             let shape = AnyShape(RoundedRectangle(cornerRadius: surface == .card ? FlareSizes.radiusLg
                                                   : FlareSizes.radiusCard, style: .continuous))
             // The meta row under bare media and cards ends at the surface's trailing edge, whoever sent it.
-            FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsMeta, spacing: FlareSizes.spacingXs) {
+            let showsSurfaceMeta = showsMeta && !hasReactionFooter
+            FlareMessageMetaStack(bodyTrailing: isSelf, hasMeta: showsSurfaceMeta, spacing: FlareSizes.spacingXs) {
                 content
                     // A quoting card draws its quote inside its own shell, at the top.
                     .environment(\.flareMessageCardQuote, surface == .card ? Self.quote(message).map {
                         AnyView(quoteStrip($0, colors))
                     } : nil)
                     .background { locateRing(colors, shape: shape) }
-                if showsMeta { meta(.below) }
+                if showsSurfaceMeta { meta(.below) }
             }
         case .bubble, .centered:
             let shape = flareBubbleShape(tail ? (isSelf ? .bottomTrailing : .bottomLeading) : .none)

@@ -584,70 +584,78 @@
   }
 }
 
-.message-reactions {
+.message-menu-anchor:has(> .message-reactions) {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--flare-size-spacing-2xs);
-  min-width: 0;
-  max-width: min(var(--flare-component-bubble-max-width), 100%);
-  margin-top: 1px;
-  padding-inline: 2px;
+  flex-direction: column;
+  align-items: flex-start;
+  width: fit-content;
 }
 
-/* 尺寸由内容撑，所以这里显式声明「没有地板」而不是钉一个数：accessibility.css 在粗指针下
-   给 :where(button) 兜的 44px min-* 会盖过内容高度，把这排 22px 的反应 chip 撑成 44 的方块，
-   时间线里每条带反应的消息都被拉开一截。触达区不靠盒子 —— 下面的 ::after 撑满一个触达单位。
-   (`:where()` 把特异性压成 0 正是为了让组件能自己说话，见 accessibility.css 顶部注释) */
-.message-reactions > span,
-.message-reactions > button {
-  display: inline-flex;
-  position: relative;
-  align-items: center;
-  gap: var(--flare-size-spacing-xs);
-  min-width: 0;
-  min-height: 0;
-  padding: 3px var(--flare-size-spacing-sm);
-  border: 1px solid var(--flare-color-message-incoming-border);
-  border-radius: var(--flare-component-radius-pill);
-  color: var(--flare-color-text-secondary);
-  background: var(--flare-color-message-reaction-background);
-  font-size: var(--flare-size-font-size-sm);
-  line-height: 1.2;
+.message-row--self .message-menu-anchor:has(> .message-reactions) {
+  align-items: flex-end;
 }
 
-.message-reactions > .is-selected {
-  border-color: var(--flare-color-message-selected-border);
-  background: var(--flare-color-message-reaction-selected);
-  color: var(--flare-color-primary-text);
-}
-
-.message-reactions > button {
-  margin: 0;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.message-reactions > button::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.message-reactions {
+  /* Let the surface determine the width, with a little room on very small bubbles.
+     The entire list of reactions cannot stretch a content-sized card. */
+  --reaction-footer-chip-width: calc(var(--flare-size-layout-touch-target-min) + var(--flare-size-spacing-xs));
+  --reaction-footer-meta-width: var(--flare-size-layout-touch-target-min);
+  contain: inline-size;
+  contain-intrinsic-inline-size: calc(var(--reaction-footer-chip-width) + var(--reaction-footer-meta-width));
   width: 100%;
-  height: max(100%, var(--flare-size-layout-touch-target));
+  min-width: 0;
+  max-width: 100%;
+  margin-block-start: var(--flare-size-spacing-xs);
 }
 
-.message-reactions > button:hover {
-  border-color: var(--flare-color-border-hover);
-}
-
-.message-reactions > button:focus-visible {
-  outline: 2px solid var(--flare-color-border-selected);
-  outline-offset: 1px;
+.message-reactions--two-chips {
+  contain-intrinsic-inline-size: calc(2 * var(--reaction-footer-chip-width) + var(--reaction-footer-meta-width));
 }
 
 .message-row--self .message-reactions {
+  /* Reserve the extra space a delivery indicator uses next to the time. */
+  --reaction-footer-meta-width: calc(var(--flare-size-layout-touch-target-min) + var(--flare-size-icon-size-md));
   justify-content: flex-end;
+}
+
+.message-reactions > footer.message-meta-row {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  min-height: var(--flare-reaction-pill-height);
+  white-space: normal;
+  color: var(--flare-color-message-meta-foreground);
+}
+
+.message-row--self .message-reactions > .message-meta-row {
+  margin-inline-start: 0;
+}
+
+.message-reactions .message-meta-row > *,
+.message-reactions .message-meta-row .status-failed {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--flare-reaction-pill-height);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* The other placements may use hit slop. Here every touch target reserves
+   its own box so the retry and receipt buttons cannot cover a pill. */
+.message-reactions button.message-meta-row__summary::after,
+.message-reactions button.message-meta-row__retry::after,
+.message-reactions button.status-failed::before {
+  content: none;
+}
+
+@media (pointer: coarse) {
+  .message-reactions .message-meta-row button {
+    box-sizing: border-box;
+    min-width: var(--flare-size-layout-touch-target-min);
+    min-height: var(--flare-size-layout-touch-target-min);
+    padding-block-end: calc(var(--flare-size-layout-touch-target-min) - var(--flare-reaction-pill-height));
+  }
 }
 
 .message-row--system,

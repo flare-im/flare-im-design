@@ -115,13 +115,18 @@ class FlareCallRecordCard extends StatelessWidget {
       label: mediaText,
       value: text,
       child: FlareMessageCardShell(
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacingSm,
+          vertical: FlareSizes.spacingXs,
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ExcludeSemantics(
               child: Container(
                 key: iconKey,
-                width: FlareSizes.controlHeightMd,
-                height: FlareSizes.controlHeightMd,
+                width: FlareSizes.controlHeightSm,
+                height: FlareSizes.controlHeightSm,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: FlareOpacity.tintWeak),
@@ -134,8 +139,8 @@ class FlareCallRecordCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: FlareSizes.spacingMd),
-            Expanded(
+            const SizedBox(width: FlareSizes.spacingSm),
+            Flexible(
               child: ExcludeSemantics(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +172,7 @@ class FlareCallRecordCard extends StatelessWidget {
               ),
             ),
             if (action != null) ...[
-              const SizedBox(width: FlareSizes.spacingMd),
+              const SizedBox(width: FlareSizes.spacingSm),
               FlareButton(
                 key: actionKey,
                 label: action == FlareCallRecordAction.join
