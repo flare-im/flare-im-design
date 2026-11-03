@@ -479,6 +479,19 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
 
   Widget _column(BuildContext context, FlareColors colors, double pane) {
     final self = _self;
+    final surface = _surface(context, colors, pane);
+    final content = !_hasReactions
+        ? surface
+        : ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: _surfaceWidth(pane)),
+            child: _BubbleColumn(
+              end: self,
+              textDirection: Directionality.of(context),
+              fitLast: true,
+              metaGap: FlareSizes.spacingXs,
+              children: [surface, _reactionFooter(colors)],
+            ),
+          );
     return Column(
       crossAxisAlignment: self
           ? CrossAxisAlignment.end
@@ -499,20 +512,37 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
               ),
             ),
           ),
-        _surface(context, colors, pane),
-        if (message.reactions.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
-            child: FlareReactionSummary(
-              reactions: message.reactions,
-              hideAdd: true,
-              // Multi-select taps select the row; pills toggle only outside it.
-              onToggle: b.onReact == null || b.multiSelectMode
-                  ? null
-                  : (emoji) => b.onReact!(message, emoji),
-            ),
-          ),
+        content,
       ],
+    );
+  }
+
+  bool get _hasReactions => message.reactions.isNotEmpty;
+
+  bool get _hasMeta =>
+      message.timeLabel.isNotEmpty ||
+      message.edited ||
+      message.lifecycle != null ||
+      _self;
+
+  Widget _reactionFooter(FlareColors colors) {
+    final layout = FlareMessageMetaLayout(
+      placement: FlareMessageMetaPlacement.below,
+      tone: FlareMessageMetaTone.standard,
+      retry: _self && _status == FlareMessageDeliveryStatus.failed
+          ? FlareMessageRetryKind.text
+          : null,
+    );
+    final actionRoom = _belowKeyRoom(layout);
+    return FlareReactionSummary(
+      reactions: message.reactions,
+      hideAdd: true,
+      alignEnd: _self,
+      onToggle: b.onReact == null || b.multiSelectMode
+          ? null
+          : (emoji) => b.onReact!(message, emoji),
+      trailing: !_hasMeta ? null : _meta(colors, layout, wrap: true),
+      trailingOnOwnLine: actionRoom > 0,
     );
   }
 
@@ -560,7 +590,11 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
   }
 
   /// The meta row for [layout].
-  Widget _meta(FlareColors colors, FlareMessageMetaLayout layout) {
+  Widget _meta(
+    FlareColors colors,
+    FlareMessageMetaLayout layout, {
+    bool wrap = false,
+  }) {
     final self = _self;
     final onBubble = layout.tone == FlareMessageMetaTone.onOutgoing;
     // Read in the row's label; its keys are the row's custom actions.
@@ -573,6 +607,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
         ephemeral:
             message.lifecycle?.ephemeral ?? FlareMessageEphemeralState.none,
         placement: layout.placement,
+        wrap: wrap,
         readSummary: self && _group ? message.readSummary : null,
         tint: onBubble ? colors.messageStatusOnOutgoing : null,
         readTint: onBubble ? colors.messageStatusReadOnOutgoing : null,
@@ -613,13 +648,25 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
     );
   }
 
-  Widget _surface(BuildContext context, FlareColors colors, double pane) {
-    final self = _self;
-    final surface = widget.surface;
+  double _bubbleWidth(double pane) {
     final ratio = pane < FlareSizes.navigationRailMinWidth
         ? FlareSizes.componentBubbleMaxWidthRatioCompact
         : FlareSizes.componentBubbleMaxWidthRatioRegular;
-    final maxWidth = (pane * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
+    return (pane * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
+  }
+
+  double _surfaceWidth(double pane) =>
+      widget.surface == FlareMessageSurface.card
+      ? math.max(
+          _bubbleWidth(pane),
+          math.min(pane, FlareSizes.componentRichCardWidth),
+        )
+      : _bubbleWidth(pane);
+
+  Widget _surface(BuildContext context, FlareColors colors, double pane) {
+    final self = _self;
+    final surface = widget.surface;
+    final maxWidth = _surfaceWidth(pane);
     final quote = message.replyTo;
     final key = flareMessageContentKey(message.content);
     final layout = flareMessageMetaPlacement(
@@ -628,11 +675,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       self: self,
       status: _status,
     );
-    final hasMeta =
-        message.timeLabel.isNotEmpty ||
-        message.edited ||
-        message.lifecycle != null ||
-        self;
+    final hasMeta = _hasMeta && !_hasReactions;
     final body = _content(surface);
 
     if (surface == FlareMessageSurface.card) {
@@ -645,12 +688,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
               child: body,
             );
       return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: math.max(
-            maxWidth,
-            math.min(pane, FlareSizes.componentRichCardWidth),
-          ),
-        ),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         child: _BubbleColumn(
           end: self,
           trailingLast: hasMeta,
@@ -1055,6 +1093,7 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
     this.quote = false,
     this.trailingLast = false,
     this.inlineMeta = false,
+    this.fitLast = false,
     this.metaGap = 0,
     required super.children,
   });
@@ -1072,6 +1111,9 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
   /// The last row is the meta of a text: put it after the last line if it fits.
   final bool inlineMeta;
 
+  /// The external reaction footer uses the surface width as its minimum.
+  final bool fitLast;
+
   /// Space above the meta row when it has a row of its own.
   final double metaGap;
 
@@ -1082,6 +1124,7 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
         quote: quote,
         trailingLast: trailingLast,
         inlineMeta: inlineMeta,
+        fitLast: fitLast,
         metaGap: metaGap,
         textDirection: textDirection,
       );
@@ -1096,6 +1139,7 @@ class _BubbleColumn extends MultiChildRenderObjectWidget {
       ..quote = quote
       ..trailingLast = trailingLast
       ..inlineMeta = inlineMeta
+      ..fitLast = fitLast
       ..metaGap = metaGap
       ..textDirection = textDirection;
   }
@@ -1112,12 +1156,14 @@ class _RenderBubbleColumn extends RenderBox
     required bool quote,
     required bool trailingLast,
     required bool inlineMeta,
+    required bool fitLast,
     required double metaGap,
     required TextDirection textDirection,
   }) : _end = end,
        _quote = quote,
        _trailingLast = trailingLast,
        _inlineMeta = inlineMeta,
+       _fitLast = fitLast,
        _metaGap = metaGap,
        _textDirection = textDirection;
 
@@ -1146,6 +1192,13 @@ class _RenderBubbleColumn extends RenderBox
   set inlineMeta(bool value) {
     if (value == _inlineMeta) return;
     _inlineMeta = value;
+    markNeedsLayout();
+  }
+
+  bool _fitLast;
+  set fitLast(bool value) {
+    if (value == _fitLast) return;
+    _fitLast = value;
     markNeedsLayout();
   }
 
@@ -1229,7 +1282,13 @@ class _RenderBubbleColumn extends RenderBox
       row != null;
       row = childAfter(row)
     ) {
-      final size = measure(row, BoxConstraints(maxWidth: maxWidth));
+      final size = measure(
+        row,
+        BoxConstraints(
+          minWidth: _fitLast && row == lastChild ? width : 0,
+          maxWidth: maxWidth,
+        ),
+      );
       rows.add((row, size));
       width = math.max(width, size.width);
     }
@@ -1265,7 +1324,9 @@ class _RenderBubbleColumn extends RenderBox
         (quote.parentData! as _BubbleColumnParentData).offset = Offset.zero;
       }
     }
-    final gap = _trailingLast && rows.length > 1 && !inline ? _metaGap : 0.0;
+    final gap = (_trailingLast || _fitLast) && rows.length > 1 && !inline
+        ? _metaGap
+        : 0.0;
     final height = inline
         ? top + rows[0].$2.height
         : rows.fold(top, (sum, row) => sum + row.$2.height) + gap;
@@ -1286,7 +1347,7 @@ class _RenderBubbleColumn extends RenderBox
     for (var i = 0; i < rows.length; i++) {
       final (row, rowSize) = rows[i];
       final trailing = _trailingLast && i == rows.length - 1;
-      if (trailing && i > 0) top += gap;
+      if ((trailing || (_fitLast && i == rows.length - 1)) && i > 0) top += gap;
       // The end edge is the right in a left-to-right layout.
       final right = (trailing || _end) == ltr;
       (row.parentData! as _BubbleColumnParentData).offset = Offset(

@@ -89,9 +89,15 @@ final class MessageProjectionTests: XCTestCase {
     @MainActor
     func testReactionPillsToggleTheCurrentUsersReaction() throws {
         var toggled: [String] = []
-        let bubble = MessageBubbleView(message: message("1", "ann", "上线了", reactions: reactions), currentUserId: "me",
+        let message = FlareMessageData(id: "1", senderId: "ann", senderName: "Ann",
+                                       content: FlareTextContent("上线了"), timeLabel: "10:01", reactions: reactions)
+        let bubble = MessageBubbleView(message: message, currentUserId: "me",
                                        onReact: { toggled.append("\($0.id) \($1)") })
-        let pills = try bubble.inspect().find(ReactionSummaryView.self).findAll(ViewType.Button.self)
+        let inspected = try bubble.inspect()
+        let footer = try inspected.find(ReactionSummaryView.self)
+        XCTAssertEqual(inspected.findAll(MessageMetaView.self).count, 1, "the inline timestamp moved to the footer")
+        XCTAssertEqual(try footer.find(MessageMetaView.self).actualView().placement, .below)
+        let pills = footer.findAll(ViewType.Button.self)
         XCTAssertEqual(pills.count, 2, "hideAdd: no add pill under a bubble")
         try pills[1].tap()
         XCTAssertEqual(toggled, ["1 🎉"])

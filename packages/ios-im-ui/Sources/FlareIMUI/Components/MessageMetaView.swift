@@ -24,6 +24,7 @@ public struct MessageMetaView: View {
     private let ephemeral: FlareMessageEphemeralState
     private let density: FlareMessageMetaDensity
     let placement: FlareMessageMetaPlacement
+    var reservesActionSpace = false
     private let tone: FlareMessageMetaTone
     private let readSummary: FlareMessageReadSummary?
     private let conversationKind: FlareConversationKind?
@@ -115,22 +116,31 @@ public struct MessageMetaView: View {
         // Below a surface the failure is a text key; without a resend listener the glyph stays and nothing taps.
         let failedBelow = placement == .below && shownStatus == .failed && onResend != nil
         let receipt = self.receipt
-        return HStack(spacing: density == .compact ? FlareSizes.spacingXs : FlareSizes.spacing2xs) {
+        return HStack(
+            alignment: reservesActionSpace ? .top : .center,
+            spacing: density == .compact ? FlareSizes.spacingXs : FlareSizes.spacing2xs
+        ) {
             if failedBelow { retryKey(colors) }
             if !labels.isEmpty {
                 Text(labels)
                     .font(.system(size: metaTextSize))
                     .foregroundStyle(textColor)
                     .lineLimit(1)
+                    .frame(minHeight: visualLineHeight)
             }
             if let summary = receipt.summary {
                 summaryKey(summary, onBubble: onBubble, colors: colors)
             } else if let shown = shownStatus, !failedBelow {
                 MessageStatusView(status: shown, variant: .compact,
                                   tint: onBubble ? colors.messageStatusOnOutgoing : nil, onResend: onResend)
+                    .frame(minHeight: visualLineHeight)
             }
         }
         .frame(minHeight: FlareSizes.iconSizeSm)
+    }
+
+    private var visualLineHeight: CGFloat? {
+        reservesActionSpace ? max(ReactionSummaryView.visualHeight, lineHeight) : nil
     }
 
     /// The row's height for a key inside it: the line, never under the glyph's.
@@ -144,10 +154,11 @@ public struct MessageMetaView: View {
                 .foregroundStyle(colors.messageStatusFailed)
                 .lineLimit(1)
                 .fixedSize()
-                .flareTouchTarget()
+                .frame(minHeight: visualLineHeight)
+                .flareTouchTarget(alignment: reservesActionSpace ? .topTrailing : .center)
         }
         .buttonStyle(.plain)
-        .flareCompactLayout(height: lineHeight)
+        .flareCompactLayout(height: reservesActionSpace ? nil : lineHeight)
         .accessibilityLabel(strings.messageSendFailedRetry)
     }
 
@@ -163,10 +174,13 @@ public struct MessageMetaView: View {
             .foregroundStyle(color)
             .lineLimit(1)
             .fixedSize()
+            .frame(minHeight: visualLineHeight)
         if let onReadReceiptOpen {
-            Button(action: onReadReceiptOpen) { label.flareTouchTarget() }
+            Button(action: onReadReceiptOpen) {
+                label.flareTouchTarget(alignment: reservesActionSpace ? .topTrailing : .center)
+            }
                 .buttonStyle(.plain)
-                .flareCompactLayout(height: lineHeight)
+                .flareCompactLayout(height: reservesActionSpace ? nil : lineHeight)
                 .accessibilityLabel(text)
         } else {
             label.accessibilityLabel(text)

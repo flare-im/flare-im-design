@@ -156,8 +156,7 @@
 
 /* PC：己方消息更贴右缘 */
 [data-viewport="desktop"] .message-row--self .message-bubble-host,
-[data-viewport="desktop"] .message-row--self .message-meta,
-[data-viewport="desktop"] .message-row--self .message-reactions {
+[data-viewport="desktop"] .message-row--self .message-meta {
   max-width: min(82%, 640px);
 }
 

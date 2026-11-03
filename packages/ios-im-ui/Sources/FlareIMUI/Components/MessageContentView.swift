@@ -558,6 +558,7 @@ struct FlareVoiceMessageBody: View {
 /// wide — with the quote slot inside it at its top. `padded` gives a body without inner padding the shell's md.
 struct FlareMessageCardShell<Content: View>: View {
     let padded: Bool
+    var fillWidth = true
     @ViewBuilder let content: Content
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -576,9 +577,9 @@ struct FlareMessageCardShell<Content: View>: View {
             content
                 .environment(\.flareInMessageCardShell, true)
                 .padding(padded ? FlareSizes.spacingMd : 0)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: fillWidth ? .infinity : nil, alignment: .leading)
         }
-        // One width for every card: richCardWidth, or the column when that is narrower.
+        // Cap the shell within the available timeline width.
         .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
         .background(shape.fill(colors.bgPrimary))
         .clipShape(shape)

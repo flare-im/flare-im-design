@@ -196,27 +196,39 @@ describe("MessageList host actions", () => {
 describe("MessageList reaction pills", () => {
   const reacted: MessageLike = { ...message, reactions: [{ emoji: "👍", count: 2, selected: true }, { emoji: "🎉", count: 1 }] };
 
-  function mountList(listeners: Record<string, (...args: unknown[]) => void>) {
+  function mountList(listeners: Record<string, (...args: unknown[]) => void>, row = reacted) {
     return mount(FlareUiProvider, {
       props: { themeMode: "light", locale: "en-US", layoutMode: "pc" },
-      slots: { default: () => h(MessageList, { messages: [reacted], currentUserId: "me", hasOlder: false, ...listeners }) },
+      slots: { default: () => h(MessageList, { messages: [row], currentUserId: "me", hasOlder: false, ...listeners }) },
     });
   }
 
   it("toggles the viewer's reaction when the host handles react", async () => {
     const calls: unknown[][] = [];
     const host = mountList({ onReact: (...args) => calls.push(args) });
-    const pills = host.findAll(".message-reactions button");
+    const pills = host.findAll(".message-reactions > button");
     expect(pills.map((pill) => pill.attributes("aria-pressed"))).toEqual(["true", "false"]);
     await pills[1].trigger("click");
     expect(calls).toEqual([["client-1", "🎉"]]);
     host.unmount();
   });
 
+  it("moves the one timestamp from inline text to the footer when reactions are present", () => {
+    const plainHost = mountList({}, message);
+    const plainTime = plainHost.get(".message-bubble > .message-meta-row").text();
+    expect(plainHost.find(".message-reactions").exists()).toBe(false);
+    plainHost.unmount();
+
+    const reactedHost = mountList({});
+    expect(reactedHost.find(".message-bubble > .message-meta-row").exists()).toBe(false);
+    expect(reactedHost.get(".message-reactions > .message-meta-row").text()).toBe(plainTime);
+    reactedHost.unmount();
+  });
+
   it("shows display-only pills when nobody handles react", () => {
     const host = mountList({ onReply: () => {} });
-    expect(host.findAll(".message-reactions button")).toHaveLength(0);
-    expect(host.findAll(".message-reactions span")).toHaveLength(2);
+    expect(host.findAll(".message-reactions > button")).toHaveLength(0);
+    expect(host.findAll(".message-reactions > span")).toHaveLength(2);
     host.unmount();
   });
 });
