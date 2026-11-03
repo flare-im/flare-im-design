@@ -33,17 +33,17 @@ function* sources(root) {
 
 export function checkConversationOwnership(sdk) {
   const targets = [
-    ['examples/flare-core-web-app/src/App.vue', ['../../shared/vue-reference/ReferenceApp.vue']],
-    ['examples/flare-core-tauri-app/src/App.vue', ['../../shared/vue-reference/ReferenceApp.vue']],
+    ['../flare-core-examples/apps/flare-core-web-app/src/App.vue', ['../../../../flare-core-sdk/examples/shared/vue-reference/ReferenceApp.vue']],
+    ['../flare-core-examples/apps/flare-core-tauri-app/src/App.vue', ['../../../../flare-core-sdk/examples/shared/vue-reference/ReferenceApp.vue']],
     // D9 (P0-4) removed FlareConversationListPanel from the kit: the panel COMPOSITION
     // is product code now, so the barrel must point at the local file. What still has to
     // come from the kit is the row/list underneath it, which the panel itself imports.
     ['examples/shared/vue-reference/workbench/app/ui/components.ts', ['../components/ConversationListPanel.vue', '@flare-im/vue-ui/components']],
     ['examples/shared/vue-reference/workbench/app/components/ConversationListPanel.vue', ['FlareConversationList', '@flare-im/vue-ui/components']],
     ['examples/shared/vue-reference/workbench/app/components/FlareConversationsPanel.vue', ['<ConversationListPanel']],
-    ['examples/flare-core-flutter-app/lib/interface/widgets/conversation_item/conversation_item.dart', ['FlareConversationRow(', 'FlareConversationActionSheet(', 'FlareConversationSwipeAction(']],
-    ['examples/flare-core-ios-app/Sources/FlareImApp/Features/Messaging/ConversationList/ConversationListView.swift', ['FlareIMUI.ConversationRowView(', 'FlareIMUI.ConversationActionSheetView(']],
-    ['examples/flare-core-android-app/app/src/main/kotlin/com/flare/im/app/features/messaging/conversationlist/ConversationListView.kt', ['com.flare.im.ui.ConversationRow(', 'com.flare.im.ui.ConversationActionSheet(']],
+    ['../flare-core-examples/apps/flare-core-flutter-app/lib/interface/widgets/conversation_item/conversation_item.dart', ['FlareConversationRow(', 'FlareConversationActionSheet(', 'FlareConversationSwipeAction(']],
+    ['../flare-core-examples/apps/flare-core-ios-app/Sources/FlareImApp/Features/Messaging/ConversationList/ConversationListView.swift', ['FlareIMUI.ConversationRowView(', 'FlareIMUI.ConversationActionSheetView(']],
+    ['../flare-core-examples/apps/flare-core-android-app/app/src/main/kotlin/com/flare/im/app/features/messaging/conversationlist/ConversationListView.kt', ['com.flare.im.ui.ConversationRow(', 'com.flare.im.ui.ConversationActionSheet(']],
   ];
   const errors = [];
   for (const [file, required] of targets) {
@@ -52,7 +52,7 @@ export function checkConversationOwnership(sdk) {
     for (const error of inspectConversationSource(source, file)) errors.push(file + ': ' + error);
   }
   // Scan all Vue host styles, not just the known adapter, so moving an override cannot bypass the gate.
-  for (const dir of ['examples/shared/vue-reference', 'examples/flare-core-web-app/src', 'examples/flare-core-tauri-app/src']) {
+  for (const dir of ['examples/shared/vue-reference', '../flare-core-examples/apps/flare-core-web-app/src', '../flare-core-examples/apps/flare-core-tauri-app/src']) {
     for (const file of sources(join(sdk, dir))) {
       for (const error of inspectConversationSource(readFileSync(file, 'utf8'), file)) errors.push(file + ': ' + error);
     }

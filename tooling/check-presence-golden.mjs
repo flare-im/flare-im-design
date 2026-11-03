@@ -15,7 +15,7 @@ import { dirname, join } from "node:path";
 const here = dirname(fileURLToPath(import.meta.url));
 const socialSdk = join(here, "../../flare-social-server/flare-social-sdk");
 const source = join(socialSdk, "sdk-spec/golden/presence-projection.json");
-const copy = join(socialSdk, "examples/apps/flare-social-android-app/app/src/androidTest/assets/presence-projection.json");
+const copy = join(here, "../../flare-social-examples/apps/flare-social-android-app/app/src/androidTest/assets/presence-projection.json");
 
 if (!existsSync(source) || !existsSync(copy)) {
   // The sibling repository is not always checked out beside this one (the same reason the kit aliases
