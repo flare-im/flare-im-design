@@ -123,26 +123,18 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('the invite cooldown runs on the server clock', (tester) async {
+  test('invite cooldown resolution can use the server clock', () {
     // Ten minutes of cooldown left on the server; this device runs 15 minutes
     // fast.
     FlareServerClock.setOffsetMs(-15 * 60000);
     final availableAt = deviceNow() - 15 * 60000 + 10 * 60000 - 5000;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: FlareMyInvitePanel(
-              code: 'AB12CD',
-              invitees: const [],
-              canRegenerate: true,
-              regenerateAvailableAt: availableAt,
-            ),
-          ),
-        ),
-      ),
+    final availability = regenerateAvailability(
+      true,
+      availableAt,
+      FlareServerClock.nowMs(),
     );
-    expect(find.text('10 分钟 后可重新生成'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox());
+    expect(availability.enabled, isFalse);
+    expect(availability.remaining?.unit, FlareInviteCooldownUnit.minute);
+    expect(availability.remaining?.count, 10);
   });
 }

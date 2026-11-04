@@ -3881,6 +3881,78 @@
     ],
     "zh": "直接邀请的人"
   },
+  "myInviteInviterTitle": {
+    "en": "Invited by",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请人"
+  },
+  "myInviteNoInviter": {
+    "en": "No inviter",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无邀请人"
+  },
+  "myInviteExpand": {
+    "en": "Expand {name}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "展开 {name}"
+  },
+  "myInviteCollapse": {
+    "en": "Collapse {name}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收起 {name}"
+  },
+  "myInviteNoChildren": {
+    "en": "No invitees",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无下级"
+  },
+  "myInviteRelationships": {
+    "en": "Invitation relationships",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "邀请关系"
+  },
+  "myInviteInviterUnavailable": {
+    "en": "Inviter unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无法读取邀请人"
+  },
+  "myInviteCurrentUser": {
+    "en": "You",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前用户"
+  },
   "myInviteJoined": {
     "en": "Joined {date}",
     "kits": [
@@ -3925,6 +3997,15 @@
       "ios"
     ],
     "zh": "正在加载邀请信息"
+  },
+  "myInviteQrHint": {
+    "en": "Scan to sign up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "扫码注册"
   },
   "myInviteRegenerate": {
     "en": "Regenerate",

@@ -19,7 +19,6 @@ public struct QRCardView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
-    @Environment(\.displayScale) private var displayScale
     @State private var cache = FlareQRCodeCache()
 
     public init(name: String, subtitle: String? = nil, avatarURL: String? = nil, qrPayload: String? = nil) {
@@ -41,7 +40,9 @@ public struct QRCardView: View {
                 Spacer(minLength: 0)
             }
 
-            qrPanel(code, colors)
+            FlareQRCodeFrame(code: code, label: "\(strings.qrCode), \(name)")
+                // The VStack contributes the other 12 points below the identity row.
+                .padding(.top, 4)
 
             if code != nil {
                 Text(strings.scanToAddMe).font(.system(size: 12)).foregroundColor(colors.textTertiary)
@@ -56,9 +57,19 @@ public struct QRCardView: View {
             .shadow(color: Color.black.opacity(0.14), radius: 24, y: 10)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderPrimary, lineWidth: 1)))
     }
+}
 
-    @ViewBuilder
-    private func qrPanel(_ code: CGImage?, _ colors: FlareColors) -> some View {
+/// The scannable square and its light quiet zone, shared by contact and invite cards.
+struct FlareQRCodeFrame: View {
+    let code: CGImage?
+    let label: String
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let frame = RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
         Group {
             if let code {
@@ -82,8 +93,6 @@ public struct QRCardView: View {
             }
         }
         .overlay(frame.stroke(colors.borderPrimary, lineWidth: 1))
-        // Frame sits 16 below the identity row (Android / Flutter parity; the VStack adds 12).
-        .padding(.top, 4)
     }
 
     /// The code at a whole number of device pixels per module, centred, no interpolation.
@@ -106,7 +115,7 @@ public struct QRCardView: View {
                 .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: "\(strings.qrCode), \(name)"))
+        .accessibilityLabel(Text(verbatim: label))
         .accessibilityAddTraits(.isImage)
     }
 }

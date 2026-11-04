@@ -11026,8 +11026,8 @@
           "type": "string",
           "required": true,
           "description": {
-            "en": "Two-way bound code. What the host receives is already normalized: trimmed, uppercased, O→0, I/L→1, separators dropped, cut to `length`.",
-            "zh": "双向绑定的码。宿主拿到的已是归一化结果：去空白、大写、O→0、I/L→1、去分隔符、截到 `length`。"
+            "en": "Two-way bound code. Whitespace and hyphens are removed, ASCII letters are uppercased, and O→0, I/L→1 and U→V are applied. A pre-check is requested for codes with 4–12 valid characters. Overlength and other invalid input are preserved for validation.",
+            "zh": "双向绑定的码。去除空白和连字符，ASCII 字母大写，并转换 O→0、I/L→1、U→V。包含 4–12 位有效字符的码可请求预检。超长和其他无效输入原样保留以供校验。"
           }
         },
         {
@@ -11035,8 +11035,8 @@
           "type": "\"off\" | \"optional\" | \"required\"",
           "default": "\"optional\"",
           "description": {
-            "en": "Tenant invite mode. `off` renders nothing at all; `optional` labels the field as optional; `required` marks it required.",
-            "zh": "租户邀请模式。`off` 什么都不渲染；`optional` 标为选填；`required` 标为必填。"
+            "en": "Tenant invite mode. `off` hides the field; `optional` displays the plain label; `required` adds a red asterisk to the label.",
+            "zh": "租户邀请模式。`off` 隐藏字段，`optional` 仅显示标签，`required` 在标签旁加红色星号。"
           }
         },
         {
@@ -11077,15 +11077,6 @@
           "description": {
             "en": "Non-editable, dimmed; no check is requested.",
             "zh": "不可编辑、置灰；不发起预检。"
-          }
-        },
-        {
-          "name": "length",
-          "type": "number",
-          "default": "6",
-          "description": {
-            "en": "Code length the tenant configured; the field caps input here and only asks for a check once the code is complete.",
-            "zh": "租户配置的码长；字段按此截断，码输完整后才请求预检。"
           }
         },
         {
@@ -16821,12 +16812,12 @@
       "name": "MyInvitePanel",
       "category": "Profile",
       "summary": {
-        "en": "\"My invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly.",
-        "zh": "「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
+        "en": "Registration QR, invite code copy, team counts, and an expandable invitation tree.",
+        "zh": "展示注册二维码、邀请码复制、团队统计和可逐级展开的邀请关系。"
       },
       "dataSource": {
-        "en": "Host-fetched invite code, share URL, referral stats and a keyset page of direct invitees; the component derives depth rows via referralDepthRows() and the regenerate cooldown via regenerateAvailability(). Copy, share and regenerate are intents the host performs.",
-        "zh": "宿主取回的邀请码、分享链接、推荐统计与直接下级的 keyset 分页；组件用 referralDepthRows() 推导深度行、用 regenerateAvailability() 推导冷却。复制、分享、重新生成都是宿主执行的意图。"
+        "en": "The host loads permitted counts and the first page of direct invitees. Expanding a user requests their direct invitees through onLoadChildren.",
+        "zh": "宿主加载允许展示的统计和首批直接邀请用户。展开某个用户时，通过 onLoadChildren 加载该用户直接邀请的人。"
       },
       "props": [
         {
@@ -16842,8 +16833,8 @@
           "name": "shareUrl",
           "type": "string",
           "description": {
-            "en": "Host-built share link (the `/r/{tenant}/{code}` template filled in); shown under the code and carried by `share`.",
-            "zh": "宿主拼好的分享链接（`/r/{tenant}/{code}` 模板填好）；显示在码下方并随 `share` 事件携带。"
+            "en": "Optional registration URL encoded locally in the QR. The URL stays out of the visible panel.",
+            "zh": "可选的注册链接，仅用于本地生成二维码。页面不显示网址。"
           }
         },
         {
@@ -16859,8 +16850,8 @@
           "type": "number",
           "default": "3",
           "description": {
-            "en": "How many depth rows to show (1–3), per the tenant's `referral.visibility`; `total` is shown whenever stats exist.",
-            "zh": "展示几层深度行（1–3），来自租户的 `referral.visibility`；只要有统计就显示 `total`。"
+            "en": "How many depth rows to show, per the tenant's `referral.visibility`. Zero hides the stats section. A positive depth (1–3) also displays the total.",
+            "zh": "展示层数由租户的 `referral.visibility` 决定。0 隐藏统计，1–3 同时展示总数。"
           }
         },
         {
@@ -16868,8 +16859,8 @@
           "type": "Invitee[]",
           "required": true,
           "description": {
-            "en": "Direct invitees loaded so far `{ userId, displayName, avatarUrl?, joinedAt }`; `joinedAt` is epoch milliseconds.",
-            "zh": "已加载的直接下级 `{ userId, displayName, avatarUrl?, joinedAt }`；`joinedAt` 为毫秒时间戳。"
+            "en": "Root rows with userId, displayName, optional avatarUrl, joinedAt in epoch milliseconds, and optional hasChildren when descendants can be shown.",
+            "zh": "顶层用户包含 userId、displayName、可选 avatarUrl、毫秒时间戳 joinedAt，以及可查看下级时的 hasChildren。"
           }
         },
         {
@@ -16877,8 +16868,8 @@
           "type": "boolean",
           "default": "true",
           "description": {
-            "en": "`false` switches to count-only mode: the depth counts stay, the invitee list is replaced by its count.",
-            "zh": "为 `false` 时切到只显示人数：深度统计保留，下级列表换成人数。"
+            "en": "False hides the entire invitation tree and its pagination. Permitted counts remain visible.",
+            "zh": "为 false 时隐藏整棵邀请树和分页，保留允许展示的统计。"
           }
         },
         {
@@ -16901,32 +16892,8 @@
           "name": "loading",
           "type": "boolean",
           "description": {
-            "en": "First load in flight — skeleton for the code and counts, never a fake empty list.",
-            "zh": "首次加载中——码与统计显示骨架，不伪装成空列表。"
-          }
-        },
-        {
-          "name": "canRegenerate",
-          "type": "boolean",
-          "description": {
-            "en": "The tenant allows regenerating; without it the control is not drawn.",
-            "zh": "租户允许重新生成；否则不画该按钮。"
-          }
-        },
-        {
-          "name": "regenerateAvailableAt",
-          "type": "number | null",
-          "description": {
-            "en": "Epoch milliseconds from which regenerating is allowed again; while in the future the control is disabled and says how long remains.",
-            "zh": "允许再次生成的毫秒时间戳；在未来时按钮禁用并说明剩余时长。"
-          }
-        },
-        {
-          "name": "regenerating",
-          "type": "boolean",
-          "description": {
-            "en": "Regenerate request in flight.",
-            "zh": "重新生成请求进行中。"
+            "en": "A refresh in flight. The QR and code are withheld until the current data arrives.",
+            "zh": "正在加载或刷新，当前数据返回后才显示二维码和邀请码。"
           }
         },
         {
@@ -16936,20 +16903,29 @@
             "en": "Card heading; defaults to the strings table.",
             "zh": "卡片标题；默认取文案表。"
           }
+        },
+        {
+          "name": "onLoadChildren",
+          "type": "(parentUserId: string, cursor?: string) => Promise<FlareInviteeBranchPage>",
+          "description": {
+            "en": "Loads one page of the selected user’s permitted children. The page carries invitees and an optional nextCursor. The panel keeps branch expansion, retry and pagination state.",
+            "zh": "加载选中用户有权查看的一页下级，返回 invitees 和可选 nextCursor。面板管理各分支的展开、重试和分页状态。"
+          }
         }
       ],
       "states": [
         "loading",
         "empty",
+        "codeUnavailable",
+        "qrUnavailable",
         "default",
         "countOnly",
-        "cooldown",
-        "regenerating"
+        "branchLoading",
+        "branchEmpty",
+        "branchError"
       ],
       "events": [
         "copy",
-        "share",
-        "regenerate",
         "loadMore",
         "select"
       ],
@@ -16986,11 +16962,11 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
-        "screenReaderSemantics": "Expose a named group; the code is read as text, the counts as labelled values, each invitee row as a named item. Decorative imagery is hidden."
+        "screenReaderSemantics": "Expose a named group, a labelled QR image, one code copy action, labelled counts, and expand or collapse controls labelled with each invitee’s name."
       },
       "notes": {
-        "en": "`copy` carries the code, `share` the share URL (or the code when none), `select` the invitee's userId. The kit touches neither clipboard nor share sheet. Joined dates read as YYYY-MM-DD in the device's calendar on every platform.",
-        "zh": "`copy` 携带码，`share` 携带分享链接（没有则是码），`select` 携带下级的 userId。组件不碰剪贴板和分享面板。加入日期在各端都按设备日历显示为 YYYY-MM-DD。"
+        "en": "Copy emits the invite code and select emits the invitee user ID. The first level lists the viewer’s direct invitees; deeper levels are only available within the configured depth. Joined dates use YYYY-MM-DD in the device calendar.",
+        "zh": "复制事件携带邀请码，选择事件携带下级用户 ID。一级显示当前用户直接邀请的人，后续层级受配置限制。加入日期按设备日历显示为 YYYY-MM-DD。"
       }
     },
     {

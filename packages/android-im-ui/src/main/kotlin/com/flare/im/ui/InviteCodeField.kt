@@ -45,8 +45,6 @@ fun InviteCodeField(
     /** Host-localized error shown instead of the hint; wins over [checkResult]. */
     error: String? = null,
     disabled: Boolean = false,
-    /** Code length the tenant configured; a check is only requested for a complete code. */
-    length: Int = FLARE_INVITE_CODE_DEFAULT_LENGTH,
     label: String? = null,
     placeholder: String? = null,
     /** A complete, normalized code the host should pre-check; debounced after typing stops. */
@@ -62,7 +60,7 @@ fun InviteCodeField(
     var prefillApplied by remember { mutableStateOf(false) }
     LaunchedEffect(prefill, mode) {
         if (prefillApplied || prefill.isNullOrEmpty() || value.isNotEmpty()) return@LaunchedEffect
-        val next = normalizeInviteCode(prefill, length)
+        val next = normalizeInviteCode(prefill)
         if (next.isEmpty()) return@LaunchedEffect
         prefillApplied = true
         onValueChange(next)
@@ -71,35 +69,34 @@ fun InviteCodeField(
     // Debounced pre-check: one request about 400 ms after the last change, and only for a complete
     // code. Keyed on the value, so every keystroke restarts the wait.
     var lastRequested by remember { mutableStateOf<String?>(null) }
-    val codeToCheck = inviteCodeToCheck(value, length, mode, disabled)
+    val codeToCheck = inviteCodeToCheck(value, mode, disabled)
     LaunchedEffect(codeToCheck) {
         if (codeToCheck == null) { lastRequested = null; return@LaunchedEffect }
         if (codeToCheck == lastRequested) return@LaunchedEffect
+        lastRequested = null
         delay(FLARE_INVITE_CHECK_DEBOUNCE_MS)
         lastRequested = codeToCheck
         onCheck?.invoke(codeToCheck)
     }
 
     // A stale result for another code must not be shown as this code's verdict.
-    val resultMatches = checkResult == null || inviteCodeToCheck(value, length) != null
+    val resultMatches = checkResult == null || inviteCodeToCheck(value) != null
     val inviter = checkResult?.inviterDisplayName?.trim()
     val errorLine = when {
         !error.isNullOrEmpty() -> error
+        value.length >= 4 && inviteCodeToCheck(value) == null -> strings.inviteCodeInvalid
         state == FlareInviteCodeFieldState.Invalid && resultMatches -> strings.inviteCodeInvalid
         else -> null
     }
-    val hint = if (mode == FlareInviteCodeMode.Optional && state == FlareInviteCodeFieldState.Idle) strings.inviteCodeOptional else null
-
     FormField(
         label = label ?: strings.inviteCodeLabel,
         required = mode == FlareInviteCodeMode.Required,
-        hint = hint,
         error = errorLine,
     ) {
         Column(Modifier.fillMaxWidth()) {
             Input(
                 value = value,
-                onValueChange = { raw -> onValueChange(normalizeInviteCode(raw, length)) },
+                onValueChange = { raw -> onValueChange(normalizeInviteCode(raw)) },
                 placeholder = placeholder ?: strings.inviteCodePlaceholder,
                 disabled = disabled,
                 monospace = true,

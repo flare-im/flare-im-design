@@ -47,21 +47,23 @@ describe("FlareInviteCodeField", () => {
   it("is optional by default and required in required mode", () => {
     const optional = mountField({ mode: "optional" });
     expect(optional.host.get("input").attributes("aria-required")).toBeUndefined();
-    expect(optional.host.text()).toContain("Optional");
+    expect(optional.host.get("label").text()).toBe("Invite code");
+    expect(optional.host.find(".flare-form-field__hint").exists()).toBe(false);
     const required = mountField({ mode: "required" });
     expect(required.host.get("input").attributes("aria-required")).toBe("true");
     expect(required.host.get("label").text()).toContain("*");
   });
 
-  it("normalizes what is typed the way the server reads it and caps at the length", async () => {
-    const { host, value } = mountField();
+  it("normalizes without truncating overlength input", async () => {
+    const { host, value, checks } = mountField();
     await type(host, " ab-o1 li9z ");
-    expect(value.value).toBe("AB0111");
-    // A seventh character neither moves the model nor stays in the element.
-    await type(host, "AB01117");
-    await nextTick();
-    expect(value.value).toBe("AB0111");
-    expect((host.get("input").element as HTMLInputElement).value).toBe("AB0111");
+    expect(value.value).toBe("AB01119Z");
+    await type(host, "AB01117ABCDEFGH");
+    expect(value.value).toBe("AB01117ABCDEFGH");
+    expect((host.get("input").element as HTMLInputElement).value).toBe(value.value);
+    expect(host.get(".flare-form-field__error").text()).toBe("Invalid invite code");
+    vi.advanceTimersByTime(400);
+    expect(checks).toEqual([]);
     expect(host.get(".flare-input__field").classes()).toContain("is-monospace");
   });
 
@@ -84,6 +86,12 @@ describe("FlareInviteCodeField", () => {
     await type(host, "AB12CE");
     vi.advanceTimersByTime(400);
     expect(checks).toEqual(["AB12CD", "AB12CE"]);
+    // An edit invalidates the previous verdict even if the person returns to
+    // the original value before the replacement check could fire.
+    await type(host, "AB12CE7");
+    await type(host, "AB12CE");
+    vi.advanceTimersByTime(400);
+    expect(checks).toEqual(["AB12CD", "AB12CE", "AB12CE"]);
   });
 
   it("applies a deep-link prefill once, then checks it like a paste", async () => {

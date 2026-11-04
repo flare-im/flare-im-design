@@ -763,6 +763,7 @@ class FlareStrings {
     this.myInviteCodeLabel = '我的邀请码',
     this.myInviteCodeUnavailable = '邀请码暂不可用',
     this.myInviteCopy = '复制',
+    this.myInviteQrHint = '扫码注册',
     this.myInviteShare = '分享',
     this.myInviteRegenerate = '重新生成',
     this.myInviteRegenerating = '生成中…',
@@ -776,6 +777,14 @@ class FlareStrings {
     this.myInviteLevel3 = '三级',
     this.myInviteTotal = '团队总数',
     this.myInviteInviteesTitle = '直接邀请的人',
+    this.myInviteInviterTitle = '邀请人',
+    this.myInviteNoInviter = '暂无邀请人',
+    this.myInviteRelationships = '邀请关系',
+    this.myInviteNoChildren = '暂无下级',
+    this.myInviteCollapse = '收起 {name}',
+    this.myInviteExpand = '展开 {name}',
+    this.myInviteInviterUnavailable = '暂无法读取邀请人',
+    this.myInviteCurrentUser = '当前用户',
     this.myInviteEmpty = '还没有人通过你的邀请码加入',
     this.myInviteLoadMore = '加载更多',
     this.myInviteLoading = '正在加载邀请信息',
@@ -1708,6 +1717,7 @@ class FlareStrings {
   final String myInviteCodeLabel;
   final String myInviteCodeUnavailable;
   final String myInviteCopy;
+  final String myInviteQrHint;
   final String myInviteShare;
   final String myInviteRegenerate;
   final String myInviteRegenerating;
@@ -1721,6 +1731,14 @@ class FlareStrings {
   final String myInviteLevel3;
   final String myInviteTotal;
   final String myInviteInviteesTitle;
+  final String myInviteInviterTitle;
+  final String myInviteNoInviter;
+  final String myInviteRelationships;
+  final String myInviteNoChildren;
+  final String myInviteCollapse;
+  final String myInviteExpand;
+  final String myInviteInviterUnavailable;
+  final String myInviteCurrentUser;
   final String myInviteEmpty;
   final String myInviteLoadMore;
   final String myInviteLoading;
@@ -2535,6 +2553,7 @@ class FlareStrings {
     String? myInviteCodeLabel,
     String? myInviteCodeUnavailable,
     String? myInviteCopy,
+    String? myInviteQrHint,
     String? myInviteShare,
     String? myInviteRegenerate,
     String? myInviteRegenerating,
@@ -2548,6 +2567,14 @@ class FlareStrings {
     String? myInviteLevel3,
     String? myInviteTotal,
     String? myInviteInviteesTitle,
+    String? myInviteInviterTitle,
+    String? myInviteNoInviter,
+    String? myInviteRelationships,
+    String? myInviteNoChildren,
+    String? myInviteCollapse,
+    String? myInviteExpand,
+    String? myInviteInviterUnavailable,
+    String? myInviteCurrentUser,
     String? myInviteEmpty,
     String? myInviteLoadMore,
     String? myInviteLoading,
@@ -3540,6 +3567,7 @@ class FlareStrings {
       myInviteCodeUnavailable:
           myInviteCodeUnavailable ?? this.myInviteCodeUnavailable,
       myInviteCopy: myInviteCopy ?? this.myInviteCopy,
+      myInviteQrHint: myInviteQrHint ?? this.myInviteQrHint,
       myInviteShare: myInviteShare ?? this.myInviteShare,
       myInviteRegenerate: myInviteRegenerate ?? this.myInviteRegenerate,
       myInviteRegenerating: myInviteRegenerating ?? this.myInviteRegenerating,
@@ -3554,6 +3582,16 @@ class FlareStrings {
       myInviteTotal: myInviteTotal ?? this.myInviteTotal,
       myInviteInviteesTitle:
           myInviteInviteesTitle ?? this.myInviteInviteesTitle,
+      myInviteInviterTitle: myInviteInviterTitle ?? this.myInviteInviterTitle,
+      myInviteNoInviter: myInviteNoInviter ?? this.myInviteNoInviter,
+      myInviteExpand: myInviteExpand ?? this.myInviteExpand,
+      myInviteCollapse: myInviteCollapse ?? this.myInviteCollapse,
+      myInviteNoChildren: myInviteNoChildren ?? this.myInviteNoChildren,
+      myInviteRelationships:
+          myInviteRelationships ?? this.myInviteRelationships,
+      myInviteInviterUnavailable:
+          myInviteInviterUnavailable ?? this.myInviteInviterUnavailable,
+      myInviteCurrentUser: myInviteCurrentUser ?? this.myInviteCurrentUser,
       myInviteEmpty: myInviteEmpty ?? this.myInviteEmpty,
       myInviteLoadMore: myInviteLoadMore ?? this.myInviteLoadMore,
       myInviteLoading: myInviteLoading ?? this.myInviteLoading,

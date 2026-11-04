@@ -13,10 +13,11 @@ void main() {
     expect(find.text('邀请码'), findsNothing);
   });
 
-  testWidgets('optional shows the hint, required the mark', (tester) async {
+  testWidgets('only required mode marks the invite label', (tester) async {
     await tester.pumpWidget(_host(const FlareInviteCodeField()));
     expect(find.text('邀请码'), findsOneWidget);
-    expect(find.text('选填'), findsOneWidget);
+    expect(find.text('选填'), findsNothing);
+    expect(find.textContaining('*'), findsNothing);
     await tester.pumpWidget(
       _host(const FlareInviteCodeField(mode: FlareInviteCodeMode.required)),
     );
@@ -25,7 +26,7 @@ void main() {
   });
 
   testWidgets(
-    'normalizes typing the way the server reads it and caps at the length',
+    'normalizes without turning an overlong paste into a valid prefix',
     (tester) async {
       final controller = TextEditingController();
       final changes = <String>[];
@@ -34,13 +35,14 @@ void main() {
           FlareInviteCodeField(controller: controller, onChanged: changes.add),
         ),
       );
-      await tester.enterText(find.byType(TextField), ' ab-o1 li9z ');
+      await tester.enterText(find.byType(TextField), ' ab-o1 li9u ');
       await tester.pump();
-      expect(controller.text, 'AB0111');
-      expect(changes.last, 'AB0111');
-      await tester.enterText(find.byType(TextField), 'AB01117');
+      expect(controller.text, 'AB01119V');
+      expect(changes.last, 'AB01119V');
+      await tester.enterText(find.byType(TextField), 'ABCDEF1234567');
       await tester.pump();
-      expect(controller.text, 'AB0111');
+      expect(controller.text, 'ABCDEF1234567');
+      expect(find.text('邀请码无效'), findsOneWidget);
     },
   );
 
@@ -52,15 +54,17 @@ void main() {
       await tester.enterText(find.byType(TextField), 'AB1');
       await tester.pump(const Duration(seconds: 1));
       expect(checks, isEmpty);
-      await tester.enterText(find.byType(TextField), 'AB12C');
-      await tester.enterText(find.byType(TextField), 'AB12CD');
+      await tester.enterText(find.byType(TextField), 'AB12');
       await tester.pump(const Duration(milliseconds: 399));
       expect(checks, isEmpty);
       await tester.pump(const Duration(milliseconds: 1));
-      expect(checks, ['AB12CD']);
-      await tester.enterText(find.byType(TextField), 'AB12CE');
+      expect(checks, ['AB12']);
+      await tester.enterText(find.byType(TextField), 'AB12CD345678');
       await tester.pump(const Duration(milliseconds: 400));
-      expect(checks, ['AB12CD', 'AB12CE']);
+      expect(checks, ['AB12', 'AB12CD345678']);
+      await tester.enterText(find.byType(TextField), 'AB12CD3456789');
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(checks, ['AB12', 'AB12CD345678']);
     },
   );
 

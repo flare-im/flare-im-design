@@ -30,6 +30,7 @@ public struct ButtonView: View {
     private let loading: Bool
     private let disabled: Bool
     private let block: Bool
+    private let maintainTouchTarget: Bool
     /// Semantic kit icon name (``flareIconNames``) before the label; nil draws none.
     private let icon: String?
     private let action: (() -> Void)?
@@ -41,9 +42,11 @@ public struct ButtonView: View {
 
     public init(label: String? = nil, variant: FlareButtonVariant = .primary,
                 size: FlareControlSize = .md, loading: Bool = false, disabled: Bool = false,
-                block: Bool = false, icon: String? = nil, appearance: FlareButtonAppearance = .standard, action: (() -> Void)? = nil) {
+                block: Bool = false, icon: String? = nil, appearance: FlareButtonAppearance = .standard,
+                maintainTouchTarget: Bool = false, action: (() -> Void)? = nil) {
         self.appearance = appearance; self.label = label; self.variant = variant; self.size = size; self.loading = loading
         self.disabled = disabled; self.block = block; self.icon = icon; self.action = action
+        self.maintainTouchTarget = maintainTouchTarget
     }
 
     private func fill(_ colors: FlareColors) -> Color {
@@ -105,8 +108,8 @@ public struct ButtonView: View {
             }
             .foregroundColor(fg(colors))
             .frame(maxWidth: block ? .infinity : nil)
-            .frame(minHeight: size.height)
             .padding(.vertical, FlareSizes.spacing2xs)
+            .frame(minHeight: size.height)
             .padding(.horizontal, appearance == .text ? 0 : size.hPadding)
             .frame(minWidth: appearance == .text ? FlareSizes.touchTarget : nil,
                    minHeight: appearance == .text ? FlareSizes.touchTarget : nil)
@@ -115,6 +118,9 @@ public struct ButtonView: View {
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
                     .stroke(stroke(colors), lineWidth: 1)
             )
+            .frame(minWidth: maintainTouchTarget ? FlareSizes.touchTarget : nil,
+                   minHeight: maintainTouchTarget ? FlareSizes.touchTarget : nil)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .focused($focused)

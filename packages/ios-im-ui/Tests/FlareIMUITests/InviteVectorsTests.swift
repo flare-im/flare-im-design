@@ -8,13 +8,13 @@ import XCTest
 final class InviteVectorsTests: XCTestCase {
     private struct CheckResult: Decodable { let valid: Bool; let inviterDisplayName: String? }
     private struct Stats: Decodable { let direct: Int; let l2: Int; let l3: Int; let total: Int }
-    private struct Normalize: Decodable { let id: String; let raw: String; let length: Int?; let expected: String }
+    private struct Normalize: Decodable { let id: String; let raw: String; let expected: String }
     private struct FieldState: Decodable {
         let id: String; let mode: String; let value: String; let checking: Bool?
         let checkResult: CheckResult?; let error: String?; let disabled: Bool?; let expected: String
     }
     private struct CheckRequest: Decodable {
-        let id: String; let value: String; let length: Int?; let mode: String?; let disabled: Bool?; let expected: String?
+        let id: String; let value: String; let mode: String?; let disabled: Bool?; let expected: String?
     }
     private struct DepthRows: Decodable { let id: String; let stats: Stats?; let maxDepthShown: Int; let expected: [String] }
     private struct Remaining: Decodable { let unit: String; let count: Int }
@@ -46,11 +46,11 @@ final class InviteVectorsTests: XCTestCase {
 
     func testNormalizesLikeTheTableAndIdempotently() throws {
         let rows = try vectors().normalize
-        XCTAssertEqual(rows.count, 10)
+        XCTAssertEqual(rows.count, 12)
         for v in rows {
-            let once = normalizeInviteCode(v.raw, length: v.length ?? flareInviteCodeDefaultLength)
+            let once = normalizeInviteCode(v.raw)
             XCTAssertEqual(once, v.expected, v.id)
-            XCTAssertEqual(normalizeInviteCode(once, length: v.length ?? flareInviteCodeDefaultLength), once, "\(v.id) idempotent")
+            XCTAssertEqual(normalizeInviteCode(once), once, "\(v.id) idempotent")
         }
     }
 
@@ -66,9 +66,9 @@ final class InviteVectorsTests: XCTestCase {
 
     func testAsksForACheckOnlyForACompleteEnabledCode() throws {
         let rows = try vectors().checkRequest
-        XCTAssertEqual(rows.count, 6)
+        XCTAssertEqual(rows.count, 11)
         for v in rows {
-            XCTAssertEqual(inviteCodeToCheck(value: v.value, length: v.length ?? flareInviteCodeDefaultLength,
+            XCTAssertEqual(inviteCodeToCheck(value: v.value,
                                              mode: mode(v.mode), disabled: v.disabled ?? false), v.expected, v.id)
         }
     }

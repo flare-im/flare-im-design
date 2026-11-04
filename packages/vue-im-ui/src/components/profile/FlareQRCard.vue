@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { NQrCode } from "naive-ui";
-import { flareDesignTokens } from "@flare-im/tokens";
+import { computed } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import FlareQrMatrix from "./FlareQrMatrix.vue";
 
 const props = defineProps<{
   name: string;
@@ -11,25 +10,12 @@ const props = defineProps<{
   avatarUrl?: string;
   /** Text to encode (profile link, add-friend token). Without it the card says the code is unavailable. */
   qrPayload?: string;
+  hint?: string;
 }>();
 
 const { t } = useFlareI18n();
 
 const payload = computed(() => props.qrPayload?.trim() || "");
-
-// Scanners need dark modules on a light ground in every theme, so the code panel
-// always paints the light palette's text-primary on bg-primary.
-const modulesColor = flareDesignTokens.colors.text.primary;
-const panelColor = flareDesignTokens.colors.bg.primary;
-
-// 4-module quiet zone. The code panel fills the card's content width W and its
-// percentage padding is a share of that width: p = 4 modules = 4 (W - 2p) / N
-// →  p = 4W / (N + 8).
-// N (modules per side) comes from the rendered code; before it is known, the
-// smallest symbol (21) gives the widest margin.
-const code = ref<InstanceType<typeof NQrCode> | null>(null);
-const moduleCount = computed(() => code.value?.svgInfo.numCells ?? 21);
-const quietZone = computed(() => `${400 / (moduleCount.value + 8)}%`);
 </script>
 
 <template>
@@ -42,29 +28,15 @@ const quietZone = computed(() => `${400 / (moduleCount.value + 8)}%`);
       </div>
     </div>
 
-    <div
+    <FlareQrMatrix
       v-if="payload"
       class="flare-qr-card__code"
-      role="img"
-      :aria-label="t('qr.code', { name })"
-      :style="{ padding: quietZone, background: panelColor }"
-    >
-      <NQrCode
-        ref="code"
-        class="flare-qr-card__matrix"
-        aria-hidden="true"
-        type="svg"
-        error-correction-level="M"
-        :value="payload"
-        :size="200"
-        :padding="0"
-        :color="modulesColor"
-        :background-color="panelColor"
-      />
-    </div>
+      :label="t('qr.code', { name })"
+      :payload="payload"
+    />
     <div v-else class="flare-qr-card__frame flare-qr-card__unavailable">{{ t("qr.unavailable") }}</div>
 
-    <div v-if="payload" class="flare-qr-card__hint">{{ t("qr.scanHint") }}</div>
+    <div v-if="payload" class="flare-qr-card__hint">{{ hint ?? t("qr.scanHint") }}</div>
   </div>
 </template>
 
@@ -101,20 +73,6 @@ const quietZone = computed(() => `${400 / (moduleCount.value + 8)}%`);
   box-sizing: border-box;
   margin-top: var(--flare-size-spacing-lg);
   border-radius: var(--flare-size-radius-lg);
-}
-/* Square by construction: a square code plus the same padding on every side. */
-.flare-qr-card__code { display: block; }
-/* The encoder sizes itself in px (inline style); the card width decides instead. */
-.flare-qr-card__matrix {
-  display: block;
-  width: 100% !important;
-  height: auto !important;
-  border-radius: 0;
-}
-.flare-qr-card__matrix :deep(svg) {
-  display: block;
-  width: 100%;
-  height: auto;
 }
 .flare-qr-card__frame {
   aspect-ratio: 1 / 1;

@@ -807,6 +807,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["myInviteCodeUnavailable"] as? (String)) ?: "邀请码暂不可用"
     val myInviteCopy: String
         get() = (overrides["myInviteCopy"] as? (String)) ?: "复制"
+    val myInviteQrHint: String
+        get() = (overrides["myInviteQrHint"] as? (String)) ?: "扫码注册"
     val myInviteShare: String
         get() = (overrides["myInviteShare"] as? (String)) ?: "分享"
     val myInviteRegenerate: String
@@ -833,6 +835,16 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["myInviteTotal"] as? (String)) ?: "团队总数"
     val myInviteInviteesTitle: String
         get() = (overrides["myInviteInviteesTitle"] as? (String)) ?: "直接邀请的人"
+    val myInviteInviterTitle: String
+        get() = (overrides["myInviteInviterTitle"] as? (String)) ?: "邀请人"
+    val myInviteNoInviter: String
+        get() = (overrides["myInviteNoInviter"] as? (String)) ?: "暂无邀请人"
+    val myInviteRelationships: String
+        get() = (overrides["myInviteRelationships"] as? (String)) ?: "邀请关系"
+    val myInviteInviterUnavailable: String
+        get() = (overrides["myInviteInviterUnavailable"] as? (String)) ?: "暂无法读取邀请人"
+    val myInviteCurrentUser: String
+        get() = (overrides["myInviteCurrentUser"] as? (String)) ?: "当前用户"
     val myInviteEmpty: String
         get() = (overrides["myInviteEmpty"] as? (String)) ?: "还没有人通过你的邀请码加入"
     val myInviteLoadMore: String
@@ -869,6 +881,15 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["storageUsageEmpty"] as? (String)) ?: "没有可统计的存储分类"
     val storageUsageFileCount: String
         get() = (overrides["storageUsageFileCount"] as? (String)) ?: "{count} 个文件"
+
+    val myInviteExpand: String
+        get() = (overrides["myInviteExpand"] as? (String)) ?: "展开 {name}"
+
+    val myInviteCollapse: String
+        get() = (overrides["myInviteCollapse"] as? (String)) ?: "收起 {name}"
+
+    val myInviteNoChildren: String
+        get() = (overrides["myInviteNoChildren"] as? (String)) ?: "暂无下级"
 
     // 好友关系操作栏（RelationActionBar）
     val relationActionBarAdd: String
@@ -3125,6 +3146,10 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["myInviteCopy"] as? (String)) ?: "复制"
         set(value) { values["myInviteCopy"] = value }
 
+    var myInviteQrHint: String
+        get() = (values["myInviteQrHint"] as? (String)) ?: "扫码注册"
+        set(value) { values["myInviteQrHint"] = value }
+
     var myInviteShare: String
         get() = (values["myInviteShare"] as? (String)) ?: "分享"
         set(value) { values["myInviteShare"] = value }
@@ -3176,6 +3201,38 @@ class FlareStringsBuilder internal constructor() {
     var myInviteInviteesTitle: String
         get() = (values["myInviteInviteesTitle"] as? (String)) ?: "直接邀请的人"
         set(value) { values["myInviteInviteesTitle"] = value }
+
+    var myInviteInviterTitle: String
+        get() = (values["myInviteInviterTitle"] as? (String)) ?: "邀请人"
+        set(value) { values["myInviteInviterTitle"] = value }
+
+    var myInviteNoInviter: String
+        get() = (values["myInviteNoInviter"] as? (String)) ?: "暂无邀请人"
+        set(value) { values["myInviteNoInviter"] = value }
+
+    var myInviteRelationships: String
+        get() = (values["myInviteRelationships"] as? (String)) ?: "邀请关系"
+        set(value) { values["myInviteRelationships"] = value }
+
+    var myInviteExpand: String
+        get() = (values["myInviteExpand"] as? (String)) ?: "展开 {name}"
+        set(value) { values["myInviteExpand"] = value }
+
+    var myInviteCollapse: String
+        get() = (values["myInviteCollapse"] as? (String)) ?: "收起 {name}"
+        set(value) { values["myInviteCollapse"] = value }
+
+    var myInviteNoChildren: String
+        get() = (values["myInviteNoChildren"] as? (String)) ?: "暂无下级"
+        set(value) { values["myInviteNoChildren"] = value }
+
+    var myInviteInviterUnavailable: String
+        get() = (values["myInviteInviterUnavailable"] as? (String)) ?: "暂无法读取邀请人"
+        set(value) { values["myInviteInviterUnavailable"] = value }
+
+    var myInviteCurrentUser: String
+        get() = (values["myInviteCurrentUser"] as? (String)) ?: "当前用户"
+        set(value) { values["myInviteCurrentUser"] = value }
 
     var myInviteEmpty: String
         get() = (values["myInviteEmpty"] as? (String)) ?: "还没有人通过你的邀请码加入"

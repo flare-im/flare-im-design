@@ -35,10 +35,9 @@ void main() {
   group('normalize', () {
     for (final v in table('normalize')) {
       test(v['id'] as String, () {
-        final length = (v['length'] as int?) ?? flareInviteCodeDefaultLength;
-        final once = normalizeInviteCode(v['raw'] as String, length);
+        final once = normalizeInviteCode(v['raw'] as String);
         expect(once, v['expected']);
-        expect(normalizeInviteCode(once, length), once, reason: 'idempotent');
+        expect(normalizeInviteCode(once), once, reason: 'idempotent');
       });
     }
   });
@@ -65,7 +64,6 @@ void main() {
         expect(
           inviteCodeToCheck(
             value: v['value'] as String,
-            length: (v['length'] as int?) ?? flareInviteCodeDefaultLength,
             mode: mode(v['mode'] as String?),
             disabled: (v['disabled'] as bool?) ?? false,
           ),

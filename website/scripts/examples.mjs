@@ -55,7 +55,7 @@ export const curatedExamples = {
   MyInvitePanel: [
     {
       title: { en: "My invite page", zh: "「我的邀请」页" },
-      description: { en: "The host fetched the code, the share link, the referral stats and a keyset page of invitees; copy / share / regenerate / loadMore are intents it performs. `maxDepthShown` and `showProfiles` come from the tenant's referral visibility.", zh: "宿主取回码、分享链接、推荐统计与一页下级；copy / share / regenerate / loadMore 都是宿主执行的意图。`maxDepthShown` 与 `showProfiles` 来自租户的推荐可见性配置。" },
+      description: { en: "The host loads the invitation summary and first page. Expanding a row calls onLoadChildren for the next level. `maxDepthShown` and `showProfiles` come from the tenant's referral visibility.", zh: "宿主加载邀请概况和首批用户，展开用户时通过 onLoadChildren 加载下一层。`maxDepthShown` 与 `showProfiles` 来自租户的推荐可见性配置。" },
       vue: `<FlareMyInvitePanel
   :code="invite.code"
   :share-url="invite.shareUrl"
@@ -64,11 +64,8 @@ export const curatedExamples = {
   :invitees="invitees"
   :show-profiles="visibility.showProfiles"
   :has-more="hasMore"
-  :can-regenerate="invite.canRegenerate"
-  :regenerate-available-at="invite.regenerateAvailableAt"
+  :on-load-children="loadChildren"
   @copy="copyToClipboard"
-  @share="openShareSheet"
-  @regenerate="regenerate"
   @load-more="loadMore"
   @select="openProfile"
 />`,
@@ -80,13 +77,10 @@ export const curatedExamples = {
   invitees: invitees,
   showProfiles: visibility.showProfiles,
   hasMore: hasMore,
-  canRegenerate: invite.canRegenerate,
-  regenerateAvailableAt: invite.regenerateAvailableAt,
   onCopy: copyToClipboard,
-  onShare: openShareSheet,
-  onRegenerate: regenerate,
   onLoadMore: loadMore,
   onSelect: openProfile,
+  onLoadChildren: loadChildren,
 )`,
       compose: `MyInvitePanel(
   code = invite.code,
@@ -96,13 +90,10 @@ export const curatedExamples = {
   invitees = invitees,
   showProfiles = visibility.showProfiles,
   hasMore = hasMore,
-  canRegenerate = invite.canRegenerate,
-  regenerateAvailableAt = invite.regenerateAvailableAt,
   onCopy = ::copyToClipboard,
-  onShare = ::openShareSheet,
-  onRegenerate = ::regenerate,
   onLoadMore = ::loadMore,
   onSelect = ::openProfile,
+  onLoadChildren = ::loadChildren,
 )`,
       ios: `MyInvitePanelView(
   code: invite.code,
@@ -112,13 +103,10 @@ export const curatedExamples = {
   invitees: invitees,
   showProfiles: visibility.showProfiles,
   hasMore: hasMore,
-  canRegenerate: invite.canRegenerate,
-  regenerateAvailableAt: invite.regenerateAvailableAt,
   onCopy: copyToClipboard,
-  onShare: openShareSheet,
-  onRegenerate: regenerate,
   onLoadMore: loadMore,
-  onSelect: openProfile
+  onSelect: openProfile,
+  onLoadChildren: loadChildren
 )`,
     },
   ],

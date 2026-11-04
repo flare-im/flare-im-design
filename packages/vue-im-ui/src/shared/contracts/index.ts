@@ -216,12 +216,13 @@ export type {
   FlareInviteCodeFieldState,
   FlareReferralStats,
   FlareInvitee,
+  FlareInviteBranchPage,
+  FlareLoadInviteChildren,
   FlareReferralDepth,
   FlareInviteCooldown,
   FlareRegenerateAvailability,
 } from "./invite";
 export {
-  FLARE_INVITE_CODE_DEFAULT_LENGTH,
   FLARE_INVITE_CHECK_DEBOUNCE_MS,
   normalizeInviteCode,
   inviteCodeFieldState,

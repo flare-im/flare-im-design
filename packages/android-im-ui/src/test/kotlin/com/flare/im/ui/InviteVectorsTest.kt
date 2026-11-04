@@ -43,15 +43,13 @@ class InviteVectorsTest {
         FlareReferralStats((it["direct"] as Number).toInt(), (it["l2"] as Number).toInt(), (it["l3"] as Number).toInt(), (it["total"] as Number).toInt())
     }
 
-    private fun length(v: Map<String, Any?>) = (v["length"] as? Number)?.toInt() ?: FLARE_INVITE_CODE_DEFAULT_LENGTH
-
     @Test fun normalizesLikeTheTableAndIdempotently() {
         val rows = table("normalize")
-        assertEquals(10, rows.size)
+        assertEquals(12, rows.size)
         for (v in rows) {
-            val once = normalizeInviteCode(v["raw"] as String, length(v))
+            val once = normalizeInviteCode(v["raw"] as String)
             assertEquals(v["expected"], once, v["id"].toString())
-            assertEquals(once, normalizeInviteCode(once, length(v)), "${v["id"]} idempotent")
+            assertEquals(once, normalizeInviteCode(once), "${v["id"]} idempotent")
         }
     }
 
@@ -70,9 +68,9 @@ class InviteVectorsTest {
 
     @Test fun asksForACheckOnlyForACompleteEnabledCode() {
         val rows = table("checkRequest")
-        assertEquals(6, rows.size)
+        assertEquals(11, rows.size)
         for (v in rows) {
-            val code = inviteCodeToCheck(v["value"] as String, length(v), mode(v["mode"]), v["disabled"] as? Boolean ?: false)
+            val code = inviteCodeToCheck(v["value"] as String, mode(v["mode"]), v["disabled"] as? Boolean ?: false)
             assertEquals(v["expected"], code, v["id"].toString())
         }
     }

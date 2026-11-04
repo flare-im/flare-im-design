@@ -4,7 +4,7 @@
  * card (MyInvitePanel). Vectors: spec/invite-vectors.json.
  *
  * The host owns the network: it runs the pre-check, fetches the code, the stats
- * and the invitees, and performs copy / share / regenerate. Nothing here has a
+ * and the invitees, and copies the code. Nothing here has a
  * side effect, and nothing here invents a rule the server does not have: the
  * alphabet is Crockford base32 without I / L / O / U, so what a person types is
  * corrected the way the server would read it (O→0, I/L→1) before it is shown.
@@ -38,39 +38,40 @@ export interface FlareReferralStats {
   total: number;
 }
 
-/** One person invited directly by the current person. */
+/** One person in the current user's invitation tree. */
 export interface FlareInvitee {
   userId: string;
   displayName: string;
   avatarUrl?: string;
   /** Registration time, epoch milliseconds. */
   joinedAt: number;
+  /** Whether this person has a child inside the permitted depth. */
+  hasChildren?: boolean;
 }
 
-export const FLARE_INVITE_CODE_DEFAULT_LENGTH = 6;
+export interface FlareInviteBranchPage {
+  invitees: FlareInvitee[];
+  nextCursor?: string | null;
+}
 
-/**
- * What the server would read from what the person typed or pasted: whitespace
- * and separators dropped, uppercased, O→0 and I/L→1 (the alphabet has none of
- * them), cut to `length`. Idempotent, so it can run on every keystroke.
- */
-export function normalizeInviteCode(raw: string | null | undefined, length = FLARE_INVITE_CODE_DEFAULT_LENGTH): string {
-  const cap = Number.isFinite(length) && length > 0 ? Math.floor(length) : FLARE_INVITE_CODE_DEFAULT_LENGTH;
-  let out = "";
-  for (const ch of String(raw ?? "").toUpperCase()) {
-    if (out.length >= cap) break;
-    if (ch === "O") out += "0";
-    else if (ch === "I" || ch === "L") out += "1";
-    else if (/[0-9A-Z]/.test(ch)) out += ch;
-    // separators, punctuation and whitespace are dropped
-  }
-  return out;
+export type FlareLoadInviteChildren = (
+  parentUserId: string,
+  cursor?: string,
+) => Promise<FlareInviteBranchPage>;
+
+/** Normalize like Social registration, retaining invalid input for validation. */
+export function normalizeInviteCode(raw: string | null | undefined): string {
+  return String(raw ?? "")
+    .replace(/[\p{White_Space}-]/gu, "")
+    .replace(/[a-z]/g, (ch) => ch.toUpperCase())
+    .replace(/O/g, "0")
+    .replace(/[IL]/g, "1")
+    .replace(/U/g, "V");
 }
 
 export interface FlareInviteCodeFieldInput {
   mode: FlareInviteCodeMode;
   value: string;
-  length?: number;
   checking?: boolean;
   checkResult?: FlareInviteCodeCheckResult | null;
   error?: string | null;
@@ -99,14 +100,12 @@ export function inviteCodeFieldState(input: FlareInviteCodeFieldInput): FlareInv
  */
 export function inviteCodeToCheck(input: {
   value: string;
-  length?: number;
   mode?: FlareInviteCodeMode;
   disabled?: boolean;
 }): string | null {
   if (input.mode === "off" || input.disabled) return null;
-  const length = input.length ?? FLARE_INVITE_CODE_DEFAULT_LENGTH;
-  const code = normalizeInviteCode(input.value, length);
-  return code.length === length ? code : null;
+  const code = normalizeInviteCode(input.value);
+  return /^[0-9A-HJKMNP-TV-Z]{4,12}$/.test(code) ? code : null;
 }
 
 /** Delay between the last keystroke and the `check` event. */
@@ -116,10 +115,10 @@ export type FlareReferralDepth = "direct" | "l2" | "l3" | "total";
 
 /**
  * Which rows the panel lists for `stats`, honouring the tenant's visibility
- * depth (1–3, clamped). `total` is always the last row once stats exist.
+ * depth (0 disables stats, 1–3 otherwise). `total` is always the last row once stats exist.
  */
 export function referralDepthRows(stats: FlareReferralStats | null | undefined, maxDepthShown = 3): FlareReferralDepth[] {
-  if (!stats) return [];
+  if (!stats || maxDepthShown <= 0) return [];
   const depth = Math.min(3, Math.max(1, Math.floor(Number.isFinite(maxDepthShown) ? maxDepthShown : 3)));
   const rows: FlareReferralDepth[] = ["direct"];
   if (depth >= 2) rows.push("l2");

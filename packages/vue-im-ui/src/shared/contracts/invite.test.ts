@@ -11,7 +11,7 @@ import {
 
 describe("invite contracts (spec/invite-vectors.json)", () => {
   it.each(vectors.normalize)("normalize $id", (v) => {
-    expect(normalizeInviteCode(v.raw, (v as { length?: number }).length)).toBe(v.expected);
+    expect(normalizeInviteCode(v.raw)).toBe(v.expected);
   });
 
   it.each(vectors.fieldState)("fieldState $id", (v) => {
@@ -28,7 +28,6 @@ describe("invite contracts (spec/invite-vectors.json)", () => {
   it.each(vectors.checkRequest)("checkRequest $id", (v) => {
     expect(inviteCodeToCheck({
       value: v.value,
-      length: (v as { length?: number }).length,
       mode: (v as { mode?: "off" }).mode,
       disabled: (v as { disabled?: boolean }).disabled,
     })).toBe(v.expected);
@@ -48,8 +47,8 @@ describe("invite contracts (spec/invite-vectors.json)", () => {
 
   it("normalization is idempotent", () => {
     for (const v of vectors.normalize) {
-      const once = normalizeInviteCode(v.raw, (v as { length?: number }).length);
-      expect(normalizeInviteCode(once, (v as { length?: number }).length)).toBe(once);
+      const once = normalizeInviteCode(v.raw);
+      expect(normalizeInviteCode(once)).toBe(once);
     }
   });
 });

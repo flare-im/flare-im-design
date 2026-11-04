@@ -38,35 +38,35 @@ data class FlareReferralStats(val direct: Int, val l2: Int, val l3: Int, val tot
     }
 }
 
-/** One person invited directly by the current person; [joinedAt] is epoch milliseconds. */
+/** One person in an invitation tree; [joinedAt] is epoch milliseconds. */
 data class FlareInvitee(
     val userId: String,
     val displayName: String,
     val avatarUrl: String? = null,
     val joinedAt: Long,
+    val hasChildren: Boolean = false,
 )
 
-const val FLARE_INVITE_CODE_DEFAULT_LENGTH = 6
+data class FlareInviteeBranchPage(val invitees: List<FlareInvitee>, val nextCursor: String? = null)
+
+/** The person who invited the current user; profile details may be private. */
+data class FlareInviter(val userId: String, val displayName: String, val avatarUrl: String? = null)
 
 /** Delay between the last keystroke and the check request, in milliseconds. */
 const val FLARE_INVITE_CHECK_DEBOUNCE_MS = 400L
 
-/**
- * What the server would read from what the person typed or pasted: whitespace and separators
- * dropped, uppercased, O→0 and I/L→1, cut to [length]. Idempotent, so it can run on every keystroke.
- */
-fun normalizeInviteCode(raw: String?, length: Int = FLARE_INVITE_CODE_DEFAULT_LENGTH): String {
-    val cap = if (length > 0) length else FLARE_INVITE_CODE_DEFAULT_LENGTH
-    val out = StringBuilder()
-    for (ch in (raw ?: "").uppercase()) {
-        if (out.length >= cap) break
-        when {
-            ch == 'O' -> out.append('0')
-            ch == 'I' || ch == 'L' -> out.append('1')
-            ch in '0'..'9' || ch in 'A'..'Z' -> out.append(ch)
-        }
+/** Normalize like Social registration, retaining invalid input for validation. */
+fun normalizeInviteCode(raw: String?): String = buildString {
+    for (ch in raw.orEmpty()) {
+        if ((ch.isWhitespace() && ch !in '\u001C'..'\u001F') || ch == '\u0085' || ch == '-') continue
+        val uppercase = if (ch in 'a'..'z') ch.uppercaseChar() else ch
+        append(when (uppercase) {
+            'O' -> '0'
+            'I', 'L' -> '1'
+            'U' -> 'V'
+            else -> uppercase
+        })
     }
-    return out.toString()
 }
 
 /**
@@ -97,23 +97,23 @@ fun inviteCodeFieldState(
  */
 fun inviteCodeToCheck(
     value: String,
-    length: Int = FLARE_INVITE_CODE_DEFAULT_LENGTH,
     mode: FlareInviteCodeMode = FlareInviteCodeMode.Optional,
     disabled: Boolean = false,
 ): String? {
     if (mode == FlareInviteCodeMode.Off || disabled) return null
-    val code = normalizeInviteCode(value, length)
-    return if (code.length == length) code else null
+    val code = normalizeInviteCode(value)
+    val alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+    return code.takeIf { it.length in 4..12 && it.all { ch -> ch in alphabet } }
 }
 
 enum class FlareReferralDepth { Direct, L2, L3, Total }
 
 /**
- * Which rows the panel lists for [stats], honouring the tenant's visibility depth (1–3, clamped).
+ * Which rows the panel lists for [stats], honouring the tenant's visibility depth (0 disables stats, 1–3 otherwise).
  * `Total` is always the last row once stats exist.
  */
 fun referralDepthRows(stats: FlareReferralStats?, maxDepthShown: Int = 3): List<FlareReferralDepth> {
-    if (stats == null) return emptyList()
+    if (stats == null || maxDepthShown <= 0) return emptyList()
     val depth = min(3, max(1, maxDepthShown))
     return buildList {
         add(FlareReferralDepth.Direct)

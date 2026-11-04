@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -94,6 +95,7 @@ fun Button(
     icon: String? = null,
     onClick: (() -> Unit)? = null,
     appearance: FlareButtonAppearance = FlareButtonAppearance.Standard,
+    maintainTouchTarget: Boolean = false,
     content: (@Composable () -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -125,6 +127,7 @@ fun Button(
 
     var m = Modifier
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
+        .then(if (maintainTouchTarget) Modifier.minimumInteractiveComponentSize() else Modifier)
         .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else spec.height.dp, minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp).clip(shape).background(background)
         .border(1.dp, borderColor, shape)
         .flareDimmed(if (disabled || onClick == null) 0.5f else 1f)

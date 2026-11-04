@@ -22,12 +22,14 @@ final class InviteViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testOptionalShowsTheHintAndRequiredTheMark() throws {
+    func testOnlyRequiredModeShowsTheMark() throws {
         let optional = InviteCodeFieldView(text: .constant(""))
-        XCTAssertNoThrow(try optional.inspect().find(text: s.inviteCodeOptional))
+        XCTAssertNoThrow(try optional.inspect().find(text: s.inviteCodeLabel))
+        XCTAssertThrowsError(try optional.inspect().find(text: s.inviteCodeOptional))
+        XCTAssertThrowsError(try optional.inspect().find(text: "*"))
         let required = InviteCodeFieldView(text: .constant(""), mode: .required)
         XCTAssertThrowsError(try required.inspect().find(text: s.inviteCodeOptional))
-        XCTAssertNoThrow(try required.inspect().find(text: s.inviteCodeLabel))
+        XCTAssertNoThrow(try required.inspect().find(text: "*"))
         XCTAssertEqual(required.state, .idle)
     }
 
@@ -57,25 +59,30 @@ final class InviteViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testPanelShowsCodeLinkAndDispatchesCopyShareSelect() throws {
+    func testPanelShowsQRAndCopiesOnlyTheCode() throws {
+        let code = "ABCDEFGHJKMN"
+        let link = "https://flare.example/r/123/\(code)"
         var events: [String] = []
-        let view = MyInvitePanelView(code: "AB12CD", shareURL: "https://flare.example/r/t1/AB12CD", invitees: invitees,
-                                     onCopy: { events.append("copy:\($0)") }, onShare: { events.append("share:\($0)") },
+        let view = MyInvitePanelView(code: code, shareURL: link, invitees: invitees,
+                                     onCopy: { events.append("copy:\($0)") },
                                      onSelect: { events.append("select:\($0)") })
-        XCTAssertNoThrow(try view.inspect().find(text: "AB12CD"))
-        XCTAssertNoThrow(try view.inspect().find(text: "https://flare.example/r/t1/AB12CD"))
+        XCTAssertNoThrow(try view.inspect().find(text: code))
+        XCTAssertNoThrow(try view.inspect().find(viewWithAccessibilityLabel: s.myInviteQrHint))
+        for label in [link, "邀请链接", "复制链接", s.myInviteShare, s.myInviteRegenerate] {
+            XCTAssertThrowsError(try view.inspect().find(text: label), label)
+        }
         try view.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: s.myInviteCopy)) != nil }).tap()
-        try view.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: s.myInviteShare)) != nil }).tap()
         try view.inspect().find(ViewType.Button.self, where: { (try? $0.accessibilityLabel().string()) == "Bob" }).tap()
-        XCTAssertEqual(events, ["copy:AB12CD", "share:https://flare.example/r/t1/AB12CD", "select:u2"])
+        XCTAssertEqual(events, ["copy:\(code)", "select:u2"])
     }
 
     @MainActor
-    func testPanelSharesTheCodeWhenThereIsNoLink() throws {
-        var shared: [String] = []
-        let view = MyInvitePanelView(code: "AB12CD", onShare: { shared.append($0) })
-        try view.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: s.myInviteShare)) != nil }).tap()
-        XCTAssertEqual(shared, ["AB12CD"])
+    func testPanelCopiesTheCodeWithoutARegistrationQR() throws {
+        var copied: [String] = []
+        let view = MyInvitePanelView(code: "AB12CD", onCopy: { copied.append($0) })
+        try view.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: s.myInviteCopy)) != nil }).tap()
+        XCTAssertEqual(copied, ["AB12CD"])
+        XCTAssertThrowsError(try view.inspect().find(viewWithAccessibilityLabel: s.myInviteQrHint))
     }
 
     @MainActor
@@ -91,7 +98,7 @@ final class InviteViewsTests: XCTestCase {
 
         let countOnly = MyInvitePanelView(code: "AB12CD", stats: FlareReferralStats(direct: 9, l2: 0, l3: 0, total: 9),
                                           invitees: invitees, showProfiles: false)
-        XCTAssertNoThrow(try countOnly.inspect().find(text: "9 人"))
+        XCTAssertNoThrow(try countOnly.inspect().find(text: "9"))
         XCTAssertThrowsError(try countOnly.inspect().find(text: "Ann"))
 
         let loading = MyInvitePanelView(code: "", loading: true)
@@ -101,19 +108,37 @@ final class InviteViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testRegenerateOfferedOnlyWhenAllowedAndExplainedWhileCooling() throws {
-        let hidden = MyInvitePanelView(code: "AB12CD")
-        XCTAssertThrowsError(try hidden.inspect().find(text: s.myInviteRegenerate))
-        let soon = Int64(Date().timeIntervalSince1970 * 1000) + 15 * 60 * 1000
-        let cooling = MyInvitePanelView(code: "AB12CD", canRegenerate: true, regenerateAvailableAt: soon)
-        XCTAssertNoThrow(try cooling.inspect().find(text: "15 分钟 后可重新生成"))
-        var events: [String] = []
-        let ready = MyInvitePanelView(code: "AB12CD", canRegenerate: true, onRegenerate: { events.append("regenerate") })
-        XCTAssertThrowsError(try ready.inspect().find(text: "15 分钟 后可重新生成"))
-        try ready.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: s.myInviteRegenerate)) != nil }).tap()
-        XCTAssertEqual(events, ["regenerate"])
-        let busy = MyInvitePanelView(code: "AB12CD", canRegenerate: true, regenerating: true)
-        XCTAssertNoThrow(try busy.inspect().find(text: s.myInviteRegenerating))
+    func testUnavailableCodeHidesActionsAndKeepsStatistics() throws {
+        let view = MyInvitePanelView(code: "", shareURL: "https://flare.example/r/123/ABCDEFGHJKMN",
+                                     stats: FlareReferralStats(direct: 7, l2: 0, l3: 0, total: 7),
+                                     showProfiles: false, onCopy: { _ in })
+        XCTAssertNoThrow(try view.inspect().find(text: s.myInviteCodeUnavailable))
+        XCTAssertNoThrow(try view.inspect().find(text: s.myInviteStatsTitle))
+        for label in [s.myInviteCopy, s.myInviteShare, s.myInviteRegenerate] {
+            XCTAssertThrowsError(try view.inspect().find(text: label), label)
+        }
+        XCTAssertThrowsError(try view.inspect().find(viewWithAccessibilityLabel: s.myInviteQrHint))
+    }
+
+    @MainActor
+    func testRelationshipTreeStartsCollapsedAndOnlyOffersAllowedBranches() throws {
+        let parent = FlareInvitee(userId: "parent", displayName: "Ann", joinedAt: 0, hasChildren: true)
+        let leaf = FlareInvitee(userId: "leaf", displayName: "Bob", joinedAt: 0)
+        let load: (String, String?) async throws -> FlareInviteeBranchPage = { _, _ in
+            XCTFail("The tree should not load a branch before it is expanded")
+            return FlareInviteeBranchPage(invitees: [])
+        }
+        let view = MyInvitePanelView(code: "AB12CD", maxDepthShown: 2,
+                                     invitees: [parent, leaf], onLoadChildren: load)
+        XCTAssertNoThrow(try view.inspect().find(text: s.myInviteRelationships))
+        for label in [s.myInviteInviterTitle, s.myInviteNoInviter, s.myInviteCurrentUser, s.myInviteInviteesTitle] {
+            XCTAssertThrowsError(try view.inspect().find(text: label), label)
+        }
+        XCTAssertNoThrow(try view.inspect().find(viewWithAccessibilityLabel: "展开 Ann"))
+        XCTAssertThrowsError(try view.inspect().find(viewWithAccessibilityLabel: "展开 Bob"))
+        let oneLevel = MyInvitePanelView(code: "AB12CD", maxDepthShown: 1,
+                                         invitees: [parent], onLoadChildren: load)
+        XCTAssertThrowsError(try oneLevel.inspect().find(viewWithAccessibilityLabel: "展开 Ann"))
     }
 
     @MainActor

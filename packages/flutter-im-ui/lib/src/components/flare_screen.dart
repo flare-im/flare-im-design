@@ -23,6 +23,7 @@ class FlareScreen extends StatelessWidget {
     this.padded = false,
     this.scroll = true,
     this.footer,
+    this.contentMaxWidth,
     required this.child,
   });
 
@@ -46,6 +47,9 @@ class FlareScreen extends StatelessWidget {
 
   /// Optional pinned footer.
   final Widget? footer;
+
+  /// Center a focused directory/form on wide windows; phones remain full width.
+  final double? contentMaxWidth;
 
   final Widget child;
 
@@ -87,8 +91,12 @@ class FlareScreen extends StatelessWidget {
                 )
               : null,
         ),
-        child: SafeArea(
-          child: Column(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: contentMaxWidth ?? double.infinity),
+            child: SafeArea(
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (hasHeader)
@@ -139,6 +147,8 @@ class FlareScreen extends StatelessWidget {
               Expanded(child: body),
               if (footer != null) footer!,
             ],
+              ),
+            ),
           ),
         ),
       ),

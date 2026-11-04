@@ -58,13 +58,14 @@ class FlareReferralStats {
   };
 }
 
-/// One person invited directly by the current person.
+/// One user in the permitted invitation tree.
 class FlareInvitee {
   const FlareInvitee({
     required this.userId,
     required this.displayName,
     this.avatarUrl,
     required this.joinedAt,
+    this.hasChildren = false,
   });
 
   final String userId;
@@ -73,35 +74,41 @@ class FlareInvitee {
 
   /// Registration time, epoch milliseconds.
   final int joinedAt;
+
+  /// At least one child can be viewed under the current referral policy.
+  final bool hasChildren;
 }
 
-const int flareInviteCodeDefaultLength = 6;
+/// One page of a user's direct invitees.
+class FlareInviteeBranchPage {
+  const FlareInviteeBranchPage({required this.invitees, this.nextCursor});
+
+  final List<FlareInvitee> invitees;
+  final String? nextCursor;
+}
+
+const int flareInviteCodeMinLength = 4;
+const int flareInviteCodeMaxLength = 12;
+final _inviteCodeShape = RegExp(r'^[0-9A-HJKMNP-TV-Z]+$');
+final _inviteCodeNoise = RegExp(r'[\s-]');
+final _inviteCodeAsciiLowercase = RegExp(r'[a-z]');
 
 /// Delay between the last keystroke and the check request.
 const Duration flareInviteCheckDebounce = Duration(milliseconds: 400);
 
-/// What the server would read from what the person typed or pasted: whitespace
-/// and separators dropped, uppercased, O→0 and I/L→1, cut to [length].
-/// Idempotent, so it can run on every keystroke.
-String normalizeInviteCode(
-  String? raw, [
-  int length = flareInviteCodeDefaultLength,
-]) {
-  final cap = length > 0 ? length : flareInviteCodeDefaultLength;
-  final out = StringBuffer();
-  for (final rune in (raw ?? '').toUpperCase().runes) {
-    if (out.length >= cap) break;
-    final ch = String.fromCharCode(rune);
-    if (ch == 'O') {
-      out.write('0');
-    } else if (ch == 'I' || ch == 'L') {
-      out.write('1');
-    } else if (RegExp(r'[0-9A-Z]').hasMatch(ch)) {
-      out.write(ch);
-    }
-  }
-  return out.toString();
-}
+/// Match the server's normalization without truncating an overlong paste.
+String normalizeInviteCode(String? raw) => (raw ?? '')
+    .replaceAll(_inviteCodeNoise, '')
+    .replaceAllMapped(_inviteCodeAsciiLowercase, (m) => m[0]!.toUpperCase())
+    .replaceAll('O', '0')
+    .replaceAll('I', '1')
+    .replaceAll('L', '1')
+    .replaceAll('U', 'V');
+
+bool isInviteCodeShape(String value) =>
+    value.length >= flareInviteCodeMinLength &&
+    value.length <= flareInviteCodeMaxLength &&
+    _inviteCodeShape.hasMatch(value);
 
 /// One state at a time, in priority order: `off` beats everything, `disabled`
 /// beats what the host says about the value, a host error beats a check
@@ -135,24 +142,23 @@ FlareInviteCodeFieldState inviteCodeFieldState({
 /// never asks.
 String? inviteCodeToCheck({
   required String value,
-  int length = flareInviteCodeDefaultLength,
   FlareInviteCodeMode mode = FlareInviteCodeMode.optional,
   bool disabled = false,
 }) {
   if (mode == FlareInviteCodeMode.off || disabled) return null;
-  final code = normalizeInviteCode(value, length);
-  return code.length == length ? code : null;
+  final code = normalizeInviteCode(value);
+  return isInviteCodeShape(code) ? code : null;
 }
 
 enum FlareReferralDepth { direct, l2, l3, total }
 
 /// Which rows the panel lists for [stats], honouring the tenant's visibility
-/// depth (1–3, clamped). `total` is always the last row once stats exist.
+/// depth (0–3). `total` is the last row when stats are visible.
 List<FlareReferralDepth> referralDepthRows(
   FlareReferralStats? stats, [
   int maxDepthShown = 3,
 ]) {
-  if (stats == null) return const [];
+  if (stats == null || maxDepthShown <= 0) return const [];
   final depth = maxDepthShown.clamp(1, 3);
   return [
     FlareReferralDepth.direct,

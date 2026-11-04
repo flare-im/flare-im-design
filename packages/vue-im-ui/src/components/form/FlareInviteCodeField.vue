@@ -10,7 +10,6 @@ import FlareInput from "../general/FlareInput.vue";
 import FlareIcon from "../general/FlareIcon.vue";
 import {
   FLARE_INVITE_CHECK_DEBOUNCE_MS,
-  FLARE_INVITE_CODE_DEFAULT_LENGTH,
   inviteCodeFieldState,
   inviteCodeToCheck,
   normalizeInviteCode,
@@ -34,8 +33,6 @@ const props = withDefaults(
     /** Host-localized error shown instead of the hint; wins over `checkResult`. */
     error?: string;
     disabled?: boolean;
-    /** Code length the tenant configured; a check is only requested for a complete code. */
-    length?: number;
     label?: string;
     placeholder?: string;
   }>(),
@@ -46,7 +43,6 @@ const props = withDefaults(
     checkResult: null,
     error: "",
     disabled: false,
-    length: FLARE_INVITE_CODE_DEFAULT_LENGTH,
     label: undefined,
     placeholder: undefined,
   },
@@ -61,7 +57,6 @@ const { t } = useFlareI18nOptional();
 const strings = computed(() => ({
   label: props.label ?? t("inviteCode.label"),
   placeholder: props.placeholder ?? t("inviteCode.placeholder"),
-  optional: t("inviteCode.optional"),
   checking: t("inviteCode.checking"),
   invalid: t("inviteCode.invalid"),
 }));
@@ -83,7 +78,7 @@ const required = computed(() => props.mode === "required");
 // host clears `checkResult` when the code changes, and this guard covers the tick
 // in between.
 const resultMatchesValue = computed(
-  () => !props.checkResult || inviteCodeToCheck({ value: props.modelValue, length: props.length }) !== null,
+  () => !props.checkResult || inviteCodeToCheck({ value: props.modelValue }) !== null,
 );
 const inviterLine = computed(() => {
   if (state.value !== "valid" || !resultMatchesValue.value) return "";
@@ -92,10 +87,12 @@ const inviterLine = computed(() => {
 });
 const errorLine = computed(() => {
   if (props.error) return props.error;
+  if (props.modelValue.length >= 4 && inviteCodeToCheck({ value: props.modelValue }) === null) {
+    return strings.value.invalid;
+  }
   if (state.value === "invalid" && resultMatchesValue.value) return strings.value.invalid;
   return "";
 });
-const hintLine = computed(() => (props.mode === "optional" && state.value === "idle" ? strings.value.optional : ""));
 
 /** The one visible status line under the field; a live region so a screen reader hears the verdict. */
 const statusLine = computed(() => {
@@ -115,12 +112,13 @@ function cancelPending(): void {
 }
 function scheduleCheck(value: string): void {
   cancelPending();
-  const code = inviteCodeToCheck({ value, length: props.length, mode: props.mode, disabled: props.disabled });
+  const code = inviteCodeToCheck({ value, mode: props.mode, disabled: props.disabled });
   if (code === null) {
     lastRequested = null;
     return;
   }
   if (code === lastRequested) return;
+  lastRequested = null;
   timer = setTimeout(() => {
     timer = null;
     lastRequested = code;
@@ -129,13 +127,11 @@ function scheduleCheck(value: string): void {
 }
 onBeforeUnmount(cancelPending);
 
-// The native input is not capped with `maxlength`: a pasted "Code: o1-l2 i3" must
-// be normalized whole, not cut to its first six raw characters. So when the
-// normalized code did not change (a seventh character, a separator), the model
-// does not move and the element has to be put back by hand.
+// Keep the full normalized input. An overlength paste must never become a
+// different, potentially valid code.
 const control = ref<HTMLElement | null>(null);
 function onInput(raw: string): void {
-  const next = normalizeInviteCode(raw, props.length);
+  const next = normalizeInviteCode(raw);
   if (next !== props.modelValue) emit("update:modelValue", next);
   void nextTick(() => {
     const el = control.value?.querySelector("input");
@@ -151,7 +147,7 @@ watch(
   () => [props.prefill, props.mode] as const,
   ([prefill]) => {
     if (prefillApplied || props.mode === "off" || !prefill || props.modelValue) return;
-    const next = normalizeInviteCode(prefill, props.length);
+    const next = normalizeInviteCode(prefill);
     if (!next) return;
     prefillApplied = true;
     emit("update:modelValue", next);
@@ -168,7 +164,6 @@ watch(
     :class="`flare-invite-code--${state}`"
     :label="strings.label"
     :required="required"
-    :hint="hintLine || undefined"
     :error="errorLine || undefined"
   >
     <div ref="control" class="flare-invite-code__control">
@@ -176,7 +171,7 @@ watch(
         :model-value="modelValue"
         :placeholder="strings.placeholder"
         :disabled="disabled"
-        :invalid="state === 'invalid'"
+        :invalid="!!errorLine"
         monospace
         autocomplete="off"
         inputmode="text"

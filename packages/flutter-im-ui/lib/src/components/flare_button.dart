@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
+import 'flare_hit_slop.dart';
 
 enum FlareButtonAppearance { standard, text }
 
@@ -24,6 +25,7 @@ class FlareButton extends StatefulWidget {
     this.onPressed,
     this.child,
     this.contentPadding,
+    this.maintainTouchTarget = false,
   });
 
   final String? label;
@@ -41,6 +43,9 @@ class FlareButton extends StatefulWidget {
 
   /// Override inner spacing for composed controls such as compact action tiles.
   final EdgeInsetsGeometry? contentPadding;
+
+  /// Keep a full touch target even when the visible button is compact.
+  final bool maintainTouchTarget;
 
   @override
   State<FlareButton> createState() => _FlareButtonState();
@@ -187,6 +192,39 @@ class _FlareButtonState extends State<FlareButton> {
       ],
     );
 
+    final target = GestureDetector(
+      onTap: off ? null : widget.onPressed,
+      child: AnimatedContainer(
+        duration: reduceMotion ? Duration.zero : FlareMotion.fast,
+        constraints: BoxConstraints(
+          minHeight: widget.appearance == FlareButtonAppearance.text
+              ? FlareSizes.touchTarget
+              : _height,
+          minWidth: widget.appearance == FlareButtonAppearance.text
+              ? FlareSizes.touchTarget
+              : 0,
+        ),
+        width: widget.block ? double.infinity : null,
+        padding:
+            widget.contentPadding ??
+            EdgeInsets.symmetric(
+              horizontal: widget.appearance == FlareButtonAppearance.text
+                  ? 0
+                  : _hPad,
+              vertical: FlareSizes.spacing2xs,
+            ),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+          border: Border.all(
+            color: focusBorder ? colors.borderSelected : borderColor,
+            width: focusBorder ? 2 : 1,
+          ),
+        ),
+        child: row,
+      ),
+    );
+
     return Semantics(
       button: true,
       enabled: !off,
@@ -211,39 +249,12 @@ class _FlareButtonState extends State<FlareButton> {
             cursor: off ? SystemMouseCursors.basic : SystemMouseCursors.click,
             onEnter: (_) => setState(() => _hovering = true),
             onExit: (_) => setState(() => _hovering = false),
-            child: GestureDetector(
-              onTap: off ? null : widget.onPressed,
-              child: AnimatedContainer(
-                duration: reduceMotion ? Duration.zero : FlareMotion.fast,
-                constraints: BoxConstraints(
-                  minHeight: widget.appearance == FlareButtonAppearance.text
-                      ? FlareSizes.touchTarget
-                      : _height,
-                  minWidth: widget.appearance == FlareButtonAppearance.text
-                      ? FlareSizes.touchTarget
-                      : 0,
-                ),
-                width: widget.block ? double.infinity : null,
-                padding:
-                    widget.contentPadding ??
-                    EdgeInsets.symmetric(
-                      horizontal:
-                          widget.appearance == FlareButtonAppearance.text
-                          ? 0
-                          : _hPad,
-                      vertical: FlareSizes.spacingSm,
-                    ),
-                decoration: BoxDecoration(
-                  color: background,
-                  borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-                  border: Border.all(
-                    color: focusBorder ? colors.borderSelected : borderColor,
-                    width: focusBorder ? 2 : 1,
-                  ),
-                ),
-                child: row,
-              ),
-            ),
+            child: widget.maintainTouchTarget
+                ? FlareHitSlop(
+                    minSize: FlareSizes.touchTargetMin,
+                    child: target,
+                  )
+                : target,
           ),
         ),
       ),

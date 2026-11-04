@@ -26,7 +26,6 @@ class FlareInviteCodeField extends StatefulWidget {
     this.checkResult,
     this.error,
     this.disabled = false,
-    this.length = flareInviteCodeDefaultLength,
     this.label,
     this.placeholder,
     this.onChanged,
@@ -52,8 +51,6 @@ class FlareInviteCodeField extends StatefulWidget {
   final String? error;
   final bool disabled;
 
-  /// Code length the tenant configured; a check is only requested for a complete code.
-  final int length;
   final String? label;
   final String? placeholder;
 
@@ -105,14 +102,14 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
     if (_prefillApplied || widget.mode == FlareInviteCodeMode.off) return;
     if (prefill == null || prefill.isEmpty || _controller.text.isNotEmpty)
       return;
-    final next = normalizeInviteCode(prefill, widget.length);
+    final next = normalizeInviteCode(prefill);
     if (next.isEmpty) return;
     _prefillApplied = true;
     _controller.text = next;
   }
 
   void _onText() {
-    final next = normalizeInviteCode(_controller.text, widget.length);
+    final next = normalizeInviteCode(_controller.text);
     if (next != _controller.text) {
       // Normalize in place, cursor at the end: the person sees what the server reads.
       _controller.value = TextEditingValue(
@@ -133,7 +130,6 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
     _timer = null;
     final code = inviteCodeToCheck(
       value: value,
-      length: widget.length,
       mode: widget.mode,
       disabled: widget.disabled,
     );
@@ -163,21 +159,17 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
     final strings = FlareStrings.of(context);
     final colors = FlareColors.of(context);
     // A stale result for another code must not be shown as this code's verdict.
-    final resultMatches =
-        widget.checkResult == null ||
-        inviteCodeToCheck(value: _controller.text, length: widget.length) !=
-            null;
+    final value = _controller.text;
+    final resultMatches = isInviteCodeShape(value);
+    final malformed =
+        value.length >= flareInviteCodeMinLength && !resultMatches;
     final inviter = widget.checkResult?.inviterDisplayName?.trim();
     final String? errorLine = widget.error != null && widget.error!.isNotEmpty
         ? widget.error
-        : (state == FlareInviteCodeFieldState.invalid && resultMatches
+        : (malformed ||
+                  (state == FlareInviteCodeFieldState.invalid && resultMatches)
               ? strings.inviteCodeInvalid
               : null);
-    final String? hint =
-        widget.mode == FlareInviteCodeMode.optional &&
-            state == FlareInviteCodeFieldState.idle
-        ? strings.inviteCodeOptional
-        : null;
     Widget? status;
     if (state == FlareInviteCodeFieldState.checking) {
       status = _StatusLine(
@@ -208,7 +200,6 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
     return FlareFormField(
       label: widget.label ?? strings.inviteCodeLabel,
       required: widget.mode == FlareInviteCodeMode.required,
-      hint: hint,
       error: errorLine,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

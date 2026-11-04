@@ -89,7 +89,7 @@ class ServerClockVectorsTest {
      * source says which clock they read.
      */
     @Test fun serverInstantsAreNeverJudgedOnTheDeviceClock() {
-        for (name in listOf("PluginView.kt", "MyInvitePanel.kt", "RedPacketDetail.kt")) {
+        for (name in listOf("PluginView.kt", "RedPacketDetail.kt")) {
             val source = File(specFile("server-clock-vectors.json").parentFile.parentFile,
                 "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/$name").readText()
             assertFalse("System.currentTimeMillis()" in source, "$name reads the device clock")

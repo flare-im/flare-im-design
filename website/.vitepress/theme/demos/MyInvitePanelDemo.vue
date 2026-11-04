@@ -4,37 +4,30 @@ import { FlareMyInvitePanel } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
 
 // The host fetched the code, the stats and a keyset page of invitees; every action is an
-// intent it performs. Copy / share / regenerate are logged here instead of executed.
+// intent it performs. Copy is logged here instead of writing to the clipboard.
 const DAY = 24 * 60 * 60 * 1000;
 function page(from, count) {
   return Array.from({ length: count }, (_, i) => ({
     userId: `u${from + i}`,
     displayName: ["林晚", "Ann Lee", "周舟", "Bob", "Chen Yu"][(from + i) % 5],
     joinedAt: Date.now() - (from + i) * 3 * DAY,
+    hasChildren: from + i === 0,
   }));
 }
 
 const loading = ref(false);
+const unavailable = ref(false);
 const showProfiles = ref(true);
-const canRegenerate = ref(true);
-const cooling = ref(false);
-const regenerating = ref(false);
+const showQr = ref(true);
 const invitees = ref(page(0, 3));
 const hasMore = ref(true);
 const loadingMore = ref(false);
 const last = ref("尚未操作");
 
-const code = computed(() => (loading.value ? "" : "AB12CD"));
+const code = computed(() => (loading.value || unavailable.value ? "" : "AB23CD"));
 const stats = computed(() => (loading.value ? null : { direct: 5, l2: 12, l3: 40, total: 57 }));
-const regenerateAvailableAt = computed(() => (cooling.value ? Date.now() + 2 * 60 * 60 * 1000 : null));
 
 function copy(c) { last.value = `copy：${c}`; }
-function share(url) { last.value = `share：${url}`; }
-function regenerate() {
-  last.value = "regenerate";
-  regenerating.value = true;
-  setTimeout(() => { regenerating.value = false; cooling.value = true; }, 900);
-}
 function loadMore() {
   last.value = "loadMore";
   loadingMore.value = true;
@@ -44,11 +37,18 @@ function loadMore() {
     loadingMore.value = false;
   }, 900);
 }
+async function loadChildren(parentUserId) {
+  const children = {
+    u0: [{ userId: "u0-1", displayName: "陈宇", joinedAt: Date.now() - DAY, hasChildren: true }],
+    "u0-1": [{ userId: "u0-1-1", displayName: "许诺", joinedAt: Date.now() }],
+  };
+  return { invitees: children[parentUserId] ?? [] };
+}
 function select(id) { last.value = `select：${id}`; }
 function emptyOut() { invitees.value = []; hasMore.value = false; }
 function reset() {
-  loading.value = false; showProfiles.value = true; canRegenerate.value = true; cooling.value = false;
-  regenerating.value = false; invitees.value = page(0, 3); hasMore.value = true; loadingMore.value = false;
+  loading.value = false; unavailable.value = false; showProfiles.value = true; showQr.value = true;
+  invitees.value = page(0, 3); hasMore.value = true; loadingMore.value = false;
   last.value = "尚未操作";
 }
 </script>
@@ -58,7 +58,7 @@ function reset() {
     <div class="my-invite-demo">
       <FlareMyInvitePanel
         :code="code"
-        :share-url="code ? `https://flare.example/r/t1/${code}` : ''"
+        :share-url="code && showQr ? `https://flare.example/r/t1/${code}` : ''"
         :stats="stats"
         :max-depth-shown="3"
         :invitees="invitees"
@@ -66,20 +66,16 @@ function reset() {
         :has-more="hasMore"
         :loading-more="loadingMore"
         :loading="loading"
-        :can-regenerate="canRegenerate"
-        :regenerate-available-at="regenerateAvailableAt"
-        :regenerating="regenerating"
+        :on-load-children="loadChildren"
         @copy="copy"
-        @share="share"
-        @regenerate="regenerate"
         @load-more="loadMore"
         @select="select"
       />
       <div class="my-invite-demo__controls">
         <label><input v-model="loading" type="checkbox" /> 加载态</label>
+        <label><input v-model="unavailable" type="checkbox" /> 邀请码不可用</label>
+        <label><input v-model="showQr" type="checkbox" /> 显示注册二维码</label>
         <label><input v-model="showProfiles" type="checkbox" /> 显示下级资料（关＝只显示人数）</label>
-        <label><input v-model="canRegenerate" type="checkbox" /> 允许重新生成</label>
-        <label><input v-model="cooling" type="checkbox" /> 冷却中（2 小时）</label>
         <button type="button" @click="emptyOut">清空下级（空态）</button>
         <button type="button" @click="reset">重置演示</button>
       </div>

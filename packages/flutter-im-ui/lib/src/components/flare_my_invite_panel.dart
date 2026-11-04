@@ -1,24 +1,21 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../models/invite_data.dart';
 import '../models/plural.dart';
-import '../models/server_clock.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 import 'flare_button.dart';
+import 'flare_icon_button.dart';
+import 'qr/flare_qr_code_frame.dart';
 
-/// "My invite" — the person's invite code with copy / share / regenerate, how
-/// many people each referral depth holds, and who they invited directly.
+/// "My invite" — scan or copy an invite, then view permitted referral details.
 /// Spec: Profile/MyInvitePanel (`FlareMyInvitePanel`).
 ///
 /// The host fetched all of it and performs every action; this card only shows
-/// the snapshot and dispatches intent. It never touches the clipboard or a
-/// share sheet.
-class FlareMyInvitePanel extends StatefulWidget {
+/// the snapshot and dispatches intent. It never touches the clipboard.
+class FlareMyInvitePanel extends StatelessWidget {
   const FlareMyInvitePanel({
     super.key,
     required this.code,
@@ -30,21 +27,18 @@ class FlareMyInvitePanel extends StatefulWidget {
     this.hasMore = false,
     this.loadingMore = false,
     this.loading = false,
-    this.canRegenerate = false,
-    this.regenerateAvailableAt,
-    this.regenerating = false,
     this.title,
+    this.showTitle = true,
     this.onCopy,
-    this.onShare,
-    this.onRegenerate,
     this.onLoadMore,
+    this.onLoadChildren,
     this.onSelect,
   });
 
   /// The person's invite code; empty while the host has none yet.
   final String code;
 
-  /// Host-built share link; shown under the code and carried by [onShare].
+  /// Registration URL encoded in the QR, when available.
   final String? shareUrl;
 
   /// Referral counts per depth; null while unknown.
@@ -63,48 +57,23 @@ class FlareMyInvitePanel extends StatefulWidget {
 
   /// First load in flight — skeleton, never a fake empty list.
   final bool loading;
-  final bool canRegenerate;
-
-  /// Epoch ms from which regenerating is allowed again.
-  final int? regenerateAvailableAt;
-  final bool regenerating;
   final String? title;
+  final bool showTitle;
 
   /// Carries the code.
   final ValueChanged<String>? onCopy;
 
-  /// Carries the share URL, or the code when the host built none.
-  final ValueChanged<String>? onShare;
-  final VoidCallback? onRegenerate;
   final VoidCallback? onLoadMore;
+
+  /// Loads one page below the selected user. The panel manages expansion state.
+  final Future<FlareInviteeBranchPage> Function(
+    String parentUserId,
+    String? cursor,
+  )?
+  onLoadChildren;
 
   /// Carries the invitee's userId.
   final ValueChanged<String>? onSelect;
-
-  @override
-  State<FlareMyInvitePanel> createState() => _FlareMyInvitePanelState();
-}
-
-class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
-  Timer? _ticker;
-
-  @override
-  void initState() {
-    super.initState();
-    // The cooldown is a clock reading; re-read it every half minute so the
-    // control re-enables on its own once the server's deadline passes. The
-    // deadline is the server's clock, so the reading is too
-    // (spec/server-clock-vectors.json).
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
 
   String _depthLabel(FlareStrings s, FlareReferralDepth depth) =>
       switch (depth) {
@@ -114,78 +83,59 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
         FlareReferralDepth.total => s.myInviteTotal,
       };
 
-  String _cooldownText(FlareStrings s, FlareInviteCooldown remaining) {
-    final unit = switch (remaining.unit) {
-      FlareInviteCooldownUnit.minute => s.myInviteUnitMinutes,
-      FlareInviteCooldownUnit.hour => s.myInviteUnitHours,
-      FlareInviteCooldownUnit.day => s.myInviteUnitDays,
-    };
-    return s.myInviteCooldown.replaceAll(
-      '{time}',
-      unit.replaceAll('{n}', '${remaining.count}'),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = FlareStrings.of(context);
     final colors = FlareColors.of(context);
-    final title = widget.title ?? s.myInviteTitle;
-    final hasCode = widget.code.trim().isNotEmpty;
-    final showSkeleton = widget.loading && !hasCode;
-    final regenerate = regenerateAvailability(
-      widget.canRegenerate,
-      widget.regenerateAvailableAt,
-      FlareServerClock.nowMs(),
-    );
-    final rows = referralDepthRows(widget.stats, widget.maxDepthShown);
-    final inviteeCount = widget.stats?.direct ?? widget.invitees.length;
-    final showEmpty =
-        !widget.loading && widget.showProfiles && widget.invitees.isEmpty;
+    final heading = title ?? s.myInviteTitle;
+    final hasCode = code.trim().isNotEmpty;
+    final showSkeleton = loading;
+    final qrPayload = shareUrl?.trim() ?? '';
+    final rows = referralDepthRows(stats, maxDepthShown);
+    final showEmpty = !loading && showProfiles && invitees.isEmpty;
 
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      label: title,
+      label: heading,
       child: Container(
-        padding: const EdgeInsets.all(FlareSizes.spacingMd),
-        decoration: BoxDecoration(
-          color: colors.bgPrimary,
-          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-          border: Border.all(color: colors.borderPrimary),
-        ),
+        padding: showTitle
+            ? const EdgeInsets.all(FlareSizes.spacingMd)
+            : EdgeInsets.zero,
+        decoration: showTitle
+            ? BoxDecoration(
+                color: colors.bgPrimary,
+                borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+                border: Border.all(color: colors.borderPrimary),
+              )
+            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: FlareSizes.fontSizeLg,
-                fontWeight: FontWeight.w600,
-                color: colors.textPrimary,
+            if (showTitle) ...[
+              Text(
+                heading,
+                style: TextStyle(
+                  fontSize: FlareSizes.fontSizeLg,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: FlareSizes.spacingMd),
+              const SizedBox(height: FlareSizes.spacingMd),
+            ],
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(FlareSizes.spacingMd),
+              padding: const EdgeInsets.all(FlareSizes.spacingLg),
               decoration: BoxDecoration(
-                color: colors.bgSecondary,
-                borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+                color: colors.bgSelected,
+                border: Border.all(color: colors.borderPrimary),
+                borderRadius: BorderRadius.circular(FlareSizes.radiusBubble),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    s.myInviteCodeLabel,
-                    style: TextStyle(
-                      fontSize: FlareSizes.fontSizeSm,
-                      color: colors.textTertiary,
-                    ),
-                  ),
-                  const SizedBox(height: FlareSizes.spacingSm),
                   if (showSkeleton)
                     Semantics(
                       label: s.myInviteLoading,
@@ -196,95 +146,37 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
                         color: colors.bgPrimary,
                       ),
                     )
-                  else if (hasCode)
-                    SelectableText(
-                      widget.code,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontFamilyFallback: const [
-                          'Menlo',
-                          'Roboto Mono',
-                          'Courier New',
-                        ],
-                        fontSize: FlareSizes.fontSize4xl,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 4,
-                        color: colors.primaryText,
-                      ),
-                    )
-                  else
-                    Text(
-                      s.myInviteCodeUnavailable,
-                      style: TextStyle(
-                        fontSize: FlareSizes.fontSizeSm,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  if (hasCode &&
-                      widget.shareUrl != null &&
-                      widget.shareUrl!.isNotEmpty) ...[
-                    const SizedBox(height: FlareSizes.spacingXs),
-                    Text(
-                      widget.shareUrl!,
-                      style: TextStyle(
-                        fontSize: FlareSizes.fontSizeSm,
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: FlareSizes.spacingSm),
-                  Wrap(
-                    spacing: FlareSizes.spacingSm,
-                    runSpacing: FlareSizes.spacingSm,
-                    children: [
-                      FlareButton(
-                        label: s.myInviteCopy,
-                        icon: 'copy',
-                        variant: FlareButtonVariant.secondary,
-                        size: FlareControlSize.sm,
-                        disabled: !hasCode,
-                        onPressed: () => widget.onCopy?.call(widget.code),
-                      ),
-                      FlareButton(
-                        label: s.myInviteShare,
-                        icon: 'share',
-                        variant: FlareButtonVariant.primary,
-                        size: FlareControlSize.sm,
-                        disabled: !hasCode,
-                        onPressed: () => widget.onShare?.call(
-                          (widget.shareUrl?.isNotEmpty ?? false)
-                              ? widget.shareUrl!
-                              : widget.code,
-                        ),
-                      ),
-                      if (regenerate.shown)
-                        FlareButton(
-                          label: widget.regenerating
-                              ? s.myInviteRegenerating
-                              : s.myInviteRegenerate,
-                          icon: 'refresh',
-                          variant: FlareButtonVariant.ghost,
-                          size: FlareControlSize.sm,
-                          loading: widget.regenerating,
-                          disabled:
-                              !regenerate.enabled ||
-                              widget.regenerating ||
-                              widget.loading,
-                          onPressed: widget.onRegenerate,
-                        ),
-                    ],
-                  ),
-                  if (regenerate.remaining != null) ...[
-                    const SizedBox(height: FlareSizes.spacingXs),
+                  else if (!hasCode)
                     Semantics(
                       liveRegion: true,
-                      child: Text(
-                        _cooldownText(s, regenerate.remaining!),
-                        style: TextStyle(
-                          fontSize: FlareSizes.fontSizeSm,
-                          color: colors.textSecondary,
+                      child: Padding(
+                        padding: const EdgeInsets.all(FlareSizes.spacingSm),
+                        child: Text(
+                          s.myInviteCodeUnavailable,
+                          style: TextStyle(
+                            fontSize: FlareSizes.fontSizeMd,
+                            color: colors.textSecondary,
+                          ),
                         ),
                       ),
+                    )
+                  else ...[
+                    if (qrPayload.isNotEmpty) ...[
+                      Center(
+                        child: SizedBox(
+                          width: 196,
+                          child: FlareQrCodeFrame(
+                            payload: qrPayload,
+                            name: heading,
+                            hint: s.myInviteQrHint,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: FlareSizes.spacingLg),
+                    ],
+                    _InviteCodeRow(
+                      code: code,
+                      onCopy: onCopy == null ? null : () => onCopy!(code),
                     ),
                   ],
                 ],
@@ -293,107 +185,191 @@ class _FlareMyInvitePanelState extends State<FlareMyInvitePanel> {
             if (rows.isNotEmpty) ...[
               const SizedBox(height: FlareSizes.spacingMd),
               Semantics(
-                label: s.myInviteStatsTitle,
-                child: Wrap(
-                  spacing: FlareSizes.spacingSm,
-                  runSpacing: FlareSizes.spacingSm,
-                  children: [
-                    for (final depth in rows)
-                      _StatTile(
-                        label: _depthLabel(s, depth),
-                        value: '${widget.stats!.of(depth)}',
-                        emphasized: depth == FlareReferralDepth.total,
-                      ),
-                  ],
+                header: true,
+                child: Text(
+                  s.myInviteStatsTitle,
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
+              ),
+              const SizedBox(height: FlareSizes.spacingSm),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const gap = FlareSizes.spacingSm;
+                  final columns = constraints.maxWidth >= 400 ? rows.length : 2;
+                  final width =
+                      (constraints.maxWidth - gap * (columns - 1)) / columns;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final depth in rows)
+                        SizedBox(
+                          width: width,
+                          child: _StatTile(
+                            label: _depthLabel(s, depth),
+                            value: '${stats!.of(depth)}',
+                            emphasized: depth == FlareReferralDepth.total,
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
-            const SizedBox(height: FlareSizes.spacingMd),
-            Text(
-              s.myInviteInviteesTitle,
-              style: TextStyle(
-                fontSize: FlareSizes.fontSizeMd,
-                fontWeight: FontWeight.w500,
-                color: colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: FlareSizes.spacingSm),
-            if (!widget.showProfiles)
-              Text(
-                s.myInviteCountOnlyCount(
-                  inviteeCount,
-                  flareCopyLocaleOf(context),
-                ),
-                style: TextStyle(
-                  fontSize: FlareSizes.fontSizeLg,
-                  color: colors.textPrimary,
-                ),
-              )
-            else if (showSkeleton)
-              ExcludeSemantics(
-                child: Column(
-                  children: [
-                    for (var i = 0; i < 3; i++)
-                      SizedBox(
-                        height: FlareSizes.touchTarget,
-                        child: Row(
-                          children: [
-                            _Ghost(
-                              width: FlareSizes.avatarSize,
-                              height: FlareSizes.avatarSize,
-                              color: colors.bgSecondary,
-                              round: true,
-                            ),
-                            const SizedBox(width: FlareSizes.spacingMd),
-                            _Ghost(
-                              width: 120,
-                              height: FlareSizes.iconSizeSm,
-                              color: colors.bgSecondary,
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              )
-            else if (showEmpty)
+            if (showProfiles && maxDepthShown > 0) ...[
+              const SizedBox(height: FlareSizes.spacingMd),
               Semantics(
-                liveRegion: true,
+                header: true,
                 child: Text(
-                  s.myInviteEmpty,
-                  style: TextStyle(
-                    fontSize: FlareSizes.fontSizeSm,
-                    color: colors.textSecondary,
+                  s.myInviteRelationships,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              const SizedBox(height: FlareSizes.spacingSm),
+              if (showSkeleton)
+                ExcludeSemantics(
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < 3; i++)
+                        SizedBox(
+                          height: FlareSizes.touchTarget,
+                          child: Row(
+                            children: [
+                              _Ghost(
+                                width: FlareSizes.avatarSize,
+                                height: FlareSizes.avatarSize,
+                                color: colors.bgSecondary,
+                                round: true,
+                              ),
+                              const SizedBox(width: FlareSizes.spacingMd),
+                              _Ghost(
+                                width: 120,
+                                height: FlareSizes.iconSizeSm,
+                                color: colors.bgSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              )
-            else ...[
-              for (var i = 0; i < widget.invitees.length; i++) ...[
-                if (i > 0) Divider(height: 1, color: colors.borderSecondary),
-                _InviteeRow(
-                  invitee: widget.invitees[i],
-                  joined: s.myInviteJoined.replaceAll(
-                    '{date}',
-                    inviteJoinedDateLabel(widget.invitees[i].joinedAt),
+                )
+              else if (showEmpty)
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    s.myInviteEmpty,
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeSm,
+                      color: colors.textSecondary,
+                    ),
                   ),
-                  onSelect: widget.onSelect,
-                ),
-              ],
-              if (widget.hasMore) ...[
-                const SizedBox(height: FlareSizes.spacingSm),
-                FlareButton(
-                  label: s.myInviteLoadMore,
-                  variant: FlareButtonVariant.ghost,
-                  size: FlareControlSize.sm,
-                  block: true,
-                  loading: widget.loadingMore,
-                  disabled: widget.loadingMore,
-                  onPressed: widget.onLoadMore,
-                ),
+                )
+              else ...[
+                for (var i = 0; i < invitees.length; i++) ...[
+                  if (i > 0) Divider(height: 1, color: colors.borderSecondary),
+                  _InviteTreeNode(
+                    key: ValueKey((invitees[i].userId, maxDepthShown)),
+                    invitee: invitees[i],
+                    levelsRemaining: maxDepthShown.clamp(1, 3),
+                    onLoadChildren: onLoadChildren,
+                    onSelect: onSelect,
+                  ),
+                ],
+                if (hasMore) ...[
+                  const SizedBox(height: FlareSizes.spacingSm),
+                  FlareButton(
+                    label: s.myInviteLoadMore,
+                    variant: FlareButtonVariant.ghost,
+                    size: FlareControlSize.sm,
+                    block: true,
+                    loading: loadingMore,
+                    disabled: loadingMore,
+                    onPressed: onLoadMore,
+                  ),
+                ],
               ],
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InviteCodeRow extends StatelessWidget {
+  const _InviteCodeRow({required this.code, required this.onCopy});
+
+  final String code;
+  final VoidCallback? onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          strings.myInviteCodeLabel,
+          style: TextStyle(
+            color: colors.textSecondary,
+            fontSize: FlareSizes.fontSizeSm,
+          ),
+        ),
+        const SizedBox(height: FlareSizes.spacingXs),
+        SelectableText(
+          code,
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: FlareSizes.fontSize4xl,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+            color: colors.primaryText,
+          ),
+        ),
+      ],
+    );
+    final action = onCopy == null
+        ? null
+        : FlareButton(
+            label: strings.myInviteCopy,
+            icon: 'copy',
+            size: FlareControlSize.sm,
+            maintainTouchTarget: true,
+            onPressed: onCopy,
+          );
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: FlareSizes.spacingMd,
+        vertical: FlareSizes.spacingSm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (action == null) return content;
+          final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+          if (constraints.maxWidth < 240 * textScale) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                content,
+                const SizedBox(height: FlareSizes.spacingXs),
+                Align(alignment: AlignmentDirectional.centerEnd, child: action),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: content),
+              const SizedBox(width: FlareSizes.spacingSm),
+              action,
+            ],
+          );
+        },
       ),
     );
   }
@@ -413,7 +389,6 @@ class _StatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     return Container(
-      constraints: const BoxConstraints(minWidth: 96),
       padding: const EdgeInsets.symmetric(
         horizontal: FlareSizes.spacingMd,
         vertical: FlareSizes.spacingSm,
@@ -449,24 +424,175 @@ class _StatTile extends StatelessWidget {
   }
 }
 
+class _InviteTreeNode extends StatefulWidget {
+  const _InviteTreeNode({
+    super.key,
+    required this.invitee,
+    required this.levelsRemaining,
+    required this.onLoadChildren,
+    required this.onSelect,
+  });
+
+  final FlareInvitee invitee;
+  final int levelsRemaining;
+  final Future<FlareInviteeBranchPage> Function(String, String?)?
+  onLoadChildren;
+  final ValueChanged<String>? onSelect;
+
+  @override
+  State<_InviteTreeNode> createState() => _InviteTreeNodeState();
+}
+
+class _InviteTreeNodeState extends State<_InviteTreeNode> {
+  final _children = <FlareInvitee>[];
+  bool _expanded = false;
+  bool _loading = false;
+  bool _loaded = false;
+  bool _failed = false;
+  String? _cursor;
+
+  bool get _canExpand =>
+      widget.invitee.hasChildren &&
+      widget.levelsRemaining > 1 &&
+      widget.onLoadChildren != null;
+
+  void _toggle() {
+    setState(() => _expanded = !_expanded);
+    if (_expanded && !_loaded && !_failed) _load();
+  }
+
+  Future<void> _load() async {
+    final load = widget.onLoadChildren;
+    if (!_canExpand || _loading || load == null) return;
+    final cursor = _cursor;
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
+    try {
+      final page = await load(widget.invitee.userId, cursor);
+      if (!mounted) return;
+      setState(() {
+        final seen = _children.map((child) => child.userId).toSet();
+        _children.addAll(
+          page.invitees.where((child) => seen.add(child.userId)),
+        );
+        final next = page.nextCursor;
+        _cursor = next == null || next.isEmpty || next == cursor ? null : next;
+        _loaded = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = FlareStrings.of(context);
+    final colors = FlareColors.of(context);
+    final invitee = widget.invitee;
+    final expanded = _canExpand && _expanded;
+    final label =
+        (_expanded ? strings.myInviteCollapse : strings.myInviteExpand)
+            .replaceAll('{name}', invitee.displayName);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _InviteeRow(
+                invitee: invitee,
+                joined: strings.myInviteJoined.replaceAll(
+                  '{date}',
+                  inviteJoinedDateLabel(invitee.joinedAt),
+                ),
+                onTap: widget.onSelect != null
+                    ? () => widget.onSelect!(invitee.userId)
+                    : _canExpand
+                    ? _toggle
+                    : null,
+              ),
+            ),
+            if (_canExpand)
+              FlareIconButton(
+                icon: expanded ? 'chevron-up' : 'chevron-down',
+                semanticLabel: label,
+                size: FlareControlSize.lg,
+                onPressed: _toggle,
+              ),
+          ],
+        ),
+        if (expanded)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(
+              start: FlareSizes.spacingLg,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: BorderDirectional(
+                  start: BorderSide(color: colors.borderSecondary),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: FlareSizes.spacingMd,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final child in _children)
+                      _InviteTreeNode(
+                        key: ValueKey(child.userId),
+                        invitee: child,
+                        levelsRemaining: widget.levelsRemaining - 1,
+                        onLoadChildren: widget.onLoadChildren,
+                        onSelect: widget.onSelect,
+                      ),
+                    if (_loading)
+                      Semantics(liveRegion: true, child: Text(strings.loading))
+                    else if (_failed || _cursor != null)
+                      FlareButton(
+                        label: _failed
+                            ? strings.retry
+                            : strings.myInviteLoadMore,
+                        size: FlareControlSize.sm,
+                        variant: FlareButtonVariant.ghost,
+                        maintainTouchTarget: true,
+                        onPressed: _load,
+                      )
+                    else if (_loaded && _children.isEmpty)
+                      Text(strings.myInviteNoChildren),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _InviteeRow extends StatelessWidget {
   const _InviteeRow({
     required this.invitee,
     required this.joined,
-    required this.onSelect,
+    required this.onTap,
   });
   final FlareInvitee invitee;
   final String joined;
-  final ValueChanged<String>? onSelect;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     return Semantics(
-      button: onSelect != null,
+      button: onTap != null,
       label: invitee.displayName,
       child: InkWell(
-        onTap: onSelect == null ? null : () => onSelect!(invitee.userId),
+        onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
           child: Padding(

@@ -1,5 +1,5 @@
 {
-  "$comment": "Shared table for InviteCodeField / MyInvitePanel logic on four platforms. normalize: raw → normalized code (length 6 unless given). fieldState: the state vector of InviteCodeField. depthRows: which referral depths MyInvitePanel lists. regenerate: cooldown resolution (times in ms). Each platform's test runs every vector by id; tooling does not enumerate them, the tests do.",
+  "$comment": "Shared table for InviteCodeField / MyInvitePanel logic on four platforms. normalize: raw → normalized code without truncation. checkRequest: eligible 4–12 character codes. fieldState: the state vector of InviteCodeField. depthRows: which referral depths MyInvitePanel lists. regenerate: cooldown resolution (times in ms). Each platform's test runs every vector by id; tooling does not enumerate them, the tests do.",
   "normalize": [
     { "id": "n.empty", "raw": "", "expected": "" },
     { "id": "n.trim", "raw": "  ab12cd  ", "expected": "AB12CD" },
@@ -7,10 +7,12 @@
     { "id": "n.oToZero", "raw": "o0Oo0O", "expected": "000000" },
     { "id": "n.iAndLToOne", "raw": "iLlI1l", "expected": "111111" },
     { "id": "n.separators", "raw": "AB-12 CD", "expected": "AB12CD" },
-    { "id": "n.truncate", "raw": "ABCDEFGH", "expected": "ABCDEF" },
-    { "id": "n.customLength", "raw": "abcdefgh12", "length": 8, "expected": "ABCDEFGH" },
+    { "id": "n.variableLength", "raw": "ABCDEFGH", "expected": "ABCDEFGH" },
+    { "id": "n.uToV", "raw": "UuB7", "expected": "VVB7" },
     { "id": "n.partial", "raw": "ab", "expected": "AB" },
-    { "id": "n.pasteWithNoise", "raw": "Code: o1-l2 i3", "expected": "C0DE01" }
+    { "id": "n.preserveInvalidPunctuation", "raw": "Code: o1-l2 i3", "expected": "C0DE:011213" },
+    { "id": "n.preserveOverlength", "raw": "ABCDEFGHJKMNP", "expected": "ABCDEFGHJKMNP" },
+    { "id": "n.asciiUppercaseOnly", "raw": "äﬃab12", "expected": "äﬃAB12" }
   ],
   "fieldState": [
     { "id": "s.off", "mode": "off", "value": "AB12CD", "expected": "off" },
@@ -30,7 +32,12 @@
   "checkRequest": [
     { "id": "c.partialNever", "value": "AB1", "expected": null },
     { "id": "c.complete", "value": "AB12CD", "expected": "AB12CD" },
-    { "id": "c.customLength", "value": "ABCDEFGH", "length": 8, "expected": "ABCDEFGH" },
+    { "id": "c.eight", "value": "ABCDEFGH", "expected": "ABCDEFGH" },
+    { "id": "c.minimum", "value": "a-u1 3", "expected": "AV13" },
+    { "id": "c.maximum", "value": "ABCDEFGHJKMN", "expected": "ABCDEFGHJKMN" },
+    { "id": "c.overlength", "value": "ABCDEFGHJKMNP", "expected": null },
+    { "id": "c.punctuation", "value": "ABC!DE", "expected": null },
+    { "id": "c.unicode", "value": "ABC漢DE", "expected": null },
     { "id": "c.disabled", "value": "AB12CD", "disabled": true, "expected": null },
     { "id": "c.off", "value": "AB12CD", "mode": "off", "expected": null },
     { "id": "c.empty", "value": "", "expected": null }
@@ -40,7 +47,7 @@
     { "id": "d.all", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 3, "expected": ["direct", "l2", "l3", "total"] },
     { "id": "d.two", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 2, "expected": ["direct", "l2", "total"] },
     { "id": "d.one", "stats": { "direct": 5, "l2": 12, "l3": 40, "total": 57 }, "maxDepthShown": 1, "expected": ["direct", "total"] },
-    { "id": "d.clampLow", "stats": { "direct": 0, "l2": 0, "l3": 0, "total": 0 }, "maxDepthShown": 0, "expected": ["direct", "total"] },
+    { "id": "d.hidden", "stats": { "direct": 0, "l2": 0, "l3": 0, "total": 0 }, "maxDepthShown": 0, "expected": [] },
     { "id": "d.clampHigh", "stats": { "direct": 1, "l2": 0, "l3": 0, "total": 1 }, "maxDepthShown": 9, "expected": ["direct", "l2", "l3", "total"] }
   ],
   "regenerate": [

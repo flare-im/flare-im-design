@@ -21,51 +21,56 @@ final _invitees = [
 const _stats = FlareReferralStats(direct: 5, l2: 12, l3: 40, total: 57);
 
 void main() {
-  testWidgets('shows the code and link, dispatches copy / share / select', (
+  testWidgets('keeps the URL in the QR and copies only the code', (
     tester,
   ) async {
     final events = <String>[];
+    const url = 'https://flare.example/r/t1/AB23CD';
     await tester.pumpWidget(
       _host(
         FlareMyInvitePanel(
-          code: 'AB12CD',
-          shareUrl: 'https://flare.example/r/t1/AB12CD',
+          code: 'AB23CD',
+          shareUrl: url,
           invitees: _invitees,
-          onCopy: (c) => events.add('copy:$c'),
-          onShare: (u) => events.add('share:$u'),
+          onCopy: (code) => events.add('copy:$code'),
           onSelect: (id) => events.add('select:$id'),
         ),
       ),
     );
-    expect(find.text('AB12CD'), findsOneWidget);
-    expect(find.text('https://flare.example/r/t1/AB12CD'), findsOneWidget);
+    expect(find.text('AB23CD'), findsOneWidget);
+    expect(find.bySemanticsLabel('二维码, 我的邀请'), findsOneWidget);
+    expect(find.text('扫码注册'), findsOneWidget);
+    expect(find.text(url), findsNothing);
+    expect(find.text('邀请链接'), findsNothing);
+    expect(find.text('分享'), findsNothing);
+    expect(find.text('重新生成'), findsNothing);
     expect(find.text('2026-09-24 加入'), findsOneWidget);
     expect(find.text('2026-01-05 加入'), findsOneWidget);
     await tester.tap(find.text('复制'));
-    await tester.tap(find.text('分享'));
+    await tester.ensureVisible(find.text('Bob'));
     await tester.tap(find.text('Bob'));
-    expect(events, [
-      'copy:AB12CD',
-      'share:https://flare.example/r/t1/AB12CD',
-      'select:u2',
-    ]);
+    expect(events, ['copy:AB23CD', 'select:u2']);
   });
 
-  testWidgets('shares the code itself when the host built no link', (
+  testWidgets('fits a 12-character code and one copy action without a QR', (
     tester,
   ) async {
-    final events = <String>[];
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const code = 'AB23CD45EF67';
+    final copied = <String>[];
     await tester.pumpWidget(
       _host(
-        FlareMyInvitePanel(
-          code: 'AB12CD',
-          invitees: const [],
-          onShare: events.add,
-        ),
+        FlareMyInvitePanel(code: code, invitees: const [], onCopy: copied.add),
       ),
     );
-    await tester.tap(find.text('分享'));
-    expect(events, ['AB12CD']);
+    expect(tester.takeException(), isNull);
+    expect(find.text('扫码注册'), findsNothing);
+    expect(find.text(code), findsOneWidget);
+    await tester.tap(find.text('复制'));
+    expect(copied, [code]);
   });
 
   testWidgets(
@@ -100,7 +105,7 @@ void main() {
     },
   );
 
-  testWidgets('count-only mode replaces the list with the direct count', (
+  testWidgets('count-only mode shows statistics without the list', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -113,8 +118,32 @@ void main() {
         ),
       ),
     );
-    expect(find.text('9 人'), findsOneWidget);
+    expect(find.text('9'), findsNWidgets(2));
+    expect(find.text('直接邀请的人'), findsNothing);
     expect(find.text('Ann'), findsNothing);
+  });
+
+  testWidgets('unavailable code hides a stale link and all invite actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        FlareMyInvitePanel(
+          code: '',
+          shareUrl: 'https://flare.example/r/t1/AB12CD',
+          invitees: _invitees,
+          showProfiles: false,
+          stats: _stats,
+          onCopy: (_) {},
+        ),
+      ),
+    );
+    expect(find.text('邀请码暂不可用'), findsOneWidget);
+    expect(find.text('我的团队'), findsOneWidget);
+    expect(find.text('复制'), findsNothing);
+    expect(find.text('分享'), findsNothing);
+    expect(find.text('重新生成'), findsNothing);
+    expect(find.bySemanticsLabel('二维码, 我的邀请'), findsNothing);
   });
 
   testWidgets('loading and empty are different states', (tester) async {
@@ -129,64 +158,114 @@ void main() {
     expect(find.text('还没有人通过你的邀请码加入'), findsOneWidget);
   });
 
-  testWidgets(
-    'regenerate is offered only when allowed, disabled and explained while cooling down',
-    (tester) async {
-      final events = <String>[];
-      await tester.pumpWidget(
-        _host(
-          FlareMyInvitePanel(
-            code: 'AB12CD',
-            invitees: const [],
-            onRegenerate: () => events.add('regenerate'),
-          ),
+  testWidgets('expands nested invitees and pages each branch independently', (
+    tester,
+  ) async {
+    const first = FlareInvitee(
+      userId: 'a',
+      displayName: 'Alice',
+      joinedAt: 0,
+      hasChildren: true,
+    );
+    const child = FlareInvitee(
+      userId: 'b',
+      displayName: 'Bea',
+      joinedAt: 0,
+      hasChildren: true,
+    );
+    const grandchild = FlareInvitee(
+      userId: 'c',
+      displayName: 'Cleo',
+      joinedAt: 0,
+      hasChildren: true,
+    );
+    const sibling = FlareInvitee(userId: 'd', displayName: 'Dara', joinedAt: 0);
+    final requests = <(String, String?)>[];
+    Future<FlareInviteeBranchPage> load(String parent, String? cursor) async {
+      requests.add((parent, cursor));
+      return switch ((parent, cursor)) {
+        ('a', null) => const FlareInviteeBranchPage(
+          invitees: [child],
+          nextCursor: 'page-2',
         ),
-      );
-      expect(find.text('重新生成'), findsNothing);
+        ('a', 'page-2') => const FlareInviteeBranchPage(invitees: [sibling]),
+        ('b', null) => const FlareInviteeBranchPage(invitees: [grandchild]),
+        _ => throw StateError('Unexpected branch request'),
+      };
+    }
 
-      final soon = DateTime.now().millisecondsSinceEpoch + 15 * 60 * 1000;
-      await tester.pumpWidget(
-        _host(
-          FlareMyInvitePanel(
-            code: 'AB12CD',
-            invitees: const [],
-            canRegenerate: true,
-            regenerateAvailableAt: soon,
-            onRegenerate: () => events.add('regenerate'),
-          ),
-        ),
-      );
-      expect(find.text('15 分钟 后可重新生成'), findsOneWidget);
-      await tester.tap(find.text('重新生成'), warnIfMissed: false);
-      expect(events, isEmpty);
+    Widget panel({bool showProfiles = true}) => _host(
+      FlareMyInvitePanel(
+        code: 'AB23CD',
+        invitees: const [first],
+        showProfiles: showProfiles,
+        onLoadChildren: load,
+      ),
+    );
+    await tester.pumpWidget(panel());
+    expect(find.text('邀请关系'), findsOneWidget);
+    expect(find.text('直接邀请的人'), findsNothing);
+    expect(find.text('当前用户'), findsNothing);
+    expect(find.text('邀请人'), findsNothing);
+    expect(find.text('Bea'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('展开 Alice'));
+    await tester.pumpAndSettle();
+    expect(requests, [('a', null)]);
+    await tester.tap(find.bySemanticsLabel('展开 Bea'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cleo'), findsOneWidget);
+    expect(find.bySemanticsLabel('展开 Cleo'), findsNothing);
+    await tester.ensureVisible(find.text('加载更多'));
+    await tester.tap(find.text('加载更多'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dara'), findsOneWidget);
+    expect(requests, [('a', null), ('b', null), ('a', 'page-2')]);
+    await tester.tap(find.bySemanticsLabel('收起 Alice'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bea'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('展开 Alice'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bea'), findsOneWidget);
+    expect(requests, hasLength(3));
 
-      await tester.pumpWidget(
-        _host(
-          FlareMyInvitePanel(
-            code: 'AB12CD',
-            invitees: const [],
-            canRegenerate: true,
-            onRegenerate: () => events.add('regenerate'),
-          ),
-        ),
-      );
-      expect(find.textContaining('后可重新生成'), findsNothing);
-      await tester.tap(find.text('重新生成'));
-      expect(events, ['regenerate']);
+    await tester.pumpWidget(panel(showProfiles: false));
+    expect(find.text('邀请关系'), findsNothing);
+    expect(find.text('Alice'), findsNothing);
+    expect(find.text('Dara'), findsNothing);
+  });
 
-      await tester.pumpWidget(
-        _host(
-          const FlareMyInvitePanel(
-            code: 'AB12CD',
-            invitees: [],
-            canRegenerate: true,
-            regenerating: true,
-          ),
+  testWidgets('retries a failed branch without dropping its parent', (
+    tester,
+  ) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      _host(
+        FlareMyInvitePanel(
+          code: 'AB23CD',
+          invitees: const [
+            FlareInvitee(
+              userId: 'a',
+              displayName: 'Alice',
+              joinedAt: 0,
+              hasChildren: true,
+            ),
+          ],
+          onLoadChildren: (_, _) async {
+            attempts++;
+            if (attempts == 1) throw StateError('offline');
+            return const FlareInviteeBranchPage(invitees: []);
+          },
         ),
-      );
-      expect(find.text('生成中…'), findsOneWidget);
-    },
-  );
+      ),
+    );
+    await tester.tap(find.bySemanticsLabel('展开 Alice'));
+    await tester.pumpAndSettle();
+    expect(find.text('Alice'), findsOneWidget);
+    await tester.tap(find.text('重试'));
+    await tester.pumpAndSettle();
+    expect(attempts, 2);
+    expect(find.text('暂无下级'), findsOneWidget);
+  });
 
   testWidgets('load more shows only while another page exists', (tester) async {
     final events = <String>[];

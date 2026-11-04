@@ -71,34 +71,42 @@ fun QRCard(
                 }
             }
         }
-        val frameShape = RoundedCornerShape(FlareSizes.radiusLg)
-        val frame = Modifier.padding(top = FlareSizes.spacingLg).fillMaxWidth().aspectRatio(1f).clip(frameShape)
-        if (symbol == null) {
-            Box(
-                frame.background(colors.bgSecondary).border(1.dp, colors.borderPrimary, frameShape).padding(FlareSizes.spacing2md),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(strings.qrCardUnavailable, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm,
-                    textAlign = TextAlign.Center)
-            }
-        } else {
-            // Scanners expect dark modules on a light ground, so the code keeps the light palette
-            // whatever the current theme is. The painted quiet zone is the code's margin.
-            val light = FlareColors.Light
-            val label = "${strings.qrCode}, $name"
-            Box(frame.background(light.bgPrimary).border(1.dp, colors.borderPrimary, frameShape)) {
-                QrCodeImage(
-                    symbol = symbol,
-                    color = light.textPrimary,
-                    modifier = Modifier.fillMaxSize().semantics {
-                        contentDescription = label
-                        role = Role.Image
-                    },
-                )
-            }
-            Text(strings.scanToAddMe, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm,
+        FlareQrFrame(symbol = symbol, label = "${strings.qrCode}, $name", modifier = Modifier.padding(top = FlareSizes.spacingLg))
+        if (symbol != null) {
+            Text(strings.scanToAddMe, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
                 modifier = Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd),
                 textAlign = TextAlign.Center)
+        }
+    }
+}
+
+/** The scannable square and its light quiet zone, shared by contact and invite cards. */
+@Composable
+internal fun FlareQrFrame(symbol: QrSymbol?, label: String, modifier: Modifier = Modifier) {
+    val colors = flareColors()
+    val strings = flareStrings()
+    val frameShape = RoundedCornerShape(FlareSizes.radiusLg)
+    val frame = modifier.fillMaxWidth().aspectRatio(1f).clip(frameShape)
+    if (symbol == null) {
+        Box(
+            frame.background(colors.bgSecondary).border(1.dp, colors.borderPrimary, frameShape).padding(FlareSizes.spacing2md),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(strings.qrCardUnavailable, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                textAlign = TextAlign.Center)
+        }
+    } else {
+        // Scanners expect dark modules on a light ground, whatever the current theme is.
+        val light = FlareColors.Light
+        Box(frame.background(light.bgPrimary).border(1.dp, colors.borderPrimary, frameShape)) {
+            QrCodeImage(
+                symbol = symbol,
+                color = light.textPrimary,
+                modifier = Modifier.fillMaxSize().semantics {
+                    contentDescription = label
+                    role = Role.Image
+                },
+            )
         }
     }
 }

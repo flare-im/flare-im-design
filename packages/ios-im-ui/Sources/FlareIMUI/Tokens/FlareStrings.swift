@@ -349,6 +349,7 @@ public struct FlareStrings: Sendable {
     public var myInviteCodeLabel: String
     public var myInviteCodeUnavailable: String
     public var myInviteCopy: String
+    public var myInviteQrHint: String
     public var myInviteShare: String
     public var myInviteRegenerate: String
     public var myInviteRegenerating: String
@@ -362,6 +363,14 @@ public struct FlareStrings: Sendable {
     public var myInviteLevel3: String
     public var myInviteTotal: String
     public var myInviteInviteesTitle: String
+    public var myInviteInviterTitle: String
+    public var myInviteNoInviter: String
+    public var myInviteRelationships: String
+    public var myInviteNoChildren: String
+    public var myInviteCollapse: String
+    public var myInviteExpand: String
+    public var myInviteInviterUnavailable: String
+    public var myInviteCurrentUser: String
     public var myInviteEmpty: String
     public var myInviteLoadMore: String
     public var myInviteLoading: String
@@ -1370,6 +1379,7 @@ public struct FlareStrings: Sendable {
         myInviteCodeLabel: String = "我的邀请码",
         myInviteCodeUnavailable: String = "邀请码暂不可用",
         myInviteCopy: String = "复制",
+        myInviteQrHint: String = "扫码注册",
         myInviteShare: String = "分享",
         myInviteRegenerate: String = "重新生成",
         myInviteRegenerating: String = "生成中…",
@@ -1383,6 +1393,14 @@ public struct FlareStrings: Sendable {
         myInviteLevel3: String = "三级",
         myInviteTotal: String = "团队总数",
         myInviteInviteesTitle: String = "直接邀请的人",
+        myInviteInviterTitle: String = "邀请人",
+        myInviteNoInviter: String = "暂无邀请人",
+        myInviteRelationships: String = "邀请关系",
+        myInviteNoChildren: String = "暂无下级",
+        myInviteCollapse: String = "收起 {name}",
+        myInviteExpand: String = "展开 {name}",
+        myInviteInviterUnavailable: String = "暂无法读取邀请人",
+        myInviteCurrentUser: String = "当前用户",
         myInviteEmpty: String = "还没有人通过你的邀请码加入",
         myInviteLoadMore: String = "加载更多",
         myInviteLoading: String = "正在加载邀请信息",
@@ -2150,6 +2168,7 @@ public struct FlareStrings: Sendable {
         self.myInviteCodeLabel = myInviteCodeLabel
         self.myInviteCodeUnavailable = myInviteCodeUnavailable
         self.myInviteCopy = myInviteCopy
+        self.myInviteQrHint = myInviteQrHint
         self.myInviteShare = myInviteShare
         self.myInviteRegenerate = myInviteRegenerate
         self.myInviteRegenerating = myInviteRegenerating
@@ -2163,6 +2182,14 @@ public struct FlareStrings: Sendable {
         self.myInviteLevel3 = myInviteLevel3
         self.myInviteTotal = myInviteTotal
         self.myInviteInviteesTitle = myInviteInviteesTitle
+        self.myInviteInviterTitle = myInviteInviterTitle
+        self.myInviteNoInviter = myInviteNoInviter
+        self.myInviteRelationships = myInviteRelationships
+        self.myInviteNoChildren = myInviteNoChildren
+        self.myInviteCollapse = myInviteCollapse
+        self.myInviteExpand = myInviteExpand
+        self.myInviteInviterUnavailable = myInviteInviterUnavailable
+        self.myInviteCurrentUser = myInviteCurrentUser
         self.myInviteEmpty = myInviteEmpty
         self.myInviteLoadMore = myInviteLoadMore
         self.myInviteLoading = myInviteLoading

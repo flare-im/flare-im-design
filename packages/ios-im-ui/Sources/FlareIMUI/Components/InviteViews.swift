@@ -6,7 +6,7 @@ import SwiftUI
 // Pure logic shared by the four platforms behind the registration form's invite-code field
 // (`InviteCodeFieldView`) and the "my invite" card (`MyInvitePanelView`). Vectors:
 // spec/invite-vectors.json. The host owns the network: it runs the pre-check, fetches the code,
-// the stats and the invitees, and performs copy / share / regenerate. Nothing here has a side
+// the stats and the invitees, and performs copy. Nothing here has a side
 // effect. The alphabet is Crockford base32 without I / L / O / U, so what a person types is
 // corrected the way the server reads it (O→0, I/L→1) before it is shown.
 
@@ -45,35 +45,53 @@ public struct FlareReferralStats: Equatable, Sendable {
     }
 }
 
-/// One person invited directly by the current person; `joinedAt` is epoch milliseconds.
+/// One person in an invitation tree; `joinedAt` is epoch milliseconds.
 public struct FlareInvitee: Identifiable, Equatable, Sendable {
     public var id: String { userId }
     public let userId: String
     public let displayName: String
     public let avatarURL: String?
     public let joinedAt: Int64
-    public init(userId: String, displayName: String, avatarURL: String? = nil, joinedAt: Int64) {
+    public let hasChildren: Bool
+    public init(userId: String, displayName: String, avatarURL: String? = nil, joinedAt: Int64,
+                hasChildren: Bool = false) {
         self.userId = userId; self.displayName = displayName; self.avatarURL = avatarURL; self.joinedAt = joinedAt
+        self.hasChildren = hasChildren
     }
 }
 
-public let flareInviteCodeDefaultLength = 6
+public struct FlareInviteeBranchPage: Sendable {
+    public let invitees: [FlareInvitee]
+    public let nextCursor: String?
+
+    public init(invitees: [FlareInvitee], nextCursor: String? = nil) {
+        self.invitees = invitees
+        self.nextCursor = nextCursor
+    }
+}
+
+/// The current person's upstream invitation relationship.
+public enum FlareInviteInviter: Equatable, Sendable {
+    case person(userId: String, displayName: String, avatarURL: String?)
+    case none
+    case unavailable
+}
 
 /// Delay between the last keystroke and the check request.
 public let flareInviteCheckDebounce: TimeInterval = 0.4
 
-/// What the server would read from what the person typed or pasted: whitespace and separators
-/// dropped, uppercased, O→0 and I/L→1, cut to `length`. Idempotent, so it can run on every keystroke.
-public func normalizeInviteCode(_ raw: String?, length: Int = flareInviteCodeDefaultLength) -> String {
-    let cap = length > 0 ? length : flareInviteCodeDefaultLength
+/// Normalize like Social registration, retaining invalid input for validation.
+public func normalizeInviteCode(_ raw: String?) -> String {
     var out = ""
-    for ch in (raw ?? "").uppercased() {
-        if out.count >= cap { break }
-        switch ch {
+    for scalar in (raw ?? "").unicodeScalars {
+        if scalar.properties.isWhitespace || scalar == "-" { continue }
+        let value = scalar.value
+        let uppercase = (97...122).contains(value) ? Unicode.Scalar(value - 32)! : scalar
+        switch uppercase {
         case "O": out.append("0")
         case "I", "L": out.append("1")
-        case "0"..."9", "A"..."Z": out.append(ch)
-        default: break
+        case "U": out.append("V")
+        default: out.unicodeScalars.append(uppercase)
         }
     }
     return out
@@ -95,19 +113,20 @@ public func inviteCodeFieldState(mode: FlareInviteCodeMode, value: String, check
 
 /// The code the host should pre-check for `value`, or nil when no request should be made: a partial
 /// code is never sent, a disabled or hidden field never asks.
-public func inviteCodeToCheck(value: String, length: Int = flareInviteCodeDefaultLength,
+public func inviteCodeToCheck(value: String,
                               mode: FlareInviteCodeMode = .optional, disabled: Bool = false) -> String? {
     if mode == .off || disabled { return nil }
-    let code = normalizeInviteCode(value, length: length)
-    return code.count == length ? code : nil
+    let code = normalizeInviteCode(value)
+    let alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+    return (4...12).contains(code.utf8.count) && code.allSatisfy(alphabet.contains) ? code : nil
 }
 
 public enum FlareReferralDepth: String, Sendable { case direct, l2, l3, total }
 
-/// Which rows the panel lists for `stats`, honouring the tenant's visibility depth (1–3, clamped).
+/// Which rows the panel lists for `stats`, honouring the tenant's visibility depth (0 disables stats, 1–3 otherwise).
 /// `total` is always the last row once stats exist.
 public func referralDepthRows(_ stats: FlareReferralStats?, maxDepthShown: Int = 3) -> [FlareReferralDepth] {
-    guard stats != nil else { return [] }
+    guard stats != nil, maxDepthShown > 0 else { return [] }
     let depth = min(3, max(1, maxDepthShown))
     var rows: [FlareReferralDepth] = [.direct]
     if depth >= 2 { rows.append(.l2) }
@@ -203,7 +222,6 @@ public struct InviteCodeFieldView: View {
     private let checkResult: FlareInviteCodeCheckResult?
     private let error: String?
     private let disabled: Bool
-    private let length: Int
     private let label: String?
     private let placeholder: String?
     private let onCheck: ((String) -> Void)?
@@ -216,10 +234,10 @@ public struct InviteCodeFieldView: View {
 
     public init(text: Binding<String>, mode: FlareInviteCodeMode = .optional, prefill: String? = nil,
                 checking: Bool = false, checkResult: FlareInviteCodeCheckResult? = nil, error: String? = nil,
-                disabled: Bool = false, length: Int = flareInviteCodeDefaultLength,
+                disabled: Bool = false,
                 label: String? = nil, placeholder: String? = nil, onCheck: ((String) -> Void)? = nil) {
         self._text = text; self.mode = mode; self.prefill = prefill; self.checking = checking
-        self.checkResult = checkResult; self.error = error; self.disabled = disabled; self.length = length
+        self.checkResult = checkResult; self.error = error; self.disabled = disabled
         self.label = label; self.placeholder = placeholder; self.onCheck = onCheck
     }
 
@@ -234,15 +252,15 @@ public struct InviteCodeFieldView: View {
         let state = self.state
         if state != .off {
             // A stale result for another code must not be shown as this code's verdict.
-            let resultMatches = checkResult == nil || inviteCodeToCheck(value: text, length: length) != nil
+            let resultMatches = checkResult == nil || inviteCodeToCheck(value: text) != nil
             let inviter = checkResult?.inviterDisplayName?.trimmingCharacters(in: .whitespaces) ?? ""
             let errorLine: String? = {
                 if let error, !error.isEmpty { return error }
+                if text.count >= 4 && inviteCodeToCheck(value: text) == nil { return strings.inviteCodeInvalid }
                 if state == .invalid && resultMatches { return strings.inviteCodeInvalid }
                 return nil
             }()
-            let hint: String? = (mode == .optional && state == .idle) ? strings.inviteCodeOptional : nil
-            FormFieldView(label: label ?? strings.inviteCodeLabel, required: mode == .required, hint: hint, error: errorLine) {
+            FormFieldView(label: label ?? strings.inviteCodeLabel, required: mode == .required, error: errorLine) {
                 VStack(alignment: .leading, spacing: FlareSizes.spacing2xs) {
                     InputView(text: normalizedBinding, placeholder: placeholder ?? strings.inviteCodePlaceholder,
                               disabled: disabled, monospace: true)
@@ -275,7 +293,7 @@ public struct InviteCodeFieldView: View {
     /// The binding the input edits: every write is normalized before it reaches the host.
     private var normalizedBinding: Binding<String> {
         Binding(get: { text }, set: { raw in
-            let next = normalizeInviteCode(raw, length: length)
+            let next = normalizeInviteCode(raw)
             if next != text { text = next }
         })
     }
@@ -284,7 +302,7 @@ public struct InviteCodeFieldView: View {
     // who clears the field afterwards is not re-filled.
     private func applyPrefill() {
         guard !prefillApplied, mode != .off, let prefill, !prefill.isEmpty, text.isEmpty else { return }
-        let next = normalizeInviteCode(prefill, length: length)
+        let next = normalizeInviteCode(prefill)
         guard !next.isEmpty else { return }
         prefillApplied = true
         text = next
@@ -296,11 +314,12 @@ public struct InviteCodeFieldView: View {
     private func scheduleCheck(_ value: String) {
         pending?.cancel()
         pending = nil
-        guard let code = inviteCodeToCheck(value: value, length: length, mode: mode, disabled: disabled) else {
+        guard let code = inviteCodeToCheck(value: value, mode: mode, disabled: disabled) else {
             lastRequested = nil
             return
         }
         if code == lastRequested { return }
+        lastRequested = nil
         pending = Task { @MainActor in
             try? await Task.sleep(nanoseconds: UInt64(flareInviteCheckDebounce * 1_000_000_000))
             guard !Task.isCancelled else { return }
@@ -312,12 +331,7 @@ public struct InviteCodeFieldView: View {
 
 // MARK: - MyInvitePanel
 
-/// "My invite" — the person's invite code with copy / share / regenerate, how many people each
-/// referral depth holds, and who they invited directly. Spec: Profile/MyInvitePanel
-/// (`MyInvitePanelView`).
-///
-/// The host fetched all of it and performs every action; this card only shows the snapshot and
-/// dispatches intent. It never touches the pasteboard or a share sheet.
+/// The invite code, a registration QR when configured, and referral information.
 public struct MyInvitePanelView: View {
     private let code: String
     private let shareURL: String?
@@ -328,167 +342,325 @@ public struct MyInvitePanelView: View {
     private let hasMore: Bool
     private let loadingMore: Bool
     private let loading: Bool
-    private let canRegenerate: Bool
-    private let regenerateAvailableAt: Int64?
-    private let regenerating: Bool
     private let title: String?
     private let onCopy: ((String) -> Void)?
-    private let onShare: ((String) -> Void)?
-    private let onRegenerate: (() -> Void)?
     private let onLoadMore: (() -> Void)?
     private let onSelect: ((String) -> Void)?
+    private let onLoadChildren: ((String, String?) async throws -> FlareInviteeBranchPage)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
-    @Environment(\.locale) private var locale
-    // The cooldown is a clock reading; re-read it every half minute so the control re-enables on its
-    // own once the server's deadline passes. The deadline is the server's clock, so the reading is too
-    // (spec/server-clock-vectors.json).
-    @State private var now = FlareServerClock.nowMs()
-    private let clock = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    @ScaledMetric(relativeTo: .title3) private var inviteCodeSize = FlareSizes.fontSize3xl
+    @State private var qrCache = FlareQRCodeCache()
 
+    /// An empty title lets a navigation screen supply its own heading.
+    /// The optional `shareURL` is used only as the registration QR payload.
     public init(code: String, shareURL: String? = nil, stats: FlareReferralStats? = nil, maxDepthShown: Int = 3,
                 invitees: [FlareInvitee] = [], showProfiles: Bool = true, hasMore: Bool = false,
-                loadingMore: Bool = false, loading: Bool = false, canRegenerate: Bool = false,
-                regenerateAvailableAt: Int64? = nil, regenerating: Bool = false, title: String? = nil,
-                onCopy: ((String) -> Void)? = nil, onShare: ((String) -> Void)? = nil,
-                onRegenerate: (() -> Void)? = nil, onLoadMore: (() -> Void)? = nil,
-                onSelect: ((String) -> Void)? = nil) {
+                loadingMore: Bool = false, loading: Bool = false, title: String? = nil,
+                onCopy: ((String) -> Void)? = nil, onLoadMore: (() -> Void)? = nil,
+                onSelect: ((String) -> Void)? = nil,
+                onLoadChildren: ((String, String?) async throws -> FlareInviteeBranchPage)? = nil) {
         self.code = code; self.shareURL = shareURL; self.stats = stats; self.maxDepthShown = maxDepthShown
         self.invitees = invitees; self.showProfiles = showProfiles; self.hasMore = hasMore
-        self.loadingMore = loadingMore; self.loading = loading; self.canRegenerate = canRegenerate
-        self.regenerateAvailableAt = regenerateAvailableAt; self.regenerating = regenerating; self.title = title
-        self.onCopy = onCopy; self.onShare = onShare; self.onRegenerate = onRegenerate
-        self.onLoadMore = onLoadMore; self.onSelect = onSelect
+        self.loadingMore = loadingMore; self.loading = loading; self.title = title
+        self.onCopy = onCopy; self.onLoadMore = onLoadMore; self.onSelect = onSelect
+        self.onLoadChildren = onLoadChildren
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let heading = title ?? strings.myInviteTitle
-        let hasCode = !code.trimmingCharacters(in: .whitespaces).isEmpty
-        let showSkeleton = loading && !hasCode
-        let regenerate = regenerateAvailability(canRegenerate: canRegenerate, availableAt: regenerateAvailableAt, now: now)
-        let rows = referralDepthRows(stats, maxDepthShown: maxDepthShown)
-        let inviteeCount = stats?.direct ?? invitees.count
-        let showEmpty = !loading && showProfiles && invitees.isEmpty
+        let standalone = heading.isEmpty
 
         VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
-            Text(heading).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
-
-            VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
-                Text(strings.myInviteCodeLabel).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
-                if showSkeleton {
-                    RoundedRectangle(cornerRadius: FlareSizes.radiusSm).fill(colors.bgPrimary)
-                        .frame(width: 160, height: 28)
-                        .accessibilityLabel(strings.myInviteLoading)
-                } else if hasCode {
-                    Text(code)
-                        .font(.system(size: FlareSizes.fontSize4xl, weight: .semibold, design: .monospaced))
-                        .tracking(4)
-                        .foregroundColor(colors.primaryText)
-                        .textSelection(.enabled)
-                } else {
-                    Text(strings.myInviteCodeUnavailable).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
-                }
-                if hasCode, let shareURL, !shareURL.isEmpty {
-                    Text(shareURL).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
-                }
-                HStack(spacing: FlareSizes.spacingSm) {
-                    ButtonView(label: strings.myInviteCopy, variant: .secondary, size: .sm, disabled: !hasCode, icon: "copy") { onCopy?(code) }
-                    ButtonView(label: strings.myInviteShare, variant: .primary, size: .sm, disabled: !hasCode, icon: "share") {
-                        onShare?((shareURL?.isEmpty == false) ? shareURL! : code)
-                    }
-                    if regenerate.shown {
-                        ButtonView(label: regenerating ? strings.myInviteRegenerating : strings.myInviteRegenerate,
-                                   variant: .ghost, size: .sm, loading: regenerating,
-                                   disabled: !regenerate.enabled || regenerating || loading, icon: "refresh") { onRegenerate?() }
-                    }
-                }
-                if let remaining = regenerate.remaining {
-                    Text(inviteCooldownText(strings, remaining))
-                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
-                        .accessibilityAddTraits(.updatesFrequently)
-                }
-            }
-            .padding(FlareSizes.spacingMd)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd).fill(colors.bgSecondary))
-
-            if !rows.isEmpty, let stats {
-                HStack(spacing: FlareSizes.spacingSm) {
-                    ForEach(rows, id: \.rawValue) { depth in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(inviteDepthLabel(strings, depth)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
-                            Text(String(stats.of(depth)))
-                                .font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).monospacedDigit()
-                                .foregroundColor(depth == .total ? colors.primaryText : colors.textPrimary)
-                        }
-                        .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusMd).stroke(colors.borderSecondary, lineWidth: 1))
-                        .accessibilityElement(children: .combine)
-                    }
-                }
-                .accessibilityLabel(strings.myInviteStatsTitle)
+            if !standalone {
+                Text(heading).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
             }
 
-            VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
-                Text(strings.myInviteInviteesTitle).font(.system(size: FlareSizes.fontSizeMd, weight: .medium)).foregroundColor(colors.textSecondary)
-                if !showProfiles {
-                    Text(strings.myInviteCountOnlyText(inviteeCount, locale: locale))
-                        .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
-                } else if showSkeleton {
-                    ForEach(0..<3, id: \.self) { _ in
-                        HStack(spacing: FlareSizes.spacingMd) {
-                            Circle().fill(colors.bgSecondary).frame(width: FlareSizes.avatarSize, height: FlareSizes.avatarSize)
-                            RoundedRectangle(cornerRadius: FlareSizes.radiusSm).fill(colors.bgSecondary).frame(width: 120, height: FlareSizes.iconSizeSm)
-                        }
-                        .frame(minHeight: FlareSizes.touchTarget)
-                    }
-                    .accessibilityHidden(true)
-                } else if showEmpty {
-                    Text(strings.myInviteEmpty).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
-                } else {
-                    ForEach(Array(invitees.enumerated()), id: \.element.id) { index, invitee in
-                        if index > 0 { Divider().overlay(colors.borderSecondary) }
-                        inviteeRow(invitee, colors)
-                    }
-                    if hasMore {
-                        ButtonView(label: strings.myInviteLoadMore, variant: .ghost, size: .sm, loading: loadingMore,
-                                   disabled: loadingMore, block: true) { onLoadMore?() }
+            codeCard(colors)
+            statistics(colors)
+            if showProfiles && maxDepthShown > 0 { relationshipsCard(colors, standalone: standalone) }
+        }
+        .padding(standalone ? 0 : FlareSizes.spacingMd)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+            .fill(standalone ? .clear : colors.bgPrimary)
+            .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                .stroke(standalone ? .clear : colors.borderPrimary, lineWidth: 1)))
+        .frame(maxWidth: 560)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(standalone ? strings.myInviteTitle : heading)
+    }
+
+    private func codeCard(_ colors: FlareColors) -> some View {
+        let hasCode = !code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return VStack(spacing: FlareSizes.spacingLg) {
+            if loading {
+                RoundedRectangle(cornerRadius: FlareSizes.radiusSm)
+                    .fill(colors.bgPrimary)
+                    .frame(width: 160, height: 28)
+                    .accessibilityLabel(strings.myInviteLoading)
+            } else if hasCode {
+                if let link = shareURL, !link.isEmpty, let image = qrCache.image(for: link) {
+                    VStack(spacing: FlareSizes.spacingSm) {
+                        FlareQRCodeFrame(code: image, label: strings.myInviteQrHint)
+                            .frame(maxWidth: 196)
+                        Text(strings.myInviteQrHint)
+                            .font(.system(size: FlareSizes.fontSizeSm))
+                            .foregroundColor(colors.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .accessibilityHidden(true)
                     }
                 }
+                inviteCodeRow(colors)
+            } else {
+                Text(strings.myInviteCodeUnavailable)
+                    .font(.system(size: FlareSizes.fontSizeSm))
+                    .foregroundColor(colors.textSecondary)
             }
         }
         .padding(FlareSizes.spacingMd)
+        .frame(maxWidth: .infinity)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+            .fill(colors.bgSecondary)
+            .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.primary.opacity(0.08))))
+    }
+
+    private func inviteCodeRow(_ colors: FlareColors) -> some View {
+        let identity = VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            Text(strings.myInviteCodeLabel)
+                .font(.system(size: FlareSizes.fontSizeSm))
+                .foregroundColor(colors.textSecondary)
+            Text(code)
+                .font(.system(size: inviteCodeSize, weight: .semibold, design: .monospaced))
+                .foregroundColor(colors.primaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .textSelection(.enabled)
+        }
+        return Group {
+            if let onCopy {
+                let copy = ButtonView(label: strings.myInviteCopy, variant: .primary, size: .sm,
+                                      icon: "copy", maintainTouchTarget: true) { onCopy(code) }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: FlareSizes.spacingMd) {
+                        identity.fixedSize(horizontal: true, vertical: false)
+                        Spacer(minLength: 0)
+                        copy
+                    }
+                    VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+                        identity
+                        copy.frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                }
+            } else {
+                identity
+            }
+        }
+        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.vertical, FlareSizes.spacingSm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgPrimary)
-            .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1)))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(heading)
-        .onReceive(clock) { _ in now = FlareServerClock.nowMs() }
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd).fill(colors.bgPrimary))
     }
 
     @ViewBuilder
-    private func inviteeRow(_ invitee: FlareInvitee, _ colors: FlareColors) -> some View {
-        let joined = strings.myInviteJoined.replacingOccurrences(of: "{date}", with: inviteJoinedDateLabel(invitee.joinedAt))
-        let row = HStack(spacing: FlareSizes.spacingMd) {
+    private func statistics(_ colors: FlareColors) -> some View {
+        let rows = referralDepthRows(stats, maxDepthShown: maxDepthShown)
+        if !rows.isEmpty, let stats {
+            Text(strings.myInviteStatsTitle).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                .foregroundColor(colors.textPrimary).accessibilityAddTraits(.isHeader)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: FlareSizes.spacingSm), count: 2),
+                      spacing: FlareSizes.spacingSm) {
+                ForEach(rows, id: \.rawValue) { depth in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(inviteDepthLabel(strings, depth)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                        Text(String(stats.of(depth)))
+                            .font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).monospacedDigit()
+                            .foregroundColor(depth == .total ? colors.primaryText : colors.textPrimary)
+                    }
+                    .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd).fill(colors.bgPrimary))
+                    .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusMd).stroke(colors.borderSecondary, lineWidth: 1))
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+    }
+
+    private func relationshipsCard(_ colors: FlareColors, standalone: Bool) -> some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+            Text(strings.myInviteRelationships).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
+                .foregroundColor(colors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            if loading && invitees.isEmpty {
+                ForEach(0..<3, id: \.self) { _ in
+                    HStack(spacing: FlareSizes.spacingMd) {
+                        Circle().fill(colors.bgSecondary).frame(width: FlareSizes.avatarSize, height: FlareSizes.avatarSize)
+                        RoundedRectangle(cornerRadius: FlareSizes.radiusSm).fill(colors.bgSecondary).frame(width: 120, height: FlareSizes.iconSizeSm)
+                    }
+                    .frame(minHeight: FlareSizes.touchTarget)
+                }
+                .accessibilityHidden(true)
+            } else if invitees.isEmpty {
+                Text(strings.myInviteEmpty).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+            } else {
+                ForEach(Array(invitees.enumerated()), id: \.element.id) { index, invitee in
+                    if index > 0 { Divider().overlay(colors.borderSecondary) }
+                    InviteeBranchRow(invitee: invitee, remainingDepth: maxDepthShown - 1, colors: colors,
+                                      onSelect: onSelect, onLoadChildren: onLoadChildren)
+                }
+                if hasMore {
+                    ButtonView(label: strings.myInviteLoadMore, variant: .ghost, size: .sm, loading: loadingMore,
+                               disabled: loadingMore, block: true) { onLoadMore?() }
+                }
+            }
+        }
+        .padding(standalone ? FlareSizes.spacingMd : 0)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
+            .fill(standalone ? colors.bgPrimary : .clear))
+    }
+
+}
+
+private struct InviteeBranchRow: View {
+    let invitee: FlareInvitee
+    let remainingDepth: Int
+    let colors: FlareColors
+    let onSelect: ((String) -> Void)?
+    let onLoadChildren: ((String, String?) async throws -> FlareInviteeBranchPage)?
+    @Environment(\.flareStrings) private var strings
+    @State private var expanded = false
+    @State private var children: [FlareInvitee]?
+    @State private var nextCursor: String?
+    @State private var loading = false
+    @State private var failed = false
+    @State private var request = 0
+
+    private var expandable: Bool {
+        remainingDepth > 0 && invitee.hasChildren && onLoadChildren != nil
+    }
+
+    private var branchLabel: String {
+        (expanded ? strings.myInviteCollapse : strings.myInviteExpand)
+            .replacingOccurrences(of: "{name}", with: invitee.displayName)
+    }
+
+    private var branchIcon: String { expanded ? "chevron-down" : "chevron-right" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            if expandable && onSelect == nil {
+                Button(action: toggleBranch) {
+                    HStack(spacing: FlareSizes.spacingSm) {
+                        identity
+                        FlareIconImage(name: branchIcon, size: FlareSizes.iconSizeSm, weight: .medium)
+                            .foregroundColor(colors.textSecondary)
+                            .padding(.horizontal, FlareSizes.spacingSm)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(branchLabel)
+            } else {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    if let onSelect {
+                        Button { onSelect(invitee.userId) } label: { identity }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(invitee.displayName)
+                    } else {
+                        identity.accessibilityElement(children: .combine)
+                    }
+                    if expandable {
+                        IconButtonView(icon: branchIcon, accessibilityLabel: branchLabel, action: toggleBranch)
+                    }
+                }
+            }
+            if expanded && expandable {
+                VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+                    ForEach(children ?? []) { child in
+                        InviteeBranchRow(invitee: child, remainingDepth: remainingDepth - 1, colors: colors,
+                                          onSelect: onSelect, onLoadChildren: onLoadChildren)
+                    }
+                    if loading {
+                        HStack(spacing: FlareSizes.spacingSm) {
+                            ProgressView().controlSize(.small)
+                            Text(strings.myInviteLoading)
+                        }
+                        .font(.system(size: FlareSizes.fontSizeSm))
+                        .foregroundColor(colors.textSecondary)
+                        .accessibilityElement(children: .combine)
+                    } else if failed {
+                        ButtonView(label: strings.retry, variant: .ghost, size: .sm,
+                                   maintainTouchTarget: true, action: requestPage)
+                    } else if nextCursor != nil {
+                        ButtonView(label: strings.myInviteLoadMore, variant: .ghost, size: .sm,
+                                   maintainTouchTarget: true, action: requestPage)
+                    } else if children?.isEmpty == true {
+                        Text(strings.myInviteNoChildren)
+                            .font(.system(size: FlareSizes.fontSizeSm))
+                            .foregroundColor(colors.textSecondary)
+                    }
+                }
+                .padding(.leading, FlareSizes.spacingMd)
+                .overlay(alignment: .leading) { Rectangle().fill(colors.borderSecondary).frame(width: 1) }
+                .padding(.leading, FlareSizes.spacingMd)
+            }
+        }
+        .task(id: request) { await loadPage() }
+    }
+
+    private var identity: some View {
+        HStack(spacing: FlareSizes.spacingMd) {
             AvatarView(userId: invitee.userId, displayName: invitee.displayName, avatarURL: invitee.avatarURL,
                        size: FlareSizes.avatarSize)
             VStack(alignment: .leading, spacing: 2) {
-                Text(invitee.displayName).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
-                Text(joined).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                Text(invitee.displayName).font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
+                    .foregroundColor(colors.textPrimary)
+                if invitee.joinedAt > 0 {
+                    Text(strings.myInviteJoined.replacingOccurrences(
+                        of: "{date}", with: inviteJoinedDateLabel(invitee.joinedAt)
+                    ))
+                    .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                }
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, FlareSizes.spacingSm)
+        .padding(.vertical, FlareSizes.spacingXs)
         .frame(minHeight: FlareSizes.touchTarget)
-        if let onSelect {
-            Button { onSelect(invitee.userId) } label: { row }
-                .buttonStyle(.plain)
-                .accessibilityLabel(invitee.displayName)
-        } else {
-            row.accessibilityElement(children: .combine)
+        .contentShape(Rectangle())
+    }
+
+    private func toggleBranch() {
+        expanded.toggle()
+        if expanded && children == nil && !failed { requestPage() }
+    }
+
+    private func requestPage() {
+        guard !loading else { return }
+        loading = true
+        failed = false
+        request += 1
+    }
+
+    private func loadPage() async {
+        guard loading, expandable, let onLoadChildren else { return }
+        let cursor = nextCursor
+        defer { loading = false }
+        do {
+            let page = try await onLoadChildren(invitee.userId, cursor)
+            try Task.checkCancellation()
+            let existing = children ?? []
+            var seen = Set(existing.map(\.userId))
+            children = existing + page.invitees.filter { seen.insert($0.userId).inserted }
+            nextCursor = page.nextCursor == cursor ? nil : page.nextCursor
+        } catch {
+            if !Task.isCancelled { failed = true }
         }
     }
 }

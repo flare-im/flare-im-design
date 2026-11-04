@@ -11076,54 +11076,52 @@
               "ReferralStats",
               "null"
             ]
-          },
-          {
-            "name": "regenerateAvailableAt",
-            "values": [
-              "number",
-              "null"
-            ]
           }
         ],
         "states": [
           "loading",
           "empty",
+          "codeUnavailable",
+          "qrUnavailable",
           "default",
           "countOnly",
-          "cooldown",
-          "regenerating"
+          "branchLoading",
+          "branchEmpty",
+          "branchError"
         ]
       },
       "summary": {
-        "en": "\"My invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly.",
-        "zh": "「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
+        "en": "Registration QR, invite code copy, team counts, and an expandable invitation tree.",
+        "zh": "展示注册二维码、邀请码复制、团队统计和可逐级展开的邀请关系。"
       },
       "aliases": [
         "Profile",
         "loading",
         "empty",
+        "codeUnavailable",
+        "qrUnavailable",
         "default",
         "countOnly",
-        "cooldown",
-        "regenerating",
+        "branchLoading",
+        "branchEmpty",
+        "branchError",
         "copy",
-        "share",
-        "regenerate",
         "loadMore",
         "select"
       ],
       "states": [
         "loading",
         "empty",
+        "codeUnavailable",
+        "qrUnavailable",
         "default",
         "countOnly",
-        "cooldown",
-        "regenerating"
+        "branchLoading",
+        "branchEmpty",
+        "branchError"
       ],
       "interactions": [
         "copy",
-        "share",
-        "regenerate",
         "loadMore",
         "select"
       ],
@@ -11167,7 +11165,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#MyInvitePanel",
-      "searchText": "myinvitepanel profile im-ui stable profile loading empty default countonly cooldown regenerating copy share regenerate loadmore select supportsconfiguration \"my invite\" card — the person's invite code with copy / share / regenerate, referral counts per depth, and the list of people they invited directly. 「我的邀请」卡片 —— 本人邀请码及复制 / 分享 / 重新生成、各深度的推荐人数、直接邀请的人列表。"
+      "searchText": "myinvitepanel profile im-ui stable profile loading empty codeunavailable qrunavailable default countonly branchloading branchempty brancherror copy loadmore select supportsconfiguration registration qr, invite code copy, team counts, and an expandable invitation tree. 展示注册二维码、邀请码复制、团队统计和可逐级展开的邀请关系。"
     },
     {
       "name": "ImageGrid",

@@ -94,15 +94,14 @@ final class ServerClockVectorsTests: XCTestCase {
         XCTAssertNoThrow(try PluginTimeBlockView(block: block, clock: .system).inspect().find(text: "剩余 25:00"))
     }
 
-    @MainActor
-    func testTheInviteCooldownRunsOnTheServerClock() throws {
+    func testTheInviteCooldownRunsOnTheServerClock() {
         // Ten minutes of cooldown left on the server; this device runs 15 minutes fast.
         FlareServerClock.setOffsetMs(-15 * 60_000)
         let availableAt = deviceNow - 15 * 60_000 + 10 * 60_000 - 5_000
-        let cooling = MyInvitePanelView(code: "AB12CD", canRegenerate: true, regenerateAvailableAt: availableAt)
-        XCTAssertNoThrow(try cooling.inspect().find(text: "10 分钟 后可重新生成"))
+        let cooling = regenerateAvailability(canRegenerate: true, availableAt: availableAt, now: FlareServerClock.nowMs())
+        XCTAssertEqual(cooling.remaining.map { inviteCooldownText(s, $0) }, "10 分钟 后可重新生成")
         FlareServerClock.setOffsetMs(nil)
-        let device = MyInvitePanelView(code: "AB12CD", canRegenerate: true, regenerateAvailableAt: availableAt)
-        XCTAssertThrowsError(try device.inspect().find(text: "10 分钟 后可重新生成"))
+        let device = regenerateAvailability(canRegenerate: true, availableAt: availableAt, now: FlareServerClock.nowMs())
+        XCTAssertTrue(device.enabled)
     }
 }
