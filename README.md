@@ -1,10 +1,12 @@
 # Flare UI
 
+English · [Simplified Chinese](README.zh-CN.md)
+
 Cross-platform UI system for Vue, Flutter, Android Compose, and SwiftUI.
 
 Flare UI provides generated design tokens, framework-neutral component and interaction contracts, General UI, IM UI, reusable workspace patterns, examples, documentation, visual regression, and release tooling. Components are controlled UI: applications provide data and capabilities, then handle emitted intent. No product account, persistence, transport, or business workflow is required.
 
-[中文](README.zh-CN.md) · [Documentation](website/) · [Component Catalog](spec/component-catalog.json) · [Public API](PUBLIC_API.md) · [Compatibility](COMPATIBILITY.md)
+[Documentation](website/) · [Component Catalog](spec/component-catalog.json) · [Public API](PUBLIC_API.md) · [Compatibility](COMPATIBILITY.md)
 
 ## Packages
 
@@ -93,3 +95,7 @@ npm --prefix website run dev
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing a public component. During the RC phase, `spec/components.json` and explicit package exports define the current contract; breaking changes must update every implementation, test, example, and document in the same change.
 
 License: [Apache-2.0](LICENSE).
+
+## Reuse Components
+
+Before adding app-level UI, check the [component reuse policy](docs/ui-component-reuse-policy.md) and the [component catalog](spec/component-catalog.json). Add reusable UI to the kit and keep app-specific composition in the apps.

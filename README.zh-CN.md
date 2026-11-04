@@ -1,10 +1,12 @@
 # Flare UI
 
+[English](README.md) · 简体中文
+
 面向 Vue、Flutter、Android Compose 与 SwiftUI 的跨端 UI System。
 
 Flare UI 提供生成式 Design Tokens、框架无关组件/交互契约、General UI、IM UI、工作区 Patterns、Examples、Documentation Website、Visual Regression 与 Release Tooling。组件只接收受控状态并发出意图；产品继续拥有数据、权限、持久化、网络和业务副作用。
 
-[English](README.md) · [Documentation](website/) · [Component Catalog](spec/component-catalog.json) · [Public API](PUBLIC_API.md) · [Compatibility](COMPATIBILITY.md)
+[Documentation](website/) · [Component Catalog](spec/component-catalog.json) · [Public API](PUBLIC_API.md) · [Compatibility](COMPATIBILITY.md)
 
 ## Packages
 
@@ -91,3 +93,7 @@ npm --prefix website run dev
 修改公共组件前先读 [CONTRIBUTING.md](CONTRIBUTING.md)。RC 阶段以 `spec/components.json` 和明确 package exports 为当前契约；breaking change 必须在同一变更中同步四端实现、测试、示例与文档。
 
 License: [Apache-2.0](LICENSE)。
+
+## 组件复用
+
+新增应用界面前先查看[组件复用规则](docs/ui-component-reuse-policy.md)和[组件目录](spec/component-catalog.json)。通用 UI 放入组件库，应用负责业务组合。
