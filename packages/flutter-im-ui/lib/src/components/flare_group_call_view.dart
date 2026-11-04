@@ -26,6 +26,8 @@ class FlareGroupCallView extends StatelessWidget {
     this.muted = false,
     this.cameraOn = true,
     this.speakerOn = false,
+    this.speakerPicker = false,
+    this.onPickDevices,
     this.onHangup,
     this.onToggleMute,
     this.onToggleCamera,
@@ -50,6 +52,8 @@ class FlareGroupCallView extends StatelessWidget {
   final bool muted;
   final bool cameraOn;
   final bool speakerOn;
+  final bool speakerPicker;
+  final ValueChanged<BuildContext>? onPickDevices;
   final VoidCallback? onHangup;
   final VoidCallback? onToggleMute;
   final VoidCallback? onToggleCamera;
@@ -90,13 +94,21 @@ class FlareGroupCallView extends StatelessWidget {
     final strings = FlareStrings.of(context);
     final colors = FlareColors.of(context);
     final status = _statusOf(strings);
+    final audio = mode == FlareCallMode.audio;
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF18181B), Color(0xFF101012), Color(0xFF09090B)],
-        ),
+      decoration: BoxDecoration(
+        color: audio ? colors.bgPrimary : null,
+        gradient: audio
+            ? null
+            : const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF18181B),
+                  Color(0xFF101012),
+                  Color(0xFF09090B),
+                ],
+              ),
       ),
       // Header on top, the call keys at the bottom, the participant grid in
       // between. When large text leaves the grid less than a usable height,
@@ -121,7 +133,12 @@ class FlareGroupCallView extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      _circleBtn('collapse', strings.callMinimize, onMinimize),
+                      _circleBtn(
+                        context,
+                        'collapse',
+                        strings.callMinimize,
+                        onMinimize,
+                      ),
                       const SizedBox(
                         width: FlareSizes.spacingMd - _targetInset,
                       ),
@@ -134,8 +151,10 @@ class FlareGroupCallView extends StatelessWidget {
                               title ?? strings.groupCall,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: audio
+                                    ? colors.textPrimary
+                                    : Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -147,7 +166,9 @@ class FlareGroupCallView extends StatelessWidget {
                                     status,
                                   ),
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.62),
+                                color: audio
+                                    ? colors.textSecondary
+                                    : Colors.white.withValues(alpha: 0.62),
                                 fontSize: 12,
                               ),
                             ),
@@ -157,12 +178,12 @@ class FlareGroupCallView extends StatelessWidget {
                     ],
                   ),
                 ),
-                GridView.count(
-                  crossAxisCount: _cols,
+                GridView(
+                  gridDelegate: _CallGridDelegate(
+                    columns: _cols,
+                    count: participants.length,
+                  ),
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 0.86,
                   children: participants
                       .map((p) => _tile(p, strings, colors))
                       .toList(),
@@ -173,6 +194,8 @@ class FlareGroupCallView extends StatelessWidget {
                     muted: muted,
                     cameraOn: cameraOn,
                     speakerOn: speakerOn,
+                    speakerPicker: speakerPicker,
+                    onPickDevices: onPickDevices,
                     mode: mode,
                     onToggleMute: onToggleMute,
                     onToggleCamera: onToggleCamera,
@@ -214,6 +237,8 @@ class FlareGroupCallView extends StatelessWidget {
       decoration: BoxDecoration(
         color: p.isSelf
             ? colors.primary.withValues(alpha: 0.16)
+            : mode == FlareCallMode.audio
+            ? colors.bgSecondary
             : Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
@@ -289,24 +314,32 @@ class FlareGroupCallView extends StatelessWidget {
   /// How far a control's touch target reaches past its disc on each side.
   static const double _targetInset = (FlareSizes.touchTarget - _disc) / 2;
 
-  Widget _circleBtn(String icon, String label, VoidCallback? onTap) =>
-      FlareIconControl(
-        label: label,
-        onTap: onTap,
-        child: Container(
-          width: _disc,
-          height: _disc,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-          ),
-          child: FlareIcon(
-            icon,
-            color: Colors.white,
-            size: FlareSizes.iconSizeMd,
-          ),
-        ),
-      );
+  Widget _circleBtn(
+    BuildContext context,
+    String icon,
+    String label,
+    VoidCallback? onTap,
+  ) => FlareIconControl(
+    label: label,
+    onTap: onTap,
+    child: Container(
+      width: _disc,
+      height: _disc,
+      decoration: BoxDecoration(
+        color: mode == FlareCallMode.audio
+            ? FlareColors.of(context).bgSecondary
+            : Colors.white.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: FlareIcon(
+        icon,
+        color: mode == FlareCallMode.audio
+            ? FlareColors.of(context).textPrimary
+            : Colors.white,
+        size: FlareSizes.iconSizeMd,
+      ),
+    ),
+  );
 }
 
 /// Lays out the header, the participant grid and the call keys top to bottom:
@@ -422,4 +455,36 @@ class _RenderGroupCallLayout extends RenderBox
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
       defaultHitTestChildren(result, position: position);
+}
+
+/// Fit conference rows into the bounded stage; short stages remain scrollable.
+class _CallGridDelegate extends SliverGridDelegate {
+  const _CallGridDelegate({required this.columns, required this.count});
+  final int columns;
+  final int count;
+  @override
+  SliverGridLayout getLayout(SliverConstraints constraints) {
+    const gap = 8.0;
+    final rows = math.max(1, (count / columns).ceil());
+    final width = math.max(
+      0.0,
+      (constraints.crossAxisExtent - gap * (columns - 1)) / columns,
+    );
+    final height = math.max(
+      96.0,
+      (constraints.viewportMainAxisExtent - 16 - gap * (rows - 1)) / rows,
+    );
+    return SliverGridRegularTileLayout(
+      crossAxisCount: columns,
+      mainAxisStride: height + gap,
+      crossAxisStride: width + gap,
+      childMainAxisExtent: height,
+      childCrossAxisExtent: width,
+      reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+    );
+  }
+
+  @override
+  bool shouldRelayout(covariant _CallGridDelegate oldDelegate) =>
+      oldDelegate.columns != columns || oldDelegate.count != count;
 }

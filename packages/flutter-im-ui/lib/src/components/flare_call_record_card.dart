@@ -8,6 +8,7 @@ import 'flare_button.dart';
 import 'flare_call_controls.dart';
 import 'flare_icon.dart';
 import 'flare_message_card_shell.dart';
+import 'flare_modal.dart';
 
 /// The call record in the chat timeline — the media icon, one
 /// viewer-relative status line, the media name and at most one action.
@@ -26,7 +27,7 @@ import 'flare_message_card_shell.dart';
 /// The card is the message's card surface ([FlareMessageCardShell], at most
 /// `richCardWidth` like every card): the timeline draws no bubble around it,
 /// and a quoted reply ([FlareCardQuote]) sits inside the shell.
-class FlareCallRecordCard extends StatelessWidget {
+class FlareCallRecordCard extends StatefulWidget {
   const FlareCallRecordCard({
     super.key,
     required this.media,
@@ -98,7 +99,9 @@ class FlareCallRecordCard extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) {
+  State<FlareCallRecordCard> createState() => _FlareCallRecordCardState();
+
+  Widget _buildCard(BuildContext context, VoidCallback? activate) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final text = statusFor(strings);
@@ -114,81 +117,150 @@ class FlareCallRecordCard extends StatelessWidget {
       container: true,
       label: mediaText,
       value: text,
-      child: FlareMessageCardShell(
-        padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingSm,
-          vertical: FlareSizes.spacingXs,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: Container(
-                key: iconKey,
-                width: FlareSizes.controlHeightSm,
-                height: FlareSizes.controlHeightSm,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: FlareOpacity.tintWeak),
-                  shape: BoxShape.circle,
-                ),
-                child: FlareIcon(
-                  media == FlareCallMode.video ? 'video' : 'phone',
-                  size: FlareSizes.iconSizeMd,
-                  color: ink,
-                ),
-              ),
+      button: activate != null,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          key: action == FlareCallRecordAction.callBack ? actionKey : null,
+          onTap: activate,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+          child: FlareMessageCardShell(
+            padding: EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingSm,
+              vertical:
+                  activate != null && action == FlareCallRecordAction.callBack
+                  ? FlareSizes.spacing2xs
+                  : FlareSizes.spacingXs,
             ),
-            const SizedBox(width: FlareSizes.spacingSm),
-            Flexible(
-              child: ExcludeSemantics(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      text,
-                      softWrap: true,
-                      style: TextStyle(
-                        color: danger ? colors.errorText : colors.textPrimary,
-                        fontSize: FlareSizes.fontSizeLg,
-                        fontWeight: FontWeight.w500,
-                        height: FlareSizes.lineHeightSnug,
-                      ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    key: iconKey,
+                    width: FlareSizes.controlHeightSm,
+                    height: FlareSizes.controlHeightSm,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: FlareOpacity.tintWeak),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: FlareSizes.spacing3xs),
-                    Text(
-                      mediaText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.textTertiary,
-                        fontSize: FlareSizes.fontSizeSm,
-                        height: FlareSizes.lineHeightSnug,
-                      ),
+                    child: FlareIcon(
+                      media == FlareCallMode.video ? 'video' : 'phone',
+                      size: FlareSizes.iconSizeMd,
+                      color: ink,
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: FlareSizes.spacingSm),
+                Flexible(
+                  child: ExcludeSemantics(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          text,
+                          softWrap: true,
+                          style: TextStyle(
+                            color: danger
+                                ? colors.errorText
+                                : colors.textPrimary,
+                            fontSize: FlareSizes.fontSizeLg,
+                            fontWeight: FontWeight.w500,
+                            height: FlareSizes.lineHeightSnug,
+                          ),
+                        ),
+                        const SizedBox(height: FlareSizes.spacing3xs),
+                        Text(
+                          mediaText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: FlareSizes.fontSizeSm,
+                            height: FlareSizes.lineHeightSnug,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (action == FlareCallRecordAction.join) ...[
+                  const SizedBox(width: FlareSizes.spacingSm),
+                  FlareButton(
+                    key: actionKey,
+                    label: action == FlareCallRecordAction.join
+                        ? strings.callRecordJoin
+                        : strings.callRecordCallBack,
+                    variant: FlareButtonVariant.secondary,
+                    size: FlareControlSize.sm,
+                    loading: busy,
+                    onPressed: activate,
+                  ),
+                ],
+              ],
             ),
-            if (action != null) ...[
-              const SizedBox(width: FlareSizes.spacingSm),
-              FlareButton(
-                key: actionKey,
-                label: action == FlareCallRecordAction.join
-                    ? strings.callRecordJoin
-                    : strings.callRecordCallBack,
-                variant: FlareButtonVariant.secondary,
-                size: FlareControlSize.sm,
-                loading: busy,
-                onPressed: action == FlareCallRecordAction.join
-                    ? onJoin
-                    : onCallBack,
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _FlareCallRecordCardState extends State<FlareCallRecordCard> {
+  bool _confirming = false;
+
+  Future<void> _activate() async {
+    if (widget.busy || _confirming) return;
+    if (widget.action == FlareCallRecordAction.join) {
+      widget.onJoin?.call();
+      return;
+    }
+    if (widget.action != FlareCallRecordAction.callBack ||
+        widget.onCallBack == null)
+      return;
+    _confirming = true;
+    final strings = FlareStrings.of(context);
+    try {
+      final confirmed = await FlareModal.show<bool>(
+        context,
+        builder: (routeContext) => FlareModal(
+          title:
+              '${strings.callRecordCallBack} · ${widget.media == FlareCallMode.video ? strings.callRecordVideo : strings.callRecordVoice}',
+          child: Text(strings.callRecordConfirmCallBack),
+          footer: [
+            FlareButton(
+              label: strings.cancel,
+              variant: FlareButtonVariant.secondary,
+              onPressed: () => Navigator.of(routeContext).pop(false),
+            ),
+            FlareButton(
+              label: strings.confirm,
+              onPressed: () => Navigator.of(routeContext).pop(true),
+            ),
+          ],
+        ),
+      );
+      if (confirmed == true &&
+          mounted &&
+          !widget.busy &&
+          widget.action == FlareCallRecordAction.callBack)
+        widget.onCallBack?.call();
+    } finally {
+      _confirming = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget._buildCard(
+    context,
+    widget.busy ||
+            widget.action == null ||
+            (widget.action == FlareCallRecordAction.join
+                ? widget.onJoin == null
+                : widget.onCallBack == null)
+        ? null
+        : _activate,
+  );
 }

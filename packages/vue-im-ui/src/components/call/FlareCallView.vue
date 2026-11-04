@@ -19,6 +19,7 @@ const props = withDefaults(
     muted?: boolean;
     cameraOn?: boolean;
     speakerOn?: boolean;
+    speakerPicker?: boolean;
     /** Show the end-to-end-encrypted hint under the status. */
     encrypted?: boolean;
     /** The peer muted their microphone: a mic-off badge beside the name. */
@@ -28,7 +29,7 @@ const props = withDefaults(
     /** Show the "switch to video" control in an audio call; it emits `startVideo`. */
     canStartVideo?: boolean;
   }>(),
-  { muted: false, cameraOn: true, speakerOn: false, encrypted: false, peerMuted: false, peerSpeaking: false, canStartVideo: false },
+  { muted: false, cameraOn: true, speakerOn: false, speakerPicker: false, encrypted: false, peerMuted: false, peerSpeaking: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -56,7 +57,7 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
 </script>
 
 <template>
-  <div class="flare-call-view" :class="[`flare-call-view--${state}`, { 'flare-call-view--preview': hasPreview }]">
+  <div class="flare-call-view" :class="[`flare-call-view--${state}`, `flare-call-view--${mode}`, { 'flare-call-view--preview': hasPreview }]">
     <div v-if="mode === 'video'" class="flare-call-view__video">
       <slot name="video" />
     </div>
@@ -70,9 +71,6 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
     </button>
 
     <div class="flare-call-view__peer">
-      <div v-if="mode === 'audio' || !$slots.video" class="flare-call-view__avatar" :class="{ 'is-pulsing': pulsing, 'is-speaking': speaking }">
-        <FlareAvatar :user-id="peerName" :display-name="peerName" :avatar-url="peerAvatarUrl" :size="104" />
-      </div>
       <div class="flare-call-view__name">
         <span>{{ peerName }}</span>
         <span v-if="peerMuted" class="flare-call-view__muted" role="img" :aria-label="t('call.peerMuted')">
@@ -88,11 +86,16 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
       </div>
     </div>
 
+    <div class="flare-call-view__stage">      <div v-if="mode === 'audio' || !$slots.video" class="flare-call-view__avatar" :class="{ 'is-pulsing': pulsing, 'is-speaking': speaking }">
+        <FlareAvatar :user-id="peerName" :display-name="peerName" :avatar-url="peerAvatarUrl" :size="104" />
+      </div>
+</div>
     <div class="flare-call-view__controls">
       <FlareCallControls
         :muted="muted"
         :camera-on="cameraOn"
         :speaker-on="speakerOn"
+        :speaker-picker="speakerPicker"
         :mode="mode"
         :can-start-video="canStartVideo"
         @toggle-mute="emit('toggleMute')"
@@ -101,7 +104,7 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
         @switch-camera="emit('switchCamera')"
         @start-video="emit('startVideo')"
         @hangup="emit('hangup')"
-      />
+      ><template v-if="$slots.devices" #devices><slot name="devices" /></template></FlareCallControls>
     </div>
   </div>
 </template>
@@ -111,20 +114,16 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 460px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 84px 16px 32px;
-  gap: 32px;
+  padding: 20px 16px 24px;
+  gap: 16px;
   color: #fff;
   overflow: auto;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--flare-color-primary) 20%, #18181b), #101012 58%);
-}
-/* The peer block starts below the corner preview, so the two never overlap. */
-.flare-call-view--preview {
-  padding-top: calc(env(safe-area-inset-top) + var(--flare-size-spacing-lg) * 2 + var(--flare-size-component-call-preview-width) * 4 / 3);
 }
 .flare-call-view__video {
   position: absolute;
@@ -248,9 +247,33 @@ const hasPreview = computed(() => props.mode === "video" && !!slots.localVideo);
   display: flex;
   justify-content: center;
 }
+.flare-call-view--audio {
+  color: var(--flare-color-text-primary);
+  background: var(--flare-color-bg-primary);
+  --flare-call-control-foreground: var(--flare-color-text-primary);
+  --flare-call-control-background: var(--flare-color-bg-secondary);
+  --flare-call-control-label: var(--flare-color-text-secondary);
+  --flare-call-control-active-foreground: var(--flare-color-primary-text);
+  --flare-call-control-active-background: var(--flare-color-bg-selected);
+}
+.flare-call-view--audio .flare-call-view__status { color: var(--flare-color-text-secondary); }
+.flare-call-view--audio .flare-call-view__minimize { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
+.flare-call-view--audio .flare-call-view__avatar { box-shadow: none; }
 </style>
 
 <style scoped>
 .flare-call-view__recover { min-height:48px; padding: 8px 16px; color:white; background:transparent; border:1px solid currentColor; border-radius: 8px; font:inherit; cursor:pointer; }
 .flare-call-view__peer { text-align:center; padding-inline: 16px; overflow-wrap:anywhere; }
+</style>
+
+<style scoped>
+.flare-call-view__peer { flex: 0 0 auto; min-height: 48px; align-items: flex-start; text-align: start; margin-inline: 56px 8px; padding: 0; gap: 4px; z-index: 1; }
+.flare-call-view__name { justify-content: flex-start; font-size: 16px; }
+.flare-call-view__stage { flex: 1 1 auto; min-height: 24px; display: grid; place-items: center; z-index: 1; pointer-events: none; }
+.flare-call-view__controls { flex: 0 0 auto; z-index: 3; padding: 16px 8px 0; }
+.flare-call-view--video::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(#0009, transparent 28%, transparent 60%, #000b); }
+.flare-call-view__video :deep(video) { width: 100%; height: 100%; object-fit: cover; }
+.flare-call-view--preview .flare-call-view__peer { margin-inline-end: 128px; }
+.flare-call-view__local { top: 16px; width: 96px; }
+@media(max-width:480px) { .flare-call-view__peer { margin-inline-end: 96px; } .flare-call-view__local { width: 72px; } }
 </style>

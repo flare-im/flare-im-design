@@ -19,6 +19,8 @@ class FlareCallControls extends StatelessWidget {
     this.muted = false,
     this.cameraOn = true,
     this.speakerOn = false,
+    this.speakerPicker = false,
+    this.onPickDevices,
     this.mode = FlareCallMode.video,
     this.onToggleMute,
     this.onToggleCamera,
@@ -32,6 +34,8 @@ class FlareCallControls extends StatelessWidget {
   final bool muted;
   final bool cameraOn;
   final bool speakerOn;
+  final bool speakerPicker;
+  final ValueChanged<BuildContext>? onPickDevices;
   final FlareCallMode mode;
   final VoidCallback? onToggleMute;
   final VoidCallback? onToggleCamera;
@@ -59,6 +63,7 @@ class FlareCallControls extends StatelessWidget {
         // is; the filled look marks the state worth noticing (muted, camera
         // off, speaker on).
         _ctrl(
+          context,
           muted ? 'mic-off' : 'mic',
           strings.microphone,
           onToggleMute,
@@ -67,27 +72,32 @@ class FlareCallControls extends StatelessWidget {
         ),
         if (mode == FlareCallMode.video) ...[
           _ctrl(
+            context,
             cameraOn ? 'video' : 'camera-off',
             strings.camera,
             onToggleCamera,
             active: !cameraOn,
             deviceOn: cameraOn,
           ),
-          _ctrl('switch-camera', strings.flipCamera, onSwitchCamera),
-        ] else ...[
-          _ctrl(
-            speakerOn ? 'speaker' : 'speaker-off',
-            strings.speaker,
-            onToggleSpeaker,
-            active: speakerOn,
-            deviceOn: speakerOn,
-          ),
-          if (onStartVideo != null)
-            _ctrl('video', strings.callSwitchToVideo, onStartVideo),
+          _ctrl(context, 'switch-camera', strings.flipCamera, onSwitchCamera),
         ],
+        Builder(
+          builder: (anchorContext) => _ctrl(
+            anchorContext,
+            speakerPicker || speakerOn ? 'speaker' : 'speaker-off',
+            strings.speaker,
+            onPickDevices == null
+                ? onToggleSpeaker
+                : () => onPickDevices!(anchorContext),
+            active: !speakerPicker && speakerOn,
+            deviceOn: speakerPicker ? null : speakerOn,
+          ),
+        ),
+        if (mode == FlareCallMode.audio && onStartVideo != null)
+          _ctrl(context, 'video', strings.callSwitchToVideo, onStartVideo),
         if (onAddMember != null)
-          _ctrl('person-add', strings.addMember, onAddMember),
-        _hangup(strings.hangUp),
+          _ctrl(context, 'person-add', strings.addMember, onAddMember),
+        _hangup(context, strings.hangUp),
       ],
     );
   }
@@ -95,31 +105,45 @@ class FlareCallControls extends StatelessWidget {
   /// A call key. A device key (microphone, camera, speaker) passes [deviceOn],
   /// announced as its toggled state; [active] fills the key.
   Widget _ctrl(
+    BuildContext context,
     String icon,
     String label,
     VoidCallback? onTap, {
     bool active = false,
     bool? deviceOn,
   }) {
+    final colors = FlareColors.of(context);
+    final audio = mode == FlareCallMode.audio;
     return SizedBox(
-      width: 104,
+      width: FlareSizes.controlHeightMd * 2,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: onTap,
-            tooltip: label,
-            style: IconButton.styleFrom(
-              minimumSize: const Size(56, 56),
-              backgroundColor: active
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.16),
-              foregroundColor: active ? Colors.black : Colors.white,
-            ),
-            // Inside the button, so the state lands on the button's own node.
-            icon: Semantics(
-              toggled: deviceOn,
-              child: Icon(flareIconGlyph(icon)),
+          Semantics(
+            label: label,
+            button: true,
+            enabled: onTap != null,
+            toggled: deviceOn,
+            onTap: onTap,
+            child: ExcludeSemantics(
+              child: IconButton(
+                onPressed: onTap,
+                tooltip: label,
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(56, 56),
+                  backgroundColor: audio
+                      ? (active ? colors.bgSelected : colors.bgSecondary)
+                      : active
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.16),
+                  foregroundColor: audio
+                      ? (active ? colors.primaryText : colors.textPrimary)
+                      : active
+                      ? Colors.black
+                      : Colors.white,
+                ),
+                icon: Icon(flareIconGlyph(icon)),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -128,7 +152,9 @@ class FlareCallControls extends StatelessWidget {
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: audio
+                    ? colors.textSecondary
+                    : Colors.white.withValues(alpha: 0.75),
                 fontSize: 12,
               ),
             ),
@@ -138,16 +164,24 @@ class FlareCallControls extends StatelessWidget {
     );
   }
 
-  Widget _hangup(String label) {
-    return IconButton(
-      onPressed: onHangup,
-      tooltip: label,
-      style: IconButton.styleFrom(
-        minimumSize: const Size(56, 56),
-        backgroundColor: const Color(0xFFEF4444),
-        foregroundColor: Colors.white,
+  Widget _hangup(BuildContext context, String label) {
+    return Semantics(
+      label: label,
+      button: true,
+      enabled: onHangup != null,
+      onTap: onHangup,
+      child: ExcludeSemantics(
+        child: IconButton(
+          onPressed: onHangup,
+          tooltip: label,
+          style: IconButton.styleFrom(
+            minimumSize: const Size(56, 56),
+            backgroundColor: const Color(0xFFEF4444),
+            foregroundColor: Colors.white,
+          ),
+          icon: Icon(flareIconGlyph('end-call')),
+        ),
       ),
-      icon: Icon(flareIconGlyph('end-call')),
     );
   }
 }

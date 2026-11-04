@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import FlareButton from "../general/FlareButton.vue";
+import FlareModal from "../general/FlareModal.vue";
 import FlareIcon from "../general/FlareIcon.vue";
 import {
   flareCallDurationLabel,
@@ -82,10 +83,18 @@ const actionLabel = computed(() => (action.value === "join" ? t("callRecord.join
 // The group is named by what the card says; the button inside names itself.
 const accessibleName = computed(() => t("callRecord.label", { media: mediaText.value, status: statusText.value }));
 
+const confirming = ref(false);
+function confirmCallBack() {
+  confirming.value = false;
+  if (!props.busy && action.value === "callBack") emit("callBack");
+}
+function onCardAction() {
+  if (action.value === "callBack") onAction();
+}
 function onAction() {
   if (props.busy || !action.value) return;
   if (action.value === "join") emit("join");
-  else emit("callBack");
+  else confirming.value = true;
 }
 </script>
 
@@ -93,7 +102,12 @@ function onAction() {
   <div
     class="flare-call-record"
     :class="[`is-${tone}`, { 'has-action': action }]"
-    role="group"
+    :role="action === 'callBack' ? 'button' : 'group'"
+    :tabindex="action === 'callBack' && !busy ? 0 : undefined"
+    :aria-busy="busy || undefined"
+    @click="onCardAction"
+    @keydown.enter.self.prevent="onCardAction"
+    @keydown.space.self.prevent="onCardAction"
     :aria-label="accessibleName"
     :data-status="status"
     :data-tone="tone"
@@ -106,7 +120,7 @@ function onAction() {
       <span class="flare-call-record__media">{{ mediaText }}</span>
     </span>
     <FlareButton
-      v-if="action"
+      v-if="action === 'join'"
       class="flare-call-record__action"
       variant="secondary"
       size="sm"
@@ -116,6 +130,13 @@ function onAction() {
       @click="onAction"
     />
   </div>
+  <FlareModal :open="confirming" :title="`${actionLabel} · ${mediaText}`" @close="confirming = false">
+    <p>{{ t('callRecord.confirmCallBack', { media: mediaText }) }}</p>
+    <template #footer>
+      <FlareButton variant="secondary" :label="t('common.cancel')" @click="confirming = false" />
+      <FlareButton :label="t('common.confirm')" :disabled="busy || action !== 'callBack'" @click="confirmCallBack" />
+    </template>
+  </FlareModal>
 </template>
 
 <style scoped>
@@ -136,7 +157,9 @@ function onAction() {
   background: var(--flare-color-bg-primary);
   color: var(--flare-color-text-primary);
 }
-.flare-call-record.has-action { grid-template-columns: auto minmax(0, 1fr) auto; }
+.flare-call-record.has-action { cursor: pointer; min-height: var(--flare-size-layout-touch-target-min); }
+.flare-call-record:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
+.flare-call-record.has-action:has(.flare-call-record__action) { grid-template-columns: auto minmax(0, 1fr) auto; }
 /* The media icon on the voice player's disc: a weak tint of the accent, the accent's text colour. */
 .flare-call-record__icon {
   display: grid;

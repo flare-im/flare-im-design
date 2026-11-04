@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { NIcon } from "naive-ui";
+import { computed, ref } from "vue";
+import { NPopover, NIcon } from "naive-ui";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
@@ -9,13 +9,14 @@ const props = withDefaults(
     muted?: boolean;
     cameraOn?: boolean;
     speakerOn?: boolean;
+    speakerPicker?: boolean;
     mode?: "audio" | "video";
     /** Show the "add participant" button (group calls). */
     showAddMember?: boolean;
     /** Show the "switch to video" button in an audio call; it emits `startVideo` and the host turns the call into video. */
     canStartVideo?: boolean;
   }>(),
-  { muted: false, cameraOn: true, speakerOn: false, mode: "video", showAddMember: false, canStartVideo: false },
+  { muted: false, cameraOn: true, speakerOn: false, speakerPicker: false, mode: "video", showAddMember: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "toggleMute"): void;
@@ -28,13 +29,22 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useFlareI18n();
+const devicePickerOpen = ref(false);
+const deviceTrigger = ref<HTMLButtonElement | null>(null);
+function closeDevicePicker(event: KeyboardEvent) {
+  if (!devicePickerOpen.value) return;
+  event.preventDefault();
+  event.stopPropagation();
+  devicePickerOpen.value = false;
+  deviceTrigger.value?.focus();
+}
 const micIcon = computed(() => (props.muted ? flareIcons["mic-off"] : flareIcons.mic));
 const camIcon = computed(() => (props.cameraOn ? flareIcons.video : flareIcons["camera-off"]));
-const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flareIcons["speaker-off"]));
+const speakerIcon = computed(() => (props.speakerPicker || props.speakerOn ? flareIcons.speaker : flareIcons["speaker-off"]));
 </script>
 
 <template>
-  <div class="flare-call-controls">
+  <div class="flare-call-controls" @keydown.esc="closeDevicePicker">
     <button type="button" class="flare-call-controls__btn" role="switch" :aria-checked="!muted" @click="emit('toggleMute')">
       <span class="ico" :class="{ 'ico--active': muted }"><n-icon aria-hidden="true" :size="24" :component="micIcon" /></span>
       <span class="lbl">{{ t("call.microphone") }}</span>
@@ -51,16 +61,21 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
       </button>
     </template>
 
-    <template v-else>
-      <button type="button" class="flare-call-controls__btn" role="switch" :aria-checked="speakerOn" @click="emit('toggleSpeaker')">
-        <span class="ico" :class="{ 'ico--active': speakerOn }"><n-icon aria-hidden="true" :size="24" :component="speakerIcon" /></span>
+      <NPopover v-if="$slots.devices" v-model:show="devicePickerOpen" trigger="click" placement="top" :show-arrow="false" :width="280" :to="false" :theme-overrides="{color: '#22232b', textColor: '#f4f4f5', borderRadius: '12px', padding: '12px'}">
+        <template #trigger>      <button ref="deviceTrigger" type="button" class="flare-call-controls__btn" :role="speakerPicker ? 'button' : 'switch'" :aria-checked="speakerPicker ? undefined : speakerOn" :aria-haspopup="speakerPicker ? 'dialog' : undefined" @click="emit('toggleSpeaker')">
+        <span class="ico" :class="{ 'ico--active': !speakerPicker && speakerOn }"><n-icon aria-hidden="true" :size="24" :component="speakerIcon" /></span>
         <span class="lbl">{{ t("call.speaker") }}</span>
       </button>
-      <button v-if="canStartVideo" type="button" class="flare-call-controls__btn" @click="emit('startVideo')">
+</template><slot name="devices" />
+      </NPopover><template v-else>      <button ref="deviceTrigger" type="button" class="flare-call-controls__btn" :role="speakerPicker ? 'button' : 'switch'" :aria-checked="speakerPicker ? undefined : speakerOn" :aria-haspopup="speakerPicker ? 'dialog' : undefined" @click="emit('toggleSpeaker')">
+        <span class="ico" :class="{ 'ico--active': !speakerPicker && speakerOn }"><n-icon aria-hidden="true" :size="24" :component="speakerIcon" /></span>
+        <span class="lbl">{{ t("call.speaker") }}</span>
+      </button>
+</template>
+      <button v-if="mode === 'audio' && canStartVideo" type="button" class="flare-call-controls__btn" @click="emit('startVideo')">
         <span class="ico"><n-icon aria-hidden="true" :size="24" :component="flareIcons.video" /></span>
         <span class="lbl">{{ t("call.switchToVideo") }}</span>
       </button>
-    </template>
 
     <button v-if="showAddMember" type="button" class="flare-call-controls__btn" @click="emit('addMember')">
       <span class="ico"><n-icon aria-hidden="true" :size="24" :component="flareIcons['person-add']" /></span>
@@ -96,7 +111,7 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
   padding: 0;
 }
 .flare-call-controls__btn:focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid var(--flare-color-border-selected);
   outline-offset: 4px;
   border-radius: 8px;
 }
@@ -107,8 +122,8 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
+  color: var(--flare-call-control-foreground, #fff);
+  background: var(--flare-call-control-background, rgba(255, 255, 255, 0.14));
   border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(8px);
   transition:
@@ -124,8 +139,8 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
 }
 /* "off/on" active state — filled, so a muted mic / disabled camera reads at a glance. */
 .ico--active {
-  color: #17131c;
-  background: #fff;
+  color: var(--flare-call-control-active-foreground, #17131c);
+  background: var(--flare-call-control-active-background, #fff);
   border-color: #fff;
 }
 .ico--end {
@@ -140,7 +155,7 @@ const speakerIcon = computed(() => (props.speakerOn ? flareIcons.speaker : flare
 .lbl {
   font-size: 0.75rem;
   overflow-wrap: anywhere;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--flare-call-control-label, rgba(255, 255, 255, 0.72));
   letter-spacing: 0.01em;
 }
 </style>

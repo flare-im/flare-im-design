@@ -143,6 +143,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       participants: "{count} 人",
     },
     callRecord: {
+      confirmCallBack: "确认发起{media}？",
       voice: "语音通话",
       video: "视频通话",
       label: "{media}，{status}",
@@ -1638,6 +1639,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       participants: "{count} joined",
     },
     callRecord: {
+      confirmCallBack: "Start a {media} call?",
       voice: "Voice call",
       video: "Video call",
       label: "{media}, {status}",

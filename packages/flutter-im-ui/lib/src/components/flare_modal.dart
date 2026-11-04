@@ -39,6 +39,7 @@ class FlareModal extends StatelessWidget {
     this.width,
     this.maxHeight,
     this.fill = false,
+    this.edgeToEdge = false,
     this.dismissible = true,
     this.showClose = true,
     this.busy = false,
@@ -70,6 +71,7 @@ class FlareModal extends StatelessWidget {
   /// Take the whole [maxHeight] instead of fitting the content, so page-like
   /// content (global search) does not resize as results arrive.
   final bool fill;
+  final bool edgeToEdge;
   final bool dismissible;
   final bool showClose;
   final bool busy;
@@ -189,9 +191,9 @@ class FlareModal extends StatelessWidget {
       constraints: BoxConstraints(maxHeight: cap),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: colors.bgPrimary,
+        color: edgeToEdge ? Colors.transparent : colors.bgPrimary,
         borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
-        border: Border.all(color: colors.borderPrimary),
+        border: edgeToEdge ? null : Border.all(color: colors.borderPrimary),
         boxShadow: flareOverlayShadow(context),
       ),
       child: Material(

@@ -17,11 +17,12 @@ const props = withDefaults(
     muted?: boolean;
     cameraOn?: boolean;
     speakerOn?: boolean;
+    speakerPicker?: boolean;
     encrypted?: boolean;
     /** Show the "switch to video" control in an audio call; it emits `startVideo`. */
     canStartVideo?: boolean;
   }>(),
-  { title: "", muted: false, cameraOn: true, speakerOn: false, encrypted: false, canStartVideo: false },
+  { title: "", muted: false, cameraOn: true, speakerOn: false, speakerPicker: false, encrypted: false, canStartVideo: false },
 );
 const emit = defineEmits<{
   (e: "hangup"): void;
@@ -55,7 +56,7 @@ const statusText = computed(() => {
 </script>
 
 <template>
-  <div class="flare-group-call">
+  <div class="flare-group-call" :class="{ 'flare-group-call--audio': mode === 'audio' }">
     <header class="flare-group-call__bar">
       <button type="button" class="flare-group-call__minimize" :aria-label="t('call.minimize')" @click="emit('minimize')">
         <n-icon aria-hidden="true" :size="20" :component="flareIcons.collapse" />
@@ -85,7 +86,7 @@ const statusText = computed(() => {
           <slot v-if="mode === 'video' && !p.cameraOff" name="tile" :participant="p">
             <FlareAvatar :user-id="p.id" :display-name="p.name" :avatar-url="p.avatarUrl" :size="64" />
           </slot>
-          <FlareAvatar v-else :user-id="p.id" :display-name="p.name" :avatar-url="p.avatarUrl" :size="64" />
+          <FlareAvatar v-else :user-id="p.id" :display-name="p.name" :avatar-url="p.avatarUrl" :size="mode === 'audio' ? 44 : 64" />
         </div>
         <div class="flare-group-call__tag">
           <span v-if="p.muted" class="flare-group-call__mic"><n-icon aria-hidden="true" :size="12" :component="flareIcons['mic-off']" /></span>
@@ -100,6 +101,7 @@ const statusText = computed(() => {
         :muted="muted"
         :camera-on="cameraOn"
         :speaker-on="speakerOn"
+        :speaker-picker="speakerPicker"
         :mode="mode"
         show-add-member
         :can-start-video="canStartVideo"
@@ -110,7 +112,7 @@ const statusText = computed(() => {
         @add-member="emit('addMember')"
         @start-video="emit('startVideo')"
         @hangup="emit('hangup')"
-      />
+      ><template v-if="$slots.devices" #devices><slot name="devices" /></template></FlareCallControls>
     </div>
   </div>
 </template>
@@ -122,7 +124,7 @@ const statusText = computed(() => {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 460px;
+  min-height: 0;
   color: #fff;
   overflow: hidden;
   background:
@@ -246,4 +248,18 @@ const statusText = computed(() => {
   justify-content: center;
   padding: 16px 12px 40px;
 }
+.flare-group-call--audio { color: var(--flare-color-text-primary); background: var(--flare-color-bg-primary);
+  --flare-call-control-foreground: var(--flare-color-text-primary);
+  --flare-call-control-background: var(--flare-color-bg-secondary);
+  --flare-call-control-label: var(--flare-color-text-secondary);
+  --flare-call-control-active-foreground: var(--flare-color-primary-text);
+  --flare-call-control-active-background: var(--flare-color-bg-selected);
+}
+.flare-group-call--audio .flare-group-call__meta { color: var(--flare-color-text-secondary); }
+.flare-group-call--audio .flare-group-call__minimize { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
+.flare-group-call--audio .flare-group-call__tile { background: var(--flare-color-bg-secondary); }
+</style>
+
+<style scoped>
+.flare-group-call--audio .flare-group-call__tile { min-height: 80px; }
 </style>

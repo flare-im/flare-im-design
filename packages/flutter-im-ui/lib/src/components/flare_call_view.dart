@@ -32,6 +32,8 @@ class FlareCallView extends StatelessWidget {
     this.muted = false,
     this.cameraOn = true,
     this.speakerOn = false,
+    this.speakerPicker = false,
+    this.onPickDevices,
     this.videoContent,
     this.localVideoContent,
     this.peerMuted = false,
@@ -56,6 +58,8 @@ class FlareCallView extends StatelessWidget {
   final bool muted;
   final bool cameraOn;
   final bool speakerOn;
+  final bool speakerPicker;
+  final ValueChanged<BuildContext>? onPickDevices;
   final Widget? videoContent;
 
   /// The host's own camera, drawn as a picture-in-picture at the top trailing
@@ -86,8 +90,6 @@ class FlareCallView extends StatelessWidget {
   static const double _targetInset = (FlareSizes.touchTarget - _disc) / 2;
 
   /// The corner preview's height and its inset above and below.
-  static const double _previewClearance =
-      FlareSizes.spacingLg * 2 + FlareSizes.componentCallPreviewWidth * 4 / 3;
 
   /// The [FlareGroupCallView] tile's speaking green.
   static const Color _speakingColor = Color(0xFF34D17F);
@@ -112,121 +114,155 @@ class FlareCallView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = FlareStrings.of(context);
+    final colors = FlareColors.of(context);
+    final ink = mode == FlareCallMode.audio ? colors.textPrimary : Colors.white;
+    final secondary = mode == FlareCallMode.audio
+        ? colors.textSecondary
+        : Colors.white.withValues(alpha: .7);
     final showAvatar = mode == FlareCallMode.audio || videoContent == null;
     final speaking = peerSpeaking && !peerMuted;
     final preview = mode == FlareCallMode.video && localVideoContent != null;
     return Container(
-      color: const Color(0xFF111318),
+      color: mode == FlareCallMode.audio
+          ? colors.bgPrimary
+          : const Color(0xFF111318),
       child: Stack(
         children: [
           if (mode == FlareCallMode.video && videoContent != null)
             Positioned.fill(child: videoContent!),
-          SafeArea(
-            child: SingleChildScrollView(
-              // The peer block starts below the corner preview, so the two
-              // never overlap.
-              padding: EdgeInsets.fromLTRB(
-                16,
-                preview ? _previewClearance : 72,
-                16,
-                48,
+          if (mode == FlareCallMode.video)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x99000000),
+                        Color(0x00000000),
+                        Color(0xBB000000),
+                      ],
+                      stops: [0, .45, 1],
+                    ),
+                  ),
+                ),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    if (showAvatar) ...[
-                      // The ring is a shadow outside the avatar, so speaking
-                      // never moves the layout.
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: speaking
-                              ? [
-                                  const BoxShadow(
-                                    color: _speakingColor,
-                                    spreadRadius: 3,
-                                  ),
-                                  BoxShadow(
-                                    color: _speakingColor.withValues(
-                                      alpha: 0.28,
-                                    ),
-                                    spreadRadius: 8,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: FlareAvatar(
-                          userId: peerName,
-                          displayName: peerName,
-                          avatarUrl: peerAvatarUrl,
-                          size: 96,
-                        ),
-                      ),
-                      const SizedBox(height: FlareSizes.spacingMd),
-                    ],
-                    Row(
+            ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      start: 56,
+                      end: preview ? 128 : 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                peerName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                  color: ink,
+                                  fontSize: FlareSizes.fontSizeXl,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (peerMuted) ...[
+                              const SizedBox(width: FlareSizes.spacingSm),
+                              _mutedBadge(strings),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: FlareSizes.spacingXs),
+                        Semantics(
+                          liveRegion: true,
                           child: Text(
-                            peerName,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: FlareSizes.fontSize4xl,
-                              fontWeight: FontWeight.w600,
+                            _statusText(strings),
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              color: secondary,
+                              fontSize: FlareSizes.fontSizeLg,
                             ),
                           ),
                         ),
-                        if (peerMuted) ...[
-                          const SizedBox(width: FlareSizes.spacingSm),
-                          _mutedBadge(strings),
-                        ],
+                        if (statusDetail != null)
+                          Text(
+                            statusDetail!,
+                            textAlign: TextAlign.start,
+                            style: TextStyle(color: ink),
+                          ),
+                        if (state == FlareCallState.failed &&
+                            recoveryText != null)
+                          TextButton(
+                            onPressed: onRecover,
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(48, 48),
+                              foregroundColor: ink,
+                            ),
+                            child: Text(recoveryText!),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: FlareSizes.spacingXs),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        _statusText(strings),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: FlareSizes.fontSizeLg,
-                        ),
-                      ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: showAvatar
+                          ? DecoratedBox(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: speaking
+                                    ? [
+                                        const BoxShadow(
+                                          color: _speakingColor,
+                                          spreadRadius: 3,
+                                        ),
+                                        BoxShadow(
+                                          color: _speakingColor.withValues(
+                                            alpha: 0.28,
+                                          ),
+                                          spreadRadius: 8,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: FlareAvatar(
+                                userId: peerName,
+                                displayName: peerName,
+                                avatarUrl: peerAvatarUrl,
+                                size: 96,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ),
-                    if (statusDetail != null)
-                      Text(
-                        statusDetail!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    if (state == FlareCallState.failed && recoveryText != null)
-                      TextButton(
-                        onPressed: onRecover,
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(48, 48),
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text(recoveryText!),
-                      ),
-                    const SizedBox(height: 32),
-                    FlareCallControls(
-                      muted: muted,
-                      cameraOn: cameraOn,
-                      speakerOn: speakerOn,
-                      mode: mode,
-                      onToggleMute: onToggleMute,
-                      onToggleCamera: onToggleCamera,
-                      onToggleSpeaker: onToggleSpeaker,
-                      onSwitchCamera: onSwitchCamera,
-                      onHangup: onHangup,
-                      onStartVideo: onStartVideo,
-                    ),
-                  ],
-                ),
+                  ),
+                  FlareCallControls(
+                    muted: muted,
+                    cameraOn: cameraOn,
+                    speakerOn: speakerOn,
+                    speakerPicker: speakerPicker,
+                    onPickDevices: onPickDevices,
+                    mode: mode,
+                    onToggleMute: onToggleMute,
+                    onToggleCamera: onToggleCamera,
+                    onToggleSpeaker: onToggleSpeaker,
+                    onSwitchCamera: onSwitchCamera,
+                    onHangup: onHangup,
+                    onStartVideo: onStartVideo,
+                  ),
+                ],
               ),
             ),
           ),
@@ -271,12 +307,14 @@ class FlareCallView extends StatelessWidget {
                       width: _disc,
                       height: _disc,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.12),
+                        color: mode == FlareCallMode.audio
+                            ? colors.bgSecondary
+                            : Colors.white.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const FlareIcon(
+                      child: FlareIcon(
                         'collapse',
-                        color: Colors.white,
+                        color: ink,
                         size: FlareSizes.iconSizeMd,
                       ),
                     ),

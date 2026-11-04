@@ -68,6 +68,7 @@ export 'src/components/flare_call_controls.dart';
 export 'src/components/flare_call_dock.dart';
 export 'src/components/flare_call_record_card.dart';
 export 'src/components/flare_call_view.dart';
+export 'src/components/flare_call_surface.dart';
 export 'src/components/flare_conversation_header.dart';
 export 'src/components/flare_chat_workspace.dart';
 export 'src/models/message_grouping.dart';

@@ -80,6 +80,7 @@ const FlareStrings flareStringsEnglish = FlareStrings(
   callRecordNoAnswer: 'No answer',
   callRecordPeerBusy: 'Busy',
   callRecordUnavailable: 'Calls unavailable',
+  callRecordConfirmCallBack: 'Call back now?',
   callRecordVideo: 'Video call',
   callRecordVoice: 'Voice call',
   callRecordWaitingAnswer: 'Waiting for answer',

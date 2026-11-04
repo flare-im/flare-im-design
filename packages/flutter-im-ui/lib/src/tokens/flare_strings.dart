@@ -178,6 +178,7 @@ class FlareStrings {
     this.callRecordPeerBusy = '对方忙线中',
     this.callRecordMissedBusy = '忙线未接听',
     this.callRecordUnavailable = '通话不可用',
+    this.callRecordConfirmCallBack = '确认回拨此通话？',
     this.callRecordFailed = '通话失败',
     this.callRecordJoin = '加入',
     this.callRecordCallBack = '回拨',
@@ -1069,6 +1070,7 @@ class FlareStrings {
   final String callRecordPeerBusy;
   final String callRecordMissedBusy;
   final String callRecordUnavailable;
+  final String callRecordConfirmCallBack;
   final String callRecordFailed;
   final String callRecordJoin;
   final String callRecordCallBack;
@@ -1987,6 +1989,7 @@ class FlareStrings {
     String? callRecordPeerBusy,
     String? callRecordMissedBusy,
     String? callRecordUnavailable,
+    String? callRecordConfirmCallBack,
     String? callRecordFailed,
     String? callRecordJoin,
     String? callRecordCallBack,
@@ -2786,6 +2789,8 @@ class FlareStrings {
       callRecordPeerBusy: callRecordPeerBusy ?? this.callRecordPeerBusy,
       callRecordMissedBusy: callRecordMissedBusy ?? this.callRecordMissedBusy,
       callRecordUnavailable: callRecordUnavailable ?? this.callRecordUnavailable,
+      callRecordConfirmCallBack:
+          callRecordConfirmCallBack ?? this.callRecordConfirmCallBack,
       callRecordFailed: callRecordFailed ?? this.callRecordFailed,
       callRecordJoin: callRecordJoin ?? this.callRecordJoin,
       callRecordCallBack: callRecordCallBack ?? this.callRecordCallBack,

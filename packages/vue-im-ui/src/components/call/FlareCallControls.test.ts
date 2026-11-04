@@ -21,11 +21,23 @@ const switches = (host: ReturnType<typeof mountIn>) =>
 describe("call device toggles", () => {
   it("name each device and report whether it is on", () => {
     const video = mountIn(FlareCallControls as Component, { mode: "video", muted: true, cameraOn: true });
-    expect(switches(video)).toEqual([["麦克风", "false"], ["摄像头", "true"]]);
+    expect(switches(video)).toEqual([["麦克风", "false"], ["摄像头", "true"], ["扬声器", "false"]]);
     video.unmount();
     const voice = mountIn(FlareCallControls as Component, { mode: "audio", muted: false, speakerOn: false });
     expect(switches(voice)).toEqual([["麦克风", "true"], ["扬声器", "false"]]);
     voice.unmount();
+  });
+
+  it("desktop speaker selection is an action in video calls, not a muted-speaker switch", async () => {
+    let opened = 0;
+    const view = mountIn(FlareCallControls as Component, {mode: "video", speakerPicker: true, onToggleSpeaker: () => opened++});
+    const speaker = view.findAll("button").find(b => b.text() === "扬声器")!;
+    expect(speaker.attributes("role")).toBe("button");
+    expect(speaker.attributes("aria-haspopup")).toBe("dialog");
+    expect(speaker.attributes("aria-checked")).toBeUndefined();
+    await speaker.trigger("click");
+    expect(opened).toBe(1);
+    view.unmount();
   });
 
   it("names the dock's main button after what it does", () => {
@@ -87,4 +99,17 @@ describe("switch to video", () => {
     expect(captions(english)).toContain("Switch to video");
     english.unmount();
   });
+});
+
+it("keeps the device popup anchored and consumes Escape before the call modal", async () => {
+  const view = mount(defineComponent({setup(){useFlareI18nProvider('zh-CN');return () => h(FlareCallControls, {mode:'video',speakerPicker:true}, {devices: () => h('button', {class:'device-choice'}, 'USB')});}}), {attachTo:document.body});
+  const speaker = view.findAll('button').find(b=>b.text()==='扬声器')!;
+  await speaker.trigger('click');
+  const popup = view.findComponent({name:'Popover'});
+  expect(popup.props('placement')).toBe('top');
+  expect(popup.props('show')).toBe(true);
+  const event = new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true});
+  speaker.element.dispatchEvent(event);await view.vm.$nextTick();
+  expect(event.defaultPrevented).toBe(true);expect(popup.props('show')).toBe(false);
+  expect(document.activeElement).toBe(speaker.element);view.unmount();
 });

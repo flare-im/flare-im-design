@@ -18,6 +18,8 @@ import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 const props = withDefaults(
   defineProps<{
     open: boolean;
+    /** Content supplies its own surface without a contrasting frame. */
+    edgeToEdge?: boolean;
     /** Optional header, also the accessible name; leads the header row. */
     title?: string;
     /** Use `title` as the accessible name only, without drawing the heading. */
@@ -67,7 +69,7 @@ function requestClose(): void {
 }
 
 // 平台返回键只在宿主真的接了 close 时才接管:没人听的模态不该把返回键吞掉。
-const { overlayContainer } = useFlareModalSurface({
+const { overlayContainer, stackIndex } = useFlareModalSurface({
   open: () => props.open,
   surface: surfaceEl,
   dismissible: () => canDismiss.value,
@@ -79,11 +81,11 @@ const { overlayContainer } = useFlareModalSurface({
 <template>
   <Teleport :to="overlayContainer">
     <transition name="flare-modal-fade">
-      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" @click="requestClose">
+      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="requestClose">
         <div
           ref="surfaceEl"
           class="flare-modal"
-          :class="{ 'flare-modal--fill': fill, 'flare-modal--compact': compact }"
+          :class="{ 'flare-modal--fill': fill, 'flare-modal--compact': compact, 'flare-modal--edge': edgeToEdge }"
           :style="surfaceStyle"
           role="dialog"
           aria-modal="true"
@@ -145,6 +147,7 @@ const { overlayContainer } = useFlareModalSurface({
   box-shadow: var(--flare-shadow-lg);
   outline: none;
 }
+.flare-modal--edge { padding: 0; overflow: hidden; background: transparent; }
 .flare-modal__header {
   flex: 0 0 auto;
   display: flex;

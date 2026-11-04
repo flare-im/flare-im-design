@@ -90,9 +90,16 @@ void main() {
         row['action'] == null ? findsNothing : findsOneWidget,
         reason: id,
       );
-      if (row['action'] != null) {
+      if (row['action'] == 'join') {
         final button = tester.widget<FlareButton>(action);
         expect(button.loading, !(row['actionEnabled'] as bool), reason: id);
+      } else if (row['action'] == 'callBack') {
+        expect(find.text('回拨'), findsNothing, reason: id);
+        expect(
+          tester.widget<InkWell>(action).onTap != null,
+          row['actionEnabled'],
+          reason: id,
+        );
       }
     }
   });
@@ -139,8 +146,22 @@ void main() {
       ),
     );
     expect(find.text('Duration 01:15'), findsOneWidget);
-    expect(find.text('Call back'), findsOneWidget);
+    expect(find.text('Call back'), findsNothing);
     await tester.tap(find.byKey(FlareCallRecordCard.actionKey));
+    await tester.pumpAndSettle();
+    expect(
+      (joins, callBacks),
+      (1, 0),
+      reason: 'card tap only opens confirmation',
+    );
+    expect(find.text('Call back now?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(callBacks, 0, reason: 'cancelling never starts a call');
+    await tester.tap(find.byKey(FlareCallRecordCard.actionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
     expect((joins, callBacks), (1, 1));
 
     await tester.pumpWidget(

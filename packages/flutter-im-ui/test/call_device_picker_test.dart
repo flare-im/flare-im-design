@@ -37,16 +37,9 @@ void main() {
       ),
     );
     await tester.pumpWidget(host(FlareCapabilityState.denied, false));
-    var field = tester.widget<DropdownButton<String>>(
-      find.byType(DropdownButton<String>),
-    );
-    expect(field.value, isNull);
-    expect(field.onChanged, isNull);
+    expect(tester.widget<ListTile>(find.byType(ListTile)).enabled, isFalse);
     await tester.pumpWidget(host(FlareCapabilityState.available, true));
-    field = tester.widget<DropdownButton<String>>(
-      find.byType(DropdownButton<String>),
-    );
-    expect(field.onChanged, isNull);
+    expect(tester.widget<ListTile>(find.byType(ListTile)).enabled, isFalse);
     expect(tester.takeException(), isNull);
   });
 }

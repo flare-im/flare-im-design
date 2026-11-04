@@ -62,6 +62,7 @@ export { default as FlareProfileEditor } from "./profile/FlareProfileEditor.vue"
 export { default as FlareSettingsList } from "./profile/FlareSettingsList.vue";
 export { default as FlareSettingsRow } from "./profile/FlareSettingsRow.vue";
 export { default as FlareCallView } from "./call/FlareCallView.vue";
+export { default as FlareCallSurface } from "./call/FlareCallSurface.vue";
 export { default as FlareGroupCallView } from "./call/FlareGroupCallView.vue";
 export { default as FlareIncomingCall } from "./call/FlareIncomingCall.vue";
 export { default as FlareCallControls } from "./call/FlareCallControls.vue";

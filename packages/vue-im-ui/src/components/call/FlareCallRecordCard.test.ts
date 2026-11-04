@@ -34,7 +34,7 @@ function render(props: InstanceType<typeof FlareCallRecordCard>["$props"], local
       useFlareI18nProvider(locale);
       return () => h(FlareCallRecordCard, props);
     },
-  }));
+  }), { global: { stubs: { teleport: true } } });
 }
 
 describe("call record rules (spec/call-record-vectors.json)", () => {
@@ -64,8 +64,8 @@ describe("FlareCallRecordCard", () => {
         expect(root.attributes("data-tone"), row.id).toBe(row.tone);
         expect(root.attributes("aria-label"), row.id).toContain(text);
         const button = wrapper.find("[data-call-record-action]");
-        expect(button.exists(), row.id).toBe(row.action !== null);
-        if (row.action) {
+        expect(button.exists(), row.id).toBe(row.action === "join");
+        if (row.action === "join") {
           expect(button.attributes("data-call-record-action"), row.id).toBe(row.action);
           expect(button.attributes("disabled") === undefined, row.id).toBe(row.actionEnabled);
         }
@@ -92,12 +92,19 @@ describe("FlareCallRecordCard", () => {
     expect(join.get("[data-call-record-action]").text()).toBe("加入");
 
     const callBack = render({ media: "audio", scope: "single", state: "ended", endReason: "completed", durationSeconds: 75, viewerIsInitiator: true, canJoin: false, canCallBack: true }, "en-US");
-    await callBack.get("[data-call-record-action]").trigger("click");
+    expect(callBack.find("[data-call-record-action]").exists()).toBe(false);
+    await callBack.get(".flare-call-record").trigger("click");
+    expect(callBack.findComponent(FlareCallRecordCard).emitted("callBack")).toBeUndefined();
+    const confirm = () => callBack.findAll("button").find(b => b.text() === "Confirm")!;
+    expect(confirm()).toBeDefined();
+    await callBack.findAll("button").find(b => b.text() === "Cancel")!.trigger("click");
+    expect(callBack.findComponent(FlareCallRecordCard).emitted("callBack")).toBeUndefined();
+    await callBack.get(".flare-call-record").trigger("keydown", {key: "Enter"});
+    await confirm().trigger("click");
     expect(callBack.findComponent(FlareCallRecordCard).emitted("callBack")).toHaveLength(1);
-    expect(callBack.get("[data-call-record-action]").text()).toBe("Call back");
 
     const busy = render({ media: "audio", scope: "single", state: "ended", endReason: "missed", viewerIsInitiator: false, canJoin: false, canCallBack: true, busy: true });
-    const button = busy.get("[data-call-record-action]");
+    const button = busy.get(".flare-call-record");
     expect(button.attributes("aria-busy")).toBe("true");
     await button.trigger("click");
     expect(busy.findComponent(FlareCallRecordCard).emitted("callBack")).toBeUndefined();
