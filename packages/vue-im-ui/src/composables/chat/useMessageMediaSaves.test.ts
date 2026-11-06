@@ -39,6 +39,22 @@ function setup(host: Partial<MessageMediaSaveHost>, messages = [fileMessage("m1"
 }
 
 describe("useMessageMediaSaves", () => {
+  it("sends a received audio file through the shared save lifecycle and preserves its metadata", async () => {
+    const voice = {
+      ...fileMessage("voice-message", "voice-1"),
+      content: { contentType: "audio", audio: { audioId: "voice-1", fileName: "recording.wav", mimeType: "audio/wav" } },
+    } as MessageLike;
+    const { saves, host, scope } = setup({}, [voice]);
+    await saves.onMediaAction("voice-message", "download");
+    expect(host.save).toHaveBeenCalledWith(expect.objectContaining({
+      kind: "audio", fileId: "voice-1", remoteFileId: "voice-1", displayFileName: "recording.wav", mimeType: "audio/wav",
+    }), expect.objectContaining({ clientMsgId: "voice-message" }));
+    expect(saves.states.value["voice-message"]).toBe("openFolder");
+    await saves.onMediaAction("voice-message", "openFolder");
+    expect(host.reveal).toHaveBeenCalledWith("voice-1", expect.objectContaining({ kind: "audio" }), expect.anything());
+    scope.stop();
+  });
+
   it("turns the key into a folder once the save lands", async () => {
     let finish: () => void = () => undefined;
     const { saves } = setup({ save: vi.fn(() => new Promise<void>((resolve) => (finish = resolve))) });

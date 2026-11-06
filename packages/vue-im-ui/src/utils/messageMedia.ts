@@ -14,7 +14,7 @@ import {
 import { safeDownloadFileName } from "./browserDownload";
 import { messageContentTypeForUi } from "./messageContent";
 
-export type MessageMediaDownloadKind = "image" | "video" | "file";
+export type MessageMediaDownloadKind = "image" | "video" | "audio" | "file";
 
 export interface MessageMediaDownloadSource {
   kind: MessageMediaDownloadKind;
@@ -153,6 +153,21 @@ export function listMessageMediaDownloadSources(
         source: asRecord(payload.source),
         idKeys: ["fileId", "videoId", "id", "uuid"],
         fallbackName: "video.mp4",
+      }),
+    ].filter(Boolean) as MessageMediaDownloadSource[];
+  }
+  if (type === "audio") {
+    const payload = payloadFor(content, "audio");
+    return [
+      descriptorFromFields({
+        message,
+        ownMessage,
+        kind: "audio",
+        index: 0,
+        payload,
+        source: asRecord(payload.source),
+        idKeys: ["fileId", "audioId", "mediaId", "id", "uuid"],
+        fallbackName: "audio",
       }),
     ].filter(Boolean) as MessageMediaDownloadSource[];
   }

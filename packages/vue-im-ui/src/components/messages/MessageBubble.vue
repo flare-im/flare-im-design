@@ -402,7 +402,9 @@ function mediaActionModel(id: MessageMenuMediaAction): MediaHoverActionModel {
   return {
     id,
     action: "download",
-    label: translateOrFallback("messageMenu.downloadMedia", "Download"),
+    label: contentType.value === "audio"
+      ? t("media.downloadAudio")
+      : translateOrFallback("messageMenu.downloadMedia", "Download"),
     icon: DownloadOutline,
     state: "idle",
   };
@@ -436,7 +438,7 @@ const resolvedMediaActionId = computed<MessageMenuMediaAction | null>(() => {
 });
 
 const mediaHoverAction = computed<MediaHoverActionModel | null>(() => {
-  if (!["image", "video"].includes(contentType.value)) {
+  if (!["image", "video", "audio"].includes(contentType.value)) {
     return null;
   }
   const stateModel = mediaStateModel(props.mediaDownloadState ?? "idle");

@@ -12,6 +12,37 @@ function imageMessage(senderId: string, image: Record<string, unknown>): Message
 }
 
 describe("listMessageMediaDownloadSources", () => {
+  it("offers a received voice attachment with its original filename and MIME", () => {
+    const audio = {
+      ...imageMessage("peer", {}),
+      content: { contentType: "audio", audio: { audioId: "voice-1", fileName: "语音.wav", mimeType: "audio/wav" } },
+    } as MessageLike;
+    expect(listMessageMediaDownloadSources(audio)).toMatchObject([
+      { kind: "audio", remoteFileId: "voice-1", fileId: "voice-1", displayFileName: "语音.wav", mimeType: "audio/wav" },
+    ]);
+    expect(hasDownloadableMessageMedia(audio)).toBe(true);
+  });
+
+  it("resolves typed audio source UUIDs without inventing a filename extension", () => {
+    const audio = {
+      ...imageMessage("peer", {}),
+      content: { contentType: "audio", audio: { source: { uuid: "voice-2", mimeType: "audio/ogg" } } },
+    } as MessageLike;
+    expect(listMessageMediaDownloadSources(audio)).toMatchObject([
+      { kind: "audio", remoteFileId: "voice-2", displayFileName: "audio", mimeType: "audio/ogg" },
+    ]);
+  });
+
+  it("keeps recalled and peer-local voice sources unavailable for download", () => {
+    const local = {
+      ...imageMessage("peer", {}),
+      content: { contentType: "audio", audio: { audioId: "/Users/me/private.wav", url: "file:///Users/me/private.wav" } },
+    } as MessageLike;
+    expect(listMessageMediaDownloadSources(local, { currentUserId: "me" })).toEqual([]);
+    const recalled = { ...local, isRecalled: true, content: { contentType: "audio", audio: { audioId: "voice-3" } } } as MessageLike;
+    expect(hasDownloadableMessageMedia(recalled)).toBe(false);
+  });
+
   it("saves your own not-yet-uploaded picture from the file on this device", () => {
     const [source] = listMessageMediaDownloadSources(
       imageMessage("me", { imageId: "/Users/me/Pictures/cat.png", url: "file:///Users/me/Pictures/cat.png" }),
