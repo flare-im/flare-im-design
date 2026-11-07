@@ -21,8 +21,10 @@ const props = withDefaults(
     size?: FlareControlSize;
     /** Sheet header title on mobile presentation. */
     title?: string;
+    /** Keep desktop options in layout inside bounded modal forms. */
+    menuPlacement?: "overlay" | "inline";
   }>(),
-  { placeholder: "", disabled: false },
+  { placeholder: "", disabled: false, menuPlacement: "overlay" },
 );
 const value = defineModel<string>({ default: "" });
 const emit = defineEmits<{ (e: "change", value: string): void }>();
@@ -104,7 +106,7 @@ onBeforeUnmount(() => {
 
     <!-- Desktop / tablet: anchored dropdown -->
     <transition v-if="!asSheet" name="flare-select-pop">
-      <div v-if="open" class="flare-select__menu" role="listbox">
+      <div v-if="open" class="flare-select__menu" :class="{ 'flare-select__menu--inline': menuPlacement === 'inline' }" role="listbox">
         <button
           v-for="o in options"
           :key="o.value"
@@ -190,6 +192,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--flare-color-border-primary);
   box-shadow: var(--flare-shadow-lg);
 }
+.flare-select__menu--inline { position: relative; top: auto; left: auto; right: auto; margin-top: var(--flare-size-spacing-xs); }
 /* Sheet option list */
 .flare-select__list { padding: 0 4px 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 

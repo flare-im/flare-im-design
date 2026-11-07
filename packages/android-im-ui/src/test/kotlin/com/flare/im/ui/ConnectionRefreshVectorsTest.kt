@@ -13,7 +13,7 @@ class ConnectionRefreshVectorsTest {
     @Test fun everyTransitionAsksForTheSameThingHere() {
         val table = FlareJson.parse(vectorsFile().readText()) as Map<*, *>
         val cases = table["cases"] as List<*>
-        assertTrue(cases.size >= 17, "the shared table lost cases: ${cases.size}")
+        assertTrue(cases.size >= 19, "the shared table lost cases: ${cases.size}")
         for (raw in cases) {
             val case = raw as Map<*, *>
             val name = case["name"] as String

@@ -16,6 +16,23 @@ Widget host(Widget body) => MaterialApp(
   home: Scaffold(body: SingleChildScrollView(child: body)),
 );
 void main() {
+  testWidgets('payment password is masked, required and cleared before dispatch', (tester) async {
+    final raw=fixture('payment');
+    raw['inputs']=[{'id':'password','kind':'password','label':'支付密码','required':true,'maxLength':6}];
+    (raw['actions'] as List).first['form']=['password'];
+    final events=<FlarePluginActionPayload>[];
+    await tester.pumpWidget(host(FlarePluginView(view:FlarePluginViewModel.fromJson(raw),onAction:(_,p)=>events.add(p))));
+    var pay=tester.widget<FlareRedPacketPayConfirm>(find.byType(FlareRedPacketPayConfirm));
+    expect(pay.confirmDisabled,isTrue);
+    final input=find.byType(FlareInput);
+    expect(tester.widget<FlareInput>(input).secure,isTrue);
+    await tester.enterText(find.descendant(of:input,matching:find.byType(EditableText)),'839271');await tester.pump();
+    pay=tester.widget<FlareRedPacketPayConfirm>(find.byType(FlareRedPacketPayConfirm));
+    expect(pay.confirmDisabled,isFalse);pay.onConfirm!();await tester.pump();
+    expect(events.single.formValues,{'password':'839271'});
+    expect(tester.widget<FlareInput>(input).controller!.text,'');
+  });
+
   testWidgets(
     'declared presentation uses the existing card and keeps its action ID',
     (tester) async {

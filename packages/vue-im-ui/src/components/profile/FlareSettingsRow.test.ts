@@ -9,7 +9,11 @@ describe('shared settings row', () => {
     const row = mount(Row, { props: { item } });
     expect(row.attributes('role')).toBe('switch');
     expect(row.attributes('aria-checked')).toBe('false');
-    await row.trigger('click');
+    const track = row.get('.flare-switch--sm');
+    expect(track.element.tagName).toBe('SPAN');
+    expect(track.attributes('aria-hidden')).toBe('true');
+    expect(row.element.querySelector('[role="switch"]')).toBeNull();
+    await track.trigger('click');
     expect(row.emitted('toggle')).toEqual([[item, true]]);
     await row.setProps({ item: { ...item, disabled: true } });
     await row.trigger('click');
@@ -66,5 +70,25 @@ describe('shared settings row', () => {
     const toggle = mount(Row, { props: { item: { key: 'mute', label: '消息免打扰', kind: 'toggle', value: true, detail: '这是一段很长很长很长很长的说明文字' } } });
     expect(toggle.classes()).not.toContain('is-stacked');
     short.unmount(); long.unmount(); toggle.unmount();
+  });
+  it('draws the red dot between the value and the chevron, named for a screen reader', () => {
+    const row = mount(Row, { props: { item: { key: 'about', label: '关于', kind: 'navigation' as const, detail: '2.3.2', badge: true } } });
+    const dot = row.get('.flare-settings__dot');
+    expect(dot.attributes('role')).toBe('img');
+    expect(dot.attributes('aria-label')).toBeTruthy();
+    expect(dot.element.previousElementSibling?.classList.contains('flare-settings__detail')).toBe(true);
+    expect(dot.element.nextElementSibling?.classList.contains('flare-settings__chev')).toBe(true);
+    expect(row.find('.flare-settings__badge').exists()).toBe(false);
+    row.unmount();
+  });
+  it('keeps a number the count badge, and draws no dot without a badge or on a toggle', () => {
+    const counted = mount(Row, { props: { item: { key: 'requests', label: '新朋友', kind: 'navigation' as const, badge: 3 } } });
+    expect(counted.get('.flare-settings__badge').text()).toBe('3');
+    expect(counted.find('.flare-settings__dot').exists()).toBe(false);
+    const plain = mount(Row, { props: { item: { key: 'about', label: '关于', kind: 'navigation' as const } } });
+    expect(plain.find('.flare-settings__dot').exists()).toBe(false);
+    const toggle = mount(Row, { props: { item: { key: 'mute', label: '消息免打扰', kind: 'toggle' as const, badge: true } } });
+    expect(toggle.find('.flare-settings__dot').exists()).toBe(false);
+    counted.unmount(); plain.unmount(); toggle.unmount();
   });
 });

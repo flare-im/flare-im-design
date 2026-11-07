@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, useId } from "vue";
 
-// Flare 品牌 Logo(通用件,归属 kit)。前倾几何 F,取自品牌色阶。
-// variant: gradient = 品牌渐变 squircle + 白 F(中性/浅底、app 图标);
-//          plate    = 白 squircle + 品牌渐变 F(品牌色背景上,如登录头)。
+// IM 品牌标识（通用件，归属 kit），沿用品牌色阶和圆角底板。
+// variant: gradient = 品牌渐变底板 + 白色 IM；plate = 白底板 + 渐变 IM。
 // 四端共用同一几何(skewX -9°)。Spec: Brand/BrandLogo。
 const props = withDefaults(defineProps<{ size?: number; variant?: "gradient" | "plate" }>(), {
   size: 64,
@@ -18,7 +17,7 @@ const plate = computed(() => props.variant === "plate");
   <div
     class="flare-brand-logo"
     :style="{ width: `${size}px`, height: `${size}px` }"
-    aria-label="flare IM"
+    aria-label="IM"
     role="img"
   >
     <svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -34,9 +33,7 @@ const plate = computed(() => props.variant === "plate");
         :fill="plate ? '#ffffff' : `url(#${gradId})`"
       />
       <g transform="translate(50,51) skewX(-9) translate(-50,-51)" :fill="plate ? `url(#${gradId})` : '#ffffff'">
-        <rect x="30" y="26" width="14" height="50" rx="7" />
-        <rect x="30" y="26" width="39" height="14" rx="7" />
-        <rect x="30" y="46" width="30" height="12.5" rx="6.25" />
+        <path d="M22 27H32V75H22ZM40 75V27H50L60 48L70 27H80V75H70V48L60 65L50 48V75Z" />
       </g>
     </svg>
   </div>

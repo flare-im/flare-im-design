@@ -23,6 +23,42 @@ List<IconData?> _glyphs(WidgetTester tester) => tester
     .toList();
 
 void main() {
+  test('a host ranked panel keeps its order, plugins interleaved', () {
+    // The social SDK ranks the "+" panel by the application's layout (10, 20,
+    // 30…): the kit keeps that sequence, not the default table's, even when
+    // the host list comes shuffled.
+    const ranked = [
+      FlareComposerAction(
+          id: 'image', icon: 'image', kind: FlareComposerActionKind.feature, order: 30),
+      FlareComposerAction(
+          id: 'plugin:flare.redpacket.send',
+          label: '红包',
+          icon: 'red-packet',
+          kind: FlareComposerActionKind.plugin,
+          order: 10),
+      FlareComposerAction(
+          id: 'file', icon: 'file', kind: FlareComposerActionKind.feature, order: 20),
+      FlareComposerAction(
+          id: 'plugin:flare.vote.create',
+          label: '投票',
+          icon: 'plugin',
+          kind: FlareComposerActionKind.plugin,
+          order: 40),
+    ];
+    final resolved = resolveFlareComposerActions(
+      actions: ranked,
+      capabilities: FlareComposerCapabilities(
+        availableActionIds: {for (final a in ranked) a.id},
+      ),
+    );
+    expect(resolved.map((a) => a.id), [
+      'plugin:flare.redpacket.send',
+      'file',
+      'image',
+      'plugin:flare.vote.create',
+    ]);
+  });
+
   test('the default set is the built-in features, in panel order', () {
     const defaults = FlareComposerActionPanel.defaultActions;
     expect(defaults.map((a) => a.id), [

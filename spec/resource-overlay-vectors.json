@@ -1,0 +1,1197 @@
+{
+  "version": 1,
+  "note": "What a resource pack may change. A pack is data read by code already in the build (the update center's L2 layer), so it can only replace copy and colours that exist and add emoji; it never adds behaviour. The four kits run this table against their own rules (Vue `flareResource*`, Flutter, SwiftUI and Compose `flareResource*` and `FlareResourceOverlay`); strings keys are the kit's own vocabulary, so the table uses made-up keys and each kit tests its real fields on its own.",
+  "rules": {
+    "content": "A pack's `contentJson` is a JSON object whose `schema` is `flare.resource.v1` and whose `kind` equals the pack's. Anything else ignores the whole pack, without an error. A `help` pack parses but the kit has nothing to fold it into: the host reads its `contentJson`.",
+    "placeholders": "`{name}` (letters, digits, underscore), `%s`, `%d` and `%@`, as a set: order and repeats do not count.",
+    "strings": "An entry is kept when its key has a built-in plain string, its value is a string that is not blank, and its placeholders equal the built-in value's. A value is kept as written. An entry that fails is ignored; the others stand. A field that is a function has no built-in plain string, so it cannot be replaced.",
+    "locales": "Tags compare without case, with `_` read as `-`. Exact first, then the requested tag cut one subtag at a time, then the first tag in sorted order that extends the requested one. No match means the pack says nothing for this language: copy never crosses into another language.",
+    "colors": "Only the groups `colors` (light) and `dark` (dark) exist; neither falls back to the other, so a light value never reaches the dark theme. A key must be a known colour and a value `#RRGGBB` or `#RRGGBBAA`. Sizes, spacing and type are not open: their groups are not read.",
+    "argb": "A colour for the native kits: `#RRGGBB` is opaque, `#RRGGBBAA` puts its alpha first. Vue writes the value as it is.",
+    "emoji": "Only adds. A pack entry needs a safe `id` that no built-in or earlier pack has and a title that is not blank. A sticker needs a safe `stickerId` new to its pack and a `url`; an emoji needs a `key` no built-in or earlier entry has and a `url`. Every image address must be https, and one that is not ignores the entry it sits on. Optional fields that are null or blank are left out. A pack left with nothing is dropped; a pack with emoji and no stickers adds no sticker tab.",
+    "fold": "Packs apply in the order given, which the engine sorts by id: the later pack wins a key. Each pack is judged against the built-in value, never against an earlier pack."
+  },
+  "content": [
+    {
+      "name": "a matching pack parses",
+      "kind": "strings",
+      "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {}}",
+      "accepted": true
+    },
+    {
+      "name": "a help pack parses",
+      "kind": "help",
+      "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"help\", \"articles\": []}",
+      "accepted": true
+    },
+    {
+      "name": "broken JSON is ignored",
+      "kind": "strings",
+      "contentJson": "{\"schema\":",
+      "accepted": false
+    },
+    {
+      "name": "an empty string is ignored",
+      "kind": "strings",
+      "contentJson": "",
+      "accepted": false
+    },
+    {
+      "name": "a root that is not an object is ignored",
+      "kind": "strings",
+      "contentJson": "[]",
+      "accepted": false
+    },
+    {
+      "name": "a missing schema is ignored",
+      "kind": "strings",
+      "contentJson": "{\"kind\": \"strings\"}",
+      "accepted": false
+    },
+    {
+      "name": "another schema version is ignored",
+      "kind": "strings",
+      "contentJson": "{\"schema\": \"flare.resource.v2\", \"kind\": \"strings\"}",
+      "accepted": false
+    },
+    {
+      "name": "a kind that disagrees with the manifest is ignored",
+      "kind": "tokens",
+      "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\"}",
+      "accepted": false
+    }
+  ],
+  "placeholders": [
+    {
+      "text": "no placeholder",
+      "expect": []
+    },
+    {
+      "text": "{name} sent {count} files",
+      "expect": [
+        "{count}",
+        "{name}"
+      ]
+    },
+    {
+      "text": "{count} and {count}",
+      "expect": [
+        "{count}"
+      ]
+    },
+    {
+      "text": "%s has %d, %@",
+      "expect": [
+        "%@",
+        "%d",
+        "%s"
+      ]
+    },
+    {
+      "text": "100% done",
+      "expect": []
+    },
+    {
+      "text": "{not a name} {}",
+      "expect": []
+    },
+    {
+      "text": "{user_1}",
+      "expect": [
+        "{user_1}"
+      ]
+    }
+  ],
+  "strings": [
+    {
+      "name": "replaces a key that exists",
+      "builtIn": {
+        "a": "One",
+        "b": "Two"
+      },
+      "entries": {
+        "a": "Uno"
+      },
+      "expect": {
+        "a": "Uno"
+      }
+    },
+    {
+      "name": "ignores a key that does not exist and keeps the others",
+      "builtIn": {
+        "a": "One"
+      },
+      "entries": {
+        "a": "Uno",
+        "z": "New"
+      },
+      "expect": {
+        "a": "Uno"
+      }
+    },
+    {
+      "name": "ignores an empty value",
+      "builtIn": {
+        "a": "One"
+      },
+      "entries": {
+        "a": ""
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a blank value",
+      "builtIn": {
+        "a": "One"
+      },
+      "entries": {
+        "a": " \t"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a value that is not a string",
+      "builtIn": {
+        "a": "One",
+        "b": "Two",
+        "c": "Three"
+      },
+      "entries": {
+        "a": 1,
+        "b": null,
+        "c": {
+          "other": "Tres"
+        }
+      },
+      "expect": {}
+    },
+    {
+      "name": "keeps a value as written",
+      "builtIn": {
+        "a": "One"
+      },
+      "entries": {
+        "a": "  Uno  "
+      },
+      "expect": {
+        "a": "  Uno  "
+      }
+    },
+    {
+      "name": "keeps the same placeholders in another order",
+      "builtIn": {
+        "a": "{name} sent {count}"
+      },
+      "entries": {
+        "a": "{count} from {name}"
+      },
+      "expect": {
+        "a": "{count} from {name}"
+      }
+    },
+    {
+      "name": "ignores a dropped placeholder",
+      "builtIn": {
+        "a": "{name} sent {count}"
+      },
+      "entries": {
+        "a": "{name} sent some"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores an added placeholder",
+      "builtIn": {
+        "a": "Sent"
+      },
+      "entries": {
+        "a": "Sent by {name}"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a renamed placeholder",
+      "builtIn": {
+        "a": "Hi {name}"
+      },
+      "entries": {
+        "a": "Hi {user}"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a changed format specifier",
+      "builtIn": {
+        "a": "%d items"
+      },
+      "entries": {
+        "a": "%s items"
+      },
+      "expect": {}
+    },
+    {
+      "name": "keeps a format specifier",
+      "builtIn": {
+        "a": "Hi %@"
+      },
+      "entries": {
+        "a": "Hello %@"
+      },
+      "expect": {
+        "a": "Hello %@"
+      }
+    },
+    {
+      "name": "entries that are not an object change nothing",
+      "builtIn": {
+        "a": "One"
+      },
+      "entries": [
+        "a"
+      ],
+      "expect": {}
+    }
+  ],
+  "locales": [
+    {
+      "requested": "zh-CN",
+      "available": [
+        "zh-CN",
+        "en"
+      ],
+      "expect": "zh-CN"
+    },
+    {
+      "requested": "en-US",
+      "available": [
+        "zh-CN",
+        "en"
+      ],
+      "expect": "en"
+    },
+    {
+      "requested": "en",
+      "available": [
+        "en-US",
+        "zh-CN"
+      ],
+      "expect": "en-US"
+    },
+    {
+      "requested": "EN_us",
+      "available": [
+        "en-US"
+      ],
+      "expect": "en-US"
+    },
+    {
+      "requested": "zh-Hant-TW",
+      "available": [
+        "zh-Hant",
+        "zh"
+      ],
+      "expect": "zh-Hant"
+    },
+    {
+      "requested": "zh-Hant-TW",
+      "available": [
+        "zh",
+        "en"
+      ],
+      "expect": "zh"
+    },
+    {
+      "requested": "zh",
+      "available": [
+        "zh-TW",
+        "zh-CN"
+      ],
+      "expect": "zh-CN"
+    },
+    {
+      "requested": "zh-TW",
+      "available": [
+        "zh-CN"
+      ],
+      "expect": null
+    },
+    {
+      "requested": "en-GB",
+      "available": [
+        "en-US"
+      ],
+      "expect": null
+    },
+    {
+      "requested": "ja",
+      "available": [
+        "zh-CN",
+        "en"
+      ],
+      "expect": null
+    },
+    {
+      "requested": "e",
+      "available": [
+        "en"
+      ],
+      "expect": null
+    },
+    {
+      "requested": "",
+      "available": [
+        "en"
+      ],
+      "expect": null
+    },
+    {
+      "requested": "en",
+      "available": [],
+      "expect": null
+    }
+  ],
+  "colors": [
+    {
+      "name": "keeps a known key with six digits",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#112233"
+      },
+      "expect": {
+        "primary": "#112233"
+      }
+    },
+    {
+      "name": "keeps eight digits",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#11223344"
+      },
+      "expect": {
+        "primary": "#11223344"
+      }
+    },
+    {
+      "name": "keeps lower case hex",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#aabbcc"
+      },
+      "expect": {
+        "primary": "#aabbcc"
+      }
+    },
+    {
+      "name": "ignores a key that does not exist",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#112233",
+        "nope": "#112233"
+      },
+      "expect": {
+        "primary": "#112233"
+      }
+    },
+    {
+      "name": "ignores three digits",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#123"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores seven digits",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#1122334"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores rgb() and names",
+      "known": [
+        "primary",
+        "error"
+      ],
+      "group": {
+        "primary": "rgb(1, 2, 3)",
+        "error": "red"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores what could break out of a stylesheet",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#112233;}body{display:none"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a trailing line break",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": "#112233\n"
+      },
+      "expect": {}
+    },
+    {
+      "name": "ignores a value that is not a string",
+      "known": [
+        "primary"
+      ],
+      "group": {
+        "primary": 1122
+      },
+      "expect": {}
+    },
+    {
+      "name": "a group that is not an object changes nothing",
+      "known": [
+        "primary"
+      ],
+      "group": "#112233",
+      "expect": {}
+    },
+    {
+      "name": "a missing group changes nothing",
+      "known": [
+        "primary"
+      ],
+      "group": null,
+      "expect": {}
+    }
+  ],
+  "argb": [
+    {
+      "value": "#112233",
+      "argb": 4279312947
+    },
+    {
+      "value": "#11223344",
+      "argb": 1141973555
+    },
+    {
+      "value": "#ffffff",
+      "argb": 4294967295
+    },
+    {
+      "value": "#00000000",
+      "argb": 0
+    },
+    {
+      "value": "#AABBCC80",
+      "argb": 2158672844
+    }
+  ],
+  "emoji": [
+    {
+      "name": "adds a sticker pack and an emoji",
+      "builtInEmoji": [
+        "alien"
+      ],
+      "builtInPacks": [
+        "classic",
+        "gifs"
+      ],
+      "packs": [
+        {
+          "id": "acme",
+          "title": " Acme ",
+          "iconUrl": "https://cdn.example/icon.webp",
+          "stickers": [
+            {
+              "stickerId": "wave",
+              "url": "https://cdn.example/wave.webp",
+              "previewUrl": "https://cdn.example/wave.png",
+              "alt": "Wave"
+            }
+          ],
+          "emoji": [
+            {
+              "key": "acme_wave",
+              "url": "https://cdn.example/e.webp",
+              "previewUrl": "https://cdn.example/e.png",
+              "labels": {
+                "en": "Wave",
+                "zh-Hans": "挥手"
+              }
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [
+          {
+            "key": "acme_wave",
+            "url": "https://cdn.example/e.webp",
+            "previewUrl": "https://cdn.example/e.png",
+            "labels": {
+              "en": "Wave",
+              "zh-Hans": "挥手"
+            }
+          }
+        ],
+        "stickerPacks": [
+          {
+            "id": "acme",
+            "title": "Acme",
+            "iconUrl": "https://cdn.example/icon.webp",
+            "stickers": [
+              {
+                "stickerId": "wave",
+                "url": "https://cdn.example/wave.webp",
+                "previewUrl": "https://cdn.example/wave.png",
+                "alt": "Wave"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "leaves optional fields out",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "a",
+          "title": "A",
+          "iconUrl": null,
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp",
+              "previewUrl": null,
+              "alt": " "
+            }
+          ],
+          "emoji": [
+            {
+              "key": "k",
+              "url": "https://cdn.example/k.webp",
+              "labels": {
+                "en": " ",
+                "fr": 1
+              }
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [
+          {
+            "key": "k",
+            "url": "https://cdn.example/k.webp"
+          }
+        ],
+        "stickerPacks": [
+          {
+            "id": "a",
+            "title": "A",
+            "stickers": [
+              {
+                "stickerId": "s",
+                "url": "https://cdn.example/s.webp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "never replaces a built-in pack",
+      "builtInEmoji": [],
+      "builtInPacks": [
+        "classic"
+      ],
+      "packs": [
+        {
+          "id": "classic",
+          "title": "Mine",
+          "stickers": [
+            {
+              "stickerId": "001",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [],
+        "stickerPacks": []
+      }
+    },
+    {
+      "name": "never replaces a built-in emoji",
+      "builtInEmoji": [
+        "alien"
+      ],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "a",
+          "title": "A",
+          "emoji": [
+            {
+              "key": "alien",
+              "url": "https://cdn.example/a.webp"
+            },
+            {
+              "key": "own",
+              "url": "https://cdn.example/o.webp"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [
+          {
+            "key": "own",
+            "url": "https://cdn.example/o.webp"
+          }
+        ],
+        "stickerPacks": []
+      }
+    },
+    {
+      "name": "the first pack keeps an id or key that repeats",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "a",
+          "title": "First",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/1.webp"
+            },
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/2.webp"
+            }
+          ],
+          "emoji": [
+            {
+              "key": "k",
+              "url": "https://cdn.example/1.webp"
+            }
+          ]
+        },
+        {
+          "id": "a",
+          "title": "Second",
+          "stickers": [
+            {
+              "stickerId": "t",
+              "url": "https://cdn.example/3.webp"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "title": "Third",
+          "emoji": [
+            {
+              "key": "k",
+              "url": "https://cdn.example/4.webp"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [
+          {
+            "key": "k",
+            "url": "https://cdn.example/1.webp"
+          }
+        ],
+        "stickerPacks": [
+          {
+            "id": "a",
+            "title": "First",
+            "stickers": [
+              {
+                "stickerId": "s",
+                "url": "https://cdn.example/1.webp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ignores entries that miss a required field",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "title": "No id",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        },
+        {
+          "id": "no-title",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        },
+        {
+          "id": "blank",
+          "title": "  ",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        },
+        {
+          "id": "ok",
+          "title": "Ok",
+          "stickers": [
+            {
+              "url": "https://cdn.example/s.webp"
+            },
+            {
+              "stickerId": "s"
+            },
+            {
+              "stickerId": "t",
+              "url": "https://cdn.example/t.webp"
+            }
+          ],
+          "emoji": [
+            {
+              "url": "https://cdn.example/e.webp"
+            },
+            {
+              "key": "k"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [],
+        "stickerPacks": [
+          {
+            "id": "ok",
+            "title": "Ok",
+            "stickers": [
+              {
+                "stickerId": "t",
+                "url": "https://cdn.example/t.webp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ignores an entry whose image address is not https",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "a",
+          "title": "A",
+          "stickers": [
+            {
+              "stickerId": "http",
+              "url": "http://cdn.example/s.webp"
+            },
+            {
+              "stickerId": "data",
+              "url": "data:image/png;base64,AAAA"
+            },
+            {
+              "stickerId": "file",
+              "url": "file:///etc/passwd"
+            },
+            {
+              "stickerId": "preview",
+              "url": "https://cdn.example/s.webp",
+              "previewUrl": "http://cdn.example/p.webp"
+            },
+            {
+              "stickerId": "no_host",
+              "url": "https:///s.webp"
+            },
+            {
+              "stickerId": "space",
+              "url": "https://cdn.example/a b.webp"
+            },
+            {
+              "stickerId": "good",
+              "url": "https://cdn.example:8443/s.webp?v=1"
+            }
+          ],
+          "emoji": [
+            {
+              "key": "bad",
+              "url": "ftp://cdn.example/e.webp"
+            }
+          ]
+        },
+        {
+          "id": "icon",
+          "title": "Icon",
+          "iconUrl": "http://cdn.example/i.webp",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [],
+        "stickerPacks": [
+          {
+            "id": "a",
+            "title": "A",
+            "stickers": [
+              {
+                "stickerId": "good",
+                "url": "https://cdn.example:8443/s.webp?v=1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ignores ids and keys that are not safe",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "../up",
+          "title": "T",
+          "stickers": [
+            {
+              "stickerId": "s",
+              "url": "https://cdn.example/s.webp"
+            }
+          ]
+        },
+        {
+          "id": "ok",
+          "title": "T",
+          "stickers": [
+            {
+              "stickerId": "a/b",
+              "url": "https://cdn.example/s.webp"
+            },
+            {
+              "stickerId": "line\n",
+              "url": "https://cdn.example/s.webp"
+            }
+          ],
+          "emoji": [
+            {
+              "key": "Upper",
+              "url": "https://cdn.example/e.webp"
+            },
+            {
+              "key": "1st",
+              "url": "https://cdn.example/e.webp"
+            },
+            {
+              "key": "good_1",
+              "url": "https://cdn.example/e.webp"
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "emoji": [
+          {
+            "key": "good_1",
+            "url": "https://cdn.example/e.webp"
+          }
+        ],
+        "stickerPacks": []
+      }
+    },
+    {
+      "name": "drops a pack left with nothing",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": [
+        {
+          "id": "a",
+          "title": "A",
+          "stickers": [],
+          "emoji": []
+        },
+        {
+          "id": "b",
+          "title": "B"
+        },
+        "not an object"
+      ],
+      "expect": {
+        "emoji": [],
+        "stickerPacks": []
+      }
+    },
+    {
+      "name": "packs that are not a list change nothing",
+      "builtInEmoji": [],
+      "builtInPacks": [],
+      "packs": {
+        "id": "a"
+      },
+      "expect": {
+        "emoji": [],
+        "stickerPacks": []
+      }
+    }
+  ],
+  "fold": [
+    {
+      "name": "the later pack wins a key, the earlier one keeps the rest",
+      "locale": "zh-CN",
+      "builtIn": {
+        "a": "一",
+        "b": "二"
+      },
+      "known": [
+        "primary"
+      ],
+      "packs": [
+        {
+          "id": "p1",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"zh-CN\": {\"a\": \"甲\", \"b\": \"乙\"}}}"
+        },
+        {
+          "id": "p2",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"zh-CN\": {\"a\": \"子\"}}}"
+        }
+      ],
+      "expect": {
+        "strings": {
+          "a": "子",
+          "b": "乙"
+        },
+        "light": {},
+        "dark": {}
+      }
+    },
+    {
+      "name": "each pack picks its own language",
+      "locale": "en-US",
+      "builtIn": {
+        "a": "One",
+        "b": "Two"
+      },
+      "known": [],
+      "packs": [
+        {
+          "id": "p1",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"Uno\"}, \"zh-CN\": {\"b\": \"乙\"}}}"
+        },
+        {
+          "id": "p2",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"zh-CN\": {\"a\": \"甲\"}}}"
+        }
+      ],
+      "expect": {
+        "strings": {
+          "a": "Uno"
+        },
+        "light": {},
+        "dark": {}
+      }
+    },
+    {
+      "name": "a language the pack lacks changes nothing",
+      "locale": "ja",
+      "builtIn": {
+        "a": "One"
+      },
+      "known": [],
+      "packs": [
+        {
+          "id": "p1",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"Uno\"}}}"
+        }
+      ],
+      "expect": {
+        "strings": {},
+        "light": {},
+        "dark": {}
+      }
+    },
+    {
+      "name": "an earlier pack does not move the placeholders a later one is judged by",
+      "locale": "en",
+      "builtIn": {
+        "a": "Hi {name}"
+      },
+      "known": [],
+      "packs": [
+        {
+          "id": "p1",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"Hello {name}\"}}}"
+        },
+        {
+          "id": "p2",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"Hey\"}}}"
+        }
+      ],
+      "expect": {
+        "strings": {
+          "a": "Hello {name}"
+        },
+        "light": {},
+        "dark": {}
+      }
+    },
+    {
+      "name": "light and dark stay apart, and only their groups are read",
+      "locale": "en",
+      "builtIn": {},
+      "known": [
+        "primary",
+        "bgPrimary"
+      ],
+      "packs": [
+        {
+          "id": "t1",
+          "kind": "tokens",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"tokens\", \"colors\": {\"primary\": \"#112233\"}, \"dark\": {\"bgPrimary\": \"#44556677\"}, \"sizes\": {\"radiusMd\": \"#000000\"}, \"fontSize\": {\"primary\": \"#000000\"}}"
+        }
+      ],
+      "expect": {
+        "strings": {},
+        "light": {
+          "primary": "#112233"
+        },
+        "dark": {
+          "bgPrimary": "#44556677"
+        }
+      }
+    },
+    {
+      "name": "the later pack wins a colour",
+      "locale": "en",
+      "builtIn": {},
+      "known": [
+        "primary"
+      ],
+      "packs": [
+        {
+          "id": "t1",
+          "kind": "tokens",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"tokens\", \"colors\": {\"primary\": \"#111111\"}}"
+        },
+        {
+          "id": "t2",
+          "kind": "tokens",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"tokens\", \"colors\": {\"primary\": \"#222222\"}}"
+        }
+      ],
+      "expect": {
+        "strings": {},
+        "light": {
+          "primary": "#222222"
+        },
+        "dark": {}
+      }
+    },
+    {
+      "name": "a bad pack leaves the good ones alone",
+      "locale": "en",
+      "builtIn": {
+        "a": "One"
+      },
+      "known": [
+        "primary"
+      ],
+      "packs": [
+        {
+          "id": "bad",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{"
+        },
+        {
+          "id": "wrong",
+          "kind": "tokens",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"No\"}}}"
+        },
+        {
+          "id": "help",
+          "kind": "help",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"help\", \"articles\": []}"
+        },
+        {
+          "id": "later",
+          "kind": "someday",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"someday\", \"locales\": {\"en\": {\"a\": \"No\"}}}"
+        },
+        {
+          "id": "good",
+          "kind": "strings",
+          "packVersion": 1,
+          "contentJson": "{\"schema\": \"flare.resource.v1\", \"kind\": \"strings\", \"locales\": {\"en\": {\"a\": \"Uno\"}}}"
+        }
+      ],
+      "expect": {
+        "strings": {
+          "a": "Uno"
+        },
+        "light": {},
+        "dark": {}
+      }
+    }
+  ]
+}

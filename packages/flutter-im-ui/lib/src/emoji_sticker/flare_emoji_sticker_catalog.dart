@@ -113,6 +113,13 @@ class FlareEmojiStickerCatalog extends ChangeNotifier {
     ),
   ];
 
+  /// The keys that ship with the package, which a resource pack may not replace.
+  Iterable<String> get bundledEmojiKeys => _emojiKeys;
+
+  /// The packs that ship with the package, which a resource pack may not replace.
+  Iterable<String> get bundledStickerPackIds =>
+      _stickerPacks.map((pack) => pack.id);
+
   /// Loads the manifest + locale labels once. Safe to call repeatedly.
   Future<void> ensureLoaded() async {
     if (_loaded) return;

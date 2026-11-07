@@ -240,7 +240,7 @@ fun FlareStickerPackMessage(
             "${FlareEmojiStickerCatalog.ASSET_ROOT}/stickers/${FlareEmojiStickerCatalog.stickerSubdirForPackageId(packageId)}/$sid.webp"
         } else null,
         previewBytes = preview,
-        remoteUrl = net.takeIf(String::isNotEmpty),
+        remoteUrl = FlareEmojiStickerCatalog.stickerRuntimeUri(sid, packageId) ?: net.takeIf(String::isNotEmpty),
         contentDescription = flareStrings().sticker,
         modifier = Modifier.size(w.dp, h.dp),
         fallback = {
@@ -275,6 +275,7 @@ internal fun rememberFlareInlineEmojiContent(keys: Set<String>): Map<String, Inl
                 FlareStaticCatalogImage(
                     assetPath = if (preview == null) "${FlareEmojiStickerCatalog.ASSET_ROOT}/emoji/$key.webp" else null,
                     previewBytes = preview,
+                    remoteUrl = FlareEmojiStickerCatalog.emojiRuntimeUri(key),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -331,6 +332,7 @@ fun FlareEmojiStickerPicker(
                         FlareStaticCatalogImage(
                             assetPath = if (preview == null) "${FlareEmojiStickerCatalog.ASSET_ROOT}/emoji/$key.webp" else null,
                             previewBytes = preview,
+                            remoteUrl = FlareEmojiStickerCatalog.emojiRuntimeUri(key),
                             contentDescription = key,
                             modifier = Modifier
                                 .size(40.dp)
@@ -353,6 +355,7 @@ fun FlareEmojiStickerPicker(
                         FlareStaticCatalogImage(
                             assetPath = if (preview == null) "${FlareEmojiStickerCatalog.ASSET_ROOT}/stickers/${FlareEmojiStickerCatalog.stickerSubdirForPackageId(pack.id)}/$id.webp" else null,
                             previewBytes = preview,
+                            remoteUrl = FlareEmojiStickerCatalog.stickerRuntimeUri(id, pack.id),
                             contentDescription = id,
                             modifier = Modifier
                                 .size(76.dp)

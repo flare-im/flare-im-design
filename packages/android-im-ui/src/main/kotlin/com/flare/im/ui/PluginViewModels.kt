@@ -218,7 +218,7 @@ data class PluginRowsBlock(
 
 /** Form input kinds (UiInput). */
 enum class PluginInputKind(val wire: String) {
-    Text("text"), Textarea("textarea"), Number("number"), Toggle("toggle"), Select("select"), Datetime("datetime"),
+    Text("text"), Password("password"), Textarea("textarea"), Number("number"), Toggle("toggle"), Select("select"), Datetime("datetime"),
     Options("options"), Members("members");
 
     companion object {
@@ -1016,7 +1016,7 @@ internal fun pluginFormSettle(old: PluginHostSignal, new: PluginHostSignal, acti
 
 internal object PluginFormRules {
     fun maxLength(input: PluginInput): Int? = input.maxLength ?: when (input.kind) {
-        PluginInputKind.Text -> 256
+        PluginInputKind.Text, PluginInputKind.Password -> 256
         PluginInputKind.Textarea -> 2000
         PluginInputKind.Options -> 100
         else -> null
@@ -1058,6 +1058,7 @@ internal object PluginFormRules {
             }
             PluginInputKind.Options -> (raw as? List<*>)?.map { text(it) } ?: List(minRows(input)) { "" }
             PluginInputKind.Members -> (raw as? List<*>)?.filterIsInstance<String>() ?: emptyList<String>()
+            PluginInputKind.Password -> ""
             PluginInputKind.Text, PluginInputKind.Textarea, PluginInputKind.Select -> raw as? String ?: ""
             PluginInputKind.Number, PluginInputKind.Datetime -> (raw as? Number)?.toDouble()?.takeIf { it.isFinite() }
         }
@@ -1072,7 +1073,7 @@ internal object PluginFormRules {
     fun check(input: PluginInput, draft: Any?): PluginFormIssue? {
         val limit = maxLength(input)
         return when (input.kind) {
-            PluginInputKind.Text, PluginInputKind.Textarea -> {
+            PluginInputKind.Text, PluginInputKind.Password, PluginInputKind.Textarea -> {
                 val value = trimmed(draft as? String ?: "")
                 when {
                     input.required && value.isEmpty() -> PluginFormIssue.Required
@@ -1104,6 +1105,7 @@ internal object PluginFormRules {
         for (input in inputs) {
             val value = draft[input.id]
             when (input.kind) {
+                PluginInputKind.Password -> (value as? String ?: "").takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Text, PluginInputKind.Textarea -> trimmed(value as? String ?: "").takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Number, PluginInputKind.Datetime -> (value as? Number)?.toDouble()?.takeIf { it.isFinite() }?.let { out[input.id] = it }
                 PluginInputKind.Toggle -> out[input.id] = value as? Boolean ?: false

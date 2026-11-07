@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// The message input — plain or rich text, attach, emoji, send, optional reply
-/// strip. Spec: Composer/Composer (`ComposerView`). Send is optimistic: `onSend`
-/// fires immediately; the host owns local echo and persistence.
-
 /// The two shapes a composer takes, resolved once so the layout below reads as
 /// one composer with values in it rather than two layouts interleaved.
 ///
@@ -33,44 +29,68 @@ private struct ComposerMetrics {
     }
 }
 
-/// The composer's mention flow as values, so the rules hold without a screen: whether the picker is
-/// open and where the typed "@" that opened it is. A pick writes "@label " into the text; the core finds
-/// the mentions in the text when the message is built, so a send carries only the text (as on Vue).
-struct ComposerMentionFlow {
-    private(set) var open = false
-    /// Character offset of the typed "@" that opened the picker; nil when the mention key opened it.
-    private(set) var trigger: Int?
+enum ComposerPanel: Equatable {
+    case emoji, mention, actions
+}
 
-    /// The mention key toggles the picker; a picked name then goes at the end of the text.
-    mutating func toggleFromKey() {
-        trigger = nil
-        open.toggle()
+/// The composer has one panel at a time. A typed mention also remembers where to insert the name.
+struct ComposerPanelFlow {
+    private struct TypedMention {
+        let prefix: String
+        let suffix: String
+
+        func query(in text: String) -> Substring? {
+            guard text.hasPrefix(prefix), text.hasSuffix(suffix),
+                  text.count >= prefix.count + suffix.count else { return nil }
+            let query = text.dropFirst(prefix.count).dropLast(suffix.count)
+            guard query.count <= 40, !query.contains(where: \.isNewline) else { return nil }
+            return query
+        }
+    }
+
+    private(set) var active: ComposerPanel?
+    private var typedMention: TypedMention?
+    var mentionTrigger: Int? { typedMention.map { $0.prefix.count - 1 } }
+
+    func mentionQuery(in text: String) -> String? { typedMention?.query(in: text).map { String($0) } }
+
+    mutating func toggle(_ panel: ComposerPanel) {
+        active = active == panel ? nil : panel
+        typedMention = nil
     }
 
     /// Opens the picker when the edit typed an "@" at the start of a word; true when it opened.
     mutating func textChanged(previous: String, next: String) -> Bool {
-        guard !open, let index = ComposerView.typedMentionTrigger(previous: previous, next: next) else { return false }
-        trigger = index
-        open = true
+        if active == .mention {
+            if typedMention != nil, mentionQuery(in: next) == nil { close(.mention) }
+            return false
+        }
+        guard let index = ComposerView.typedMentionTrigger(previous: previous, next: next) else { return false }
+        active = .mention
+        typedMention = TypedMention(prefix: String(next.prefix(index + 1)), suffix: String(next.dropFirst(index + 1)))
         return true
     }
 
-    /// Puts "@label " into `text` (over the typed "@"), closes the picker and returns the new text. The
+    /// Puts "@label " into `text` over the typed token, closes the picker and returns the new text. The
     /// label is the candidate's name — the roster display name the core matches — and the everyone
     /// candidate is written with `everyoneLabel`.
     mutating func pick(_ candidate: MentionCandidate, into text: String, everyoneLabel: String) -> String {
+        let query = mentionQuery(in: text)
+        defer { close() }
+        guard typedMention == nil || query != nil else { return text }
         let name = candidate.isEveryone ? everyoneLabel : candidate.name
-        let updated = ComposerView.insertingMention(name, into: text, at: trigger)
-        close()
-        return updated
+        return ComposerView.insertingMention(name, into: text, at: mentionTrigger, queryLength: query?.count ?? 0)
     }
 
-    mutating func close() {
-        open = false
-        trigger = nil
+    mutating func close(_ panel: ComposerPanel? = nil) {
+        guard panel == nil || active == panel else { return }
+        active = nil
+        typedMention = nil
     }
 }
 
+/// The shared message composer. The active panel sits below the editor and tools on iOS and above them on
+/// desktop. `onSend` fires immediately; the host owns local echo and persistence.
 public struct ComposerView: View {
     private let rich: Bool
     private let placeholder: String?
@@ -118,18 +138,14 @@ public struct ComposerView: View {
         Binding(get: { text }, set: { value in
             let previous = text
             text = maxLength.map { String(value.prefix(max(0, $0))) } ?? value
-            openMentionPickerIfTyped(previous: previous, next: text)
+            updateTypedMention(previous: previous, next: text)
             // Only what the person did: the clear after a send writes `text` directly, so a host driving
             // a typing signal from here never reports its own edits as the user's.
             onUserInput?(text)
         })
     }
     @State private var voiceMode = false
-    @State private var panelOpen = false
-    /// The composer's own emoji and sticker panel, for hosts that do not mount one (FR-097).
-    @State private var emojiOpen = false
-    /// The mention picker's state: open or not, and the typed "@" that opened it.
-    @State private var mentionFlow = ComposerMentionFlow()
+    @State private var panelFlow = ComposerPanelFlow()
 
     public init(
         text: Binding<String>? = nil,
@@ -166,7 +182,7 @@ public struct ComposerView: View {
         onVoiceCancel: (() -> Void)? = nil,
         /// The people the mention key offers (a group's members, without the current user), each named by
         /// the roster display name the core matches mentions against. With any, the mention key and an "@"
-        /// typed at the start of a word open the kit ``MentionPickerView`` above the input (everyone first),
+        /// typed at the start of a word open the kit ``MentionPickerView`` (everyone first),
         /// and picking someone puts "@name " into the text; `onSend` still sends the text, and the core
         /// finds the mentions in it. Empty keeps the key typing "@".
         mentionCandidates: [MentionCandidate] = []
@@ -208,6 +224,8 @@ public struct ComposerView: View {
         )
     }
     private var hasActionPanel: Bool { onAction != nil && !resolvedActions.isEmpty }
+    /// "+" with nothing to open or attach is hidden, not drawn disabled.
+    private var plusShown: Bool { allows("attachments") && (hasActionPanel || onAttach != nil) }
     private var hasMentionPicker: Bool { capabilities.allowsTool("mention") && !mentionCandidates.isEmpty }
     /// Each toolbar key the host offers (``FlareComposerCapabilities/availableToolIDs``). A key taken away also
     /// closes what it opened; the draft stays.
@@ -217,7 +235,7 @@ public struct ComposerView: View {
     private var richOn: Bool { allows("richText") && (rich || formatMode) }
     /// The keys in the row, the send key included: the band's tool inset is what they leave of the width.
     private var toolKeyCount: Int {
-        1 + ["emoji", "mention", "image", "richText", "attachments"].filter(allows).count + (offersVoice ? 1 : 0)
+        1 + ["emoji", "mention", "image", "richText"].filter(allows).count + (plusShown ? 1 : 0) + (offersVoice ? 1 : 0)
     }
 
     /// Copy in effect: an explicit parameter wins, otherwise the `flareStrings` provider.
@@ -241,42 +259,33 @@ public struct ComposerView: View {
         let m = ComposerMetrics.of(width: width, keys: toolKeyCount)
         VStack(spacing: 0) {
             if let replyTo { replyStrip(replyTo, colors, m) }
-            if mentionFlow.open, hasMentionPicker, !voiceMode {
-                MentionPickerView(candidates: mentionCandidates, allowEveryone: true,
-                                  onSelect: pickMention, onClose: closeMentionPicker)
-                    .padding(.horizontal, m.band ? FlareSizes.spacingSm : 0)
-                    .padding(.vertical, FlareSizes.spacingXs)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
             if voiceMode, offersVoice, let onVoiceSend {
                 // The band runs edge to edge; the recorder is a framed row, so it keeps the band's side inset.
                 InlineVoiceComposerView(disabled: disabled, onKeyboard: { voiceMode = false }, onSend: onVoiceSend)
                     .padding(.horizontal, m.band ? FlareSizes.spacingSm : 0)
                     .padding(.top, m.band ? FlareSizes.spacingXs : 0)
             } else {
+                if !flareUsesMobileComposerPanels { activePanel(m) }
                 VStack(spacing: 0) {
-                    if !panelOpen {
-                        if richOn { formatStrip(colors, m) }
-                        HStack(alignment: .top, spacing: 0) {
-                            Group {
-                                FlareComposerEmojiTextEditor(
-                                    text: textBinding,
-                                    placeholder: copy.placeholder,
-                                    disabled: disabled,
-                                    expanded: expanded,
-                                    fontSize: formats.contains("heading") ? 17 : 15,
-                                    bold: formats.contains("bold"),
-                                    italic: formats.contains("italic"),
-                                    strike: formats.contains("strike"),
-                                    underline: formats.contains("link"),
-                                    textColor: formats.contains("link") ? colors.primaryText : colors.textPrimary,
-                                    hintColor: colors.textTertiary
-                                )
-                            }.padding(m.text)
-                            iconButton(expanded ? "collapse" : "expand",
-                                       label: expanded ? strings.composerCollapseInput : strings.composerExpandInput,
-                                       { expanded.toggle() }, colors)
-                        }
+                    if richOn { formatStrip(colors, m) }
+                    HStack(alignment: .top, spacing: 0) {
+                        FlareComposerEmojiTextEditor(
+                            text: textBinding,
+                            placeholder: copy.placeholder,
+                            disabled: disabled,
+                            expanded: expanded,
+                            fontSize: formats.contains("heading") ? 17 : 15,
+                            bold: formats.contains("bold"),
+                            italic: formats.contains("italic"),
+                            strike: formats.contains("strike"),
+                            underline: formats.contains("link"),
+                            textColor: formats.contains("link") ? colors.primaryText : colors.textPrimary,
+                            hintColor: colors.textTertiary,
+                            onFocus: { panelFlow.close() }
+                        ).padding(m.text)
+                        iconButton(expanded ? "collapse" : "expand",
+                                   label: expanded ? strings.composerCollapseInput : strings.composerExpandInput,
+                                   { expanded.toggle() }, colors)
                     }
                     if !m.band { toolbar(colors, distributed: false) }
                 }
@@ -284,33 +293,58 @@ public struct ComposerView: View {
                 .overlay { if !m.band { RoundedRectangle(cornerRadius: FlareSizes.radiusCard).strokeBorder(colors.borderPrimary, lineWidth: 1) } }
                 // The tools leave the band and rest on the ground, taking back
                 // the inset the band gave up.
-                if m.band { toolbar(colors, distributed: true).padding(.horizontal, m.toolInset) }
-                if emojiOpen, onEmoji == nil, allows("emoji") {
-                    FlareEmojiStickerPicker(emojiLabel: strings.composerEmoji, height: 240,
-                                            onInsertEmoji: { key in text = (maxLength.map { String((text + "[\(key)]").prefix(max(0, $0))) } ?? text + "[\(key)]") },
-                                            onSendSticker: { package, sticker in emojiOpen = false; onSendSticker?(package, sticker) })
+                if m.band {
+                    toolbar(colors, distributed: true).padding(.horizontal, m.toolInset)
                 }
-                if panelOpen, hasActionPanel, allows("attachments") {
-                    ScrollView(showsIndicators: false) { FlareComposerActionPanel(actions: resolvedActions, onAction: activatePanelAction) }
-                        .frame(height: min(240, CGFloat((resolvedActions.count + 3) / 4) * 84 + 24))
-                        .background(colors.bgPrimary)
-                }
+                if flareUsesMobileComposerPanels { activePanel(m) }
             }
         }.padding(.horizontal, m.band ? 0 : 4).padding(.top, m.band ? 0 : 8).padding(.bottom, m.band ? 4 : 8)
         .background(m.band ? colors.bgSecondary : colors.bgPrimary)
         .background(GeometryReader { proxy in Color.clear.onAppear { width = proxy.size.width }.onChange(of: proxy.size.width) { width = $0 } })
         .onChange(of: capabilities) { _ in closeRevokedTools() }
+        // A menu that empties closes "+" (its key is hidden); the draft stays.
+        .onChange(of: hasActionPanel) { available in if !available { panelFlow.close(.actions) } }
+        .onChange(of: hasMentionPicker) { available in if !available { panelFlow.close(.mention) } }
+    }
+
+    @ViewBuilder
+    private func activePanel(_ m: ComposerMetrics) -> some View {
+        switch panelFlow.active {
+        case .emoji where onEmoji == nil && allows("emoji"):
+            FlareEmojiStickerPicker(emojiLabel: strings.composerEmoji, height: 240,
+                                    onInsertEmoji: { key in
+                                        let updated = text + "[\(key)]"
+                                        text = maxLength.map { String(updated.prefix(max(0, $0))) } ?? updated
+                                    },
+                                    onSendSticker: { package, sticker in
+                                        panelFlow.close(.emoji)
+                                        onSendSticker?(package, sticker)
+                                    })
+        case .mention where hasMentionPicker:
+            let query = panelFlow.mentionQuery(in: text)
+            if panelFlow.mentionTrigger == nil || query != nil {
+                MentionPickerView(candidates: mentionCandidates, allowEveryone: true, editorQuery: query,
+                                  onSelect: pickMention, onClose: { panelFlow.close(.mention) })
+                    .padding(.horizontal, m.band ? FlareSizes.spacingSm : 0)
+                    .padding(.vertical, FlareSizes.spacingXs)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .actions where hasActionPanel && allows("attachments"):
+            FlareComposerActionPanel(actions: resolvedActions,
+                                     formFactor: flareUsesMobileComposerPanels ? .mobile : .desktop,
+                                     onAction: activatePanelAction)
+        default:
+            EmptyView()
+        }
     }
 
     /// A "+" tile: the panel closes, and the tile goes to the host — except voice, which is the composer's own.
     private func activatePanelAction(_ action: FlareComposerAction) {
         guard !disabled, allows("attachments"), action.enabled else { return }
-        panelOpen = false
+        panelFlow.close(.actions)
         if Self.panelTileOpensRecorder(action, offersVoice: offersVoice) {
             voiceMode = true
             expanded = false
-            emojiOpen = false
-            mentionFlow.close()
             return
         }
         onAction?(action)
@@ -326,11 +360,10 @@ public struct ComposerView: View {
     /// A key the host stops offering closes its panel or mode at once, so nothing it opened is left without
     /// the key that closes it. The draft is kept.
     private func closeRevokedTools() {
-        if !allows("emoji") { emojiOpen = false }
-        if !allows("attachments") { panelOpen = false }
+        if !allows("emoji") { panelFlow.close(.emoji) }
+        if !allows("attachments") { panelFlow.close(.actions) }
         if !offersVoice { voiceMode = false }
         if !allows("richText") { formatMode = false; formats = [] }
-        if !hasMentionPicker { mentionFlow.close() }
     }
 
     private func toolbar(_ colors: FlareColors, distributed: Bool) -> some View {
@@ -339,34 +372,52 @@ public struct ComposerView: View {
             // A host that handles the key keeps its own panel; otherwise the composer opens its own.
             if allows("emoji") {
                 iconButton("emoji", label: strings.composerEmoji,
-                           onEmoji ?? { emojiOpen.toggle(); panelOpen = false }, colors, active: emojiOpen)
+                           {
+                               FlareLayerPlatform.endEditing()
+                               if let onEmoji { panelFlow.close(); onEmoji() }
+                               else { panelFlow.toggle(.emoji) }
+                           }, colors, active: panelFlow.active == .emoji)
                 if distributed { Spacer(minLength: 0) }
             }
             if allows("mention") {
-                iconButton("mention", label: strings.composerMention, mentionKey, colors, active: mentionFlow.open)
+                iconButton("mention", label: strings.composerMention, mentionKey, colors, active: panelFlow.active == .mention)
                 if distributed { Spacer(minLength: 0) }
             }
             if offersVoice {
-                iconButton("mic", label: strings.composerVoice, { voiceMode = true; panelOpen = false }, colors)
+                iconButton("mic", label: strings.composerVoice, {
+                    FlareLayerPlatform.endEditing()
+                    panelFlow.close()
+                    voiceMode = true
+                }, colors)
                 if distributed { Spacer(minLength: 0) }
             }
             if allows("image") {
-                iconButton("image", label: strings.composerImage, onImage ?? onAttach, colors)
+                if let openImage = onImage ?? onAttach {
+                    iconButton("image", label: strings.composerImage, {
+                        FlareLayerPlatform.endEditing()
+                        panelFlow.close()
+                        openImage()
+                    }, colors)
+                }
                 if distributed { Spacer(minLength: 0) }
             }
             if allows("richText") {
                 iconButton("rich-text", label: strings.composerRichText,
-                           { formatMode.toggle(); if !formatMode { formats = [] }; panelOpen = false }, colors,
+                           { formatMode.toggle(); if !formatMode { formats = [] }; panelFlow.close() }, colors,
                            active: richOn)
                 if distributed { Spacer(minLength: 0) }
             }
-            if allows("attachments") {
+            if plusShown {
                 iconButton(
-                    panelOpen ? "close" : "add",
+                    panelFlow.active == .actions ? "close" : "add",
                     label: strings.composerMore,
-                    hasActionPanel ? { panelOpen.toggle() } : onAttach,
+                    {
+                        FlareLayerPlatform.endEditing()
+                        if hasActionPanel { panelFlow.toggle(.actions) }
+                        else { panelFlow.close(); onAttach?() }
+                    },
                     colors,
-                    active: panelOpen
+                    active: panelFlow.active == .actions
                 )
                 if distributed { Spacer(minLength: 0) }
             }
@@ -482,29 +533,30 @@ public struct ComposerView: View {
         guard !disabled, !t.isEmpty, onSend != nil || onSendRich != nil else { return }
         if richOn, let onSendRich { onSendRich(formatted(t)) } else { onSend?(t) }
         text = ""
-        mentionFlow.close()
+        panelFlow.close(.mention)
     }
 
     // MARK: Mentions
 
     /// The mention key: the picker when there is someone to mention, else a typed "@".
     private func mentionKey() {
-        panelOpen = false
-        guard hasMentionPicker else { text += "@"; return }
-        mentionFlow.toggleFromKey()
+        guard hasMentionPicker else {
+            panelFlow.close()
+            text += "@"
+            return
+        }
+        FlareLayerPlatform.endEditing()
+        panelFlow.toggle(.mention)
     }
 
-    private func closeMentionPicker() {
-        mentionFlow.close()
-    }
-
-    private func openMentionPickerIfTyped(previous: String, next: String) {
+    private func updateTypedMention(previous: String, next: String) {
         guard hasMentionPicker, !richOn else { return }
-        if mentionFlow.textChanged(previous: previous, next: next) { panelOpen = false }
+        _ = panelFlow.textChanged(previous: previous, next: next)
     }
 
     private func pickMention(_ candidate: MentionCandidate) {
-        textBinding.wrappedValue = mentionFlow.pick(candidate, into: text, everyoneLabel: strings.everyone)
+        let updated = panelFlow.pick(candidate, into: text, everyoneLabel: strings.everyone)
+        if updated != text { textBinding.wrappedValue = updated }
     }
 
     /// Where a typed "@" opens the picker: a pure insertion (a keystroke, an IME commit or a paste) that
@@ -521,13 +573,14 @@ public struct ComposerView: View {
         return index
     }
 
-    /// `text` with "@name " put in: over the typed "@" at `trigger` when it is still there, else at the
+    /// `text` with "@name " put in: over the typed token at `trigger` when it is still there, else at the
     /// end on a word boundary.
-    static func insertingMention(_ name: String, into text: String, at trigger: Int?) -> String {
+    static func insertingMention(_ name: String, into text: String, at trigger: Int?, queryLength: Int = 0) -> String {
         let token = "@\(name) "
         var characters = Array(text)
-        if let trigger, trigger < characters.count, characters[trigger] == "@" {
-            characters.replaceSubrange(trigger...trigger, with: Array(token))
+        if let trigger, characters.indices.contains(trigger), trigger + queryLength < characters.count,
+           characters[trigger] == "@" {
+            characters.replaceSubrange(trigger...(trigger + queryLength), with: Array(token))
             return String(characters)
         }
         let separator = text.isEmpty || text.last?.isWhitespace == true ? "" : " "

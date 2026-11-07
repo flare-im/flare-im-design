@@ -108,6 +108,7 @@ public struct MessageListView: View {
     private let footer: AnyView?
     private let controller: FlareMessageListController?
     private let onReadReceiptOpen: ((FlareMessageData) -> Void)?
+    private let onAvatarTap: ((FlareMessageData) -> Void)?
     private let menu: FlareMessageMenuSource?
     /// The timeline's media defaults: the full-screen viewer and one voice message at a time.
     @StateObject private var mediaSession = FlareMediaSession()
@@ -186,6 +187,7 @@ public struct MessageListView: View {
     ///     answer false until the reader moves the list, goes to the newest row (the new-messages key, a message of
     ///     their own) or gets the latest window they asked for. It is the bottom of the window shown, attached to the
     ///     latest or not (Vue `atBottomChange`).
+    ///   - onAvatarTap: The host handles a visible sender avatar outside multi-select mode.
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message ("N 人未读"); the host
     ///     fills its read receipt list from the SDK. Without it the summary is plain text.
     ///   - menu: One source for the message menu (``FlareMessageMenuSource``): the kit opens the long-press sheet
@@ -240,6 +242,7 @@ public struct MessageListView: View {
         /// typing indicator lives here: it belongs to the conversation, not to the composer, and a reader
         /// scrolled up must not be told someone is typing at a row they are not looking at.
         footer: AnyView? = nil,
+        onAvatarTap: ((FlareMessageData) -> Void)? = nil,
         onReadReceiptOpen: ((FlareMessageData) -> Void)? = nil,
         menu: FlareMessageMenuSource? = nil
     ) {
@@ -283,6 +286,7 @@ public struct MessageListView: View {
         self.controller = controller
         self.footer = footer
         self.onReadReceiptOpen = onReadReceiptOpen
+        self.onAvatarTap = onAvatarTap
         self.menu = menu
     }
 
@@ -470,6 +474,10 @@ public struct MessageListView: View {
             timelineBody(colors)
                 .environment(\.flareBubbleMaxWidth, flareBubbleMaxWidth(paneWidth: proxy.size.width))
         }
+        #if os(iOS)
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded { FlareLayerPlatform.endEditing() })
+        #endif
         // The menu source's long-press sheet, outside the timeline's own layout.
         .modifier(MenuSheetHost(enabled: menu != nil, target: $menuTarget, title: strings.messageActionSheetLabel,
                                 pendingReady: pendingMenuReady, sheet: menuSheet) { id in
@@ -939,7 +947,7 @@ public struct MessageListView: View {
                         onLocateMessage: locateCallback(msg, rows: rowIndex),
                         onVote: onVote, onTaskToggle: onTaskToggle,
                         onCardOpen: onCardOpen, onLocationOpen: onLocationOpen,
-                        onReadReceiptOpen: onReadReceiptOpen)
+                        onAvatarTap: onAvatarTap, onReadReceiptOpen: onReadReceiptOpen)
                         .mediaDefaults(mediaSession, gallery: FlareImageGallerySource(messages: messages, download: onMediaDownload,
                                                                                       reveal: onMediaReveal))
                         .environment(\.flareMessageConversationId, conversationId)

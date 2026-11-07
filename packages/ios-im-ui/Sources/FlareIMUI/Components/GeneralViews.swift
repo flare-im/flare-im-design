@@ -106,6 +106,7 @@ public struct InputView: View {
     @Binding private var text: String
     private let placeholder: String
     private let multiline: Bool
+    private let size: FlareControlSize
     private let maxLength: Int?
     private let disabled: Bool
     private let clearable: Bool
@@ -129,10 +130,19 @@ public struct InputView: View {
                 /// A secure field the person can unmask: the field draws the reveal key itself, named by the kit.
                 revealable: Bool = false,
                 monospace: Bool = false,
+                size: FlareControlSize = .md,
                 onSubmit: (() -> Void)? = nil) {
-        self._text = text; self.placeholder = placeholder; self.multiline = multiline
+        self._text = text; self.placeholder = placeholder; self.multiline = multiline; self.size = size
         self.maxLength = maxLength; self.disabled = disabled; self.clearable = clearable
         self.secure = secure; self.revealable = revealable; self.monospace = monospace; self.onSubmit = onSubmit
+    }
+
+    private var minimumHeight: CGFloat {
+        #if os(iOS)
+        max(size.height, FlareSizes.touchTargetMin)
+        #else
+        size.height
+        #endif
     }
 
     public var body: some View {
@@ -193,7 +203,7 @@ public struct InputView: View {
             .disabled(disabled)
             .padding(.horizontal, FlareSizes.spacingMd)
             .padding(.vertical, FlareSizes.spacingSm)
-            .frame(minHeight: 44)
+            .frame(minHeight: minimumHeight)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)

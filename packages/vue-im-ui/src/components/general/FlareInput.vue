@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import type { FlareControlSize } from "../../shared/contracts";
 import { resolveFlareMessage } from "../../shared/i18n/messages";
@@ -11,10 +11,14 @@ const props = withDefaults(
     /** Controlled value. Optional so a host state field that is momentarily unset still type-checks; Select models the same way. */
     modelValue?: string;
     placeholder?: string;
+    /** Native text-entry semantics; secure always takes precedence. */
+    type?: "text" | "email" | "tel" | "url" | "search";
     /** Control height, matching Button / Select. Falls back to the provider size. */
     size?: FlareControlSize;
     multiline?: boolean;
     maxLength?: number;
+    /** Keep the length limit without showing a counter, as on account and password fields. */
+    showCount?: boolean;
     disabled?: boolean;
     clearable?: boolean;
     /** Mask the value (password entry). Ignored when `multiline`. */
@@ -41,7 +45,7 @@ const props = withDefaults(
     /** Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change. */
     monospace?: boolean;
   }>(),
-  { modelValue: "", placeholder: "", multiline: false, disabled: false, clearable: false, secure: false, revealable: false, autofocus: false, spellcheck: false, monospace: false },
+  { modelValue: "", placeholder: "", type: "text", multiline: false, disabled: false, clearable: false, secure: false, revealable: false, autofocus: false, spellcheck: false, monospace: false, showCount: true },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", v: string): void;
@@ -59,6 +63,9 @@ const t = (key: string) => resolveFlareMessage(config.locale.value, key);
 const input = ref<HTMLInputElement | HTMLTextAreaElement | null>(null);
 // Unmasking is the person's own, momentary choice: it belongs to the field and is never reported or stored.
 const revealed = ref(false);
+watch([() => props.disabled, () => props.modelValue], ([disabled, value]) => {
+  if (disabled || !value) revealed.value = false;
+});
 const masked = computed(() => props.secure && !(props.revealable && revealed.value));
 const showsReveal = computed(() => props.secure && props.revealable && !props.multiline && !props.disabled);
 onMounted(() => { if (props.autofocus && !props.disabled) input.value?.focus(); });
@@ -75,7 +82,7 @@ function onInput(e: Event) {
 
 <template>
   <div class="flare-input" :class="`flare-input--${rsize}`">
-    <div class="flare-input__field" :class="{ 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix), 'is-monospace': monospace }">
+    <div class="flare-input__field" :class="{ 'is-single-line': !multiline, 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix), 'is-monospace': monospace }">
       <span v-if="$slots.prefix" class="flare-input__prefix" aria-hidden="true"><slot name="prefix" /></span>
       <textarea
         v-if="multiline"
@@ -103,7 +110,7 @@ function onInput(e: Event) {
         v-else
         ref="input"
         class="flare-input__el"
-        :type="masked ? 'password' : 'text'"
+        :type="secure ? (masked ? 'password' : 'text') : type"
         :id="control.id"
         :name="name"
         :value="modelValue"
@@ -138,7 +145,7 @@ function onInput(e: Event) {
         @click="revealed = !revealed"
       ><FlareIcon :name="revealed ? 'eye-off' : 'eye'" :size="16" /></button>
     </div>
-    <div v-if="maxLength != null" class="flare-input__count">
+    <div v-if="maxLength != null && showCount" class="flare-input__count">
       {{ modelValue.length }}/{{ maxLength }}
     </div>
   </div>
@@ -195,6 +202,27 @@ function onInput(e: Event) {
 /* The reveal key sits beside the clear key and shares its geometry; the pointer target is the field row. */
 .flare-input__reveal { border: 0; background: none; padding: var(--flare-size-spacing-xs); display: inline-flex; color: var(--flare-color-text-tertiary); cursor: pointer; }
 .flare-input__reveal[aria-pressed="true"] { color: var(--flare-color-text-secondary); }
+@media (pointer: coarse) {
+  .flare-input:not(.flare-input--lg) .flare-input__field.is-single-line {
+    min-height: var(--flare-size-layout-touch-target-min);
+  }
+  .flare-input__field.is-single-line {
+    padding-block: 0;
+    padding-inline-end: 0;
+  }
+  .flare-input__field.is-single-line > .flare-input__el {
+    /* The field's border is part of the touch target. */
+    min-height: calc(var(--flare-size-layout-touch-target-min) - 2px);
+    padding-inline-end: var(--flare-size-spacing-md);
+  }
+  .flare-input__field.is-single-line :is(.flare-input__clear, .flare-input__reveal) {
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    min-width: var(--flare-size-layout-touch-target-min);
+    margin-block: -1px;
+  }
+}
 .flare-input__count {
   text-align: right;
   font-size: var(--flare-size-font-size-sm);

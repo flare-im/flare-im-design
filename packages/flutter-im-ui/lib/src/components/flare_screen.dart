@@ -72,81 +72,92 @@ class FlareScreen extends StatelessWidget {
 
     // A page with a way back is not its destination's root: a shell hides its
     // phone navigation under it.
-    return FlareDestinationDepth(
-      active: onBack != null,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: surface == FlareScreenSurface.brand ? null : base,
-          gradient: surface == FlareScreenSurface.brand
-              ? LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.center,
-                  colors: [
-                    Color.alphaBlend(
-                      colors.primary.withValues(alpha: 0.18),
-                      base,
-                    ),
-                    base,
-                  ],
-                )
-              : null,
+    return Material(
+      type: MaterialType.transparency,
+      child: DefaultTextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: colors.textPrimary,
+          decoration: TextDecoration.none,
         ),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: contentMaxWidth ?? double.infinity),
-            child: SafeArea(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (hasHeader)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    FlareSizes.spacingMd,
-                    FlareSizes.spacingSm,
-                    FlareSizes.spacingMd,
-                    FlareSizes.spacingSm,
-                  ),
-                  child: Row(
+        child: FlareDestinationDepth(
+          active: onBack != null,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: surface == FlareScreenSurface.brand ? null : base,
+              gradient: surface == FlareScreenSurface.brand
+                  ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.center,
+                      colors: [
+                        Color.alphaBlend(
+                          colors.primary.withValues(alpha: 0.18),
+                          base,
+                        ),
+                        base,
+                      ],
+                    )
+                  : null,
+            ),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: contentMaxWidth ?? double.infinity,
+                ),
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (onBack != null)
-                        IconButton(
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: colors.textPrimary,
+                      if (hasHeader)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            FlareSizes.spacingMd,
+                            FlareSizes.spacingSm,
+                            FlareSizes.spacingMd,
+                            FlareSizes.spacingSm,
                           ),
-                          onPressed: onBack,
-                          tooltip: MaterialLocalizations.of(
-                            context,
-                          ).backButtonTooltip,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: FlareSizes.touchTarget,
-                            minHeight: FlareSizes.touchTarget,
+                          child: Row(
+                            children: [
+                              if (onBack != null)
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.arrow_back,
+                                    color: colors.textPrimary,
+                                  ),
+                                  onPressed: onBack,
+                                  tooltip: MaterialLocalizations.of(
+                                    context,
+                                  ).backButtonTooltip,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: FlareSizes.touchTarget,
+                                    minHeight: FlareSizes.touchTarget,
+                                  ),
+                                ),
+                              if (title != null)
+                                Expanded(
+                                  child: Text(
+                                    title!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: colors.textPrimary,
+                                      fontSize: FlareSizes.fontSize5xl,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              else
+                                const Spacer(),
+                              ...?actions,
+                            ],
                           ),
                         ),
-                      if (title != null)
-                        Expanded(
-                          child: Text(
-                            title!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.textPrimary,
-                              fontSize: FlareSizes.fontSize5xl,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      else
-                        const Spacer(),
-                      ...?actions,
+                      Expanded(child: body),
+                      if (footer != null) footer!,
                     ],
                   ),
                 ),
-              Expanded(child: body),
-              if (footer != null) footer!,
-            ],
               ),
             ),
           ),

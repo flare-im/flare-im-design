@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**179 components / 17 categories** (source in [`components.json`](./components.json);
+**185 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -63,22 +63,22 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `Avatar` · `BrandLogo` · `Button` · `ChartCard` · `CodeBlock` · `ConfigProvider` · `DataTable` · `DescriptionList` · `Icon` · `IconButton` · `MetricTile` · `PermissionTree` · `Tag` · `UserIdentity`
 - **Contacts** — 13
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
-- **Profile** — 10
-  `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage`
+- **Feedback** — 12
+  `AccessDiagnostics` · `AnnouncementReadBar` · `CapabilityBoundary` · `ConnectionNotice` · `EmptyState` · `PermissionPrompt` · `ProgressBar` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast` · `UpdatePrompt`
+- **Profile** — 11
+  `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage` · `VersionPanel`
 - **Layout** — 9
   `AppLayout` · `AuthShell` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
 - **Call** — 8
   `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
-- **Feedback** — 8
-  `AnnouncementReadBar` · `CapabilityBoundary` · `EmptyState` · `PermissionPrompt` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast`
 - **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
+- **Media** — 7
+  `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Overlay** — 7
   `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
-- **Media** — 6
-  `ImagePreviewModal` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Navigation** — 6
   `AdaptiveNavigation` · `CommandPalette` · `FilterTabs` · `RecentSearches` · `SearchBar` · `SegmentedControl`
 - **Patterns** — 2

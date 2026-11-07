@@ -716,12 +716,12 @@
       ]
     },
     {
-      "field": "connectionDisconnectedReason",
+      "field": "connectionRetryIn",
       "args": [
-        "timeout"
+        5
       ],
-      "en": "Disconnected: timeout",
-      "zh": "连接已断开：timeout",
+      "en": "Retrying in 5s",
+      "zh": "5 秒后重试",
       "kits": [
         "android",
         "flutter",

@@ -5,6 +5,39 @@ import 'package:flutter_test/flutter_test.dart';
 Widget _host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
+  testWidgets('text field variants share the same desktop and mobile height', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: 'sample');
+    addTearDown(controller.dispose);
+    const plain = ValueKey('plain');
+    const clearable = ValueKey('clearable');
+    const secure = ValueKey('secure');
+    for (final platform in [TargetPlatform.macOS, TargetPlatform.iOS]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: platform),
+          themeAnimationDuration: Duration.zero,
+          home: Scaffold(
+            body: Column(
+              children: [
+                const FlareInput(key: plain),
+                FlareInput(key: clearable, clearable: true, controller: controller),
+                const FlareInput(key: secure, secure: true, revealable: true),
+              ],
+            ),
+          ),
+        ),
+      );
+      final expected = platform == TargetPlatform.iOS
+          ? FlareSizes.touchTargetMin
+          : FlareSizes.controlHeightMd;
+      for (final key in [plain, clearable, secure]) {
+        expect(tester.getSize(find.byKey(key)).height, expected);
+      }
+    }
+  });
+
   testWidgets('checkbox exposes checked / mixed state and a label', (
     tester,
   ) async {

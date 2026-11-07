@@ -538,7 +538,7 @@ enum PluginFormRules {
     static func maxLength(_ input: PluginInput) -> Int? {
         if let length = input.maxLength { return length }
         switch input.kind {
-        case .text: return 256
+        case .text, .password: return 256
         case .textarea: return 2000
         case .options: return 100
         default: return nil
@@ -589,6 +589,7 @@ enum PluginFormRules {
             return .array(Array(repeating: .string(""), count: minRows(input)))
         case .members:
             return .array((raw?.arrayValue ?? []).compactMap { $0.stringValue.map(PluginJSONValue.string) })
+        case .password: return .string("")
         case .text, .textarea, .select:
             return .string(raw?.stringValue ?? "")
         case .number, .datetime:
@@ -609,7 +610,7 @@ enum PluginFormRules {
     static func check(_ input: PluginInput, _ draft: PluginJSONValue?) -> PluginFormIssue? {
         let limit = maxLength(input)
         switch input.kind {
-        case .text, .textarea:
+        case .text, .password, .textarea:
             let value = trimmed(draft?.stringValue ?? "")
             if input.required, value.isEmpty { return .required }
             if let limit, length(value) > limit { return .tooLong }
@@ -640,6 +641,9 @@ enum PluginFormRules {
         for input in inputs {
             let value = draft[input.id]
             switch input.kind {
+            case .password:
+                let text = value?.stringValue ?? ""
+                if !text.isEmpty { out[input.id] = .string(text) }
             case .text, .textarea:
                 let text = trimmed(value?.stringValue ?? "")
                 if !text.isEmpty { out[input.id] = .string(text) }

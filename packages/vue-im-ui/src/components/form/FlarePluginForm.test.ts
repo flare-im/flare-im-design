@@ -52,6 +52,17 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("masks payment passwords, ignores prefills and clears secrets before submitting", async () => {
+    const {wrapper,submits}=render({inputs:[{id:"password",kind:"password",label:"支付密码",required:true,maxLength:6,default:"111111"}],values:{password:"222222"}});
+    const input=field(wrapper,"password").get("input");
+    expect(input.attributes("type")).toBe("password");
+    expect((input.element as HTMLInputElement).value).toBe("");
+    await input.setValue("839271");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{password:"839271"}]);
+    expect((input.element as HTMLInputElement).value).toBe("");
+  });
+
   it("record editing blocks unchanged submissions and preserves exact money text", async () => {
     const {wrapper,submits}=render({inputs:[{id:"amount",kind:"text",label:"额度"}],values:{amount:"900719925474099301"},requireChange:true});
     expect(wrapper.get("[data-form-submit]").attributes("disabled")).toBeDefined();

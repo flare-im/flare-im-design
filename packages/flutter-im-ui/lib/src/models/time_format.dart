@@ -6,6 +6,17 @@
 /// reads a 24-hour clock and day/month/year. Labels use the local time zone.
 /// `locale` is a language tag such as `zh-CN`, `en_US` or `zh-Hant-TW`.
 abstract final class FlareTimeFormat {
+  /// A stable full local date and clock for records and review history.
+  /// Always includes the year, even when the record is from today. The app's
+  /// explicit locale wins over the operating system's widget locale.
+  static String fullDateTime(DateTime time, {required String locale}) {
+    final local = time.toLocal();
+    final day = _LocaleStyle.of(
+      locale,
+    ).date(local.year, local.month, local.day);
+    return '$day ${messageTime(local, locale: locale)}';
+  }
+
   /// Hour and minute: `09:05` in 24-hour locales, `9:05 AM` in 12-hour ones.
   static String messageTime(DateTime time, {required String locale}) {
     final local = time.toLocal();

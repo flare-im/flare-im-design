@@ -2,19 +2,19 @@ import SwiftUI
 
 // MARK: - Size helpers
 
-private extension FlareControlSize {
+extension FlareControlSize {
     /// Control height. sm 32 / md 40 / lg 48.
-    var height: CGFloat { self == .sm ? 32 : self == .md ? 40 : 48 }
+    var height: CGFloat { self == .sm ? FlareSizes.controlHeightSm : self == .md ? FlareSizes.controlHeightMd : FlareSizes.controlHeightLg }
     /// Square (icon-button) side. 30 / 38 / 46.
-    var square: CGFloat { self == .sm ? 30 : self == .md ? 38 : 46 }
+    var square: CGFloat { self == .sm ? FlareSizes.componentIconButtonSideSm : self == .md ? FlareSizes.componentIconButtonSideMd : FlareSizes.componentIconButtonSideLg }
     /// Horizontal padding for text buttons. 12 / 18 / 24.
-    var hPadding: CGFloat { self == .sm ? 12 : self == .md ? 18 : 24 }
+    var hPadding: CGFloat { self == .sm ? FlareSizes.controlPadXSm : self == .md ? FlareSizes.controlPadXMd : FlareSizes.controlPadXLg }
     /// Horizontal padding for select triggers. 10 / 12 / 14.
     var triggerPadding: CGFloat { self == .sm ? 10 : self == .md ? 12 : 14 }
     /// Label font size. 13 / 14 / 15.
-    var font: CGFloat { self == .sm ? 13 : self == .md ? 14 : 15 }
+    var font: CGFloat { self == .sm ? FlareSizes.fontSizeMd : self == .md ? FlareSizes.fontSizeLg : FlareSizes.fontSizeXl }
     /// Icon-button glyph size. 16 / 19 / 22.
-    var glyph: CGFloat { self == .sm ? 16 : self == .md ? 19 : 22 }
+    var glyph: CGFloat { self == .sm ? FlareSizes.componentIconButtonGlyphSm : self == .md ? FlareSizes.componentIconButtonGlyphMd : FlareSizes.componentIconButtonGlyphLg }
 }
 
 /// General-purpose button. Spec: Form/Button (`ButtonView`).
@@ -253,41 +253,67 @@ public struct FormFieldView<Content: View>: View {
 }
 
 /// Custom on/off switch. Spec: Form/Switch (`SwitchView`).
-/// Hand-built track + knob (not SwiftUI `Toggle`) to match the kit look.
 public struct SwitchView: View {
     @Binding private var isOn: Bool
     private let disabled: Bool
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.flareBrandTheme) private var flareBrandTheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.flareStrings) private var strings
+    private let size: FlareControlSize
 
-    public init(isOn: Binding<Bool>, disabled: Bool = false) {
-        self._isOn = isOn; self.disabled = disabled
+    public init(isOn: Binding<Bool>, disabled: Bool = false, size: FlareControlSize = .md) {
+        self._isOn = isOn; self.disabled = disabled; self.size = size
     }
 
     public var body: some View {
+        Toggle(isOn: $isOn) { EmptyView() }
+            .toggleStyle(FlareSwitchStyle(size: size, fillsRow: false))
+            .disabled(disabled)
+            .opacity(disabled ? 0.5 : 1)
+    }
+}
+
+/// The native Toggle owns state and accessibility. Its style draws the same track in both contexts.
+struct FlareSwitchStyle: ToggleStyle {
+    let size: FlareControlSize
+    let fillsRow: Bool
+
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        Button { isOn.toggle() } label: {
-          Capsule()
-            .fill(isOn ? colors.primary : colors.borderHover)
-            .frame(width: 44, height: 26)
-            .overlay(
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 20, height: 20)
-                    .shadow(color: Color.black.opacity(0.28), radius: 3, y: 1)
-                    .offset(x: isOn ? 9 : -9)
-            )
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isOn)
-            .frame(minWidth: 44, minHeight: 44)
+        let geometry: (width: CGFloat, height: CGFloat, thumb: CGFloat)
+        switch size {
+        case .sm: geometry = (FlareSizes.componentSwitchWidthSm, FlareSizes.componentSwitchHeightSm, FlareSizes.componentSwitchThumbSm)
+        case .md: geometry = (FlareSizes.componentSwitchWidthMd, FlareSizes.componentSwitchHeightMd, FlareSizes.componentSwitchThumbMd)
+        case .lg: geometry = (FlareSizes.componentSwitchWidthLg, FlareSizes.componentSwitchHeightLg, FlareSizes.componentSwitchThumbLg)
+        }
+
+        return Button { configuration.isOn.toggle() } label: {
+            HStack(spacing: 0) {
+                if fillsRow {
+                    configuration.label
+                    Spacer(minLength: FlareSizes.spacingSm)
+                }
+                Capsule()
+                    .fill(configuration.isOn ? colors.primary : colors.borderHover)
+                    .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: geometry.thumb, height: geometry.thumb)
+                            .shadow(color: Color.black.opacity(0.28), radius: 3, y: 1)
+                            .padding(.horizontal, (geometry.height - geometry.thumb) / 2)
+                    }
+                    .frame(width: geometry.width, height: geometry.height)
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: configuration.isOn)
+            }
+            .frame(minWidth: FlareSizes.touchTarget, maxWidth: fillsRow ? .infinity : nil, minHeight: FlareSizes.touchTarget)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(disabled)
-        .opacity(disabled ? 0.5 : 1)
-        .accessibilityValue(isOn ? strings.on : strings.off)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
+        .accessibilityRepresentation {
+            Toggle(isOn: configuration.$isOn) { configuration.label }
+                .toggleStyle(.switch)
+        }
     }
 }
 
@@ -312,7 +338,7 @@ public struct CheckboxView: View {
           HStack(spacing: FlareSizes.spacingSm) {
             RoundedRectangle(cornerRadius: FlareSizes.radiusSm)
                 .fill(filled ? colors.primary : colors.bgPrimary)
-                .frame(width: 20, height: 20)
+                .frame(width: FlareSizes.iconSizeMd, height: FlareSizes.iconSizeMd)
                 .overlay(
                     RoundedRectangle(cornerRadius: FlareSizes.radiusSm)
                         .stroke(filled ? colors.primary : colors.borderHover, lineWidth: 1.5)
@@ -330,7 +356,7 @@ public struct CheckboxView: View {
                 Text(label).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
             }
           }
-          .frame(minWidth: 44, minHeight: 44)
+          .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
           .contentShape(Rectangle())
         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: filled)
         }
@@ -365,14 +391,14 @@ public struct RadioGroupView: View {
                   HStack(spacing: FlareSizes.spacingSm) {
                     ZStack {
                         Circle().stroke(selected ? colors.primary : colors.borderHover, lineWidth: 1.5)
-                            .frame(width: 18, height: 18)
+                            .frame(width: FlareSizes.componentRadioIndicator, height: FlareSizes.componentRadioIndicator)
                         if selected {
-                            Circle().fill(colors.primary).frame(width: 9, height: 9)
+                            Circle().fill(colors.primary).frame(width: FlareSizes.componentRadioDot, height: FlareSizes.componentRadioDot)
                         }
                     }
                     Text(option.label).font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
                 }
-                  .frame(minWidth: 44, minHeight: 44)
+                  .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                   .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

@@ -87,6 +87,66 @@ describe("FlareConversationHeader", () => {
     expect(document.body.textContent).toContain("Details");
   });
 
+  it("draws an action's red dot and says it in the action's name", () => {
+    const header = mountHeader({
+      identity: { id: "room", title: "Product room", kind: "group" },
+      configuration: { replaceDefaults: true },
+      actions: [{ id: "more", label: "More", icon: "more", dot: true }],
+    });
+    const action = header.get('[data-header-action="more"]');
+
+    expect(action.find(".flare-conversation-header__dot").exists()).toBe(true);
+    expect(action.attributes("aria-label")).toBe("More, New");
+  });
+
+  it("draws no dot without one, and the count wins over it", () => {
+    const header = mountHeader({
+      identity: { id: "room", title: "Product room", kind: "group" },
+      configuration: { replaceDefaults: true },
+      actions: [
+        { id: "plain", label: "Plain", icon: "more" },
+        { id: "counted", label: "Counted", icon: "more", badge: "3", dot: true },
+      ],
+    });
+
+    expect(header.get('[data-header-action="plain"]').find(".flare-conversation-header__dot").exists()).toBe(false);
+    expect(header.get('[data-header-action="plain"]').attributes("aria-label")).toBe("Plain");
+    expect(header.get('[data-header-action="counted"]').find(".flare-conversation-header__dot").exists()).toBe(false);
+    expect(header.get('[data-header-action="counted"]').find(".flare-conversation-header__badge").text()).toBe("3");
+  });
+
+  it("carries a dot from the sole overflow action to the More button", () => {
+    const header = mountHeader({
+      identity: { id: "room", title: "Product room", kind: "group" },
+      configuration: { replaceDefaults: true },
+      actions: [{ id: "more", label: "More", icon: "more", placement: "overflow", dot: true }],
+    });
+
+    expect(header.get('[data-header-action="more"]').find(".flare-conversation-header__dot").exists()).toBe(true);
+  });
+
+  it("shows a dot inside the More menu on the More button, and on the action in the menu", async () => {
+    const header = mountHeader({
+      identity: { id: "room", title: "Product room", kind: "group" },
+      configuration: { replaceDefaults: true },
+      actions: [
+        { id: "sdkBuild", label: "SDK build", icon: "file", placement: "overflow" },
+        { id: "more", label: "More", icon: "more", placement: "overflow", dot: true },
+      ],
+    });
+    const more = header.get('[data-header-menu="more"]');
+
+    expect(more.find(".flare-conversation-header__dot").exists()).toBe(true);
+    expect(more.attributes("aria-label")).toBe("More conversation actions, New");
+
+    await more.trigger("click");
+    await nextTick();
+    const item = document.body.querySelector('[data-action-id="more"]');
+    expect(item?.querySelector(".flare-action-menu__dot")).not.toBeNull();
+    expect(item?.getAttribute("aria-label")).toBe("More, New");
+    expect(document.body.querySelector('[data-action-id="sdkBuild"] .flare-action-menu__dot')).toBeNull();
+  });
+
   it("emits the sole overflow action from the More button", async () => {
     const header = mountHeader({ identity: { id: "room", title: "Product room", kind: "group" } });
     await header.get('[data-header-action="details"]').trigger("click");

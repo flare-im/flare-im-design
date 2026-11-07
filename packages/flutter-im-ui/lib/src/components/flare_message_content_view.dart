@@ -565,7 +565,7 @@ class FlareMessageContentView extends StatelessWidget {
         poster: c.poster,
         duration: _duration(c.durationSec),
         // No address yet (the media is still being resolved): nothing plays.
-        onPlay: c.url.trim().isEmpty
+        onPlay: c.url.trim().isEmpty && (c.localPath?.trim().isEmpty ?? true)
             ? action(c)
             : action(c) ??
             () {

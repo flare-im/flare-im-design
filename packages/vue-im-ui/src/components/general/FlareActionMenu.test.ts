@@ -54,6 +54,18 @@ describe("FlareActionMenu", () => {
     host.unmount();
   });
 
+  it("draws an item's red dot, named for a screen reader", async () => {
+    const host = mountMenu({ items: [{ id: "update", label: "About", dot: true }, { id: "plain", label: "Plain" }] });
+    await host.get(".trigger").trigger("click");
+    await flushPromises();
+
+    const dot = menuItems()[0]?.querySelector(".flare-action-menu__dot");
+    expect(dot?.getAttribute("role")).toBe("img");
+    expect(dot?.getAttribute("aria-label")).toBe("New");
+    expect(menuItems()[1]?.querySelector(".flare-action-menu__dot")).toBeNull();
+    host.unmount();
+  });
+
   it("closes on select, returns focus to the trigger and reports the id; disabled items report nothing", async () => {
     const selected: string[] = [];
     const host = mountMenu({ onSelect: (id: string) => selected.push(id) });

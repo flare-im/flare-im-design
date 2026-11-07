@@ -3,7 +3,6 @@ import '../tokens/flare_strings.dart';
 import 'flare_scene_panels.dart';
 import 'dart:math' as math;
 import 'flare_overlay.dart';
-import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 
 enum FlareCallDeviceKind { microphone, speaker, camera }
@@ -136,6 +135,11 @@ class FlareCallDevicePicker extends StatelessWidget {
   );
   Widget _group(BuildContext context, FlareCallDeviceGroup group) {
     final devices = group.uniqueDevices;
+    final selectedId = group.selectedId ?? 'default';
+    final labelStyle = TextStyle(
+      color: FlareColors.of(context).textSecondary,
+      fontSize: 12,
+    );
     final enabled =
         permission == FlareCapabilityState.available &&
         !group.busy &&
@@ -145,23 +149,22 @@ class FlareCallDevicePicker extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          group.label,
-          style: TextStyle(
-            color: FlareColors.of(context).textSecondary,
-            fontSize: 12,
+        Text(group.label, style: labelStyle),
+        if (!devices.any((d) => d.id == selectedId))
+          Text(
+            placeholder ?? FlareStrings.of(context).callDevicePickerPlaceholder,
+            style: labelStyle,
           ),
-        ),
         const SizedBox(height: FlareSizes.spacingSm),
         for (final device in devices)
           Semantics(
-            selected: device.id == (group.selectedId ?? 'default'),
+            selected: device.id == selectedId,
             child: ListTile(
               dense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               minVerticalPadding: 0,
               title: Text(device.label, style: const TextStyle(fontSize: 13)),
-              trailing: device.id == (group.selectedId ?? 'default')
+              trailing: device.id == selectedId
                   ? const Icon(Icons.check, size: 18)
                   : null,
               enabled: enabled && !device.disabled,

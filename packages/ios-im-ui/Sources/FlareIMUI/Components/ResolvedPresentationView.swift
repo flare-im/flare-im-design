@@ -18,6 +18,7 @@ struct ResolvedPresentationView: View {
     let onAction: ((String, PluginActionPayload) -> Void)?
     let onRequest: (String) -> Void
     @State private var recipient = ""
+    @State private var paymentPassword = ""
     @State private var kind: FlareRedPacketKind = .normal
     @State private var amount = ""
     @State private var count = 1
@@ -28,7 +29,9 @@ struct ResolvedPresentationView: View {
     private var p: [String: PluginJSONValue] { view.presentation?.props ?? [:] }
     private var renderer: String { view.presentation?.renderer ?? "" }
     private var unknown: Bool { p["journal"]?["known"]?.boolValue == false }
-    private var paymentBlocked: Bool { unknown || error?.isEmpty == false }
+    private var passwordInput: PluginInput? { view.inputs.first { $0.kind == .password && (bound("confirm")?.form?.contains($0.id) ?? false) } }
+    private var passwordValid: Bool { passwordInput == nil || (paymentPassword.count == 6 && paymentPassword.utf8.allSatisfy { (48...57).contains($0) }) }
+    private var paymentBlocked: Bool { unknown || (error?.isEmpty == false && passwordInput == nil) }
     private func text(_ key: String) -> String { p[key]?.stringValue ?? "" }
     private func bound(_ name: String) -> PluginViewAction? { view.actions.first { $0.id == (view.presentation?.actions[name] ?? (name == "confirm" ? view.presentation?.actions["authorize"] : nil)) } }
     private func request(_ name: String) { if !busy, !unknown, !(name == "confirm" && paymentBlocked), let a = bound(name) { onRequest(a.id) } }
@@ -91,13 +94,20 @@ struct ResolvedPresentationView: View {
                 if let a = bound("open") { ButtonView(label: a.label, disabled: busy || unknown) { envelope = true } }
             } else if ["redPacket.pay", "payment.confirm"].contains(renderer), bound("confirm") != nil, !paymentBlocked {
                 RedPacketPayConfirmView(amount: text("amount"), methodLabel: text("methodLabel"), busy: busy,
-                                        onConfirm: { request("confirm") }, confirmLabel: bound("confirm")?.label)
+                                        onConfirm: {
+                                            guard passwordValid, !busy, !paymentBlocked, let action = bound("confirm") else { return }
+                                            if let input = passwordInput { let value = paymentPassword; paymentPassword = ""; onAction?(action.id, PluginActionPayload(formValues:[input.id:.string(value)])) }
+                                            else { request("confirm") }
+                                        }, onCancel: { paymentPassword = "" }, confirmLabel: bound("confirm")?.label,
+                                        credential: passwordInput.map { input in AnyView(InputView(text:$paymentPassword, placeholder:input.placeholder ?? input.label, maxLength:6, disabled:busy, secure:true).accessibilityLabel(input.label)) },
+                                        confirmDisabled: !passwordValid)
             }
             if renderer != "redPacket.card" {
                 AnyView(PluginView(view: remainder, busy: busy, error: error, embedded: true, resolveUser: resolveUser,
                     members: members, formErrors: formErrors, settleToken: settleToken, onAction: onAction))
             }
         }
+        .onDisappear { paymentPassword = "" }
         .task(id: [text("senderId")] + claimValues.compactMap { $0["id"]?.stringValue }) {
             if greeting.isEmpty { greeting = view.inputs.first { $0.id == "greeting" }?.defaultValue?.stringValue ?? "" }
             guard let resolveUser else { return }

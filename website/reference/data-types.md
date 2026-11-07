@@ -72,6 +72,7 @@ title: 数据类型
 | `visible` | `boolean` |  | 为 false 时不显示。 |
 | `enabled` | `boolean` |  | 为 false 时保留显示但不可用。 |
 | `badge` | `string` |  | 紧凑的尾部文字。 |
+| `dot` | `boolean` |  | 红点：这个操作背后有新内容，没有数量。操作收进「更多」菜单时，红点同时画在菜单按钮和菜单项上。 |
 | `intent` | `string` |  | 宿主定义的意图载荷键。 |
 | `accessibilityLabel` | `string` |  | 本地化无障碍名称覆盖。 |
 | `disabledReason` | `string` |  | 不可用的原因；随条目显示并播报。 |
@@ -214,6 +215,7 @@ title: 数据类型
 | `kind` | [`FlareSettingKind`](/reference/data-types#setting-kind) |  | 行类型：navigation 打开页面或选择器（带箭头），toggle 是开关，action 原地执行（无箭头），value 是只读信息、不是控件。 |
 | `value` | `boolean` |  | 开关状态（`kind: "toggle"` 时）。 |
 | `detail` | `string` |  | 尾部详情文本：navigation 行的当前值，或 value 行的信息。过长时换到标签下方。 |
+| `badge` | `boolean \| number` |  | `true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。 |
 
 ### SettingsSection {#settings-section}
 
@@ -953,6 +955,106 @@ title: 数据类型
 | `avatarUrl` | `string` |  | 头像图片；加载失败时保留首字头像。 |
 | `state` | `"ready" \| "loading" \| "unavailable"` |  | 查询状态；缺省为 ready。 |
 
+### ConnectionStatus {#connection-status}
+
+`FlareConnectionStatus`
+
+> 核心 SDK 的连接状态（`connection://status`），ConnectionNotice 按此读取。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `phase` | [`FlareConnectionPhase`](/reference/data-types#connection-phase) | ✓ | 连接所处的阶段。 |
+| `quality` | `"good" \| "poor"` |  | online：线路质量。两种取值都不显示横幅。 |
+| `progress` | `number` |  | syncing：补同步进度，0 到 1。 |
+| `nextRetryAt` | `number` |  | reconnecting：下次尝试的时刻，设备时钟的毫秒时间戳。 |
+| `attempt` | `number` |  | reconnecting：第几次尝试。不显示。 |
+| `reason` | `FlareConnectionActionReason \| string` |  | 原因，按 SDK 上报原样传入（任何字符串都接受；switching 也带自己的原因）。只有 actionRequired 读它：kicked、expired、upgradeRequired、tenantUnavailable 有对应文案，其它值或缺省按 expired。 |
+| `developmentMode` | `boolean` |  | SDK 运行在开发端点上：提示显示「开发模式」角标。 |
+
+### AccessStatus {#access-status}
+
+`FlareAccessStatus`
+
+> `access.getStatus` 的结果，AccessDiagnostics 读取其中这些字段。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `loaded` | `boolean` | ✓ | 目录里有可用清单。 |
+| `serial` | `number \| null` |  | 清单 serial。 |
+| `source` | `string \| null` |  | `seed`、`https:<镜像基址>`、`wellKnown:<apId>`、`recovery`、`development` 或 `none`。 |
+| `stale` | `boolean` |  | 已过期，仍可连接。 |
+| `developmentMode` | `boolean` |  | SDK 运行在开发端点上。 |
+| `regionId` | `string \| null` |  | 清单所属区域。 |
+| `accessPointId` | `string \| null` |  | 当前连接的接入点。 |
+| `protocol` | `string \| null` |  | 当前连接的协议：quic 或 ws。 |
+| `connectAck` | `FlareAccessConnectAck \| null` |  | 当前连接的诊断字段。 |
+| `recovering` | `FlareAccessRecovering \| null` |  | 只在全部线路失败时才有。 |
+
+### AccessConnectAck {#access-connect-ack}
+
+`FlareAccessConnectAck`
+
+> `access.getStatus.connectAck` 中 AccessDiagnostics 读取的部分。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `accessPointId` | `string \| null` |  | 服务端报告的接入点。 |
+| `accessPointMismatch` | `boolean` |  | 服务端报告的接入点与客户端选择的不一致。 |
+
+### AccessRecovering {#access-recovering}
+
+`FlareAccessRecovering`
+
+> `access.getStatus.recovering`，AccessDiagnostics 按此读取。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `rounds` | `number` | ✓ | 已跑的引导拉取轮数。 |
+| `nextRoundAtMs` | `number \| null` |  | 下一轮时刻；设备没有网络时缺失。 |
+
+### AccessPoint {#access-point}
+
+`FlareAccessPoint`
+
+> `access.listAccessPoints` 的一行，AccessDiagnostics 按此读取。
+
+**被使用于：**[AccessDiagnostics](/components/access-diagnostics)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `accessPointId` | `string` | ✓ | 接入点。 |
+| `regionId` | `string \| null` |  | 所属区域，线路按此分组。 |
+| `host` | `string \| null` |  | 主机名。 |
+| `status` | `string` | ✓ | active、draining、disabled 或 unknown；其它字符串按 unknown。 |
+| `rttMs` | `number \| null` |  | 测得的延迟，毫秒。 |
+| `breaker` | `string` | ✓ | closed、open 或 halfOpen。 |
+| `pinned` | `boolean` | ✓ | 手动固定。 |
+| `current` | `boolean` | ✓ | 当前使用的线路。 |
+
+### UpdateProgress {#update-progress}
+
+`FlareUpdateProgress`
+
+> `UpdateStatus.progress`，UpdatePrompt 按此读取。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `received` | `number` | ✓ | 已接收字节数。 |
+| `total` | `number \| null` |  | 总字节数；大小未知时缺失，此时按不确定显示。 |
+
+### ResourcePack {#resource-pack}
+
+`FlareResourcePack`
+
+> `update.get_resources` 的一项。宿主把列表原样交给 kit：Vue 用 `applyFlareResourceOverlay(packs)` 折进 kit，原生三端构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。资源包能改什么由 kit 决定（spec/resource-overlay-vectors.json）：已有的文案和颜色，以及新增的表情。资源包只是数据，不增加行为。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 资源包 id。按传入顺序生效，引擎按 id 排序。 |
+| `kind` | `'strings' \| 'tokens' \| 'emoji' \| 'help'` | ✓ | 资源包内容的种类。kit 没有帮助页，help 包留给宿主。 |
+| `packVersion` | `number` | ✓ | 资源包版本。 |
+| `contentJson` | `string` | ✓ | 资源包的 JSON 文本，`schema` 为 `flare.resource.v1`。由 kit 解析，读不了的包忽略。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -1230,3 +1332,19 @@ title: 数据类型
 **被使用于：**[CallRecordCard](/components/call-record-card)
 
 `completed` · `cancelled` · `declined` · `missed` · `busy` · `unavailable` · `failed`
+
+### ConnectionPhase {#connection-phase}
+
+`FlareConnectionPhase`
+
+> 核心 SDK 上报的连接阶段。
+
+`idle` · `connecting` · `syncing` · `online` · `switching` · `reconnecting` · `waitingForNetwork` · `serviceUnavailable` · `actionRequired`
+
+### ConnectionActionReason {#connection-action-reason}
+
+`FlareConnectionActionReason`
+
+> 核心停止并等待用户处理的原因（actionRequired）。
+
+`kicked` · `expired` · `upgradeRequired` · `tenantUnavailable`

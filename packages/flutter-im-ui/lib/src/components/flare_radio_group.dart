@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_hit_slop.dart';
 
 /// A group of single-select radio rows. Inline ([Wrap]) by default, or a
 /// [Column] when [vertical]. Per-option [FlareSelectOption.disabled] dims the
@@ -54,41 +55,44 @@ class FlareRadioGroup extends StatelessWidget {
           cursor: o.disabled
               ? SystemMouseCursors.basic
               : SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: o.disabled ? null : () => onSelect?.call(o.value),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 18,
-                  height: 18,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: colors.bgPrimary,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: selected ? colors.primary : colors.borderHover,
-                      width: 1.5,
+          child: FlareHitSlop(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: o.disabled ? null : () => onSelect?.call(o.value),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: FlareSizes.componentRadioIndicator,
+                    height: FlareSizes.componentRadioIndicator,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: colors.bgPrimary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected ? colors.primary : colors.borderHover,
+                        width: 1.5,
+                      ),
                     ),
+                    child: selected
+                        ? Container(
+                            width: FlareSizes.componentRadioDot,
+                            height: FlareSizes.componentRadioDot,
+                            decoration: BoxDecoration(
+                              color: colors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          )
+                        : null,
                   ),
-                  child: selected
-                      ? Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  o.label,
-                  style: TextStyle(fontSize: 14, color: colors.textPrimary),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Text(
+                    o.label,
+                    style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -56,7 +56,7 @@ void main() {
     // account id appears nowhere.
     expect(find.byType(FlareSettingsList), findsNothing);
     expect(find.text('u_lin'), findsNothing);
-    expect(find.byType(Switch), findsNothing);
+    expect(find.byType(FlareSwitch), findsNothing);
 
     await _tap(tester, _button(_labels.message));
     expect(opens, 1);
@@ -108,29 +108,45 @@ void main() {
         primaryActionBusy: busy,
         onPrimaryAction: () => events.add('primary'),
         onMessage: () => events.add('message'),
-        extraActions: const [
-          FlareDetailExtraAction(id: 'report', label: '举报'),
-        ],
+        extraActions: const [FlareDetailExtraAction(id: 'report', label: '举报')],
         onExtraAction: events.add,
       );
       await _pump(tester, page(true));
-      final primary = find.byKey(const ValueKey('flare-contact-primary-action'));
+      final primary = find.byKey(
+        const ValueKey('flare-contact-primary-action'),
+      );
       expect(
-        find.descendant(of: primary, matching: find.byType(CircularProgressIndicator)),
+        find.descendant(
+          of: primary,
+          matching: find.byType(CircularProgressIndicator),
+        ),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: primary, matching: find.byIcon(Icons.person_add_alt_1_outlined)),
+        find.descendant(
+          of: primary,
+          matching: find.byIcon(Icons.person_add_alt_1_outlined),
+        ),
         findsNothing,
       );
       // Full strength, read as an unavailable button.
       expect(
-        find.descendant(of: primary, matching: find.byWidgetPredicate((w) => w is Opacity && w.opacity < 1)),
+        find.descendant(
+          of: primary,
+          matching: find.byWidgetPredicate(
+            (w) => w is Opacity && w.opacity < 1,
+          ),
+        ),
         findsNothing,
       );
       expect(
         tester.getSemantics(find.bySemanticsLabel('添加到通讯录')),
-        matchesSemantics(isButton: true, hasEnabledState: true, isEnabled: false, label: '添加到通讯录'),
+        matchesSemantics(
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: false,
+          label: '添加到通讯录',
+        ),
       );
       await tester.tap(find.text('添加到通讯录'), warnIfMissed: false);
       await tester.pump();
@@ -229,7 +245,7 @@ void main() {
     // Only the two editable rows navigate; unset values say so.
     expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
     expect(find.text(_labels.notSet), findsNWidgets(2));
-    expect(find.byType(Switch), findsOneWidget);
+    expect(find.byType(FlareSwitch), findsOneWidget);
     expect(find.text(_labels.voice), findsNothing);
     expect(find.text(_labels.video), findsNothing);
 

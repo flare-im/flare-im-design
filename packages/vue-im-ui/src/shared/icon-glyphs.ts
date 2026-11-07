@@ -66,6 +66,7 @@ import {
   Forward as LuForward,
   Gift as LuGift,
   Globe as LuGlobe,
+  GripVertical as LuGripVertical,
   HardDrive as LuHardDrive,
   Hash as LuHash,
   Heart as LuHeart,
@@ -212,6 +213,7 @@ const REGISTRY: Record<string, Component> = {
   Forward: LuForward,
   Gift: LuGift,
   Globe: LuGlobe,
+  GripVertical: LuGripVertical,
   HardDrive: LuHardDrive,
   Hash: LuHash,
   Heart: LuHeart,
@@ -464,3 +466,4 @@ export const ServerOutline = /*#__PURE__*/ glyph("HardDrive");
 export const ExtensionPuzzleOutline = /*#__PURE__*/ glyph("Puzzle");
 export const LocateOutline = /*#__PURE__*/ glyph("LocateFixed");
 export const WalletOutline = /*#__PURE__*/ glyph("Wallet");
+export const ReorderTwoOutline = /*#__PURE__*/ glyph("GripVertical");

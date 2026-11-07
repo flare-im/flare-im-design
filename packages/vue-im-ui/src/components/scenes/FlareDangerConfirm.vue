@@ -121,6 +121,9 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
   gap: var(--flare-size-spacing-sm);
   margin-top: var(--flare-size-spacing-md);
 }
+[data-flare-presentation="sheet"] .flare-danger-confirm__actions :deep(.flare-button) {
+  min-height: var(--flare-size-layout-touch-target);
+}
 /* 弹窗里没有拇指够不够得着的问题,横排收在末端,和别的桌面弹窗一个样子。
    判据取自面上的 data-flare-presentation(FlareBottomSheet 自己的面写 sheet,交给
    FlareModal 时 FlareModal 写 dialog)—— 这里不再自己算一遍「现在是手机还是桌面」。 */

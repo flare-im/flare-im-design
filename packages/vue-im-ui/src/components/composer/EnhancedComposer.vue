@@ -13,6 +13,7 @@ import {
 import { NButton, NIcon, NInput } from "naive-ui";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import { FLARE_BREAKPOINT_TABLET_MIN } from "../../shared/contracts/layout";
+import { useOptionalViewport } from "../../composables/useViewport";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { callPlatform } from "../../shared/platform/contract";
 import { useFileDrop } from "../../composables/composer/useFileDrop";
@@ -37,6 +38,7 @@ import ComposerRichMarkdownInput, {
 } from "./ComposerRichMarkdownInput.vue";
 import ComposerFormatStrip from "./ComposerFormatStrip.vue";
 import ComposerMoreSurface from "./ComposerMoreSurface.vue";
+import type { FlareComposerPanelFormFactor } from "./FlareComposerActionPanel.vue";
 import ComposerUploadStrip, { type FlareComposerUploadPreview as UploadPreview } from "./ComposerUploadStrip.vue";
 import ComposerVoicePanel from "./ComposerVoicePanel.vue";
 import FlareComposerReplyStrip from "./FlareComposerReplyStrip.vue";
@@ -122,6 +124,8 @@ const props = withDefaults(defineProps<{
    */
   actions?: FlareComposerAttachAction[];
   capabilities?: FlareComposerCapabilities;
+  /** Optional layout override. By default the app shell controls panel direction and grid layout. */
+  formFactor?: FlareComposerPanelFormFactor;
   sendVoiceHandler?: (payload: VoiceRecordingPayload) => void | Promise<void>;
 }>(), {
   sending: false,
@@ -186,8 +190,10 @@ function setActivePanel(panel: ComposerPanel): void {
   emit("toggle-panel", panel);
 }
 const mentionMenuOpen = ref(false);
+const mentionPickerRef = ref<InstanceType<typeof FlareMentionPicker> | null>(null);
 /** Index of the "@" the user typed to open the picker; picking a member replaces it. -1 when opened otherwise. */
 const mentionTriggerIndex = ref(-1);
+const typedMentionContext = ref<{ prefix: string; suffix: string } | null>(null);
 const voicePanelOpen = ref(false);
 const inputExpanded = ref(false);
 
@@ -298,6 +304,8 @@ const moreActions = computed(() =>
     actions: props.actions,
   }), t).filter((action) => voiceAvailable.value || (action.intent ?? action.id) !== "voice"),
 );
+/** "+" is offered only while it has something to show: an emptied menu closes it and hides the key. */
+const moreAvailable = computed(() => attachmentsToolAvailable.value && moreActions.value.length > 0);
 
 // ── Voice (capture through the injected adapter; preview / confirm in the panel) ──
 const voiceError = ref("");
@@ -354,9 +362,13 @@ async function sendVoicePreview(): Promise<void> {
 }
 
 // ── Panel choreography ─────────────────────────────────────────────────────
-function closePanels(): void {
+function closeMention(): void {
   mentionMenuOpen.value = false;
   mentionTriggerIndex.value = -1;
+  typedMentionContext.value = null;
+}
+function closePanels(): void {
+  closeMention();
   voicePanelOpen.value = false;
   cancelVoiceRecording();
   if (resolvedActivePanel.value) setActivePanel(null);
@@ -365,6 +377,7 @@ function openVoicePanel(): void {
   if (editingBlocked.value || !voiceToolAvailable.value) return;
   const next = !voicePanelOpen.value;
   closePanels();
+  if (next) dismissTouchKeyboard();
   voicePanelOpen.value = next;
 }
 function onOutsidePointer(event: PointerEvent): void {
@@ -375,29 +388,30 @@ function onOutsidePointer(event: PointerEvent): void {
   // 不能顺手把正开着的表情 / 贴纸面板关掉(那会往宿主发一次 toggle-panel(null))。
   if (target instanceof Element && target.closest(".flare-action-menu-popover")) return;
   closePanels();
+  dismissTouchKeyboard();
 }
 function onPanelEscape(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
   if (resolvedActivePanel.value || mentionMenuOpen.value || voicePanelOpen.value) {
-    event.preventDefault(); event.stopPropagation(); closePanels(); focusInput();
+    event.preventDefault(); event.stopPropagation(); closePanels(); if (!mobilePanels.value) focusInput();
   } else if (inputExpanded.value) {
     event.preventDefault(); event.stopPropagation(); inputExpanded.value = false; focusInput();
   }
 }
 watch(() => props.activePanel, panel => {
-  if (panel) { mentionMenuOpen.value = false; voicePanelOpen.value = false; cancelVoiceRecording(); }
+  if (panel) { closeMention(); voicePanelOpen.value = false; cancelVoiceRecording(); }
 });
 /** The tool behind each composer-owned panel: emoji and stickers share the emoji tool, "+" is attachments. */
 function panelToolAvailable(panel: Exclude<ComposerPanel, null>): boolean {
-  return panel === "more" ? attachmentsToolAvailable.value : emojiToolAvailable.value;
+  return panel === "more" ? moreAvailable.value : emojiToolAvailable.value;
 }
 // Taking a tool away closes what it opened, at once; the draft stays as it is.
-watch([emojiToolAvailable, attachmentsToolAvailable], () => {
+watch([emojiToolAvailable, moreAvailable], () => {
   const panel = resolvedActivePanel.value;
   if (panel && !panelToolAvailable(panel)) setActivePanel(null);
 });
 watch(mentionToolAvailable, (available) => {
-  if (!available) { mentionMenuOpen.value = false; mentionTriggerIndex.value = -1; }
+  if (!available) closeMention();
 });
 watch(voiceToolAvailable, (available) => {
   if (!available && voicePanelOpen.value) { voicePanelOpen.value = false; cancelVoiceRecording(); }
@@ -431,9 +445,30 @@ function textarea(): HTMLTextAreaElement | null {
   return root.value?.querySelector(".composer-input textarea") ?? null;
 }
 
+function touchKeyboard(): boolean {
+  return mobilePanels.value || (typeof window !== "undefined" && window.matchMedia("(any-pointer: coarse)").matches);
+}
+
+function dismissTouchKeyboard(): void {
+  if (!touchKeyboard()) return;
+  const editor = root.value?.querySelector<HTMLElement>(".composer-input textarea, .composer-rich-markdown-input__editable");
+  editor?.blur();
+}
+
+watch(mediaPanelActive, (open) => {
+  if (!open || !touchKeyboard()) return;
+  dismissTouchKeyboard();
+});
+
+function onInputFocus(): void {
+  inputFocused.value = true;
+  if (touchKeyboard() && (resolvedActivePanel.value || (mentionMenuOpen.value && mentionTriggerIndex.value < 0))) closePanels();
+}
+
 function focusInput(): void {
   void nextTick(() => {
     const applyFocus = () => {
+      if (mediaPanelActive.value && touchKeyboard()) return;
       if (useRichEditor.value) {
         richInputRef.value?.focus();
         return;
@@ -458,17 +493,19 @@ function onInputRowMousedown(event: MouseEvent): void {
   // 点在工具栏按钮上：不抢它们的点击
   if (target.closest("button, a, [role='button']")) return;
   event.preventDefault();
+  if (mediaPanelActive.value && touchKeyboard()) setActivePanel(null);
   focusInput();
 }
 
 function toggle(panel: Exclude<ComposerPanel, null>): void {
   if (editingBlocked.value || !panelToolAvailable(panel)) return;
   const nextPanel = resolvedActivePanel.value === panel ? null : panel;
-  mentionMenuOpen.value = false;
+  closeMention();
   voicePanelOpen.value = false;
   cancelVoiceRecording();
   setActivePanel(nextPanel);
-  focusInput();
+  if (!touchKeyboard()) focusInput();
+  else if (nextPanel) dismissTouchKeyboard();
 }
 
 function toggleInputExpanded(): void {
@@ -493,13 +530,28 @@ function openMentionPicker(): void {
   voicePanelOpen.value = false;
   cancelVoiceRecording();
   mentionTriggerIndex.value = -1;
+  typedMentionContext.value = null;
   mentionMenuOpen.value = !mentionMenuOpen.value;
-  focusInput();
+  if (touchKeyboard()) dismissTouchKeyboard();
+  else if (mentionMenuOpen.value) void nextTick(() => root.value?.querySelector<HTMLInputElement>(".flare-mention__search")?.focus());
+  else focusInput();
 }
+
+const typedMentionQuery = computed(() => {
+  const context = typedMentionContext.value;
+  if (!context || !value.value.startsWith(context.prefix) || !value.value.endsWith(context.suffix)) return undefined;
+  const end = value.value.length - context.suffix.length;
+  const query = value.value.slice(context.prefix.length, end);
+  return end >= context.prefix.length && !query.includes("\n") && query.length <= 40 ? query : undefined;
+});
 
 // Typing "@" at the start of a word opens the member picker when the host provides a roster
 // (a group). An "@" inside a word, such as an email address, stays plain text.
 watch(value, (next, previous = "") => {
+  if (typedMentionContext.value && typedMentionQuery.value === undefined) {
+    closeMention();
+    return;
+  }
   if (!userEditPending || useRichEditor.value || editingBlocked.value || mentionMenuOpen.value) return;
   // 名册还没到 → 这次不弹(下次输入会再试);这个会话根本不支持 @ → 永远不弹。
   if (!mentionCandidates.value.length || !mentionToolAvailable.value) return;
@@ -516,45 +568,50 @@ watch(value, (next, previous = "") => {
   cancelVoiceRecording();
   mentionTriggerIndex.value = index;
   mentionMenuOpen.value = true;
-  // Keep typing to filter: the name the user types next goes to the picker's search.
-  void nextTick(() => root.value?.querySelector<HTMLInputElement>(".flare-mention__search")?.focus());
+  // The editor keeps focus and the active token drives the inline picker on both layouts.
+  typedMentionContext.value = { prefix: next.slice(0, index + 1), suffix: next.slice(index + 1) };
 });
 
 /** Select the "@" the user typed to open the picker, so the inserted mention replaces it. */
 function selectTypedMentionTrigger(): void {
   const index = mentionTriggerIndex.value;
+  const end = index + 1 + (typedMentionQuery.value?.length ?? 0);
   mentionTriggerIndex.value = -1;
+  typedMentionContext.value = null;
   const node = textarea();
-  if (index >= 0 && node && value.value[index] === "@") node.setSelectionRange(index, index + 1);
+  if (index >= 0 && node && value.value[index] === "@") node.setSelectionRange(index, end);
 }
 
 function onMentionPick(picked: FlareMentionCandidate): void {
   if (picked.isEveryone) { selectMentionEveryone(); return; }
-  selectMention(mentionCandidates.value.find((candidate) => candidate.userId === picked.id) ?? { userId: picked.id, label: picked.name });
+  const candidate = mentionCandidates.value.find((entry) => entry.userId === picked.id);
+  if (candidate) selectMention(candidate);
 }
 
 function selectMention(candidate: FlareComposerMentionCandidate): void {
   const userId = candidate.userId.trim();
   if (!userId) return;
+  const focusEditor = !touchKeyboard() || mentionTriggerIndex.value >= 0;
   mentionMenuOpen.value = false;
   selectTypedMentionTrigger();
   // 正文里放**显示名**，不是内部 user id —— 用户不该在自己的消息里看到 `@webtest2`。
   // 核心的提及解析按 user_id 与显示名（会话名册里的 nickname）双路匹配，
   // 而这里的 label 正来自同一份名册，所以插显示名一样能解析到人。
-  insertAtCursor(`@${candidate.label?.trim() || userId} `);
+  insertAtCursor(`@${candidate.label?.trim() || userId} `, focusEditor);
 }
 
 /** @全员：插入核心提及解析认得的记号（all / everyone / 全员 / 所有人）。 */
 function selectMentionEveryone(): void {
+  const focusEditor = !touchKeyboard() || mentionTriggerIndex.value >= 0;
   mentionMenuOpen.value = false;
   selectTypedMentionTrigger();
-  insertAtCursor(`@${t("mention.everyone")} `);
+  insertAtCursor(`@${t("mention.everyone")} `, focusEditor);
 }
 
-function insertAtCursor(text: string): void {
+function insertAtCursor(text: string, focusEditor = !mediaPanelActive.value || !touchKeyboard()): void {
   if (editingBlocked.value) return;
   if (useRichEditor.value) {
-    richInputRef.value?.insertAtCursor(text);
+    richInputRef.value?.insertAtCursor(text, focusEditor);
     return;
   }
   const node = textarea();
@@ -570,11 +627,11 @@ function insertAtCursor(text: string): void {
   const shouldSwitchToRichEditor = /\[[a-z][a-z0-9_]*\]/.test(next);
   void nextTick(() => {
     if (shouldSwitchToRichEditor) {
-      richInputRef.value?.focus();
+      if (focusEditor) richInputRef.value?.focus();
       return;
     }
     const offset = Math.min(start + text.length, next.length);
-    node.focus();
+    if (focusEditor) node.focus();
     node.setSelectionRange(offset, offset);
   });
 }
@@ -631,11 +688,11 @@ function build(id: string): void {
   const picker = PICKER_INTENTS[intent as keyof typeof PICKER_INTENTS];
   if (picker && platform.capabilities.value[picker.capability] === "supported") {
     void pickThrough(picker);
-    focusInput();
+    if (!touchKeyboard()) focusInput();
     return;
   }
   emit("build", intent);
-  focusInput();
+  if (!touchKeyboard()) focusInput();
 }
 
 // Plain-textarea Markdown shortcuts; the rich editor applies formats itself.
@@ -675,15 +732,16 @@ function submit(): void {
   }
   if (!canSend.value) return;
   const submittedText = value.value;
+  const keepKeyboardClosed = mediaPanelActive.value && touchKeyboard();
   inputExpanded.value = false;
-  mentionMenuOpen.value = false;
+  closeMention();
   setActivePanel(null);
   emit("send", submittedText);
   value.value = "";
   if (!useRichEditor.value) {
     plainInputResetKey.value += 1;
   }
-  focusInput();
+  if (!keepKeyboardClosed) focusInput();
 }
 
 function handleKeydown(event: KeyboardEvent): void {
@@ -692,6 +750,10 @@ function handleKeydown(event: KeyboardEvent): void {
   // setting `isComposing`.
   const composing = event.isComposing || event.keyCode === 229;
   if (resolveFormKeyboardIntent({ key: event.key, composing }) === "none" && composing) return;
+  if (mentionMenuOpen.value && typedMentionContext.value) {
+    mentionPickerRef.value?.onKeydown(event);
+    if (event.defaultPrevented) return;
+  }
   if (event.key === "Escape" && resolvedActivePanel.value) {
     event.preventDefault();
     setActivePanel(null);
@@ -744,6 +806,11 @@ watch(useRichEditor, (enabled) => {
  * with no layout yet used to land on, so first paint is not a phone bar that jumps.
  */
 const isWide = ref(true);
+const viewport = useOptionalViewport();
+const mobilePanels = computed(() => props.formFactor
+  ? props.formFactor === "mobile"
+  : (viewport?.isMobile.value ?? !isWide.value) ||
+    (typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches));
 let widthObserver: ResizeObserver | undefined;
 watch(root, (element) => {
   widthObserver?.disconnect();
@@ -801,6 +868,7 @@ onBeforeUnmount(() => {
       'composer--uploading': hasUploading,
       'composer--more-open': resolvedActivePanel === 'more',
       'composer--wide': isWide,
+      'composer--panels-above': !mobilePanels,
       'composer--toolbar-expanded': expandedToolbar,
     }"
   >
@@ -891,7 +959,7 @@ onBeforeUnmount(() => {
             :formatting-preview="richActive"
             :max-length="maxLength"
             :placeholder="inputPlaceholder"
-            @focus="inputFocused = true"
+            @focus="onInputFocus"
             @blur="inputFocused = false"
             @format-state-change="updateRichFormatState"
             @keydown="handleKeydown"
@@ -908,7 +976,7 @@ onBeforeUnmount(() => {
             :autosize="inputRows"
             :input-props="composerInputProps"
             :placeholder="inputPlaceholder"
-            @focus="inputFocused = true"
+            @focus="onInputFocus"
             @blur="inputFocused = false"
             @keydown="handleKeydown"
             @update:value="setUserText"
@@ -973,7 +1041,7 @@ onBeforeUnmount(() => {
         <n-button v-if="richTextToolAvailable" circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richActive }" :disabled="editingBlocked" @click="toggleRichMode">
           <template #icon><n-icon aria-hidden="true" :size="20" :component="TextOutline" /></template>
         </n-button>
-        <n-button v-if="attachmentsToolAvailable" circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
+        <n-button v-if="moreAvailable" circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
           <template #icon>
             <n-icon aria-hidden="true" :size="20" :component="resolvedActivePanel === 'more' ? CloseOutline : AddOutline" />
           </template>
@@ -995,13 +1063,15 @@ onBeforeUnmount(() => {
     <section v-if="mentionMenuOpen && mentionToolAvailable" class="composer-surface" :aria-label="t('composer.mention')">
       <div class="composer-mention-menu">
         <FlareMentionPicker
+          ref="mentionPickerRef"
           :candidates="pickerCandidates"
+          :editor-query="typedMentionQuery"
           allow-everyone
           :search-placeholder="t('composer.searchMembers')"
           :everyone-label="t('mention.everyone')"
           :empty-text="t('composer.noResults')"
           @select="onMentionPick"
-          @close="closePanels(); focusInput()"
+          @close="closePanels(); if (!mobilePanels) focusInput()"
         />
       </div>
     </section>
@@ -1020,8 +1090,9 @@ onBeforeUnmount(() => {
       @preview-failed="showVoiceError(t('composer.voicePreviewFailed'))"
     />
     <ComposerMoreSurface
-      v-if="resolvedActivePanel === 'more' && attachmentsToolAvailable && !editingBlocked"
+      v-if="resolvedActivePanel === 'more' && moreAvailable && !editingBlocked"
       :actions="moreActions"
+      :form-factor="mobilePanels ? 'mobile' : 'desktop'"
       :search-visible="moreSearchVisible"
       :title-visible="moreTitleVisible"
       :close-visible="moreCloseVisible"

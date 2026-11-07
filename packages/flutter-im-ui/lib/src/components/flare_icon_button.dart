@@ -64,17 +64,17 @@ class _FlareIconButtonState extends State<FlareIconButton> {
   double get _side =>
       widget.customSize ??
       switch (widget.size) {
-        FlareControlSize.sm => 30,
-        FlareControlSize.md => 38,
-        FlareControlSize.lg => 46,
+        FlareControlSize.sm => FlareSizes.componentIconButtonSideSm,
+        FlareControlSize.md => FlareSizes.componentIconButtonSideMd,
+        FlareControlSize.lg => FlareSizes.componentIconButtonSideLg,
       };
 
   double get _glyph => widget.customSize != null
       ? (widget.customSize! * 0.46).roundToDouble()
       : switch (widget.size) {
-          FlareControlSize.sm => 16,
-          FlareControlSize.md => 19,
-          FlareControlSize.lg => 22,
+          FlareControlSize.sm => FlareSizes.componentIconButtonGlyphSm,
+          FlareControlSize.md => FlareSizes.componentIconButtonGlyphMd,
+          FlareControlSize.lg => FlareSizes.componentIconButtonGlyphLg,
         };
 
   @override

@@ -8,6 +8,564 @@
     ],
     "zh": "接听"
   },
+  "accessDiagnosticsAccessPoint": {
+    "en": "Access point",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "接入点"
+  },
+  "accessDiagnosticsAccessPointMismatch": {
+    "en": "The server reports a different access point. The connection is not affected.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "服务端报告的接入点与当前线路不一致，连接不受影响"
+  },
+  "accessDiagnosticsBreakerHalfOpen": {
+    "en": "Testing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "试探中"
+  },
+  "accessDiagnosticsBreakerOpen": {
+    "en": "Circuit open",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已熔断"
+  },
+  "accessDiagnosticsCurrent": {
+    "en": "Current line",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前线路"
+  },
+  "accessDiagnosticsCurrentTag": {
+    "en": "Current",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前"
+  },
+  "accessDiagnosticsExport": {
+    "en": "Copy diagnostics",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制诊断"
+  },
+  "accessDiagnosticsExportCopied": {
+    "en": "Diagnostics copied",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "诊断信息已复制"
+  },
+  "accessDiagnosticsExportFailed": {
+    "en": "Could not copy. Try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制失败，请重试"
+  },
+  "accessDiagnosticsHealthy": {
+    "en": "Connection is healthy",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "线路正常"
+  },
+  "accessDiagnosticsImport": {
+    "en": "Import",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "导入"
+  },
+  "accessDiagnosticsImportAdopted": {
+    "en": "Recovery link imported. Switching lines.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "恢复链接已导入，正在切换线路"
+  },
+  "accessDiagnosticsImportDevelopmentMode": {
+    "en": "Recovery links are not used in development mode.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开发模式不使用恢复链接"
+  },
+  "accessDiagnosticsImportExpired": {
+    "en": "This link has expired. Ask for a new one.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这条链接已过期，请重新获取"
+  },
+  "accessDiagnosticsImportHint": {
+    "en": "If the service does not come back, ask support for a recovery link.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "线路一直无法恢复时，可向客服索取恢复链接。"
+  },
+  "accessDiagnosticsImportLabel": {
+    "en": "Import a recovery link",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "导入恢复链接"
+  },
+  "accessDiagnosticsImportMalformed": {
+    "en": "This link is malformed. Copy the whole link and try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "链接格式不正确，请完整复制后重试"
+  },
+  "accessDiagnosticsImportPlaceholder": {
+    "en": "Paste a flare-recover:// link",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "粘贴 flare-recover:// 链接"
+  },
+  "accessDiagnosticsImportRejected": {
+    "en": "This link cannot be imported.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无法导入这条链接"
+  },
+  "accessDiagnosticsImportRollback": {
+    "en": "This link is older than the lines on this device.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这条链接比本机线路旧，不需要导入"
+  },
+  "accessDiagnosticsImportUnchanged": {
+    "en": "This link was already imported.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这条链接已经导入过"
+  },
+  "accessDiagnosticsImportUntrusted": {
+    "en": "This link could not be verified. Make sure it came from an official channel.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "链接校验失败，请确认它来自官方渠道"
+  },
+  "accessDiagnosticsImportWrongApp": {
+    "en": "This link belongs to another app.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这条链接不属于当前应用"
+  },
+  "accessDiagnosticsLines": {
+    "en": "All lines",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "全部线路"
+  },
+  "accessDiagnosticsManifest": {
+    "en": "Manifest status",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清单状态"
+  },
+  "accessDiagnosticsManifestNone": {
+    "en": "None yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无清单"
+  },
+  "accessDiagnosticsManifestStale": {
+    "en": "Expired",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已过期"
+  },
+  "accessDiagnosticsManifestStaleNotice": {
+    "en": "The line manifest has expired. You can still connect while it updates.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "线路清单已过期，仍可连接，正在更新"
+  },
+  "accessDiagnosticsManifestValid": {
+    "en": "Valid",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有效"
+  },
+  "accessDiagnosticsNoLines": {
+    "en": "No lines available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可用线路"
+  },
+  "accessDiagnosticsNotConnected": {
+    "en": "Not connected",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前没有连接"
+  },
+  "accessDiagnosticsOff": {
+    "en": "Off",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "关闭"
+  },
+  "accessDiagnosticsOn": {
+    "en": "On",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开启"
+  },
+  "accessDiagnosticsPin": {
+    "en": "Pin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "固定"
+  },
+  "accessDiagnosticsPinnedTag": {
+    "en": "Pinned",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已固定"
+  },
+  "accessDiagnosticsProtocol": {
+    "en": "Protocol",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "协议"
+  },
+  "accessDiagnosticsRecovery": {
+    "en": "Recovery",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "恢复工具"
+  },
+  "accessDiagnosticsRecoveryRounds": {
+    "en": "Recovery rounds so far",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已尝试恢复轮数"
+  },
+  "accessDiagnosticsRefresh": {
+    "en": "Refresh now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "立即刷新"
+  },
+  "accessDiagnosticsRefreshAdopted": {
+    "en": "Lines updated",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "线路已更新"
+  },
+  "accessDiagnosticsRefreshFailed": {
+    "en": "Could not update the lines. Retrying automatically.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂时无法更新线路，稍后会自动重试"
+  },
+  "accessDiagnosticsRefreshSkipped": {
+    "en": "In development mode the lines come from the configuration.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开发模式下线路由配置决定"
+  },
+  "accessDiagnosticsRefreshUpToDate": {
+    "en": "Lines are up to date",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "线路已是最新"
+  },
+  "accessDiagnosticsRegion": {
+    "en": "Region",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "区域"
+  },
+  "accessDiagnosticsReportedAccessPoint": {
+    "en": "Reported by the server",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "服务端报告的接入点"
+  },
+  "accessDiagnosticsRtt": {
+    "en": "Latency",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "延迟"
+  },
+  "accessDiagnosticsRttFair": {
+    "en": "Fair",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "一般"
+  },
+  "accessDiagnosticsRttGood": {
+    "en": "Good",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "良好"
+  },
+  "accessDiagnosticsRttPoor": {
+    "en": "Poor",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "较差"
+  },
+  "accessDiagnosticsSerial": {
+    "en": "Manifest version",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清单版本"
+  },
+  "accessDiagnosticsSource": {
+    "en": "Manifest source",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清单来源"
+  },
+  "accessDiagnosticsSourceDevelopment": {
+    "en": "Development configuration",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开发配置"
+  },
+  "accessDiagnosticsSourceMirror": {
+    "en": "Mirror",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "镜像"
+  },
+  "accessDiagnosticsSourceNone": {
+    "en": "None",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无"
+  },
+  "accessDiagnosticsSourceRecovery": {
+    "en": "Recovery link",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "恢复链接"
+  },
+  "accessDiagnosticsSourceSeed": {
+    "en": "Built-in seed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "内置种子"
+  },
+  "accessDiagnosticsStatusActive": {
+    "en": "Available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "可用"
+  },
+  "accessDiagnosticsStatusDisabled": {
+    "en": "Disabled",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已停用"
+  },
+  "accessDiagnosticsStatusDraining": {
+    "en": "Draining",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "即将下线"
+  },
+  "accessDiagnosticsStatusUnknown": {
+    "en": "Unknown",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知"
+  },
+  "accessDiagnosticsTitle": {
+    "en": "Network and lines",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "网络与线路"
+  },
+  "accessDiagnosticsUnpin": {
+    "en": "Unpin",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "取消固定"
+  },
   "accountBalanceHidden": {
     "en": "Balance hidden",
     "zh": "余额已隐藏",
@@ -867,14 +1425,23 @@
     ],
     "zh": "正在连接…"
   },
-  "connectionDisconnected": {
-    "en": "Disconnected",
+  "connectionDevelopmentMode": {
+    "en": "Development mode",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "连接已断开"
+    "zh": "开发模式"
+  },
+  "connectionDiagnose": {
+    "en": "Diagnose",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "诊断"
   },
   "connectionExpired": {
     "en": "Your sign-in has expired",
@@ -886,31 +1453,13 @@
     "zh": "登录已过期"
   },
   "connectionKicked": {
-    "en": "Your account signed in on another device",
+    "en": "Signed in on another device",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "账号已在其他设备登录"
-  },
-  "connectionOffline": {
-    "en": "No network. Messages will sync when it is back.",
-    "kits": [
-      "android",
-      "flutter",
-      "ios"
-    ],
-    "zh": "网络不可用，恢复后会自动重连"
-  },
-  "connectionReconnect": {
-    "en": "Reconnect",
-    "kits": [
-      "android",
-      "flutter",
-      "ios"
-    ],
-    "zh": "重新连接"
+    "zh": "已在其他设备登录"
   },
   "connectionReconnecting": {
     "en": "Connection lost. Reconnecting…",
@@ -921,6 +1470,24 @@
     ],
     "zh": "连接已断开，正在重连…"
   },
+  "connectionRetry": {
+    "en": "Retry now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "立即重试"
+  },
+  "connectionServiceUnavailable": {
+    "en": "Service temporarily unavailable. Recovering…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "服务暂时不可用，正在自动恢复…"
+  },
   "connectionSignIn": {
     "en": "Sign in again",
     "kits": [
@@ -929,6 +1496,60 @@
       "ios"
     ],
     "zh": "重新登录"
+  },
+  "connectionSwitching": {
+    "en": "Switching connection…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在切换线路…"
+  },
+  "connectionSyncing": {
+    "en": "Syncing messages…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在同步消息…"
+  },
+  "connectionTenantUnavailable": {
+    "en": "Service suspended",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "服务已暂停"
+  },
+  "connectionUpdate": {
+    "en": "Update now",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "立即更新"
+  },
+  "connectionUpgradeRequired": {
+    "en": "Update the app to keep using it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需要更新后才能继续使用"
+  },
+  "connectionWaitingForNetwork": {
+    "en": "No network. Reconnects when it is back.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "网络不可用，恢复后会自动重连"
   },
   "contactDetailBlock": {
     "en": "Block",
@@ -7101,6 +7722,13 @@
     ],
     "zh": "回拨"
   },
+  "callRecordConfirmCallBack": {
+    "en": "Call back now?",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "确认回拨此通话？"
+  },
   "systemEventGroupCreated": {
     "en": "Group created",
     "kits": [
@@ -7366,5 +7994,446 @@
       "ios"
     ],
     "zh": "加载更新的消息"
+  },
+  "updatePromptTitleAvailable": {
+    "en": "New version available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发现新版本"
+  },
+  "updatePromptTitleRequired": {
+    "en": "Update required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需要更新"
+  },
+  "updatePromptTitleMetered": {
+    "en": "Download on a metered network?",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "使用计费网络下载？"
+  },
+  "updatePromptTitleDownloading": {
+    "en": "Downloading update",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在下载更新"
+  },
+  "updatePromptTitleVerifying": {
+    "en": "Verifying update",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在校验更新"
+  },
+  "updatePromptTitleReady": {
+    "en": "Update ready",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新已就绪"
+  },
+  "updatePromptTitleInstalling": {
+    "en": "Installing update",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在安装更新"
+  },
+  "updatePromptTitleFailed": {
+    "en": "Update failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新失败"
+  },
+  "updatePromptVersion": {
+    "en": "Version",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "版本"
+  },
+  "updatePromptNotes": {
+    "en": "What's new",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新内容"
+  },
+  "updatePromptMessageRequired": {
+    "en": "This version is no longer supported. Update to keep using the app.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前版本已停止支持，更新后才能继续使用。"
+  },
+  "updatePromptMessageRequiredReadOnly": {
+    "en": "Update to send messages. You can keep browsing what is on this device.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新后才能发送消息，现在可以继续浏览本地内容。"
+  },
+  "composerReadOnlyUpdate": {
+    "en": "Update to send messages",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新后才能发送消息"
+  },
+  "updatePromptMessageMetered": {
+    "en": "You are on a metered network. This download is about",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前是计费网络，这次下载约"
+  },
+  "updatePromptMessageMeteredUnknown": {
+    "en": "You are on a metered network. The download will use data.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前是计费网络，下载会消耗流量。"
+  },
+  "updatePromptMessageReady": {
+    "en": "The new version starts after a restart. The app will not restart by itself.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重启后新版本生效，应用不会自动重启。"
+  },
+  "updatePromptFailManifestUnavailable": {
+    "en": "Could not get the update information. Check your network and try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂时获取不到更新信息，请检查网络后重试。"
+  },
+  "updatePromptFailManifestRejected": {
+    "en": "The update information failed verification.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新信息未通过校验。"
+  },
+  "updatePromptFailNoArtifact": {
+    "en": "This version has no package for this device yet.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这个版本暂时没有适合本设备的安装包。"
+  },
+  "updatePromptFailInsufficientSpace": {
+    "en": "Not enough storage. Free up some space and try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "存储空间不足，清理后重试。"
+  },
+  "updatePromptFailDownload": {
+    "en": "The download failed. Check your network and try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下载失败，请检查网络后重试。"
+  },
+  "updatePromptFailHashMismatch": {
+    "en": "The download failed verification. Try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下载的文件未通过校验，请重试。"
+  },
+  "updatePromptFailInstall": {
+    "en": "The installation failed. Try again.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "安装失败，请重试。"
+  },
+  "updatePromptFailSignatureMismatch": {
+    "en": "The package signature does not match. Installation stopped.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "安装包签名不匹配，已停止安装。"
+  },
+  "updatePromptFailDowngrade": {
+    "en": "A version older than this one cannot be installed.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不能安装比当前更旧的版本。"
+  },
+  "updatePromptFailNotSkippable": {
+    "en": "This version cannot be skipped.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这个版本不能跳过。"
+  },
+  "updatePromptFailUnknown": {
+    "en": "The update did not finish. Try again later.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新没有完成，请稍后重试。"
+  },
+  "updatePromptContinueDownload": {
+    "en": "Continue download",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "继续下载"
+  },
+  "updatePromptRestart": {
+    "en": "Restart to finish updating",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重启以完成更新"
+  },
+  "updatePromptRetry": {
+    "en": "Try again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重试"
+  },
+  "updatePromptFallbackWebsite": {
+    "en": "Download from the website",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "前往官网下载"
+  },
+  "updatePromptFallbackStore": {
+    "en": "Go to the app store",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "前往应用商店"
+  },
+  "updatePromptLater": {
+    "en": "Later",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "稍后"
+  },
+  "updatePromptBackground": {
+    "en": "Download in background",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "后台下载"
+  },
+  "updatePromptSkip": {
+    "en": "Skip this version",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "跳过此版本"
+  },
+  "updatePromptContinueReadOnly": {
+    "en": "Keep browsing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "继续浏览"
+  },
+  "progressBarLabel": {
+    "en": "Progress",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "进度"
+  },
+  "progressBarLoading": {
+    "en": "In progress",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "进行中"
+  },
+  "versionPanelTitle": {
+    "en": "Version information",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "版本信息"
+  },
+  "versionPanelVersion": {
+    "en": "Version",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "版本"
+  },
+  "versionPanelBuild": {
+    "en": "Build",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "构建号"
+  },
+  "versionPanelChannel": {
+    "en": "Channel",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "渠道"
+  },
+  "versionPanelChannelStable": {
+    "en": "Stable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正式版"
+  },
+  "versionPanelChannelBeta": {
+    "en": "Beta",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "测试版"
+  },
+  "versionPanelChannelInternal": {
+    "en": "Internal",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "内部版"
+  },
+  "versionPanelCheck": {
+    "en": "Check for updates",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "检查更新"
+  },
+  "versionPanelChecking": {
+    "en": "Checking…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在检查…"
+  },
+  "versionPanelUpToDate": {
+    "en": "Up to date",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已是最新版本"
+  },
+  "settingsRowBadge": {
+    "en": "New",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "有新内容"
   }
 }

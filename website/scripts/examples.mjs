@@ -6,6 +6,255 @@
 
 export const curatedExamples = {
 
+  ConnectionNotice: [
+    {
+      title: { en: "App shell, fed by the SDK's connection status", zh: "应用外壳，接 SDK 的连接状态" },
+      description: { en: "Pass every `connection://status` event through as `status`; the kit decides what shows when. Bind only the actions the app performs: retry calls `connection.reconnectNow`, signIn clears the session and returns to sign-in, update opens the update flow, diagnose opens the network diagnostics page.", zh: "把每个 `connection://status` 事件原样作为 `status` 传入，何时显示什么由 Kit 决定。只绑定应用真正执行的动作：retry 调 `connection.reconnectNow`，signIn 清会话回登录页，update 打开更新流程，diagnose 打开网络诊断页。" },
+      vue: `<FlareConnectionNotice
+  :status="connectionStatus"
+  @retry="sdk.connection.reconnectNow()"
+  @sign-in="signOutToLogin"
+  @update="openUpdate"
+  @diagnose="router.push('/settings/network')"
+/>`,
+      flutter: `FlareConnectionNotice(
+  status: connectionStatus,
+  onRetry: () => sdk.connection.reconnectNow(),
+  onSignIn: signOutToLogin,
+  onUpdate: openUpdate,
+  onDiagnose: () => context.push('/settings/network'),
+)`,
+      compose: `ConnectionNotice(
+  status = connectionStatus,
+  onRetry = { sdk.connection.reconnectNow() },
+  onSignIn = ::signOutToLogin,
+  onUpdate = ::openUpdate,
+  onDiagnose = { navController.navigate("settings/network") },
+)`,
+      ios: `ConnectionNoticeView(
+  status: connectionStatus,
+  onRetry: { sdk.connection.reconnectNow() },
+  onSignIn: signOutToLogin,
+  onUpdate: openUpdate,
+  onDiagnose: { path.append(.networkDiagnostics) }
+)`,
+    },
+  ],
+
+  AccessDiagnostics: [
+    {
+      title: { en: "Network and lines page, fed by the access API", zh: "网络与线路页，接接入 API" },
+      description: { en: "Read `access.getStatus` and `access.listAccessPoints` when the page opens and on `access://changed`, and pass the results through. Bind the actions the app performs and feed each result's `outcome` back; the words are the kit's. The host owns the clipboard: export calls `access.exportDiagnostics`, writes the text, then reports `copied` or `failed`.", zh: "页面打开时和收到 `access://changed` 时读 `access.getStatus` 与 `access.listAccessPoints`，把结果原样传入。绑定应用真正执行的动作，并把结果的 `outcome` 回填，文案由 Kit 决定。剪贴板归宿主：导出时调 `access.exportDiagnostics`，写入文本，再告知 `copied` 或 `failed`。" },
+      vue: `<FlareAccessDiagnostics
+  :status="status"
+  :access-points="accessPoints"
+  :refreshing="refreshing"
+  :refresh-outcome="refreshOutcome"
+  :importing="importing"
+  :import-outcome="importResult?.outcome"
+  :import-code="importResult?.code"
+  :export-outcome="exportOutcome"
+  @pin="(id) => sdk.access.pin({ accessPointId: id }).then(reload)"
+  @unpin="sdk.access.unpin().then(reload)"
+  @refresh="refresh"
+  @import-recovery="importLink"
+  @export-diagnostics="copyDiagnostics"
+/>`,
+      flutter: `FlareAccessDiagnostics(
+  status: status,
+  accessPoints: accessPoints,
+  refreshing: refreshing,
+  refreshOutcome: refreshOutcome,
+  importing: importing,
+  importOutcome: importResult?.outcome,
+  importCode: importResult?.code,
+  exportOutcome: exportOutcome,
+  onPin: (id) => pin(id),
+  onUnpin: unpin,
+  onRefresh: refresh,
+  onImportRecovery: importLink,
+  onExportDiagnostics: copyDiagnostics,
+)`,
+      compose: `AccessDiagnostics(
+  status = status,
+  accessPoints = accessPoints,
+  refreshing = refreshing,
+  refreshOutcome = refreshOutcome,
+  importing = importing,
+  importOutcome = importResult?.outcome,
+  importCode = importResult?.code,
+  exportOutcome = exportOutcome,
+  onPin = ::pin,
+  onUnpin = ::unpin,
+  onRefresh = ::refresh,
+  onImportRecovery = ::importLink,
+  onExportDiagnostics = ::copyDiagnostics,
+)`,
+      ios: `AccessDiagnosticsView(
+  status: status,
+  accessPoints: accessPoints,
+  refreshing: refreshing,
+  refreshOutcome: refreshOutcome,
+  importing: importing,
+  importOutcome: importResult?.outcome,
+  importCode: importResult?.code,
+  exportOutcome: exportOutcome,
+  onPin: pin,
+  onUnpin: unpin,
+  onRefresh: refresh,
+  onImportRecovery: importLink,
+  onExportDiagnostics: copyDiagnostics
+)`,
+    },
+  ],
+
+  UpdatePrompt: [
+    {
+      title: { en: "App shell, fed by the update status", zh: "应用外壳，接更新状态" },
+      description: { en: "Pass `update://state` through and bind what the app performs. `prompt` picks the form and opens it; the phases, words and buttons are the kit's. The primary button on a metered network also calls update: that call passes `allowMetered`. The background button and the scrim call later, which is `update.defer`: while downloading or verifying the download carries on and only the prompt goes. Bind fallback only while `status.error.fallbackUrl` has an address, because the button is drawn only while the host handles it. Pass `status.blockReason` as `reason`: a forced offer says it in place of the fixed words.", zh: "把 `update://state` 原样传入，绑定应用真正执行的动作。`prompt` 决定形态与是否打开，阶段、文案和按钮由 Kit 决定。计费网络下的主按钮同样触发 update，这次调用要带 `allowMetered`。「后台下载」和点遮罩触发 later，也就是 `update.defer`：下载或校验中下载继续，只是提示消失。`status.error.fallbackUrl` 有地址时才绑定 fallback，因为宿主处理对应动作时才画出按钮。把 `status.blockReason` 传给 `reason`：强制提示用它代替固定文案。" },
+      vue: `<FlareUpdatePrompt
+  :open="shown"
+  :form="status.prompt"
+  :version="status.release?.version"
+  :notes="status.release?.notes"
+  :reason="status.blockReason"
+  :size-bytes="status.release?.sizeBytes"
+  :mandatory="status.release?.mandatory"
+  :state="status.state"
+  :progress="status.progress"
+  :error-code="status.error?.code"
+  :retryable="status.error?.retryable"
+  :fallback-target="status.current.distribution === 'direct' ? 'website' : 'store'"
+  :can-continue-read-only="!status.blockUi"
+  @update="controller.update()"
+  @later="controller.later()"
+  @skip="controller.skip()"
+  @retry="controller.update()"
+  v-on="status.error?.fallbackUrl ? { fallback: openFallback } : {}"
+  @continue-read-only="controller.continueReadOnly()"
+/>`,
+      flutter: `FlareUpdatePromptPresenter(
+  open: shown,
+  prompt: FlareUpdatePrompt(
+    form: form,
+    version: release.version,
+    notes: release.notes,
+    reason: status.blockReason,
+    sizeBytes: release.sizeBytes,
+    mandatory: release.mandatory,
+    state: status.state,
+    progress: progress,
+    errorCode: status.error?.code,
+    retryable: status.error?.retryable ?? true,
+    canContinueReadOnly: !status.blockUi,
+    onUpdate: controller.update,
+    onLater: controller.later,
+    onSkip: controller.skip,
+    onRetry: controller.update,
+    onFallback: status.error?.fallbackUrl == null ? null : openFallback,
+    onContinueReadOnly: controller.continueReadOnly,
+  ),
+  child: page,
+)`,
+      compose: `if (shown) UpdatePrompt(
+  form = form,
+  version = release.version,
+  notes = release.notes,
+  reason = status.blockReason,
+  sizeBytes = release.sizeBytes,
+  mandatory = release.mandatory,
+  state = status.state,
+  progress = progress,
+  errorCode = status.error?.code,
+  retryable = status.error?.retryable ?: true,
+  canContinueReadOnly = !status.blockUi,
+  onUpdate = controller::update,
+  onLater = controller::later,
+  onSkip = controller::skip,
+  onRetry = controller::update,
+  onFallback = if (status.error?.fallbackUrl == null) null else ::openFallback,
+  onContinueReadOnly = controller::continueReadOnly,
+)`,
+      ios: `page.flareUpdatePrompt(isPresented: $shown, prompt: UpdatePromptView(
+  form: form,
+  version: release.version,
+  notes: release.notes,
+  reason: status.blockReason,
+  sizeBytes: release.sizeBytes,
+  mandatory: release.mandatory,
+  state: status.state,
+  progress: progress,
+  errorCode: status.error?.code,
+  retryable: status.error?.retryable ?? true,
+  canContinueReadOnly: !status.blockUi,
+  onUpdate: controller.update,
+  onLater: controller.later,
+  onSkip: controller.skip,
+  onRetry: controller.update,
+  onFallback: status.error?.fallbackUrl == nil ? nil : openFallback,
+  onContinueReadOnly: controller.continueReadOnly
+))`,
+    },
+  ],
+
+  ProgressBar: [
+    {
+      title: { en: "Determinate, indeterminate and toned", zh: "确定值、不确定与语气" },
+      description: { en: "Give a value from 0 to 1, or `indeterminate` when the length of the work is not known. A value that is missing reads as indeterminate. `label` says what is progressing to a screen reader.", zh: "传 0 到 1 的值，长度未知时用 `indeterminate`。没有值也按不确定显示。`label` 告诉读屏进度属于什么。" },
+      vue: `<FlareProgressBar :value="0.42" label="Download" />
+<FlareProgressBar :value="1" tone="success" label="Done" />
+<FlareProgressBar indeterminate label="Verifying" />`,
+      flutter: `const FlareProgressBar(value: 0.42, label: 'Download')
+const FlareProgressBar(value: 1, tone: FlareProgressBarTone.success, label: 'Done')
+const FlareProgressBar(indeterminate: true, label: 'Verifying')`,
+      compose: `ProgressBar(value = 0.42, label = "Download")
+ProgressBar(value = 1.0, tone = FlareProgressBarTone.Success, label = "Done")
+ProgressBar(indeterminate = true, label = "Verifying")`,
+      ios: `ProgressBarView(value: 0.42, label: "Download")
+ProgressBarView(value: 1, tone: .success, label: "Done")
+ProgressBarView(indeterminate: true, label: "Verifying")`,
+    },
+  ],
+
+  VersionPanel: [
+    {
+      title: { en: "About page, fed by the update status", zh: "关于页，接更新状态" },
+      description: { en: "Pass `UpdateStatus.current` and `state` through. The last row's words and what it does are the kit's: check calls `update.check` with `manual`, update opens the update flow.", zh: "把 `UpdateStatus.current` 与 `state` 原样传入。最后一行的文案和动作由 Kit 决定：check 调 `update.check` 并带 `manual`，update 打开更新流程。" },
+      vue: `<FlareVersionPanel
+  :version="status.current.version"
+  :build="status.current.build"
+  :channel="status.current.channel"
+  :update-state="status.state"
+  @check="controller.check()"
+  @update="controller.update()"
+/>`,
+      flutter: `FlareVersionPanel(
+  version: current.version,
+  build: current.build,
+  channel: current.channel,
+  updateState: status.state,
+  onCheck: controller.check,
+  onUpdate: controller.update,
+)`,
+      compose: `VersionPanel(
+  version = current.version,
+  build = current.build,
+  channel = current.channel,
+  updateState = status.state,
+  onCheck = controller::check,
+  onUpdate = controller::update,
+)`,
+      ios: `VersionPanelView(
+  version: current.version,
+  build: current.build,
+  channel: current.channel,
+  updateState: status.state,
+  onCheck: controller.check,
+  onUpdate: controller.update
+)`,
+    },
+  ],
+
   InviteCodeField: [
     {
       title: { en: "Registration form, host-run pre-check", zh: "注册表单，宿主执行预检" },

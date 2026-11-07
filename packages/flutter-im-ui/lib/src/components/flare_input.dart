@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
@@ -15,6 +16,7 @@ class FlareInput extends StatefulWidget {
     this.placeholder,
     this.semanticLabel,
     this.multiline = false,
+    this.size = FlareControlSize.md,
     this.secure = false,
     this.revealable = false,
     this.maxLength,
@@ -36,6 +38,7 @@ class FlareInput extends StatefulWidget {
   /// Accessible field name when the visual label is drawn outside the input.
   final String? semanticLabel;
   final bool multiline;
+  final FlareControlSize size;
 
   /// Optional leading widget rendered inside the field (e.g. a search icon).
   final Widget? prefix;
@@ -124,12 +127,31 @@ class _FlareInputState extends State<FlareInput> {
         widget.maxLength != null &&
         _controller.text.characters.length >= widget.maxLength!;
     final showClear =
-        widget.clearable && _controller.text.isNotEmpty && !widget.disabled;
+        widget.clearable &&
+        !widget.secure &&
+        _controller.text.isNotEmpty &&
+        !widget.disabled;
     final showReveal =
         widget.secure &&
         widget.revealable &&
         !widget.multiline &&
         !widget.disabled;
+    final touch = switch (Theme.of(context).platform) {
+      TargetPlatform.android ||
+      TargetPlatform.iOS ||
+      TargetPlatform.fuchsia => true,
+      _ => false,
+    };
+    final minHeight = switch (widget.size) {
+      FlareControlSize.sm =>
+        touch ? FlareSizes.touchTargetMin : FlareSizes.controlHeightSm,
+      FlareControlSize.md =>
+        touch ? FlareSizes.touchTargetMin : FlareSizes.controlHeightMd,
+      FlareControlSize.lg => FlareSizes.controlHeightLg,
+    };
+    final actionWidth = touch
+        ? FlareSizes.touchTargetMin
+        : FlareSizes.controlHeightSm;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -138,71 +160,75 @@ class _FlareInputState extends State<FlareInput> {
           decoration: BoxDecoration(
             color: colors.bgSecondary,
             borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+          ),
+          foregroundDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             border: Border.all(
               color: _focused ? colors.borderSelected : colors.borderPrimary,
               width: 1,
             ),
           ),
-          // A clearable field is a touch target tall, so its clear control fits
-          // inside and the field keeps its size when the control appears.
-          padding: widget.clearable
-              ? const EdgeInsetsDirectional.only(start: FlareSizes.spacingMd)
-              : const EdgeInsets.symmetric(
-                  horizontal: FlareSizes.spacingMd,
-                  vertical: FlareSizes.spacingSm,
-                ),
+          padding: EdgeInsetsDirectional.only(
+            start: FlareSizes.spacingMd,
+            end: showClear || showReveal ? 0 : FlareSizes.spacingMd,
+          ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: widget.clearable ? FlareSizes.touchTarget : 0,
-            ),
+            constraints: BoxConstraints(minHeight: minHeight),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (widget.prefix != null)
                   Padding(
-                    padding: const EdgeInsets.only(right: FlareSizes.spacingSm),
+                    padding: const EdgeInsetsDirectional.only(
+                      end: FlareSizes.spacingSm,
+                    ),
                     child: widget.prefix!,
                   ),
                 Expanded(
-                  child: MergeSemantics(
-                    child: Semantics(
-                      label: widget.semanticLabel ?? widget.placeholder,
-                      identifier: widget.semanticLabel,
-                      child: TextField(
-                        obscureText:
-                            widget.secure && !widget.multiline && !_revealed,
-                        controller: _controller,
-                        focusNode: _focus,
-                        autofocus: widget.autofocus,
-                        keyboardType: widget.keyboardType,
-                        autofillHints: widget.autofillHints,
-                        inputFormatters: widget.inputFormatters,
-                        enabled: !widget.disabled,
-                        minLines: 1,
-                        maxLines: widget.multiline ? 6 : 1,
-                        maxLength: widget.maxLength,
-                        onSubmitted: widget.onSubmitted,
-                        buildCounter:
-                            (
-                              _, {
-                              required currentLength,
-                              maxLength,
-                              required isFocused,
-                            }) => null,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: FlareSizes.fontSizeLg,
-                          fontFamily: widget.monospace ? 'monospace' : null,
-                          fontFamilyFallback: widget.monospace
-                              ? const ['Menlo', 'Roboto Mono', 'Courier New']
-                              : null,
-                          letterSpacing: widget.monospace ? 1.2 : null,
-                        ),
-                        decoration: InputDecoration(
-                          isCollapsed: true,
-                          border: InputBorder.none,
-                          hintText: widget.placeholder,
-                          hintStyle: TextStyle(color: colors.textTertiary),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: FlareSizes.spacingSm,
+                    ),
+                    child: MergeSemantics(
+                      child: Semantics(
+                        label: widget.semanticLabel ?? widget.placeholder,
+                        identifier: widget.semanticLabel,
+                        child: TextField(
+                          obscureText:
+                              widget.secure && !widget.multiline && !_revealed,
+                          controller: _controller,
+                          focusNode: _focus,
+                          autofocus: widget.autofocus,
+                          keyboardType: widget.keyboardType,
+                          autofillHints: widget.autofillHints,
+                          inputFormatters: widget.inputFormatters,
+                          enabled: !widget.disabled,
+                          minLines: 1,
+                          maxLines: widget.multiline ? 6 : 1,
+                          maxLength: widget.maxLength,
+                          onSubmitted: widget.onSubmitted,
+                          buildCounter:
+                              (
+                                _, {
+                                required currentLength,
+                                maxLength,
+                                required isFocused,
+                              }) => null,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: FlareSizes.fontSizeLg,
+                            fontFamily: widget.monospace ? 'monospace' : null,
+                            fontFamilyFallback: widget.monospace
+                                ? const ['Menlo', 'Roboto Mono', 'Courier New']
+                                : null,
+                            letterSpacing: widget.monospace ? 1.2 : null,
+                          ),
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: widget.placeholder,
+                            hintStyle: TextStyle(color: colors.textTertiary),
+                          ),
                         ),
                       ),
                     ),
@@ -210,6 +236,8 @@ class _FlareInputState extends State<FlareInput> {
                 ),
                 if (showClear)
                   FlareIconControl(
+                    minHeight: minHeight,
+                    minWidth: actionWidth,
                     label: FlareStrings.of(context).clear,
                     onTap: () => _controller.clear(),
                     child: FlareIcon(
@@ -217,11 +245,11 @@ class _FlareInputState extends State<FlareInput> {
                       size: 18,
                       color: colors.textTertiary,
                     ),
-                  )
-                else if (widget.clearable)
-                  const SizedBox(width: FlareSizes.spacingMd),
+                  ),
                 if (showReveal)
                   FlareIconControl(
+                    minHeight: minHeight,
+                    minWidth: actionWidth,
                     label: _revealed
                         ? FlareStrings.of(context).inputHide
                         : FlareStrings.of(context).inputReveal,

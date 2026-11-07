@@ -99,6 +99,10 @@
     "InviteCodeField": "general-ui",
     "EmptyState": "general-ui",
     "StatusBanner": "general-ui",
+    "ConnectionNotice": "im-ui",
+    "AccessDiagnostics": "im-ui",
+    "UpdatePrompt": "im-ui",
+    "ProgressBar": "general-ui",
     "FilterTabs": "general-ui",
     "ContactList": "im-ui",
     "ContactItem": "im-ui",
@@ -109,6 +113,7 @@
     "ProfilePanel": "im-ui",
     "ProfileEditor": "im-ui",
     "SettingsList": "im-ui",
+    "VersionPanel": "im-ui",
     "CallView": "im-ui",
     "IncomingCall": "im-ui",
     "CallControls": "im-ui",
@@ -224,6 +229,7 @@
     "DescriptionList": "general-ui",
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
-    "UserIdentity": "general-ui"
+    "UserIdentity": "general-ui",
+    "ImageUploadSlot": "im-ui"
   }
 }

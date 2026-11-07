@@ -26,13 +26,19 @@ void main() {
       ),
     );
     await mount();
+    final toggle = find.byType(FlareSwitch);
+    expect(tester.getSize(toggle), const Size(34, 20));
+    expect(
+      tester.getSize(find.byType(FlareSettingsRow)).height,
+      greaterThanOrEqualTo(44),
+    );
     await tester.tap(find.text('Mute'));
     expect(changes, 1);
-    await tester.tapAt(tester.getCenter(find.byType(Switch)));
+    await tester.tapAt(tester.getCenter(toggle));
     expect(changes, 2);
     await mount(disabled: true);
     await tester.tap(find.text('Mute'));
-    await tester.tapAt(tester.getCenter(find.byType(Switch)));
+    await tester.tapAt(tester.getCenter(find.byType(FlareSwitch)));
     expect(changes, 2);
     expect(tester.takeException(), isNull);
   });

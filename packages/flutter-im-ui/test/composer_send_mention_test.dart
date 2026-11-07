@@ -175,29 +175,37 @@ void main() {
       return controller;
     }
 
-    testWidgets('a typed "@" opens the picker with its search focused', (
+    testWidgets('a typed "@" keeps the editor focused and filters candidates', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       final controller = await pumpComposer(tester);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+      await tester.pump();
       await _type(tester, 'hi ');
       await _type(tester, 'hi @');
       await tester.pumpAndSettle();
       final picker = find.byType(FlareMentionPicker);
       expect(picker, findsOneWidget);
-      expect(
-        find.ancestor(of: picker, matching: find.byType(FlareBottomSheet)),
-        findsOneWidget,
+      expect(find.byType(FlareBottomSheet), findsNothing);
+      final editor = tester.widget<ExtendedTextField>(
+        find.byType(ExtendedTextField),
       );
-      final search = tester.state<EditableTextState>(
-        find.descendant(of: picker, matching: find.byType(EditableText)),
-      );
-      expect(search.widget.focusNode.hasFocus, isTrue);
+      expect(editor.focusNode!.hasFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+      await _type(tester, 'hi @An');
+      await tester.pumpAndSettle();
+      expect(find.text('Ann'), findsOneWidget);
+      expect(find.text('Bob'), findsNothing);
 
       await tester.tap(find.text('Ann'));
       await tester.pumpAndSettle();
       expect(find.byType(FlareMentionPicker), findsNothing);
       expect(controller.text, 'hi @Ann ');
       expect(controller.selection.baseOffset, 'hi @Ann '.length);
+      expect(editor.focusNode!.hasFocus, isTrue);
     });
 
     testWidgets('closing the picker leaves the "@"', (tester) async {
@@ -209,6 +217,56 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(FlareMentionPicker), findsNothing);
       expect(controller.text, '@');
+    });
+
+    testWidgets('the open picker updates its roster and rejects a stale pick', (
+      tester,
+    ) async {
+      const everyone = FlareMentionCandidate(
+        id: '__all__',
+        name: 'Everyone in the group',
+        isEveryone: true,
+      );
+      final candidates = ValueNotifier<List<FlareMentionCandidate>>([
+        everyone,
+        ..._members,
+      ]);
+      final controller = TextEditingController();
+      addTearDown(candidates.dispose);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _host(
+          ValueListenableBuilder(
+            valueListenable: candidates,
+            builder: (_, visible, _) => FlareComposer(
+              controller: controller,
+              mentionCandidates: visible,
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(ExtendedTextField));
+      await _type(tester, '@');
+      await tester.pumpAndSettle();
+      final picker = find.byType(FlareMentionPicker);
+      expect(find.text('Everyone in the group'), findsOneWidget);
+      expect(find.text('Bob'), findsOneWidget);
+      final oldSelection = tester.widget<FlareMentionPicker>(picker).onSelect!;
+
+      candidates.value = [_members.first];
+      await tester.pumpAndSettle();
+      expect(picker, findsOneWidget);
+      expect(find.text('Ann'), findsOneWidget);
+      expect(find.text('Everyone in the group'), findsNothing);
+      expect(find.text('Bob'), findsNothing);
+
+      oldSelection(_members.last);
+      await tester.pumpAndSettle();
+      expect(controller.text, '@');
+
+      await tester.tap(find.text('Ann'));
+      await tester.pumpAndSettle();
+      expect(controller.text, '@Ann ');
     });
 
     testWidgets('an "@" inside a word or without candidates stays text', (

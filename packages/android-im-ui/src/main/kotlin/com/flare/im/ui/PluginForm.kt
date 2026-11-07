@@ -77,9 +77,9 @@ fun PluginForm(
     ) {
         inputs.forEach { input ->
             when (input.kind) {
-                PluginInputKind.Text -> FormField(input.label, input.required, PluginFormRules.counter(input, form.draft[input.id]), errorText(input)) {
+                PluginInputKind.Text, PluginInputKind.Password -> FormField(input.label, input.required, PluginFormRules.counter(input, form.draft[input.id]), errorText(input)) {
                     Input(value = form.draft[input.id] as? String ?: "", onValueChange = { set(input.id, it) },
-                        placeholder = input.placeholder, disabled = busy)
+                        placeholder = input.placeholder, disabled = busy, secure = input.kind == PluginInputKind.Password)
                 }
                 PluginInputKind.Textarea -> FormField(input.label, input.required, PluginFormRules.counter(input, form.draft[input.id]), errorText(input)) {
                     Textarea(value = form.draft[input.id] as? String ?: "", placeholder = input.placeholder, rows = 3, maxRows = 6,
@@ -154,7 +154,7 @@ fun PluginForm(
                         if (!busy) {
                             val (next, submitted) = form.submit(inputs)
                             form = next
-                            if (submitted != null) onSubmit?.invoke(submitted)
+                            if (submitted != null) { inputs.filter { it.kind == PluginInputKind.Password }.forEach { set(it.id, "") }; onSubmit?.invoke(submitted) }
                         }
                     })
             }

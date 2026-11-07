@@ -87,6 +87,8 @@ data class SettingsItem(
     val detail: String? = null,
     val disabled: Boolean = false,
     val danger: Boolean = false,
+    /** A red dot before the chevron: something here is new (an update waiting in About). A toggle row draws none. */
+    val badge: Boolean = false,
 )
 
 data class SettingsSection(

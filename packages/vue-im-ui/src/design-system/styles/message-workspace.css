@@ -133,15 +133,10 @@
      the media sizes follow this, not the window, so a chat in a 380px pane of a 1600px desktop
      reads like a chat on a phone (FR-139's note; the window still decides the page's own chrome). */
   container: flare-timeline / inline-size;
-  /* 一屏宽到一定程度以后，把行收进一条可读的列并居中。
-     改前时间线是通栏的：1920 下窗格有 1528px，消息挤在最左约 300px，右边一千多像素空着，
-     来往两侧的左右之分也就没了意义 —— 一条进来的和一条发出去的隔着大半个屏。
-     `layout.messageTimelineContentMaxWidth` 就是为这件事立的 token，但此前没有任何样式读它。
-     限在**根**上而不是里面某一层：根同时是容器查询的容器，气泡的百分比宽必须按这条列算，
-     否则 62% × 1528 会超出 920 的列。 */
+  /* Rows span the chat pane so incoming/outgoing messages stay at its two edges.
+     The content owns the edge gutter; individual bubbles own their reading width. */
   width: 100%;
-  max-width: var(--flare-size-layout-message-timeline-content-max-width);
-  margin-inline: auto;
+  min-width: 0;
   /* 时间线自己铺底,因为气泡是靠与这张底的色差画出来的 —— 宿主铺了什么不该决定
      气泡看不看得见。默认与 FlareAppLayout 同一种面,所以在 app 里这一笔是隐形的。 */
   background: var(--flare-component-chat-window-bg);

@@ -117,7 +117,7 @@ export type FlarePluginBlock =
   | FlarePluginNoteBlock
   | FlarePluginRowsBlock;
 
-export type FlarePluginInputKind = "text" | "textarea" | "number" | "toggle" | "select" | "datetime" | "options" | "members";
+export type FlarePluginInputKind = "text" | "password" | "textarea" | "number" | "toggle" | "select" | "datetime" | "options" | "members";
 export interface FlarePluginInput {
   id: string;
   kind: FlarePluginInputKind;
@@ -476,7 +476,7 @@ export function flarePluginPagePayload(
 
 /** Characters as the core SDK counts them: Unicode code points. */
 const codePoints = (s: string) => [...s].length;
-const DEFAULT_MAX_LENGTH: Partial<Record<FlarePluginInputKind, number>> = { text: 256, textarea: 2000, options: 100 };
+const DEFAULT_MAX_LENGTH: Partial<Record<FlarePluginInputKind, number>> = { text: 256, password: 256, textarea: 2000, options: 100 };
 const DEFAULT_MAX_ITEMS: Partial<Record<FlarePluginInputKind, number>> = { options: 50, members: 500 };
 
 export function flarePluginMaxLength(input: FlarePluginInput): number | undefined {
@@ -497,6 +497,7 @@ export function flarePluginMinRows(input: FlarePluginInput): number {
 export function flarePluginDraftValue(input: FlarePluginInput, values: Record<string, unknown> | undefined): unknown {
   const raw = values && input.id in values ? values[input.id] : input.default;
   switch (input.kind) {
+    case "password": return "";
     case "toggle": return raw === undefined || raw === null ? false : Boolean(raw);
     case "options": return Array.isArray(raw) ? raw.map((x) => (typeof x === "string" ? x : String(x ?? ""))) : Array.from({ length: flarePluginMinRows(input) }, () => "");
     case "members": return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : [];
@@ -519,6 +520,7 @@ const optionItems = (value: unknown) => (Array.isArray(value) ? value : []).map(
 export function flarePluginCheckInput(input: FlarePluginInput, draft: unknown): FlarePluginFormIssue | null {
   const limit = flarePluginMaxLength(input);
   switch (input.kind) {
+    case "password":
     case "text":
     case "textarea": {
       const text = String(draft ?? "").trim();
@@ -555,6 +557,9 @@ export function flarePluginFormValues(inputs: ReadonlyArray<FlarePluginInput>, d
   for (const input of inputs) {
     const value = draft[input.id];
     switch (input.kind) {
+      case "password":
+        if (typeof value === "string" && value) out[input.id] = value;
+        break;
       case "text":
       case "textarea": {
         const text = String(value ?? "").trim();

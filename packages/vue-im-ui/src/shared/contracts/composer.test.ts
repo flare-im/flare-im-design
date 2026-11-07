@@ -85,4 +85,22 @@ describe("composer action table", () => {
     })).toEqual([actions[3], actions[2], actions[0]]);
     expect(resolveComposerActions({ defaults }).map((action) => action.id)).toEqual(FLARE_DEFAULT_COMPOSER_ACTION_IDS);
   });
+
+  it("draws a host's ranked panel in its order, plugins interleaved with built-ins", () => {
+    // The social SDK ranks the "+" panel by the application's layout (order 10, 20, 30…): the kit
+    // keeps that sequence whatever the default table says, even when the host list comes shuffled.
+    const ranked: FlareComposerAction[] = [
+      { id: "image", kind: "feature", order: 30 },
+      { id: "plugin:flare.redpacket.send", kind: "plugin", label: "红包", order: 10 },
+      { id: "file", kind: "feature", order: 20 },
+      { id: "plugin:flare.vote.create", kind: "plugin", label: "投票", order: 40 },
+    ];
+    expect(resolveComposerActions({
+      defaults: FLARE_DEFAULT_COMPOSER_ACTION_IDS.map((id) => ({ id })),
+      actions: ranked,
+      capabilities: { availableActionIds: ranked.map((action) => action.id) },
+    }).map((action) => action.id)).toEqual([
+      "plugin:flare.redpacket.send", "file", "image", "plugin:flare.vote.create",
+    ]);
+  });
 });

@@ -7,6 +7,26 @@ void main() {
   final midnight = DateTime(2026, 9, 14, 0, 7);
   final noon = DateTime(2026, 9, 14, 12, 30);
 
+  group('fullDateTime', () {
+    test(
+      'records retain their date and follow the explicit application locale',
+      () {
+        expect(
+          FlareTimeFormat.fullDateTime(evening, locale: 'zh-CN'),
+          '2026/9/14 21:40',
+        );
+        expect(
+          FlareTimeFormat.fullDateTime(evening, locale: 'en-US'),
+          '9/14/2026 9:40 PM',
+        );
+        expect(
+          FlareTimeFormat.fullDateTime(evening, locale: 'en-GB'),
+          '14/9/2026 21:40',
+        );
+      },
+    );
+  });
+
   group('messageTime', () {
     test('24-hour locales use a two-digit hour', () {
       for (final locale in ['zh-CN', 'zh_Hans_CN', 'ja-JP', 'de-DE', 'en-GB']) {

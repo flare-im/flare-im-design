@@ -1,0 +1,319 @@
+{
+  "version": 1,
+  "note": "What the network and line diagnostics page shows for the host's `access.getStatus` and `access.listAccessPoints` results. The four kits run this table against their own rules (Vue, Flutter, SwiftUI and Compose `flareAccessDiagnostics` and its helpers); the AccessDiagnostics component of each kit draws what they return. Apps do not decide any of it.",
+  "thresholds": {
+    "rttGoodBelowMs": 150,
+    "rttPoorAboveMs": 400
+  },
+  "rules": {
+    "state": "recovering when the status has `recovering`, or `loaded` is false (no usable manifest, so no line to connect to); otherwise warning when there is at least one warning; otherwise normal. No status yet reads normal, with no notices.",
+    "warnings": "accessPointMismatch when connectAck.accessPointMismatch is true (the server reports another access point than the client chose; the connection stays up), then manifestStale when `stale` is true (past its expiry, still connectable). Recovering keeps its warnings.",
+    "notices": "In order. recovering: serviceUnavailable (warning, pulsing), or waitingForNetwork (warning, still) when `recovering` is there with no nextRoundAtMs, because the device has no network; then the warnings. warning: the warnings, each warning tone and still. normal: healthy (success) on a line, notConnected (neutral) without one.",
+    "manifest": "none while `loaded` is false or there is no status, stale when `stale` is true, otherwise valid.",
+    "rtt": "The current line's rttMs is the rttMs of the access point marked current. Rounded to whole milliseconds; missing, negative or not finite reads as unknown (no grade). Below rttGoodBelowMs is good, above rttPoorAboveMs is poor, the rest is fair. Tones: good success, fair warning, poor danger.",
+    "reported": "reportedAccessPointId is connectAck.accessPointId while accessPointMismatch is true, and missing otherwise.",
+    "recoveryRounds": "recovering.rounds while recovering, and missing otherwise.",
+    "protocol": "quic reads QUIC, ws reads WebSocket, any other string is shown as it arrives, none stays none.",
+    "source": "seed, recovery, development and none are kinds of their own, and a missing source reads none. `https:<base>` is a mirror whose detail is the base's host; `wellKnown:<apId>` is the access point's well-known path, detail apId. Any other string is unknown, detail the string as it arrives.",
+    "regions": "Access points are grouped by regionId in the order each region first appears, and keep the host's order inside a region. A missing regionId is a group of its own with no heading.",
+    "pointStatus": "active (success), draining (warning), disabled (neutral); any other string reads unknown (neutral).",
+    "pointBreaker": "open (danger) and halfOpen (warning) are shown; closed and any other string show nothing.",
+    "pin": "A pinned access point offers unpin. An active one whose breaker is not open offers pin: only an active line that is not cooling down can carry a pin. Others offer nothing.",
+    "refresh": "What `access.refresh` answered, by outcome: adopted (success), upToDate (success), failed and oldValues (warning, both refreshFailed), skipped (neutral). Any other string, or none, says nothing.",
+    "import": "What `access.importRecovery` answered: adopted (success), unchanged (neutral), rejected (danger) by code: rollback, expired, wrongBootstrapId, developmentMode have their own words; badSignature, unknownKey, revoked, wrongPayloadType and every keyCert.* read untrusted; malformedEnvelope, invalidPayload and tooLarge read malformed; anything else, or no code, reads rejected. Any other outcome, or none, says nothing.",
+    "export": "copied (success) and failed (danger) are the host's word on the clipboard; any other string, or none, says nothing."
+  },
+  "driver": "Each table is independent. `cases` runs flareAccessDiagnostics(status, accessPoints) and compares state, notices, manifest, rttMs, rttGrade, reportedAccessPointId, recoveryRounds and regions (each region's regionId and the ids of its access points, in order); a missing expect field is null. `points` runs the row rules on one access point. `rtt`, `protocols`, `sources`, `refresh`, `import` and `export` each run their own rule.",
+  "rtt": [
+    { "rttMs": null, "shownMs": null, "grade": null },
+    { "rttMs": -1, "shownMs": null, "grade": null },
+    { "rttMs": 0, "shownMs": 0, "grade": "good" },
+    { "rttMs": 86.2, "shownMs": 86, "grade": "good" },
+    { "rttMs": 149, "shownMs": 149, "grade": "good" },
+    { "rttMs": 149.4, "shownMs": 149, "grade": "good" },
+    { "rttMs": 149.5, "shownMs": 150, "grade": "fair" },
+    { "rttMs": 150, "shownMs": 150, "grade": "fair" },
+    { "rttMs": 400, "shownMs": 400, "grade": "fair" },
+    { "rttMs": 400.4, "shownMs": 400, "grade": "fair" },
+    { "rttMs": 400.5, "shownMs": 401, "grade": "poor" },
+    { "rttMs": 401, "shownMs": 401, "grade": "poor" },
+    { "rttMs": 2500, "shownMs": 2500, "grade": "poor" }
+  ],
+  "protocols": [
+    { "protocol": "quic", "label": "QUIC" },
+    { "protocol": "ws", "label": "WebSocket" },
+    { "protocol": "h3-next", "label": "h3-next" },
+    { "protocol": null, "label": null }
+  ],
+  "sources": [
+    { "source": null, "kind": "none", "detail": null },
+    { "source": "none", "kind": "none", "detail": null },
+    { "source": "seed", "kind": "seed", "detail": null },
+    { "source": "recovery", "kind": "recovery", "detail": null },
+    { "source": "development", "kind": "development", "detail": null },
+    { "source": "https:https://cfg-b.other-cloud.net/flare/v1/b7f3c9a1e2d4b6a8/", "kind": "mirror", "detail": "cfg-b.other-cloud.net" },
+    { "source": "https:https://cfg.example.org:8443/flare/", "kind": "mirror", "detail": "cfg.example.org:8443" },
+    { "source": "https:https://cfg.example.org", "kind": "mirror", "detail": "cfg.example.org" },
+    { "source": "wellKnown:ap-sg-1", "kind": "wellKnown", "detail": "ap-sg-1" },
+    { "source": "doh:dns.example", "kind": "unknown", "detail": "doh:dns.example" }
+  ],
+  "refresh": [
+    { "outcome": "adopted", "text": "adopted", "tone": "success" },
+    { "outcome": "upToDate", "text": "upToDate", "tone": "success" },
+    { "outcome": "oldValues", "text": "failed", "tone": "warning" },
+    { "outcome": "failed", "text": "failed", "tone": "warning" },
+    { "outcome": "skipped", "text": "skipped", "tone": "neutral" },
+    { "outcome": "somethingNew", "text": null, "tone": null },
+    { "outcome": null, "text": null, "tone": null }
+  ],
+  "import": [
+    { "outcome": "adopted", "code": null, "text": "adopted", "tone": "success" },
+    { "outcome": "unchanged", "code": null, "text": "unchanged", "tone": "neutral" },
+    { "outcome": "rejected", "code": "rollback", "text": "rollback", "tone": "danger" },
+    { "outcome": "rejected", "code": "expired", "text": "expired", "tone": "danger" },
+    { "outcome": "rejected", "code": "wrongBootstrapId", "text": "wrongApp", "tone": "danger" },
+    { "outcome": "rejected", "code": "developmentMode", "text": "developmentMode", "tone": "danger" },
+    { "outcome": "rejected", "code": "badSignature", "text": "untrusted", "tone": "danger" },
+    { "outcome": "rejected", "code": "unknownKey", "text": "untrusted", "tone": "danger" },
+    { "outcome": "rejected", "code": "revoked", "text": "untrusted", "tone": "danger" },
+    { "outcome": "rejected", "code": "wrongPayloadType", "text": "untrusted", "tone": "danger" },
+    { "outcome": "rejected", "code": "keyCert.expired", "text": "untrusted", "tone": "danger" },
+    { "outcome": "rejected", "code": "malformedEnvelope", "text": "malformed", "tone": "danger" },
+    { "outcome": "rejected", "code": "invalidPayload", "text": "malformed", "tone": "danger" },
+    { "outcome": "rejected", "code": "tooLarge", "text": "malformed", "tone": "danger" },
+    { "outcome": "rejected", "code": "unsupportedSchema", "text": "rejected", "tone": "danger" },
+    { "outcome": "rejected", "code": null, "text": "rejected", "tone": "danger" },
+    { "outcome": "somethingNew", "code": null, "text": null, "tone": null },
+    { "outcome": null, "code": null, "text": null, "tone": null }
+  ],
+  "export": [
+    { "outcome": "copied", "text": "copied", "tone": "success" },
+    { "outcome": "failed", "text": "failed", "tone": "danger" },
+    { "outcome": "somethingNew", "text": null, "tone": null },
+    { "outcome": null, "text": null, "tone": null }
+  ],
+  "points": [
+    {
+      "name": "an active line offers a pin",
+      "point": { "accessPointId": "a", "status": "active", "breaker": "closed", "pinned": false, "current": false },
+      "expect": { "status": "active", "statusTone": "success", "breaker": null, "breakerTone": null, "pin": "pin" }
+    },
+    {
+      "name": "the pinned line offers to let go",
+      "point": { "accessPointId": "a", "status": "active", "breaker": "closed", "pinned": true, "current": true },
+      "expect": { "status": "active", "statusTone": "success", "breaker": null, "breakerTone": null, "pin": "unpin" }
+    },
+    {
+      "name": "a half-open line can still take a pin",
+      "point": { "accessPointId": "a", "status": "active", "breaker": "halfOpen", "pinned": false, "current": false },
+      "expect": { "status": "active", "statusTone": "success", "breaker": "halfOpen", "breakerTone": "warning", "pin": "pin" }
+    },
+    {
+      "name": "a line cooling down cannot",
+      "point": { "accessPointId": "a", "status": "active", "breaker": "open", "pinned": false, "current": false },
+      "expect": { "status": "active", "statusTone": "success", "breaker": "open", "breakerTone": "danger", "pin": null }
+    },
+    {
+      "name": "a pinned line that opened its breaker still offers to let go",
+      "point": { "accessPointId": "a", "status": "active", "breaker": "open", "pinned": true, "current": false },
+      "expect": { "status": "active", "statusTone": "success", "breaker": "open", "breakerTone": "danger", "pin": "unpin" }
+    },
+    {
+      "name": "a draining line cannot take a pin",
+      "point": { "accessPointId": "a", "status": "draining", "breaker": "closed", "pinned": false, "current": true },
+      "expect": { "status": "draining", "statusTone": "warning", "breaker": null, "breakerTone": null, "pin": null }
+    },
+    {
+      "name": "a disabled line cannot take a pin",
+      "point": { "accessPointId": "a", "status": "disabled", "breaker": "closed", "pinned": false, "current": false },
+      "expect": { "status": "disabled", "statusTone": "neutral", "breaker": null, "breakerTone": null, "pin": null }
+    },
+    {
+      "name": "an unknown status reads unknown",
+      "point": { "accessPointId": "a", "status": "somethingNew", "breaker": "somethingNew", "pinned": false, "current": false },
+      "expect": { "status": "unknown", "statusTone": "neutral", "breaker": null, "breakerTone": null, "pin": null }
+    }
+  ],
+  "cases": [
+    {
+      "name": "nothing to say before the first status",
+      "status": null,
+      "accessPoints": [],
+      "expect": { "state": "normal", "notices": [], "manifest": "none", "regions": [] }
+    },
+    {
+      "name": "a healthy line",
+      "status": { "loaded": true, "accessPointId": "ap-sg-1", "regionId": "sg", "protocol": "quic", "serial": 42, "source": "seed", "stale": false, "developmentMode": false },
+      "accessPoints": [
+        { "accessPointId": "ap-sg-1", "regionId": "sg", "status": "active", "rttMs": 86.2, "breaker": "closed", "pinned": false, "current": true }
+      ],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "healthy", "tone": "success", "pulse": false }],
+        "manifest": "valid",
+        "rttMs": 86,
+        "rttGrade": "good",
+        "regions": [{ "regionId": "sg", "accessPoints": ["ap-sg-1"] }]
+      }
+    },
+    {
+      "name": "a manifest but no line yet",
+      "status": { "loaded": true, "serial": 42, "source": "seed", "stale": false, "developmentMode": false },
+      "accessPoints": [
+        { "accessPointId": "ap-sg-1", "regionId": "sg", "status": "active", "breaker": "closed", "pinned": false, "current": false }
+      ],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "notConnected", "tone": "neutral", "pulse": false }],
+        "manifest": "valid",
+        "regions": [{ "regionId": "sg", "accessPoints": ["ap-sg-1"] }]
+      }
+    },
+    {
+      "name": "the current line's delay comes from its row, wherever it sits",
+      "status": { "loaded": true, "accessPointId": "b", "serial": 1, "stale": false, "developmentMode": false },
+      "accessPoints": [
+        { "accessPointId": "a", "regionId": "sg", "status": "active", "rttMs": 30, "breaker": "closed", "pinned": false, "current": false },
+        { "accessPointId": "b", "regionId": "sg", "status": "active", "rttMs": 420, "breaker": "closed", "pinned": false, "current": true }
+      ],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "healthy", "tone": "success", "pulse": false }],
+        "manifest": "valid",
+        "rttMs": 420,
+        "rttGrade": "poor",
+        "regions": [{ "regionId": "sg", "accessPoints": ["a", "b"] }]
+      }
+    },
+    {
+      "name": "regions keep the order they first appear in and the host's order inside",
+      "status": { "loaded": true, "accessPointId": "c", "serial": 1, "stale": false, "developmentMode": false },
+      "accessPoints": [
+        { "accessPointId": "a", "regionId": "sg", "status": "active", "breaker": "closed", "pinned": false, "current": false },
+        { "accessPointId": "b", "regionId": "de", "status": "active", "breaker": "closed", "pinned": false, "current": false },
+        { "accessPointId": "c", "regionId": "sg", "status": "active", "breaker": "closed", "pinned": false, "current": true },
+        { "accessPointId": "d", "status": "active", "breaker": "closed", "pinned": false, "current": false }
+      ],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "healthy", "tone": "success", "pulse": false }],
+        "manifest": "valid",
+        "regions": [
+          { "regionId": "sg", "accessPoints": ["a", "c"] },
+          { "regionId": "de", "accessPoints": ["b"] },
+          { "regionId": null, "accessPoints": ["d"] }
+        ]
+      }
+    },
+    {
+      "name": "the server reports another access point",
+      "status": { "loaded": true, "accessPointId": "ap-a", "serial": 7, "stale": false, "developmentMode": false, "connectAck": { "accessPointId": "ap-b", "accessPointMismatch": true } },
+      "accessPoints": [],
+      "expect": {
+        "state": "warning",
+        "notices": [{ "text": "accessPointMismatch", "tone": "warning", "pulse": false }],
+        "manifest": "valid",
+        "reportedAccessPointId": "ap-b",
+        "regions": []
+      }
+    },
+    {
+      "name": "an agreeing connect ack is no warning and shows no reported point",
+      "status": { "loaded": true, "accessPointId": "ap-a", "serial": 7, "stale": false, "developmentMode": false, "connectAck": { "accessPointId": "ap-a", "accessPointMismatch": false } },
+      "accessPoints": [],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "healthy", "tone": "success", "pulse": false }],
+        "manifest": "valid",
+        "regions": []
+      }
+    },
+    {
+      "name": "an expired manifest warns, the line stays usable",
+      "status": { "loaded": true, "accessPointId": "ap-a", "serial": 7, "stale": true, "developmentMode": false },
+      "accessPoints": [],
+      "expect": {
+        "state": "warning",
+        "notices": [{ "text": "manifestStale", "tone": "warning", "pulse": false }],
+        "manifest": "stale",
+        "regions": []
+      }
+    },
+    {
+      "name": "both warnings, mismatch first",
+      "status": { "loaded": true, "accessPointId": "ap-a", "serial": 7, "stale": true, "developmentMode": false, "connectAck": { "accessPointId": "ap-b", "accessPointMismatch": true } },
+      "accessPoints": [],
+      "expect": {
+        "state": "warning",
+        "notices": [
+          { "text": "accessPointMismatch", "tone": "warning", "pulse": false },
+          { "text": "manifestStale", "tone": "warning", "pulse": false }
+        ],
+        "manifest": "stale",
+        "reportedAccessPointId": "ap-b",
+        "regions": []
+      }
+    },
+    {
+      "name": "recovering says so and counts its rounds",
+      "status": { "loaded": true, "serial": 7, "stale": false, "developmentMode": false, "recovering": { "sinceMs": 1000, "rounds": 2, "nextRoundAtMs": 91000 } },
+      "accessPoints": [],
+      "expect": {
+        "state": "recovering",
+        "notices": [{ "text": "serviceUnavailable", "tone": "warning", "pulse": true }],
+        "manifest": "valid",
+        "recoveryRounds": 2,
+        "regions": []
+      }
+    },
+    {
+      "name": "recovering on a device without a network waits for it",
+      "status": { "loaded": true, "serial": 7, "stale": false, "developmentMode": false, "recovering": { "sinceMs": 1000, "rounds": 3 } },
+      "accessPoints": [],
+      "expect": {
+        "state": "recovering",
+        "notices": [{ "text": "waitingForNetwork", "tone": "warning", "pulse": false }],
+        "manifest": "valid",
+        "recoveryRounds": 3,
+        "regions": []
+      }
+    },
+    {
+      "name": "recovering outranks a warning and keeps it",
+      "status": { "loaded": true, "serial": 7, "stale": true, "developmentMode": false, "recovering": { "sinceMs": 1000, "rounds": 0, "nextRoundAtMs": 31000 } },
+      "accessPoints": [],
+      "expect": {
+        "state": "recovering",
+        "notices": [
+          { "text": "serviceUnavailable", "tone": "warning", "pulse": true },
+          { "text": "manifestStale", "tone": "warning", "pulse": false }
+        ],
+        "manifest": "stale",
+        "recoveryRounds": 0,
+        "regions": []
+      }
+    },
+    {
+      "name": "no usable manifest is recovering too",
+      "status": { "loaded": false, "serial": 0, "source": "none", "stale": false, "developmentMode": false },
+      "accessPoints": [],
+      "expect": {
+        "state": "recovering",
+        "notices": [{ "text": "serviceUnavailable", "tone": "warning", "pulse": true }],
+        "manifest": "none",
+        "regions": []
+      }
+    },
+    {
+      "name": "development mode is a fact, not a warning",
+      "status": { "loaded": true, "accessPointId": "development", "serial": 0, "source": "development", "stale": false, "developmentMode": true },
+      "accessPoints": [],
+      "expect": {
+        "state": "normal",
+        "notices": [{ "text": "healthy", "tone": "success", "pulse": false }],
+        "manifest": "valid",
+        "regions": []
+      }
+    }
+  ]
+}

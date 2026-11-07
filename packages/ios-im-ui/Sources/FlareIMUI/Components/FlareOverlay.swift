@@ -354,7 +354,9 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
     @ViewBuilder
     private func pushable<V: View>(_ view: V) -> some View {
         if allowsPush {
-            view.navigationDestination(isPresented: $pushShown) { pushLayer() }
+            view.navigationDestination(isPresented: $pushShown) {
+                FlarePushedLayer(isPresented: $isPresented, content: pushLayer)
+            }
         } else {
             view
         }
@@ -473,6 +475,20 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
         feedback?.presentationGone(presence)
         if isPresented { isPresented = false }
         onDismiss?()
+    }
+}
+
+private struct FlarePushedLayer<Content: View>: View {
+    @Binding var isPresented: Bool
+    @Environment(\.dismiss) private var dismiss
+    let content: () -> Content
+
+    var body: some View {
+        content()
+            // The presenting view may be off screen while this destination owns navigation.
+            .onChange(of: isPresented) { presented in
+                if !presented { dismiss() }
+            }
     }
 }
 

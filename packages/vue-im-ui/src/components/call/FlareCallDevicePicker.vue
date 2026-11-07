@@ -3,9 +3,12 @@ import { computed } from 'vue';
 import FlareCapabilityBoundary from '../scenes/FlareCapabilityBoundary.vue';
 import { selectableCallDevices, type CallDeviceGroup, type CallDeviceKind } from '../../shared/contracts/call-devices';
 import type { CapabilityState } from '../../shared/contracts/scenes';
+import { useFlareI18nOptional } from '../../shared/i18n/useFlareI18n';
 const props = defineProps<{groups: CallDeviceGroup[]; permission: CapabilityState; permissionText: string; actionText?: string; placeholder?: string}>();
 const emit = defineEmits<{select: [value: {kind: CallDeviceKind; deviceId: string}]; permissionAction: []}>();
+const {t} = useFlareI18nOptional();
 const groups = computed(() => props.groups.map(group => ({...group, devices: selectableCallDevices(group)})));
+const placeholderText = computed(() => props.placeholder ?? t('callDevicePicker.placeholder'));
 function selected(group: CallDeviceGroup): string {
   if (group.devices.some(d => d.id === group.selectedId)) return group.selectedId!;
   return group.selectedId ? '' : group.devices.find(d => d.id === 'default')?.id ?? '';
@@ -19,6 +22,7 @@ function select(group: CallDeviceGroup, id: string) {
     <FlareCapabilityBoundary v-if="permission !== 'available'" :state="permission" :text="permissionText" :action-text="actionText" @action="emit('permissionAction')" />
     <div v-for="group in groups" :key="group.kind" class="flare-call-devices__group">
       <span>{{ group.label }}</span>
+      <span v-if="!selected(group)" class="flare-call-devices__placeholder">{{ placeholderText }}</span>
       <button v-for="device in group.devices" :key="device.id" class="flare-call-devices__option" type="button"
         :aria-pressed="selected(group) === device.id" :disabled="permission !== 'available' || group.busy || device.disabled"
         @click="select(group, device.id)"><span>{{ device.label }}</span><span aria-hidden="true">{{ selected(group) === device.id ? '✓' : '' }}</span></button>

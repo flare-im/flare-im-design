@@ -549,7 +549,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
 
 /// Form input kinds (UiInput).
 public enum PluginInputKind: String, Codable, Sendable, CaseIterable {
-    case text, textarea, number, toggle, select, datetime, options, members
+    case text, password, textarea, number, toggle, select, datetime, options, members
 }
 
 /// One choice of a select input.

@@ -72,6 +72,7 @@ title: Data Types
 | `visible` | `boolean` |  | False hides the action. |
 | `enabled` | `boolean` |  | False keeps the action visible but unavailable. |
 | `badge` | `string` |  | Compact trailing text. |
+| `dot` | `boolean` |  | Red dot: something new behind the action, nothing to count. When the action folds into the overflow menu, the dot shows on the menu button and on the item. |
 | `intent` | `string` |  | Host-defined intent payload key. |
 | `accessibilityLabel` | `string` |  | Localized accessible name override. |
 | `disabledReason` | `string` |  | Why the action is unavailable; shown and announced with it. |
@@ -214,6 +215,7 @@ title: Data Types
 | `kind` | [`FlareSettingKind`](/en/reference/data-types#setting-kind) |  | Row kind: navigation opens a page or picker (chevron), toggle is a switch, action runs in place (no chevron), value is read-only information and not a control. |
 | `value` | `boolean` |  | Toggle state (for `kind: "toggle"`). |
 | `detail` | `string` |  | Trailing detail text: the current value of a navigation row, or the information of a value row. Long text stacks under the label. |
+| `badge` | `boolean \| number` |  | `true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither. |
 
 ### SettingsSection {#settings-section}
 
@@ -953,6 +955,106 @@ title: Data Types
 | `avatarUrl` | `string` |  | Avatar image; a failed load keeps the initial avatar. |
 | `state` | `"ready" \| "loading" \| "unavailable"` |  | Lookup state; absent means ready. |
 
+### ConnectionStatus {#connection-status}
+
+`FlareConnectionStatus`
+
+> The core SDK's connection status (`connection://status`), as ConnectionNotice reads it.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `phase` | [`FlareConnectionPhase`](/en/reference/data-types#connection-phase) | ✓ | Where the connection stands. |
+| `quality` | `"good" \| "poor"` |  | online: the line's quality. Neither value shows a banner. |
+| `progress` | `number` |  | syncing: how far the catch-up has come, 0 to 1. |
+| `nextRetryAt` | `number` |  | reconnecting: when the next attempt starts, epoch milliseconds on the device clock. |
+| `attempt` | `number` |  | reconnecting: which attempt this is. Not shown. |
+| `reason` | `FlareConnectionActionReason \| string` |  | Why, as the SDK reports it (any string is taken; switching carries its own). Only actionRequired reads it: kicked, expired, upgradeRequired and tenantUnavailable have words, and any other reason or none reads as expired. |
+| `developmentMode` | `boolean` |  | The SDK runs on development endpoints: the notice draws the development mode badge. |
+
+### AccessStatus {#access-status}
+
+`FlareAccessStatus`
+
+> What `access.getStatus` returns, as far as AccessDiagnostics reads it.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `loaded` | `boolean` | ✓ | The directory holds a usable manifest. |
+| `serial` | `number \| null` |  | The manifest's serial. |
+| `source` | `string \| null` |  | `seed`, `https:<mirror base>`, `wellKnown:<apId>`, `recovery`, `development` or `none`. |
+| `stale` | `boolean` |  | Past its expiry: still connectable. |
+| `developmentMode` | `boolean` |  | The SDK runs on development endpoints. |
+| `regionId` | `string \| null` |  | The manifest's region. |
+| `accessPointId` | `string \| null` |  | The access point of the current connection. |
+| `protocol` | `string \| null` |  | The current connection's protocol: quic or ws. |
+| `connectAck` | `FlareAccessConnectAck \| null` |  | The current connection's diagnostics. |
+| `recovering` | `FlareAccessRecovering \| null` |  | There only while every line has failed. |
+
+### AccessConnectAck {#access-connect-ack}
+
+`FlareAccessConnectAck`
+
+> The part of `access.getStatus.connectAck` AccessDiagnostics reads.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `accessPointId` | `string \| null` |  | The access point the server reports for the connection. |
+| `accessPointMismatch` | `boolean` |  | The server reports a different access point than the client chose. |
+
+### AccessRecovering {#access-recovering}
+
+`FlareAccessRecovering`
+
+> `access.getStatus.recovering`, as AccessDiagnostics reads it.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `rounds` | `number` | ✓ | Bootstrap rounds so far. |
+| `nextRoundAtMs` | `number \| null` |  | When the next round starts; missing while the device has no network. |
+
+### AccessPoint {#access-point}
+
+`FlareAccessPoint`
+
+> One line of `access.listAccessPoints`, as AccessDiagnostics reads it.
+
+**Used by: **[AccessDiagnostics](/en/components/access-diagnostics)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `accessPointId` | `string` | ✓ | The access point. |
+| `regionId` | `string \| null` |  | Its region; lines are grouped by it. |
+| `host` | `string \| null` |  | Its host name. |
+| `status` | `string` | ✓ | active, draining, disabled or unknown; any other string reads unknown. |
+| `rttMs` | `number \| null` |  | Measured latency in milliseconds. |
+| `breaker` | `string` | ✓ | closed, open or halfOpen. |
+| `pinned` | `boolean` | ✓ | Pinned by hand. |
+| `current` | `boolean` | ✓ | The line in use. |
+
+### UpdateProgress {#update-progress}
+
+`FlareUpdateProgress`
+
+> `UpdateStatus.progress`, as UpdatePrompt reads it.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `received` | `number` | ✓ | Bytes received so far. |
+| `total` | `number \| null` |  | Bytes in all; missing while the size is not known, which reads as indeterminate. |
+
+### ResourcePack {#resource-pack}
+
+`FlareResourcePack`
+
+> One entry of `update.get_resources`. The host hands the list over as it is: Vue `applyFlareResourceOverlay(packs)` folds it into the kit, and the native kits build a `FlareResourceOverlay` whose copy and colours go through the existing scope, environment or CompositionLocal. What a pack may change is the kit's (spec/resource-overlay-vectors.json): copy and colours that exist, and emoji it adds. A pack is data; it adds no behaviour.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | The pack's id. Packs apply in the order given, which the engine sorts by id. |
+| `kind` | `'strings' \| 'tokens' \| 'emoji' \| 'help'` | ✓ | What the pack holds. The kit has no help page, so a help pack stays with the host. |
+| `packVersion` | `number` | ✓ | The pack's version. |
+| `contentJson` | `string` | ✓ | The pack as JSON text, with `schema` `flare.resource.v1`. The kit parses it; a pack it cannot read is ignored. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -1230,3 +1332,19 @@ title: Data Types
 **Used by: **[CallRecordCard](/en/components/call-record-card)
 
 `completed` · `cancelled` · `declined` · `missed` · `busy` · `unavailable` · `failed`
+
+### ConnectionPhase {#connection-phase}
+
+`FlareConnectionPhase`
+
+> The connection phases the core SDK reports.
+
+`idle` · `connecting` · `syncing` · `online` · `switching` · `reconnecting` · `waitingForNetwork` · `serviceUnavailable` · `actionRequired`
+
+### ConnectionActionReason {#connection-action-reason}
+
+`FlareConnectionActionReason`
+
+> Why the core stopped and waits for the user (actionRequired).
+
+`kicked` · `expired` · `upgradeRequired` · `tenantUnavailable`

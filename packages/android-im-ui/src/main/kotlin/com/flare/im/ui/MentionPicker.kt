@@ -53,6 +53,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -117,23 +118,30 @@ fun MentionPicker(
     onClose: (() -> Unit)? = null,
     framed: Boolean = true,
     autofocus: Boolean = false,
+    modifier: Modifier = Modifier,
+    resultsMaxHeight: Dp = 264.dp,
+    /** When provided, the editor owns search and the picker only renders matching rows. */
+    editorQuery: String? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
     var query by remember { mutableStateOf(TextFieldValue("")) }
-    val results = remember(candidates, allowEveryone, strings.everyone, query.text) {
-        mentionPickerResults(candidates, allowEveryone, strings.everyone, query.text)
+    val search = editorQuery ?: query.text
+    val results = remember(candidates, allowEveryone, strings.everyone, search) {
+        mentionPickerResults(candidates, allowEveryone, strings.everyone, search)
     }
     // The first match is highlighted again whenever the matches change.
     var active by remember(results) { mutableIntStateOf(0) }
     val focus = remember { FocusRequester() }
-    if (autofocus) LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    if (autofocus && editorQuery == null) LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
     val shape = RoundedCornerShape(FlareSizes.radiusXl)
     Column(
-        if (framed) Modifier.width(280.dp).clip(shape).background(colors.bgPrimary).border(1.dp, colors.borderPrimary, shape)
-        else Modifier.fillMaxWidth(),
+        modifier.then(
+            if (framed) Modifier.width(280.dp).clip(shape).background(colors.bgPrimary).border(1.dp, colors.borderPrimary, shape)
+            else Modifier.fillMaxWidth(),
+        ),
     ) {
-        Row(
+        if (editorQuery == null) Row(
             Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -173,7 +181,7 @@ fun MentionPicker(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-        Column(Modifier.fillMaxWidth().heightIn(max = 264.dp).verticalScroll(rememberScrollState())) {
+        Column(Modifier.fillMaxWidth().heightIn(max = resultsMaxHeight).verticalScroll(rememberScrollState())) {
             results.forEachIndexed { index, candidate ->
                 val highlighted = index == active
                 val reveal = remember { BringIntoViewRequester() }

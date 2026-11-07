@@ -23,6 +23,43 @@ async function openVoiceFromMore(wrapper: ReturnType<typeof setup>) {
 afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("FlareComposer interaction boundaries", () => {
+  it("keeps a mobile typed mention in the editor, and hands focus back to the toolbar for a deliberate panel switch", async () => {
+    const wrapper = setup({
+      formFactor: "mobile",
+      mentionCandidates: [{ userId: "alice", label: "Alice" }, { userId: "bob", label: "Bob" }],
+    });
+    const input = wrapper.get<HTMLTextAreaElement>("textarea");
+    input.element.focus();
+    await input.setValue("@");
+    expect(wrapper.classes()).not.toContain("composer--panels-above");
+    expect(document.activeElement).toBe(input.element);
+    expect(wrapper.find(".flare-mention__search").exists()).toBe(false);
+    await input.setValue("@bo");
+    expect(wrapper.findAll('[role="option"]').map((option) => option.text())).toEqual(["BBob"]);
+    await input.trigger("keydown", { key: "Enter" });
+    expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual(["@Bob "]);
+    expect(wrapper.emitted("send")).toBeUndefined();
+
+    await wrapper.get('[aria-label="@"]').trigger("click");
+    expect(document.activeElement).not.toBe(input.element);
+    expect(wrapper.find(".flare-mention__search").exists()).toBe(true);
+    await wrapper.get('[aria-label="更多"]').trigger("click");
+    expect(wrapper.find(".flare-mention").exists()).toBe(false);
+    expect(wrapper.find(".composer-more-surface").exists()).toBe(true);
+  });
+
+  it("switches from the editor to the emoji panel and back without stealing focus", async () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    const wrapper = setup();
+    const input = wrapper.get<HTMLTextAreaElement>("textarea");
+    input.element.focus();
+    await wrapper.get('[aria-label="表情"]').trigger("click");
+    expect(wrapper.emitted("toggle-panel")?.at(-1)).toEqual(["emoji"]);
+    expect(document.activeElement).not.toBe(input.element);
+    input.element.focus();
+    expect(wrapper.emitted("toggle-panel")?.at(-1)).toEqual([null]);
+  });
+
   it("keeps an offline draft editable while blocking keyboard and button sends", async () => {
     const wrapper = setup({ modelValue: "未发送的草稿", sendBlocked: true });
     expect(wrapper.get("textarea").attributes("disabled")).toBeUndefined();
@@ -38,10 +75,10 @@ describe("FlareComposer interaction boundaries", () => {
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
     expect(wrapper.text()).toContain("你已被禁言");
   });
-  it("treats an empty action configuration as empty, and suppresses disabled actions", async () => {
+  it("hides \"+\" for an empty action configuration, and suppresses disabled actions", async () => {
     const empty = setup({ activePanel: "more", actions: [] });
-    expect(empty.findAll(".flare-action-panel__tile")).toHaveLength(0);
-    expect(empty.text()).toContain("暂无可用内容");
+    expect(empty.find(".composer-more-surface").exists()).toBe(false);
+    expect(empty.find('[aria-label="更多"]').exists()).toBe(false);
     const wrapper = setup({ activePanel: "more", actions: [{ id: "custom", label: "企业审批", enabled: false, disabledReason: "无权限" }] });
     await wrapper.get(".flare-action-panel__tile").trigger("click");
     expect(wrapper.emitted("build")).toBeUndefined();
@@ -241,33 +278,51 @@ describe("FlareComposer interaction boundaries", () => {
     expect(wrapper.emitted("files-drop")).toHaveLength(1);
     expect(wrapper.find(".composer-drop-hint").exists()).toBe(false);
   });
-  it("filters paginated actions and removes hidden search filters", async () => {
+  it("pages actions on a phone, scrolls them on a desktop, and removes hidden search filters", async () => {
     const actions = Array.from({ length: 10 }, (_, index) => ({ id: `action-${index}`, label: index === 9 ? "文件" : `动作 ${index}` }));
-    const props = reactive({ activePanel: "more", moreSearchVisible: true, actions });
+    const props = reactive({ activePanel: "more", moreSearchVisible: true, actions, formFactor: "mobile" });
     const wrapper = setup(props);
-    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(8);
-    await wrapper.get('[aria-label="第 2 页"]').trigger("click");
-    expect(wrapper.text()).toContain("文件");
+    const pages = () => wrapper.findAll(".flare-action-panel__grid").map((page) => page.findAll(".flare-action-panel__tile").length);
+    expect(pages()).toEqual([8, 2]);
+    await wrapper.get('.flare-action-panel__dots [aria-label="第 2 页"]').trigger("click");
+    expect(wrapper.get('.flare-action-panel__dots [aria-label="第 2 页"]').attributes("aria-current")).toBe("page");
     await wrapper.get(".composer-panel-search").setValue("文件");
-    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(1);
-    expect(wrapper.find(".composer-pages").exists()).toBe(false);
+    expect(pages()).toEqual([1]);
+    expect(wrapper.find(".flare-action-panel__dots").exists()).toBe(false);
     props.moreSearchVisible = false;
     await nextTick();
-    expect(wrapper.findAll(".flare-action-panel__tile")).toHaveLength(8);
+    expect(pages()).toEqual([8, 2]);
+    props.formFactor = "desktop";
+    await nextTick();
+    expect(pages()).toEqual([10]);
+    expect(wrapper.find(".flare-action-panel__dots").exists()).toBe(false);
   });
-  it("typing @ at the start of a word opens the member picker, and the pick replaces the @", async () => {
+  it("closes \"+\" and hides its key when the menu empties while open", async () => {
+    const props = reactive({ activePanel: "more", actions: [{ id: "image", label: "图片" }] as { id: string; label: string }[] });
+    const wrapper = setup(props);
+    expect(wrapper.find(".composer-more-surface").exists()).toBe(true);
+    props.actions = [];
+    await nextTick();
+    expect(wrapper.find(".composer-more-surface").exists()).toBe(false);
+    expect(wrapper.find('[aria-label="更多"]').exists()).toBe(false);
+    expect(wrapper.emitted("toggle-panel")).toEqual([[null]]);
+  });
+  it("keeps the desktop editor focused and replaces the full typed mention token", async () => {
     const props = reactive({
       modelValue: "",
       mentionCandidates: [{ userId: "u1", label: "Ivy" }],
       "onUpdate:modelValue": (next: string) => { props.modelValue = next; },
     });
     const wrapper = setup(props);
+    wrapper.get("textarea").element.focus();
     // One keystroke at a time, as typing does.
     await wrapper.get("textarea").setValue("hi ");
     await wrapper.get("textarea").setValue("hi @");
     await nextTick();
     expect(wrapper.find(".composer-mention-menu").exists()).toBe(true);
-    expect(document.activeElement).toBe(wrapper.get(".flare-mention__search").element);
+    expect(document.activeElement).toBe(wrapper.get("textarea").element);
+    expect(wrapper.find(".flare-mention__search").exists()).toBe(false);
+    await wrapper.get("textarea").setValue("hi @iv");
     const ivy = wrapper.findAll(".flare-mention__person").find((person) => person.text().includes("Ivy"));
     if (!ivy) throw new Error("Expected Ivy in the member picker");
     await ivy.trigger("click");

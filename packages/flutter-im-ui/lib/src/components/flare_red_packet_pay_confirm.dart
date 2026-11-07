@@ -28,6 +28,8 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
     this.busy = false,
     this.onConfirm,
     this.onCancel,
+    this.credential,
+    this.confirmDisabled = false,
   });
 
   /// The amount to pay, formatted by the host ("¥5.00").
@@ -38,6 +40,8 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
   final String? confirmLabel;
   final bool insufficient;
   final bool busy;
+  final Widget? credential;
+  final bool confirmDisabled;
   final VoidCallback? onConfirm;
   final VoidCallback? onCancel;
 
@@ -133,6 +137,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
               ),
             ),
           ],
+          if (credential != null) credential!,
           const SizedBox(height: FlareSizes.spacingLg),
           FlareRedPacketTint(
             child: FlareButton(
@@ -140,7 +145,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
               size: FlareControlSize.lg,
               label: confirmLabel ?? strings.packetPayConfirm,
               loading: busy,
-              disabled: insufficient,
+              disabled: insufficient || confirmDisabled,
               onPressed: onConfirm,
             ),
           ),

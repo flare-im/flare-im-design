@@ -2,6 +2,7 @@
 import { computed, type Component } from "vue";
 import { NIcon } from "naive-ui";
 import type { FlareControlSize } from "../../shared/contracts";
+import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 
 const props = withDefaults(
@@ -24,12 +25,17 @@ const props = withDefaults(
     background?: string;
     /** Dimension override in px; glyph size = round(customSize * 0.46). */
     customSize?: number;
+    /** Red dot: something new behind the button, nothing to count. Said with the button's name. */
+    dot?: boolean;
   }>(),
-  { variant: "plain", shape: "circle", disabled: false, active: false, toggle: false },
+  { variant: "plain", shape: "circle", disabled: false, active: false, toggle: false, dot: false },
 );
 const emit = defineEmits<{ (e: "click"): void }>();
 const config = useFlareConfig();
+const { t } = useFlareI18nOptional();
 const rsize = computed(() => props.size ?? config.size.value);
+/** `aria-label` replaces the button's content, so a label on the dot itself would never be read. */
+const label = computed(() => (props.dot ? `${props.ariaLabel}, ${t("settingsRow.badge")}` : props.ariaLabel));
 const ariaPressed = computed(() => props.toggle || props.active ? props.active : undefined);
 const overrideStyle = computed(() => {
   const s: Record<string, string> = {};
@@ -50,12 +56,13 @@ const overrideStyle = computed(() => {
     class="flare-icon-button"
     :class="[`flare-icon-button--${rsize}`, `flare-icon-button--${variant}`, `is-${shape}`, { 'is-active': active }]"
     :style="overrideStyle"
-    :aria-label="ariaLabel"
+    :aria-label="label"
     :aria-pressed="ariaPressed"
     :disabled="disabled"
     @click="emit('click')"
   >
     <n-icon aria-hidden="true" :component="icon" />
+    <span v-if="dot" class="flare-icon-button__dot" aria-hidden="true" />
   </button>
 </template>
 
@@ -79,18 +86,18 @@ const overrideStyle = computed(() => {
 .is-square { border-radius: var(--flare-size-radius-md); }
 
 /* 每一档都显式写出 min-width / min-height，压过 accessibility.css 在粗指针下给
-   :where(button) 兜的 44px 地板 —— min-* 会盖过 width/height，于是触摸端 sm(32) 和
-   md(40) 双双被撑成 44，两档渲染成同一个尺寸，size 这个 prop 在手机上等于失效。
+   :where(button) 兜的 44px 地板 —— min-* 会盖过 width/height，于是触摸端 sm(30) 和
+   md(38) 双双被撑成 44，两档渲染成同一个尺寸，size 这个 prop 在手机上等于失效。
    触达区不靠盒子：上面的 ::after 已经是 max(100%, touch-target)，盒子缩回去也够得着。 */
-.flare-icon-button--sm { width: var(--flare-size-layout-control-height-sm); height: var(--flare-size-layout-control-height-sm);
-  min-width: var(--flare-size-layout-control-height-sm); min-height: var(--flare-size-layout-control-height-sm);
-  font-size: var(--flare-size-icon-size-sm); }
-.flare-icon-button--md { width: var(--flare-size-layout-control-height-md); height: var(--flare-size-layout-control-height-md);
-  min-width: var(--flare-size-layout-control-height-md); min-height: var(--flare-size-layout-control-height-md);
-  font-size: var(--flare-size-icon-size-md); }
-.flare-icon-button--lg { width: var(--flare-size-layout-control-height-lg); height: var(--flare-size-layout-control-height-lg);
-  min-width: var(--flare-size-layout-control-height-lg); min-height: var(--flare-size-layout-control-height-lg);
-  font-size: var(--flare-size-icon-size-lg); }
+.flare-icon-button--sm { width: var(--flare-size-component-icon-button-side-sm); height: var(--flare-size-component-icon-button-side-sm);
+  min-width: var(--flare-size-component-icon-button-side-sm); min-height: var(--flare-size-component-icon-button-side-sm);
+  font-size: var(--flare-size-component-icon-button-glyph-sm); }
+.flare-icon-button--md { width: var(--flare-size-component-icon-button-side-md); height: var(--flare-size-component-icon-button-side-md);
+  min-width: var(--flare-size-component-icon-button-side-md); min-height: var(--flare-size-component-icon-button-side-md);
+  font-size: var(--flare-size-component-icon-button-glyph-md); }
+.flare-icon-button--lg { width: var(--flare-size-component-icon-button-side-lg); height: var(--flare-size-component-icon-button-side-lg);
+  min-width: var(--flare-size-component-icon-button-side-lg); min-height: var(--flare-size-component-icon-button-side-lg);
+  font-size: var(--flare-size-component-icon-button-glyph-lg); }
 
 .flare-icon-button--plain:hover:not(:disabled) { background: var(--flare-color-bg-secondary); color: var(--flare-color-text-primary); }
 .flare-icon-button--tinted { background: var(--flare-color-bg-secondary); }
@@ -98,6 +105,16 @@ const overrideStyle = computed(() => {
 .flare-icon-button--solid { background: var(--flare-color-primary); color: #fff; }
 .flare-icon-button--solid:hover:not(:disabled) { background: var(--flare-color-primary-hover); }
 .flare-icon-button.is-active { background: var(--flare-color-bg-selected); color: var(--flare-color-primary-text); }
+/* 和 FlareSettingsRow 的红点同一画法，贴在右上角。 */
+.flare-icon-button__dot {
+  position: absolute;
+  top: var(--flare-size-spacing-xs);
+  inset-inline-end: var(--flare-size-spacing-xs);
+  width: var(--flare-size-spacing-sm);
+  height: var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-error);
+}
 @media (prefers-reduced-motion: reduce) {
   .flare-icon-button { transition: none; }
   .flare-icon-button:active:not(:disabled) { transform: none; }

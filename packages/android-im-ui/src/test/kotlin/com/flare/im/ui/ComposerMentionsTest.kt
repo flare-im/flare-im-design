@@ -28,6 +28,19 @@ class ComposerMentionsTest {
         assertEquals("你好 @陈默 ", composerTextWithMention("你好 ", "陈默", typedAt = 5))
     }
 
+    @Test fun theTypedQueryReplacesOnlyTheAnchoredToken() {
+        val trigger = ComposerMentionTrigger("你好 @", "看这里")
+        assertEquals("", trigger.query("你好 @看这里"))
+        val text = "你好 @陈看这里"
+        val query = requireNotNull(trigger.query(text))
+        assertEquals("陈", query)
+        assertEquals("你好 @陈默 看这里", composerTextWithMention(text, chen.name, trigger.start, query.length))
+        assertNull(trigger.query("换了前缀 @陈看这里"))
+        assertNull(trigger.query("你好 @陈换了后缀"))
+        assertNull(trigger.query("你好 @陈\n看这里"))
+        assertNull(trigger.query("你好 @" + "陈".repeat(41) + "看这里"))
+    }
+
     @Test fun thePickerFiltersByNameOrDetailWithEveryoneFirst() {
         val candidates = listOf(xu, chen, chenxi)
         val everyone = FlareStrings().everyone

@@ -40,8 +40,10 @@ const props = withDefaults(
     busy?: boolean;
     /** The body scrolls; false hands the content a bounded box and lets it own its scrolling. */
     scrollable?: boolean;
+    /** The surface takes the whole window, with no gutter, corners or shadow: `width`, `maxHeight` and `fill` no longer apply. */
+    fullscreen?: boolean;
   }>(),
-  { titleHidden: false, maxHeight: "72vh", fill: false, dismissible: true, showClose: true, busy: false, scrollable: true },
+  { titleHidden: false, maxHeight: "72vh", fill: false, dismissible: true, showClose: true, busy: false, scrollable: true, fullscreen: false },
 );
 const emit = defineEmits<{ (e: "close"): void }>();
 const slots = useSlots();
@@ -58,6 +60,7 @@ const hasHeader = computed(() => showTitle.value || props.showClose || Boolean(s
 const compact = computed(() => platform.capabilities.value.bottomSheet);
 
 const surfaceStyle = computed(() => {
+  if (props.fullscreen) return {};
   const style: Record<string, string> = { maxHeight: props.maxHeight };
   if (props.fill) style.height = props.maxHeight;
   if (props.width) style["--flare-modal-width"] = props.width;
@@ -81,11 +84,11 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
 <template>
   <Teleport :to="overlayContainer">
     <transition name="flare-modal-fade">
-      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="requestClose">
+      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" :class="{ 'flare-modal-scrim--fullscreen': fullscreen }" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="requestClose">
         <div
           ref="surfaceEl"
           class="flare-modal"
-          :class="{ 'flare-modal--fill': fill, 'flare-modal--compact': compact, 'flare-modal--edge': edgeToEdge }"
+          :class="{ 'flare-modal--fill': fill, 'flare-modal--compact': compact, 'flare-modal--edge': edgeToEdge, 'flare-modal--fullscreen': fullscreen }"
           :style="surfaceStyle"
           role="dialog"
           aria-modal="true"
@@ -148,6 +151,14 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
   outline: none;
 }
 .flare-modal--edge { padding: 0; overflow: hidden; background: transparent; }
+.flare-modal-scrim--fullscreen { padding: 0; }
+.flare-modal--fullscreen {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 .flare-modal__header {
   flex: 0 0 auto;
   display: flex;

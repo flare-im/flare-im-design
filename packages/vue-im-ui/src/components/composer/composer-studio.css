@@ -577,7 +577,7 @@
 /* 宽屏时面板浮在输入区**上方**、盖住一截消息 —— 这是它和窄屏唯一的实质差别:
    盖住东西的面必须自己不透明、自己有边,否则底下的消息会透上来。下沿不画边:
    那里就是输入区顶上那条线。 */
-.composer-studio.composer--wide .composer-surface {
+.composer-studio.composer--panels-above .composer-surface {
   position: absolute;
   /* 贴着输入区的上沿长出来:压 1px 让它和那条线叠在一起。 */
   inset: auto var(--flare-size-spacing-2xs) calc(100% - 1px);
@@ -590,22 +590,22 @@
   border-start-end-radius: var(--studio-radius);
   background: var(--flare-component-composer-bar-bg);
 }
-.composer-studio.composer--wide .composer-surface:not(.composer-media-surface) {
+.composer-studio.composer--panels-above .composer-surface:not(.composer-media-surface) {
   padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm) var(--flare-size-spacing-sm);
 }
 
-.composer-studio.composer--wide .composer-media-surface {
+.composer-studio.composer--panels-above .composer-media-surface {
   padding: 0;
   overflow: hidden;
 }
 
-.composer-studio.composer--wide .composer-media-surface :deep(.composer-emoji-sticker-panel) {
+.composer-studio.composer--panels-above .composer-media-surface :deep(.composer-emoji-sticker-panel) {
   /* 与下面 .panel-scroll 的 height 是一对:改一个必须改另一个,否则外壳兜不住内容。 */
   max-height: min(258px, 40dvh - 2px);
   padding-top: 0;
 }
 
-.composer-studio.composer--wide .composer-media-surface :deep(.panel-scroll) {
+.composer-studio.composer--panels-above .composer-media-surface :deep(.panel-scroll) {
   flex: 1 1 auto;
   min-height: 0;
   /* 212 = 3*52 + 2*8 + 上下各 8 的内距:桌面正好三整排,不留半排。 */
@@ -615,7 +615,7 @@
   overflow: auto;
 }
 
-.composer-studio.composer--wide .composer-media-surface :deep(.panel-tabbar) {
+.composer-studio.composer--panels-above .composer-media-surface :deep(.panel-tabbar) {
   flex: 0 0 auto;
   padding: 2px var(--flare-size-spacing-2sm);
 }

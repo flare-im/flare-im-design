@@ -33,33 +33,80 @@ final class ComposerMentionTests: XCTestCase {
     }
 
     func testTheFlowOpensOnATypedAtOrTheKeyAndAPickWritesTheLabel() {
-        var flow = ComposerMentionFlow()
+        var flow = ComposerPanelFlow()
         XCTAssertTrue(flow.textChanged(previous: "hi ", next: "hi @"))
-        XCTAssertTrue(flow.open)
+        XCTAssertEqual(flow.active, .mention)
         var text = flow.pick(ann, into: "hi @", everyoneLabel: s.everyone)
         XCTAssertEqual(text, "hi @Ann ")
-        XCTAssertFalse(flow.open, "picking closes the picker")
+        XCTAssertNil(flow.active, "picking closes the picker")
 
-        flow.toggleFromKey()
-        XCTAssertTrue(flow.open)
+        flow.toggle(.mention)
+        XCTAssertEqual(flow.active, .mention)
         text = flow.pick(bob, into: text + "and", everyoneLabel: s.everyone)
         XCTAssertEqual(text, "hi @Ann and @张伟 ", "the key's pick goes at the end")
     }
 
     func testTheEveryoneMentionIsWrittenWithTheStringsTableWord() {
-        var flow = ComposerMentionFlow()
-        flow.toggleFromKey()
+        var flow = ComposerPanelFlow()
+        flow.toggle(.mention)
         XCTAssertEqual(flow.pick(everyone, into: "", everyoneLabel: s.everyone), "@\(s.everyone) ")
         XCTAssertEqual(s.everyone, "所有人", "a token the core's mention parser recognises")
     }
 
     func testAnOpenPickerIsNotReopenedByAnotherAt() {
-        var flow = ComposerMentionFlow()
-        flow.toggleFromKey()
+        var flow = ComposerPanelFlow()
+        flow.toggle(.mention)
         XCTAssertFalse(flow.textChanged(previous: "", next: "@"))
-        XCTAssertNil(flow.trigger, "the key opened it, so a pick goes at the end")
+        XCTAssertNil(flow.mentionTrigger, "the key opened it, so a pick goes at the end")
         flow.close()
-        XCTAssertFalse(flow.open)
+        XCTAssertNil(flow.active)
+    }
+
+    func testComposerPanelsReplaceEachOtherAndResetTypedMentionOffsets() {
+        var flow = ComposerPanelFlow()
+        flow.toggle(.emoji)
+        XCTAssertEqual(flow.active, .emoji)
+        flow.toggle(.actions)
+        XCTAssertEqual(flow.active, .actions)
+        XCTAssertTrue(flow.textChanged(previous: "hi ", next: "hi @"))
+        XCTAssertEqual(flow.active, .mention)
+        XCTAssertEqual(flow.mentionTrigger, 3)
+        flow.close(.emoji)
+        XCTAssertEqual(flow.active, .mention)
+        flow.toggle(.emoji)
+        XCTAssertEqual(flow.active, .emoji)
+        XCTAssertNil(flow.mentionTrigger)
+        flow.toggle(.emoji)
+        XCTAssertNil(flow.active)
+    }
+
+    func testTypedMentionTracksTheQueryAndReplacesItBeforeExistingText() {
+        var flow = ComposerPanelFlow()
+        XCTAssertTrue(flow.textChanged(previous: "👍🏽  later", next: "👍🏽 @ later"))
+        XCTAssertEqual(flow.mentionQuery(in: "👍🏽 @ later"), "")
+        let draft = "👍🏽 @张 later"
+        XCTAssertFalse(flow.textChanged(previous: "👍🏽 @ later", next: draft))
+        XCTAssertEqual(flow.mentionQuery(in: draft), "张")
+        XCTAssertEqual(flow.pick(bob, into: draft, everyoneLabel: s.everyone), "👍🏽 @张伟  later")
+        XCTAssertNil(flow.active)
+    }
+
+    func testRemovingTheTypedTriggerClosesThePicker() {
+        var flow = ComposerPanelFlow()
+        XCTAssertTrue(flow.textChanged(previous: "hi ", next: "hi @"))
+        XCTAssertFalse(flow.textChanged(previous: "hi @", next: "hi "))
+        XCTAssertNil(flow.active)
+    }
+
+    @MainActor
+    func testEditorQueryFiltersTheRosterWithoutAnIndependentSearchField() throws {
+        let typed = MentionPickerView(candidates: [ann, bob], allowEveryone: true, editorQuery: "aN")
+        XCTAssertNoThrow(try typed.inspect().find(text: ann.name))
+        XCTAssertThrowsError(try typed.inspect().find(text: bob.name))
+        XCTAssertThrowsError(try typed.inspect().find(ViewType.TextField.self))
+
+        let toolbar = MentionPickerView(candidates: [ann, bob], allowEveryone: true)
+        XCTAssertNoThrow(try toolbar.inspect().find(ViewType.TextField.self))
     }
 
     @MainActor

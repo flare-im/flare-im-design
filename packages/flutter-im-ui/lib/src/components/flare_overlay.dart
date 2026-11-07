@@ -90,6 +90,7 @@ Widget Function(Widget child) flareOverlayScopes(BuildContext context) {
         brand: theme.brand,
         mode: theme.mode,
         colors: theme.colors,
+        darkColors: theme.darkColors,
         child: wrapped,
       );
     }

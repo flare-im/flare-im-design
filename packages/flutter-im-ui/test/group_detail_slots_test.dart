@@ -62,10 +62,9 @@ void main() {
     await tester.pumpWidget(_host(detail));
     final slot = find.byKey(_afterInfo);
     final rect = tester.getRect(slot);
-    // After the last row of 群信息 (its member count row), before the next
-    // section's title.
+    // After the last row of 群信息, before the next section's title.
     final infoRow = find.ancestor(
-      of: find.text(_labels.memberCount(2)),
+      of: find.text(_labels.announcement),
       matching: find.byType(FlareSettingsRow),
     );
     expect(rect.top, greaterThan(tester.getBottomLeft(infoRow).dy));

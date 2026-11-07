@@ -276,12 +276,17 @@ Three components, one rule each:
 ## 19. Connection state and recovery
 
 **Rules.**
-- Connected shows nothing. Connecting and reconnecting say so with progress; offline waits for the network; disconnected offers 重新连接 only when the host can reconnect.
-- Kicked and expired are final: the core does not reconnect, so they always offer 重新登录, which clears the local session and returns to sign-in even when the logout request fails.
-- The notice sits above every tab, not inside one pane.
-- A cold start whose SDK cannot load keeps the stored session; only a session the SDK rejects is cleared.
+- The host passes the core SDK's `connection://status` as it arrives; the kit decides what shows when, the same in every app (`spec/connection-notice-vectors.json`).
+- idle and online show nothing; a poor-quality line is the diagnostics page's business, not a banner. connecting, reconnecting, waitingForNetwork, serviceUnavailable and actionRequired show at once.
+- syncing shows once it has lasted 1 s and switching once it has lasted 2 s, so a quick sync or a quick line switch never flashes a banner; until then a banner that was already up keeps what it showed. A reconnecting banner stays up at least 1.5 s.
+- reconnecting counts down to the next attempt and offers 立即重试 (the SDK's `connection.reconnectNow`); serviceUnavailable offers 诊断; actionRequired is final and offers its way back: 重新登录 after a kick or an expired session (it clears the local session even when logout fails), 立即更新 when the server requires a newer app, nothing when the tenant is suspended. An action is drawn only while the host handles it.
+- Development mode wears a 开发模式 badge in every phase.
+- The notice sits above every tab, not inside one pane. A cold start whose SDK cannot load keeps the stored session; only a session the SDK rejects is cleared.
+- The network and line diagnostics page is the kit's `AccessDiagnostics`: the host passes `access.getStatus` and `access.listAccessPoints` as they arrive and runs the actions; the page's state, the latency grades and what each result says are shared (`spec/access-diagnostics-vectors.json`). Recovering moves the recovery tools to the top. The entry lives in settings; a login page shows it only while the service is unavailable.
 
-**API.** Vue `connectionNotice` (`./utils`), Flutter `flareConnectionNotice`, iOS `FlareConnectionNotice.resolve`, Compose `flareConnectionNotice`; rendered with each kit's status banner.
+- Updating is the kit's `UpdatePrompt`, `ProgressBar` and `VersionPanel`: the host passes `update://state` as it arrives and runs the actions; the phases, the words and which buttons exist are shared (`spec/update-prompt-vectors.json`). A forced prompt has no close button, no later and no skip, and offers 继续浏览 only when read-only browsing is allowed; a download can go to the background unless forced; a finished download asks for a restart and never restarts by itself; a failure offers 重试 and the website or the app store. The prompt is a bottom sheet, a modal or a page over the whole window, all of them the kit's own surfaces.
+
+**API.** `ConnectionNotice`: Vue `FlareConnectionNotice`, Flutter `FlareConnectionNotice`, SwiftUI `ConnectionNoticeView`, Compose `ConnectionNotice`, each drawing the kit status banner from its `FlareConnectionNoticeTracker`.
 
 **Used by.** Web and Tauri main views, Flutter base shell, iOS root view, Android app shell.
 
@@ -454,10 +459,10 @@ Three components, one rule each:
 **Rules.**
 - A gap has three consequences and they need three different answers. A belief formed before it may be stale (the peer who stopped typing never got to say so). A server-side watch dies with the stream that carried it. A change that happened during the gap was never delivered, and a subscription only ever promises the next one. Doing one of the three is not doing the job.
 - The first connection creates no work. The app's own open path already subscribes and reads; repeating it here doubles every cold start.
-- A drop is counted once, however many phases it passes through on the way down (disconnected, then reconnecting, then offline is one gap). A return refreshes once — and a flap refreshes once per return, because every gap swallowed something.
-- **A session that ended is not a gap.** Being kicked or having the sign-in expire is terminal: the core does not reconnect by design, so re-subscribing is work for a session that no longer exists. Terminal also forgets that this client was ever connected, which is what makes the next connection a fresh start rather than a recovery — the real sequence is socket first, reason second, so without that the interruption recorded on the way down would still be standing when the new session arrives.
+- Every phase other than online is a gap once the client has been online, a line switch included (the new line is a new connection). A drop is counted once, however many phases it passes through on the way down (reconnecting, then waitingForNetwork, then connecting and syncing is one gap). A return to online refreshes once — and a flap refreshes once per return, because every gap swallowed something.
+- **A session that ended is not a gap.** actionRequired (kicked, expired, an update required, the tenant suspended) is terminal: the core does not reconnect by design, so re-subscribing is work for a session that no longer exists; idle after a session (signing out) ends it the same way. Ending also forgets that this client was ever online, which is what makes the next connection a fresh start rather than a recovery — the real sequence is socket first, reason second, so without that the interruption recorded on the way down would still be standing when the new session arrives.
 
-**API.** `FlareConnectionRefresh.observe(phase)` on all four kits, answering `dropStaleBeliefs` / `resubscribe` / `reread`, against `spec/reconnect-refresh-vectors.json`. Phases are the same `FlareConnectionPhase` the connection notice takes, so an app reads one value and gets both the banner and the work.
+**API.** `FlareConnectionRefresh.observe(phase)` on all four kits, answering `dropStaleBeliefs` / `resubscribe` / `reread`, against `spec/reconnect-refresh-vectors.json`. Phases are the same `FlareConnectionPhase` the connection notice's status carries, so an app reads one event and gets both the banner and the work.
 
 **Used by.** All five reference apps, at whichever layer holds the connection phase.
 

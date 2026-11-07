@@ -28,6 +28,7 @@ class FlareVideoPlayer extends StatefulWidget {
     super.key,
     required this.show,
     required this.videoSrc,
+    this.localPath,
     this.poster,
     this.title,
     this.playerBuilder,
@@ -42,6 +43,9 @@ class FlareVideoPlayer extends StatefulWidget {
 
   final bool show;
   final String videoSrc;
+
+  /// Trusted host/SDK cache file; never taken from a message URL.
+  final String? localPath;
   final String? poster;
   final String? title;
 
@@ -73,6 +77,7 @@ class FlareVideoPlayer extends StatefulWidget {
   static Future<void> present(
     BuildContext context, {
     required String videoSrc,
+    String? localPath,
     String? poster,
     String? title,
     Widget Function(BuildContext, String)? playerBuilder,
@@ -84,6 +89,7 @@ class FlareVideoPlayer extends StatefulWidget {
         FlareVideoPlayer(
           show: true,
           videoSrc: videoSrc,
+          localPath: localPath,
           poster: poster,
           title: title,
           playerBuilder: playerBuilder,
@@ -133,7 +139,9 @@ class _FlareVideoPlayerState extends State<FlareVideoPlayer> {
         oldWidget.onPlay == null;
     if (!_kitPlays) {
       if (wasPlaying) _stop();
-    } else if (!wasPlaying || oldWidget.videoSrc != widget.videoSrc) {
+    } else if (!wasPlaying ||
+        oldWidget.videoSrc != widget.videoSrc ||
+        oldWidget.localPath != widget.localPath) {
       unawaited(_start());
     }
   }
@@ -158,7 +166,10 @@ class _FlareVideoPlayerState extends State<FlareVideoPlayer> {
   Future<void> _start() async {
     _stop();
     final generation = _generation;
-    final source = flarePlayableMediaUri(widget.videoSrc);
+    final source = flarePlayableMediaUri(
+      widget.videoSrc,
+      localPath: widget.localPath,
+    );
     _failed = source == null;
     if (source == null) return;
     final player = flareMediaPlayerFactory(source);

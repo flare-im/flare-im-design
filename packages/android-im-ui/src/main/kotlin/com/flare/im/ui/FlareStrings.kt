@@ -27,6 +27,21 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         FlareStringsBuilder().apply(configure).values.toMap(),
     )
 
+    /**
+     * 从已有词表派生：[configure] 没设置的键取 [base]，设置了的取新值，[base] 本身不变。
+     * [configure] 里读到的也是 [base] 的值。
+     *
+     * ```kotlin
+     * FlareStrings(flareStringsEnglish()) { send = "Send it" }
+     * ```
+     */
+    constructor(base: FlareStrings, configure: FlareStringsBuilder.() -> Unit) : this(
+        FlareStringsBuilder().apply {
+            values.putAll(base.overrides)
+            configure()
+        }.values.toMap(),
+    )
+
     // 通话
     val microphone: String
         get() = (overrides["microphone"] as? (String)) ?: "麦克风"
@@ -1277,6 +1292,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["groupDetailOnlyAdminAtAll"] as? (String)) ?: "仅管理员可@全体成员"
     val groupDetailOnlyAdminPin: String
         get() = (overrides["groupDetailOnlyAdminPin"] as? (String)) ?: "仅管理员可置顶消息"
+    val groupDetailForbidGroupFriendRequests: String
+        get() = (overrides["groupDetailForbidGroupFriendRequests"] as? String) ?: "禁止群内加好友"
     val groupDetailShareCard: String
         get() = (overrides["groupDetailShareCard"] as? (String)) ?: "允许分享群名片"
     val groupDetailJoinOpen: String
@@ -1449,25 +1466,263 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val profileEditorSave: String
         get() = (overrides["profileEditorSave"] as? (String)) ?: "保存"
 
-    // 连接提示（flareConnectionNotice）; en: "Connecting…" / "Connection lost. Reconnecting…" / "No network. Messages will sync when it is back." / "Disconnected" / "Disconnected: {reason}" / "Your account signed in on another device" / "Your sign-in has expired" / "Reconnect" / "Sign in again"
+    // 连接提示（ConnectionNotice）; en: "Connecting…" / "Syncing messages…" / "Switching connection…" / "Connection lost. Reconnecting…" / "No network. Reconnects when it is back." / "Service temporarily unavailable. Recovering…" / "Signed in on another device" / "Your sign-in has expired" / "Update the app to keep using it" / "Service suspended" / "Retrying in {n}s" / "Retry now" / "Sign in again" / "Update" / "Diagnose" / "Development mode"
     val connectionConnecting: String
         get() = (overrides["connectionConnecting"] as? (String)) ?: "正在连接…"
+    val connectionSyncing: String
+        get() = (overrides["connectionSyncing"] as? (String)) ?: "正在同步消息…"
+    val connectionSwitching: String
+        get() = (overrides["connectionSwitching"] as? (String)) ?: "正在切换线路…"
     val connectionReconnecting: String
         get() = (overrides["connectionReconnecting"] as? (String)) ?: "连接已断开，正在重连…"
-    val connectionOffline: String
-        get() = (overrides["connectionOffline"] as? (String)) ?: "网络不可用，恢复后会自动重连"
-    val connectionDisconnected: String
-        get() = (overrides["connectionDisconnected"] as? (String)) ?: "连接已断开"
-    val connectionDisconnectedReason: (String) -> String
-        get() = (overrides["connectionDisconnectedReason"] as? ((String) -> String)) ?: { "连接已断开：$it" }
+    val connectionWaitingForNetwork: String
+        get() = (overrides["connectionWaitingForNetwork"] as? (String)) ?: "网络不可用，恢复后会自动重连"
+    val connectionServiceUnavailable: String
+        get() = (overrides["connectionServiceUnavailable"] as? (String)) ?: "服务暂时不可用，正在自动恢复…"
     val connectionKicked: String
-        get() = (overrides["connectionKicked"] as? (String)) ?: "账号已在其他设备登录"
+        get() = (overrides["connectionKicked"] as? (String)) ?: "已在其他设备登录"
     val connectionExpired: String
         get() = (overrides["connectionExpired"] as? (String)) ?: "登录已过期"
-    val connectionReconnect: String
-        get() = (overrides["connectionReconnect"] as? (String)) ?: "重新连接"
+    val connectionUpgradeRequired: String
+        get() = (overrides["connectionUpgradeRequired"] as? (String)) ?: "需要更新后才能继续使用"
+    val connectionTenantUnavailable: String
+        get() = (overrides["connectionTenantUnavailable"] as? (String)) ?: "服务已暂停"
+    val connectionRetryIn: (Int) -> String
+        get() = (overrides["connectionRetryIn"] as? ((Int) -> String)) ?: { "$it 秒后重试" }
+    val connectionRetry: String
+        get() = (overrides["connectionRetry"] as? (String)) ?: "立即重试"
     val connectionSignIn: String
         get() = (overrides["connectionSignIn"] as? (String)) ?: "重新登录"
+    val connectionUpdate: String
+        get() = (overrides["connectionUpdate"] as? (String)) ?: "立即更新"
+    val connectionDiagnose: String
+        get() = (overrides["connectionDiagnose"] as? (String)) ?: "诊断"
+    val connectionDevelopmentMode: String
+        get() = (overrides["connectionDevelopmentMode"] as? (String)) ?: "开发模式"
+
+    // 线路诊断（AccessDiagnostics）
+    val accessDiagnosticsTitle: String
+        get() = (overrides["accessDiagnosticsTitle"] as? (String)) ?: "网络与线路"
+    val accessDiagnosticsCurrent: String
+        get() = (overrides["accessDiagnosticsCurrent"] as? (String)) ?: "当前线路"
+    val accessDiagnosticsLines: String
+        get() = (overrides["accessDiagnosticsLines"] as? (String)) ?: "全部线路"
+    val accessDiagnosticsRecovery: String
+        get() = (overrides["accessDiagnosticsRecovery"] as? (String)) ?: "恢复工具"
+    val accessDiagnosticsAccessPoint: String
+        get() = (overrides["accessDiagnosticsAccessPoint"] as? (String)) ?: "接入点"
+    val accessDiagnosticsRegion: String
+        get() = (overrides["accessDiagnosticsRegion"] as? (String)) ?: "区域"
+    val accessDiagnosticsProtocol: String
+        get() = (overrides["accessDiagnosticsProtocol"] as? (String)) ?: "协议"
+    val accessDiagnosticsRtt: String
+        get() = (overrides["accessDiagnosticsRtt"] as? (String)) ?: "延迟"
+    val accessDiagnosticsSerial: String
+        get() = (overrides["accessDiagnosticsSerial"] as? (String)) ?: "清单版本"
+    val accessDiagnosticsSource: String
+        get() = (overrides["accessDiagnosticsSource"] as? (String)) ?: "清单来源"
+    val accessDiagnosticsManifest: String
+        get() = (overrides["accessDiagnosticsManifest"] as? (String)) ?: "清单状态"
+    val accessDiagnosticsReportedAccessPoint: String
+        get() = (overrides["accessDiagnosticsReportedAccessPoint"] as? (String)) ?: "服务端报告的接入点"
+    val accessDiagnosticsRecoveryRounds: String
+        get() = (overrides["accessDiagnosticsRecoveryRounds"] as? (String)) ?: "已尝试恢复轮数"
+    val accessDiagnosticsManifestValid: String
+        get() = (overrides["accessDiagnosticsManifestValid"] as? (String)) ?: "有效"
+    val accessDiagnosticsManifestStale: String
+        get() = (overrides["accessDiagnosticsManifestStale"] as? (String)) ?: "已过期"
+    val accessDiagnosticsManifestNone: String
+        get() = (overrides["accessDiagnosticsManifestNone"] as? (String)) ?: "暂无清单"
+    val accessDiagnosticsOn: String
+        get() = (overrides["accessDiagnosticsOn"] as? (String)) ?: "开启"
+    val accessDiagnosticsOff: String
+        get() = (overrides["accessDiagnosticsOff"] as? (String)) ?: "关闭"
+    val accessDiagnosticsRttGood: String
+        get() = (overrides["accessDiagnosticsRttGood"] as? (String)) ?: "良好"
+    val accessDiagnosticsRttFair: String
+        get() = (overrides["accessDiagnosticsRttFair"] as? (String)) ?: "一般"
+    val accessDiagnosticsRttPoor: String
+        get() = (overrides["accessDiagnosticsRttPoor"] as? (String)) ?: "较差"
+    val accessDiagnosticsSourceSeed: String
+        get() = (overrides["accessDiagnosticsSourceSeed"] as? (String)) ?: "内置种子"
+    val accessDiagnosticsSourceMirror: String
+        get() = (overrides["accessDiagnosticsSourceMirror"] as? (String)) ?: "镜像"
+    val accessDiagnosticsSourceRecovery: String
+        get() = (overrides["accessDiagnosticsSourceRecovery"] as? (String)) ?: "恢复链接"
+    val accessDiagnosticsSourceDevelopment: String
+        get() = (overrides["accessDiagnosticsSourceDevelopment"] as? (String)) ?: "开发配置"
+    val accessDiagnosticsSourceNone: String
+        get() = (overrides["accessDiagnosticsSourceNone"] as? (String)) ?: "无"
+    val accessDiagnosticsStatusActive: String
+        get() = (overrides["accessDiagnosticsStatusActive"] as? (String)) ?: "可用"
+    val accessDiagnosticsStatusDraining: String
+        get() = (overrides["accessDiagnosticsStatusDraining"] as? (String)) ?: "即将下线"
+    val accessDiagnosticsStatusDisabled: String
+        get() = (overrides["accessDiagnosticsStatusDisabled"] as? (String)) ?: "已停用"
+    val accessDiagnosticsStatusUnknown: String
+        get() = (overrides["accessDiagnosticsStatusUnknown"] as? (String)) ?: "未知"
+    val accessDiagnosticsBreakerOpen: String
+        get() = (overrides["accessDiagnosticsBreakerOpen"] as? (String)) ?: "已熔断"
+    val accessDiagnosticsBreakerHalfOpen: String
+        get() = (overrides["accessDiagnosticsBreakerHalfOpen"] as? (String)) ?: "试探中"
+    val accessDiagnosticsCurrentTag: String
+        get() = (overrides["accessDiagnosticsCurrentTag"] as? (String)) ?: "当前"
+    val accessDiagnosticsPinnedTag: String
+        get() = (overrides["accessDiagnosticsPinnedTag"] as? (String)) ?: "已固定"
+    val accessDiagnosticsPin: String
+        get() = (overrides["accessDiagnosticsPin"] as? (String)) ?: "固定"
+    val accessDiagnosticsUnpin: String
+        get() = (overrides["accessDiagnosticsUnpin"] as? (String)) ?: "取消固定"
+    val accessDiagnosticsNoLines: String
+        get() = (overrides["accessDiagnosticsNoLines"] as? (String)) ?: "暂无可用线路"
+    val accessDiagnosticsRefresh: String
+        get() = (overrides["accessDiagnosticsRefresh"] as? (String)) ?: "立即刷新"
+    val accessDiagnosticsExport: String
+        get() = (overrides["accessDiagnosticsExport"] as? (String)) ?: "复制诊断"
+    val accessDiagnosticsImport: String
+        get() = (overrides["accessDiagnosticsImport"] as? (String)) ?: "导入"
+    val accessDiagnosticsImportLabel: String
+        get() = (overrides["accessDiagnosticsImportLabel"] as? (String)) ?: "导入恢复链接"
+    val accessDiagnosticsImportPlaceholder: String
+        get() = (overrides["accessDiagnosticsImportPlaceholder"] as? (String)) ?: "粘贴 flare-recover:// 链接"
+    val accessDiagnosticsImportHint: String
+        get() = (overrides["accessDiagnosticsImportHint"] as? (String)) ?: "线路一直无法恢复时，可向客服索取恢复链接。"
+    val accessDiagnosticsHealthy: String
+        get() = (overrides["accessDiagnosticsHealthy"] as? (String)) ?: "线路正常"
+    val accessDiagnosticsNotConnected: String
+        get() = (overrides["accessDiagnosticsNotConnected"] as? (String)) ?: "当前没有连接"
+    val accessDiagnosticsAccessPointMismatch: String
+        get() = (overrides["accessDiagnosticsAccessPointMismatch"] as? (String)) ?: "服务端报告的接入点与当前线路不一致，连接不受影响"
+    val accessDiagnosticsManifestStaleNotice: String
+        get() = (overrides["accessDiagnosticsManifestStaleNotice"] as? (String)) ?: "线路清单已过期，仍可连接，正在更新"
+    val accessDiagnosticsRefreshAdopted: String
+        get() = (overrides["accessDiagnosticsRefreshAdopted"] as? (String)) ?: "线路已更新"
+    val accessDiagnosticsRefreshUpToDate: String
+        get() = (overrides["accessDiagnosticsRefreshUpToDate"] as? (String)) ?: "线路已是最新"
+    val accessDiagnosticsRefreshFailed: String
+        get() = (overrides["accessDiagnosticsRefreshFailed"] as? (String)) ?: "暂时无法更新线路，稍后会自动重试"
+    val accessDiagnosticsRefreshSkipped: String
+        get() = (overrides["accessDiagnosticsRefreshSkipped"] as? (String)) ?: "开发模式下线路由配置决定"
+    val accessDiagnosticsImportAdopted: String
+        get() = (overrides["accessDiagnosticsImportAdopted"] as? (String)) ?: "恢复链接已导入，正在切换线路"
+    val accessDiagnosticsImportUnchanged: String
+        get() = (overrides["accessDiagnosticsImportUnchanged"] as? (String)) ?: "这条链接已经导入过"
+    val accessDiagnosticsImportRollback: String
+        get() = (overrides["accessDiagnosticsImportRollback"] as? (String)) ?: "这条链接比本机线路旧，不需要导入"
+    val accessDiagnosticsImportExpired: String
+        get() = (overrides["accessDiagnosticsImportExpired"] as? (String)) ?: "这条链接已过期，请重新获取"
+    val accessDiagnosticsImportWrongApp: String
+        get() = (overrides["accessDiagnosticsImportWrongApp"] as? (String)) ?: "这条链接不属于当前应用"
+    val accessDiagnosticsImportDevelopmentMode: String
+        get() = (overrides["accessDiagnosticsImportDevelopmentMode"] as? (String)) ?: "开发模式不使用恢复链接"
+    val accessDiagnosticsImportUntrusted: String
+        get() = (overrides["accessDiagnosticsImportUntrusted"] as? (String)) ?: "链接校验失败，请确认它来自官方渠道"
+    val accessDiagnosticsImportMalformed: String
+        get() = (overrides["accessDiagnosticsImportMalformed"] as? (String)) ?: "链接格式不正确，请完整复制后重试"
+    val accessDiagnosticsImportRejected: String
+        get() = (overrides["accessDiagnosticsImportRejected"] as? (String)) ?: "无法导入这条链接"
+    val accessDiagnosticsExportCopied: String
+        get() = (overrides["accessDiagnosticsExportCopied"] as? (String)) ?: "诊断信息已复制"
+    val accessDiagnosticsExportFailed: String
+        get() = (overrides["accessDiagnosticsExportFailed"] as? (String)) ?: "复制失败，请重试"
+    val updatePromptTitleAvailable: String
+        get() = (overrides["updatePromptTitleAvailable"] as? (String)) ?: "发现新版本"
+    val updatePromptTitleRequired: String
+        get() = (overrides["updatePromptTitleRequired"] as? (String)) ?: "需要更新"
+    val updatePromptTitleMetered: String
+        get() = (overrides["updatePromptTitleMetered"] as? (String)) ?: "使用计费网络下载？"
+    val updatePromptTitleDownloading: String
+        get() = (overrides["updatePromptTitleDownloading"] as? (String)) ?: "正在下载更新"
+    val updatePromptTitleVerifying: String
+        get() = (overrides["updatePromptTitleVerifying"] as? (String)) ?: "正在校验更新"
+    val updatePromptTitleReady: String
+        get() = (overrides["updatePromptTitleReady"] as? (String)) ?: "更新已就绪"
+    val updatePromptTitleInstalling: String
+        get() = (overrides["updatePromptTitleInstalling"] as? (String)) ?: "正在安装更新"
+    val updatePromptTitleFailed: String
+        get() = (overrides["updatePromptTitleFailed"] as? (String)) ?: "更新失败"
+    val updatePromptVersion: String
+        get() = (overrides["updatePromptVersion"] as? (String)) ?: "版本"
+    val updatePromptNotes: String
+        get() = (overrides["updatePromptNotes"] as? (String)) ?: "更新内容"
+    val updatePromptMessageRequired: String
+        get() = (overrides["updatePromptMessageRequired"] as? (String)) ?: "当前版本已停止支持，更新后才能继续使用。"
+    val updatePromptMessageRequiredReadOnly: String
+        get() = (overrides["updatePromptMessageRequiredReadOnly"] as? (String)) ?: "更新后才能发送消息，现在可以继续浏览本地内容。"
+    val composerReadOnlyUpdate: String
+        get() = (overrides["composerReadOnlyUpdate"] as? (String)) ?: "更新后才能发送消息"
+    val updatePromptMessageMetered: String
+        get() = (overrides["updatePromptMessageMetered"] as? (String)) ?: "当前是计费网络，这次下载约"
+    val updatePromptMessageMeteredUnknown: String
+        get() = (overrides["updatePromptMessageMeteredUnknown"] as? (String)) ?: "当前是计费网络，下载会消耗流量。"
+    val updatePromptMessageReady: String
+        get() = (overrides["updatePromptMessageReady"] as? (String)) ?: "重启后新版本生效，应用不会自动重启。"
+    val updatePromptFailManifestUnavailable: String
+        get() = (overrides["updatePromptFailManifestUnavailable"] as? (String)) ?: "暂时获取不到更新信息，请检查网络后重试。"
+    val updatePromptFailManifestRejected: String
+        get() = (overrides["updatePromptFailManifestRejected"] as? (String)) ?: "更新信息未通过校验。"
+    val updatePromptFailNoArtifact: String
+        get() = (overrides["updatePromptFailNoArtifact"] as? (String)) ?: "这个版本暂时没有适合本设备的安装包。"
+    val updatePromptFailInsufficientSpace: String
+        get() = (overrides["updatePromptFailInsufficientSpace"] as? (String)) ?: "存储空间不足，清理后重试。"
+    val updatePromptFailDownload: String
+        get() = (overrides["updatePromptFailDownload"] as? (String)) ?: "下载失败，请检查网络后重试。"
+    val updatePromptFailHashMismatch: String
+        get() = (overrides["updatePromptFailHashMismatch"] as? (String)) ?: "下载的文件未通过校验，请重试。"
+    val updatePromptFailInstall: String
+        get() = (overrides["updatePromptFailInstall"] as? (String)) ?: "安装失败，请重试。"
+    val updatePromptFailSignatureMismatch: String
+        get() = (overrides["updatePromptFailSignatureMismatch"] as? (String)) ?: "安装包签名不匹配，已停止安装。"
+    val updatePromptFailDowngrade: String
+        get() = (overrides["updatePromptFailDowngrade"] as? (String)) ?: "不能安装比当前更旧的版本。"
+    val updatePromptFailNotSkippable: String
+        get() = (overrides["updatePromptFailNotSkippable"] as? (String)) ?: "这个版本不能跳过。"
+    val updatePromptFailUnknown: String
+        get() = (overrides["updatePromptFailUnknown"] as? (String)) ?: "更新没有完成，请稍后重试。"
+    val updatePromptContinueDownload: String
+        get() = (overrides["updatePromptContinueDownload"] as? (String)) ?: "继续下载"
+    val updatePromptRestart: String
+        get() = (overrides["updatePromptRestart"] as? (String)) ?: "重启以完成更新"
+    val updatePromptRetry: String
+        get() = (overrides["updatePromptRetry"] as? (String)) ?: "重试"
+    val updatePromptFallbackWebsite: String
+        get() = (overrides["updatePromptFallbackWebsite"] as? (String)) ?: "前往官网下载"
+    val updatePromptFallbackStore: String
+        get() = (overrides["updatePromptFallbackStore"] as? (String)) ?: "前往应用商店"
+    val updatePromptLater: String
+        get() = (overrides["updatePromptLater"] as? (String)) ?: "稍后"
+    val updatePromptBackground: String
+        get() = (overrides["updatePromptBackground"] as? (String)) ?: "后台下载"
+    val updatePromptSkip: String
+        get() = (overrides["updatePromptSkip"] as? (String)) ?: "跳过此版本"
+    val updatePromptContinueReadOnly: String
+        get() = (overrides["updatePromptContinueReadOnly"] as? (String)) ?: "继续浏览"
+    val progressBarLabel: String
+        get() = (overrides["progressBarLabel"] as? (String)) ?: "进度"
+    val progressBarLoading: String
+        get() = (overrides["progressBarLoading"] as? (String)) ?: "进行中"
+    val versionPanelTitle: String
+        get() = (overrides["versionPanelTitle"] as? (String)) ?: "版本信息"
+    val versionPanelVersion: String
+        get() = (overrides["versionPanelVersion"] as? (String)) ?: "版本"
+    val versionPanelBuild: String
+        get() = (overrides["versionPanelBuild"] as? (String)) ?: "构建号"
+    val versionPanelChannel: String
+        get() = (overrides["versionPanelChannel"] as? (String)) ?: "渠道"
+    val versionPanelChannelStable: String
+        get() = (overrides["versionPanelChannelStable"] as? (String)) ?: "正式版"
+    val versionPanelChannelBeta: String
+        get() = (overrides["versionPanelChannelBeta"] as? (String)) ?: "测试版"
+    val versionPanelChannelInternal: String
+        get() = (overrides["versionPanelChannelInternal"] as? (String)) ?: "内部版"
+    val versionPanelCheck: String
+        get() = (overrides["versionPanelCheck"] as? (String)) ?: "检查更新"
+    val versionPanelChecking: String
+        get() = (overrides["versionPanelChecking"] as? (String)) ?: "正在检查…"
+    val versionPanelUpToDate: String
+        get() = (overrides["versionPanelUpToDate"] as? (String)) ?: "已是最新版本"
+    val settingsRowBadge: String
+        get() = (overrides["settingsRowBadge"] as? (String)) ?: "有新内容"
 
     // 会话头栏的添加 / 更多菜单按钮; en: "Add conversation actions" / "More conversation actions"
     val conversationHeaderAddActions: String
@@ -3966,6 +4221,10 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["groupDetailOnlyAdminPin"] as? (String)) ?: "仅管理员可置顶消息"
         set(value) { values["groupDetailOnlyAdminPin"] = value }
 
+    var groupDetailForbidGroupFriendRequests: String
+        get() = (values["groupDetailForbidGroupFriendRequests"] as? String) ?: "禁止群内加好友"
+        set(value) { values["groupDetailForbidGroupFriendRequests"] = value }
+
     var groupDetailShareCard: String
         get() = (values["groupDetailShareCard"] as? (String)) ?: "允许分享群名片"
         set(value) { values["groupDetailShareCard"] = value }
@@ -4298,37 +4557,460 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["connectionConnecting"] as? (String)) ?: "正在连接…"
         set(value) { values["connectionConnecting"] = value }
 
+    var connectionSyncing: String
+        get() = (values["connectionSyncing"] as? (String)) ?: "正在同步消息…"
+        set(value) { values["connectionSyncing"] = value }
+
+    var connectionSwitching: String
+        get() = (values["connectionSwitching"] as? (String)) ?: "正在切换线路…"
+        set(value) { values["connectionSwitching"] = value }
+
     var connectionReconnecting: String
         get() = (values["connectionReconnecting"] as? (String)) ?: "连接已断开，正在重连…"
         set(value) { values["connectionReconnecting"] = value }
 
-    var connectionOffline: String
-        get() = (values["connectionOffline"] as? (String)) ?: "网络不可用，恢复后会自动重连"
-        set(value) { values["connectionOffline"] = value }
+    var connectionWaitingForNetwork: String
+        get() = (values["connectionWaitingForNetwork"] as? (String)) ?: "网络不可用，恢复后会自动重连"
+        set(value) { values["connectionWaitingForNetwork"] = value }
 
-    var connectionDisconnected: String
-        get() = (values["connectionDisconnected"] as? (String)) ?: "连接已断开"
-        set(value) { values["connectionDisconnected"] = value }
-
-    var connectionDisconnectedReason: (String) -> String
-        get() = (values["connectionDisconnectedReason"] as? ((String) -> String)) ?: { "连接已断开：$it" }
-        set(value) { values["connectionDisconnectedReason"] = value }
+    var connectionServiceUnavailable: String
+        get() = (values["connectionServiceUnavailable"] as? (String)) ?: "服务暂时不可用，正在自动恢复…"
+        set(value) { values["connectionServiceUnavailable"] = value }
 
     var connectionKicked: String
-        get() = (values["connectionKicked"] as? (String)) ?: "账号已在其他设备登录"
+        get() = (values["connectionKicked"] as? (String)) ?: "已在其他设备登录"
         set(value) { values["connectionKicked"] = value }
 
     var connectionExpired: String
         get() = (values["connectionExpired"] as? (String)) ?: "登录已过期"
         set(value) { values["connectionExpired"] = value }
 
-    var connectionReconnect: String
-        get() = (values["connectionReconnect"] as? (String)) ?: "重新连接"
-        set(value) { values["connectionReconnect"] = value }
+    var connectionUpgradeRequired: String
+        get() = (values["connectionUpgradeRequired"] as? (String)) ?: "需要更新后才能继续使用"
+        set(value) { values["connectionUpgradeRequired"] = value }
+
+    var connectionTenantUnavailable: String
+        get() = (values["connectionTenantUnavailable"] as? (String)) ?: "服务已暂停"
+        set(value) { values["connectionTenantUnavailable"] = value }
+
+    var connectionRetryIn: (Int) -> String
+        get() = (values["connectionRetryIn"] as? ((Int) -> String)) ?: { "$it 秒后重试" }
+        set(value) { values["connectionRetryIn"] = value }
+
+    var connectionRetry: String
+        get() = (values["connectionRetry"] as? (String)) ?: "立即重试"
+        set(value) { values["connectionRetry"] = value }
 
     var connectionSignIn: String
         get() = (values["connectionSignIn"] as? (String)) ?: "重新登录"
         set(value) { values["connectionSignIn"] = value }
+
+    var connectionUpdate: String
+        get() = (values["connectionUpdate"] as? (String)) ?: "立即更新"
+        set(value) { values["connectionUpdate"] = value }
+
+    var connectionDiagnose: String
+        get() = (values["connectionDiagnose"] as? (String)) ?: "诊断"
+        set(value) { values["connectionDiagnose"] = value }
+
+    var connectionDevelopmentMode: String
+        get() = (values["connectionDevelopmentMode"] as? (String)) ?: "开发模式"
+        set(value) { values["connectionDevelopmentMode"] = value }
+
+    var accessDiagnosticsTitle: String
+        get() = (values["accessDiagnosticsTitle"] as? (String)) ?: "网络与线路"
+        set(value) { values["accessDiagnosticsTitle"] = value }
+
+    var accessDiagnosticsCurrent: String
+        get() = (values["accessDiagnosticsCurrent"] as? (String)) ?: "当前线路"
+        set(value) { values["accessDiagnosticsCurrent"] = value }
+
+    var accessDiagnosticsLines: String
+        get() = (values["accessDiagnosticsLines"] as? (String)) ?: "全部线路"
+        set(value) { values["accessDiagnosticsLines"] = value }
+
+    var accessDiagnosticsRecovery: String
+        get() = (values["accessDiagnosticsRecovery"] as? (String)) ?: "恢复工具"
+        set(value) { values["accessDiagnosticsRecovery"] = value }
+
+    var accessDiagnosticsAccessPoint: String
+        get() = (values["accessDiagnosticsAccessPoint"] as? (String)) ?: "接入点"
+        set(value) { values["accessDiagnosticsAccessPoint"] = value }
+
+    var accessDiagnosticsRegion: String
+        get() = (values["accessDiagnosticsRegion"] as? (String)) ?: "区域"
+        set(value) { values["accessDiagnosticsRegion"] = value }
+
+    var accessDiagnosticsProtocol: String
+        get() = (values["accessDiagnosticsProtocol"] as? (String)) ?: "协议"
+        set(value) { values["accessDiagnosticsProtocol"] = value }
+
+    var accessDiagnosticsRtt: String
+        get() = (values["accessDiagnosticsRtt"] as? (String)) ?: "延迟"
+        set(value) { values["accessDiagnosticsRtt"] = value }
+
+    var accessDiagnosticsSerial: String
+        get() = (values["accessDiagnosticsSerial"] as? (String)) ?: "清单版本"
+        set(value) { values["accessDiagnosticsSerial"] = value }
+
+    var accessDiagnosticsSource: String
+        get() = (values["accessDiagnosticsSource"] as? (String)) ?: "清单来源"
+        set(value) { values["accessDiagnosticsSource"] = value }
+
+    var accessDiagnosticsManifest: String
+        get() = (values["accessDiagnosticsManifest"] as? (String)) ?: "清单状态"
+        set(value) { values["accessDiagnosticsManifest"] = value }
+
+    var accessDiagnosticsReportedAccessPoint: String
+        get() = (values["accessDiagnosticsReportedAccessPoint"] as? (String)) ?: "服务端报告的接入点"
+        set(value) { values["accessDiagnosticsReportedAccessPoint"] = value }
+
+    var accessDiagnosticsRecoveryRounds: String
+        get() = (values["accessDiagnosticsRecoveryRounds"] as? (String)) ?: "已尝试恢复轮数"
+        set(value) { values["accessDiagnosticsRecoveryRounds"] = value }
+
+    var accessDiagnosticsManifestValid: String
+        get() = (values["accessDiagnosticsManifestValid"] as? (String)) ?: "有效"
+        set(value) { values["accessDiagnosticsManifestValid"] = value }
+
+    var accessDiagnosticsManifestStale: String
+        get() = (values["accessDiagnosticsManifestStale"] as? (String)) ?: "已过期"
+        set(value) { values["accessDiagnosticsManifestStale"] = value }
+
+    var accessDiagnosticsManifestNone: String
+        get() = (values["accessDiagnosticsManifestNone"] as? (String)) ?: "暂无清单"
+        set(value) { values["accessDiagnosticsManifestNone"] = value }
+
+    var accessDiagnosticsOn: String
+        get() = (values["accessDiagnosticsOn"] as? (String)) ?: "开启"
+        set(value) { values["accessDiagnosticsOn"] = value }
+
+    var accessDiagnosticsOff: String
+        get() = (values["accessDiagnosticsOff"] as? (String)) ?: "关闭"
+        set(value) { values["accessDiagnosticsOff"] = value }
+
+    var accessDiagnosticsRttGood: String
+        get() = (values["accessDiagnosticsRttGood"] as? (String)) ?: "良好"
+        set(value) { values["accessDiagnosticsRttGood"] = value }
+
+    var accessDiagnosticsRttFair: String
+        get() = (values["accessDiagnosticsRttFair"] as? (String)) ?: "一般"
+        set(value) { values["accessDiagnosticsRttFair"] = value }
+
+    var accessDiagnosticsRttPoor: String
+        get() = (values["accessDiagnosticsRttPoor"] as? (String)) ?: "较差"
+        set(value) { values["accessDiagnosticsRttPoor"] = value }
+
+    var accessDiagnosticsSourceSeed: String
+        get() = (values["accessDiagnosticsSourceSeed"] as? (String)) ?: "内置种子"
+        set(value) { values["accessDiagnosticsSourceSeed"] = value }
+
+    var accessDiagnosticsSourceMirror: String
+        get() = (values["accessDiagnosticsSourceMirror"] as? (String)) ?: "镜像"
+        set(value) { values["accessDiagnosticsSourceMirror"] = value }
+
+    var accessDiagnosticsSourceRecovery: String
+        get() = (values["accessDiagnosticsSourceRecovery"] as? (String)) ?: "恢复链接"
+        set(value) { values["accessDiagnosticsSourceRecovery"] = value }
+
+    var accessDiagnosticsSourceDevelopment: String
+        get() = (values["accessDiagnosticsSourceDevelopment"] as? (String)) ?: "开发配置"
+        set(value) { values["accessDiagnosticsSourceDevelopment"] = value }
+
+    var accessDiagnosticsSourceNone: String
+        get() = (values["accessDiagnosticsSourceNone"] as? (String)) ?: "无"
+        set(value) { values["accessDiagnosticsSourceNone"] = value }
+
+    var accessDiagnosticsStatusActive: String
+        get() = (values["accessDiagnosticsStatusActive"] as? (String)) ?: "可用"
+        set(value) { values["accessDiagnosticsStatusActive"] = value }
+
+    var accessDiagnosticsStatusDraining: String
+        get() = (values["accessDiagnosticsStatusDraining"] as? (String)) ?: "即将下线"
+        set(value) { values["accessDiagnosticsStatusDraining"] = value }
+
+    var accessDiagnosticsStatusDisabled: String
+        get() = (values["accessDiagnosticsStatusDisabled"] as? (String)) ?: "已停用"
+        set(value) { values["accessDiagnosticsStatusDisabled"] = value }
+
+    var accessDiagnosticsStatusUnknown: String
+        get() = (values["accessDiagnosticsStatusUnknown"] as? (String)) ?: "未知"
+        set(value) { values["accessDiagnosticsStatusUnknown"] = value }
+
+    var accessDiagnosticsBreakerOpen: String
+        get() = (values["accessDiagnosticsBreakerOpen"] as? (String)) ?: "已熔断"
+        set(value) { values["accessDiagnosticsBreakerOpen"] = value }
+
+    var accessDiagnosticsBreakerHalfOpen: String
+        get() = (values["accessDiagnosticsBreakerHalfOpen"] as? (String)) ?: "试探中"
+        set(value) { values["accessDiagnosticsBreakerHalfOpen"] = value }
+
+    var accessDiagnosticsCurrentTag: String
+        get() = (values["accessDiagnosticsCurrentTag"] as? (String)) ?: "当前"
+        set(value) { values["accessDiagnosticsCurrentTag"] = value }
+
+    var accessDiagnosticsPinnedTag: String
+        get() = (values["accessDiagnosticsPinnedTag"] as? (String)) ?: "已固定"
+        set(value) { values["accessDiagnosticsPinnedTag"] = value }
+
+    var accessDiagnosticsPin: String
+        get() = (values["accessDiagnosticsPin"] as? (String)) ?: "固定"
+        set(value) { values["accessDiagnosticsPin"] = value }
+
+    var accessDiagnosticsUnpin: String
+        get() = (values["accessDiagnosticsUnpin"] as? (String)) ?: "取消固定"
+        set(value) { values["accessDiagnosticsUnpin"] = value }
+
+    var accessDiagnosticsNoLines: String
+        get() = (values["accessDiagnosticsNoLines"] as? (String)) ?: "暂无可用线路"
+        set(value) { values["accessDiagnosticsNoLines"] = value }
+
+    var accessDiagnosticsRefresh: String
+        get() = (values["accessDiagnosticsRefresh"] as? (String)) ?: "立即刷新"
+        set(value) { values["accessDiagnosticsRefresh"] = value }
+
+    var accessDiagnosticsExport: String
+        get() = (values["accessDiagnosticsExport"] as? (String)) ?: "复制诊断"
+        set(value) { values["accessDiagnosticsExport"] = value }
+
+    var accessDiagnosticsImport: String
+        get() = (values["accessDiagnosticsImport"] as? (String)) ?: "导入"
+        set(value) { values["accessDiagnosticsImport"] = value }
+
+    var accessDiagnosticsImportLabel: String
+        get() = (values["accessDiagnosticsImportLabel"] as? (String)) ?: "导入恢复链接"
+        set(value) { values["accessDiagnosticsImportLabel"] = value }
+
+    var accessDiagnosticsImportPlaceholder: String
+        get() = (values["accessDiagnosticsImportPlaceholder"] as? (String)) ?: "粘贴 flare-recover:// 链接"
+        set(value) { values["accessDiagnosticsImportPlaceholder"] = value }
+
+    var accessDiagnosticsImportHint: String
+        get() = (values["accessDiagnosticsImportHint"] as? (String)) ?: "线路一直无法恢复时，可向客服索取恢复链接。"
+        set(value) { values["accessDiagnosticsImportHint"] = value }
+
+    var accessDiagnosticsHealthy: String
+        get() = (values["accessDiagnosticsHealthy"] as? (String)) ?: "线路正常"
+        set(value) { values["accessDiagnosticsHealthy"] = value }
+
+    var accessDiagnosticsNotConnected: String
+        get() = (values["accessDiagnosticsNotConnected"] as? (String)) ?: "当前没有连接"
+        set(value) { values["accessDiagnosticsNotConnected"] = value }
+
+    var accessDiagnosticsAccessPointMismatch: String
+        get() = (values["accessDiagnosticsAccessPointMismatch"] as? (String)) ?: "服务端报告的接入点与当前线路不一致，连接不受影响"
+        set(value) { values["accessDiagnosticsAccessPointMismatch"] = value }
+
+    var accessDiagnosticsManifestStaleNotice: String
+        get() = (values["accessDiagnosticsManifestStaleNotice"] as? (String)) ?: "线路清单已过期，仍可连接，正在更新"
+        set(value) { values["accessDiagnosticsManifestStaleNotice"] = value }
+
+    var accessDiagnosticsRefreshAdopted: String
+        get() = (values["accessDiagnosticsRefreshAdopted"] as? (String)) ?: "线路已更新"
+        set(value) { values["accessDiagnosticsRefreshAdopted"] = value }
+
+    var accessDiagnosticsRefreshUpToDate: String
+        get() = (values["accessDiagnosticsRefreshUpToDate"] as? (String)) ?: "线路已是最新"
+        set(value) { values["accessDiagnosticsRefreshUpToDate"] = value }
+
+    var accessDiagnosticsRefreshFailed: String
+        get() = (values["accessDiagnosticsRefreshFailed"] as? (String)) ?: "暂时无法更新线路，稍后会自动重试"
+        set(value) { values["accessDiagnosticsRefreshFailed"] = value }
+
+    var accessDiagnosticsRefreshSkipped: String
+        get() = (values["accessDiagnosticsRefreshSkipped"] as? (String)) ?: "开发模式下线路由配置决定"
+        set(value) { values["accessDiagnosticsRefreshSkipped"] = value }
+
+    var accessDiagnosticsImportAdopted: String
+        get() = (values["accessDiagnosticsImportAdopted"] as? (String)) ?: "恢复链接已导入，正在切换线路"
+        set(value) { values["accessDiagnosticsImportAdopted"] = value }
+
+    var accessDiagnosticsImportUnchanged: String
+        get() = (values["accessDiagnosticsImportUnchanged"] as? (String)) ?: "这条链接已经导入过"
+        set(value) { values["accessDiagnosticsImportUnchanged"] = value }
+
+    var accessDiagnosticsImportRollback: String
+        get() = (values["accessDiagnosticsImportRollback"] as? (String)) ?: "这条链接比本机线路旧，不需要导入"
+        set(value) { values["accessDiagnosticsImportRollback"] = value }
+
+    var accessDiagnosticsImportExpired: String
+        get() = (values["accessDiagnosticsImportExpired"] as? (String)) ?: "这条链接已过期，请重新获取"
+        set(value) { values["accessDiagnosticsImportExpired"] = value }
+
+    var accessDiagnosticsImportWrongApp: String
+        get() = (values["accessDiagnosticsImportWrongApp"] as? (String)) ?: "这条链接不属于当前应用"
+        set(value) { values["accessDiagnosticsImportWrongApp"] = value }
+
+    var accessDiagnosticsImportDevelopmentMode: String
+        get() = (values["accessDiagnosticsImportDevelopmentMode"] as? (String)) ?: "开发模式不使用恢复链接"
+        set(value) { values["accessDiagnosticsImportDevelopmentMode"] = value }
+
+    var accessDiagnosticsImportUntrusted: String
+        get() = (values["accessDiagnosticsImportUntrusted"] as? (String)) ?: "链接校验失败，请确认它来自官方渠道"
+        set(value) { values["accessDiagnosticsImportUntrusted"] = value }
+
+    var accessDiagnosticsImportMalformed: String
+        get() = (values["accessDiagnosticsImportMalformed"] as? (String)) ?: "链接格式不正确，请完整复制后重试"
+        set(value) { values["accessDiagnosticsImportMalformed"] = value }
+
+    var accessDiagnosticsImportRejected: String
+        get() = (values["accessDiagnosticsImportRejected"] as? (String)) ?: "无法导入这条链接"
+        set(value) { values["accessDiagnosticsImportRejected"] = value }
+
+    var accessDiagnosticsExportCopied: String
+        get() = (values["accessDiagnosticsExportCopied"] as? (String)) ?: "诊断信息已复制"
+        set(value) { values["accessDiagnosticsExportCopied"] = value }
+
+    var accessDiagnosticsExportFailed: String
+        get() = (values["accessDiagnosticsExportFailed"] as? (String)) ?: "复制失败，请重试"
+        set(value) { values["accessDiagnosticsExportFailed"] = value }
+    var updatePromptTitleAvailable: String
+        get() = (values["updatePromptTitleAvailable"] as? (String)) ?: "发现新版本"
+        set(value) { values["updatePromptTitleAvailable"] = value }
+    var updatePromptTitleRequired: String
+        get() = (values["updatePromptTitleRequired"] as? (String)) ?: "需要更新"
+        set(value) { values["updatePromptTitleRequired"] = value }
+    var updatePromptTitleMetered: String
+        get() = (values["updatePromptTitleMetered"] as? (String)) ?: "使用计费网络下载？"
+        set(value) { values["updatePromptTitleMetered"] = value }
+    var updatePromptTitleDownloading: String
+        get() = (values["updatePromptTitleDownloading"] as? (String)) ?: "正在下载更新"
+        set(value) { values["updatePromptTitleDownloading"] = value }
+    var updatePromptTitleVerifying: String
+        get() = (values["updatePromptTitleVerifying"] as? (String)) ?: "正在校验更新"
+        set(value) { values["updatePromptTitleVerifying"] = value }
+    var updatePromptTitleReady: String
+        get() = (values["updatePromptTitleReady"] as? (String)) ?: "更新已就绪"
+        set(value) { values["updatePromptTitleReady"] = value }
+    var updatePromptTitleInstalling: String
+        get() = (values["updatePromptTitleInstalling"] as? (String)) ?: "正在安装更新"
+        set(value) { values["updatePromptTitleInstalling"] = value }
+    var updatePromptTitleFailed: String
+        get() = (values["updatePromptTitleFailed"] as? (String)) ?: "更新失败"
+        set(value) { values["updatePromptTitleFailed"] = value }
+    var updatePromptVersion: String
+        get() = (values["updatePromptVersion"] as? (String)) ?: "版本"
+        set(value) { values["updatePromptVersion"] = value }
+    var updatePromptNotes: String
+        get() = (values["updatePromptNotes"] as? (String)) ?: "更新内容"
+        set(value) { values["updatePromptNotes"] = value }
+    var updatePromptMessageRequired: String
+        get() = (values["updatePromptMessageRequired"] as? (String)) ?: "当前版本已停止支持，更新后才能继续使用。"
+        set(value) { values["updatePromptMessageRequired"] = value }
+    var updatePromptMessageRequiredReadOnly: String
+        get() = (values["updatePromptMessageRequiredReadOnly"] as? (String)) ?: "更新后才能发送消息，现在可以继续浏览本地内容。"
+        set(value) { values["updatePromptMessageRequiredReadOnly"] = value }
+    var composerReadOnlyUpdate: String
+        get() = (values["composerReadOnlyUpdate"] as? (String)) ?: "更新后才能发送消息"
+        set(value) { values["composerReadOnlyUpdate"] = value }
+    var updatePromptMessageMetered: String
+        get() = (values["updatePromptMessageMetered"] as? (String)) ?: "当前是计费网络，这次下载约"
+        set(value) { values["updatePromptMessageMetered"] = value }
+    var updatePromptMessageMeteredUnknown: String
+        get() = (values["updatePromptMessageMeteredUnknown"] as? (String)) ?: "当前是计费网络，下载会消耗流量。"
+        set(value) { values["updatePromptMessageMeteredUnknown"] = value }
+    var updatePromptMessageReady: String
+        get() = (values["updatePromptMessageReady"] as? (String)) ?: "重启后新版本生效，应用不会自动重启。"
+        set(value) { values["updatePromptMessageReady"] = value }
+    var updatePromptFailManifestUnavailable: String
+        get() = (values["updatePromptFailManifestUnavailable"] as? (String)) ?: "暂时获取不到更新信息，请检查网络后重试。"
+        set(value) { values["updatePromptFailManifestUnavailable"] = value }
+    var updatePromptFailManifestRejected: String
+        get() = (values["updatePromptFailManifestRejected"] as? (String)) ?: "更新信息未通过校验。"
+        set(value) { values["updatePromptFailManifestRejected"] = value }
+    var updatePromptFailNoArtifact: String
+        get() = (values["updatePromptFailNoArtifact"] as? (String)) ?: "这个版本暂时没有适合本设备的安装包。"
+        set(value) { values["updatePromptFailNoArtifact"] = value }
+    var updatePromptFailInsufficientSpace: String
+        get() = (values["updatePromptFailInsufficientSpace"] as? (String)) ?: "存储空间不足，清理后重试。"
+        set(value) { values["updatePromptFailInsufficientSpace"] = value }
+    var updatePromptFailDownload: String
+        get() = (values["updatePromptFailDownload"] as? (String)) ?: "下载失败，请检查网络后重试。"
+        set(value) { values["updatePromptFailDownload"] = value }
+    var updatePromptFailHashMismatch: String
+        get() = (values["updatePromptFailHashMismatch"] as? (String)) ?: "下载的文件未通过校验，请重试。"
+        set(value) { values["updatePromptFailHashMismatch"] = value }
+    var updatePromptFailInstall: String
+        get() = (values["updatePromptFailInstall"] as? (String)) ?: "安装失败，请重试。"
+        set(value) { values["updatePromptFailInstall"] = value }
+    var updatePromptFailSignatureMismatch: String
+        get() = (values["updatePromptFailSignatureMismatch"] as? (String)) ?: "安装包签名不匹配，已停止安装。"
+        set(value) { values["updatePromptFailSignatureMismatch"] = value }
+    var updatePromptFailDowngrade: String
+        get() = (values["updatePromptFailDowngrade"] as? (String)) ?: "不能安装比当前更旧的版本。"
+        set(value) { values["updatePromptFailDowngrade"] = value }
+    var updatePromptFailNotSkippable: String
+        get() = (values["updatePromptFailNotSkippable"] as? (String)) ?: "这个版本不能跳过。"
+        set(value) { values["updatePromptFailNotSkippable"] = value }
+    var updatePromptFailUnknown: String
+        get() = (values["updatePromptFailUnknown"] as? (String)) ?: "更新没有完成，请稍后重试。"
+        set(value) { values["updatePromptFailUnknown"] = value }
+    var updatePromptContinueDownload: String
+        get() = (values["updatePromptContinueDownload"] as? (String)) ?: "继续下载"
+        set(value) { values["updatePromptContinueDownload"] = value }
+    var updatePromptRestart: String
+        get() = (values["updatePromptRestart"] as? (String)) ?: "重启以完成更新"
+        set(value) { values["updatePromptRestart"] = value }
+    var updatePromptRetry: String
+        get() = (values["updatePromptRetry"] as? (String)) ?: "重试"
+        set(value) { values["updatePromptRetry"] = value }
+    var updatePromptFallbackWebsite: String
+        get() = (values["updatePromptFallbackWebsite"] as? (String)) ?: "前往官网下载"
+        set(value) { values["updatePromptFallbackWebsite"] = value }
+    var updatePromptFallbackStore: String
+        get() = (values["updatePromptFallbackStore"] as? (String)) ?: "前往应用商店"
+        set(value) { values["updatePromptFallbackStore"] = value }
+    var updatePromptLater: String
+        get() = (values["updatePromptLater"] as? (String)) ?: "稍后"
+        set(value) { values["updatePromptLater"] = value }
+    var updatePromptBackground: String
+        get() = (values["updatePromptBackground"] as? (String)) ?: "后台下载"
+        set(value) { values["updatePromptBackground"] = value }
+    var updatePromptSkip: String
+        get() = (values["updatePromptSkip"] as? (String)) ?: "跳过此版本"
+        set(value) { values["updatePromptSkip"] = value }
+    var updatePromptContinueReadOnly: String
+        get() = (values["updatePromptContinueReadOnly"] as? (String)) ?: "继续浏览"
+        set(value) { values["updatePromptContinueReadOnly"] = value }
+    var progressBarLabel: String
+        get() = (values["progressBarLabel"] as? (String)) ?: "进度"
+        set(value) { values["progressBarLabel"] = value }
+    var progressBarLoading: String
+        get() = (values["progressBarLoading"] as? (String)) ?: "进行中"
+        set(value) { values["progressBarLoading"] = value }
+    var versionPanelTitle: String
+        get() = (values["versionPanelTitle"] as? (String)) ?: "版本信息"
+        set(value) { values["versionPanelTitle"] = value }
+    var versionPanelVersion: String
+        get() = (values["versionPanelVersion"] as? (String)) ?: "版本"
+        set(value) { values["versionPanelVersion"] = value }
+    var versionPanelBuild: String
+        get() = (values["versionPanelBuild"] as? (String)) ?: "构建号"
+        set(value) { values["versionPanelBuild"] = value }
+    var versionPanelChannel: String
+        get() = (values["versionPanelChannel"] as? (String)) ?: "渠道"
+        set(value) { values["versionPanelChannel"] = value }
+    var versionPanelChannelStable: String
+        get() = (values["versionPanelChannelStable"] as? (String)) ?: "正式版"
+        set(value) { values["versionPanelChannelStable"] = value }
+    var versionPanelChannelBeta: String
+        get() = (values["versionPanelChannelBeta"] as? (String)) ?: "测试版"
+        set(value) { values["versionPanelChannelBeta"] = value }
+    var versionPanelChannelInternal: String
+        get() = (values["versionPanelChannelInternal"] as? (String)) ?: "内部版"
+        set(value) { values["versionPanelChannelInternal"] = value }
+    var versionPanelCheck: String
+        get() = (values["versionPanelCheck"] as? (String)) ?: "检查更新"
+        set(value) { values["versionPanelCheck"] = value }
+    var versionPanelChecking: String
+        get() = (values["versionPanelChecking"] as? (String)) ?: "正在检查…"
+        set(value) { values["versionPanelChecking"] = value }
+    var versionPanelUpToDate: String
+        get() = (values["versionPanelUpToDate"] as? (String)) ?: "已是最新版本"
+        set(value) { values["versionPanelUpToDate"] = value }
+    var settingsRowBadge: String
+        get() = (values["settingsRowBadge"] as? (String)) ?: "有新内容"
+        set(value) { values["settingsRowBadge"] = value }
 
     var conversationHeaderAddActions: String
         get() = (values["conversationHeaderAddActions"] as? (String)) ?: "添加会话操作"

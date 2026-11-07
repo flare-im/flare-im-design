@@ -59,8 +59,9 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
 
     @MainActor
     func testComposerToolbarKeysAreNamedAndDoWhatTheySay() throws {
-        var emoji = 0, image = 0
-        let composer = ComposerView(onSend: { _ in }, onImage: { image += 1 }, onEmoji: { emoji += 1 },
+        var emoji = 0, image = 0, attach = 0
+        let composer = ComposerView(onSend: { _ in }, onAttach: { attach += 1 },
+                                    onImage: { image += 1 }, onEmoji: { emoji += 1 },
                                     enableVoice: true, onVoiceSend: { _, _ in true })
         try assertNamedTarget(composer, [s.composerExpandInput, s.composerEmoji, s.composerMention, s.composerVoice,
                                          s.composerImage, s.composerRichText, s.composerMore])
@@ -72,8 +73,10 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
         XCTAssertEqual(try symbol(control(composer, s.composerMore)), flareIconMap["add"])
         try control(composer, s.composerEmoji).tap()
         try control(composer, s.composerImage).tap()
+        try control(composer, s.composerMore).tap()
         XCTAssertEqual(emoji, 1)
         XCTAssertEqual(image, 1)
+        XCTAssertEqual(attach, 1)
         // No key is left to SF Symbols' generic names.
         for button in try composer.inspect().findAll(ViewType.Button.self) {
             XCTAssertFalse((try? button.accessibilityLabel().string())?.isEmpty ?? true, "every composer key has a name")

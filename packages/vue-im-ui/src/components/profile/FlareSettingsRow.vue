@@ -9,8 +9,10 @@ import { computed } from "vue";
 import { NIcon } from "naive-ui";
 import { ChevronForwardOutline } from "../../shared/icon-glyphs";
 import FlareGlyph from "../general/FlareGlyph.vue";
+import FlareSwitch from "../form/FlareSwitch.vue";
 import type { FlareSettingsItem } from "../../shared/contracts";
 import { flareCountBadgeDrawn, flareCountBadgeText } from "../../shared/contracts/count-badge";
+import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
 const props = defineProps<{ item: FlareSettingsItem }>();
 const emit = defineEmits<{
@@ -26,6 +28,9 @@ const stacked = computed(() => props.item.kind !== "toggle" && Array.from(props.
 const readOnly = computed(() => props.item.kind === "value");
 /** Only rows that open something carry a chevron; in-place actions and values do not. */
 const chevron = computed(() => (props.item.kind ?? "navigation") === "navigation");
+const { t } = useFlareI18nOptional();
+const count = computed(() => (typeof props.item.badge === "number" ? props.item.badge : undefined));
+const dot = computed(() => props.item.badge === true);
 function activate() {
   if (props.item.disabled || readOnly.value) return;
   if (props.item.kind === 'toggle') emit('toggle', props.item, !props.item.value);
@@ -47,15 +52,16 @@ function activate() {
   >
     <span v-if="item.icon || $slots.icon" class="flare-settings__ico"><slot name="icon"><FlareGlyph v-if="item.icon" :icon="item.icon" :size="18" /></slot></span>
     <span class="flare-settings__label">{{ item.label }}</span>
-    <span
+    <FlareSwitch
       v-if="item.kind === 'toggle'"
-      class="flare-settings__switch"
-      :class="{ on: item.value }"
-      aria-hidden="true"
-    ><span /></span>
+      size="sm"
+      :model-value="!!item.value"
+      decorative
+    />
     <template v-else>
-      <span v-if="flareCountBadgeDrawn(item.badge, item.badgeMore)" class="flare-settings__badge">{{ flareCountBadgeText(item.badge, item.badgeMore) }}</span>
+      <span v-if="flareCountBadgeDrawn(count, item.badgeMore)" class="flare-settings__badge">{{ flareCountBadgeText(count, item.badgeMore) }}</span>
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
+      <span v-if="dot" class="flare-settings__dot" role="img" :aria-label="t('settingsRow.badge')" />
       <span v-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" /></span>
     </template>
   </component>
@@ -64,7 +70,7 @@ function activate() {
 <style scoped>
 .flare-settings__row {
   display: flex; align-items: center; gap: 12px;
-  width: 100%; min-height: 48px; border: 0; text-align: start; font: inherit;
+  width: 100%; min-height: var(--flare-size-layout-touch-target); border: 0; text-align: start; font: inherit;
   padding: 12px 16px; cursor: pointer;
   background: var(--flare-color-bg-primary);
 }
@@ -90,7 +96,8 @@ function activate() {
 }
 .flare-settings__row.is-stacked .flare-settings__ico { grid-area: ico; align-self: start; padding-top: 2px; }
 .flare-settings__row.is-stacked .flare-settings__label { grid-area: label; }
-.flare-settings__row.is-stacked .flare-settings__badge { grid-area: badge; }
+.flare-settings__row.is-stacked .flare-settings__badge,
+.flare-settings__row.is-stacked .flare-settings__dot { grid-area: badge; }
 .flare-settings__row.is-stacked .flare-settings__chev { grid-area: chev; }
 .flare-settings__row.is-stacked .flare-settings__detail {
   grid-area: detail;
@@ -109,15 +116,12 @@ function activate() {
   border-radius: 999px; background: var(--flare-color-error);
   color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
 }
+.flare-settings__dot {
+  flex: none;
+  width: var(--flare-size-spacing-sm);
+  height: var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-error);
+}
 .flare-settings__chev { color: var(--flare-color-text-tertiary); }
-.flare-settings__switch {
-  width: 42px; height: 24px; flex-shrink: 0; border-radius: 999px;
-  background: var(--flare-color-border-hover); position: relative; transition: 0.2s; cursor: pointer;
-}
-.flare-settings__switch.on { background: var(--flare-color-primary); }
-.flare-settings__switch span {
-  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
-  border-radius: 50%; background: #fff; transition: 0.2s;
-}
-.flare-settings__switch.on span { transform: translateX(18px); }
 </style>

@@ -14,6 +14,7 @@ import 'flare_checkbox.dart';
 import 'flare_contact_list.dart';
 import 'flare_empty_state.dart';
 import 'flare_group_member_grid.dart';
+import 'flare_qr_card.dart';
 import 'flare_radio_group.dart';
 import 'flare_scene_panels.dart';
 import 'flare_search_bar.dart';
@@ -37,7 +38,7 @@ import 'flare_settings_list.dart';
 /// owns the busy and error states of the write.
 ///
 /// The member grid previews the first [previewMemberCells] cells (the add
-/// tile included when the viewer may invite); the 群成员 row opens a sheet of
+/// tile included when the viewer may invite); its header opens a sheet of
 /// every member with a search field, where choosing a member opens the same
 /// member actions as the grid.
 ///
@@ -59,6 +60,8 @@ class FlareGroupDetail extends StatefulWidget {
     this.joinRequests = const [],
     this.loadingJoinRequests = false,
     this.inviteCode,
+    this.inviteQrPayload,
+    this.submitRemarkName,
     this.loadingInviteLink = false,
     this.invitableContacts = const [],
     this.labels = const FlareGroupDetailLabels(),
@@ -72,6 +75,7 @@ class FlareGroupDetail extends StatefulWidget {
     this.onSetJoinPolicy,
     this.onToggleMuteAll,
     this.onSetFlag,
+    this.onRequestFriend,
     this.onToggleMyMuted,
     this.onToggleMyPinned,
     this.onLoadJoinRequests,
@@ -96,6 +100,8 @@ class FlareGroupDetail extends StatefulWidget {
   final List<FlareGroupJoinRequestView> joinRequests;
   final bool loadingJoinRequests;
   final String? inviteCode;
+  final String? inviteQrPayload;
+  final Future<void> Function(String)? submitRemarkName;
   final bool loadingInviteLink;
 
   /// Friends the viewer can add to the group (already-members are filtered out).
@@ -127,6 +133,7 @@ class FlareGroupDetail extends StatefulWidget {
 
   /// key ∈ {onlyAdminCanAtAll, onlyAdminCanPin, shareCardPermission}.
   final void Function(String key, bool value)? onSetFlag;
+  final ValueChanged<String>? onRequestFriend;
   final ValueChanged<bool>? onToggleMyMuted;
   final ValueChanged<bool>? onToggleMyPinned;
   final VoidCallback? onLoadJoinRequests;
@@ -197,8 +204,9 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   /// The invite link the host is fetching for the open sheet: the code arrives
   /// after the sheet opened, so the sheet follows these props instead of
   /// reading them once.
-  late final _invite = ValueNotifier<(String?, bool)>((
+  late final _invite = ValueNotifier<(String?, String?, bool)>((
     widget.inviteCode,
+    widget.inviteQrPayload,
     widget.loadingInviteLink,
   ));
 
@@ -214,7 +222,11 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   @override
   void didUpdateWidget(covariant FlareGroupDetail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final invite = (widget.inviteCode, widget.loadingInviteLink);
+    final invite = (
+      widget.inviteCode,
+      widget.inviteQrPayload,
+      widget.loadingInviteLink,
+    );
     final modelChanged = !identical(widget.model, oldWidget.model);
     final joinChanged =
         !identical(widget.joinRequests, oldWidget.joinRequests) ||
@@ -224,7 +236,11 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (modelChanged) _model.value = widget.model;
-      _invite.value = (widget.inviteCode, widget.loadingInviteLink);
+      _invite.value = (
+        widget.inviteCode,
+        widget.inviteQrPayload,
+        widget.loadingInviteLink,
+      );
       if (joinChanged) {
         _joinRequests.value = (widget.joinRequests, widget.loadingJoinRequests);
       }
@@ -275,18 +291,21 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
                 ? m.announcement!
                 : _l.notSet,
           ),
-          FlareSettingsItem(
-            key: 'members',
-            label: _l.members,
-            icon: 'people',
-            kind: FlareSettingKind.navigation,
-            detail: _l.memberCount(m.memberCount),
-          ),
         ],
       ),
       FlareSettingsSection(
         title: _l.myInGroup,
         items: [
+          if (m.myRemarkName case final remark?)
+            FlareSettingsItem(
+              key: 'myRemarkName',
+              label: _l.myRemarkName,
+              icon: 'edit',
+              kind: widget.submitRemarkName != null
+                  ? FlareSettingKind.navigation
+                  : FlareSettingKind.value,
+              detail: remark.isEmpty ? _l.notSet : remark,
+            ),
           FlareSettingsItem(
             key: 'myNickname',
             label: _l.myNickname,
@@ -391,7 +410,16 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     if (manage.isNotEmpty) {
       sections.add(FlareSettingsSection(title: _l.manage, items: manage));
     }
+    final forbidGroupFriendRequests = m.forbidGroupFriendRequests;
     final perms = [
+      if (m.capabilities.canManageInfo && forbidGroupFriendRequests != null)
+        FlareSettingsItem(
+          key: 'forbidGroupFriendRequests',
+          label: FlareStringsScope.of(context).groupDetailForbidFriendRequests,
+          icon: 'lock',
+          kind: FlareSettingKind.toggle,
+          value: forbidGroupFriendRequests,
+        ),
       if (_can(FlareGroupManagementEntry.onlyAdminCanAtAll))
         FlareSettingsItem(
           key: 'atAll',
@@ -427,8 +455,8 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     final m = _m;
     if (m == null) return;
     switch (item.key) {
-      case 'members':
-        _showMembers();
+      case 'myRemarkName':
+        _editRemarkName();
       case 'myNickname':
         if (_canEditNickname) _editNickname();
       case 'name':
@@ -467,6 +495,10 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
       case 'pinPerm':
         if (_can(FlareGroupManagementEntry.onlyAdminCanPin)) {
           widget.onSetFlag?.call('onlyAdminCanPin', value);
+        }
+      case 'forbidGroupFriendRequests':
+        if (_m?.capabilities.canManageInfo == true) {
+          widget.onSetFlag?.call('forbidGroupFriendRequests', value);
         }
       case 'shareCard':
         if (_can(FlareGroupManagementEntry.shareCardPermission)) {
@@ -524,6 +556,22 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     multiline: true,
     maxLength: 200,
   );
+
+  Future<void> _editRemarkName() async {
+    final submit = widget.submitRemarkName;
+    if (submit == null) return;
+    await FlareBottomSheet.prompt(
+      context,
+      title: _l.myRemarkName,
+      initialValue: _m?.myRemarkName ?? '',
+      placeholder: _l.remarkNamePlaceholder,
+      maxLength: 20,
+      allowEmpty: true,
+      confirmText: _l.save,
+      cancelText: _l.cancel,
+      onSubmit: submit,
+    );
+  }
 
   Future<void> _editNickname() => _edit(
     FlareGroupEditKind.nickname,
@@ -687,7 +735,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
         child: ValueListenableBuilder(
           valueListenable: _invite,
           builder: (c, invite, _) {
-            final (code, loading) = invite;
+            final (code, qrPayload, loading) = invite;
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -708,6 +756,17 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
                     ),
                   )
                 else if (code != null && code.isNotEmpty) ...[
+                  if (qrPayload != null) ...[
+                    Center(
+                      child: FlareQRCard(
+                        name: _m?.name ?? _l.groupFallback,
+                        avatarUrl: _m?.avatarUrl,
+                        qrPayload: qrPayload,
+                        hint: _l.inviteLinkHint,
+                      ),
+                    ),
+                    const SizedBox(height: FlareSizes.spacingLg),
+                  ],
                   Container(
                     padding: const EdgeInsets.all(FlareSizes.spacingLg),
                     decoration: BoxDecoration(
@@ -751,14 +810,20 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   /// Every member, searchable by name. Choosing one opens the member actions
   /// when the host allows any on that member, once the sheet has closed.
   Future<void> _showMembers() async {
-    final strings = FlareStrings.of(context);
-    final count = _m?.memberCount ?? _m?.members.length ?? 0;
+    if (_m == null) return;
     final chosen = await FlareBottomSheet.show<String>(
       context,
-      title: strings.groupDetailMembersTitle(count),
-      builder: (c) => ValueListenableBuilder(
-        valueListenable: _model,
-        builder: (c, m, _) => _GroupMembersSheet(
+      listenable: _model,
+      titleBuilder: (c) {
+        final strings = FlareStrings.of(c);
+        final count = _model.value?.memberCount;
+        return count == null
+            ? strings.groupMembers
+            : strings.groupDetailMembersTitle(count);
+      },
+      builder: (c) {
+        final m = _model.value;
+        return _GroupMembersSheet(
           model: m,
           onSearchMembers: widget.onSearchMembers,
           onSelect: (member) {
@@ -767,8 +832,8 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
             }
             Navigator.pop(c, member.id);
           },
-        ),
-      ),
+        );
+      },
     );
     if (chosen != null && mounted) _onMemberSelect(chosen);
   }
@@ -777,7 +842,11 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
   /// A member the host allows nothing on opens no sheet.
   void _onMemberSelect(String id) {
     final m = _m;
-    if (m == null || groupDetailMemberActions(m, id).isEmpty) return;
+    if (m == null ||
+        (groupDetailMemberActions(m, id).isEmpty &&
+            m.memberActions[id]?.canRequestFriend != true)) {
+      return;
+    }
     _memberActions(id);
   }
 
@@ -807,7 +876,19 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     final entries = m == null
         ? const <FlareMemberRoleActionEntry>[]
         : groupDetailMemberActions(m, id);
-    final buttons = <Widget>[];
+    final buttons = <Widget>[
+      if (widget.onRequestFriend != null &&
+          m?.memberActions[id]?.canRequestFriend == true)
+        FlareButton(
+          block: true,
+          variant: FlareButtonVariant.secondary,
+          label: FlareStringsScope.of(context).groupDetailRequestFriend,
+          onPressed: () {
+            Navigator.pop(c);
+            widget.onRequestFriend?.call(id);
+          },
+        ),
+    ];
     for (final entry in entries) {
       if (buttons.isNotEmpty) {
         buttons.add(const SizedBox(height: FlareSizes.spacingSm));
@@ -990,11 +1071,19 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
               )
               .toList(),
           total: m.memberCount,
+          title: _l.members == const FlareGroupDetailLabels().members
+              ? FlareStrings.of(context).groupMembers
+              : _l.members,
+          memberCountText:
+              _l.memberCount == FlareGroupDetailLabels._defaultMemberCount
+              ? null
+              : _l.memberCount,
           ownerId: m.ownerId,
           adminIds: m.adminIds,
           showAdd: _can(FlareGroupManagementEntry.inviteMembers),
           onSelect: _onMemberSelect,
           onAddMember: _openInvite,
+          onOpenMembers: _showMembers,
         ),
 
         // The host's slot follows the group information section (the first),
@@ -1024,29 +1113,30 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
               if (onOpenChat != null) ...[
                 FlareButton(
                   block: true,
-                  size: FlareControlSize.lg,
+                  size: FlareControlSize.sm,
+                  maintainTouchTarget: true,
                   label: _l.message,
                   icon: 'comment',
                   onPressed: () =>
                       onOpenChat(m.members.map((x) => x.id).toList(), name),
                 ),
-                const SizedBox(height: FlareSizes.spacingMd),
               ],
               for (final action in widget.extraActions) ...[
                 FlareButton(
                   block: true,
-                  size: FlareControlSize.lg,
+                  size: FlareControlSize.sm,
+                  maintainTouchTarget: true,
                   variant: action.danger
                       ? FlareButtonVariant.danger
                       : FlareButtonVariant.secondary,
                   label: action.label,
                   onPressed: () => widget.onExtraAction?.call(action.id),
                 ),
-                const SizedBox(height: FlareSizes.spacingSm),
               ],
               FlareButton(
                 block: true,
-                size: FlareControlSize.lg,
+                size: FlareControlSize.sm,
+                maintainTouchTarget: true,
                 variant: FlareButtonVariant.danger,
                 label: _can(FlareGroupManagementEntry.dissolve)
                     ? _l.dissolve
@@ -1104,6 +1194,23 @@ class _GroupMembersSheetState extends State<_GroupMembersSheet> {
     _query.addListener(_onQuery);
   }
 
+  @override
+  void didUpdateWidget(covariant _GroupMembersSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final previous = oldWidget.model;
+    final current = widget.model;
+    if (previous?.groupId == current?.groupId &&
+        previous?.membersRevision == current?.membersRevision) {
+      return;
+    }
+    _debounce?.cancel();
+    _generation++;
+    _remoteLoading = false;
+    _remoteError = null;
+    _remoteMembers = null;
+    if (current != null && _query.text.trim().isNotEmpty) _onQuery();
+  }
+
   void _onQuery() {
     final search = widget.onSearchMembers;
     if (search == null) {
@@ -1112,7 +1219,7 @@ class _GroupMembersSheetState extends State<_GroupMembersSheet> {
     }
     final text = _query.text.trim();
     _debounce?.cancel();
-    if (text.isEmpty) {
+    if (text.isEmpty || widget.model == null) {
       _generation++;
       setState(() {
         _remoteLoading = false;
@@ -1280,6 +1387,8 @@ class FlareGroupDetailLabels {
     this.notSet = '未设置',
     this.myInGroup = '我在本群',
     this.myNickname = '我的群昵称',
+    this.myRemarkName = '群备注',
+    this.remarkNamePlaceholder = '仅自己可见，留空清除',
     this.nicknamePlaceholder = '群内显示名',
     this.muteNotif = '消息免打扰',
     this.pinGroup = '置顶该群',
@@ -1337,6 +1446,8 @@ class FlareGroupDetailLabels {
   final String notSet;
   final String myInGroup;
   final String myNickname;
+  final String myRemarkName;
+  final String remarkNamePlaceholder;
   final String nicknamePlaceholder;
   final String muteNotif;
   final String pinGroup;

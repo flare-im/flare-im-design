@@ -33,6 +33,7 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
     required this.groups,
     this.searchable = true,
     this.multiple = false,
+    this.maxSelected,
     this.title,
     this.sending = false,
     this.onSelect,
@@ -42,6 +43,7 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
   final List<FlareContactPickerGroup> groups;
   final bool searchable;
   final bool multiple;
+  final int? maxSelected;
 
   /// Header title; the kit's "Choose a contact" when null.
   final String? title;
@@ -75,6 +77,19 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
     if (!widget.groups.any((group) => group.id == _groupId)) {
       _groupId = widget.groups.isEmpty ? '' : widget.groups.first.id;
     }
+    if (_chosen.isNotEmpty) {
+      final current = {
+        for (final group in widget.groups)
+          for (final entry in group.entries) entry.userId,
+      };
+      _chosen.removeWhere((id) => !current.contains(id));
+    }
+    if (widget.maxSelected != null && _chosen.length > widget.maxSelected!) {
+      _chosen.removeRange(
+        widget.maxSelected!.clamp(0, _chosen.length),
+        _chosen.length,
+      );
+    }
     if (oldWidget.sending && !widget.sending) _pending = null;
   }
 
@@ -104,15 +119,22 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
     final entries = _group?.entries ?? const <FlareContactPickerEntry>[];
     final query = _query.text;
     if (!widget.searchable || query.trim().isEmpty) return entries;
-    return entries.where((entry) => entry.matches(query)).toList(growable: false);
+    return entries
+        .where((entry) => entry.matches(query))
+        .toList(growable: false);
   }
 
   void _resetScroll() {
     if (_scroll.hasClients) _scroll.jumpTo(0);
   }
 
+  bool _atLimit(FlareContactPickerEntry entry) =>
+      widget.multiple &&
+      widget.maxSelected != null &&
+      _chosen.length >= widget.maxSelected! &&
+      !_chosen.contains(entry.userId);
   void _tap(FlareContactPickerEntry entry) {
-    if (widget.sending) return;
+    if (widget.sending || _atLimit(entry)) return;
     if (!widget.multiple) {
       setState(() => _pending = entry.userId);
       widget.onSelect?.call([entry]);
@@ -156,7 +178,9 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
             SizedBox(
               height: FlareSizes.controlHeightLg,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingMd),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacingMd,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -166,8 +190,13 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                           onPressed: widget.onCancel,
                           style: TextButton.styleFrom(
                             foregroundColor: colors.textSecondary,
-                            minimumSize: const Size(FlareSizes.touchTargetMin, FlareSizes.touchTargetMin),
-                            textStyle: const TextStyle(fontSize: FlareSizes.fontSizeXl),
+                            minimumSize: const Size(
+                              FlareSizes.touchTargetMin,
+                              FlareSizes.touchTargetMin,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: FlareSizes.fontSizeXl,
+                            ),
                           ),
                           child: Text(strings.cancel),
                         ),
@@ -189,11 +218,13 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                         alignment: AlignmentDirectional.centerEnd,
                         child: widget.multiple
                             ? FlareButton(
-                                key: const ValueKey('flare-contact-picker-confirm'),
+                                key: const ValueKey(
+                                  'flare-contact-picker-confirm',
+                                ),
                                 size: FlareControlSize.sm,
                                 label: _chosen.isEmpty
                                     ? strings.confirm
-                                    : '${strings.confirm} (${_chosen.length})',
+                                    : '${strings.confirm} (${_chosen.length}${widget.maxSelected == null ? '' : '/${widget.maxSelected}'})',
                                 disabled: _chosen.isEmpty,
                                 loading: widget.sending,
                                 onPressed: _chosen.isEmpty ? null : _confirm,
@@ -222,12 +253,17 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
               ),
             if (widget.groups.length > 1)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingMd),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacingMd,
+                ),
                 child: FlareFilterTabs(
                   appearance: FlareFilterTabsAppearance.quiet,
                   options: [
                     for (final group in widget.groups)
-                      FlareFilterTabOption(value: group.id, label: _label(group, strings)),
+                      FlareFilterTabOption(
+                        value: group.id,
+                        label: _label(group, strings),
+                      ),
                   ],
                   selected: group?.id ?? '',
                   onSelect: (id) {
@@ -261,7 +297,9 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                                 !widget.multiple &&
                                 _pending == entry.userId,
                             selfSuffix: strings.contactPickerSelfSuffix,
-                            onTap: widget.sending ? null : () => _tap(entry),
+                            onTap: widget.sending || _atLimit(entry)
+                                ? null
+                                : () => _tap(entry),
                           );
                         },
                       ),
@@ -314,7 +352,9 @@ class _ContactRow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingLg),
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingLg,
+            ),
             child: Row(
               children: [
                 if (multiple) ...[
@@ -398,7 +438,10 @@ class _Check extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: on ? colors.primary : Colors.transparent,
-        border: Border.all(color: on ? colors.primary : colors.borderHover, width: 1.5),
+        border: Border.all(
+          color: on ? colors.primary : colors.borderHover,
+          width: 1.5,
+        ),
       ),
       alignment: Alignment.center,
       child: on ? FlareIcon('check', size: 12, color: colors.bgPrimary) : null,

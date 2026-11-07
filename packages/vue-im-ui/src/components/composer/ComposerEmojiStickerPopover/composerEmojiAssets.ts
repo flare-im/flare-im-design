@@ -13,6 +13,11 @@ const EMOJI_KEYS = Object.keys((packLocales as { en?: Record<string, string> }).
   a.localeCompare(b, "en", { numeric: true }),
 );
 
+/** The keys that ship with the kit, which a resource pack may not replace. */
+export function bundledComposerEmojiKeys(): readonly string[] {
+  return EMOJI_KEYS;
+}
+
 function assetUrl(path: string): string {
   return flareAssetUrl(path);
 }

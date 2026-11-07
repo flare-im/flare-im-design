@@ -749,10 +749,10 @@ function firstInsertedTextNode(startMarker: Node, endMarker: Node): Text | null 
   return null;
 }
 
-function replaceRangeWithMarkdown(range: Range, markdown: string, selectFirstText = false): void {
+function replaceRangeWithMarkdown(range: Range, markdown: string, selectFirstText = false, focusEditor = true): void {
   const editor = editorRef.value;
   if (!editor || !markdown) return;
-  editor.focus({ preventScroll: true });
+  if (focusEditor) editor.focus({ preventScroll: true });
   const startMarker = document.createTextNode(ZERO_WIDTH_SPACE);
   const endMarker = document.createTextNode(ZERO_WIDTH_SPACE);
   const fragment = createFragmentFromText(markdown);
@@ -770,12 +770,14 @@ function replaceRangeWithMarkdown(range: Range, markdown: string, selectFirstTex
     nextRange.setStartBefore(endMarker);
     nextRange.collapse(true);
   }
-  const selection = window.getSelection();
-  selection?.removeAllRanges();
-  selection?.addRange(nextRange);
+  if (focusEditor) {
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(nextRange);
+  }
   startMarker.remove();
   endMarker.remove();
-  rememberSelection();
+  savedRange = nextRange.cloneRange();
   commitFromEditor();
 }
 
@@ -888,16 +890,18 @@ function commitFromEditor(): void {
   if (!next) resetActiveFormatState();
 }
 
-function insertAtCursor(text: string): void {
+function insertAtCursor(text: string, focusEditor = true): void {
   if (props.disabled || !text) return;
   const editor = editorRef.value;
   if (!editor) {
     value.value = props.maxLength ? `${value.value}${text}`.slice(0, props.maxLength) : `${value.value}${text}`;
     return;
   }
-  const range = commandRange();
+  const range = !focusEditor && savedRange && isRangeInsideEditor(savedRange)
+    ? savedRange.cloneRange()
+    : commandRange();
   if (!range) return;
-  replaceRangeWithMarkdown(range, text);
+  replaceRangeWithMarkdown(range, text, false, focusEditor);
 }
 
 function linesWithPrefix(text: string, prefix: (index: number) => string, fallback: string): string {

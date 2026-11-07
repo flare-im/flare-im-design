@@ -133,7 +133,7 @@ Unread divider: remember the conversation's unread count when it opens, pick the
 | Keyboard | The list is one Tab stop: the last focused message, else the newest. Arrow keys, Home and End move between messages, Enter opens the message menu and Escape returns focus to the message; hover toolbar buttons are reachable only from the focused message |
 | Start of history | Stop offering older messages when the core has no older page. Native apps backfill with `sync.conversation_history_backfill` when a page comes back short above seq 1 and stop on an empty page, because `message.list` returns no `has_more` (SDK gap S17); a failed load keeps the load-older retry |
 | Pinned messages | `FlarePinnedMessageBar` above the timeline, a compact bar of single-line rows. The core has no op that lists a conversation's pinned messages and sends no pin events (SDK gap S20), so the bar lists the pinned messages that are loaded |
-| Connection lost, signed out elsewhere, session expired | One `FlareStatusBanner` above every tab with the copy, tone and recovery from `connectionNotice(phase, t, { canReconnect })`; kicked and expired always offer 重新登录, which clears the local session even when logout fails. Log the core's technical reason; don't show it |
+| Connection lost, signed out elsewhere, session expired, update required | One `FlareConnectionNotice` above every tab with the SDK's `connection://status` as `status`; the kit decides the copy, tone, delay, countdown and action. Handle `retry` with `connection.reconnectNow`, `signIn` by clearing the local session (even when logout fails) and returning to sign-in, `update` with the update flow. Log the core's technical reason; don't show it |
 
 ## Do and don't
 

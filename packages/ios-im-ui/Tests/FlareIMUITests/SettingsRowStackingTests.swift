@@ -35,4 +35,13 @@ final class SettingsRowStackingTests: XCTestCase {
         XCTAssertEqual(try short.find(text: "设计评审").lineLimit(), 1)
         XCTAssertThrowsError(try short.find(ViewType.VStack.self))
     }
+
+    func testABadgeDrawsADotOnEveryKindButAToggle() {
+        for kind: FlareSettingKind in [.navigation, .action, .value] {
+            let badged = FlareSettingsItem(key: "k", label: "关于", kind: kind, badge: true)
+            XCTAssertTrue(FlareSettingsRow.drawsBadge(badged))
+        }
+        XCTAssertFalse(FlareSettingsRow.drawsBadge(FlareSettingsItem(key: "k", label: "关于", kind: .toggle, badge: true)))
+        XCTAssertFalse(FlareSettingsRow.drawsBadge(FlareSettingsItem(key: "k", label: "关于")), "no badge is the default")
+    }
 }

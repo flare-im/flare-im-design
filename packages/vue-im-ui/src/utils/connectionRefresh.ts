@@ -14,9 +14,11 @@ import type { FlareConnectionPhase } from "./connectionNotice";
  * - a server-side watch dies with the stream that carried it (presence is a gRPC stream);
  * - a change that happened during the gap was never delivered, and a subscription only promises the next one.
  *
- * The case that must *not* refresh is a session that ended. Being kicked or having the token expire is
- * terminal — the core does not reconnect by design — so asking the server to watch things again is work
- * for a session that no longer exists.
+ * Every phase other than online is a gap once the client has been online — a line switch included, since
+ * the new line is a new connection. The case that must *not* refresh is a session that ended:
+ * actionRequired (kicked, expired, an update required, the tenant suspended) is terminal — the core does
+ * not reconnect from it by design — and idle after a session is the host signing out. Asking the server
+ * to watch things again then is work for a session that no longer exists.
  */
 export interface FlareReconnectWork {
   /** Forget what could have gone stale unobserved — the typing roster above all. */
@@ -31,7 +33,7 @@ const NOTHING: FlareReconnectWork = { dropStaleBeliefs: false, resubscribe: fals
 
 /** True for a phase the core will not come back from on its own. */
 function isTerminal(phase: FlareConnectionPhase): boolean {
-  return phase === "kicked" || phase === "expired";
+  return phase === "actionRequired";
 }
 
 export class FlareConnectionRefresh {
@@ -44,16 +46,17 @@ export class FlareConnectionRefresh {
     if (phase === this.previous) return NOTHING;
     this.previous = phase;
 
-    if (isTerminal(phase)) {
+    if (isTerminal(phase) || (phase === "idle" && this.hasBeenConnected)) {
       // A session that ended is not an interruption to recover from: it is over. Forgetting that this
-      // client was ever connected is what makes the next `connected` a fresh start — the app's own open
-      // path does the work then, exactly as on a cold start, and nothing re-subscribes on the way out.
+      // client was ever online is what makes the next `online` a fresh start — the app's own open path
+      // does the work then, exactly as on a cold start, and nothing re-subscribes on the way out.
       this.interrupted = false;
       this.hasBeenConnected = false;
       return { dropStaleBeliefs: true, resubscribe: false, reread: false };
     }
+    if (phase === "idle") return NOTHING;
 
-    if (phase === "connected") {
+    if (phase === "online") {
       if (this.hasBeenConnected && this.interrupted) {
         this.interrupted = false;
         return { dropStaleBeliefs: false, resubscribe: true, reread: true };
@@ -62,7 +65,7 @@ export class FlareConnectionRefresh {
       return NOTHING;
     }
 
-    // connecting / reconnecting / offline / disconnected
+    // connecting / syncing / switching / reconnecting / waitingForNetwork / serviceUnavailable
     if (!this.hasBeenConnected || this.interrupted) return NOTHING;
     this.interrupted = true;
     return { dropStaleBeliefs: true, resubscribe: false, reread: false };

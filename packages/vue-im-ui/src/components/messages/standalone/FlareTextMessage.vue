@@ -40,7 +40,7 @@ function onClick(event: MouseEvent) {
 
 <template>
   <div class="fm-text im-text" :class="{ 'is-self': self, selectable, 'im-text--lone-emoji': loneEmoji || unknownEmoji }" @click="onClick">
-    <FlareEmojiMessage v-if="loneEmoji" class="im-lone-emoji-img" :load-src="loneEmoji.loadUrl" :alt="loneEmoji.key" animated />
+    <FlareEmojiMessage v-if="loneEmoji" :load-src="loneEmoji.loadUrl" :alt="loneEmoji.key" animated />
     <span v-else-if="unknownEmoji" class="im-emoji-bracket">{{ formatEmojiPackBracket(unknownEmoji.key) }}</span>
     <PlainTextEmojiRich v-else-if="hasInlineEmoji" :text="text" />
     <p v-else-if="mentionSegments.length" class="fm-text__plain"><template v-for="(segment, index) in mentionSegments" :key="index"><span
@@ -69,6 +69,5 @@ function onClick(event: MouseEvent) {
 .fm-text.is-self .fm-text__mention { color: inherit; font-weight: 600; }
 .fm-text.is-self .fm-text__mention.is-me { background: transparent; }
 .im-text--lone-emoji { display: flex; align-items: center; justify-content: center; line-height: 0; }
-.im-lone-emoji-img { width: min(6.3em, 34vw); height: min(6.3em, 34vw); }
 .im-emoji-bracket { font-size: var(--flare-size-font-size-2xl); line-height: 1.5; }
 </style>

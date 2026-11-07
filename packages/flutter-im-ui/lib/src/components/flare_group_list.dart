@@ -72,28 +72,40 @@ class FlareGroupList extends StatelessWidget {
                     size: 44,
                   ),
                   const SizedBox(width: FlareSizes.spacingMd),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        g.name,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: FlareSizes.fontSizeLg,
-                          fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          g.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: FlareSizes.fontSizeLg,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Text(
-                        memberCountText?.call(g.memberCount) ??
-                            strings.memberCount(g.memberCount),
-                        style: TextStyle(
-                          color: colors.textTertiary,
-                          fontSize: FlareSizes.fontSizeSm,
+                        Text(
+                          memberCountText?.call(g.memberCount) ??
+                              strings.memberCount(g.memberCount),
+                          style: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: FlareSizes.fontSizeSm,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  if (onSelect != null) ...[
+                    const SizedBox(width: FlareSizes.spacingSm),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colors.textTertiary,
+                      size: FlareSizes.iconSizeMd,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -82,6 +82,8 @@
 
 ## 通用插件卡片 v2
 
+支付密码复用通用表单的 `password` 输入和支付确认组件的 credential 插槽。四套 Kit 均遮蔽输入，不读取默认值，提交、取消或页面退出时清空本地密码；密码不进入恢复草稿、持久化命令或日志。钱包页负责密码设置与校验，Kit 只回传瞬时表单值。支付确认使用六位数字输入，首次设置需重复输入；普通发红包不再展示内部授权准备和批准步骤。输入密码成功后，SDK 执行合同声明的单个后续提交动作，重新读取目标页面并校验权限，将原红包命令持久化后提交；断网恢复使用原命令，不保存或重放密码。
+
 投票、接龙、任务、日程、群公告不写客户端代码：核心 SDK 把插件的 UiDocument 和两层状态解析成 ResolvedPluginView，Kit 只渲染这个形状，不读路径、不求值。四端接口以 `spec/components.json` 的 PluginView、PluginForm、PluginDetailSheet 为准，渲染事实以 `spec/plugin-view-vectors.json` 为准（views、optimistic、time、countdown、form），四端测试读同一份。
 
 - **卡片**：外壳与 Kit 业务卡片一致，宽度 `sizes.component.richCardWidth`（服从父约束）、圆角 lg、细边框、卡片阴影；标题行有图标位（`icon`，Kit 图标名）。外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 `quote` 插槽里（Vue）。`embedded` 去掉外壳和标题行，详情面板、插件页面和控制台管理页用它。`available` 为假时只显示标题；embedded 没有标题行，就把标题显示为一行次要文字，仍说明它是什么。
@@ -201,11 +203,16 @@ Apple 消费者使用 Kit 原测试文件的符号链接，创建并清理自己
 
 ## 控制台详情与配置布局
 
+`FlareAdminSection`从admin入口导出，用于详情和编辑器的无卡片分组。`title`为可访问标题，`description`为普通说明；显式`collapsible`使用原生details/summary，`v-model:open`可控，折叠保留同一份字段DOM与草稿，不触发请求或写入。
+
 `FlareSchemaForm :columns="2"`只在自身容器至少600px时使用两列，窄容器单列；默认一列。分组、顺序、精确金额字符串、空值、未知JSON键、secret输入和disabled语义仍由原schema契约决定，布局不改变数据。
 
 动态目录选择使用 `selections: Record<string, SchemaSelection>`，键为包含数组下标的绝对 JSON Pointer，例如 `/fundingAssets/0/assetId`。每项提供 `options`、`loading`、`error`、`invalid`、`disabled`、`hasMore` 和可选的 `emptyOptionLabel`。`selectionLabels` 由宿主提供本地化文本。表单复用 `FlareAdminEntitySelect`，不会退回任意文本输入；搜索、分页和重试分别发出 `selection-search(path, text)`、`selection-more(path)`、`selection-retry(path)`。宿主负责权限、目录请求、关联校验和旧请求隔离，组件不访问服务或理解钱包规则。
 
 选择器只接受可用选项，失效的已保存值以禁用项显示；必填字段不提供清空入口；可选字段的空选项移除覆盖值，不保存空字符串 ID。有 `emptyOptionLabel` 时使用选择器内的默认项，不再重复展示字段重置链接。复杂对象和对象数组占满网格行，嵌套表单继承列数、字段顺序与 `groupLabels`，包括对象数组中的分组标题；容器不足 600px 时保持单列。红包配置页通过这些能力展示资金与钱包名称，并由宿主在引用失效或目录不可用时禁止保存。
+
+
+Console插件编辑复用Naive模态框，详情复用Drawer；底部保留固定操作。低频命令使用admin入口导出的现有`FlareActionMenu`，选择时宿主重新映射当前权限、状态和锁；确认、原因、revision/idempotency和未知写入保护继续归原workspace。JSON高级区与可视字段始终编辑同一草稿，JSON失效时展开修复并禁用保存，不通过折叠隐藏错误。
 
 管理表格的`stickyActions`仅在表格布局时固定操作列；滚动区域具有可访问名称，可用键盘聚焦并横向浏览。改变响应式模式不重建数据行、不触发业务请求、不改写排序或选择状态。
 

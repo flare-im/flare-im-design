@@ -5,6 +5,87 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  for (final (form, platform, viewport, pane, mobile) in [
+    ('Android phone', TargetPlatform.android, 390.0, 390.0, true),
+    ('Android tablet', TargetPlatform.android, 1024.0, 1024.0, true),
+    ('iOS tablet', TargetPlatform.iOS, 1024.0, 1024.0, true),
+    ('macOS', TargetPlatform.macOS, 1024.0, 1024.0, false),
+    (
+      'Windows with a narrow chat pane',
+      TargetPlatform.windows,
+      1024.0,
+      420.0,
+      false,
+    ),
+    ('macOS with a narrow window', TargetPlatform.macOS, 420.0, 420.0, false),
+  ]) {
+    testWidgets(
+      'the $form composer places one active panel by the editor',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = Size(viewport, 800);
+        addTearDown(tester.view.reset);
+        final focus = FocusNode();
+        addTearDown(focus.dispose);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: pane,
+                  child: FlareComposer(
+                    focusNode: focus,
+                    actions: FlareComposerActionPanel.defaultActions,
+                    mentionCandidates: const [
+                      FlareMentionCandidate(id: 'a', name: 'Ann'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final editor = find.byType(ExtendedTextField);
+        final panels = <String, Type>{
+          'emoji': FlareEmojiStickerPicker,
+          'mention': FlareMentionPicker,
+          'add': FlareComposerActionPanel,
+        };
+        await tester.tap(editor);
+        await tester.pump();
+        expect(focus.hasFocus, isTrue);
+        for (final entry in panels.entries) {
+          await tester.tap(find.byIcon(flareIconMap[entry.key]!));
+          await tester.pump();
+          final panel = find.byType(entry.value);
+          expect(panel, findsOneWidget);
+          for (final other in panels.values.where(
+            (type) => type != entry.value,
+          )) {
+            expect(find.byType(other), findsNothing);
+          }
+          if (!mobile) {
+            expect(
+              tester.getBottomLeft(panel).dy,
+              lessThanOrEqualTo(tester.getTopLeft(editor).dy),
+            );
+            expect(focus.hasFocus, isTrue);
+          } else {
+            expect(
+              tester.getTopLeft(panel).dy,
+              greaterThanOrEqualTo(
+                tester.getBottomLeft(find.byIcon(flareIconMap['mention']!)).dy,
+              ),
+            );
+            expect(focus.hasFocus, isFalse);
+          }
+        }
+      },
+      variant: TargetPlatformVariant.only(platform),
+    );
+  }
+
   for (final width in [320.0, 390.0, 599.0, 600.0, 1024.0]) {
     for (final brightness in Brightness.values) {
       testWidgets(

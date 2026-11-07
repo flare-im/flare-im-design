@@ -274,7 +274,8 @@ const dart =
   `        inherited?.mode ?? FlareThemeMode.system,\n` +
   `        systemDark: flareSystemDark(source),\n` +
   `      );\n` +
-  `      return inherited?.colors ?? resolve(dark ? Brightness.dark : Brightness.light, brand: inherited?.brand ?? brand);\n` +
+  `      final colors = dark ? inherited?.darkColors ?? inherited?.colors : inherited?.colors;\n` +
+  `      return colors ?? resolve(dark ? Brightness.dark : Brightness.light, brand: inherited?.brand ?? brand);\n` +
   `    }\n` +
   `    return resolve(source as Brightness, brand: brand);\n` +
   `  }\n}\n\n` +
@@ -293,13 +294,19 @@ const dart =
   `    this.brand = FlareBrandTheme.violet,\n` +
   `    this.mode = FlareThemeMode.system,\n` +
   `    this.colors,\n` +
+  `    this.darkColors,\n` +
   `    required super.child,\n` +
   `  });\n` +
   `  final FlareBrandTheme brand;\n` +
-  `  final FlareThemeMode mode;\n` +
-  `  final FlareColors? colors;\n` +
+  `  final FlareThemeMode mode;\n\n` +
+  `  /// Fixed colours for this subtree, in either brightness unless [darkColors] is set.\n` +
+  `  final FlareColors? colors;\n\n` +
+  `  /// The colours of dark mode. With these, [colors] holds for light mode alone, so a subtree that sets its own\n` +
+  `  /// brightness follows it.\n` +
+  `  final FlareColors? darkColors;\n` +
   `  static FlareTheme? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<FlareTheme>();\n` +
-  `  @override\n  bool updateShouldNotify(FlareTheme oldWidget) => brand != oldWidget.brand || mode != oldWidget.mode || colors != oldWidget.colors;\n}\n\n` +
+  `  @override\n  bool updateShouldNotify(FlareTheme oldWidget) =>\n` +
+  `      brand != oldWidget.brand || mode != oldWidget.mode || colors != oldWidget.colors || darkColors != oldWidget.darkColors;\n}\n\n` +
   `/// A named text role: what a title, a section header, body text or a caption is, in one place\n` +
   `/// (FR-051). Sizes are logical px; [weight] is the CSS weight the platform maps to its own.\n` +
   `class FlareTextRole {\n` +

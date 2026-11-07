@@ -129,9 +129,14 @@ export function provideFlareShellViewport(
 }
 
 export function useViewport(): ViewportContext {
-  const ctx = inject(viewportKey);
+  const ctx = useOptionalViewport();
   if (!ctx) {
     throw new Error("useViewport() requires useViewportProvider() at the app root");
   }
   return ctx;
+}
+
+/** Standalone components can fall back to their own measurement outside an app shell. */
+export function useOptionalViewport(): ViewportContext | null {
+  return inject(viewportKey, null);
 }

@@ -15,6 +15,36 @@ void main() {
     );
     expect(group.uniqueDevices.map((d) => d.label), ['First']);
   });
+  testWidgets('only a group with nothing selected draws the placeholder', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: FlareCallDevicePicker(
+            permission: FlareCapabilityState.available,
+            permissionText: '',
+            placeholder: 'Pick one',
+            groups: [
+              FlareCallDeviceGroup(
+                kind: FlareCallDeviceKind.microphone,
+                label: 'Microphone',
+                selectedId: 'removed',
+                devices: [FlareCallDevice(id: 'usb', label: 'USB')],
+              ),
+              FlareCallDeviceGroup(
+                kind: FlareCallDeviceKind.speaker,
+                label: 'Speaker',
+                selectedId: 'desk',
+                devices: [FlareCallDevice(id: 'desk', label: 'Desk')],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Pick one'), findsOneWidget);
+  });
   testWidgets('removed selection is empty and denied or busy cannot switch', (
     tester,
   ) async {

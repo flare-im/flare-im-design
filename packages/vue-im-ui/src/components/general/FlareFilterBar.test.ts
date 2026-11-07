@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref, type Component } from "vue";
 import { useFlareI18nProvider, type FlareLocale } from "../../shared/i18n/useFlareI18n";
 import FlareFilterBar from "./FlareFilterBar.vue";
@@ -11,6 +11,8 @@ const wrappers: ReturnType<typeof mount>[] = [];
 afterEach(() => {
   wrappers.splice(0).forEach((wrapper) => wrapper.unmount());
   document.body.innerHTML = "";
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 function mountBar(props: Record<string, unknown> = {}, slots: Record<string, () => unknown> = {}, locale: FlareLocale = "zh-CN") {
@@ -36,6 +38,82 @@ const enter = (target: Element, init: KeyboardEventInit = {}) => {
   target.dispatchEvent(event);
   return event;
 };
+
+function mockRows(columns: () => number) {
+  let resize: () => void = () => {};
+  vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { resize = callback; } observe() {} disconnect() {} });
+  const original = HTMLElement.prototype.getBoundingClientRect;
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    if (this.classList.contains('flare-filter-bar__overflow-fields')) return new DOMRect(0, 0, columns() * 216, 200);
+    if (this.classList.contains('flare-filter-bar__cell')) {
+      const index = Array.from(this.parentElement!.children).indexOf(this);
+      return new DOMRect((index % columns()) * 216, Math.floor(index / columns()) * 68, 200, 52);
+    }
+    return original.call(this);
+  });
+  return () => resize();
+}
+
+describe('FlareFilterBar measured one-row mode', () => {
+  it('folds only actual overflow, mounts each field once, and preserves values across toggle', async () => {
+    const resize = mockRows(() => 2);
+    const bar = mountBar({ collapseOverflow: true, size: 'sm' }, {
+      more: () => h(FlareFormField as Component, { label: '账号' }, () => h(FlareInput as Component, { modelValue: 'alice' })),
+    });
+    await nextTick();
+    resize(); await nextTick();
+    expect(bar.findAll('input')).toHaveLength(3);
+    const cells = bar.findAll('.flare-filter-bar__cell');
+    expect(cells.filter(cell => cell.classes().includes('is-folded'))).toHaveLength(1);
+    expect(cells[2].attributes('aria-hidden')).toBe('true');
+    expect(cells[2].attributes('inert')).toBeDefined();
+    expect(bar.get('.flare-filter-bar__viewport').attributes('style')).toContain('52px');
+    await bar.get('.flare-filter-bar__toggle').trigger('click');
+    expect(bar.find('.is-folded').exists()).toBe(false);
+    expect(bar.get('.flare-filter-bar__toggle').attributes('aria-expanded')).toBe('true');
+    await bar.get('.flare-filter-bar__toggle').trigger('click');
+    expect((bar.findAll('input')[2].element as HTMLInputElement).value).toBe('alice');
+  });
+
+  it('hides the expand affordance when all fields fit and responds to real resize observations', async () => {
+    let columns = 4;
+    const resize = mockRows(() => columns);
+    const bar = mountBar({ collapseOverflow: true });
+    await nextTick();
+    expect(bar.get('.flare-filter-bar__toggle').classes()).toContain('is-unneeded');
+    expect(bar.get('.flare-filter-bar__toggle').attributes('aria-hidden')).toBe('true');
+    columns = 1; resize(); await nextTick();
+    expect(bar.get('.flare-filter-bar__toggle').classes()).not.toContain('is-unneeded');
+    expect(bar.findAll('.is-folded')).toHaveLength(1);
+    columns = 4; resize(); await nextTick();
+    expect(bar.get('.flare-filter-bar__toggle').classes()).toContain('is-unneeded');
+    expect(bar.find('.is-folded').exists()).toBe(false);
+  });
+
+  it('keeps keyboard focus visible if a narrower container would fold its field', async () => {
+    let columns = 4;
+    const resize = mockRows(() => columns);
+    const bar = mountBar({ collapseOverflow: true });
+    await nextTick();
+    const input = bar.findAll('input')[1].element as HTMLInputElement;
+    input.focus();
+    columns = 1; resize(); await nextTick();
+    expect(document.activeElement).toBe(input);
+    expect(bar.get('.flare-filter-bar__toggle').attributes('aria-expanded')).toBe('true');
+    expect(bar.find('.is-folded').exists()).toBe(false);
+  });
+
+  it('blocks search and reset while the host write scope is locked', async () => {
+    mockRows(() => 1);
+    const bar = mountBar({ collapseOverflow: true, disabled: true });
+    await nextTick();
+    enter(bar.get('input').element);
+    await bar.get('.flare-filter-bar__search').trigger('click');
+    await bar.get('.flare-filter-bar__reset').trigger('click');
+    expect(bar.emitted('search')).toBeUndefined();
+    expect(bar.emitted('reset')).toBeUndefined();
+  });
+});
 
 describe("FlareFilterBar", () => {
   it("is a named search landmark with the fields, then Search and Reset", () => {

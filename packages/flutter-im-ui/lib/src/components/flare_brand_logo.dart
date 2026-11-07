@@ -1,16 +1,14 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
 
-/// Flare 品牌 Logo 呈现方式。
-/// - [gradient]: 品牌渐变 squircle + 白色 F(中性/浅底、app 图标)。
-/// - [plate]: 白色 squircle + 品牌渐变 F(品牌色背景上,如登录头)。
+/// A brand gradient with a white IM mark, or a white plate with a gradient mark.
 enum FlareBrandLogoVariant { gradient, plate }
 
-/// Flare 品牌 Logo(通用件,归属 kit)。前倾几何 F,取自品牌色阶。
-/// 四端共用同一几何(skewX -9°)与同一 token。
+/// The Flare IM mark, using the shared 100×100 squircle and -9° IM geometry.
 class FlareBrandLogo extends StatelessWidget {
   const FlareBrandLogo({
     super.key,
@@ -23,79 +21,75 @@ class FlareBrandLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = FlareColors.of(context);
-    final grad = [c.primaryActive, c.primary, c.info];
-    final plate = variant == FlareBrandLogoVariant.plate;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: plate ? Colors.white : null,
-        gradient: plate
-            ? null
-            : LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: grad,
-              ),
-        borderRadius: BorderRadius.circular(size * 0.28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: size * 0.25,
-            offset: Offset(0, size * 0.12),
+    final colors = FlareColors.of(context);
+    return Semantics(
+      label: 'Flare IM',
+      image: true,
+      child: SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: _IMMarkPainter(
+            colors: [colors.primaryActive, colors.primary, colors.info],
+            plate: variant == FlareBrandLogoVariant.plate,
           ),
-        ],
-      ),
-      child: CustomPaint(
-        painter: _FMarkPainter(
-          plate ? grad : const [Colors.white, Colors.white],
         ),
       ),
     );
   }
 }
 
-class _FMarkPainter extends CustomPainter {
-  _FMarkPainter(this.fFill);
-  final List<Color> fFill;
+class _IMMarkPainter extends CustomPainter {
+  const _IMMarkPainter({required this.colors, required this.plate});
+  final List<Color> colors;
+  final bool plate;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = size.shortestSide / 100;
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: fFill,
-      ).createShader(Offset.zero & size);
-    final path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(28 * s, 22 * s, 15 * s, 58 * s),
-          Radius.circular(7 * s),
-        ),
-      )
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(28 * s, 22 * s, 44 * s, 15 * s),
-          Radius.circular(7 * s),
-        ),
-      )
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(28 * s, 45 * s, 34 * s, 13 * s),
-          Radius.circular(6 * s),
-        ),
-      );
-    final k = math.tan(-9 * math.pi / 180);
     canvas.save();
-    canvas.translate(-k * size.height / 2, 0);
-    canvas.skew(k, 0);
-    canvas.drawPath(path, paint);
+    canvas.scale(size.width / 100, size.height / 100);
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: colors,
+      stops: const [0, 0.55, 1],
+    ).createShader(const Rect.fromLTWH(0, 0, 100, 100));
+    final platePath = Path()
+      ..moveTo(50, 3)
+      ..cubicTo(12, 3, 3, 12, 3, 50)
+      ..cubicTo(3, 88, 12, 97, 50, 97)
+      ..cubicTo(88, 97, 97, 88, 97, 50)
+      ..cubicTo(97, 12, 88, 3, 50, 3)
+      ..close();
+    canvas.drawPath(
+      platePath,
+      plate ? (Paint()..color = Colors.white) : (Paint()..shader = gradient),
+    );
+    final mark = Path()
+      ..addRect(const Rect.fromLTRB(22, 27, 32, 75))
+      ..moveTo(40, 75)
+      ..lineTo(40, 27)
+      ..lineTo(50, 27)
+      ..lineTo(60, 48)
+      ..lineTo(70, 27)
+      ..lineTo(80, 27)
+      ..lineTo(80, 75)
+      ..lineTo(70, 75)
+      ..lineTo(70, 48)
+      ..lineTo(60, 65)
+      ..lineTo(50, 48)
+      ..lineTo(50, 75)
+      ..close();
+    final skew = math.tan(-9 * math.pi / 180);
+    canvas.translate(-skew * 51, 0);
+    canvas.skew(skew, 0);
+    canvas.drawPath(
+      mark,
+      plate ? (Paint()..shader = gradient) : (Paint()..color = Colors.white),
+    );
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _FMarkPainter old) => old.fFill != fFill;
+  bool shouldRepaint(_IMMarkPainter oldDelegate) =>
+      plate != oldDelegate.plate || !listEquals(colors, oldDelegate.colors);
 }

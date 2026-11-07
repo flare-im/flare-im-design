@@ -6,6 +6,17 @@ import FlareInput from "./FlareInput.vue";
 // FR-045: a masked field the person can unmask. Five apps each built their own toggle — a checkbox on
 // Flutter, an icon button beside the field on Android — with their own words; the field owns it now.
 describe("a secure input the person can unmask", () => {
+  it("returns to masked entry after a submission clears or disables the field", async () => {
+    const wrapper = mount(FlareInput, { props: { modelValue: "hunter2", secure: true, revealable: true } });
+    await wrapper.get("button.flare-input__reveal").trigger("click");
+    await wrapper.setProps({ disabled: true });
+    expect(wrapper.get("input").attributes("type")).toBe("password");
+    await wrapper.setProps({ disabled: false });
+    await wrapper.get("button.flare-input__reveal").trigger("click");
+    await wrapper.setProps({ modelValue: "" });
+    expect(wrapper.get("input").attributes("type")).toBe("password");
+    wrapper.unmount();
+  });
   it("masks until the reveal key is pressed, and names what the key does", async () => {
     const wrapper = mount(FlareInput, { props: { modelValue: "hunter2", secure: true, revealable: true } });
     const field = () => wrapper.get("input.flare-input__el");

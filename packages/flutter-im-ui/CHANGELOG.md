@@ -1,5 +1,16 @@
 ## 未发布
 
+- 新增 `FlareResourceOverlay`、`FlareResourcePack`（`spec/resource-overlay-vectors.json`，四端同一张表）：`strings(base, locale:)`、`colors(base, dark:)` 把资源包折进词表和主题，经 `FlareStringsScope`、`FlareTheme(colors:)` 注入，`registerEmoji()` 把表情加进目录。宿主自己的词表用 `stringValues(locale, builtIn)` 按同一套规则取词条。
+- `FlareTheme` 新增 `darkColors`：给了它，`colors` 只管浅色，子树自己套 `Theme` 换明暗时跟着走；只给 `colors` 时和原来一样两种明暗都用它。
+- `FlareStrings.copyWith` 补上 `report`：原来不接这个字段，派生词表时会把它重置成中文默认值。
+- 更新提示新增 `reason`（`UpdateStatus.blockReason`）：强制提示的 offer 阶段用它代替固定文案（`FlareUpdatePromptMessage.reason`），为空时保留固定文案。
+- `FlareCallDevicePicker` 在没有选中设备的分组里重新画出 `placeholder`，未传时取 `FlareStrings.callDevicePickerPlaceholder`。
+- 英文预设补上 `callRecordConfirmCallBack`。
+- 设置行红点：新增 `FlareSettingsItem.badge`（布尔值，缺省 false），在箭头左侧画红点，读屏随行读出（`FlareStrings.settingsRowBadge`），开关行不画。
+- 更新中心（`spec/update-prompt-vectors.json`，四端同一张表）：新增 `FlareUpdatePrompt`、`FlareUpdatePromptPresenter`、`FlareProgressBar`、`FlareVersionPanel`，规则函数 `flareUpdatePrompt`、`flareProgressBarValue`、`flareVersionPanel`；`FlareModal.show` 新增 `fullscreen`；词表新增 `updatePrompt*`、`progressBar*`、`versionPanel*`，`connectionUpdate` 改为「立即更新」。
+- 网络与线路诊断（`spec/access-diagnostics-vectors.json`，四端同一张表）：新增 `FlareAccessDiagnostics`，输入 `FlareAccessStatus` 与 `FlareAccessPoint`，状态、延迟分级与动作结果由 `flareAccessDiagnostics` 及其辅助函数决定；词条 `accessDiagnostics*`。
+- `FlareConnectionStatus.reason` 改为 `String?`，原样接收引擎 `connection://status` 的 `reason`（actionRequired 的 kicked / expired / upgradeRequired / tenantUnavailable，以及 switching 的 failure / drain / failback / manual / manifest），未知值不报错。新增 `actionReason`（只认 actionRequired 的四个值）与 `FlareConnectionActionReason.parse`；横幅仍只按这四个值出文案，缺失或未知按 expired 显示，显示语义不变。宿主改为直接传字符串（原来传 `FlareConnectionActionReason`）。
+- 「+」面板的分页（四端同一规则）：`FlareComposerActionPanel` 改为有状态组件，新增 `formFactor`（`FlareComposerPanelFormFactor`，缺省 `mobile`）与 `rows`，去掉 `maxHeight`。`mobile` 用 `PageView` 横向分页，每页 rows × `crossAxisCount`，带页码点（只作指示，读屏通过 `PageView` 翻页）；`desktop` 最多显示 rows 行（缺省 3），其余滚动。行高 `FlareComposerActionPanel.rowExtent`（76）。列表变化时停在原来那一页，新项淡入 150 毫秒（减少动态效果时不做）。`FlareComposer` 宽布局时传 `desktop`；菜单为空且没有 `onAttach` 时不显示「+」（原来画成禁用）。
 - 读者是否在底部（`spec/message-list-paging-vectors.json` 的 `atBottom`，四端同一份）：`FlareMessageList` 新增 `onAtBottomChange: ValueChanged<bool>?`，缺省为 null，在决定它的那一帧之后按顺序回调。末尾低于视口底部不超过 80 个逻辑像素算在底部（`pixels − minScrollExtent`），只在回答变化时回调，每个会话第一次布局后回调一次，空列表在底部。整体替换（读者没要求）与定位立即回答 false 并保持，直到读者滚动列表（拖动或滚轮）、点新消息键、自己的消息追加在末尾、读者要的最新窗口到了或窗口被清空。app 不用再读 `FlareMessageListController.scroll` 自己算余量。
 - 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`FlareMessageList` 新增 `windowId`，整体替换（名字换了、读者要的最新窗口、没有共同的行）后在最新一行打开；原来读者上滑过时保留旧窗口的像素位置。列表仍只在拖动时自动请求。定位之后、读者拖动之前落下的一页以定位的行为轴心，这一帧之后放回中间；原来以滚动途中的首行为轴心，正在进行的定位滚动按旧坐标落点，目标可能落在视口外。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareNavigationBadge` 新增 `more`，`FlareFilterTabOption` 新增 `badgeMore`，缺省为 false；新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FlareFilterTabs` 超过 99 时也写 99+（原来写原数）。
@@ -102,7 +113,7 @@
 - **破坏性**：`FlareLocationMessage` 新增 `latitude`、`longitude`、`snapshotUrl`、`provider`，去掉 `mapImage`；没有静态图或加载失败时画地图底纹加中心点。`FlareLocationContent` 新增 `snapshotUrl`、`provider`。`FlareMessageContentView` / `FlareMessageBubble` / `FlareMessageList` 新增 `onLocationOpen`；没有时把按运行平台选出的地图链接（iOS、macOS 为 Apple 地图，Android 为 `geo:`，其余为服务商网页地图，`spec/location-vectors.json`）交给 `onOpenLink`。新增 `flareLocationMapLinks`、`flareLocationCoordinateLabel`、`flareLocationDistanceLabel` 与 `FlareLocationProvider` / `FlareLocationCoordinate` / `FlareLocationAddress` / `FlareLocationPlace`。
 - 名片：新增 `FlareContactPicker`（分组标签、搜索、懒加载列表、空态、「（我）」，单选点一行即 `onSelect`，多选由「确定」回传）与 `FlareContactPickerEntry`、`FlareContactPickerGroup`。**破坏性**：`FlareContactMessage.onOpen` 改为 `ValueChanged<String>`，回传新增的 `userId`；没有回调时不画箭头。`FlareCardContent` 新增 `userId`，列表、气泡、分发器新增 `onCardOpen`。
 - 「+」面板默认集改为 image、camera、video、file、voice、location、card、poll。图标 `locate`（注册表最后一项，共 108 个，`Icons.my_location_outlined`）。`FlareStrings` 新增 16 个位置与选择联系人字段。
-- 「+」面板默认集改为内置功能 image、video、file、voice、card、poll（图标 image / video / file / mic / card / poll），去掉 location 与 contact；`poll` 的文案取 `actionVote`。`FlareComposerAction` 新增可选 `kind`（`FlareComposerActionKind`：feature / plugin）与 `resolvedIcon`。
+- 「+」面板默认集改为内置功能 image、video、file、voice、card、poll（图标 image / video / file / mic / card / poll），去掉 location 与 contact；`poll` 的文案取 `actionVote`。`FlareComposerAction` 新增可选 `kind`（`FlareComposerActionKind`：feature / plugin）与 `resolvedIcon`。`FlareComposerCapabilities.availableToolIds` 选择工具条工具，不传时全部显示。
 - 图标 `plugin`（注册表最后一项，共 107 个，`Icons.extension_outlined`）：「+」面板里图标名不在注册表里的项画它（`flareComposerPluginIcon`），不再画兜底问号。
 - 图片、视频、文件保存后，下载键变成「在文件夹中显示」；宿主发现文件被删后传回 idle，键回到下载。收发两侧的消息时间都在右侧。详见仓库根 CHANGELOG。
 - `FlareFileMessage` 新增 `downloadState` / `onReveal`；`FlareImagePreview` / `FlareVideoPlayer` 新增 `saved` / `onReveal`，`present` 可传实时下载状态；列表、气泡、分发器新增 `onMediaReveal`；`FlareVideoMessage.duration` 可空，未知时长不画角标。

@@ -145,6 +145,51 @@ void main() {
   });
   tearDown(() => flareMediaPlayerFactory = VideoPlayerController.networkUrl);
 
+  testWidgets(
+    'authorized local voice plays while a wire file URL is rejected',
+    (tester) async {
+      await tester.pumpWidget(
+        _chat([
+          _message(
+            'cached',
+            const FlareAudioContent(url: '', localPath: '/cache/voice.wav'),
+          ),
+        ]),
+      );
+      await tester.tap(_voiceAt(tester, 0));
+      await tester.pumpAndSettle();
+      expect(players.single.source, Uri.file('/cache/voice.wav'));
+      expect(_voices(tester).single.playing, isTrue);
+      await tester.pumpWidget(
+        _chat([
+          _message(
+            'wire',
+            const FlareAudioContent(url: 'file:///private/untrusted.wav'),
+          ),
+        ]),
+      );
+      await tester.tap(_voiceAt(tester, 0));
+      await tester.pumpAndSettle();
+      expect(players, hasLength(1));
+      expect(_voices(tester).single.failed, isTrue);
+    },
+  );
+
+  testWidgets('authorized local video uses the shared player', (tester) async {
+    await tester.pumpWidget(
+      _chat([
+        _message(
+          'cached-video',
+          const FlareVideoContent(url: '', localPath: '/cache/video.mp4'),
+        ),
+      ]),
+    );
+    await tester.tap(find.byType(FlareVideoMessage));
+    await tester.pumpAndSettle();
+    expect(players.single.source, Uri.file('/cache/video.mp4'));
+    expect(players.single.plays, 1);
+  });
+
   group('image', () {
     testWidgets('a tap opens the preview on the full-size address; closing '
         'and back both leave it', (tester) async {

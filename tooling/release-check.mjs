@@ -90,14 +90,14 @@ const checks = [
   ['flutter-app-analyze', app('flutter'), 'flutter', ['analyze', '--no-pub']],
   ['flutter-app-tests', app('flutter'), 'flutter', ['test', '--no-pub']],
   ['flutter-app-build', app('flutter'), 'flutter', ['build', 'macos', '--debug', '--no-pub']],
-  ['android-app', app('android'), '../flare-core-flutter-app/android/gradlew', [':app:testDebugUnitTest', ':app:lintDebug', ':app:assembleDebug', ':app:compileDebugAndroidTestKotlin']],
+  ['android-app', app('android'), '../flare-core-flutter-app/android/gradlew', [':app:testDirectDebugUnitTest', ':app:lintDirectDebug', ':app:assembleDirectDebug', ':app:compileDirectDebugAndroidTestKotlin']],
   ['ios-app-tests', app('ios'), 'swift', ['test']],
   ['ios-app-project', app('ios'), 'xcodegen', ['generate']],
   ['ios-app-build', app('ios'), 'xcodebuild', ['-project', 'FlareImApp.xcodeproj', '-scheme', 'FlareImExampleApp', '-destination', 'generic/platform=iOS Simulator', '-derivedDataPath', join(tmpdir(), 'flare-canonical-ios-derived'), 'CODE_SIGNING_ALLOWED=NO', 'clean', 'build']],
   ['social-web-typecheck', socialApp('web'), 'npm', ['run', 'typecheck']],
   ['social-tauri-typecheck', socialApp('tauri'), 'npx', ['vue-tsc', '--noEmit']],
   ['social-flutter-analyze', socialApp('flutter'), 'flutter', ['analyze', '--no-pub']],
-  ['social-android-compile', socialApp('android'), './gradlew', [':app:compileDebugKotlin']],
+  ['social-android-compile', socialApp('android'), './gradlew', [':app:compileDirectDebugKotlin']],
   // The bundled FFI archive is arm64-only, so the generic simulator build excludes x86_64.
   ['social-ios-build', socialApp('ios'), 'xcodebuild', ['-project', 'FlareSocialApp.xcodeproj', '-scheme', 'FlareSocialExampleApp', '-destination', 'generic/platform=iOS Simulator', '-derivedDataPath', join(tmpdir(), 'flare-social-ios-derived'), 'EXCLUDED_ARCHS=x86_64', 'CODE_SIGNING_ALLOWED=NO', 'build']],
   ...[root, sdk, ...['web', 'tauri', 'flutter', 'android', 'ios'].map(app)]

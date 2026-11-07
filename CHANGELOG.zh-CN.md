@@ -6,6 +6,40 @@
 
 ### 设计系统与跨端组件
 
+- **资源包折进四端 Kit**（更新中心的 L2 层）。
+  - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。
+  - 规则在 `spec/resource-overlay-vectors.json`，四端共跑：文案和颜色必须已存在，占位符必须一致，只开放 `colors`、`dark`，表情只新增，图片地址必须 https。
+  - Vue 翻译现在跟随 `registerFlareMessages`，首屏后才到的文案能换到已挂载的组件上。Flutter `FlareStrings.copyWith` 补上 `report`，原来会把它重置。Compose 表情和贴纸注册的 `staticPreviewBytes` 改为可选，和 SwiftUI 一致。
+  - `strings/build.mjs` 同时写出原生三端的资源键。
+  - 宿主自己的词表经 `stringValues` 按同一套规则取词条，原生三端都已公开。Flutter `FlareTheme` 新增 `darkColors`，资源包的颜色在子树自己换明暗时也跟着走。
+
+- **更新中心的三个组件：UpdatePrompt、ProgressBar、VersionPanel**（契约与四端 Kit）。
+  - 新组件 `UpdatePrompt`（Vue、Flutter `FlareUpdatePrompt`，SwiftUI `UpdatePromptView`，Compose `UpdatePrompt`）接收 `update://state` 的内容，三种形态分别是 kit 的底部弹层、模态框和铺满窗口的 Screen 页面。七个阶段：提供更新、计费网络确认、下载、校验、等待重启、安装、失败。强制时没有关闭按钮、稍后和跳过，`canContinueReadOnly` 为 true 时才有「继续浏览」；读屏 `polite`，强制时 `assertive`。Flutter 用 `FlareUpdatePromptPresenter`、SwiftUI 用 `.flareUpdatePrompt(isPresented:prompt:)` 显示。
+  - 新组件 `ProgressBar`：通用线性进度条，`value`（0 到 1）、`indeterminate`、`tone`，向读屏提供百分比；减少动态效果时不确定状态静止显示。
+  - 新组件 `VersionPanel`：「关于」页版本区，沿用设置列表的行：版本、构建号、渠道和检查更新行。
+  - 组件不依赖 SDK，只收普通属性。规则在 `spec/update-prompt-vectors.json`，四端共跑；文案进统一词表，中英都有。
+  - Vue `FlareModal` 新增 `fullscreen`，Flutter `FlareModal.show` 新增 `fullscreen`，SwiftUI `SettingsListView` 新增 `scrollable`。
+  - `ConnectionNotice` 的 upgradeRequired 按钮由「去更新」改为「立即更新」（英文 Update now）。
+  - 设置行新增红点：`FlareSettingsItem.badge` 为 `true` 时在箭头左侧画红点，读屏随行读出，开关行不画。Vue 的 `badge` 原来是数字计数角标，现在是 `boolean | number`，数字的含义不变；原生三端是布尔值，默认 false。
+  - `UpdatePrompt` 新增 `reason`（`UpdateStatus.blockReason`）：强制提示的 offer 阶段用它代替固定文案，为空时保留固定文案。计费确认、等待重启和失败阶段保留各自文案，因为它们说明下一步怎么做。规则在同一张表里。
+  - Vue 导出 `readStoredLocale()`，读取用户在 App 内选定的语言，宿主不再直接读 Kit 的存储键。
+  - Vue `FlareIconButton`、`FlareActionItem` 新增 `dot`，默认 false，画法同设置行红点。
+- `FlareCallDevicePicker`（Vue、Flutter）在没有选中设备的分组里重新画出 `placeholder`，未传时取词条；此前只声明没有读取。Flutter 回拨确认补上英文（`callRecordConfirmCallBack`），它此前不在 `strings/en.json` 里。
+- **AccessDiagnostics：网络与线路诊断页**（契约与四端 Kit）。
+  - 新组件 `AccessDiagnostics`（Vue `FlareAccessDiagnostics`、Flutter `FlareAccessDiagnostics`、SwiftUI `AccessDiagnosticsView`、Compose `AccessDiagnostics`）接收 `access.getStatus` 与 `access.listAccessPoints` 的结果，画出当前线路、按区域分组的线路列表与恢复工具（立即刷新、导入恢复链接、复制诊断）。
+  - 三种状态：正常、恢复中（服务暂时不可用，恢复工具移到最上面）、有告警（accessPointMismatch、清单过期）。延迟按整数毫秒分级：低于 150 ms 良好，高于 400 ms 较差。
+  - 组件不依赖 SDK，也不碰剪贴板：动作由宿主执行，结果的 `outcome` / `code` 回填后由 Kit 决定文案。规则在 `spec/access-diagnostics-vectors.json`，四端共跑。
+- **ConnectionNotice：由核心 SDK 连接状态驱动的统一连接横幅**（契约与四端 Kit；破坏性变更）。
+  - 新组件 `ConnectionNotice`（Vue `FlareConnectionNotice`、Flutter `FlareConnectionNotice`、SwiftUI `ConnectionNoticeView`、Compose `ConnectionNotice`）接收 `status`（`connection://status` 事件：`phase` 取 idle、connecting、syncing、online、switching、reconnecting、waitingForNetwork、serviceUnavailable、actionRequired，以及 `quality`、`progress`、`nextRetryAt`、`attempt`、`reason`、`developmentMode`），上报 `retry`、`signIn`、`update`、`diagnose`；宿主处理对应动作时才画出按钮。
+  - 何时显示什么由 Kit 决定：syncing 持续满 1 秒、switching 持续满 2 秒才显示（在此之前已显示的横幅保持原内容），重连横幅至少显示 1.5 秒并倒计时到下次尝试、提供「立即重试」，actionRequired 按原因提供「重新登录」（kicked、expired）或「立即更新」（upgradeRequired），开发模式在任何阶段都显示角标。`spec/connection-notice-vectors.json`（23 组时间脚本）由四端的 `FlareConnectionNoticeTracker` 共跑。
+  - `reason` 按 SDK 上报的字符串原样接收（switching 也带原因：failure、drain、failback、manual、manifest），核心 SDK 的状态可以不经转换直接传入；Vue 的类型为 `FlareConnectionActionReason | (string & {})`。只有 actionRequired 读它：kicked、expired、upgradeRequired、tenantUnavailable 有对应文案，其它值或缺省按 expired。
+  - 直接删除、不留别名：Vue `connectionNotice()` 与 `FlareConnectionNotice` / `FlareConnectionRecovery` 类型，Flutter 与 Compose 的 `flareConnectionNotice`，SwiftUI 的 `FlareConnectionNotice.resolve`，阶段 connected、offline、disconnected、kicked、expired，以及文案 `connectionOffline`、`connectionDisconnected`、`connectionDisconnectedReason`、`connectionReconnect`（Vue 的 `connection.offline`、`disconnected`、`disconnectedReason`、`reconnect`）。`FlareConnectionRefresh` 改读新阶段（`spec/reconnect-refresh-vectors.json`，19 组）：上线后除 online 以外的阶段都算中断，actionRequired 与会话之后的 idle 表示会话结束。
+- **「+」面板在手机上分页、在桌面上滚动**（契约与四端 Kit）。
+  - `ComposerActionPanel` 新增 `formFactor`（缺省 `mobile`，或 `desktop`）与 `rows`（手机 2、桌面 3）：手机横向分页，每页 rows × 列数，带页码点；桌面最多显示三行，其余在面板内滚动。Vue 的 `ComposerMoreSurface` 原来在所有设备上 8 个一页，列表一变就跳回第一页；分页现在由面板自己负责，Vue `EnhancedComposer` 新增 `formFactor`（缺省 `desktop`）。Flutter 的 composer 宽布局时传 `desktop`。
+  - 新列表按 id 做差异更新：读者停在原来那一页（页数变少时夹到最后一页），新出现的项淡入 150 毫秒（减少动态效果时不做）。原生端的页码点只作指示，读屏通过分页容器翻页；Vue 的页码点是名为「第 N 页」的按钮。
+  - 菜单为空时 composer 不显示「+」（原来画成禁用，Vue 还会打开一个「暂无可用内容」的空面板），打开着的面板在菜单变空时收起，草稿保留。
+- `@flare-im/vue-ui/admin` 新增 `FlareAdminChecklist` 与 `FlareAdminHeatGrid`：只读的发布前检查清单，把通过、未通过和未知分开；按行列展示读数的表格，缺数据的格子显示「暂无数据」而不是 0。admin 入口同时导出 `FlareDescriptionList` 与 `FlareMetricTile`。
+- **`FlareAdminSortableList`**（Vue，`@flare-im/vue-ui/admin`）：控制台的可排序列表，拖动行首手柄、在手柄上按 Alt+↑ / Alt+↓，或用行菜单（上移、下移、移到最前）调整顺序。每次移动发出整份列表（`update:items`）并播报新位置；`item`、`trailing` 插槽放行内容与行尾控件（`docs/admin-sortable-list.md`）。文案在 `sortableList.*`；图标 shim 新增 `ReorderTwoOutline` → Lucide `GripVertical` 作手柄。
 - **四端消息列表都告诉宿主读者是否在底部**（契约与四端 Kit）。
   - Vue 已有 `atBottomChange`，三个原生 Kit 新增 `onAtBottomChange`（Compose `(Boolean) -> Unit`，SwiftUI `(Bool) -> Void`，Flutter `ValueChanged<bool>`，缺省不传），规则同一份：`spec/message-list-paging-vectors.json` 的 `atBottom`（18 例）。时间线末尾低于视口底部不超过 80 个逻辑像素（含等于）就算在底部；回答变化时回调，每个会话第一次布局后回调一次。说的是当前窗口的底部，不管窗口是否接在最新。
   - 宿主没经读者要求就整体换掉的窗口、定位，立即回答 false 并保持，直到读者自己移动列表、列表替读者回到最新一行（新消息键、读者自己的消息追加在末尾）、读者要的最新窗口到了或窗口被清空；列表把窗口摆在最新一行、定位落在末尾附近，都不算读者到了底部。Vue 原来在列表每次自己滚到底后都发出 true，包括围绕某条消息打开窗口时那一次；空列表一次也不发。

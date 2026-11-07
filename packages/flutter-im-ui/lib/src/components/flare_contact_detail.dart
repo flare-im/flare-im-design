@@ -142,22 +142,16 @@ class FlareContactDetail extends StatelessWidget {
       if (lead)
         _action(
           primaryLabel,
-          Icons.person_add_alt_1_outlined,
+          'person-add',
           onPrimaryAction!,
           primary: true,
           busy: primaryActionBusy,
           key: const ValueKey('flare-contact-primary-action'),
         ),
       if (onMessage != null)
-        _action(
-          labels.message,
-          Icons.chat_bubble_outline_rounded,
-          onMessage!,
-          primary: !lead,
-        ),
-      if (onCall != null) _action(labels.voice, Icons.call_outlined, onCall!),
-      if (onVideo != null)
-        _action(labels.video, Icons.videocam_outlined, onVideo!),
+        _action(labels.message, 'comment', onMessage!, primary: !lead),
+      if (onCall != null) _action(labels.voice, 'phone', onCall!),
+      if (onVideo != null) _action(labels.video, 'video', onVideo!),
     ];
     // Rows are tappable only when one of them edits something, so a read-only
     // profile exposes no tap actions at all.
@@ -258,13 +252,10 @@ class FlareContactDetail extends StatelessWidget {
               FlareSizes.spacingLg,
               FlareSizes.spacingXs,
             ),
-            child: Row(
-              children: [
-                for (var i = 0; i < actions.length; i++) ...[
-                  if (i > 0) const SizedBox(width: FlareSizes.spacingMd),
-                  Expanded(child: actions[i]),
-                ],
-              ],
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: FlareSizes.spacingSm,
+              children: actions,
             ),
           ),
 
@@ -298,14 +289,7 @@ class FlareContactDetail extends StatelessWidget {
               FlareSizes.spacingLg,
               FlareSizes.spacingLg,
             ),
-            child: Column(
-              children: [
-                for (var i = 0; i < dangers.length; i++) ...[
-                  if (i > 0) const SizedBox(height: FlareSizes.spacingMd),
-                  dangers[i],
-                ],
-              ],
-            ),
+            child: Column(children: dangers),
           ),
       ],
     );
@@ -313,53 +297,23 @@ class FlareContactDetail extends StatelessWidget {
 
   Widget _action(
     String label,
-    IconData icon,
+    String icon,
     VoidCallback onTap, {
     bool primary = false,
     bool busy = false,
     Key? key,
   }) {
-    final button = FlareButton(
+    return FlareButton(
       key: key,
+      label: label,
+      icon: icon,
       variant: primary
           ? FlareButtonVariant.primary
           : FlareButtonVariant.secondary,
-      size: FlareControlSize.lg,
+      size: FlareControlSize.sm,
+      maintainTouchTarget: true,
+      loading: busy,
       onPressed: onTap,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: FlareSizes.spacingSm,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (busy)
-            Builder(
-              builder: (context) => SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: IconTheme.of(context).color,
-                ),
-              ),
-            )
-          else
-            Icon(icon, size: 20),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: FlareSizes.fontSizeSm)),
-        ],
-      ),
-    );
-    if (!busy) return button;
-    // The key the host is running keeps its full colour (the spinner says why
-    // it does not answer), but takes no tap, key or focus, and reads as an
-    // unavailable button.
-    return Semantics(
-      button: true,
-      enabled: false,
-      label: label,
-      excludeSemantics: true,
-      child: IgnorePointer(child: ExcludeFocus(child: button)),
     );
   }
 
@@ -368,7 +322,8 @@ class FlareContactDetail extends StatelessWidget {
       label: label,
       onPressed: onTap,
       block: true,
-      size: FlareControlSize.lg,
+      size: FlareControlSize.sm,
+      maintainTouchTarget: true,
       variant: danger
           ? FlareButtonVariant.danger
           : FlareButtonVariant.secondary,

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -44,6 +45,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 
@@ -628,6 +630,7 @@ fun MessageList(
     val reducedMotion = flareReducedMotion()
     val haptics = LocalHapticFeedback.current
     val view = LocalView.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
     // Date pills speak the kit's language, not the device's.
     val locale = flareLocale()
@@ -878,7 +881,13 @@ fun MessageList(
         LocalFlareMediaHost provides media, LocalLocateHighlight provides locateHost, LocalFlareImageGallery provides gallery,
         LocalFlareConversationId provides conversationId,
     ) {
-        Column(Modifier.fillMaxSize().background(colors.bgSecondary)) {
+        Column(Modifier.fillMaxSize().background(colors.bgSecondary).pointerInput(keyboard, view) {
+            detectTapGestures {
+                val editor = view.findFocus() as? android.widget.EditText ?: return@detectTapGestures
+                keyboard?.hide()
+                editor.clearFocus()
+            }
+        }) {
             MessageListEndBand(messageListEdge(olderEnd), olderError, loadOlderText, enabled = !requested) { askOlder(true) }
             if (messages.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

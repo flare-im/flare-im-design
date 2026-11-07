@@ -34,4 +34,17 @@ describe("FlareAuthShell", () => {
     await back.trigger("click");
     expect(host.emitted("back")).toHaveLength(1);
   });
+
+  it("keeps task copy, utility controls and footer in the shared form region", () => {
+    host = mount(FlareAuthShell, {
+      props: { product: "Flare IM", title: "欢迎回来", subtitle: "登录后继续", eyebrow: "账号入口", footer: "Flare IM · 沟通空间" },
+      slots: { utility: '<button type="button">语言</button>', default: '<input aria-label="账号" value="draft" />' },
+    });
+    expect(host.get(".flare-auth-shell__eyebrow").text()).toBe("账号入口");
+    expect(host.get(".flare-auth-shell__footer").text()).toContain("沟通空间");
+    expect(host.get(".flare-auth-shell__utility button").text()).toBe("语言");
+    expect(host.get(".flare-auth-shell__art").attributes("aria-hidden")).toBe("true");
+    expect(host.get(".flare-auth-shell__panel").attributes("aria-labelledby")).toBe(host.get("h1").attributes("id"));
+    expect(host.findAll("h1")).toHaveLength(1);
+  });
 });

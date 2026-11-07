@@ -18,13 +18,14 @@ const props = withDefaults(
     confirmLabel?: string;
     insufficient?: boolean;
     busy?: boolean;
+    confirmDisabled?: boolean;
   }>(),
   { insufficient: false, busy: false },
 );
 const emit = defineEmits<{ (e: "confirm"): void; (e: "cancel"): void }>();
 
 const { t } = useFlareI18nOptional();
-const canConfirm = computed(() => !props.insufficient && !props.busy);
+const canConfirm = computed(() => !props.insufficient && !props.busy && !props.confirmDisabled);
 
 function requestConfirm(): void {
   if (canConfirm.value) emit("confirm");
@@ -43,6 +44,7 @@ function requestCancel(): void {
         <span class="flare-rp-pay__method-value">{{ methodLabel }}</span>
       </div>
       <p v-if="insufficient" class="flare-rp-pay__insufficient" role="alert">{{ t("redPacket.pay.insufficient") }}</p>
+      <slot name="credential" />
       <div class="flare-rp-pay__actions">
         <div class="flare-rp-pay__confirm">
           <FlareButton
@@ -50,7 +52,7 @@ function requestCancel(): void {
             size="lg"
             :label="confirmLabel ?? t('redPacket.pay.confirm')"
             :loading="busy"
-            :disabled="insufficient"
+            :disabled="insufficient || confirmDisabled"
             @click="requestConfirm"
           />
         </div>

@@ -25,9 +25,12 @@ const generalCategories = new Set([
   "Overlay",
 ]);
 const imExceptions = new Set([
+  "AccessDiagnostics",
   "AnnouncementReadBar",
+  "ConnectionNotice",
   "MessageStatus",
   "SearchPanel",
+  "UpdatePrompt",
 ]);
 
 const components = {};

@@ -110,6 +110,9 @@ class FlareBottomSheet extends StatelessWidget {
   /// returns the rest of the height; when that widget is a
   /// [FlareSheetOwnHeader] the title is the accessible name only.
   ///
+  /// [titleBuilder] takes precedence over [title]. It reads state from the
+  /// route's context and rebuilds with [builder] when [listenable] notifies.
+  ///
   /// [builder] runs once unless [listenable] is given: then it runs again
   /// every time [listenable] notifies, so content that takes changing host
   /// state — a picker's `sending` read from a `ValueNotifier` — stays current
@@ -120,6 +123,7 @@ class FlareBottomSheet extends StatelessWidget {
   static Future<T?> show<T>(
     BuildContext context, {
     String? title,
+    String Function(BuildContext context)? titleBuilder,
     bool titleHidden = false,
     bool dismissible = true,
     ValueListenable<bool>? busy,
@@ -135,18 +139,15 @@ class FlareBottomSheet extends StatelessWidget {
     final resolved = asModal
         ? FlareSheetPresentation.auto
         : FlareSheetPresentation.sheet;
-    Widget sheet(Widget child) => FlareBottomSheet(
-      title: title,
+    Widget content(BuildContext inner) => FlareBottomSheet(
+      title: titleBuilder?.call(inner) ?? title,
       titleHidden: titleHidden,
       maxHeight: maxHeight,
       presentation: resolved,
       fill: fill,
-      child: child,
+      // The sheet inspects the content itself for an owned header in fill mode.
+      child: fill ? builder(inner) : Builder(builder: builder),
     );
-    // In fill mode the sheet has to see the content itself to know whether
-    // it brings its own header, so the builder runs just above the sheet.
-    Widget content(BuildContext inner) =>
-        fill ? sheet(builder(inner)) : sheet(Builder(builder: builder));
     Widget frame(BuildContext routeContext) => FlareSheetResolution(
       asModal: asModal,
       dismissible: dismissible,

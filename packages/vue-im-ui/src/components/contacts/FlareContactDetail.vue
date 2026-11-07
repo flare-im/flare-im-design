@@ -18,6 +18,7 @@
  */
 import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
+import FlareButton from "../general/FlareButton.vue";
 import {
   CallOutline,
   ChatbubbleEllipsesOutline,
@@ -165,38 +166,39 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
       <span v-if="starred" class="flare-contact-detail__star"><n-icon aria-hidden="true" :size="12" :component="flareIcons.star" />{{ t("contact.star") }}</span>
     </div>
 
-    <div v-if="actions().length" class="flare-contact-detail__actions" :class="{ 'is-single': actions().length === 1 }">
-      <button
+    <div v-if="actions().length" class="flare-contact-detail__actions">
+      <FlareButton
         v-for="action in actions()"
         :key="action.id"
-        type="button"
-        :class="{ 'is-primary': action.primary }"
-        :disabled="disabled(action)"
+        :variant="action.primary ? 'primary' : 'secondary'"
+        :icon="action.icon"
+        :label="action.label"
+        size="sm"
+        :disabled="disabled(action) && !pending(action)"
         :data-contact-action="action.id"
-        :aria-busy="pending(action) ? 'true' : undefined"
+        :loading="pending(action)"
         @click="runAction(action.id)"
-      >
-        <span v-if="pending(action)" class="flare-contact-detail__spinner" aria-hidden="true" />
-        <n-icon v-else aria-hidden="true" :size="20" :component="action.icon" /><span>{{ action.label }}</span>
-      </button>
+      />
     </div>
 
     <FlareSettingsList v-if="sections().length" class="flare-contact-detail__card" :sections="sections()" @select="onSelect" @toggle="onToggle" />
 
     <div v-if="extraActions?.length" class="flare-contact-detail__extra">
-      <button
+      <FlareButton
         v-for="action in extraActions"
         :key="action.id"
-        type="button"
-        :class="{ 'is-danger': action.danger }"
+        :label="action.label"
+        :variant="action.danger ? 'danger' : 'secondary'"
+        size="sm"
+        block
         :disabled="busy"
         @click="emit('extraAction', action.id)"
-      >{{ action.label }}</button>
+      />
     </div>
 
     <div v-if="handles('onBlock') || handles('onRemove')" class="flare-contact-detail__foot">
-      <button v-if="handles('onBlock')" type="button" :disabled="busy" @click="emit('block')">{{ t("contact.block") }}</button>
-      <button v-if="handles('onRemove')" type="button" class="is-danger" :disabled="busy" @click="emit('remove')">{{ t("contact.remove") }}</button>
+      <FlareButton v-if="handles('onBlock')" :label="t('contact.block')" variant="secondary" size="sm" block :disabled="busy" @click="emit('block')" />
+      <FlareButton v-if="handles('onRemove')" :label="t('contact.remove')" variant="danger" size="sm" block :disabled="busy" @click="emit('remove')" />
     </div>
   </div>
 </template>
@@ -217,51 +219,13 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
   color: var(--flare-color-primary-text); background: var(--flare-color-bg-selected);
 }
 
-.flare-contact-detail__actions { display: flex; gap: var(--flare-size-spacing-2sm); padding: 6px 16px 4px; }
-.flare-contact-detail__actions button {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 12px 4px; border: none; border-radius: var(--flare-size-radius-lg);
-  background: var(--flare-color-bg-primary); box-shadow: var(--flare-shadow-sm);
-  color: var(--flare-color-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
+.flare-contact-detail__actions {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--flare-size-spacing-2sm); padding: 6px 16px 4px;
 }
-/* 判据用组件自己算出来的 is-single,不用 :has() —— 那个选择器要 Firefox 121,
-   而这个包承诺 113,在 113 上整条规则被静默丢掉,按钮就又变回两种高度。
-   只有一个动作时它不是「一排格子里的一格」,而是这一页的主按钮:摆成一行(图标在字左边),
-   高度与下面 举报此人 / 加入黑名单 / 删除好友 一致。原来它是 343x69 的一块带光晕的紫色板,
-   底下每一块都是 47 —— 一页里同一种「整宽按钮」出现两种高度。 */
-.flare-contact-detail__actions.is-single button {
-  flex-direction: row;
-  gap: var(--flare-size-spacing-sm);
-  min-height: 47px;
-  padding: 0 var(--flare-size-spacing-md);
-  box-shadow: none;
-  font-size: var(--flare-size-font-size-lg);
+.flare-contact-detail__actions > .flare-button {
+  height: auto; max-width: 100%; white-space: normal; overflow-wrap: anywhere;
 }
-.flare-contact-detail__actions button:disabled { opacity: 0.45; cursor: default; }
-/* The key the host is running stays at full strength: the spinner says why it takes no tap. */
-.flare-contact-detail__actions button[aria-busy="true"] { opacity: 1; cursor: progress; }
-.flare-contact-detail__actions button[aria-busy="true"]:active { transform: none; }
-.flare-contact-detail__spinner {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  animation: flare-contact-detail-spin 0.8s linear infinite;
-}
-@keyframes flare-contact-detail-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .flare-contact-detail__spinner { animation-duration: 2s; }
-}
-.flare-contact-detail__actions button:active { transform: scale(0.97); }
-.flare-contact-detail__actions button.is-primary {
-  color: #fff; background: var(--flare-component-brand-primary);
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--flare-color-primary) 60%, transparent);
-}
-.flare-contact-detail__actions.is-single button.is-primary { box-shadow: none; }
-
 .flare-contact-detail__card { margin-top: 8px; }
 
 /* Host actions sit above the kit's own destructive pair, in the same column shape. */
@@ -270,23 +234,10 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
    陌生人或待处理的申请就没有,这时 __extra 是最后一块,0 的下内距让宿主接在后面的那一排
    (接受 / 拒绝 / 加入黑名单)直接贴上来,两块之间一条缝都没有。 */
 .flare-contact-detail__extra:last-child { padding-block-end: var(--flare-size-spacing-md); }
-.flare-contact-detail__extra button {
-  width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg);
-  border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary);
-  color: var(--flare-color-text-primary); font-size: 15px; font-weight: 500; cursor: pointer;
-  transition: filter var(--flare-transition-fast);
-}
-.flare-contact-detail__extra button:active { filter: brightness(0.97); }
-.flare-contact-detail__extra button.is-danger { color: var(--flare-color-error-text); }
 .flare-contact-detail__foot { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px; }
-.flare-contact-detail__foot button {
-  width: 100%; padding: 12px; border-radius: var(--flare-size-radius-lg);
-  border: 1px solid var(--flare-color-border-primary); background: var(--flare-color-bg-primary);
-  color: var(--flare-color-text-primary); font-size: 15px; font-weight: 500; cursor: pointer;
-  transition: filter var(--flare-transition-fast);
-}
-.flare-contact-detail__foot button:active { filter: brightness(0.97); }
-.flare-contact-detail__foot button.is-danger {
-  border: none; color: #fff; background: var(--flare-color-error);
+@media (pointer: coarse) {
+  .flare-contact-detail__actions, .flare-contact-detail__extra, .flare-contact-detail__foot {
+    row-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm));
+  }
 }
 </style>

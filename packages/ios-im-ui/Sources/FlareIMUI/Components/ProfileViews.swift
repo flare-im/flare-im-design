@@ -241,47 +241,56 @@ public struct SettingsListView: View {
     private let sections: [FlareSettingsSection]
     private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
     private let onSelect: ((FlareSettingsItem) -> Void)?
+    private let scrollable: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
-    public init(sections: [FlareSettingsSection], onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil, onSelect: ((FlareSettingsItem) -> Void)? = nil) {
-        self.sections = sections; self.onToggle = onToggle; self.onSelect = onSelect
+    /// - Parameter scrollable: false when the host already owns vertical scrolling: the list sizes to its content.
+    public init(sections: [FlareSettingsSection], onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil, onSelect: ((FlareSettingsItem) -> Void)? = nil,
+                scrollable: Bool = true) {
+        self.sections = sections; self.onToggle = onToggle; self.onSelect = onSelect; self.scrollable = scrollable
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let dark = scheme == .dark
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(sections) { section in
-                    if let t = section.title, !t.isEmpty {
-                        Text(t)
-                            .font(.system(size: FlareSizes.fontSizeSm))
-                            .foregroundColor(colors.textTertiary)
-                            .padding(.horizontal, FlareSizes.spacingLg)
-                            .padding(.top, FlareSizes.spacingMd)
-                            .padding(.bottom, FlareSizes.spacingSm)
-                    } else {
-                        Spacer().frame(height: FlareSizes.spacingSm)
-                    }
-                    VStack(spacing: 0) {
-                        ForEach(Array(section.items.enumerated()), id: \.element.id) { i, item in
-                            if i > 0 {
-                                Divider().overlay(colors.borderSecondary)
-                                    .padding(.leading, FlareSizes.spacingMd)
-                            }
-                            FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
-                                .padding(.horizontal, FlareSizes.spacingMd)
-                        }
-                    }
-                    .flareGroupedCard(colors, dark: dark)
-                    .padding(.horizontal, FlareSizes.spacingMd)
-                    .padding(.bottom, FlareSizes.spacingSm)
-                }
-            }
-            .padding(.vertical, FlareSizes.spacingSm)
+        if scrollable {
+            ScrollView { rows(colors) }
+                .background(colors.bgSecondary)
+        } else {
+            rows(colors)
         }
-        .background(colors.bgSecondary)
+    }
+
+    private func rows(_ colors: FlareColors) -> some View {
+        let dark = scheme == .dark
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(sections) { section in
+                if let t = section.title, !t.isEmpty {
+                    Text(t)
+                        .font(.system(size: FlareSizes.fontSizeSm))
+                        .foregroundColor(colors.textTertiary)
+                        .padding(.horizontal, FlareSizes.spacingLg)
+                        .padding(.top, FlareSizes.spacingMd)
+                        .padding(.bottom, FlareSizes.spacingSm)
+                } else {
+                    Spacer().frame(height: FlareSizes.spacingSm)
+                }
+                VStack(spacing: 0) {
+                    ForEach(Array(section.items.enumerated()), id: \.element.id) { i, item in
+                        if i > 0 {
+                            Divider().overlay(colors.borderSecondary)
+                                .padding(.leading, FlareSizes.spacingMd)
+                        }
+                        FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
+                            .padding(.horizontal, FlareSizes.spacingMd)
+                    }
+                }
+                .flareGroupedCard(colors, dark: dark)
+                .padding(.horizontal, FlareSizes.spacingMd)
+                .padding(.bottom, FlareSizes.spacingSm)
+            }
+        }
+        .padding(.vertical, FlareSizes.spacingSm)
     }
 }
 
@@ -298,6 +307,7 @@ public struct FlareSettingsRow: View {
     private let onSelect: ((FlareSettingsItem) -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
 
     public init(item: FlareSettingsItem,
                 onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil,
@@ -319,6 +329,9 @@ public struct FlareSettingsRow: View {
     /// information and ignores taps even when the list has a select handler.
     static func isControl(_ item: FlareSettingsItem) -> Bool { item.kind != .value }
 
+    /// Whether the row draws its red dot: every kind but a toggle, whose end is the switch.
+    static func drawsBadge(_ item: FlareSettingsItem) -> Bool { item.badge && item.kind != .toggle }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         Group {
@@ -326,7 +339,7 @@ public struct FlareSettingsRow: View {
                 Toggle(isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) })) {
                     rowLabel(colors)
                 }
-                .tint(colors.primaryText)
+                .toggleStyle(FlareSwitchStyle(size: .sm, fillsRow: true))
                 .disabled(item.disabled || onToggle == nil)
             } else if item.kind != .value, let onSelect {
                 SwiftUI.Button { onSelect(item) } label: { rowContent(colors) }
@@ -340,8 +353,9 @@ public struct FlareSettingsRow: View {
                     .accessibilityElement(children: .combine)
             }
         }
-        .frame(minHeight: 48)
+        .frame(minHeight: FlareSizes.touchTarget)
         .opacity(item.disabled ? 0.45 : 1)
+        .modifier(FlareSettingsRowBadgeValue(text: Self.drawsBadge(item) ? strings.settingsRowBadge : nil))
     }
 
     /// The row's label, value and chevron (stacked or on one line).
@@ -355,6 +369,7 @@ public struct FlareSettingsRow: View {
                         HStack(spacing: FlareSizes.spacingMd) {
                             rowTitle(colors)
                             Spacer(minLength: 0)
+                            dot(colors)
                             chevron(colors)
                         }
                         Text(detail).font(.system(size: FlareSizes.fontSizeMd))
@@ -375,6 +390,7 @@ public struct FlareSettingsRow: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    dot(colors)
                     chevron(colors)
                 }
             }
@@ -401,10 +417,32 @@ public struct FlareSettingsRow: View {
             .foregroundColor(item.danger ? colors.errorText : colors.textPrimary)
     }
 
+    @ViewBuilder private func dot(_ colors: FlareColors) -> some View {
+        if Self.drawsBadge(item) {
+            Circle().fill(colors.error)
+                .frame(width: FlareSizes.spacingSm, height: FlareSizes.spacingSm)
+                .accessibilityHidden(true)
+        }
+    }
+
     @ViewBuilder private func chevron(_ colors: FlareColors) -> some View {
         if item.kind == .navigation {
             Image(systemName: "chevron.right").font(.system(size: 12))
                 .foregroundColor(colors.textTertiary)
+        }
+    }
+}
+
+/// Speaks a row's red dot as the row's value: a shape inside a button's label is not read reliably. A row without a
+/// dot keeps its own value, so a toggle goes on reading on or off.
+private struct FlareSettingsRowBadgeValue: ViewModifier {
+    let text: String?
+
+    func body(content: Content) -> some View {
+        if let text {
+            content.accessibilityValue(text)
+        } else {
+            content
         }
     }
 }

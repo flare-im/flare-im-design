@@ -1367,6 +1367,110 @@
       }
     },
     {
+      "name": "ConnectionNotice",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConnectionNotice",
+          "sourcePath": "packages/vue-im-ui/src/components/shell/FlareConnectionNotice.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConnectionNotice",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_connection_notice.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConnectionNotice",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConnectionNotice.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConnectionNoticeView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConnectionNoticeView.swift"
+        }
+      }
+    },
+    {
+      "name": "AccessDiagnostics",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccessDiagnostics",
+          "sourcePath": "packages/vue-im-ui/src/components/shell/FlareAccessDiagnostics.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAccessDiagnostics",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_access_diagnostics.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "AccessDiagnostics",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/AccessDiagnostics.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "AccessDiagnosticsView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/AccessDiagnosticsView.swift"
+        }
+      }
+    },
+    {
+      "name": "UpdatePrompt",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUpdatePrompt",
+          "sourcePath": "packages/vue-im-ui/src/components/shell/FlareUpdatePrompt.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareUpdatePrompt",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_update_prompt.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "UpdatePrompt",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/UpdatePrompt.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "UpdatePromptView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/UpdatePromptView.swift"
+        }
+      }
+    },
+    {
+      "name": "ProgressBar",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareProgressBar",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareProgressBar.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareProgressBar",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_progress_bar.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ProgressBar",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ProgressBar.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ProgressBarView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ProgressBarView.swift"
+        }
+      }
+    },
+    {
       "name": "FilterTabs",
       "status": "stable",
       "platforms": {
@@ -1623,6 +1727,32 @@
           "package": "FlareIMUI",
           "symbol": "SettingsListView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ProfileViews.swift"
+        }
+      }
+    },
+    {
+      "name": "VersionPanel",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareVersionPanel",
+          "sourcePath": "packages/vue-im-ui/src/components/profile/FlareVersionPanel.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVersionPanel",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_version_panel.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VersionPanel",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/VersionPanel.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VersionPanelView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/VersionPanelView.swift"
         }
       }
     },
@@ -4454,6 +4584,32 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareUserIdentity",
           "sourcePath": "packages/vue-im-ui/src/components/data/FlareUserIdentity.vue"
+        }
+      }
+    },
+    {
+      "name": "ImageUploadSlot",
+      "status": "experimental",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareImageUploadSlot",
+          "sourcePath": "packages/vue-im-ui/src/components/media/FlareImageUploadSlot.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareImageUploadSlot",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_image_upload_slot.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareImageUploadSlot",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ImageUploadSlot.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ImageUploadSlotView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ImageUploadSlotView.swift"
         }
       }
     }

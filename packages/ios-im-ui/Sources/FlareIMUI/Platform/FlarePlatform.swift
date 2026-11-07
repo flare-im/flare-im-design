@@ -73,6 +73,13 @@ func flareDeviceIsPointerFirst() -> Bool {
     #endif
 }
 
+/// Native iOS keeps composer panels below the tools even on wide layouts.
+#if os(iOS) && !targetEnvironment(macCatalyst)
+let flareUsesMobileComposerPanels = true
+#else
+let flareUsesMobileComposerPanels = false
+#endif
+
 /// The contract's error model; `cause` keeps the original error.
 public struct FlarePlatformError: Error, Equatable, CustomStringConvertible {
     public let code: FlarePlatformErrorCode

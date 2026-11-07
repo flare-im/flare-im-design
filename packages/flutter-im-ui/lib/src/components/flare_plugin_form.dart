@@ -73,6 +73,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   final Map<String, TextEditingController> _text = {};
   final Map<String, List<TextEditingController>> _rows = {};
   final Map<String, ({String date, String time})> _dateParts = {};
+  late final _memberCandidates = ValueNotifier(widget.members);
   String _signature = '';
 
   @override
@@ -85,6 +86,26 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   void didUpdateWidget(FlarePluginForm old) {
     super.didUpdateWidget(old);
     if (_signatureOf(widget) != _signature) _reset();
+    if (!identical(old.members, widget.members)) {
+      final current = widget.members.map((member) => member.userId).toSet();
+      final removed = old.members
+          .map((member) => member.userId)
+          .where((id) => !current.contains(id))
+          .toSet();
+      for (final input in widget.inputs) {
+        if (_draft[input.id] case final List ids
+            when input.kind == FlarePluginInputKind.members) {
+          _draft[input.id] = ids
+              .whereType<String>()
+              .where((id) => !removed.contains(id))
+              .toList();
+        }
+      }
+      // The picker is a separate route, so notify it after this build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _memberCandidates.value = widget.members;
+      });
+    }
     if (jsonEncode([
           for (final e in old.errors) '${e.input}:${e.issue.name}',
         ]) !=
@@ -97,6 +118,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
 
   @override
   void dispose() {
+    _memberCandidates.dispose();
     _disposeControllers();
     super.dispose();
   }
@@ -139,6 +161,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     for (final input in widget.inputs) {
       final value = _draft[input.id];
       switch (input.kind) {
+        case FlarePluginInputKind.password:
         case FlarePluginInputKind.text:
           _text[input.id] = TextEditingController(text: '${value ?? ''}');
         case FlarePluginInputKind.number:
@@ -197,7 +220,14 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       (input) => flarePluginCheckInput(input, _draft[input.id]) != null,
     ))
       return;
-    widget.onSubmit?.call(flarePluginFormValues(widget.inputs, _draft));
+    final values = flarePluginFormValues(widget.inputs, _draft);
+    for (final input in widget.inputs.where(
+      (i) => i.kind == FlarePluginInputKind.password,
+    )) {
+      _draft[input.id] = '';
+      _text[input.id]?.clear();
+    }
+    widget.onSubmit?.call(values);
   }
 
   void _setDatePart(String id, {String? date, String? time}) {
@@ -237,26 +267,26 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   Future<void> _pickMembers(FlarePluginInput input) async {
-    final entries = [
-      for (final m in widget.members)
-        FlareContactPickerEntry(
-          userId: m.userId,
-          name: m.name,
-          avatarUrl: m.avatarUrl,
-        ),
-    ];
     // fill: the picker takes the sheet's height and brings its own header, so
     // the sheet's title is its accessible name only.
     final picked = await FlareBottomSheet.show<List<FlareContactPickerEntry>>(
       context,
       title: input.label,
       fill: true,
+      listenable: _memberCandidates,
       builder: (sheetContext) => FlareContactPicker(
         groups: [
           FlareContactPickerGroup(
             id: 'members',
             label: input.label,
-            entries: entries,
+            entries: [
+              for (final m in _memberCandidates.value)
+                FlareContactPickerEntry(
+                  userId: m.userId,
+                  name: m.name,
+                  avatarUrl: m.avatarUrl,
+                ),
+            ],
           ),
         ],
         multiple: flarePluginMaxItems(input) != 1,
@@ -266,8 +296,13 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       ),
     );
     if (picked == null || !mounted) return;
+    final current = widget.members.map((member) => member.userId).toSet();
     _set(input.id, [
-      for (final e in picked.take(flarePluginMaxItems(input))) e.userId,
+      for (final e
+          in picked
+              .where((entry) => current.contains(entry.userId))
+              .take(flarePluginMaxItems(input)))
+        e.userId,
     ]);
   }
 
@@ -289,10 +324,12 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       ),
     );
     switch (input.kind) {
+      case FlarePluginInputKind.password:
       case FlarePluginInputKind.text:
         return wrap(
           FlareInput(
             controller: _text[input.id],
+            secure: input.kind == FlarePluginInputKind.password,
             semanticLabel: input.label,
             placeholder: input.placeholder,
             disabled: disabled,

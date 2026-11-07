@@ -191,6 +191,7 @@ class FlareActionMenu extends StatelessWidget {
             brand: flareTheme.brand,
             mode: flareTheme.mode,
             colors: flareTheme.colors,
+            darkColors: flareTheme.darkColors,
             child: child,
           );
     // Opened from a key (Enter or Space on the trigger): the first item's

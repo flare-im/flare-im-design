@@ -83,7 +83,7 @@ extension FlareStrings {
         s.imagePreviewPosition = { index, count in "\(index) of \(count)" }
         s.voiceSeconds = { englishCount($0, "{count} second", "{count} seconds") }
         s.ratingStar = { englishCount($0, "{count} star", "{count} stars") }
-        s.connectionDisconnectedReason = { "Disconnected: \($0)" }
+        s.connectionRetryIn = { "Retrying in \($0)s" }
         s.groupDetailMembersTitle = { "Members (\($0))" }
         s.profilePanelEditProfile = { "\($0), edit profile" }
         s.momentReplyToComment = { name, text in "Reply to \(name): \(text)" }

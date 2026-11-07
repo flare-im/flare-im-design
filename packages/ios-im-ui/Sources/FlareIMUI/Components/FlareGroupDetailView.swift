@@ -42,6 +42,7 @@ public struct FlareGroupDetailModel: Sendable {
     public var onlyAdminCanAtAll: Bool
     public var onlyAdminCanPin: Bool
     public var shareCardPermission: Bool
+    public var forbidGroupFriendRequests: Bool?
 
     public init(groupId: String, name: String, avatarURL: String? = nil, memberCount: Int = 0,
                 announcement: String = "", members: [Contact] = [], ownerId: String = "",
@@ -52,7 +53,7 @@ public struct FlareGroupDetailModel: Sendable {
                 myPinned: Bool? = nil, discoverable: Bool = false,
                 joinPolicy: FlareGroupJoinPolicy? = nil, muteAll: Bool = false,
                 onlyAdminCanAtAll: Bool = false, onlyAdminCanPin: Bool = false,
-                shareCardPermission: Bool = false) {
+                shareCardPermission: Bool = false, forbidGroupFriendRequests: Bool? = nil) {
         self.groupId = groupId; self.name = name; self.avatarURL = avatarURL
         self.memberCount = memberCount; self.announcement = announcement; self.members = members
         self.ownerId = ownerId; self.adminIds = adminIds; self.mutedIds = mutedIds
@@ -61,6 +62,7 @@ public struct FlareGroupDetailModel: Sendable {
         self.joinPolicy = joinPolicy
         self.muteAll = muteAll; self.onlyAdminCanAtAll = onlyAdminCanAtAll
         self.onlyAdminCanPin = onlyAdminCanPin; self.shareCardPermission = shareCardPermission
+        self.forbidGroupFriendRequests = forbidGroupFriendRequests
     }
 }
 
@@ -92,6 +94,7 @@ public enum FlareGroupFlag: String, Sendable {
     case onlyAdminCanAtAll
     case onlyAdminCanPin
     case shareCardPermission
+    case forbidGroupFriendRequests
 }
 
 /// Localizable copy for ``FlareGroupDetail``. Defaults are Chinese (Feishu-style), matching the
@@ -127,6 +130,7 @@ public struct FlareGroupDetailLabels: Sendable {
     public var onlyAdminAtAll: String?
     public var onlyAdminPin: String?
     public var shareCard: String?
+    public var forbidGroupFriendRequests: String?
     // Join policy labels
     public var joinOpen: String?
     public var joinApproval: String?
@@ -191,6 +195,7 @@ public struct FlareGroupDetailLabels: Sendable {
         onlyAdminAtAll: String? = nil,
         onlyAdminPin: String? = nil,
         shareCard: String? = nil,
+        forbidGroupFriendRequests: String? = nil,
         joinOpen: String? = nil,
         joinApproval: String? = nil,
         joinInvite: String? = nil,
@@ -234,6 +239,7 @@ public struct FlareGroupDetailLabels: Sendable {
         self.joinMode = joinMode; self.joinRequests = joinRequests; self.muteAll = muteAll
         self.inviteLink = inviteLink; self.onlyAdminAtAll = onlyAdminAtAll
         self.onlyAdminPin = onlyAdminPin; self.shareCard = shareCard
+        self.forbidGroupFriendRequests = forbidGroupFriendRequests
         self.joinOpen = joinOpen; self.joinApproval = joinApproval; self.joinInvite = joinInvite
         self.editName = editName; self.editAnnouncement = editAnnouncement
         self.nicknamePlaceholder = nicknamePlaceholder; self.memberManage = memberManage
@@ -278,6 +284,7 @@ public extension FlareGroupDetailLabels {
         public let onlyAdminAtAll: String
         public let onlyAdminPin: String
         public let shareCard: String
+        public let forbidGroupFriendRequests: String
         public let joinOpen: String
         public let joinApproval: String
         public let joinInvite: String
@@ -337,6 +344,7 @@ public extension FlareGroupDetailLabels {
             onlyAdminAtAll: onlyAdminAtAll ?? strings.groupDetailOnlyAdminAtAll,
             onlyAdminPin: onlyAdminPin ?? strings.groupDetailOnlyAdminPin,
             shareCard: shareCard ?? strings.groupDetailShareCard,
+            forbidGroupFriendRequests: forbidGroupFriendRequests ?? strings.groupDetailForbidGroupFriendRequests,
             joinOpen: joinOpen ?? strings.groupDetailJoinOpen,
             joinApproval: joinApproval ?? strings.groupDetailJoinApproval,
             joinInvite: joinInvite ?? strings.groupDetailJoinInvite,
@@ -427,6 +435,7 @@ public struct FlareGroupDetail: View {
     private let onRemoveMember: ((String) -> Void)?
     private let onLoadContacts: (() -> Void)?
     private let onInviteMembers: (([String]) -> Void)?
+    private let memberRosterRevision: UInt64
     private let onSearchMembers: ((String) async throws -> [Contact])?
     private let onLeave: (() -> Void)?
     /// Host actions the kit cannot know about, drawn above leaving the group (FR-046).
@@ -454,10 +463,15 @@ public struct FlareGroupDetail: View {
     // All members (the 群成员 row)
     @State private var showMembers = false
     @State private var memberQuery = ""
-    @State private var searchedMembers: [Contact]?
+    private struct MemberSearchKey: Equatable {
+        let groupId: String?
+        let revision: UInt64
+        let memberIds: [String]
+        let query: String
+    }
+    @State private var memberSearchResult: (key: MemberSearchKey, members: [Contact])?
     @State private var memberSearchLoading = false
     @State private var memberSearchError: String?
-    @State private var memberSearchGeneration = 0
     /// A member chosen in the members sheet; their dialog opens once the sheet is gone.
     @State private var pendingMemberAction: Contact?
 
@@ -484,6 +498,7 @@ public struct FlareGroupDetail: View {
                 onTransferOwner: ((String) -> Void)? = nil,
                 onRemoveMember: ((String) -> Void)? = nil, onLoadContacts: (() -> Void)? = nil,
                 onInviteMembers: (([String]) -> Void)? = nil,
+                memberRosterRevision: UInt64 = 0,
                 onSearchMembers: ((String) async throws -> [Contact])? = nil,
                 onLeave: (() -> Void)? = nil,
                 extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil) {
@@ -501,6 +516,7 @@ public struct FlareGroupDetail: View {
         self.onPromoteMember = onPromoteMember; self.onMuteMember = onMuteMember
         self.onTransferOwner = onTransferOwner; self.onRemoveMember = onRemoveMember
         self.onLoadContacts = onLoadContacts; self.onInviteMembers = onInviteMembers
+        self.memberRosterRevision = memberRosterRevision
         self.onSearchMembers = onSearchMembers; self.onLeave = onLeave
         self.extraActions = extraActions; self.onExtraAction = onExtraAction
     }
@@ -509,7 +525,7 @@ public struct FlareGroupDetail: View {
     static let memberPreviewCells = 20
 
     /// The members the grid previews: the first 19 with the add tile when the viewer may invite,
-    /// else the first 20. The 群成员 row lists everyone.
+    /// else the first 20. The grid heading opens the authorized roster.
     static func previewMembers(_ members: [Contact], addTile: Bool) -> [Contact] {
         Array(members.prefix(addTile ? memberPreviewCells - 1 : memberPreviewCells))
     }
@@ -660,7 +676,13 @@ public struct FlareGroupDetail: View {
                         memberAction = m.members.first { $0.id == uid }
                     },
                     onAddMember: { onLoadContacts?(); showInvite = true },
-                    total: m.memberCount
+                    title: copy.members,
+                    memberCountText: { count in
+                        guard let suffix = labels.memberCountSuffix else { return strings.memberCount(count) }
+                        return "\(count) \(suffix.trimmingCharacters(in: .whitespaces))"
+                    },
+                    total: m.memberCount,
+                    onViewAll: { memberQuery = ""; showMembers = true }
                 )
                 infoCard(colors, m)
                 if let afterInfo { afterInfo.padding(.horizontal, FlareSizes.spacingMd) }
@@ -682,8 +704,6 @@ public struct FlareGroupDetail: View {
             AvatarView(userId: m.groupId, displayName: m.name, avatarURL: m.avatarURL, size: 72)
             Text(m.name.isEmpty ? copy.title : m.name)
                 .font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).foregroundColor(colors.textPrimary)
-            Text("\(m.memberCount) \(copy.memberCountSuffix)")
-                .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
     }
@@ -716,9 +736,6 @@ public struct FlareGroupDetail: View {
             FlareSettingsItem(key: "announcement", label: copy.announcement, icon: "announcement",
                               kind: can(.editAnnouncement) ? .navigation : .value,
                               detail: m.announcement.isEmpty ? copy.notSet : m.announcement),
-            // Everyone, with search, in the members sheet.
-            FlareSettingsItem(key: "members", label: copy.members, icon: "people",
-                              kind: .navigation, detail: "\(m.memberCount)"),
         ], colors)
     }
 
@@ -766,6 +783,10 @@ public struct FlareGroupDetail: View {
     /// The 群权限 rows the viewer's capabilities name, in display order.
     func permsItems(_ m: FlareGroupDetailModel) -> [FlareSettingsItem] {
         var items: [FlareSettingsItem] = []
+        if m.capabilities.canManageInfo, let forbid = m.forbidGroupFriendRequests {
+            items.append(FlareSettingsItem(key: "forbidGroupFriendRequests", label: copy.forbidGroupFriendRequests,
+                                           icon: "lock", kind: .toggle, value: forbid))
+        }
         if can(.onlyAdminCanAtAll) {
             items.append(FlareSettingsItem(key: "atAll", label: copy.onlyAdminAtAll, icon: "mention",
                                            kind: .toggle, value: m.onlyAdminCanAtAll))
@@ -783,8 +804,6 @@ public struct FlareGroupDetail: View {
 
     private func onRowSelect(_ item: FlareSettingsItem) {
         switch item.key {
-        case "members":
-            memberQuery = ""; showMembers = true
         case "myNickname":
             editDraft = model?.myNickname ?? ""; editKind = .nickname
         case "name" where can(.editName):
@@ -811,6 +830,8 @@ public struct FlareGroupDetail: View {
         case "atAll" where can(.onlyAdminCanAtAll): onSetFlag?(.onlyAdminCanAtAll, on)
         case "pinPerm" where can(.onlyAdminCanPin): onSetFlag?(.onlyAdminCanPin, on)
         case "shareCard" where can(.shareCardPermission): onSetFlag?(.shareCardPermission, on)
+        case "forbidGroupFriendRequests" where model?.capabilities.canManageInfo == true:
+            onSetFlag?(.forbidGroupFriendRequests, on)
         default: break
         }
     }
@@ -821,18 +842,18 @@ public struct FlareGroupDetail: View {
         VStack(spacing: FlareSizes.spacingSm) {
             // Drawn only when the host opens the chat: no handler, no dead button.
             if let onOpenChat {
-                ButtonView(label: copy.message, variant: .primary, block: true) {
+                ButtonView(label: copy.message, variant: .primary, size: .sm, block: true, maintainTouchTarget: true) {
                     // Contract parity with Vue `openChat({ userIds, name })` / Flutter `(userIds, name)`.
                     onOpenChat(m.members.map(\.id), m.name.isEmpty ? copy.title : m.name)
                 }
             }
             ForEach(extraActions) { action in
-                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, block: true) {
+                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: .sm, block: true, maintainTouchTarget: true) {
                     onExtraAction?(action.id)
                 }
             }
             // Leaving is the host's to confirm: the tap is the intent.
-            ButtonView(label: can(.dissolve) ? copy.dissolve : copy.leave, variant: .danger, block: true) {
+            ButtonView(label: can(.dissolve) ? copy.dissolve : copy.leave, variant: .danger, size: .sm, block: true, maintainTouchTarget: true) {
                 onLeave?()
             }
         }
@@ -936,7 +957,10 @@ public struct FlareGroupDetail: View {
     private var membersSheet: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let members = model?.members ?? []
-        let matching = Self.visibleMembers(members, query: memberQuery, searched: searchedMembers, remoteEnabled: onSearchMembers != nil)
+        let key = MemberSearchKey(groupId: model?.groupId, revision: memberRosterRevision, memberIds: members.map(\.id),
+                                  query: memberQuery.trimmingCharacters(in: .whitespacesAndNewlines))
+        let searched = memberSearchResult?.key == key ? memberSearchResult?.members : nil
+        let matching = Self.visibleMembers(members, query: memberQuery, searched: searched, remoteEnabled: onSearchMembers != nil)
         return VStack(spacing: 0) {
             sheetHeader(strings.groupDetailMembersTitle(model?.memberCount ?? members.count)) { showMembers = false }
             SearchBarView(text: $memberQuery, placeholder: strings.groupDetailSearchMembers, loading: memberSearchLoading)
@@ -966,41 +990,26 @@ public struct FlareGroupDetail: View {
             }
         }
         .background(colors.bgPrimary.ignoresSafeArea())
-        .onChange(of: memberQuery) { _ in runMemberSearch() }
+        .task(id: key) { await runMemberSearch(key) }
     }
 
-    private func runMemberSearch() {
-        memberSearchGeneration += 1
-        let generation = memberSearchGeneration
-        let query = memberQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+    @MainActor private func runMemberSearch(_ key: MemberSearchKey) async {
+        memberSearchResult = nil
         memberSearchError = nil
-        guard let onSearchMembers, !query.isEmpty else {
-            searchedMembers = nil
-            memberSearchLoading = false
-            return
+        memberSearchLoading = false
+        guard let onSearchMembers, key.groupId != nil, !key.query.isEmpty else { return }
+        do {
+            try await Task.sleep(nanoseconds: 250_000_000)
+            memberSearchLoading = true
+            let found = try await onSearchMembers(key.query)
+            guard !Task.isCancelled else { return }
+            memberSearchResult = (key, found)
+        } catch {
+            guard !Task.isCancelled else { return }
+            memberSearchResult = (key, [])
+            memberSearchError = error.localizedDescription.isEmpty ? strings.groupDetailNoMatchingMembers : error.localizedDescription
         }
-        Task {
-            try? await Task.sleep(nanoseconds: 250_000_000)
-            await MainActor.run {
-                guard generation == memberSearchGeneration else { return }
-                memberSearchLoading = true
-            }
-            do {
-                let found = try await onSearchMembers(query)
-                await MainActor.run {
-                    guard generation == memberSearchGeneration else { return }
-                    searchedMembers = found
-                    memberSearchLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    guard generation == memberSearchGeneration else { return }
-                    searchedMembers = []
-                    memberSearchError = error.localizedDescription.isEmpty ? strings.groupDetailNoMatchingMembers : error.localizedDescription
-                    memberSearchLoading = false
-                }
-            }
-        }
+        memberSearchLoading = false
     }
 
     /// Whether choosing `member` offers anything: the host allows at least one action on them.

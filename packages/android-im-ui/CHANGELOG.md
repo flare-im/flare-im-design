@@ -1,5 +1,15 @@
 ## 未发布
 
+- `FlareResourceOverlay.stringValues(locale, builtIn)` 公开：宿主自己的词表按同一套规则（键已存在、占位符一致）取资源包词条。
+- 新增 `FlareResourceOverlay`、`FlareResourcePack`（`spec/resource-overlay-vectors.json`，四端同一张表）：`strings(base, locale)`、`colors(base, dark)` 把资源包折进词表和主题，经 `LocalFlareStrings`、`FlareThemeProvider(colors =)` 注入，`registerEmoji(context)` 把表情加进目录。
+- `FlareEmojiAssetRegistration`、`FlareStickerAssetRegistration` 的 `staticPreviewBytes` 改为可选，和 SwiftUI 一致：没有预览字节时，选择器和消息读原图的第一帧。空字节仍然拒绝。
+- `FlareStrings(base) { ... }` 从已有词表派生：没设置的键取 `base`，设置了的取新值，`base` 不变。现有的 `FlareStrings()`、`FlareStrings { ... }` 不变。
+- 更新提示新增 `reason`（`UpdateStatus.blockReason`）：强制提示的 offer 阶段用它代替固定文案（`FlareUpdatePromptMessage.Reason`），为空时保留固定文案。
+- 设置行红点：新增 `SettingsItem.badge`（布尔值，缺省 false），在箭头左侧画红点，读屏随行读出（`FlareStrings.settingsRowBadge`），开关行不画。
+- 更新中心（`spec/update-prompt-vectors.json`，四端同一张表）：新增 `UpdatePrompt`、`ProgressBar`、`VersionPanel`，规则函数 `flareUpdatePrompt`、`flareProgressBarValue`、`flareVersionPanel`；词表新增 `updatePrompt*`、`progressBar*`、`versionPanel*`，`connectionUpdate` 改为「立即更新」。
+- 网络与线路诊断（`spec/access-diagnostics-vectors.json`，四端同一张表）：新增 `AccessDiagnostics`，输入 `FlareAccessStatus` 与 `FlareAccessPoint`，状态、延迟分级与动作结果由 `flareAccessDiagnostics` 及其辅助函数决定；词条 `accessDiagnostics*`。
+- 连接状态的原因按 SDK 原文接收：`FlareConnectionStatus.reason` 由 `FlareConnectionActionReason?` 改为 `String?`，宿主把 `connection://status` 的 `reason` 原样传入（`switching` 带的 failure / drain / failback / manual / manifest 也一样），不认识的值不报错。新增 `actionReason`（只在是 kicked / expired / upgradeRequired / tenantUnavailable 时有值）与 `FlareConnectionActionReason.parse(wire)`、`FlareConnectionActionReason.wire`（按线上值区分大小写）。横幅仍只解释 actionRequired 的这四个原因，缺失或其余原因在 actionRequired 下按 expired 显示，显示规则不变（`spec/connection-notice-vectors.json`，含第 23 组）。
+- 「+」面板的分页（四端同一规则）：`FlareComposerActionPanel` 新增 `formFactor`（`FlareComposerPanelFormFactor`，缺省 `Mobile`）与 `rows`。`Mobile` 用 `HorizontalPager` 横向分页，每页 rows × columns，带页码点（只作指示，TalkBack 通过分页器翻页）；`Desktop` 最多显示 rows 行（缺省 3），其余滚动。列表变化时停在原来那一页（页数变少时夹到最后一页），新项淡入 150 毫秒（减少动态效果时不做）。`Composer` 去掉面板外层 240dp 的滚动容器；菜单为空且没有 `onAttach` 时不显示「+」（原来画成禁用），菜单变空时收起面板。
 - 读者是否在底部（`spec/message-list-paging-vectors.json` 的 `atBottom`，四端同一份）：`MessageList` 新增 `onAtBottomChange: ((Boolean) -> Unit)?`，缺省为 null。末尾低于视口底部不超过 80 dp 算在底部（`MessageListBottomSlack` 改读同一个值），只在回答变化时回调，每个会话第一次布局后回调一次，空列表在底部；正在回到末尾的那次布局不算。整体替换（读者没要求）与定位立即回答 false 并保持，直到读者拖动、点新消息键、自己的消息追加在末尾、读者要的最新窗口到了或窗口被清空。新增设备测试 `MessageListAtBottomInteractionTest`。
 - 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`MessageList` 新增 `windowId`，整体替换（名字换了、读者要的最新窗口、没有共同的行）后在最新一行打开，读者拖动之前不自动请求；原来替换后的第一次布局被当成读者移动，脱离最新的窗口一打开就往新请求一页。定位之后、读者拖动之前落下的一页以定位的行为锚点留在中间，原来锚在滚动途中的首行，目标可能落在视口外。`FlareMessageListState.scrollToMessage` 在列表接管滚动时回答 true，不再把中断抛给宿主。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareApplicationNavigationBadge` 新增 `more`，`FlareFilterTabOption` 新增 `badgeMore`，缺省为 false；新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FilterTabs` 超过 99 时也写 99+（原来写原数）。

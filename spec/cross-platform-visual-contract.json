@@ -2,6 +2,228 @@
   "$comment": "同一个槽位在四端必须解析到同一个 token。现有门禁比的是 props/events 签名,比不到像素 —— 这份比的是像素。每条 slot 给出四端各自的文件与必须出现的 token 引用;裸字面量即失败。",
   "slots": [
     {
+      "id": "Button.visualHeight",
+      "why": "按钮视觉高度使用统一三档，移动端可单独扩展触达区。",
+      "token": "sizes.layout.controlHeightSm / Md / Lg",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/FormViews.swift",
+          "require": [
+            "FlareSizes.controlHeightSm",
+            "FlareSizes.controlHeightMd",
+            "FlareSizes.controlHeightLg",
+            "minHeight: size\\.height"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FormComponents.kt",
+          "require": [
+            "FlareSizes.controlHeightSm",
+            "FlareSizes.controlHeightMd",
+            "FlareSizes.controlHeightLg",
+            "else size\\.visualHeight\\(\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_button.dart",
+          "require": [
+            "FlareSizes.controlHeightSm",
+            "FlareSizes.controlHeightMd",
+            "FlareSizes.controlHeightLg"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareButton.vue",
+          "require": [
+            "--flare-size-layout-control-height-sm",
+            "--flare-size-layout-control-height-md",
+            "--flare-size-layout-control-height-lg"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Input.singleLineHeight",
+      "why": "同档的普通、密码和可清除输入框等高。桌面默认 40，移动端至少 44。",
+      "token": "sizes.layout.controlHeightMd / touchTargetMin",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/GeneralViews.swift",
+          "require": [
+            "max\\(size\\.height, FlareSizes\\.touchTargetMin\\)",
+            "minHeight: minimumHeight"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Input.kt",
+          "require": [
+            "maxOf\\(size\\.visualHeight\\(\\), FlareSizes\\.touchTargetMin\\)",
+            "minSize = FlareSizes\\.touchTargetMin"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_input.dart",
+          "require": [
+            "touch \\? FlareSizes\\.touchTargetMin",
+            "FlareSizes\\.controlHeightMd",
+            "minHeight: minHeight"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareInput.vue",
+          "require": [
+            "--flare-size-layout-control-height-md",
+            "--flare-size-layout-touch-target-min",
+            "@media \\(pointer: coarse\\)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Switch.trackAndThumb",
+      "why": "小号 34×20 / 14，标准 44×26 / 20，保留大号以供显式选择。",
+      "token": "sizes.component.switchWidth / switchHeight / switchThumb",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/FormViews.swift",
+          "require": [
+            "FlareSizes.componentSwitchWidthSm",
+            "FlareSizes.componentSwitchHeightSm",
+            "FlareSizes.componentSwitchThumbSm",
+            "FlareSizes.componentSwitchWidthMd",
+            "FlareSizes.componentSwitchHeightMd",
+            "FlareSizes.componentSwitchThumbMd",
+            "FlareSizes.componentSwitchWidthLg",
+            "FlareSizes.componentSwitchHeightLg",
+            "FlareSizes.componentSwitchThumbLg"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FormComponents.kt",
+          "require": [
+            "FlareSizes.componentSwitchWidthSm",
+            "FlareSizes.componentSwitchHeightSm",
+            "FlareSizes.componentSwitchThumbSm",
+            "FlareSizes.componentSwitchWidthMd",
+            "FlareSizes.componentSwitchHeightMd",
+            "FlareSizes.componentSwitchThumbMd",
+            "FlareSizes.componentSwitchWidthLg",
+            "FlareSizes.componentSwitchHeightLg",
+            "FlareSizes.componentSwitchThumbLg"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_switch.dart",
+          "require": [
+            "FlareSizes.componentSwitchWidthSm",
+            "FlareSizes.componentSwitchHeightSm",
+            "FlareSizes.componentSwitchThumbSm",
+            "FlareSizes.componentSwitchWidthMd",
+            "FlareSizes.componentSwitchHeightMd",
+            "FlareSizes.componentSwitchThumbMd",
+            "FlareSizes.componentSwitchWidthLg",
+            "FlareSizes.componentSwitchHeightLg",
+            "FlareSizes.componentSwitchThumbLg"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/form/FlareSwitch.vue",
+          "require": [
+            "--flare-size-component-switch-width-sm",
+            "--flare-size-component-switch-height-sm",
+            "--flare-size-component-switch-thumb-sm",
+            "--flare-size-component-switch-width-md",
+            "--flare-size-component-switch-height-md",
+            "--flare-size-component-switch-thumb-md",
+            "--flare-size-component-switch-width-lg",
+            "--flare-size-component-switch-height-lg",
+            "--flare-size-component-switch-thumb-lg"
+          ]
+        }
+      }
+    },
+    {
+      "id": "SettingsRow.toggle",
+      "why": "设置行至少 48，整行拥有唯一的切换语义。",
+      "token": "sizes.layout.touchTarget / Switch.sm",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ProfileViews.swift",
+          "require": [
+            "FlareSwitchStyle\\(size: \\.sm",
+            "minHeight: FlareSizes\\.touchTarget"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/SettingsList.kt",
+          "require": [
+            "FlareSwitchTrack\\(item\\.value, size = FlareControlSize\\.Sm\\)",
+            "heightIn\\(min = FlareSizes\\.touchTarget\\)"
+          ],
+          "forbid": [
+            "import androidx\\.compose\\.material3\\.Switch"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_settings_list.dart",
+          "require": [
+            "FlareControlSize\\.sm",
+            "minHeight: FlareSizes\\.touchTarget"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/profile/FlareSettingsRow.vue",
+          "require": [
+            "<FlareSwitch\\s+v-if=\"item.kind === \\'toggle\\'\"\\s+size=\"sm\"",
+            "--flare-size-layout-touch-target",
+            "\\bdecorative\\b"
+          ],
+          "forbid": [
+            "flare-settings__switch"
+          ]
+        }
+      }
+    },
+    {
+      "id": "IconButton.geometry",
+      "why": "外观档位与图标独立于移动端触达区。",
+      "token": "sizes.component.iconButtonSide / iconButtonGlyph",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/FormViews.swift",
+          "require": [
+            "FlareSizes.componentIconButtonSideSm",
+            "FlareSizes.componentIconButtonGlyphSm",
+            "\\.flareTouchTarget\\("
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FormComponents.kt",
+          "require": [
+            "FlareSizes.componentIconButtonSideSm",
+            "FlareSizes.componentIconButtonGlyphSm",
+            "FlareSizes.touchTarget"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_icon_button.dart",
+          "require": [
+            "FlareSizes.componentIconButtonSideSm",
+            "FlareSizes.componentIconButtonGlyphSm",
+            "FlareSizes.touchTarget"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/general/FlareIconButton.vue",
+          "require": [
+            "--flare-size-component-icon-button-side-sm",
+            "--flare-size-component-icon-button-glyph-sm",
+            "--flare-size-layout-touch-target"
+          ]
+        }
+      }
+    },
+    {
       "id": "MessageBubble.padding",
       "why": "气泡是全 app 出现频率最高的组件;四端内距不同,同一条消息的高度就不同。",
       "token": "sizes.component.bubblePaddingX / bubblePaddingY",

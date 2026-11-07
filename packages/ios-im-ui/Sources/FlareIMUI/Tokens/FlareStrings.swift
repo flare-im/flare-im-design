@@ -554,6 +554,7 @@ public struct FlareStrings: Sendable {
     public var groupDetailOnlyAdminAtAll: String
     public var groupDetailOnlyAdminPin: String
     public var groupDetailShareCard: String
+    public var groupDetailForbidGroupFriendRequests: String
     public var groupDetailJoinOpen: String
     public var groupDetailJoinApproval: String
     public var groupDetailJoinInvite: String
@@ -783,24 +784,211 @@ public struct FlareStrings: Sendable {
     public var presenceBusy: String
     /// en: "Away"
     public var presenceAway: String
-    /// en: "Connecting…" — the connection notice while the first connection is made.
+    /// en: "Connecting…" — the connection notice while a connection is made.
     public var connectionConnecting: String
+    /// en: "Syncing messages…" — once a catch-up sync has lasted a second.
+    public var connectionSyncing: String
+    /// en: "Switching connection…" — once a line switch has lasted two seconds.
+    public var connectionSwitching: String
     /// en: "Connection lost. Reconnecting…"
     public var connectionReconnecting: String
-    /// en: "No network. Messages will sync when it is back."
-    public var connectionOffline: String
-    /// en: "Disconnected"
-    public var connectionDisconnected: String
-    /// en: "Disconnected: \(reason)"
-    public var connectionDisconnectedReason: @Sendable (String) -> String
-    /// en: "Your account signed in on another device"
+    /// en: "No network. Reconnects when it is back."
+    public var connectionWaitingForNetwork: String
+    /// en: "Service temporarily unavailable. Recovering…"
+    public var connectionServiceUnavailable: String
+    /// en: "Signed in on another device"
     public var connectionKicked: String
     /// en: "Your sign-in has expired"
     public var connectionExpired: String
-    /// en: "Reconnect" — the connection notice's recovery action.
-    public var connectionReconnect: String
-    /// en: "Sign in again" — the recovery action after being signed out by the server.
+    /// en: "Update the app to keep using it"
+    public var connectionUpgradeRequired: String
+    /// en: "Service suspended" — the tenant is unavailable.
+    public var connectionTenantUnavailable: String
+    /// en: "Retrying in \(n)s" — the reconnect countdown.
+    public var connectionRetryIn: @Sendable (Int) -> String
+    /// en: "Retry now" — reconnect without waiting for the countdown.
+    public var connectionRetry: String
+    /// en: "Sign in again" — the way back after being signed out by the server.
     public var connectionSignIn: String
+    /// en: "Update" — the way back when the server requires a newer app.
+    public var connectionUpdate: String
+    /// en: "Diagnose" — opens the host's network diagnostics while the service is unavailable.
+    public var connectionDiagnose: String
+    /// en: "Development mode" — the badge while the SDK runs on development endpoints.
+    public var connectionDevelopmentMode: String
+    /// en: "Network and lines"
+    public var accessDiagnosticsTitle: String
+    /// en: "Current line"
+    public var accessDiagnosticsCurrent: String
+    /// en: "All lines"
+    public var accessDiagnosticsLines: String
+    /// en: "Recovery"
+    public var accessDiagnosticsRecovery: String
+    /// en: "Access point"
+    public var accessDiagnosticsAccessPoint: String
+    /// en: "Region"
+    public var accessDiagnosticsRegion: String
+    /// en: "Protocol"
+    public var accessDiagnosticsProtocol: String
+    /// en: "Latency"
+    public var accessDiagnosticsRtt: String
+    /// en: "Manifest version"
+    public var accessDiagnosticsSerial: String
+    /// en: "Manifest source"
+    public var accessDiagnosticsSource: String
+    /// en: "Manifest status"
+    public var accessDiagnosticsManifest: String
+    /// en: "Reported by the server"
+    public var accessDiagnosticsReportedAccessPoint: String
+    /// en: "Recovery rounds so far"
+    public var accessDiagnosticsRecoveryRounds: String
+    /// en: "Valid"
+    public var accessDiagnosticsManifestValid: String
+    /// en: "Expired"
+    public var accessDiagnosticsManifestStale: String
+    /// en: "None yet"
+    public var accessDiagnosticsManifestNone: String
+    /// en: "On"
+    public var accessDiagnosticsOn: String
+    /// en: "Off"
+    public var accessDiagnosticsOff: String
+    /// en: "Good"
+    public var accessDiagnosticsRttGood: String
+    /// en: "Fair"
+    public var accessDiagnosticsRttFair: String
+    /// en: "Poor"
+    public var accessDiagnosticsRttPoor: String
+    /// en: "Built-in seed"
+    public var accessDiagnosticsSourceSeed: String
+    /// en: "Mirror"
+    public var accessDiagnosticsSourceMirror: String
+    /// en: "Recovery link"
+    public var accessDiagnosticsSourceRecovery: String
+    /// en: "Development configuration"
+    public var accessDiagnosticsSourceDevelopment: String
+    /// en: "None"
+    public var accessDiagnosticsSourceNone: String
+    /// en: "Available"
+    public var accessDiagnosticsStatusActive: String
+    /// en: "Draining"
+    public var accessDiagnosticsStatusDraining: String
+    /// en: "Disabled"
+    public var accessDiagnosticsStatusDisabled: String
+    /// en: "Unknown"
+    public var accessDiagnosticsStatusUnknown: String
+    /// en: "Circuit open"
+    public var accessDiagnosticsBreakerOpen: String
+    /// en: "Testing"
+    public var accessDiagnosticsBreakerHalfOpen: String
+    /// en: "Current"
+    public var accessDiagnosticsCurrentTag: String
+    /// en: "Pinned"
+    public var accessDiagnosticsPinnedTag: String
+    /// en: "Pin"
+    public var accessDiagnosticsPin: String
+    /// en: "Unpin"
+    public var accessDiagnosticsUnpin: String
+    /// en: "No lines available"
+    public var accessDiagnosticsNoLines: String
+    /// en: "Refresh now"
+    public var accessDiagnosticsRefresh: String
+    /// en: "Copy diagnostics"
+    public var accessDiagnosticsExport: String
+    /// en: "Import"
+    public var accessDiagnosticsImport: String
+    /// en: "Import a recovery link"
+    public var accessDiagnosticsImportLabel: String
+    /// en: "Paste a flare-recover:// link"
+    public var accessDiagnosticsImportPlaceholder: String
+    /// en: "If the service does not come back, ask support for a recovery link."
+    public var accessDiagnosticsImportHint: String
+    /// en: "Connection is healthy"
+    public var accessDiagnosticsHealthy: String
+    /// en: "Not connected"
+    public var accessDiagnosticsNotConnected: String
+    /// en: "The server reports a different access point. The connection is not affected."
+    public var accessDiagnosticsAccessPointMismatch: String
+    /// en: "The line manifest has expired. You can still connect while it updates."
+    public var accessDiagnosticsManifestStaleNotice: String
+    /// en: "Lines updated"
+    public var accessDiagnosticsRefreshAdopted: String
+    /// en: "Lines are up to date"
+    public var accessDiagnosticsRefreshUpToDate: String
+    /// en: "Could not update the lines. Retrying automatically."
+    public var accessDiagnosticsRefreshFailed: String
+    /// en: "In development mode the lines come from the configuration."
+    public var accessDiagnosticsRefreshSkipped: String
+    /// en: "Recovery link imported. Switching lines."
+    public var accessDiagnosticsImportAdopted: String
+    /// en: "This link was already imported."
+    public var accessDiagnosticsImportUnchanged: String
+    /// en: "This link is older than the lines on this device."
+    public var accessDiagnosticsImportRollback: String
+    /// en: "This link has expired. Ask for a new one."
+    public var accessDiagnosticsImportExpired: String
+    /// en: "This link belongs to another app."
+    public var accessDiagnosticsImportWrongApp: String
+    /// en: "Recovery links are not used in development mode."
+    public var accessDiagnosticsImportDevelopmentMode: String
+    /// en: "This link could not be verified. Make sure it came from an official channel."
+    public var accessDiagnosticsImportUntrusted: String
+    /// en: "This link is malformed. Copy the whole link and try again."
+    public var accessDiagnosticsImportMalformed: String
+    /// en: "This link cannot be imported."
+    public var accessDiagnosticsImportRejected: String
+    /// en: "Diagnostics copied"
+    public var accessDiagnosticsExportCopied: String
+    /// en: "Could not copy. Try again."
+    public var accessDiagnosticsExportFailed: String
+    public var updatePromptTitleAvailable: String
+    public var updatePromptTitleRequired: String
+    public var updatePromptTitleMetered: String
+    public var updatePromptTitleDownloading: String
+    public var updatePromptTitleVerifying: String
+    public var updatePromptTitleReady: String
+    public var updatePromptTitleInstalling: String
+    public var updatePromptTitleFailed: String
+    public var updatePromptVersion: String
+    public var updatePromptNotes: String
+    public var updatePromptMessageRequired: String
+    public var updatePromptMessageRequiredReadOnly: String
+    public var composerReadOnlyUpdate: String
+    public var updatePromptMessageMetered: String
+    public var updatePromptMessageMeteredUnknown: String
+    public var updatePromptMessageReady: String
+    public var updatePromptFailManifestUnavailable: String
+    public var updatePromptFailManifestRejected: String
+    public var updatePromptFailNoArtifact: String
+    public var updatePromptFailInsufficientSpace: String
+    public var updatePromptFailDownload: String
+    public var updatePromptFailHashMismatch: String
+    public var updatePromptFailInstall: String
+    public var updatePromptFailSignatureMismatch: String
+    public var updatePromptFailDowngrade: String
+    public var updatePromptFailNotSkippable: String
+    public var updatePromptFailUnknown: String
+    public var updatePromptContinueDownload: String
+    public var updatePromptRestart: String
+    public var updatePromptRetry: String
+    public var updatePromptFallbackWebsite: String
+    public var updatePromptFallbackStore: String
+    public var updatePromptLater: String
+    public var updatePromptBackground: String
+    public var updatePromptSkip: String
+    public var updatePromptContinueReadOnly: String
+    public var progressBarLabel: String
+    public var progressBarLoading: String
+    public var versionPanelTitle: String
+    public var versionPanelVersion: String
+    public var versionPanelBuild: String
+    public var versionPanelChannel: String
+    public var versionPanelChannelStable: String
+    public var versionPanelChannelBeta: String
+    public var versionPanelChannelInternal: String
+    public var versionPanelCheck: String
+    public var versionPanelChecking: String
+    public var versionPanelUpToDate: String
+    public var settingsRowBadge: String
     /// en: "Members (\(n))" — the group detail's all-members sheet.
     public var groupDetailMembersTitle: @Sendable (Int) -> String
     /// en: "Search members"
@@ -1552,6 +1740,7 @@ public struct FlareStrings: Sendable {
         groupDetailOnlyAdminAtAll: String = "仅管理员可@全体成员",
         groupDetailOnlyAdminPin: String = "仅管理员可置顶消息",
         groupDetailShareCard: String = "允许分享群名片",
+        groupDetailForbidGroupFriendRequests: String = "禁止群内加好友",
         groupDetailJoinOpen: String = "允许任何人加入",
         groupDetailJoinApproval: String = "需管理员审批",
         groupDetailJoinInvite: String = "仅邀请加入",
@@ -1703,14 +1892,132 @@ public struct FlareStrings: Sendable {
         presenceBusy: String = "忙碌",
         presenceAway: String = "离开",
         connectionConnecting: String = "正在连接…",
+        connectionSyncing: String = "正在同步消息…",
+        connectionSwitching: String = "正在切换线路…",
         connectionReconnecting: String = "连接已断开，正在重连…",
-        connectionOffline: String = "网络不可用，恢复后会自动重连",
-        connectionDisconnected: String = "连接已断开",
-        connectionDisconnectedReason: @escaping @Sendable (String) -> String = { "连接已断开：\($0)" },
-        connectionKicked: String = "账号已在其他设备登录",
+        connectionWaitingForNetwork: String = "网络不可用，恢复后会自动重连",
+        connectionServiceUnavailable: String = "服务暂时不可用，正在自动恢复…",
+        connectionKicked: String = "已在其他设备登录",
         connectionExpired: String = "登录已过期",
-        connectionReconnect: String = "重新连接",
+        connectionUpgradeRequired: String = "需要更新后才能继续使用",
+        connectionTenantUnavailable: String = "服务已暂停",
+        connectionRetryIn: @escaping @Sendable (Int) -> String = { "\($0) 秒后重试" },
+        connectionRetry: String = "立即重试",
         connectionSignIn: String = "重新登录",
+        connectionUpdate: String = "立即更新",
+        connectionDiagnose: String = "诊断",
+        connectionDevelopmentMode: String = "开发模式",
+        accessDiagnosticsTitle: String = "网络与线路",
+        accessDiagnosticsCurrent: String = "当前线路",
+        accessDiagnosticsLines: String = "全部线路",
+        accessDiagnosticsRecovery: String = "恢复工具",
+        accessDiagnosticsAccessPoint: String = "接入点",
+        accessDiagnosticsRegion: String = "区域",
+        accessDiagnosticsProtocol: String = "协议",
+        accessDiagnosticsRtt: String = "延迟",
+        accessDiagnosticsSerial: String = "清单版本",
+        accessDiagnosticsSource: String = "清单来源",
+        accessDiagnosticsManifest: String = "清单状态",
+        accessDiagnosticsReportedAccessPoint: String = "服务端报告的接入点",
+        accessDiagnosticsRecoveryRounds: String = "已尝试恢复轮数",
+        accessDiagnosticsManifestValid: String = "有效",
+        accessDiagnosticsManifestStale: String = "已过期",
+        accessDiagnosticsManifestNone: String = "暂无清单",
+        accessDiagnosticsOn: String = "开启",
+        accessDiagnosticsOff: String = "关闭",
+        accessDiagnosticsRttGood: String = "良好",
+        accessDiagnosticsRttFair: String = "一般",
+        accessDiagnosticsRttPoor: String = "较差",
+        accessDiagnosticsSourceSeed: String = "内置种子",
+        accessDiagnosticsSourceMirror: String = "镜像",
+        accessDiagnosticsSourceRecovery: String = "恢复链接",
+        accessDiagnosticsSourceDevelopment: String = "开发配置",
+        accessDiagnosticsSourceNone: String = "无",
+        accessDiagnosticsStatusActive: String = "可用",
+        accessDiagnosticsStatusDraining: String = "即将下线",
+        accessDiagnosticsStatusDisabled: String = "已停用",
+        accessDiagnosticsStatusUnknown: String = "未知",
+        accessDiagnosticsBreakerOpen: String = "已熔断",
+        accessDiagnosticsBreakerHalfOpen: String = "试探中",
+        accessDiagnosticsCurrentTag: String = "当前",
+        accessDiagnosticsPinnedTag: String = "已固定",
+        accessDiagnosticsPin: String = "固定",
+        accessDiagnosticsUnpin: String = "取消固定",
+        accessDiagnosticsNoLines: String = "暂无可用线路",
+        accessDiagnosticsRefresh: String = "立即刷新",
+        accessDiagnosticsExport: String = "复制诊断",
+        accessDiagnosticsImport: String = "导入",
+        accessDiagnosticsImportLabel: String = "导入恢复链接",
+        accessDiagnosticsImportPlaceholder: String = "粘贴 flare-recover:// 链接",
+        accessDiagnosticsImportHint: String = "线路一直无法恢复时，可向客服索取恢复链接。",
+        accessDiagnosticsHealthy: String = "线路正常",
+        accessDiagnosticsNotConnected: String = "当前没有连接",
+        accessDiagnosticsAccessPointMismatch: String = "服务端报告的接入点与当前线路不一致，连接不受影响",
+        accessDiagnosticsManifestStaleNotice: String = "线路清单已过期，仍可连接，正在更新",
+        accessDiagnosticsRefreshAdopted: String = "线路已更新",
+        accessDiagnosticsRefreshUpToDate: String = "线路已是最新",
+        accessDiagnosticsRefreshFailed: String = "暂时无法更新线路，稍后会自动重试",
+        accessDiagnosticsRefreshSkipped: String = "开发模式下线路由配置决定",
+        accessDiagnosticsImportAdopted: String = "恢复链接已导入，正在切换线路",
+        accessDiagnosticsImportUnchanged: String = "这条链接已经导入过",
+        accessDiagnosticsImportRollback: String = "这条链接比本机线路旧，不需要导入",
+        accessDiagnosticsImportExpired: String = "这条链接已过期，请重新获取",
+        accessDiagnosticsImportWrongApp: String = "这条链接不属于当前应用",
+        accessDiagnosticsImportDevelopmentMode: String = "开发模式不使用恢复链接",
+        accessDiagnosticsImportUntrusted: String = "链接校验失败，请确认它来自官方渠道",
+        accessDiagnosticsImportMalformed: String = "链接格式不正确，请完整复制后重试",
+        accessDiagnosticsImportRejected: String = "无法导入这条链接",
+        accessDiagnosticsExportCopied: String = "诊断信息已复制",
+        accessDiagnosticsExportFailed: String = "复制失败，请重试",
+        updatePromptTitleAvailable: String = "发现新版本",
+        updatePromptTitleRequired: String = "需要更新",
+        updatePromptTitleMetered: String = "使用计费网络下载？",
+        updatePromptTitleDownloading: String = "正在下载更新",
+        updatePromptTitleVerifying: String = "正在校验更新",
+        updatePromptTitleReady: String = "更新已就绪",
+        updatePromptTitleInstalling: String = "正在安装更新",
+        updatePromptTitleFailed: String = "更新失败",
+        updatePromptVersion: String = "版本",
+        updatePromptNotes: String = "更新内容",
+        updatePromptMessageRequired: String = "当前版本已停止支持，更新后才能继续使用。",
+        updatePromptMessageRequiredReadOnly: String = "更新后才能发送消息，现在可以继续浏览本地内容。",
+        composerReadOnlyUpdate: String = "更新后才能发送消息",
+        updatePromptMessageMetered: String = "当前是计费网络，这次下载约",
+        updatePromptMessageMeteredUnknown: String = "当前是计费网络，下载会消耗流量。",
+        updatePromptMessageReady: String = "重启后新版本生效，应用不会自动重启。",
+        updatePromptFailManifestUnavailable: String = "暂时获取不到更新信息，请检查网络后重试。",
+        updatePromptFailManifestRejected: String = "更新信息未通过校验。",
+        updatePromptFailNoArtifact: String = "这个版本暂时没有适合本设备的安装包。",
+        updatePromptFailInsufficientSpace: String = "存储空间不足，清理后重试。",
+        updatePromptFailDownload: String = "下载失败，请检查网络后重试。",
+        updatePromptFailHashMismatch: String = "下载的文件未通过校验，请重试。",
+        updatePromptFailInstall: String = "安装失败，请重试。",
+        updatePromptFailSignatureMismatch: String = "安装包签名不匹配，已停止安装。",
+        updatePromptFailDowngrade: String = "不能安装比当前更旧的版本。",
+        updatePromptFailNotSkippable: String = "这个版本不能跳过。",
+        updatePromptFailUnknown: String = "更新没有完成，请稍后重试。",
+        updatePromptContinueDownload: String = "继续下载",
+        updatePromptRestart: String = "重启以完成更新",
+        updatePromptRetry: String = "重试",
+        updatePromptFallbackWebsite: String = "前往官网下载",
+        updatePromptFallbackStore: String = "前往应用商店",
+        updatePromptLater: String = "稍后",
+        updatePromptBackground: String = "后台下载",
+        updatePromptSkip: String = "跳过此版本",
+        updatePromptContinueReadOnly: String = "继续浏览",
+        progressBarLabel: String = "进度",
+        progressBarLoading: String = "进行中",
+        versionPanelTitle: String = "版本信息",
+        versionPanelVersion: String = "版本",
+        versionPanelBuild: String = "构建号",
+        versionPanelChannel: String = "渠道",
+        versionPanelChannelStable: String = "正式版",
+        versionPanelChannelBeta: String = "测试版",
+        versionPanelChannelInternal: String = "内部版",
+        versionPanelCheck: String = "检查更新",
+        versionPanelChecking: String = "正在检查…",
+        versionPanelUpToDate: String = "已是最新版本",
+        settingsRowBadge: String = "有新内容",
         groupDetailMembersTitle: @escaping @Sendable (Int) -> String = { "群成员（\($0)）" },
         groupDetailSearchMembers: String = "搜索群成员",
         groupDetailNoMatchingMembers: String = "没有匹配的群成员",
@@ -2339,6 +2646,7 @@ public struct FlareStrings: Sendable {
         self.groupDetailOnlyAdminAtAll = groupDetailOnlyAdminAtAll
         self.groupDetailOnlyAdminPin = groupDetailOnlyAdminPin
         self.groupDetailShareCard = groupDetailShareCard
+        self.groupDetailForbidGroupFriendRequests = groupDetailForbidGroupFriendRequests
         self.groupDetailJoinOpen = groupDetailJoinOpen
         self.groupDetailJoinApproval = groupDetailJoinApproval
         self.groupDetailJoinInvite = groupDetailJoinInvite
@@ -2490,14 +2798,132 @@ public struct FlareStrings: Sendable {
         self.presenceBusy = presenceBusy
         self.presenceAway = presenceAway
         self.connectionConnecting = connectionConnecting
+        self.connectionSyncing = connectionSyncing
+        self.connectionSwitching = connectionSwitching
         self.connectionReconnecting = connectionReconnecting
-        self.connectionOffline = connectionOffline
-        self.connectionDisconnected = connectionDisconnected
-        self.connectionDisconnectedReason = connectionDisconnectedReason
+        self.connectionWaitingForNetwork = connectionWaitingForNetwork
+        self.connectionServiceUnavailable = connectionServiceUnavailable
         self.connectionKicked = connectionKicked
         self.connectionExpired = connectionExpired
-        self.connectionReconnect = connectionReconnect
+        self.connectionUpgradeRequired = connectionUpgradeRequired
+        self.connectionTenantUnavailable = connectionTenantUnavailable
+        self.connectionRetryIn = connectionRetryIn
+        self.connectionRetry = connectionRetry
         self.connectionSignIn = connectionSignIn
+        self.connectionUpdate = connectionUpdate
+        self.connectionDiagnose = connectionDiagnose
+        self.connectionDevelopmentMode = connectionDevelopmentMode
+        self.accessDiagnosticsTitle = accessDiagnosticsTitle
+        self.accessDiagnosticsCurrent = accessDiagnosticsCurrent
+        self.accessDiagnosticsLines = accessDiagnosticsLines
+        self.accessDiagnosticsRecovery = accessDiagnosticsRecovery
+        self.accessDiagnosticsAccessPoint = accessDiagnosticsAccessPoint
+        self.accessDiagnosticsRegion = accessDiagnosticsRegion
+        self.accessDiagnosticsProtocol = accessDiagnosticsProtocol
+        self.accessDiagnosticsRtt = accessDiagnosticsRtt
+        self.accessDiagnosticsSerial = accessDiagnosticsSerial
+        self.accessDiagnosticsSource = accessDiagnosticsSource
+        self.accessDiagnosticsManifest = accessDiagnosticsManifest
+        self.accessDiagnosticsReportedAccessPoint = accessDiagnosticsReportedAccessPoint
+        self.accessDiagnosticsRecoveryRounds = accessDiagnosticsRecoveryRounds
+        self.accessDiagnosticsManifestValid = accessDiagnosticsManifestValid
+        self.accessDiagnosticsManifestStale = accessDiagnosticsManifestStale
+        self.accessDiagnosticsManifestNone = accessDiagnosticsManifestNone
+        self.accessDiagnosticsOn = accessDiagnosticsOn
+        self.accessDiagnosticsOff = accessDiagnosticsOff
+        self.accessDiagnosticsRttGood = accessDiagnosticsRttGood
+        self.accessDiagnosticsRttFair = accessDiagnosticsRttFair
+        self.accessDiagnosticsRttPoor = accessDiagnosticsRttPoor
+        self.accessDiagnosticsSourceSeed = accessDiagnosticsSourceSeed
+        self.accessDiagnosticsSourceMirror = accessDiagnosticsSourceMirror
+        self.accessDiagnosticsSourceRecovery = accessDiagnosticsSourceRecovery
+        self.accessDiagnosticsSourceDevelopment = accessDiagnosticsSourceDevelopment
+        self.accessDiagnosticsSourceNone = accessDiagnosticsSourceNone
+        self.accessDiagnosticsStatusActive = accessDiagnosticsStatusActive
+        self.accessDiagnosticsStatusDraining = accessDiagnosticsStatusDraining
+        self.accessDiagnosticsStatusDisabled = accessDiagnosticsStatusDisabled
+        self.accessDiagnosticsStatusUnknown = accessDiagnosticsStatusUnknown
+        self.accessDiagnosticsBreakerOpen = accessDiagnosticsBreakerOpen
+        self.accessDiagnosticsBreakerHalfOpen = accessDiagnosticsBreakerHalfOpen
+        self.accessDiagnosticsCurrentTag = accessDiagnosticsCurrentTag
+        self.accessDiagnosticsPinnedTag = accessDiagnosticsPinnedTag
+        self.accessDiagnosticsPin = accessDiagnosticsPin
+        self.accessDiagnosticsUnpin = accessDiagnosticsUnpin
+        self.accessDiagnosticsNoLines = accessDiagnosticsNoLines
+        self.accessDiagnosticsRefresh = accessDiagnosticsRefresh
+        self.accessDiagnosticsExport = accessDiagnosticsExport
+        self.accessDiagnosticsImport = accessDiagnosticsImport
+        self.accessDiagnosticsImportLabel = accessDiagnosticsImportLabel
+        self.accessDiagnosticsImportPlaceholder = accessDiagnosticsImportPlaceholder
+        self.accessDiagnosticsImportHint = accessDiagnosticsImportHint
+        self.accessDiagnosticsHealthy = accessDiagnosticsHealthy
+        self.accessDiagnosticsNotConnected = accessDiagnosticsNotConnected
+        self.accessDiagnosticsAccessPointMismatch = accessDiagnosticsAccessPointMismatch
+        self.accessDiagnosticsManifestStaleNotice = accessDiagnosticsManifestStaleNotice
+        self.accessDiagnosticsRefreshAdopted = accessDiagnosticsRefreshAdopted
+        self.accessDiagnosticsRefreshUpToDate = accessDiagnosticsRefreshUpToDate
+        self.accessDiagnosticsRefreshFailed = accessDiagnosticsRefreshFailed
+        self.accessDiagnosticsRefreshSkipped = accessDiagnosticsRefreshSkipped
+        self.accessDiagnosticsImportAdopted = accessDiagnosticsImportAdopted
+        self.accessDiagnosticsImportUnchanged = accessDiagnosticsImportUnchanged
+        self.accessDiagnosticsImportRollback = accessDiagnosticsImportRollback
+        self.accessDiagnosticsImportExpired = accessDiagnosticsImportExpired
+        self.accessDiagnosticsImportWrongApp = accessDiagnosticsImportWrongApp
+        self.accessDiagnosticsImportDevelopmentMode = accessDiagnosticsImportDevelopmentMode
+        self.accessDiagnosticsImportUntrusted = accessDiagnosticsImportUntrusted
+        self.accessDiagnosticsImportMalformed = accessDiagnosticsImportMalformed
+        self.accessDiagnosticsImportRejected = accessDiagnosticsImportRejected
+        self.accessDiagnosticsExportCopied = accessDiagnosticsExportCopied
+        self.accessDiagnosticsExportFailed = accessDiagnosticsExportFailed
+        self.updatePromptTitleAvailable = updatePromptTitleAvailable
+        self.updatePromptTitleRequired = updatePromptTitleRequired
+        self.updatePromptTitleMetered = updatePromptTitleMetered
+        self.updatePromptTitleDownloading = updatePromptTitleDownloading
+        self.updatePromptTitleVerifying = updatePromptTitleVerifying
+        self.updatePromptTitleReady = updatePromptTitleReady
+        self.updatePromptTitleInstalling = updatePromptTitleInstalling
+        self.updatePromptTitleFailed = updatePromptTitleFailed
+        self.updatePromptVersion = updatePromptVersion
+        self.updatePromptNotes = updatePromptNotes
+        self.updatePromptMessageRequired = updatePromptMessageRequired
+        self.updatePromptMessageRequiredReadOnly = updatePromptMessageRequiredReadOnly
+        self.composerReadOnlyUpdate = composerReadOnlyUpdate
+        self.updatePromptMessageMetered = updatePromptMessageMetered
+        self.updatePromptMessageMeteredUnknown = updatePromptMessageMeteredUnknown
+        self.updatePromptMessageReady = updatePromptMessageReady
+        self.updatePromptFailManifestUnavailable = updatePromptFailManifestUnavailable
+        self.updatePromptFailManifestRejected = updatePromptFailManifestRejected
+        self.updatePromptFailNoArtifact = updatePromptFailNoArtifact
+        self.updatePromptFailInsufficientSpace = updatePromptFailInsufficientSpace
+        self.updatePromptFailDownload = updatePromptFailDownload
+        self.updatePromptFailHashMismatch = updatePromptFailHashMismatch
+        self.updatePromptFailInstall = updatePromptFailInstall
+        self.updatePromptFailSignatureMismatch = updatePromptFailSignatureMismatch
+        self.updatePromptFailDowngrade = updatePromptFailDowngrade
+        self.updatePromptFailNotSkippable = updatePromptFailNotSkippable
+        self.updatePromptFailUnknown = updatePromptFailUnknown
+        self.updatePromptContinueDownload = updatePromptContinueDownload
+        self.updatePromptRestart = updatePromptRestart
+        self.updatePromptRetry = updatePromptRetry
+        self.updatePromptFallbackWebsite = updatePromptFallbackWebsite
+        self.updatePromptFallbackStore = updatePromptFallbackStore
+        self.updatePromptLater = updatePromptLater
+        self.updatePromptBackground = updatePromptBackground
+        self.updatePromptSkip = updatePromptSkip
+        self.updatePromptContinueReadOnly = updatePromptContinueReadOnly
+        self.progressBarLabel = progressBarLabel
+        self.progressBarLoading = progressBarLoading
+        self.versionPanelTitle = versionPanelTitle
+        self.versionPanelVersion = versionPanelVersion
+        self.versionPanelBuild = versionPanelBuild
+        self.versionPanelChannel = versionPanelChannel
+        self.versionPanelChannelStable = versionPanelChannelStable
+        self.versionPanelChannelBeta = versionPanelChannelBeta
+        self.versionPanelChannelInternal = versionPanelChannelInternal
+        self.versionPanelCheck = versionPanelCheck
+        self.versionPanelChecking = versionPanelChecking
+        self.versionPanelUpToDate = versionPanelUpToDate
+        self.settingsRowBadge = settingsRowBadge
         self.groupDetailMembersTitle = groupDetailMembersTitle
         self.groupDetailSearchMembers = groupDetailSearchMembers
         self.groupDetailNoMatchingMembers = groupDetailNoMatchingMembers

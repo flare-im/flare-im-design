@@ -8,6 +8,11 @@ final class ResolvedPresentationTests: XCTestCase {
   let all=try JSONSerialization.jsonObject(with:Data(contentsOf:file)) as! [String:Any]
   return try JSONDecoder().decode(PluginViewModel.self,from:JSONSerialization.data(withJSONObject:all[name]!))
  }
+ func testPasswordDraftNeverPrefillsAndValuesPreserveExactSecret() throws {
+  let input=try JSONDecoder().decode(PluginInput.self,from:Data(#"{"id":"password","kind":"password","label":"PIN","required":true,"maxLength":6,"default":"111111"}"#.utf8))
+  XCTAssertEqual(PluginFormRules.draft([input], values:["password":.string("222222")])["password"],.string(""))
+  XCTAssertEqual(PluginFormRules.values([input],["password":.string("839271")])["password"],.string("839271"))
+ }
  func testResolvedPropsDecodeAndSurviveRoundTripWithoutRounding()throws {
   let v=try fixture("payment");XCTAssertEqual(v.presentation?.renderer,"payment.confirm");XCTAssertEqual(v.presentation?.props["amount"]?.stringValue,"999999999999999999.99")
   let again=try JSONDecoder().decode(PluginViewModel.self,from:JSONEncoder().encode(v));XCTAssertEqual(again.presentation,v.presentation)

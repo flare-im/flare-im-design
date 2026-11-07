@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
+import 'flare_switch.dart';
 
 /// Settings list — grouped toggle / navigation / value rows. A generic settings
 /// container. Spec: Profile/SettingsList (`FlareSettingsList`).
@@ -132,6 +134,11 @@ class FlareSettingsRow extends StatelessWidget {
           item.kind == FlareSettingKind.navigation) &&
       (item.detail?.runes.length ?? 0) > stackAfterCharacters;
 
+  /// Whether [item] draws its red dot: every kind but a toggle, whose end is
+  /// the switch.
+  static bool drawsBadge(FlareSettingsItem item) =>
+      item.badge && item.kind != FlareSettingKind.toggle;
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -159,6 +166,7 @@ class FlareSettingsRow extends StatelessWidget {
     );
     final chevron = Icon(Icons.chevron_right, color: colors.textTertiary);
     final detail = item.detail;
+    final badge = drawsBadge(item) ? const _Dot() : null;
     Widget wrap(Widget body) {
       if (readOnly) {
         // "label, detail" as one element, with no control semantics at all.
@@ -188,7 +196,8 @@ class FlareSettingsRow extends StatelessWidget {
     }
 
     return wrap(
-      Padding(
+      Container(
+        constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
         padding: const EdgeInsets.symmetric(
           horizontal: FlareSizes.spacingMd,
           vertical: FlareSizes.spacingMd,
@@ -209,6 +218,7 @@ class FlareSettingsRow extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(child: label),
+                            ?badge,
                             if (item.kind == FlareSettingKind.navigation)
                               chevron,
                           ],
@@ -242,12 +252,10 @@ class FlareSettingsRow extends StatelessWidget {
                     switch (item.kind) {
                       FlareSettingKind.toggle => ExcludeSemantics(
                         child: IgnorePointer(
-                          child: ExcludeFocus(
-                            child: Switch(
-                              value: item.value,
-                              activeTrackColor: colors.primary,
-                              onChanged: enabled ? (_) {} : null,
-                            ),
+                          child: FlareSwitch(
+                            value: item.value,
+                            size: FlareControlSize.sm,
+                            disabled: !enabled,
                           ),
                         ),
                       ),
@@ -274,16 +282,41 @@ class FlareSettingsRow extends StatelessWidget {
                               detail,
                               maxWidth: constraints.maxWidth * 0.6,
                             ),
+                          ?badge,
                           chevron,
                         ],
                       ),
                     },
+                    if (item.kind != FlareSettingKind.navigation) ?badge,
                   ],
                 ),
               ),
       ),
     );
   }
+}
+
+/// The red dot of a [FlareSettingsItem.badge]. A screen reader hears it with
+/// the row.
+class _Dot extends StatelessWidget {
+  const _Dot();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: FlareStrings.of(context).settingsRowBadge,
+    child: Padding(
+      padding: const EdgeInsetsDirectional.only(start: FlareSizes.spacingSm),
+      child: SizedBox.square(
+        dimension: FlareSizes.spacingSm,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: FlareColors.of(context).error,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// A short value at the end of a row: one line, truncated when the row runs

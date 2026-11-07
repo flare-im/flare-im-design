@@ -63,12 +63,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
-private data class SizeSpec(val height: Int, val hPad: Int, val font: Int)
+internal fun FlareControlSize.visualHeight(): Dp = when (this) {
+    FlareControlSize.Sm -> FlareSizes.controlHeightSm
+    FlareControlSize.Md -> FlareSizes.controlHeightMd
+    FlareControlSize.Lg -> FlareSizes.controlHeightLg
+}
+
+private data class SizeSpec(val hPad: Dp, val font: Int)
 
 private fun sizeSpec(size: FlareControlSize) = when (size) {
-    FlareControlSize.Sm -> SizeSpec(32, 12, 13)
-    FlareControlSize.Md -> SizeSpec(40, 18, 14)
-    FlareControlSize.Lg -> SizeSpec(48, 24, 15)
+    FlareControlSize.Sm -> SizeSpec(FlareSizes.controlPadXSm, FlareSizes.fontSizeMd.value.toInt())
+    FlareControlSize.Md -> SizeSpec(FlareSizes.controlPadXMd, FlareSizes.fontSizeLg.value.toInt())
+    FlareControlSize.Lg -> SizeSpec(FlareSizes.controlPadXLg, FlareSizes.fontSizeXl.value.toInt())
 }
 
 /** Select trigger uses input-style (tighter) horizontal padding, not button padding. */
@@ -128,12 +134,12 @@ fun Button(
     var m = Modifier
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
         .then(if (maintainTouchTarget) Modifier.minimumInteractiveComponentSize() else Modifier)
-        .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else spec.height.dp, minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp).clip(shape).background(background)
+        .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else size.visualHeight(), minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp).clip(shape).background(background)
         .border(1.dp, borderColor, shape)
         .flareDimmed(if (disabled || onClick == null) 0.5f else 1f)
     m = m.clickable(interactionSource = interactionSource, indication = androidx.compose.foundation.LocalIndication.current,
         enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
-    m = m.padding(horizontal = if (appearance == FlareButtonAppearance.Text) 0.dp else spec.hPad.dp, vertical = FlareSizes.spacingSm)
+    m = m.padding(horizontal = if (appearance == FlareButtonAppearance.Text) 0.dp else spec.hPad, vertical = FlareSizes.spacing2xs)
 
     // A block button centres its label across the width, as on iOS and the web; a hugging one has no slack to place.
     Row(
@@ -187,9 +193,9 @@ fun IconButton(
     onClick: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    val dimDp: Dp = customSize ?: when (size) { FlareControlSize.Sm -> 30.dp; FlareControlSize.Md -> 38.dp; FlareControlSize.Lg -> 46.dp }
+    val dimDp: Dp = customSize ?: when (size) { FlareControlSize.Sm -> FlareSizes.componentIconButtonSideSm; FlareControlSize.Md -> FlareSizes.componentIconButtonSideMd; FlareControlSize.Lg -> FlareSizes.componentIconButtonSideLg }
     val glyphDp: Dp = if (customSize != null) (customSize.value * 0.46f).roundToInt().dp
-        else when (size) { FlareControlSize.Sm -> 16.dp; FlareControlSize.Md -> 19.dp; FlareControlSize.Lg -> 22.dp }
+        else when (size) { FlareControlSize.Sm -> FlareSizes.componentIconButtonGlyphSm; FlareControlSize.Md -> FlareSizes.componentIconButtonGlyphMd; FlareControlSize.Lg -> FlareSizes.componentIconButtonGlyphLg }
     val shape: Shape = if (square) RoundedCornerShape(FlareSizes.radiusMd) else CircleShape
     val (bgDerived, fgDerived) = when {
         active -> colors.bgSelected to colors.primary
@@ -250,19 +256,33 @@ fun FormField(
 /** Toggle switch. Spec: Form/Switch. */
 @Composable
 fun Switch(value: Boolean, disabled: Boolean = false, onChange: ((Boolean) -> Unit)? = null) {
-    val colors = flareColors()
-    val knobX by animateDpAsState(if (value) 21.dp else 3.dp, label = "knob")
     Box(
-        Modifier.width(44.dp).height(26.dp).clip(RoundedCornerShape(999.dp))
-            .background(if (value) colors.primary else colors.borderHover)
-            .flareDimmed(if (disabled) 0.5f else 1f)
-            .toggleable(value = value, enabled = !disabled && onChange != null, role = Role.Switch) { onChange?.invoke(it) },
+        Modifier.sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+            .toggleable(value = value, enabled = !disabled && onChange != null, role = Role.Switch) { onChange?.invoke(it) }
+            .flareDimmed(if (disabled) 0.5f else 1f),
+        contentAlignment = Alignment.Center,
+    ) { FlareSwitchTrack(value) }
+}
+
+@Composable
+internal fun FlareSwitchTrack(value: Boolean, size: FlareControlSize = FlareControlSize.Md) {
+    val colors = flareColors()
+    val (width, height, thumb) = when (size) {
+        FlareControlSize.Sm -> Triple(FlareSizes.componentSwitchWidthSm, FlareSizes.componentSwitchHeightSm, FlareSizes.componentSwitchThumbSm)
+        FlareControlSize.Md -> Triple(FlareSizes.componentSwitchWidthMd, FlareSizes.componentSwitchHeightMd, FlareSizes.componentSwitchThumbMd)
+        FlareControlSize.Lg -> Triple(FlareSizes.componentSwitchWidthLg, FlareSizes.componentSwitchHeightLg, FlareSizes.componentSwitchThumbLg)
+    }
+    val inset = (height - thumb) / 2
+    val knobX by animateDpAsState(if (value) width - thumb - inset else inset, label = "knob")
+    Box(
+        Modifier.width(width).height(height)
+            .background(if (value) colors.primary else colors.borderHover, CircleShape),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        // Knob — white disc with a soft drop shadow (parity with iOS/Flutter rgba(21,18,32,.28) blur 3 / y 1).
         Box(
-            Modifier.offset(x = knobX, y = 3.dp).size(20.dp)
+            Modifier.offset(x = knobX).size(thumb)
                 .shadow(2.dp, CircleShape, clip = false, ambientColor = Color(0xFF151220), spotColor = Color(0xFF151220))
-                .clip(CircleShape).background(Color.White),
+                .background(Color.White, CircleShape),
         )
     }
 }
@@ -281,7 +301,8 @@ fun Checkbox(
     val colors = flareColors()
     val on = value || indeterminate
     Row(
-        Modifier.flareDimmed(if (disabled) 0.5f else 1f)
+        Modifier.sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+            .flareDimmed(if (disabled) 0.5f else 1f)
             .triStateToggleable(
                 state = when { indeterminate -> ToggleableState.Indeterminate; value -> ToggleableState.On; else -> ToggleableState.Off },
                 enabled = !disabled && onChange != null,
@@ -290,7 +311,7 @@ fun Checkbox(
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
     ) {
         Box(
-            Modifier.size(20.dp).clip(RoundedCornerShape(FlareSizes.radiusSm))
+            Modifier.size(FlareSizes.iconSizeMd).clip(RoundedCornerShape(FlareSizes.radiusSm))
                 .background(if (on) colors.primary else colors.bgPrimary)
                 .border(1.5.dp, if (on) colors.primary else colors.borderHover, RoundedCornerShape(FlareSizes.radiusSm)),
             contentAlignment = Alignment.Center,
@@ -316,15 +337,16 @@ fun RadioGroup(
     val row: @Composable (FlareSelectOption) -> Unit = { o ->
         val on = o.value == value
         Row(
-            Modifier.flareDimmed(if (o.disabled) 0.5f else 1f)
+            Modifier.sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
+                .flareDimmed(if (o.disabled) 0.5f else 1f)
                 .selectable(selected = on, enabled = !o.disabled && onSelect != null, role = Role.RadioButton) { onSelect?.invoke(o.value) },
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
         ) {
             Box(
-                Modifier.size(18.dp).clip(CircleShape).background(colors.bgPrimary)
+                Modifier.size(FlareSizes.componentRadioIndicator).clip(CircleShape).background(colors.bgPrimary)
                     .border(1.5.dp, if (on) colors.primary else colors.borderHover, CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { if (on) Box(Modifier.size(9.dp).clip(CircleShape).background(colors.primary)) }
+            ) { if (on) Box(Modifier.size(FlareSizes.componentRadioDot).clip(CircleShape).background(colors.primary)) }
             Text(o.label, color = colors.textPrimary, fontSize = 14.sp)
         }
     }
@@ -358,7 +380,7 @@ fun Select(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
 
     Row(
-        Modifier.height(spec.height.dp).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
+        Modifier.height(size.visualHeight()).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
             .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
             .flareDimmed(if (disabled) 0.55f else 1f)
             // 停用要写进 clickable 里,而不是把整条 clickable 换掉 —— 换掉就连

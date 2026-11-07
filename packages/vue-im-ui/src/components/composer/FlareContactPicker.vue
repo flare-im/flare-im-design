@@ -25,6 +25,8 @@ const props = withDefaults(
     groups: FlareContactPickerGroup[];
     searchable?: boolean;
     multiple?: boolean;
+    /** Maximum selected entries; already chosen rows remain removable. */
+    maxSelected?: number;
     /** Header title; the kit's "Choose a contact" when omitted. */
     title?: string;
     /** The host is sending the card: the tapped row (multiple mode: the confirm key) spins; rows take no taps. */
@@ -120,8 +122,10 @@ watch([activeGroupId, query], () => {
 const isChosen = (entry: FlareContactPickerEntry): boolean => chosen.value.includes(entry.userId);
 const isPending = (entry: FlareContactPickerEntry): boolean =>
   props.sending && !props.multiple && pendingId.value === entry.userId;
+const atLimit = (entry: FlareContactPickerEntry): boolean => props.multiple && props.maxSelected !== undefined && chosen.value.length >= Math.max(0, props.maxSelected) && !isChosen(entry);
+watch(() => props.maxSelected, limit => { if (limit !== undefined) chosen.value = chosen.value.slice(0, Math.max(0, limit)); });
 function tap(entry: FlareContactPickerEntry): void {
-  if (props.sending) return;
+  if (props.sending || atLimit(entry)) return;
   if (!props.multiple) {
     pendingId.value = entry.userId;
     emit("select", [entry]);
@@ -148,7 +152,7 @@ function confirm(): void {
         <FlareButton
           v-if="multiple"
           size="sm"
-          :label="chosen.length ? `${t('contactPicker.confirm')} (${chosen.length})` : t('contactPicker.confirm')"
+          :label="chosen.length ? `${t('contactPicker.confirm')} (${chosen.length}${maxSelected === undefined ? '' : '/' + maxSelected})` : t('contactPicker.confirm')"
           :disabled="!chosen.length"
           :loading="sending"
           @click="confirm"
@@ -189,7 +193,7 @@ function confirm(): void {
           :aria-checked="multiple ? isChosen(entry) : undefined"
           :aria-selected="multiple ? undefined : isPending(entry)"
           :aria-busy="isPending(entry) ? 'true' : undefined"
-          :disabled="sending"
+          :disabled="sending || atLimit(entry)"
           :data-user-id="entry.userId"
           @click="tap(entry)"
         >

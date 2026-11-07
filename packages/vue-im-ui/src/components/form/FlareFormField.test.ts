@@ -15,6 +15,23 @@ function describedTargets(root: Element, control: Element): (Element | null)[] {
 }
 
 describe("FlareFormField control association", () => {
+  it("keeps the same named control, draft and error association when labels move alongside it", async () => {
+    const wrapper = mount(FlareFormField, {
+      props: { label: "搜索名称", error: "查询条件无效" },
+      slots: { default: () => h(FlareInput) },
+    });
+    await nextTick();
+    const input = wrapper.get("input");
+    await input.setValue("Alice");
+    const id = input.attributes("id");
+    await wrapper.setProps({ labelPlacement: "left" });
+    expect(wrapper.get("input").element).toBe(input.element);
+    expect((input.element as HTMLInputElement).value).toBe("Alice");
+    expect(wrapper.get("label").attributes("for")).toBe(id);
+    expect(input.attributes("aria-invalid")).toBe("true");
+    expect(describedTargets(wrapper.element, input.element)[0]?.textContent).toBe("查询条件无效");
+    wrapper.unmount();
+  });
   it("points the label at the nested Input and describes it with the hint, then the error", async () => {
     const error = ref<string | undefined>(undefined);
     const wrapper = mount(defineComponent({

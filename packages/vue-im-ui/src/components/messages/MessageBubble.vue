@@ -83,6 +83,7 @@ const props = defineProps<{
    * a bubble used on its own assumes the host can act.
    */
   quoteLocatable?: boolean;
+  interactiveSenderAvatar?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -108,6 +109,7 @@ const emit = defineEmits<{
   (event: "taskToggle", messageId: string, done: boolean): void;
   /** A tapped person's card, with its user id. Without a listener, or while selecting, cards only display. */
   (event: "cardOpen", messageId: string, userId: string): void;
+  (event: "senderOpen", userId: string): void;
   /** A tapped location card. Without a listener the card links to the web map; while selecting it does nothing. */
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
   /** The group read summary was tapped ("3 unread"); the host opens ReadReceiptSheet. Without a listener it is text. */
@@ -260,6 +262,7 @@ const showSenderAvatar = computed(
     && !props.multiSelectMode
     && rowPresentation.value.showAvatar,
 );
+const canOpenSender = computed(() => Boolean(props.interactiveSenderAvatar && props.message.senderId));
 const reserveAvatarSpace = computed(() =>
   !isSystemLike.value && !isRecalled.value && !props.multiSelectMode && rowPresentation.value.reserveAvatarSpace,
 );
@@ -604,12 +607,16 @@ function onRowClick(event: MouseEvent): void {
       <span v-if="selected" class="message-select__check" aria-hidden="true" />
     </button>
 
-    <div
+    <component
+      :is="canOpenSender ? 'button' : 'div'"
       v-if="showSenderAvatar"
+      :type="canOpenSender ? 'button' : undefined"
       class="message-avatar"
       :class="{ 'message-avatar--trailing': rowPresentation.avatarPlacement === 'trailing' }"
       :style="senderAvatarUrl ? undefined : { background: senderTint.bg, color: senderTint.fg }"
-      aria-hidden="true"
+      :aria-hidden="canOpenSender ? undefined : true"
+      :aria-label="canOpenSender ? senderLabel : undefined"
+      @click.stop="canOpenSender && emit('senderOpen', message.senderId)"
     >
       <img
         v-if="senderAvatarUrl"
@@ -618,7 +625,7 @@ function onRowClick(event: MouseEvent): void {
         loading="lazy"
       />
       <span v-else>{{ senderInitial }}</span>
-    </div>
+    </component>
 
     <div v-if="showSenderMeta" class="message-meta">
       <span class="message-meta__name">{{ senderLabel }}</span>

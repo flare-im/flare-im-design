@@ -17,4 +17,6 @@ export {
   type FlareLocale,
   type FlareMessageTree,
 } from "./messages";
-export { useFlareI18n, useFlareI18nProvider, listI18nKeys, flareTextDirection, type FlareI18nContext } from "./useFlareI18n";
+export { useFlareI18n, useFlareI18nProvider, listI18nKeys, flareTextDirection, readStoredLocale, type FlareI18nContext } from "./useFlareI18n";
+export { applyFlareResourceOverlay, type FlareResourceOverlayResult } from "./applyFlareResourceOverlay";
+export type { FlareResourcePack } from "../../utils/resourceOverlay";

@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// A wrapping row: subviews keep their ideal size and move to the next line when the line is full. Lines are aligned
-/// to the leading or the trailing edge, and each subview is centred in its line's height.
+/// to the leading edge, center, or trailing edge. Each subview is centred in its line's height.
 struct FlareFlowLayout: Layout {
-    enum Alignment { case leading, trailing }
+    enum Alignment { case leading, center, trailing }
 
     var spacing: CGFloat = 0
     var lineSpacing: CGFloat = 2
@@ -75,7 +75,11 @@ struct FlareFlowLayout: Layout {
         for line in Self.lines(sizes.map(\.width), maxWidth: bounds.width, spacing: spacing) {
             let lineWidth = line.map { sizes[$0].width }.reduce(0, +) + spacing * CGFloat(line.count - 1)
             let lineHeight = line.map { sizes[$0].height }.max() ?? 0
-            var x = alignment == .trailing ? bounds.maxX - lineWidth : bounds.minX
+            var x = switch alignment {
+            case .leading: bounds.minX
+            case .center: bounds.midX - lineWidth / 2
+            case .trailing: bounds.maxX - lineWidth
+            }
             for index in line {
                 let size = sizes[index]
                 if trailingLast && index == items.count - 1 { x = max(x, bounds.maxX - size.width) }

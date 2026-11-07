@@ -444,6 +444,53 @@ private struct StatusBannerDemo: View {
     }
 }
 
+private struct UpdateDemo: View {
+    @State private var presented = false
+    @State private var form: FlareUpdatePromptForm = .sheet
+    @State private var mandatory = false
+    private let notes = ["重连后消息同步更快", "语音播放更清晰"]
+
+    private func open(_ next: FlareUpdatePromptForm, mandatory forced: Bool = false) {
+        form = next; mandatory = forced; presented = true
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("ProgressBar（value / indeterminate / tone）").font(.system(size: 13, weight: .medium))
+                ProgressBarView(value: 0.42, label: "下载中")
+                ProgressBarView(value: 1, tone: .success, label: "已完成")
+                ProgressBarView(value: 0.86, tone: .warning, label: "接近上限")
+                ProgressBarView(value: 0.3, tone: .danger, label: "已中断")
+                ProgressBarView(indeterminate: true, label: "正在校验")
+                Text("UpdatePrompt（打开三种形态）").font(.system(size: 13, weight: .medium))
+                ButtonView(label: "可选版本 · sheet", variant: .secondary) { open(.sheet) }
+                ButtonView(label: "推荐版本 · modal", variant: .secondary) { open(.modal) }
+                ButtonView(label: "强制版本 · fullscreen", variant: .secondary) { open(.fullscreen, mandatory: true) }
+                UpdatePromptView(form: .modal, version: "2.4.0", sizeBytes: 52_428_800, state: "downloading",
+                                 progress: FlareUpdateProgress(received: 26_214_400, total: 52_428_800), onLater: {})
+                UpdatePromptView(form: .modal, version: "2.4.0", state: "failed", errorCode: "update.downloadFailed",
+                                 onLater: {}, onRetry: {}, onFallback: {})
+                Text("VersionPanel").font(.system(size: 13, weight: .medium))
+                VersionPanelView(version: "2.3.2", build: 20302, channel: "stable", updateState: "available",
+                                 onCheck: {}, onUpdate: {})
+            }
+            .padding()
+        }
+        .flareUpdatePrompt(isPresented: $presented, prompt: UpdatePromptView(
+            form: form, version: "2.4.0", notes: notes, sizeBytes: 52_428_800, mandatory: mandatory,
+            state: mandatory ? "required" : "available",
+            onUpdate: { presented = false }, onLater: { presented = false }, onSkip: { presented = false }))
+    }
+}
+
+struct FlareUpdate_Previews: PreviewProvider {
+    static var previews: some View {
+        UpdateDemo()
+        UpdateDemo().preferredColorScheme(.dark)
+    }
+}
+
 struct FlareStatusBanner_Previews: PreviewProvider {
     static var previews: some View {
         StatusBannerDemo()

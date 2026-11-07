@@ -169,23 +169,56 @@ public func resolveComposerActions(
         .map(\.element)
 }
 
-/// The composer's bottom function area (下方功能区) — an inline grid of attachment
-/// actions. Composable part; reveal it under the input. This is the one
+/// How ``FlareComposerActionPanel`` lays out: a phone pages the grid sideways, a desktop shows at most `rows` rows and
+/// scrolls the rest.
+public enum FlareComposerPanelFormFactor: Sendable {
+    case mobile, desktop
+}
+
+/// The pages of a "+" grid on a phone: `rows` × `columns` tiles each, in order.
+func composerPanelPages<T>(_ items: [T], rows: Int, columns: Int) -> [[T]] {
+    let size = max(1, rows * columns)
+    return stride(from: 0, to: items.count, by: size).map { Array(items[$0..<min($0 + size, items.count)]) }
+}
+
+/// The page a reader stays on when the list changes: the same one, clamped when pages go away.
+func composerPanelPage(_ current: Int, pages: Int) -> Int { min(max(0, current), max(0, pages - 1)) }
+
+/// The composer's inline grid of attachment actions. The composer positions it
+/// for the available width. This is the one
 /// attachment grid; the message long-press sheet is ``MessageActionSheetView``.
+///
+/// Items are ordered by `order`, then by position. On a phone (`formFactor` `.mobile`) the grid pages sideways,
+/// `rows` × `columns` per page, with page dots; on a desktop it shows at most `rows` rows and scrolls. A new list keeps
+/// the page the reader is on (clamped when pages go away); a tile that appears fades in (150 ms, none with reduced
+/// motion).
 public struct FlareComposerActionPanel: View {
     private let actions: [FlareComposerAction]?
     private let capabilities: FlareComposerCapabilities
     private let columns: Int
+    private let formFactor: FlareComposerPanelFormFactor
+    private let rows: Int?
     private let onAction: ((FlareComposerAction) -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var page = 0
+    @GestureState private var drag: CGFloat = 0
 
+    /// Height of one row of tiles.
+    public static let rowHeight: CGFloat = 76
+
+    /// `rows`: rows per page on a phone (default 2), most rows shown on a desktop (default 3).
     public init(actions: [FlareComposerAction]? = nil,
                 capabilities: FlareComposerCapabilities = FlareComposerCapabilities(),
-                columns: Int = 4, onAction: ((FlareComposerAction) -> Void)? = nil) {
+                columns: Int = 4,
+                formFactor: FlareComposerPanelFormFactor = .mobile,
+                rows: Int? = nil,
+                onAction: ((FlareComposerAction) -> Void)? = nil) {
         self.actions = actions; self.capabilities = capabilities
-        self.columns = columns; self.onAction = onAction
+        self.columns = max(1, columns); self.formFactor = formFactor
+        self.rows = rows; self.onAction = onAction
     }
 
     /// The built-in feature ids in panel order, the same on every platform (`composerActions.defaults`). Polls come
@@ -210,6 +243,12 @@ public struct FlareComposerActionPanel: View {
     /// view resolves them from the environment instead.
     public static let defaultActions: [FlareComposerAction] = actions(for: FlareStrings())
 
+    private var paged: Bool { formFactor == .mobile }
+    private var rowCount: Int { max(1, rows ?? (paged ? 2 : 3)) }
+    private var gridHeight: CGFloat {
+        CGFloat(rowCount) * Self.rowHeight + CGFloat(rowCount - 1) * FlareSizes.spacingLg
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let actions = resolveComposerActions(
@@ -217,9 +256,72 @@ public struct FlareComposerActionPanel: View {
             capabilities: capabilities,
             actions: self.actions
         )
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns),
+        Group {
+            if paged {
+                let pages = composerPanelPages(actions, rows: rowCount, columns: columns)
+                let current = composerPanelPage(page, pages: pages.count)
+                VStack(spacing: FlareSizes.spacingSm) {
+                    GeometryReader { geometry in
+                        let width = geometry.size.width
+                        HStack(alignment: .top, spacing: 0) {
+                            ForEach(pages.indices, id: \.self) { index in
+                                grid(pages[index], colors)
+                                    .frame(width: width, height: gridHeight, alignment: .top)
+                                    // Another page is off screen: VoiceOver pages with a scroll instead.
+                                    .accessibilityHidden(index != current)
+                            }
+                        }
+                        .offset(x: -CGFloat(current) * width + drag)
+                        .animation(reduceMotion ? nil : .easeOut(duration: FlareMotion.fast), value: current)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 10)
+                                .updating($drag) { value, state, _ in state = value.translation.width }
+                                .onEnded { value in
+                                    let threshold = width / 4
+                                    if value.translation.width < -threshold { page = min(current + 1, pages.count - 1) }
+                                    if value.translation.width > threshold { page = max(current - 1, 0) }
+                                }
+                        )
+                    }
+                    .frame(height: gridHeight)
+                    .clipped()
+                    .accessibilityElement(children: .contain)
+                    .accessibilityScrollAction { edge in
+                        switch edge {
+                        case .trailing: page = min(current + 1, pages.count - 1)
+                        case .leading: page = max(current - 1, 0)
+                        default: break
+                        }
+                    }
+                    if pages.count > 1 {
+                        // The pager carries paging for VoiceOver; the dots only show where the reader is.
+                        HStack(spacing: FlareSizes.spacingXs) {
+                            ForEach(pages.indices, id: \.self) { index in
+                                Capsule()
+                                    .fill(index == current ? colors.primary : colors.borderPrimary)
+                                    .frame(width: index == current ? 12 : 5, height: 5)
+                            }
+                        }
+                        .animation(reduceMotion ? nil : .easeOut(duration: FlareMotion.fast), value: current)
+                        .accessibilityHidden(true)
+                    }
+                }
+            } else {
+                ScrollView(showsIndicators: true) { grid(actions, colors) }
+                    .frame(maxHeight: gridHeight)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: FlareMotion.fast), value: actions.map(\.id))
+        .padding(FlareSizes.spacingLg)
+        .frame(maxWidth: .infinity)
+        .background(colors.bgPrimary)
+    }
+
+    private func grid(_ items: [FlareComposerAction], _ colors: FlareColors) -> some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: columns),
                   spacing: FlareSizes.spacingLg) {
-            ForEach(actions) { action in
+            ForEach(items) { action in
                 let label = action.resolvedLabel(strings)
                 Button { onAction?(action) } label: {
                     VStack(spacing: FlareSizes.spacingXs) {
@@ -230,18 +332,18 @@ public struct FlareComposerActionPanel: View {
                         }
                         Text(label).font(.system(size: FlareSizes.fontSizeXs))
                             .foregroundColor(colors.textSecondary)
+                            .lineLimit(1)
                     }
+                    .frame(maxWidth: .infinity, minHeight: Self.rowHeight, maxHeight: Self.rowHeight, alignment: .top)
                 }
                 .buttonStyle(.plain)
                 .disabled(!action.enabled)
                 .opacity(action.enabled ? 1 : FlareOpacity.disabled)
                 .accessibilityLabel(action.accessibilityLabel ?? label)
                 .accessibilityHint(action.enabled ? "" : (action.disabledReason ?? ""))
+                .transition(.opacity)
             }
         }
-        .padding(FlareSizes.spacingLg)
-        .frame(maxWidth: .infinity)
-        .background(colors.bgPrimary)
     }
 }
 

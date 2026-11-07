@@ -14,7 +14,20 @@
  * It is a `search` landmark, not a `<form>`: a host button in the `actions` slot is then never a
  * submit button by accident, and nothing posts anywhere.
  */
-import { computed, onBeforeUnmount, onMounted, ref, useId, useSlots } from "vue";
+import {
+  computed,
+  h,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  useSlots,
+} from "vue";
+import {
+  flattenQueryFields,
+  useFirstRowCollapse,
+} from "../../composables/useFirstRowCollapse";
+import type { FlareControlSize } from "../../shared/contracts";
 import FlareButton from "./FlareButton.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { flareIcons } from "../../shared/icons";
@@ -35,6 +48,12 @@ const props = withDefaults(
     resettable?: boolean;
     /** How many of the folded fields hold a value: shown on the "More filters" key while they are folded. */
     moreActiveCount?: number;
+    /** All fields participate in layout; fold only rows after the first actual row. */
+    collapseOverflow?: boolean;
+    disabled?: boolean;
+    size?: FlareControlSize;
+    expandText?: string;
+    collapseText?: string;
   }>(),
   {
     label: undefined,
@@ -44,6 +63,8 @@ const props = withDefaults(
     resetText: undefined,
     resettable: true,
     moreActiveCount: 0,
+    collapseOverflow: false,
+    disabled: false,
   },
 );
 /** Whether the `more` fields are shown (v-model:expanded). */
@@ -62,7 +83,8 @@ const moreId = `flare-filter-bar-more-${uid}`;
 const name = computed(() => props.label || t("filterBar.label"));
 const hasMore = computed(() => Boolean(slots.more));
 const toggleText = computed(() => {
-  if (expanded.value) return t("filterBar.less");
+  if (expanded.value) return props.collapseText ?? t("filterBar.less");
+  if (props.expandText) return props.expandText;
   const count = Math.max(0, Math.floor(props.moreActiveCount));
   return count > 0 ? t("filterBar.moreCount", { count }) : t("filterBar.more");
 });
@@ -72,30 +94,66 @@ const toggleText = computed(() => {
 // read off the laid-out grid rather than guessed from a breakpoint.
 const fields = ref<HTMLElement | null>(null);
 const columnCount = ref(0);
+const overflowFields = ref<HTMLElement | null>(null);
+const { firstRowCount, firstRowHeight, overflowing } = useFirstRowCollapse(
+  overflowFields,
+  expanded,
+);
+// Render each real control once. Folded cells retain layout for stable row measurement,
+// but visibility + inert remove them from pointer, keyboard and accessibility navigation.
+const OverflowCells = () =>
+  flattenQueryFields([
+    ...(slots.default?.() ?? []),
+    ...(slots.more?.() ?? []),
+  ]).map((node, index) => {
+    const folded =
+      !expanded.value && overflowing.value && index >= firstRowCount.value;
+    return h(
+      "div",
+      {
+        key: node.key ?? index,
+        class: ["flare-filter-bar__cell", { "is-folded": folded }],
+        inert: folded ? true : undefined,
+        "aria-hidden": folded ? "true" : undefined,
+      },
+      [node],
+    );
+  });
 let observer: ResizeObserver | null = null;
 function measure(): void {
   const grid = fields.value;
   if (!grid || typeof getComputedStyle === "undefined") return;
   const template = getComputedStyle(grid).gridTemplateColumns;
-  columnCount.value = template && template !== "none" ? template.trim().split(/\s+/).length : 0;
+  columnCount.value =
+    template && template !== "none" ? template.trim().split(/\s+/).length : 0;
 }
 onMounted(() => {
   measure();
   if (!fields.value || typeof ResizeObserver === "undefined") return;
   observer = new ResizeObserver(measure);
-  observer.observe(fields.value);
+  if (fields.value) observer.observe(fields.value);
 });
 onBeforeUnmount(() => observer?.disconnect());
-const actionsStyle = computed(() => ({ gridColumn: columnCount.value >= 2 ? "span 2 / -1" : "1 / -1" }));
+const actionsStyle = computed(() => ({
+  gridColumn: columnCount.value >= 2 ? "span 2 / -1" : "1 / -1",
+}));
 
 /** One-line fields whose Enter means "run the query". */
-const SEARCHING_INPUT_TYPES = new Set(["text", "search", "email", "tel", "url", "number", "password"]);
+const SEARCHING_INPUT_TYPES = new Set([
+  "text",
+  "search",
+  "email",
+  "tel",
+  "url",
+  "number",
+  "password",
+]);
 
 function search(): void {
-  if (!props.loading) emit("search");
+  if (!props.loading && !props.disabled) emit("search");
 }
 function reset(): void {
-  emit("reset");
+  if (!props.disabled) emit("reset");
 }
 function toggleMore(): void {
   expanded.value = !expanded.value;
@@ -105,7 +163,11 @@ function onKeydown(event: KeyboardEvent): void {
   if (event.isComposing || event.keyCode === 229) return;
   if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
   const target = event.target;
-  if (!(target instanceof HTMLInputElement) || !SEARCHING_INPUT_TYPES.has(target.type)) return;
+  if (
+    !(target instanceof HTMLInputElement) ||
+    !SEARCHING_INPUT_TYPES.has(target.type)
+  )
+    return;
   if (target.getAttribute("aria-expanded") === "true") return;
   event.preventDefault();
   search();
@@ -115,15 +177,76 @@ function onKeydown(event: KeyboardEvent): void {
 <template>
   <div
     class="flare-filter-bar"
+    :class="{ 'flare-filter-bar--overflow': collapseOverflow }"
     role="search"
     :aria-label="name"
     :aria-describedby="hint ? hintId : undefined"
     @keydown="onKeydown"
   >
     <p v-if="hint" :id="hintId" class="flare-filter-bar__hint">{{ hint }}</p>
-    <div ref="fields" class="flare-filter-bar__fields">
+    <div v-if="collapseOverflow" class="flare-filter-bar__overflow-layout">
+      <div
+        class="flare-filter-bar__viewport"
+        :style="
+          !expanded && overflowing
+            ? { maxHeight: firstRowHeight + 'px' }
+            : undefined
+        "
+      >
+        <div
+          :id="moreId"
+          ref="overflowFields"
+          class="flare-filter-bar__overflow-fields"
+        >
+          <OverflowCells />
+        </div>
+      </div>
+      <div class="flare-filter-bar__actions flare-filter-bar__overflow-actions">
+        <FlareButton
+          class="flare-filter-bar__search"
+          :size="size"
+          :label="searchText ?? t('filterBar.search')"
+          :loading="loading"
+          :disabled="disabled"
+          @click="search"
+        />
+        <FlareButton
+          v-if="resettable"
+          class="flare-filter-bar__reset"
+          :size="size"
+          variant="secondary"
+          :label="resetText ?? t('filterBar.reset')"
+          :disabled="disabled"
+          @click="reset"
+        />
+        <FlareButton
+          class="flare-filter-bar__toggle"
+          :class="{ 'is-unneeded': !overflowing }"
+          :size="size"
+          variant="text"
+          :icon="
+            expanded ? flareIcons['chevron-up'] : flareIcons['chevron-down']
+          "
+          :label="toggleText"
+          :aria-expanded="expanded ? 'true' : 'false'"
+          :aria-controls="moreId"
+          :aria-hidden="!overflowing ? 'true' : undefined"
+          :tabindex="!overflowing ? -1 : undefined"
+          :disabled="disabled || !overflowing"
+          @click="toggleMore"
+        />
+        <slot name="actions" />
+      </div>
+    </div>
+    <div v-else ref="fields" class="flare-filter-bar__fields">
       <slot />
-      <div v-if="hasMore && expanded" :id="moreId" class="flare-filter-bar__more"><slot name="more" /></div>
+      <div
+        v-if="hasMore && expanded"
+        :id="moreId"
+        class="flare-filter-bar__more"
+      >
+        <slot name="more" />
+      </div>
       <div class="flare-filter-bar__actions" :style="actionsStyle">
         <FlareButton
           class="flare-filter-bar__search"
@@ -142,7 +265,9 @@ function onKeydown(event: KeyboardEvent): void {
           v-if="hasMore"
           class="flare-filter-bar__toggle"
           variant="text"
-          :icon="expanded ? flareIcons['chevron-up'] : flareIcons['chevron-down']"
+          :icon="
+            expanded ? flareIcons['chevron-up'] : flareIcons['chevron-down']
+          "
           :label="toggleText"
           :aria-expanded="expanded ? 'true' : 'false'"
           :aria-controls="expanded ? moreId : undefined"
@@ -171,14 +296,21 @@ function onKeydown(event: KeyboardEvent): void {
    (the whole row on a one-column grid), so Search, Reset and More sit on one line beside the fields. */
 .flare-filter-bar__fields {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--flare-component-filter-bar-field-min-width)), 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--flare-component-filter-bar-field-min-width)), 1fr)
+  );
   align-items: end;
   gap: var(--flare-size-spacing-md) var(--flare-size-spacing-lg);
   min-width: 0;
 }
-.flare-filter-bar__fields > :deep(*) { min-width: 0; }
+.flare-filter-bar__fields > :deep(*) {
+  min-width: 0;
+}
 /* The folded fields are grid cells like the others, not a nested block. */
-.flare-filter-bar__more { display: contents; }
+.flare-filter-bar__more {
+  display: contents;
+}
 .flare-filter-bar__actions {
   display: flex;
   flex-wrap: wrap;
@@ -186,5 +318,53 @@ function onKeydown(event: KeyboardEvent): void {
   justify-content: flex-end;
   gap: var(--flare-size-spacing-sm);
   min-width: 0;
+}
+.flare-filter-bar--overflow {
+  container-type: inline-size;
+}
+.flare-filter-bar__overflow-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--flare-size-spacing-md);
+}
+.flare-filter-bar__viewport {
+  min-width: 0;
+  overflow: hidden;
+}
+.flare-filter-bar__overflow-fields {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--flare-component-filter-bar-field-min-width)), 1fr)
+  );
+  align-items: end;
+  gap: var(--flare-size-spacing-md) var(--flare-size-spacing-md);
+  min-width: 0;
+}
+.flare-filter-bar__overflow-fields :deep(.flare-filter-bar__cell) {
+  min-width: 0;
+}
+.flare-filter-bar__overflow-fields :deep(.flare-filter-bar__cell.is-folded) {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Reserving the toggle's small footprint avoids resize hysteresis: showing it must
+   not itself cause the overflow which decides whether it should be shown. */
+.flare-filter-bar__toggle.is-unneeded {
+  visibility: hidden;
+  pointer-events: none;
+}
+.flare-filter-bar__overflow-actions {
+  padding-top: calc(var(--flare-size-font-size-md) * 1.2 + 6px);
+}
+@container (max-width: 560px) {
+  .flare-filter-bar__overflow-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .flare-filter-bar__overflow-actions {
+    padding-top: 0;
+    justify-content: flex-start;
+  }
 }
 </style>

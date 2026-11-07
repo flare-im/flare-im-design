@@ -63,10 +63,13 @@ internal fun FlareComposerEmojiEditText(
     textDecoration: TextDecoration,
     modifier: Modifier = Modifier,
     emojiSize: Dp = 26.dp,
+    onFocus: () -> Unit = {},
+    cursorAfterReplacement: Int? = null,
 ) {
     val catalogLoaded = rememberCatalogLoaded()
     val catalogRevision by FlareEmojiStickerCatalog.revision.collectAsState()
     val currentOnValueChange = rememberUpdatedState(onValueChange)
+    val currentOnFocus = rememberUpdatedState(onFocus)
     val emojiSizePx = with(LocalDensity.current) { emojiSize.roundToPx() }
     val editorHolder = remember { arrayOfNulls<FlareEmojiEditText>(1) }
     var focusedState by remember { mutableStateOf(false) }
@@ -104,7 +107,10 @@ internal fun FlareComposerEmojiEditText(
         factory = { context ->
             FlareEmojiEditText(context).apply {
                 editorHolder[0] = this
-                setOnFocusChangeListener { _, focused -> focusedState = focused }
+                setOnFocusChangeListener { _, focused ->
+                    focusedState = focused
+                    if (focused) currentOnFocus.value()
+                }
                 rawTextChanged = { currentOnValueChange.value(it) }
             }
         },
@@ -124,6 +130,7 @@ internal fun FlareComposerEmojiEditText(
                 renderEmoji = catalogLoaded,
                 emojiSizePx = emojiSizePx,
                 catalogRevision = catalogRevision,
+                cursorAfterReplacement = cursorAfterReplacement,
             )
         },
     )
@@ -169,6 +176,7 @@ private class FlareEmojiEditText(context: Context) : EditText(context) {
         renderEmoji: Boolean,
         emojiSizePx: Int,
         catalogRevision: Int,
+        cursorAfterReplacement: Int?,
     ) {
         isEnabled = enabled
         this.hint = hint
@@ -189,10 +197,10 @@ private class FlareEmojiEditText(context: Context) : EditText(context) {
         paint.isUnderlineText = underline
 
         if (text.toString() != raw) {
-            val oldSelection = selectionStart.coerceAtLeast(0)
+            val nextSelection = cursorAfterReplacement ?: selectionStart.coerceAtLeast(0)
             syncing = true
             setText(raw)
-            setSelection(oldSelection.coerceAtMost(raw.length))
+            setSelection(nextSelection.coerceAtMost(raw.length))
             syncing = false
         }
         if (appliedCatalogRevision != catalogRevision) {

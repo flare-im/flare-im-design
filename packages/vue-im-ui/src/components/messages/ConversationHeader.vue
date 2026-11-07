@@ -135,9 +135,16 @@ function localizedLabel(action: HeaderAction): string {
   return action.label === defaultEnglish[action.id] ? (defaults[action.id] ?? action.label) : action.label;
 }
 
+/** `aria-label` replaces a button's content, so a dot is said in the button's name. */
+function withDot(description: string, dot: boolean | undefined): string {
+  return dot ? `${description}, ${t("settingsRow.badge")}` : description;
+}
+
 function actionDescription(action: HeaderAction): string {
-  if (action.enabled === false && action.disabledReason) return `${localizedLabel(action)}: ${action.disabledReason}`;
-  return action.accessibilityLabel ?? localizedLabel(action);
+  if (action.enabled === false && action.disabledReason) {
+    return withDot(`${localizedLabel(action)}: ${action.disabledReason}`, action.dot);
+  }
+  return withDot(action.accessibilityLabel ?? localizedLabel(action), action.dot);
 }
 
 /** The identity block names the conversation and what activating it does. */
@@ -164,6 +171,7 @@ function menuItems(actions: readonly HeaderAction[]): FlareActionItem[] {
     enabled: action.enabled,
     disabledReason: action.disabledReason,
     badge: action.badge,
+    dot: action.dot,
     accessibilityLabel: actionDescription(action),
     pressed: action.pressed,
   }));
@@ -173,6 +181,9 @@ const addItems = computed(() => menuItems(addActions.value));
 const moreItems = computed(() => menuItems(overflowActions.value));
 /** A More menu holding one action is a detour: that action takes the More button itself. */
 const soleOverflowAction = computed(() => (overflowActions.value.length === 1 ? overflowActions.value[0] : null));
+/** A dot on an action inside the More menu shows on the More button: otherwise nothing leads there. */
+const moreMenuDot = computed(() => overflowActions.value.some((action) => action.dot));
+const moreMenuLabel = computed(() => withDot(t("conversationHeader.moreActions"), moreMenuDot.value));
 
 function selectAction(id: string | number, source: readonly HeaderAction[]): void {
   const action = source.find((item) => item.id === String(id));
@@ -288,6 +299,7 @@ onBeforeUnmount(() => observer?.disconnect());
             <FlareIcon :name="iconName(action)" :size="20" />
           </slot>
           <span v-if="action.badge" class="flare-conversation-header__badge">{{ action.badge }}</span>
+          <span v-else-if="action.dot" class="flare-conversation-header__dot" aria-hidden="true" />
         </button>
       </slot>
 
@@ -322,6 +334,7 @@ onBeforeUnmount(() => observer?.disconnect());
       >
         <FlareIcon name="more" :size="21" />
         <span v-if="soleOverflowAction.badge" class="flare-conversation-header__badge">{{ soleOverflowAction.badge }}</span>
+        <span v-else-if="soleOverflowAction.dot" class="flare-conversation-header__dot" aria-hidden="true" />
       </button>
       <FlareActionMenu
         v-else-if="overflowActions.length"
@@ -332,11 +345,12 @@ onBeforeUnmount(() => observer?.disconnect());
         <button
           type="button"
           class="flare-conversation-header__icon-button"
-          :title="t('conversationHeader.moreActions')"
-          :aria-label="t('conversationHeader.moreActions')"
+          :title="moreMenuLabel"
+          :aria-label="moreMenuLabel"
           data-header-menu="more"
         >
           <FlareIcon name="more" :size="21" />
+          <span v-if="moreMenuDot" class="flare-conversation-header__dot" aria-hidden="true" />
         </button>
       </FlareActionMenu>
 
@@ -499,6 +513,17 @@ onBeforeUnmount(() => observer?.disconnect());
   font-size: 9px;
   font-weight: 700;
   line-height: 11px;
+}
+
+/* 和 FlareSettingsRow 的红点同一画法，贴在图标右上角。 */
+.flare-conversation-header__dot {
+  position: absolute;
+  top: var(--flare-size-spacing-sm);
+  inset-inline-end: var(--flare-size-spacing-sm);
+  width: var(--flare-size-spacing-sm);
+  height: var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-error);
 }
 
 .flare-conversation-header--compact {

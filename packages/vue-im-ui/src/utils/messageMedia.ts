@@ -137,7 +137,7 @@ export function listMessageMediaDownloadSources(
         payload,
         source: asRecord(payload.source),
         idKeys: ["fileId", "imageId", "id", "uuid"],
-        fallbackName: "image.jpg",
+        fallbackName: "image",
       }),
     ].filter(Boolean) as MessageMediaDownloadSource[];
   }

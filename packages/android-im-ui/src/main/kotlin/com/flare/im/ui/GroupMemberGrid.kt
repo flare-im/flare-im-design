@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -30,14 +32,15 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Group member grid. Spec: Contacts/GroupMemberGrid. [total] is the group's member count for the header when
- * [members] is a preview of the first few (defaults to the members shown).
+ * [total] is the display count when [members] holds a preview or a permission-filtered roster.
+ * [onViewAll] makes the header a navigation button, including when the preview is empty.
  */
 @Suppress("NAME_SHADOWING")
 @Composable
@@ -55,6 +58,7 @@ fun GroupMemberGrid(
     addLabel: String? = null,
     memberCountText: ((Int) -> String)? = null,
     total: Int? = null,
+    onViewAll: (() -> Unit)? = null,
 ) {
     val strings = flareStrings()
     val title = title ?: strings.groupMembers
@@ -69,10 +73,17 @@ fun GroupMemberGrid(
         else -> null
     }
     Column(Modifier.padding(FlareSizes.spacingLg)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        val header = if (onViewAll != null) {
+            Modifier.heightIn(min = FlareSizes.touchTarget).clickable(role = Role.Button, onClick = onViewAll)
+        } else Modifier
+        Row(Modifier.fillMaxWidth().then(header), verticalAlignment = Alignment.CenterVertically) {
             Text(title, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
-                fontSize = FlareSizes.fontSizeLg.value.sp)
+                fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
             Text(memberCountText(total ?: members.size), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+            if (onViewAll != null) {
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null,
+                    tint = colors.textTertiary, modifier = Modifier.size(20.dp))
+            }
         }
         Spacer(Modifier.height(FlareSizes.spacing2md))
         LazyVerticalGrid(

@@ -44,12 +44,16 @@ export { default as FlareEmojiStickerPicker } from "./composer/EmojiStickerPicke
 export { default as FlareComposerRichInput } from "./composer/ComposerRichMarkdownInput.vue";
 export { default as FlareMessageActionSheet } from "./messages/MessageActionSheet.vue";
 export { default as FlareStartConversationDialog } from "./shell/FlareStartConversationDialog.vue";
+export { default as FlareConnectionNotice } from "./shell/FlareConnectionNotice.vue";
+export { default as FlareAccessDiagnostics } from "./shell/FlareAccessDiagnostics.vue";
+export { default as FlareUpdatePrompt } from "./shell/FlareUpdatePrompt.vue";
 
 // Phase C — general / contacts
 export { default as FlareSearchBar } from "./general/FlareSearchBar.vue";
 export { default as FlareInput } from "./general/FlareInput.vue";
 export { default as FlareEmptyState } from "./general/FlareEmptyState.vue";
 export { default as FlareStatusBanner } from "./general/FlareStatusBanner.vue";
+export { default as FlareProgressBar } from "./general/FlareProgressBar.vue";
 export { default as FlareFilterTabs } from "./general/FlareFilterTabs.vue";
 export type { FlareFilterTabOption } from "./general/FlareFilterTabs.vue";
 export { default as FlareContactItem } from "./contacts/FlareContactItem.vue";
@@ -60,9 +64,10 @@ export { default as FlareGroupList } from "./contacts/FlareGroupList.vue";
 export { default as FlareProfilePanel } from "./profile/FlareProfilePanel.vue";
 export { default as FlareProfileEditor } from "./profile/FlareProfileEditor.vue";
 export { default as FlareSettingsList } from "./profile/FlareSettingsList.vue";
+export { default as FlareVersionPanel } from "./profile/FlareVersionPanel.vue";
 export { default as FlareSettingsRow } from "./profile/FlareSettingsRow.vue";
-export { default as FlareCallView } from "./call/FlareCallView.vue";
 export { default as FlareCallSurface } from "./call/FlareCallSurface.vue";
+export { default as FlareCallView } from "./call/FlareCallView.vue";
 export { default as FlareGroupCallView } from "./call/FlareGroupCallView.vue";
 export { default as FlareIncomingCall } from "./call/FlareIncomingCall.vue";
 export { default as FlareCallControls } from "./call/FlareCallControls.vue";
@@ -173,6 +178,7 @@ export { default as FlarePermissionTree } from "./data/FlarePermissionTree.vue";
 export type { FlarePermissionCheckState, FlarePermissionNode } from "./data/permission-tree";
 // Console detail and query surfaces — a record's facts, a raw payload, a status label, a query form
 export { default as FlareDescriptionList } from "./data/FlareDescriptionList.vue";
+export { default as FlareAdminSection } from "./data/FlareAdminSection.vue";
 export type { FlareDescriptionItem, FlareDescriptionLabelPlacement, FlareDescriptionValue } from "./data/description-list";
 export { default as FlareCodeBlock } from "./data/FlareCodeBlock.vue";
 export { default as FlareTag } from "./general/FlareTag.vue";
@@ -182,6 +188,7 @@ export { default as FlareFilterBar } from "./general/FlareFilterBar.vue";
 export { default as FlareButton } from "./general/FlareButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";
 export { default as FlareIcon } from "./general/FlareIcon.vue";
+export { default as FlareImageUploadSlot } from "./media/FlareImageUploadSlot.vue";
 export { default as FlareBrandLogo } from "./general/FlareBrandLogo.vue";
 export { default as FlareBottomSheet } from "./general/FlareBottomSheet.vue";
 export { default as FlareActionMenu } from "./general/FlareActionMenu.vue";
@@ -297,3 +304,5 @@ export { default as FlareAccountView } from "./messages/account/FlareAccountView
 
 export { default as FlareUserIdentity } from "./data/FlareUserIdentity.vue";
 export type { FlareUserIdentityValue } from "./data/FlareUserIdentity.vue";
+export { default as FlareAdminIconPicker } from "./form/FlareAdminIconPicker.vue";
+export type { FlareAdminIconOption } from "./form/FlareAdminIconPicker.vue";

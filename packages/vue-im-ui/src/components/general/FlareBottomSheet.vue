@@ -91,7 +91,7 @@ function modalListeners(): Record<string, () => void> {
   return hostListensClose() ? { onClose: () => emit("close") } : {};
 }
 
-const { overlayContainer } = useFlareModalSurface({
+const { overlayContainer, stackIndex } = useFlareModalSurface({
   open: () => props.open && resolvedPresentation.value === "sheet",
   surface: sheetEl,
   dismissible: () => props.dismissible,
@@ -119,7 +119,7 @@ const { overlayContainer } = useFlareModalSurface({
   </FlareModal>
   <Teleport v-else :to="overlayContainer">
     <transition name="flare-sheet-fade">
-      <div v-if="open" class="flare-overlay-scrim flare-sheet-scrim" @click="dismissible && emit('close')">
+      <div v-if="open" class="flare-overlay-scrim flare-sheet-scrim" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="dismissible && emit('close')">
         <div
           ref="sheetEl"
           class="flare-sheet"

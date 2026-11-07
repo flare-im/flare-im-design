@@ -143,7 +143,7 @@ void main() {
       ),
     );
     expect(find.text('免打扰'), findsOneWidget);
-    expect(find.byType(Switch), findsOneWidget);
+    expect(find.byType(FlareSwitch), findsOneWidget);
   });
 
   testWidgets('Call components render + hangup', (tester) async {

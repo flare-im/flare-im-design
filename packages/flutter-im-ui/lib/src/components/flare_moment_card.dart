@@ -11,6 +11,9 @@ import 'flare_image_grid.dart';
 import 'flare_moment_action_popover.dart';
 import 'icon_control.dart';
 
+/// Elevated for an isolated detail; flat for a continuous Moments timeline.
+enum FlareMomentPresentation { card, feed }
+
 /// A single moment (social-feed post): author, text, image grid, location, a
 /// meta row with a ··· menu that raises a [FlareMomentActionPopover], and a
 /// social panel of likes + comments. Spec: Moments/Card (`FlareMomentCard`).
@@ -24,6 +27,7 @@ class FlareMomentCard extends StatefulWidget {
   const FlareMomentCard({
     super.key,
     required this.moment,
+    this.presentation = FlareMomentPresentation.card,
     this.canDelete = false,
     this.canReport = false,
     this.onLike,
@@ -37,6 +41,10 @@ class FlareMomentCard extends StatefulWidget {
   });
 
   final FlareMoment moment;
+
+  /// Feed rows share the page surface, without a shadow, rounded frame or
+  /// nested social card. A hairline separates posts instead of a card gap.
+  final FlareMomentPresentation presentation;
 
   /// When true the ··· popover shows a destructive Delete action → [onDelete].
   final bool canDelete;
@@ -87,13 +95,14 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
     final likes = moment.likes;
     final comments = moment.comments;
     final hasSocial = likes.isNotEmpty || comments.isNotEmpty;
+    final inFeed = widget.presentation == FlareMomentPresentation.feed;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final selectAuthor = widget.onSelectAuthor;
     final avatar = FlareAvatar(
       userId: moment.author.id,
       displayName: moment.author.name,
       avatarUrl: moment.author.avatarUrl,
-      size: 42,
+      size: inFeed ? FlareSizes.avatarSize : 42,
     );
     final name = Text(
       moment.author.name,
@@ -105,25 +114,35 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
     );
 
     return Container(
-      decoration: BoxDecoration(
-        // The card uses a restrained theme-tinted lift in dark mode.
-        color: colors.bgElevated,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? const Color(0x80000000) : const Color(0x14151320),
-            blurRadius: isDark ? 24 : 22,
-            offset: const Offset(0, 8),
-          ),
-          if (isDark)
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.14),
-              blurRadius: 12,
-              offset: Offset(0, 2),
+      decoration: inFeed
+          ? BoxDecoration(
+              color: colors.bgPrimary,
+              border: Border(bottom: BorderSide(color: colors.borderSecondary)),
+            )
+          : BoxDecoration(
+              // The card uses a restrained theme-tinted lift in dark mode.
+              color: colors.bgElevated,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? const Color(0x80000000)
+                      : const Color(0x14151320),
+                  blurRadius: isDark ? 24 : 22,
+                  offset: const Offset(0, 8),
+                ),
+                if (isDark)
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: 0.14),
+                    blurRadius: 12,
+                    offset: Offset(0, 2),
+                  ),
+              ],
             ),
-        ],
+      padding: EdgeInsets.symmetric(
+        horizontal: FlareSizes.spacingLg,
+        vertical: inFeed ? FlareSizes.spacingXl : FlareSizes.spacingLg,
       ),
-      padding: const EdgeInsets.all(FlareSizes.spacingLg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -203,12 +222,18 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.only(top: FlareSizes.spacing2sm),
+                  padding: EdgeInsets.only(
+                    top: inFeed ? FlareSizes.spacingXs : FlareSizes.spacing2sm,
+                  ),
                   child: _metaRow(colors, moment),
                 ),
                 if (hasSocial)
                   Padding(
-                    padding: const EdgeInsets.only(top: FlareSizes.spacing2sm),
+                    padding: EdgeInsets.only(
+                      top: inFeed
+                          ? FlareSizes.spacingXs
+                          : FlareSizes.spacing2sm,
+                    ),
                     child: _social(colors, likes, comments),
                   ),
               ],
@@ -220,27 +245,29 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
   }
 
   Widget _metaRow(FlareColors colors, FlareMoment moment) {
-    return Row(
+    final actions = FlareMomentActionPopover(
+      liked: moment.likedBySelf,
+      canDelete: widget.canDelete,
+      canReport: widget.canReport,
+      onLike: widget.onLike == null ? null : _onLike,
+      onComment: widget.onComment == null ? null : _onComment,
+      onDelete: widget.onDelete == null ? null : _onDelete,
+      onReport: widget.onReport == null ? null : _onReport,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          moment.time ?? '',
-          style: TextStyle(fontSize: 12, color: colors.textTertiary),
-        ),
-        const Spacer(),
         Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            if (_menuOpen) ...[
-              FlareMomentActionPopover(
-                liked: moment.likedBySelf,
-                canDelete: widget.canDelete,
-                canReport: widget.canReport,
-                onLike: _onLike,
-                onComment: _onComment,
-                onDelete: _onDelete,
-                onReport: _onReport,
+            Expanded(
+              child: Text(
+                moment.time ?? '',
+                style: TextStyle(
+                  fontSize: FlareSizes.fontSizeSm,
+                  color: colors.textTertiary,
+                ),
               ),
-            ],
+            ),
             FlareIconControl(
               label: FlareStrings.of(context).momentActions,
               expanded: _menuOpen,
@@ -263,6 +290,8 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
             ),
           ],
         ),
+        if (_menuOpen)
+          Align(alignment: AlignmentDirectional.centerEnd, child: actions),
       ],
     );
   }
@@ -272,12 +301,23 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
     List<FlareMomentLike> likes,
     List<FlareMomentComment> comments,
   ) {
+    final inFeed = widget.presentation == FlareMomentPresentation.feed;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: inFeed
+          ? const EdgeInsets.only(top: FlareSizes.spacingSm)
+          : const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingMd,
+              vertical: FlareSizes.spacingSm,
+            ),
       decoration: BoxDecoration(
-        color: colors.bgSecondary,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+        color: inFeed ? colors.bgPrimary : colors.bgSecondary,
+        borderRadius: inFeed
+            ? null
+            : BorderRadius.circular(FlareSizes.radiusLg),
+        border: inFeed
+            ? Border(top: BorderSide(color: colors.borderSecondary))
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,11 +325,14 @@ class _FlareMomentCardState extends State<FlareMomentCard> {
         children: [
           if (likes.isNotEmpty) _likes(colors, likes),
           if (likes.isNotEmpty && comments.isNotEmpty)
-            Container(
-              height: 1,
-              margin: const EdgeInsets.symmetric(vertical: 7),
-              color: colors.textTertiary.withValues(alpha: 0.22),
-            ),
+            if (inFeed)
+              const SizedBox(height: FlareSizes.spacingXs)
+            else
+              Container(
+                height: 1,
+                margin: const EdgeInsets.symmetric(vertical: 7),
+                color: colors.textTertiary.withValues(alpha: 0.22),
+              ),
           if (comments.isNotEmpty)
             FlareCommentThread(
               comments: comments,

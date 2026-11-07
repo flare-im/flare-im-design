@@ -343,6 +343,57 @@ private fun FormControlsPreview() {
 
 @Preview(showBackground = true)
 @Composable
+private fun ProgressBarPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    ProgressBar(value = 0.42, label = "下载中")
+    ProgressBar(value = 1.0, tone = FlareProgressBarTone.Success, label = "已完成")
+    ProgressBar(value = 0.86, tone = FlareProgressBarTone.Warning, label = "接近上限")
+    ProgressBar(value = 0.3, tone = FlareProgressBarTone.Danger, label = "已中断")
+    ProgressBar(indeterminate = true, label = "正在校验")
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun VersionPanelPreview() = Column(Modifier.padding(vertical = 12.dp)) {
+    VersionPanel(version = "2.3.2", build = 20302, channel = "stable", updateState = "available", onCheck = {}, onUpdate = {})
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 620)
+@Composable
+private fun UpdatePromptSheetPreview() = UpdatePrompt(
+    form = FlareUpdatePromptForm.Sheet,
+    version = "2.4.0",
+    notes = listOf("重连后消息同步更快", "语音播放更清晰"),
+    sizeBytes = 52_428_800,
+    state = "available",
+    onUpdate = {},
+    onLater = {},
+    onSkip = {},
+)
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 620)
+@Composable
+private fun UpdatePromptModalPreview() = UpdatePrompt(
+    form = FlareUpdatePromptForm.Modal,
+    version = "2.4.0",
+    sizeBytes = 52_428_800,
+    state = "downloading",
+    progress = FlareUpdateProgress(received = 26_214_400, total = 52_428_800),
+    onLater = {},
+)
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 620)
+@Composable
+private fun UpdatePromptFullscreenPreview() = UpdatePrompt(
+    form = FlareUpdatePromptForm.Fullscreen,
+    version = "2.4.0",
+    notes = listOf("修复安全问题"),
+    mandatory = true,
+    state = "required",
+    onUpdate = {},
+)
+
+@Preview(showBackground = true)
+@Composable
 private fun StatusBannerPreview() = Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
     StatusBanner(text = "已连接", tone = FlareStatusTone.Success)
     StatusBanner(text = "正在同步…", tone = FlareStatusTone.Info, pulse = true)

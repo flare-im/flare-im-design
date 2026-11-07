@@ -43,11 +43,27 @@ FlareTheme(
 )
 ```
 
-Use `FlareTheme(colors: customColors, child: ...)` for a custom semantic theme. Build overrides from a built-in `FlareColors` value with `copyWith`; components never require raw palette values.
+Use `FlareTheme(colors: customColors, child: ...)` for a custom semantic theme. Build overrides from a built-in `FlareColors` value with `copyWith`; components never require raw palette values. `colors` alone holds in either brightness; add `darkColors` and each brightness takes its own, so a subtree that sets its own `Theme` follows it.
+
+Group and contact details use small buttons with the shared minimum touch target. Settings rows render a compact switch and handle activation across the entire row. In `FlareComposer`, tapping outside the editor or opening a tool dismisses the keyboard. Emoji insertion preserves the draft and keeps the picker open until the user taps the editor or switches tools.
 
 `FlareImagePreview.imageBuilder` and `FlareImagePreview.present(..., imageBuilder:)`
 let a host resolve local files, authenticated media, or cached images while the
 package continues to own the full-screen viewer, zoom gestures, and controls.
+
+## Desktop message actions
+
+`FlareMessageBubble` keeps its react, reply, and more controls beside the
+message surface on pointer devices: incoming actions on the right, outgoing
+on the left, with the shared small spacing between them. Pointer and keyboard
+focus reveal the same controls; Tab traverses them and Enter or Space activates
+the focused control with a visible focus ring. Card and media menus centre on
+the content frame, with the timestamp and retry state remaining below it.
+Hidden controls reserve their width so long
+messages do not reflow on hover; narrow panes constrain the message rather
+than clipping the controls. Touch devices continue to use the long-press sheet.
+Secondary-click menus retain their click-position anchor and host-owned action
+availability.
 
 ## Ownership
 

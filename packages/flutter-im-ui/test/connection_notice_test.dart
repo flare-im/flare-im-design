@@ -1,131 +1,268 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// FR-096 (K1): one mapping from a connection phase to the banner's words,
-// tone and way back, the same as Vue's `connectionNotice`.
-
-const _strings = FlareStrings();
-
+/// The shared connection notice table (`spec/connection-notice-vectors.json`):
+/// statuses over time in, what the notice shows at each moment out. The Vue,
+/// SwiftUI and Compose kits run the same file.
 void main() {
-  test('connected shows nothing; the others say what is happening', () {
+  final table =
+      jsonDecode(
+            File(
+              '../../spec/connection-notice-vectors.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, dynamic>;
+  final cases = (table['cases'] as List).cast<Map<String, dynamic>>();
+
+  T named<T extends Enum>(List<T> values, String name) =>
+      values.firstWhere((v) => v.name == name);
+
+  FlareConnectionStatus statusOf(Map<String, dynamic> raw) =>
+      FlareConnectionStatus(
+        phase: named(FlareConnectionPhase.values, raw['phase'] as String),
+        quality: raw['quality'] == null
+            ? null
+            : named(FlareConnectionQuality.values, raw['quality'] as String),
+        progress: (raw['progress'] as num?)?.toDouble(),
+        nextRetryAt: raw['nextRetryAt'] as int?,
+        attempt: raw['attempt'] as int?,
+        reason: raw['reason'] as String?,
+        developmentMode: raw['developmentMode'] as bool? ?? false,
+      );
+
+  test('the thresholds are the shared ones', () {
+    final thresholds = table['thresholds'] as Map<String, dynamic>;
     expect(
-      flareConnectionNotice(FlareConnectionPhase.connected, _strings),
-      isNull,
+      FlareConnectionNoticeTracker.syncingDelayMs,
+      thresholds['syncingDelayMs'],
     );
-
-    final connecting = flareConnectionNotice(
-      FlareConnectionPhase.connecting,
-      _strings,
-    )!;
-    expect(connecting.text, '正在连接…');
-    expect(connecting.tone, FlareStatusTone.warning);
-    expect(connecting.pulse, isTrue);
-    expect(connecting.recovery, isNull);
-
-    final reconnecting = flareConnectionNotice(
-      FlareConnectionPhase.reconnecting,
-      _strings,
-    )!;
-    expect(reconnecting.text, '连接已断开，正在重连…');
-    expect(reconnecting.pulse, isTrue);
-
-    final offline = flareConnectionNotice(
-      FlareConnectionPhase.offline,
-      _strings,
-    )!;
-    expect(offline.text, '网络不可用，恢复后会自动重连');
-    expect(offline.tone, FlareStatusTone.warning);
-    expect(offline.pulse, isFalse);
-    expect(offline.recovery, isNull);
-  });
-
-  test('disconnected offers reconnect only when the host can, and names the '
-      'reason', () {
-    final plain = flareConnectionNotice(
-      FlareConnectionPhase.disconnected,
-      _strings,
-    )!;
-    expect(plain.text, '连接已断开');
-    expect(plain.recovery, isNull);
-    expect(plain.recoveryText, isNull);
-
-    final withReason = flareConnectionNotice(
-      FlareConnectionPhase.disconnected,
-      _strings,
-      reason: ' 网络超时 ',
-      canReconnect: true,
-    )!;
-    expect(withReason.text, '连接已断开：网络超时');
-    expect(withReason.recovery, FlareConnectionRecovery.reconnect);
-    expect(withReason.recoveryText, '重新连接');
-  });
-
-  test('kicked and expired always offer sign in again', () {
-    final kicked = flareConnectionNotice(
-      FlareConnectionPhase.kicked,
-      _strings,
-    )!;
-    expect(kicked.text, '账号已在其他设备登录');
-    expect(kicked.tone, FlareStatusTone.danger);
-    expect(kicked.recovery, FlareConnectionRecovery.signIn);
-    expect(kicked.recoveryText, '重新登录');
-    // A reason replaces the kicked default; reconnecting is never offered.
-    final named = flareConnectionNotice(
-      FlareConnectionPhase.kicked,
-      _strings,
-      reason: '在 iPad 上登录',
-      canReconnect: true,
-    )!;
-    expect(named.text, '在 iPad 上登录');
-    expect(named.recovery, FlareConnectionRecovery.signIn);
-
-    final expired = flareConnectionNotice(
-      FlareConnectionPhase.expired,
-      _strings,
-      canReconnect: true,
-    )!;
-    expect(expired.text, '登录已过期');
-    expect(expired.tone, FlareStatusTone.danger);
-    expect(expired.recovery, FlareConnectionRecovery.signIn);
-  });
-
-  test('a host that changes the language changes the notice', () {
-    final english = _strings.copyWith(
-      connectionExpired: 'Your sign-in has expired',
-      connectionSignIn: 'Sign in again',
+    expect(
+      FlareConnectionNoticeTracker.switchingDelayMs,
+      thresholds['switchingDelayMs'],
     );
-    final notice = flareConnectionNotice(
-      FlareConnectionPhase.expired,
-      english,
-    )!;
-    expect(notice.text, 'Your sign-in has expired');
-    expect(notice.recoveryText, 'Sign in again');
+    expect(
+      FlareConnectionNoticeTracker.reconnectingMinShownMs,
+      thresholds['reconnectingMinShownMs'],
+    );
+    expect(cases.length, greaterThanOrEqualTo(23));
   });
 
-  testWidgets('renders through the status banner with its action', (
+  for (final vector in cases) {
+    final name = vector['name'] as String;
+    test(name, () {
+      final tracker = FlareConnectionNoticeTracker();
+      final steps = (vector['steps'] as List).cast<Map<String, dynamic>>();
+      for (var i = 0; i < steps.length; i++) {
+        final step = steps[i];
+        final at = step['at'] as int;
+        final status = step['status'] as Map<String, dynamic>?;
+        if (status != null) tracker.observe(statusOf(status), at);
+        final model = tracker.present(at);
+        final want = step['expect'] as Map<String, dynamic>;
+        final seen = {
+          'visible': model.visible,
+          'text': model.text?.name,
+          'tone': model.tone?.name,
+          'pulse': model.pulse,
+          'countdown': model.countdown,
+          'progress': model.progress,
+          'action': model.action?.name,
+          'badge': model.badge,
+          'next': tracker.nextChangeAt(at),
+        };
+        final expected = {
+          'visible': want['visible'],
+          'text': want['text'],
+          'tone': want['tone'],
+          'pulse': want['pulse'] ?? false,
+          'countdown': want['countdown'],
+          'progress': (want['progress'] as num?)?.toDouble(),
+          'action': want['action'],
+          'badge': want['badge'] ?? false,
+          'next': want['next'],
+        };
+        expect(seen, expected, reason: '$name — step $i at $at');
+      }
+    });
+  }
+
+  test('takes the engine reason as a string and words only actionRequired', () {
+    FlareConnectionNoticeModel at(FlareConnectionStatus status) =>
+        (FlareConnectionNoticeTracker()..observe(status, 0)).present(5000);
+    // switching carries its own reasons; they change nothing on the banner.
+    for (final reason in [
+      'failure',
+      'drain',
+      'failback',
+      'manual',
+      'manifest',
+    ]) {
+      expect(
+        at(
+          FlareConnectionStatus(
+            phase: FlareConnectionPhase.switching,
+            reason: reason,
+          ),
+        ),
+        at(const FlareConnectionStatus(phase: FlareConnectionPhase.switching)),
+        reason: reason,
+      );
+    }
+    expect(
+      const FlareConnectionStatus(
+        phase: FlareConnectionPhase.actionRequired,
+        reason: 'upgradeRequired',
+      ).actionReason,
+      FlareConnectionActionReason.upgradeRequired,
+    );
+    // An unknown reason is no error: it reads as expired, like a missing one.
+    final unknown = at(
+      const FlareConnectionStatus(
+        phase: FlareConnectionPhase.actionRequired,
+        reason: 'somethingNew',
+      ),
+    );
+    expect(unknown.text, FlareConnectionNoticeText.expired);
+    expect(unknown.action, FlareConnectionNoticeAction.signIn);
+    expect(FlareConnectionActionReason.parse(null), isNull);
+    expect(FlareConnectionActionReason.parse('drain'), isNull);
+  });
+
+  test('the banner says the message, then the countdown or the progress', () {
+    const zh = FlareStrings();
+    expect(
+      const FlareConnectionNoticeModel(
+        visible: true,
+        text: FlareConnectionNoticeText.reconnecting,
+        countdown: 5,
+      ).bannerText(zh),
+      '连接已断开，正在重连… 5 秒后重试',
+    );
+    expect(
+      const FlareConnectionNoticeModel(
+        visible: true,
+        text: FlareConnectionNoticeText.syncing,
+        progress: 0.426,
+      ).bannerText(zh),
+      '正在同步消息… 43%',
+    );
+    // What a screen reader is told leaves the countdown out.
+    expect(
+      const FlareConnectionNoticeModel(
+        visible: true,
+        text: FlareConnectionNoticeText.reconnecting,
+        countdown: 5,
+      ).message(zh),
+      '连接已断开，正在重连…',
+    );
+    expect(FlareConnectionNoticeModel.hidden.bannerText(zh), '');
+    expect(
+      const FlareConnectionNoticeModel(
+        visible: true,
+        text: FlareConnectionNoticeText.reconnecting,
+        countdown: 1,
+      ).bannerText(flareStringsEnglish),
+      'Connection lost. Reconnecting… Retrying in 1s',
+    );
+    final han = RegExp(r'\p{Script=Han}', unicode: true);
+    for (final text in FlareConnectionNoticeText.values) {
+      final model = FlareConnectionNoticeModel(visible: true, text: text);
+      expect(han.hasMatch(model.bannerText(zh)), isTrue, reason: '$text zh');
+      expect(
+        han.hasMatch(model.bannerText(flareStringsEnglish)),
+        isFalse,
+        reason: '$text en',
+      );
+    }
+    for (final action in FlareConnectionNoticeAction.values) {
+      expect(
+        flareConnectionActionLabel(action, zh),
+        isNot(flareConnectionActionLabel(action, flareStringsEnglish)),
+        reason: '$action',
+      );
+    }
+  });
+
+  Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
+
+  testWidgets(
+    'draws the banner with its action only while the host handles it',
+    (tester) async {
+      var retried = 0;
+      final status = FlareConnectionStatus(
+        phase: FlareConnectionPhase.reconnecting,
+        nextRetryAt: DateTime.now().millisecondsSinceEpoch + 60000,
+      );
+      await tester.pumpWidget(
+        host(FlareConnectionNotice(status: status, onRetry: () => retried++)),
+      );
+      expect(find.textContaining('连接已断开，正在重连…'), findsOneWidget);
+      expect(find.textContaining('秒后重试'), findsOneWidget);
+      await tester.tap(find.text('立即重试'));
+      expect(retried, 1);
+
+      await tester.pumpWidget(host(FlareConnectionNotice(status: status)));
+      expect(find.text('立即重试'), findsNothing);
+    },
+  );
+
+  testWidgets('online shows nothing; development mode wears its badge', (
     tester,
   ) async {
-    final notice = flareConnectionNotice(
-      FlareConnectionPhase.kicked,
-      _strings,
-    )!;
-    var recovered = 0;
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: FlareStatusBanner(
-            text: notice.text,
-            tone: notice.tone,
-            pulse: notice.pulse,
-            actionText: notice.recoveryText,
-            onAction: () => recovered++,
+      host(
+        const FlareConnectionNotice(
+          status: FlareConnectionStatus(
+            phase: FlareConnectionPhase.online,
+            quality: FlareConnectionQuality.poor,
           ),
         ),
       ),
     );
-    expect(find.text('账号已在其他设备登录'), findsOneWidget);
+    expect(find.byType(FlareStatusBanner), findsNothing);
+    expect(find.text('开发模式'), findsNothing);
+
+    var signedIn = 0;
+    await tester.pumpWidget(
+      host(
+        FlareConnectionNotice(
+          status: const FlareConnectionStatus(
+            phase: FlareConnectionPhase.actionRequired,
+            reason: 'kicked',
+            developmentMode: true,
+          ),
+          onSignIn: () => signedIn++,
+        ),
+      ),
+    );
+    expect(find.text('已在其他设备登录'), findsOneWidget);
+    expect(find.text('开发模式'), findsOneWidget);
     await tester.tap(find.text('重新登录'));
-    expect(recovered, 1);
+    expect(signedIn, 1);
+  });
+
+  testWidgets('the copy follows the host language', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FlareStringsScope(
+            strings: flareStringsEnglish,
+            child: FlareConnectionNotice(
+              status: const FlareConnectionStatus(
+                phase: FlareConnectionPhase.actionRequired,
+                reason: 'upgradeRequired',
+              ),
+              onUpdate: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Update the app to keep using it'), findsOneWidget);
+    expect(find.text('Update now'), findsOneWidget);
   });
 }

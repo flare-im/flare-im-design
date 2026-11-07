@@ -58,7 +58,7 @@ class IconControlAccessibilityTest {
         disabled: Boolean = false,
         canVoice: Boolean = true,
         richMode: Boolean = false,
-        panelOpen: Boolean = false,
+        panelOpen: Boolean? = false,
         tools: Set<String>? = null,
     ) = composerToolKeys(
         strings, disabled = disabled, canEmoji = true, canVoice = canVoice, canImage = true, canMore = true,
@@ -75,11 +75,14 @@ class IconControlAccessibilityTest {
             listOf("Emoji", "Mention", "Voice", "Image", "Rich text", "More features"),
             labels(composer(en)),
         )
-        // Rich text is the one toggle, and it reports whether rich mode is on.
-        assertEquals(listOf(null, null, null, null, false, null), keys.map { it.checked })
+        // Rich text and a kit-owned more panel report whether they are on.
+        assertEquals(listOf(null, null, null, null, false, false), keys.map { it.checked })
         assertEquals(true, composer(richMode = true).single { it.id == "richText" }.checked)
         // The more key shows close while the panel is open; its name stays what the key is.
-        assertEquals("close", composer(panelOpen = true).single { it.id == "more" }.icon)
+        val openMore = composer(panelOpen = true).single { it.id == "more" }
+        assertEquals("close", openMore.icon)
+        assertEquals(true, openMore.checked)
+        assertEquals(null, composer(panelOpen = null).single { it.id == "more" }.checked)
         // Voice is offered only when the host can take a recording.
         assertTrue(composer(canVoice = false).none { it.id == "voice" })
         // A disabled composer keeps every key, each announced as disabled.

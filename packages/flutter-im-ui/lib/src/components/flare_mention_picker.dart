@@ -7,8 +7,8 @@ import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 
 /// @-mention picker — searchable member list with an optional "Everyone" row.
-/// Labels default to [FlareStrings]. `FlareComposer` presents it in a
-/// `FlareBottomSheet` when "@" is typed. Spec: Composer/MentionPicker
+/// Labels default to [FlareStrings]. `FlareComposer` presents it beside the
+/// editor when "@" is typed or the toolbar action is pressed. Spec: Composer/MentionPicker
 /// (`FlareMentionPicker`).
 ///
 /// With a keyboard it is a combobox: focus stays in the search field, the

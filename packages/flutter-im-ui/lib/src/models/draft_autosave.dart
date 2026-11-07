@@ -63,6 +63,12 @@ class FlareDraftAutosave {
   /// The draft this client believes the core holds.
   String storedText(String conversationId) => _saved[conversationId] ?? '';
 
+  /// Includes the person's edits that have not reached the save deadline.
+  String currentText(String conversationId) =>
+      _pending?.conversationId == conversationId
+      ? _pending!.text
+      : storedText(conversationId);
+
   /// When the pending write is due, or null when none is. Hosts arm a timer on it.
   int? get pendingDeadline => _pending == null ? null : _deadlineMs;
 

@@ -4,6 +4,17 @@ import { mount } from '@vue/test-utils';
 import Input from './FlareInput.vue';
 
 describe('shared input interactions', () => {
+  it('retains email semantics and a length limit without displaying an auth-field counter', async () => {
+    const wrapper = mount(Input, { props: { type: 'email', maxLength: 254, showCount: false } });
+    expect(wrapper.get('input').attributes('type')).toBe('email');
+    expect(wrapper.get('input').attributes('maxlength')).toBe('254');
+    expect(wrapper.find('.flare-input__count').exists()).toBe(false);
+    await wrapper.setProps({ secure: true, revealable: true });
+    expect(wrapper.get('input').attributes('type')).toBe('password');
+    await wrapper.get('button.flare-input__reveal').trigger('click');
+    expect(wrapper.get('input').attributes('type')).toBe('text');
+    wrapper.unmount();
+  });
   it('does not submit while confirming an IME composition', async () => {
     const wrapper = mount(Input, { props: { modelValue: '你好' } });
     await wrapper.get('input').trigger('keydown', { key: 'Enter', isComposing: true });

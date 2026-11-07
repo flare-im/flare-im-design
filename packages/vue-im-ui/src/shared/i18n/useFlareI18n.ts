@@ -45,8 +45,11 @@ export function flareTextDirection(locale: FlareLocale | string): "ltr" | "rtl" 
   return RTL_LANGUAGES.has(lang) ? "rtl" : "ltr";
 }
 
-/** Any stored tag is honoured (the host may have registered it); empty → default. */
-function readStoredLocale(): FlareLocale {
+/**
+ * The language the reader chose in the app, as the provider starts from it. Any stored tag is honoured (the host may
+ * have registered it); empty → default. Hosts read it here rather than from the storage key, which stays the kit's.
+ */
+export function readStoredLocale(): FlareLocale {
   if (typeof localStorage === "undefined") return FLARE_DEFAULT_LOCALE;
   const raw = localStorage.getItem(STORAGE_KEY)?.trim();
   return raw ? raw : FLARE_DEFAULT_LOCALE;

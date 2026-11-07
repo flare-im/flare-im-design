@@ -34,6 +34,7 @@ struct FlareComposerEmojiTextEditor: View {
     let underline: Bool
     let textColor: Color
     let hintColor: Color
+    let onFocus: () -> Void
     @ObservedObject private var catalog = FlareEmojiStickerCatalog.shared
 
     var body: some View {
@@ -54,7 +55,8 @@ struct FlareComposerEmojiTextEditor: View {
                 italic: italic,
                 strike: strike,
                 underline: underline,
-                textColor: textColor
+                textColor: textColor,
+                onFocus: onFocus
             )
         }
         #else
@@ -104,6 +106,7 @@ private struct FlareComposerEmojiUIKitEditor: UIViewRepresentable {
     let strike: Bool
     let underline: Bool
     let textColor: Color
+    let onFocus: () -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -151,6 +154,8 @@ private struct FlareComposerEmojiUIKitEditor: UIViewRepresentable {
         private var presentationKey: String {
             "\(parent.fontSize)|\(parent.bold)|\(parent.italic)|\(parent.strike)|\(parent.underline)|\(UIColor(parent.textColor).description)"
         }
+
+        func textViewDidBeginEditing(_ textView: UITextView) { parent.onFocus() }
 
         func textViewDidChange(_ textView: UITextView) {
             guard !rendering else { return }

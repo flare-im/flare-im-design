@@ -64,6 +64,10 @@ class FlareResolvedPresentation extends StatefulWidget {
 
 class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
   var _recipient = '';
+  final _paymentPassword = TextEditingController();
+  FlarePluginInput? get passwordInput => widget.view.inputs.where((i) => i.kind == FlarePluginInputKind.password && (bound('confirm')?.form.contains(i.id) ?? false)).firstOrNull;
+  @override
+  void dispose() { _paymentPassword.dispose(); super.dispose(); }
   var _kind = FlareRedPacketKind.normal;
   var _amount = '';
   var _count = 1;
@@ -78,7 +82,7 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
   }
 
   bool get unknown => _map(p['journal'])['known'] == false;
-  bool get paymentBlocked => unknown || (widget.error?.isNotEmpty ?? false);
+  bool get paymentBlocked => unknown || ((widget.error?.isNotEmpty ?? false) && passwordInput == null);
   @override
   void initState() {
     super.initState();
@@ -313,7 +317,15 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
           amount: _text(p['amount']),
           methodLabel: _text(p['methodLabel']),
           busy: widget.busy,
-          onConfirm: () => request('confirm'),
+          confirmDisabled: passwordInput != null && !RegExp(r'^[0-9]{6}$').hasMatch(_paymentPassword.text),
+          credential: passwordInput == null ? null : FlareInput(controller: _paymentPassword, secure: true, maxLength: 6, semanticLabel: passwordInput!.label, placeholder: passwordInput!.placeholder ?? passwordInput!.label, keyboardType: TextInputType.number, disabled: widget.busy, onChanged: (_) => setState(() {})),
+          onConfirm: () {
+            if (passwordInput == null) { request('confirm'); return; }
+            if (widget.busy || paymentBlocked || !RegExp(r'^[0-9]{6}$').hasMatch(_paymentPassword.text)) return;
+            final value = _paymentPassword.text; _paymentPassword.clear();
+            widget.onAction?.call(bound('confirm')!.id, FlarePluginActionPayload(formValues: {passwordInput!.id:value}));
+          },
+          onCancel: () => setState(() => _paymentPassword.clear()),
         ),
       );
     children.add(

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 import '../models/directory_data.dart' show FlareControlSize;
 import '../models/display_name.dart' show flareQuoteSenderText;
@@ -245,6 +246,7 @@ class _FlareMessageRow extends StatefulWidget {
 
 class _FlareMessageRowState extends State<_FlareMessageRow> {
   bool _hovered = false;
+  bool _focused = false;
 
   FlareMessageBubble get b => widget.bubble;
   FlareMessageData get message => b.message;
@@ -279,6 +281,34 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
     final groupEnd =
         b.groupPosition == FlareMessageGroupPosition.single ||
         b.groupPosition == FlareMessageGroupPosition.last;
+    final selecting = b.multiSelectMode;
+    final toolbarAvailable =
+        capabilities.hover &&
+        !selecting &&
+        (b.onReact != null || b.onReply != null || _hasMenu);
+    final actionCount =
+        (b.onReact == null ? 0 : 1) +
+        (b.onReply == null ? 0 : 1) +
+        (_hasMenu ? 1 : 0);
+    final toolbar = !toolbarAvailable
+        ? null
+        : SizedBox.fromSize(
+            size: _HoverToolbar.sizeFor(actionCount),
+            // Keep the same room while hidden: hovering must never reflow a
+            // long message, its timestamp, or the rows below it.
+            child: _hovered || _focused
+                ? _HoverToolbar(
+                    key: FlareMessageBubble.hoverToolbarKey,
+                    onReact: b.onReact == null
+                        ? null
+                        : (emoji) => b.onReact!(message, emoji),
+                    onReply: b.onReply == null
+                        ? null
+                        : () => b.onReply!(message),
+                    onMore: _hasMenu ? _openMenuAt : null,
+                  )
+                : null,
+          );
 
     final row = LayoutBuilder(
       builder: (context, constraints) {
@@ -295,7 +325,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
           children: [
             if (!self && presentation.reserveAvatarSpace)
               _leadingAvatar(presentation.showAvatar),
-            Flexible(child: _column(context, colors, pane)),
+            Flexible(child: _column(context, colors, pane, toolbar: toolbar)),
             if (self && presentation.reserveAvatarSpace)
               _trailingAvatar(presentation.showAvatar),
           ],
@@ -303,7 +333,6 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       },
     );
 
-    final selecting = b.multiSelectMode;
     final content = selecting
         ? Row(
             children: [
@@ -323,13 +352,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
         : row;
 
     final pointerMenu = capabilities.contextMenu && !selecting && _hasMenu;
-    final hoverBar =
-        capabilities.hover &&
-        !selecting &&
-        _hovered &&
-        (b.onReact != null || b.onReply != null || _hasMenu);
-
-    Widget body = Container(
+    final body = Container(
       color: b.selected ? colors.messageSelectedBackground : Colors.transparent,
       padding: EdgeInsets.only(
         left: FlareSizes.spacingMd,
@@ -339,28 +362,12 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       ),
       child: content,
     );
-    if (hoverBar) {
-      body = Stack(
-        children: [
-          body,
-          PositionedDirectional(
-            top: 0,
-            start: self ? FlareSizes.spacingMd : null,
-            end: self ? null : FlareSizes.spacingMd,
-            child: _HoverToolbar(
-              key: FlareMessageBubble.hoverToolbarKey,
-              onReact: b.onReact == null
-                  ? null
-                  : (emoji) => b.onReact!(message, emoji),
-              onReply: b.onReply == null ? null : () => b.onReply!(message),
-              onMore: _hasMenu ? _openMenuAt : null,
-            ),
-          ),
-        ],
-      );
-    }
 
     Widget gestures = InkWell(
+      // The hover affordance belongs to the compact actions, not a full-width
+      // timeline highlight. Selection keeps its explicit background above.
+      hoverColor: toolbarAvailable ? Colors.transparent : null,
+      focusColor: toolbarAvailable ? Colors.transparent : null,
       onTap: selecting ? () => b.onToggleSelect?.call(message) : null,
       onLongPress: selecting || b.onLongPress == null
           ? null
@@ -370,6 +377,12 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
           : null,
       child: FlareHitSlopRegion(child: body),
     );
+    if (toolbarAvailable) {
+      gestures = Focus(
+        onFocusChange: (focused) => setState(() => _focused = focused),
+        child: gestures,
+      );
+    }
     if (capabilities.hover) {
       gestures = MouseRegion(
         onEnter: (_) => setState(() => _hovered = true),
@@ -477,19 +490,26 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
     );
   }
 
-  Widget _column(BuildContext context, FlareColors colors, double pane) {
+  Widget _column(
+    BuildContext context,
+    FlareColors colors,
+    double pane, {
+    Widget? toolbar,
+  }) {
     final self = _self;
-    final surface = _surface(context, colors, pane);
+    final surface = _surface(context, colors, pane, toolbar: toolbar);
     final content = !_hasReactions
         ? surface
         : ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: _surfaceWidth(pane)),
+            constraints: BoxConstraints(
+              maxWidth: _surfaceWidth(pane) + _toolbarSpace(toolbar),
+            ),
             child: _BubbleColumn(
               end: self,
               textDirection: Directionality.of(context),
               fitLast: true,
               metaGap: FlareSizes.spacingXs,
-              children: [surface, _reactionFooter(colors)],
+              children: [surface, _reactionFooter(colors, toolbar)],
             ),
           );
     return Column(
@@ -525,7 +545,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       message.lifecycle != null ||
       _self;
 
-  Widget _reactionFooter(FlareColors colors) {
+  Widget _reactionFooter(FlareColors colors, Widget? toolbar) {
     final layout = FlareMessageMetaLayout(
       placement: FlareMessageMetaPlacement.below,
       tone: FlareMessageMetaTone.standard,
@@ -534,15 +554,56 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
           : null,
     );
     final actionRoom = _belowKeyRoom(layout);
-    return FlareReactionSummary(
-      reactions: message.reactions,
-      hideAdd: true,
-      alignEnd: _self,
-      onToggle: b.onReact == null || b.multiSelectMode
-          ? null
-          : (emoji) => b.onReact!(message, emoji),
-      trailing: !_hasMeta ? null : _meta(colors, layout, wrap: true),
-      trailingOnOwnLine: actionRoom > 0,
+    return Padding(
+      padding: _self
+          ? EdgeInsetsDirectional.only(start: _toolbarSpace(toolbar))
+          : EdgeInsetsDirectional.only(end: _toolbarSpace(toolbar)),
+      child: FlareReactionSummary(
+        reactions: message.reactions,
+        hideAdd: true,
+        alignEnd: _self,
+        onToggle: b.onReact == null || b.multiSelectMode
+            ? null
+            : (emoji) => b.onReact!(message, emoji),
+        trailing: !_hasMeta ? null : _meta(colors, layout, wrap: true),
+        trailingOnOwnLine: actionRoom > 0,
+      ),
+    );
+  }
+
+  Widget _withActions(Widget surface, Widget? toolbar) => toolbar == null
+      ? surface
+      : Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_self) ...[
+              toolbar,
+              const SizedBox(width: FlareSizes.spacingSm),
+            ],
+            Flexible(child: surface),
+            if (!_self) ...[
+              const SizedBox(width: FlareSizes.spacingSm),
+              toolbar,
+            ],
+          ],
+        );
+
+  double _toolbarSpace(Widget? toolbar) {
+    if (toolbar == null) return 0;
+    final actionCount =
+        (b.onReact == null ? 0 : 1) +
+        (b.onReply == null ? 0 : 1) +
+        (_hasMenu ? 1 : 0);
+    return _HoverToolbar.sizeFor(actionCount).width + FlareSizes.spacingSm;
+  }
+
+  /// Incoming controls sit after the frame, but its footer still ends at the
+  /// frame's edge. Outgoing footers already share their frame's trailing edge.
+  Widget _footerWithActions(Widget footer, Widget? toolbar) {
+    if (_self || toolbar == null) return footer;
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: _toolbarSpace(toolbar)),
+      child: footer,
     );
   }
 
@@ -663,7 +724,12 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
         )
       : _bubbleWidth(pane);
 
-  Widget _surface(BuildContext context, FlareColors colors, double pane) {
+  Widget _surface(
+    BuildContext context,
+    FlareColors colors,
+    double pane, {
+    Widget? toolbar,
+  }) {
     final self = _self;
     final surface = widget.surface;
     final maxWidth = _surfaceWidth(pane);
@@ -688,25 +754,35 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
               child: body,
             );
       return ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(
+          // The content cap excludes its side controls. The surrounding
+          // timeline Flex still constrains both to the actual pane width.
+          maxWidth: maxWidth + _toolbarSpace(toolbar),
+        ),
         child: _BubbleColumn(
           end: self,
           trailingLast: hasMeta,
           textDirection: Directionality.of(context),
           children: [
-            _locateMark(
-              context,
-              colors,
-              BorderRadius.circular(FlareSizes.radiusLg),
-              card,
+            _withActions(
+              _locateMark(
+                context,
+                colors,
+                BorderRadius.circular(FlareSizes.radiusLg),
+                card,
+              ),
+              toolbar,
             ),
             if (hasMeta)
-              Padding(
-                padding: EdgeInsets.only(
-                  top: FlareSizes.spacingXs,
-                  bottom: _belowKeyRoom(layout),
+              _footerWithActions(
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: FlareSizes.spacingXs,
+                    bottom: _belowKeyRoom(layout),
+                  ),
+                  child: _meta(colors, layout),
                 ),
-                child: _meta(colors, layout),
+                toolbar,
               ),
           ],
         ),
@@ -717,42 +793,50 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       // Bare media carries its own frame; the meta row under it lines up with
       // its trailing edge.
       return ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(
+          maxWidth: maxWidth + _toolbarSpace(toolbar),
+        ),
         child: _BubbleColumn(
           end: self,
           trailingLast: hasMeta,
           textDirection: Directionality.of(context),
           children: [
-            _locateMark(
-              context,
-              colors,
-              BorderRadius.circular(FlareSizes.radiusCard),
-              message.uploadProgress == null
-                  ? body
-                  : Stack(
-                      children: [
-                        body,
-                        Positioned(
-                          left: FlareSizes.spacingSm,
-                          right: FlareSizes.spacingSm,
-                          bottom: FlareSizes.spacingSm,
-                          child: IgnorePointer(
-                            child: FlareUploadProgress(
-                              percent: message.uploadProgress!,
-                              overlay: true,
+            _withActions(
+              _locateMark(
+                context,
+                colors,
+                BorderRadius.circular(FlareSizes.radiusCard),
+                message.uploadProgress == null
+                    ? body
+                    : Stack(
+                        children: [
+                          body,
+                          Positioned(
+                            left: FlareSizes.spacingSm,
+                            right: FlareSizes.spacingSm,
+                            bottom: FlareSizes.spacingSm,
+                            child: IgnorePointer(
+                              child: FlareUploadProgress(
+                                percent: message.uploadProgress!,
+                                overlay: true,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+              ),
+              toolbar,
             ),
             if (hasMeta)
-              Padding(
-                padding: EdgeInsets.only(
-                  top: FlareSizes.spacingXs,
-                  bottom: _belowKeyRoom(layout),
+              _footerWithActions(
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: FlareSizes.spacingXs,
+                    bottom: _belowKeyRoom(layout),
+                  ),
+                  child: _meta(colors, layout),
                 ),
-                child: _meta(colors, layout),
+                toolbar,
               ),
           ],
         ),
@@ -816,18 +900,21 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       borderRadius: shape,
       border: edge == null ? null : Border.all(color: edge),
     );
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxWidth),
-      child: _locateMark(
-        context,
-        colors,
-        shape,
-        DecoratedBox(
-          key: FlareMessageBubble.bubbleSurfaceKey,
-          decoration: decoration,
-          child: Padding(padding: padding, child: content),
+    return _withActions(
+      ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: _locateMark(
+          context,
+          colors,
+          shape,
+          DecoratedBox(
+            key: FlareMessageBubble.bubbleSurfaceKey,
+            decoration: decoration,
+            child: Padding(padding: padding, child: content),
+          ),
         ),
       ),
+      toolbar,
     );
   }
 
@@ -973,6 +1060,13 @@ class _HoverToolbar extends StatelessWidget {
   final VoidCallback? onReply;
   final ValueChanged<Offset>? onMore;
 
+  static Size sizeFor(int actionCount) => Size(
+    actionCount * FlareSizes.controlHeightSm +
+        math.max(0, actionCount - 1) * 2 +
+        FlareSizes.spacingXs,
+    FlareSizes.controlHeightSm + FlareSizes.spacingXs,
+  );
+
   static Offset _anchorOf(BuildContext context) {
     final box = context.findRenderObject();
     if (box is! RenderBox || !box.hasSize) return Offset.zero;
@@ -985,10 +1079,9 @@ class _HoverToolbar extends StatelessWidget {
     final strings = FlareStrings.of(context);
     Widget key(String icon, String label, void Function(BuildContext) onTap) =>
         Builder(
-          builder: (context) => FlareIconButton(
+          builder: (context) => _ToolbarButton(
             icon: icon,
-            semanticLabel: label,
-            size: FlareControlSize.sm,
+            label: label,
             onPressed: () => onTap(context),
           ),
         );
@@ -1001,39 +1094,98 @@ class _HoverToolbar extends StatelessWidget {
           border: Border.all(color: colors.borderSecondary),
           boxShadow: FlareShadows.of(Theme.of(context).brightness).card,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (onReact != null)
-              key('emoji', strings.addReaction, (context) async {
-                final box = context.findRenderObject() as RenderBox?;
-                final picked = await FlareActionMenu.show(
-                  context,
-                  label: strings.addReaction,
-                  anchor: box == null || !box.hasSize
-                      ? null
-                      : box.localToGlobal(Offset.zero) & box.size,
-                  presentation: FlareActionMenuPresentation.anchored,
-                  items: [
-                    for (final emoji in flareQuickReactions)
-                      FlareActionItem(id: emoji, label: emoji),
-                  ],
-                );
-                if (picked != null) onReact!(picked);
-              }),
-            if (onReply != null)
-              key('reply', strings.messageActionReply, (_) => onReply!()),
-            if (onMore != null)
-              key(
-                'more',
-                strings.more,
-                (context) => onMore!(_anchorOf(context)),
-              ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(FlareSizes.spacingXs / 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 2,
+            children: [
+              if (onReact != null)
+                key('emoji', strings.addReaction, (context) async {
+                  final box = context.findRenderObject() as RenderBox?;
+                  final picked = await FlareActionMenu.show(
+                    context,
+                    label: strings.addReaction,
+                    anchor: box == null || !box.hasSize
+                        ? null
+                        : box.localToGlobal(Offset.zero) & box.size,
+                    presentation: FlareActionMenuPresentation.anchored,
+                    items: [
+                      for (final emoji in flareQuickReactions)
+                        FlareActionItem(id: emoji, label: emoji),
+                    ],
+                  );
+                  if (picked != null) onReact!(picked);
+                }),
+              if (onReply != null)
+                key('reply', strings.messageActionReply, (_) => onReply!()),
+              if (onMore != null)
+                key(
+                  'more',
+                  strings.more,
+                  (context) => onMore!(_anchorOf(context)),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// Keyboard adaptation of the shared icon button, local to pointer toolbars.
+/// Focus stays inside the message while moving between react, reply and more.
+class _ToolbarButton extends StatefulWidget {
+  const _ToolbarButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  State<_ToolbarButton> createState() => _ToolbarButtonState();
+}
+
+class _ToolbarButtonState extends State<_ToolbarButton> {
+  bool _focusHighlight = false;
+
+  @override
+  Widget build(BuildContext context) => FocusableActionDetector(
+    shortcuts: const {
+      SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+      SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+    },
+    actions: {
+      ActivateIntent: CallbackAction<ActivateIntent>(
+        onInvoke: (_) {
+          widget.onPressed();
+          return null;
+        },
+      ),
+    },
+    onShowFocusHighlight: (value) => setState(() => _focusHighlight = value),
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+        border: _focusHighlight
+            ? Border.all(color: FlareColors.of(context).focusRing, width: 2)
+            : null,
+      ),
+      child: SizedBox.square(
+        dimension: FlareSizes.controlHeightSm,
+        child: FlareIconButton(
+          icon: widget.icon,
+          semanticLabel: widget.label,
+          size: FlareControlSize.sm,
+          onPressed: widget.onPressed,
+        ),
+      ),
+    ),
+  );
 }
 
 /// Centred notice line for system lines, recall and delete notices: no

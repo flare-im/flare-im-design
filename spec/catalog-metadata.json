@@ -226,6 +226,10 @@
   "overrides": {
     "ConfigProvider": {
       "scope": "platform-specific"
+    },
+    "ImageUploadSlot": {
+      "status": "experimental",
+      "since": "2.0.0-rc.1"
     }
   },
   "preview": {

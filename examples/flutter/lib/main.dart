@@ -157,6 +157,53 @@ class _CommandPaletteDemoState extends State<_CommandPaletteDemo> {
   }
 }
 
+/// Opens the update prompt in each of its forms. A real host passes
+/// `update://state` through; the actions here only close it.
+class _UpdatePromptDemo extends StatefulWidget {
+  const _UpdatePromptDemo();
+
+  @override
+  State<_UpdatePromptDemo> createState() => _UpdatePromptDemoState();
+}
+
+class _UpdatePromptDemoState extends State<_UpdatePromptDemo> {
+  FlareUpdatePromptForm? _form;
+
+  void _close() => setState(() => _form = null);
+
+  @override
+  Widget build(BuildContext context) {
+    final form = _form ?? FlareUpdatePromptForm.sheet;
+    final forced = form == FlareUpdatePromptForm.fullscreen;
+    return FlareUpdatePromptPresenter(
+      open: _form != null,
+      prompt: FlareUpdatePrompt(
+        form: form,
+        version: '2.4.0',
+        notes: const ['重连后消息同步更快', '语音播放更清晰'],
+        sizeBytes: 52428800,
+        mandatory: forced,
+        state: forced ? 'required' : 'available',
+        onUpdate: _close,
+        onLater: _close,
+        onSkip: _close,
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final item in FlareUpdatePromptForm.values)
+            FlareButton(
+              label: item.name,
+              variant: FlareButtonVariant.secondary,
+              onPressed: () => setState(() => _form = item),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _Gallery extends StatelessWidget {
   const _Gallery({required this.isDark, required this.onToggleTheme});
   final bool isDark;
@@ -482,6 +529,35 @@ class _Gallery extends StatelessWidget {
               state: FlareTransferState.transferring,
               statusText: '上传中 42%',
               progress: 0.42,
+            ),
+          ),
+          const _Section(
+            'ProgressBar',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FlareProgressBar(value: 0.42, label: '下载中'),
+                SizedBox(height: 8),
+                FlareProgressBar(
+                  value: 1,
+                  tone: FlareProgressBarTone.success,
+                  label: '已完成',
+                ),
+                SizedBox(height: 8),
+                FlareProgressBar(indeterminate: true, label: '正在校验'),
+              ],
+            ),
+          ),
+          const _Section('UpdatePrompt', _UpdatePromptDemo()),
+          _Section(
+            'VersionPanel',
+            FlareVersionPanel(
+              version: '2.3.2',
+              build: 20302,
+              channel: 'stable',
+              updateState: 'upToDate',
+              onCheck: () {},
+              onUpdate: () {},
             ),
           ),
           const _Section(

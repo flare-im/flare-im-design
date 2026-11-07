@@ -13,9 +13,11 @@ import Foundation
 /// - a server-side watch dies with the stream that carried it (presence is a gRPC stream);
 /// - a change that happened during the gap was never delivered, and a subscription only promises the next.
 ///
-/// The case that must *not* refresh is a session that ended. Being kicked or having the token expire is
-/// terminal — the core does not reconnect by design — so asking the server to watch things again is work
-/// for a session that no longer exists.
+/// Every phase other than online is a gap once the client has been online — a line switch included, since
+/// the new line is a new connection. The case that must *not* refresh is a session that ended:
+/// actionRequired (kicked, expired, an update required, the tenant suspended) is terminal — the core does
+/// not reconnect from it by design — and idle after a session is the host signing out. Asking the server
+/// to watch things again then is work for a session that no longer exists.
 public struct FlareReconnectWork: Equatable, Sendable {
     /// Forget what could have gone stale unobserved — the typing roster above all.
     public let dropStaleBeliefs: Bool
@@ -48,17 +50,18 @@ public final class FlareConnectionRefresh {
         guard phase != previous else { return .none }
         previous = phase
 
-        if phase == .kicked || phase == .expired {
+        if phase == .actionRequired || (phase == .idle && hasBeenConnected) {
             // A session that ended is not an interruption to recover from: it is over. Forgetting that
-            // this client was ever connected is what makes the next `connected` a fresh start — the app's
-            // own open path does the work then, exactly as on a cold start, and nothing re-subscribes on
-            // the way out.
+            // this client was ever online is what makes the next `online` a fresh start — the app's own
+            // open path does the work then, exactly as on a cold start, and nothing re-subscribes on the
+            // way out.
             interrupted = false
             hasBeenConnected = false
             return FlareReconnectWork(dropStaleBeliefs: true, resubscribe: false, reread: false)
         }
+        if phase == .idle { return .none }
 
-        if phase == .connected {
+        if phase == .online {
             if hasBeenConnected, interrupted {
                 interrupted = false
                 return FlareReconnectWork(dropStaleBeliefs: false, resubscribe: true, reread: true)
@@ -67,7 +70,7 @@ public final class FlareConnectionRefresh {
             return .none
         }
 
-        // connecting / reconnecting / offline / disconnected
+        // connecting / syncing / switching / reconnecting / waitingForNetwork / serviceUnavailable
         guard hasBeenConnected, !interrupted else { return .none }
         interrupted = true
         return FlareReconnectWork(dropStaleBeliefs: true, resubscribe: false, reread: false)

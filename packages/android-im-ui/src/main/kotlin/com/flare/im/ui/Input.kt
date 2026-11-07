@@ -60,6 +60,7 @@ fun Input(
     revealable: Boolean = false,
     /** Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change. */
     monospace: Boolean = false,
+    size: FlareControlSize = FlareControlSize.Md,
     onSubmit: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -69,16 +70,18 @@ fun Input(
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    val showClear = clearable && value.isNotEmpty() && !disabled && !secure
+    val showReveal = secure && revealable && !disabled
     Column(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 44.dp)
+            Modifier.fillMaxWidth().heightIn(min = maxOf(size.visualHeight(), FlareSizes.touchTargetMin))
                 .clip(shape)
                 .background(colors.bgSecondary)
                 .border(1.dp, if (focused) colors.borderSelected else colors.borderPrimary, shape)
-                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+                .padding(start = FlareSizes.spacingMd, end = if (showClear || showReveal) 0.dp else FlareSizes.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.weight(1f)) {
+            Box(Modifier.weight(1f).padding(vertical = FlareSizes.spacingSm)) {
                 BasicTextField(
                     value = value,
                     onValueChange = { onValueChange(composerTextWithinLimit(it, maxLength)) },
@@ -108,10 +111,11 @@ fun Input(
                     },
                 )
             }
-            if (clearable && value.isNotEmpty() && !disabled && !secure) {
+            if (showClear) {
                 FlareIconControl(
                     label = flareStrings().clear,
                     onClick = { onValueChange("") },
+                    minSize = FlareSizes.touchTargetMin,
                 ) {
                     Icon(
                         Icons.Outlined.Cancel,
@@ -121,12 +125,13 @@ fun Input(
                     )
                 }
             }
-            if (secure && revealable && !disabled) {
+            if (showReveal) {
                 val strings = flareStrings()
                 FlareIconControl(
                     label = if (revealed) strings.inputHide else strings.inputReveal,
                     onClick = { revealed = !revealed },
                     checked = revealed,
+                    minSize = FlareSizes.touchTargetMin,
                 ) {
                     Icon(
                         flareIconVector(if (revealed) "eye-off" else "eye"),

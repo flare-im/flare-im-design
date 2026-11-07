@@ -3,7 +3,7 @@ import ViewInspector
 import XCTest
 @testable import FlareIMUI
 
-/// K5 (FR-089): the member grid previews at most 20 cells and the 群成员 row opens everyone with search.
+/// K5 (FR-089): the member grid previews at most 20 cells and its heading opens the searchable roster.
 final class GroupDetailMembersTests: XCTestCase {
     private let strings = FlareStrings()
     private let members = (1...30).map { Contact(id: "u\($0)", name: $0 == 7 ? "Ann Lee" : "成员\($0)") }
@@ -60,13 +60,18 @@ final class GroupDetailMembersTests: XCTestCase {
     }
 
     @MainActor
-    func testTheMembersRowIsANavigationRow() throws {
-        let model = FlareGroupDetailModel(groupId: "g1", name: "Design", memberCount: 30, members: members, ownerId: "u1")
-        let row = try FlareGroupDetail(model: model).inspect().find(FlareSettingsRow.self, where: {
-            (try? $0.find(text: FlareGroupDetailLabels().resolve(self.strings).members)) != nil
+    func testTheMemberGridHeaderOpensTheRosterWithTheDisplayCount() throws {
+        let model = FlareGroupDetailModel(groupId: "g1", name: "Design", memberCount: 103,
+                                          members: Array(members.prefix(3)), ownerId: "u1")
+        let detail = try FlareGroupDetail(model: model).inspect()
+        let header = try detail.find(GroupMemberGridView.self).find(ViewType.Button.self, where: {
+            (try? $0.labelView().find(text: self.strings.memberCount(103))) != nil
         })
-        XCTAssertNoThrow(try row.find(ViewType.Image.self, where: { try $0.actualImage().name() == "chevron.right" }),
-                         "the row navigates to the members sheet")
-        XCTAssertNoThrow(try row.find(text: "30"))
+        XCTAssertNoThrow(try header.labelView().find(ViewType.Image.self, where: {
+            try $0.actualImage().name() == "chevron.forward"
+        }))
+        XCTAssertThrowsError(try detail.find(FlareSettingsRow.self, where: {
+            (try? $0.find(text: FlareGroupDetailLabels().resolve(self.strings).members)) != nil
+        }))
     }
 }

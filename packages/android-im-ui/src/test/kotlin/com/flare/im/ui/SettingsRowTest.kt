@@ -49,4 +49,17 @@ class SettingsRowTest {
         // The copy the row shows instead of a state it does not have.
         assertEquals("暂时无法读取", labels.settingUnavailable)
     }
+
+    @Test fun aBadgeDrawsADotOnEveryKindButAToggle() {
+        listOf(FlareSettingKind.Navigation, FlareSettingKind.Action, FlareSettingKind.Value).forEach { kind ->
+            assertTrue(settingsRowDrawsBadge(SettingsItem("about", "关于", kind = kind, badge = true)))
+        }
+        assertFalse(settingsRowDrawsBadge(SettingsItem("mute", "免打扰", kind = FlareSettingKind.Toggle, badge = true)))
+        assertFalse(settingsRowDrawsBadge(SettingsItem("about", "关于")))
+    }
+
+    @Test fun theBadgeIsNamedInBothLanguages() {
+        assertEquals("有新内容", FlareStrings().settingsRowBadge)
+        assertEquals("New", flareStringsEnglish().settingsRowBadge)
+    }
 }

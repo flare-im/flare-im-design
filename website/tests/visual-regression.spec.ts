@@ -1,9 +1,4 @@
 import { expect, test } from "@playwright/test";
-import tokens from "../../tokens/tokens.json" with { type: "json" };
-
-// The timeline gathers its rows into one centred reading column this wide (message-workspace.css).
-const TIMELINE_COLUMN_MAX = Number.parseFloat(tokens.sizes.layout.messageTimelineContentMaxWidth);
-
 // A timeline that opens at its first message shows "没有更多消息了" for 2.4 s and then lets the first date
 // separator show again (MessageList HISTORY_START_HINT_MS). Whether a capture fell inside that window
 // depended on machine load, so the captures are of the settled timeline.
@@ -145,11 +140,11 @@ for (const mode of ["light", "dark"] as const) {
       await expect.poll(() => workspace.locator(".message-list").evaluate(list =>
         Math.abs(list.getBoundingClientRect().width - (list.parentElement as HTMLElement).clientWidth),
       )).toBeLessThan(1);
-      // Up to the reading column's width the timeline fills the pane; past it the column stops growing
-      // and is centred (`layout.messageTimelineContentMaxWidth`), so the gutter is measured inside it.
+      // Rows fill the whole pane, including wide desktops. Only the bubbles have a reading-width cap;
+      // centring a capped timeline would leave both incoming and outgoing messages far from its edges.
       await expect.poll(() => workspace.locator(".message-list").evaluate(list =>
         Math.round(list.getBoundingClientRect().width),
-      )).toBe(Math.min(width - 32, TIMELINE_COLUMN_MAX));
+      )).toBe(width - 32);
       await expect.poll(() => workspace.locator(".message-list").evaluate(list => {
         const content = list.querySelector(".message-list-content")!.getBoundingClientRect();
         return Math.abs(content.width - list.clientWidth);

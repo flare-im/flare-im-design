@@ -13,6 +13,7 @@ import { flareIcons } from "../../shared/icons";
 import { computed, getCurrentInstance, ref, watch } from "vue";
 import { NIcon } from "naive-ui";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
+import FlareQRCard from "../profile/FlareQRCard.vue";
 import FlareGroupMemberGrid from "./FlareGroupMemberGrid.vue";
 import FlareSettingsList from "../profile/FlareSettingsList.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
@@ -49,6 +50,8 @@ const props = defineProps<{
   joinRequests?: FlareGroupJoinRequestView[];
   loadingJoinRequests?: boolean;
   inviteCode?: string;
+  inviteUrl?: string;
+  submitRemarkName?: (value: string) => Promise<void>;
   loadingInviteLink?: boolean;
   /** Host-backed member search state. Without a listener, the component filters the loaded members locally. */
   memberSearchLoading?: boolean;
@@ -68,7 +71,8 @@ const emit = defineEmits<{
   (e: "setJoinPolicy", policy: FlareGroupJoinPolicy): void;
   (e: "toggleDiscoverable", value: boolean): void;
   (e: "toggleMuteAll", value: boolean): void;
-  (e: "setFlag", key: "onlyAdminCanAtAll" | "onlyAdminCanPin" | "shareCardPermission", value: boolean): void;
+  (e: "setFlag", key: "onlyAdminCanAtAll" | "onlyAdminCanPin" | "shareCardPermission" | "forbidGroupFriendRequests", value: boolean): void;
+  (e: "requestFriend", userId: string): void;
   (e: "toggleMyMuted", value: boolean): void;
   (e: "toggleMyPinned", value: boolean): void;
   (e: "loadJoinRequests"): void;
@@ -100,7 +104,7 @@ const model = computed(() => props.model);
 const entries = computed(() => new Set<GroupManagementEntry>(groupManagementEntries(model.value?.capabilities)));
 const can = (entry: GroupManagementEntry): boolean => entries.value.has(entry);
 const canRename = computed(() => can("editName"));
-const groupName = computed(() => model.value?.name || t("group.title"));
+const groupName = computed(() => model.value?.myRemarkName || model.value?.name || t("group.title"));
 const requests = computed(() => props.joinRequests ?? []);
 
 const joinPolicyLabels = computed<Record<FlareGroupJoinPolicy, string>>(() => ({
@@ -130,6 +134,11 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
     {
       title: t("group.myInGroup"),
       items: [
+        ...(m.myRemarkName !== undefined ? [{
+          key: "myRemarkName", label: t("group.myRemarkName"), icon: "edit",
+          kind: props.submitRemarkName ? "navigation" as const : "value" as const,
+          detail: m.myRemarkName || t("group.notSet"),
+        }] : []),
         { key: "myNickname", label: t("group.myNickname"), icon: "edit", kind: canEditNickname() ? "navigation" : "value", detail: m.myNickname || t("group.notSet") },
         // A setting that could not be read claims neither state.
         m.myMuted === null
@@ -151,6 +160,9 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
   ];
   if (manage.length) sections.push({ title: t("group.manage"), items: manage });
   const perms: FlareSettingsItem[] = [
+    ...(m.forbidGroupFriendRequests !== undefined && m.capabilities.canManageInfo
+      ? [{ key: "forbidGroupFriendRequests", label: t("group.forbidGroupFriendRequests"), icon: "lock", kind: "toggle", value: m.forbidGroupFriendRequests } as const]
+      : []),
     ...(can("onlyAdminCanAtAll") ? [{ key: "atAll", label: t("group.onlyAdminAtAll"), icon: "mention", kind: "toggle", value: m.onlyAdminCanAtAll } as const] : []),
     ...(can("onlyAdminCanPin") ? [{ key: "pinPerm", label: t("group.onlyAdminPin"), icon: "pin", kind: "toggle", value: m.onlyAdminCanPin } as const] : []),
     ...(can("shareCardPermission") ? [{ key: "shareCard", label: t("group.shareCard"), icon: "share", kind: "toggle", value: m.shareCardPermission } as const] : []),
@@ -160,7 +172,7 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
 });
 
 // ── Edit name / announcement / nickname ─────────────────────────────────────
-const editKind = ref<"name" | "announcement" | "nickname" | null>(null);
+const editKind = ref<"name" | "announcement" | "nickname" | "remark" | null>(null);
 const editDraft = ref("");
 const editBusy = ref(false);
 const editError = ref("");
@@ -168,6 +180,7 @@ watch(editKind, () => { editError.value = ""; });
 const editMeta = computed(() => {
   switch (editKind.value) {
     case "announcement": return { title: t("group.editAnnouncement"), placeholder: t("group.announcement"), max: 200, multiline: true };
+    case "remark": return { title: t("group.myRemarkName"), placeholder: t("group.remarkNamePlaceholder"), max: 20, multiline: false };
     case "nickname": return { title: t("group.myNickname"), placeholder: t("group.nicknamePlaceholder"), max: 20, multiline: false };
     default: return { title: t("group.editName"), placeholder: t("group.name"), max: 30, multiline: false };
   }
@@ -179,7 +192,8 @@ async function saveEdit() {
   editBusy.value = true;
   editError.value = "";
   try {
-    if (props.submitEdit) await props.submitEdit(kind, v);
+    if (kind === "remark") await props.submitRemarkName?.(v);
+    else if (props.submitEdit) await props.submitEdit(kind, v);
     else if (kind === "name") emit("updateName", v);
     else if (kind === "announcement") emit("updateAnnouncement", v);
     else emit("updateMyNickname", v);
@@ -204,6 +218,11 @@ function openRename() {
 }
 
 function onSettingSelect(item: FlareSettingsItem) {
+  if (item.key === "myRemarkName" && props.submitRemarkName) {
+    editKind.value = "remark";
+    editDraft.value = model.value?.myRemarkName || "";
+    return;
+  }
   if (item.key === "myNickname") {
     if (!canEditNickname()) return;
     editKind.value = "nickname";
@@ -231,6 +250,7 @@ function onSettingToggle(item: FlareSettingsItem, value: boolean) {
   else if (item.key === "muteAll" && can("muteAll")) emit("toggleMuteAll", value);
   else if (item.key === "atAll" && can("onlyAdminCanAtAll")) emit("setFlag", "onlyAdminCanAtAll", value);
   else if (item.key === "pinPerm" && can("onlyAdminCanPin")) emit("setFlag", "onlyAdminCanPin", value);
+  else if (item.key === "forbidGroupFriendRequests" && model.value?.capabilities.canManageInfo) emit("setFlag", "forbidGroupFriendRequests", value);
   else if (item.key === "shareCard" && can("shareCardPermission")) emit("setFlag", "shareCardPermission", value);
 }
 
@@ -251,8 +271,7 @@ const requestsOpen = ref(false);
 // ── Invite link ─────────────────────────────────────────────────────────────
 const inviteLinkOpen = ref(false);
 const copied = ref(false);
-async function copyInviteCode() {
-  const code = props.inviteCode;
+async function copyInviteCode(code = props.inviteCode) {
   if (!code) return;
   try {
     await navigator.clipboard.writeText(code);
@@ -279,7 +298,7 @@ const sheetLabels = computed<Record<MemberRoleActionId, string>>(() => ({
   remove: t("group.removeMember"),
 }));
 function onMemberSelect(id: string) {
-  if (!actionsFor(id).length) return;
+  if (!actionsFor(id).length && !model.value?.memberActions[id]?.canRequestFriend) return;
   memberSheet.value = id;
 }
 
@@ -302,12 +321,17 @@ const matchingMembers = computed(() => {
   return query ? members.filter((member) => member.name.toLocaleLowerCase().includes(query)) : members;
 });
 function onMemberListSelect(member: FlareContact) {
-  if (!actionsFor(member.id).length) return;
+  if (!actionsFor(member.id).length && !model.value?.memberActions[member.id]?.canRequestFriend) return;
   membersOpen.value = false;
   memberSheet.value = member.id;
 }
 // Each intent carries the state the viewer asked for — the one its button named — so a host
 // never re-derives the direction from data that may have changed since the sheet opened.
+function requestMemberFriendship() {
+  const id = memberSheet.value;
+  memberSheet.value = null;
+  if (id && model.value?.memberActions[id]?.canRequestFriend) emit("requestFriend", id);
+}
 function actRole() {
   const id = memberSheet.value;
   if (id) emit("promoteMember", id, !memberIsAdmin(id));
@@ -424,17 +448,17 @@ function submitInvite() {
       <FlareSettingsList v-else :sections="settingsSections" @select="onSettingSelect" @toggle="onSettingToggle" />
 
       <div class="flare-group-detail__foot">
-        <FlareButton v-if="canOpenChat" block @click="emit('openChat', model.members.map((m) => m.id), groupName)">
+        <FlareButton v-if="canOpenChat" size="sm" block @click="emit('openChat', model.members.map((m) => m.id), groupName)">
           {{ t("group.message") }}
         </FlareButton>
         <FlareButton
           v-for="action in extraActions ?? []"
           :key="action.id"
-          block
+          size="sm" block
           :variant="action.danger ? 'danger' : 'secondary'"
           @click="emit('extraAction', action.id)"
         >{{ action.label }}</FlareButton>
-        <FlareButton variant="danger" block @click="emit('leave')">
+        <FlareButton variant="danger" size="sm" block @click="emit('leave')">
           {{ can("dissolve") ? t("group.dissolve") : t("group.leave") }}
         </FlareButton>
       </div>
@@ -454,6 +478,8 @@ function submitInvite() {
     <!-- Member management -->
     <FlareBottomSheet :open="memberSheet !== null" :title="t('group.memberManage')" @close="memberSheet = null">
       <div class="flare-group-detail__sheet flare-group-detail__member-actions">
+        <FlareButton v-if="memberSheet && model?.memberActions[memberSheet]?.canRequestFriend" variant="secondary" block
+          @click="requestMemberFriendship">{{ t("group.requestFriend") }}</FlareButton>
         <FlareButton
           v-for="entry in sheetActions"
           :key="entry.action"
@@ -551,9 +577,17 @@ function submitInvite() {
         <p class="flare-group-detail__confirm">{{ t("group.inviteLinkHint") }}</p>
         <div v-if="loadingInviteLink" class="flare-group-detail__empty-row">{{ t("group.generating") }}</div>
         <template v-else-if="inviteCode">
+          <FlareQRCard
+            v-if="inviteUrl"
+            :name="model?.name || groupName"
+            :avatar-url="model?.avatarUrl"
+            :qr-payload="inviteUrl"
+            :hint="t('group.inviteLinkHint')"
+          />
           <div class="flare-group-detail__code">{{ inviteCode }}</div>
           <div class="flare-group-detail__sheet-actions">
-            <FlareButton block @click="copyInviteCode">{{ copied ? t("group.copied") : t("group.copyCode") }}</FlareButton>
+            <FlareButton block @click="copyInviteCode()">{{ copied ? t("group.copied") : t("group.copyCode") }}</FlareButton>
+            <FlareButton v-if="inviteUrl" block @click="copyInviteCode(inviteUrl)">{{ t("group.copyInviteLink") }}</FlareButton>
           </div>
         </template>
         <div v-else class="flare-group-detail__empty-row">{{ t("group.cannotGenerate") }}</div>
@@ -637,4 +671,9 @@ function submitInvite() {
 .flare-group-detail__req-msg { font-size: 12px; color: var(--flare-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flare-group-detail__req-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .flare-group-detail__code { padding: var(--flare-size-spacing-2md) 16px; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
+@media (pointer: coarse) {
+  .flare-group-detail__foot {
+    row-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm));
+  }
+}
 </style>

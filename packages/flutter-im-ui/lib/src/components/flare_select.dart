@@ -59,8 +59,7 @@ class _FlareSelectState extends State<FlareSelect> {
   Future<void> _openSheet() async {
     if (widget.disabled) return;
     setState(() => _open = true);
-    final brightness = Theme.of(context).brightness;
-    final colors = FlareColors.of(brightness);
+    final colors = FlareColors.of(context);
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,

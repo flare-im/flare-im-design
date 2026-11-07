@@ -85,8 +85,7 @@ final Map<String, _Call> _calls = {
       s.momentAudienceSheetSelected(_i(a[0])),
   'conversationHeaderMemberCount': (s, a) =>
       s.conversationHeaderMemberCount(_i(a[0])),
-  'connectionDisconnectedReason': (s, a) =>
-      s.connectionDisconnectedReason(_s(a[0])),
+  'connectionRetryIn': (s, a) => s.connectionRetryIn(_i(a[0])),
   'groupDetailMembersTitle': (s, a) => s.groupDetailMembersTitle(_i(a[0])),
   'profilePanelEditProfile': (s, a) => s.profilePanelEditProfile(_s(a[0])),
   'momentReplyToComment': (s, a) =>

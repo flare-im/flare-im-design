@@ -49,6 +49,10 @@ const props = withDefaults(
     showClose?: boolean;
     /** Draw a leading back button; Escape and platform back then emit `back` instead of `close`. */
     showBack?: boolean;
+    /** Shared content gutter. Full-bleed workspaces must opt out explicitly. */
+    contentPadding?: "normal" | "none";
+    /** Dense admin actions opt in; communication clients retain larger mobile targets. */
+    footerDensity?: "comfortable" | "compact";
   }>(),
   {
     titleHidden: false,
@@ -56,6 +60,8 @@ const props = withDefaults(
     dismissible: true,
     showClose: true,
     showBack: false,
+    contentPadding: "normal",
+    footerDensity: "comfortable",
   },
 );
 const emit = defineEmits<{ (e: "close"): void; (e: "back"): void }>();
@@ -187,11 +193,20 @@ watch(
           </header>
           <div
             class="flare-drawer__body"
-            :class="{ 'flare-drawer__body--last': !$slots.footer }"
+            :class="{
+              'flare-drawer__body--last': !$slots.footer,
+              'flare-drawer__body--padded': contentPadding === 'normal',
+            }"
           >
             <slot />
           </div>
-          <footer v-if="$slots.footer" class="flare-drawer__footer">
+          <footer
+            v-if="$slots.footer"
+            class="flare-drawer__footer"
+            :class="{
+              'flare-drawer__footer--compact': footerDensity === 'compact',
+            }"
+          >
             <slot name="footer" />
           </footer>
         </div>
@@ -285,6 +300,7 @@ watch(
   flex: 0 0 auto;
 }
 .flare-drawer__body {
+  box-sizing: border-box;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -292,17 +308,41 @@ watch(
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+.flare-drawer__body--padded {
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
+}
 .flare-drawer__body--last {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.flare-drawer__body--padded.flare-drawer__body--last {
+  padding-bottom: calc(
+    var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px)
+  );
 }
 .flare-drawer__footer {
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--flare-size-spacing-sm);
   padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md)
     calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--flare-color-border-primary);
+  max-height: 35%;
+  overflow: auto;
+}
+.flare-drawer__footer > * {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .flare-drawer__footer:not(.flare-drawer__footer--compact) :deep(.n-button) {
+    min-height: var(--flare-size-layout-touch-target);
+  }
+}
+.flare-drawer__footer--compact :deep(.n-button) {
+  min-height: var(--flare-size-layout-control-height-sm);
 }
 
 /* 面的出场跟着遮罩的过渡类走:嵌套的 <transition> 在外层 v-if 离场时不会播放自己的 leave,

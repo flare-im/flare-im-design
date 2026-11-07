@@ -157,6 +157,38 @@ describe("FlareDrawer DOM contract", () => {
     ).not.toBeNull();
   });
 
+  it("pads shared content by default and only full-bleed hosts explicitly opt out", async () => {
+    mountDrawer({ title: "User details" });
+    await nextTick();
+    expect(surface().querySelector(".flare-drawer__body")!.classList).toContain(
+      "flare-drawer__body--padded",
+    );
+    reset();
+    mountDrawer({ title: "Full workspace", contentPadding: "none" });
+    await nextTick();
+    expect(
+      surface().querySelector(".flare-drawer__body")!.classList,
+    ).not.toContain("flare-drawer__body--padded");
+  });
+  it("opts admin footers into compact density without shrinking other mobile clients", async () => {
+    const slots = { footer: () => h("button", { class: "save" }, "Save") };
+    mountDrawer({ title: "Ordinary client" }, { bottomSheet: true, slots });
+    await nextTick();
+    expect(surface().querySelector("footer")!.classList).not.toContain(
+      "flare-drawer__footer--compact",
+    );
+    reset();
+    mountDrawer(
+      { title: "Admin editor", footerDensity: "compact" },
+      { bottomSheet: true, slots },
+    );
+    await nextTick();
+    expect(surface().querySelector("footer")!.classList).toContain(
+      "flare-drawer__footer--compact",
+    );
+    expect(surface().querySelector(".save")).not.toBeNull();
+  });
+
   it("gives initial focus to the content, not to the header buttons", async () => {
     mountDrawer({ title: "Details", showBack: true });
     await nextTick();

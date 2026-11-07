@@ -1,10 +1,7 @@
 import SwiftUI
 
-// Flare 品牌 Logo(通用件,归属 kit)。前倾几何 F,取自品牌色阶。
-// 两种呈现:
-//  - .gradient(默认):品牌渐变 squircle + 白色 F —— 用于中性/浅底、app 图标、启动图。
-//  - .plate:白色 squircle + 品牌渐变 F —— 用于品牌色背景(如登录头的紫色渐变)上,保证对比。
-// Spec: Brand/BrandLogo。四端共用同一几何(前倾 skewX -9°)与同一 token。
+// Flare IM brand mark. All platform kits share the italic IM geometry.
+// The gradient and plate variants adapt the same mark to neutral or branded surfaces.
 
 public enum FlareBrandLogoVariant: Sendable {
     case gradient
@@ -33,7 +30,27 @@ public struct FlareBrandFShape: Shape {
     }
 }
 
-/// Flare 品牌 Logo 视图。
+private struct FlareBrandIMShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addRect(CGRect(x: 22, y: 27, width: 10, height: 48))
+        path.move(to: CGPoint(x: 40, y: 75))
+        for point in [CGPoint(x: 40, y: 27), CGPoint(x: 50, y: 27), CGPoint(x: 60, y: 48),
+                      CGPoint(x: 70, y: 27), CGPoint(x: 80, y: 27), CGPoint(x: 80, y: 75),
+                      CGPoint(x: 70, y: 75), CGPoint(x: 70, y: 48), CGPoint(x: 60, y: 65),
+                      CGPoint(x: 50, y: 48), CGPoint(x: 50, y: 75)] {
+            path.addLine(to: point)
+        }
+        path.closeSubpath()
+        let skew = CGFloat(tan(-9.0 * .pi / 180))
+        return path
+            .applying(CGAffineTransform(a: 1, b: 0, c: skew, d: 1, tx: -skew * 51, ty: 0))
+            .applying(CGAffineTransform(scaleX: rect.width / 100, y: rect.height / 100))
+            .applying(CGAffineTransform(translationX: rect.minX, y: rect.minY))
+    }
+}
+
+/// Shared Flare IM brand logo.
 public struct FlareBrandLogo: View {
     private let size: CGFloat
     private let variant: FlareBrandLogoVariant
@@ -56,14 +73,14 @@ public struct FlareBrandLogo: View {
             switch variant {
             case .gradient:
                 RoundedRectangle(cornerRadius: size * 0.28, style: .continuous).fill(brandGradient(c))
-                FlareBrandFShape().fill(Color.white).frame(width: size, height: size)
+                FlareBrandIMShape().fill(Color.white).frame(width: size, height: size)
             case .plate:
                 RoundedRectangle(cornerRadius: size * 0.28, style: .continuous).fill(.white)
-                FlareBrandFShape().fill(brandGradient(c)).frame(width: size, height: size)
+                FlareBrandIMShape().fill(brandGradient(c)).frame(width: size, height: size)
             }
         }
         .frame(width: size, height: size)
         .shadow(color: Color.black.opacity(0.12), radius: size * 0.25, y: size * 0.12)
-        .accessibilityLabel("flare IM")
+        .accessibilityLabel("Flare IM")
     }
 }

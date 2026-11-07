@@ -8,6 +8,11 @@
       "phase": "P0",
       "components": [
         "StatusBanner",
+        "ConnectionNotice",
+        "AccessDiagnostics",
+        "UpdatePrompt",
+        "ProgressBar",
+        "VersionPanel",
         "EmptyState",
         "Skeleton"
       ],

@@ -84,7 +84,7 @@ internal fun FlareStringsBuilder.englishFormats() {
     conversationHeaderIdentityLabel = { title, action -> "$title, $action" }
     momentAudienceSheetSelected = { count -> english(count, "{count} person selected", "{count} people selected") }
     announcementReadBarReadCount = { read, total -> "$read/$total read" }
-    connectionDisconnectedReason = { reason -> "Disconnected: $reason" }
+    connectionRetryIn = { seconds -> "Retrying in ${seconds}s" }
     groupDetailMembersTitle = { count -> "Members ($count)" }
     conversationHeaderMemberCount = { count -> english(count, "{count} member", "{count} members") }
     profilePanelEditProfile = { name -> "$name, edit profile" }

@@ -12,7 +12,8 @@
     "flutter": {
       "FlareConversationSliverList": "Sliver form of ConversationList for CustomScrollView hosts (flare-core-flutter-app conversation_list_screen.dart).",
       "FlareMessageSliverList": "Sliver form of MessageList for CustomScrollView hosts (flare-core-flutter-app chat_screen.dart).",
-      "ComposerInlineTextField": "Composer text-field part hosts embed in their own bars (flare-core-flutter-app message_composer.dart / composer_sheets.dart); the Vue counterpart is the composer's internal input row."
+      "ComposerInlineTextField": "Composer text-field part hosts embed in their own bars (flare-core-flutter-app message_composer.dart / composer_sheets.dart); the Vue counterpart is the composer's internal input row.",
+      "FlareUpdatePromptPresenter": "Puts FlareUpdatePrompt on screen for hosts, which wrap a page in it (flare-core-flutter-update-ui flare_update_prompt_host.dart); the Vue counterpart is the prompt's open prop."
     },
     "compose": {
       "FlarePlatformProvider": "Layer 5 platform provider (spec/platform-contract.json); hosts install their adapter through it."

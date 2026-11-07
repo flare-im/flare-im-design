@@ -108,12 +108,14 @@ public struct FlareSettingsItem: Identifiable, Sendable {
     public let detail: String?
     public let disabled: Bool
     public let danger: Bool
+    /// A red dot before the chevron: something here is new (an update waiting in About). A toggle row draws none.
+    public let badge: Bool
     public init(key: String, label: String, icon: String? = nil,
                 kind: FlareSettingKind = .navigation, value: Bool = false, detail: String? = nil,
-                disabled: Bool = false, danger: Bool = false) {
+                disabled: Bool = false, danger: Bool = false, badge: Bool = false) {
         self.key = key; self.label = label; self.icon = icon
         self.kind = kind; self.value = value; self.detail = detail
-        self.disabled = disabled; self.danger = danger
+        self.disabled = disabled; self.danger = danger; self.badge = badge
     }
 }
 

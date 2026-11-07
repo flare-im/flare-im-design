@@ -6,6 +6,86 @@ import 'package:flare_im_ui/flare_im_ui.dart';
 // DoD 20 —— 发送路径上的输入法证明：组字中按 Enter 绝不能把半个词发出去。
 // 这条是真渲染 + 真按键，不是只验纯函数。
 void main() {
+  testWidgets('touch switches between the keyboard and composer panels', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    final draft = TextEditingController();
+    final focus = FocusNode();
+    addTearDown(tester.view.reset);
+    addTearDown(draft.dispose);
+    addTearDown(focus.dispose);
+    var outsideTaps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => outsideTaps++,
+                  child: const Center(child: Text('Timeline')),
+                ),
+              ),
+              FlareComposer(
+                controller: draft,
+                focusNode: focus,
+                actions: const [
+                  FlareComposerAction(id: 'file', label: 'File', icon: 'file'),
+                ],
+                onSend: (_) => true,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final input = find.byKey(const ValueKey('composer-input'));
+    final picker = find.byType(FlareEmojiStickerPicker);
+    await tester.tap(input);
+    await tester.pump();
+    tester.testTextInput.enterText('draft');
+    tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+    await tester.pump();
+    expect(focus.hasFocus, isTrue);
+    expect(tester.getBottomLeft(find.byType(FlareComposer)).dy, 530);
+
+    await tester.tap(find.byIcon(flareIconMap['emoji']!));
+    await tester.pump();
+    tester.view.resetViewInsets();
+    await tester.pump();
+    expect(focus.hasFocus, isFalse);
+    expect(tester.testTextInput.isVisible, isFalse);
+    expect(picker, findsOneWidget);
+    tester.widget<FlareEmojiStickerPicker>(picker).onInsertEmoji!('alien');
+    await tester.pump();
+    expect(draft.text, 'draft[alien]');
+    expect(focus.hasFocus, isFalse);
+    expect(picker, findsOneWidget);
+
+    await tester.tap(input);
+    await tester.pump();
+    expect(picker, findsNothing);
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.byIcon(flareIconMap['add']!));
+    await tester.pump();
+    expect(focus.hasFocus, isFalse);
+    expect(find.byType(FlareComposerActionPanel), findsOneWidget);
+    await tester.tap(input);
+    await tester.pump();
+    expect(find.byType(FlareComposerActionPanel), findsNothing);
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.text('Timeline'));
+    await tester.pump();
+    expect(outsideTaps, 1);
+    expect(tester.testTextInput.isVisible, isFalse);
+    expect(draft.text, 'draft[alien]');
+  });
+
   Future<void> pumpComposer(
     WidgetTester tester, {
     required TextEditingController controller,

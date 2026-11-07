@@ -6,6 +6,7 @@ import {
   type FlareThemeMode,
   type FlareThemeName,
 } from "@flare-im/tokens/theme";
+import { withFlareResourceColors } from "./resource-colors";
 
 export const imTheme = flareDesignTokens;
 export type FlareBrandTheme = FlareThemeName | FlareCustomTheme;
@@ -14,7 +15,7 @@ export function createNaiveThemeOverrides(
   mode: FlareThemeMode = "light",
   brand: FlareBrandTheme = "violet",
 ): GlobalThemeOverrides {
-  const colors = resolveFlareTheme(brand, mode).colors as any;
+  const colors = withFlareResourceColors(resolveFlareTheme(brand, mode).colors as any, mode);
   const dark = mode === "dark";
   return {
     common: {

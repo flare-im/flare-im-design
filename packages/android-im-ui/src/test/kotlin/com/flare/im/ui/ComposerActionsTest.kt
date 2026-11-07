@@ -103,4 +103,27 @@ class ComposerActionsTest {
         assertFalse(resolved.first().enabled)
         assertEquals("open-order", resolved[1].intent)
     }
+
+    @Test fun aPhonePagesTheGridByRowsAndColumns() {
+        val ids = (0 until 11).map { "a$it" }
+        assertEquals(listOf(8, 3), composerPanelPages(ids, rows = 2, columns = 4).map { it.size })
+        assertEquals(listOf("a8", "a9", "a10"), composerPanelPages(ids, rows = 2, columns = 4)[1])
+        assertEquals(listOf(5, 5, 1), composerPanelPages(ids, rows = 1, columns = 5).map { it.size })
+        assertEquals(emptyList(), composerPanelPages(emptyList<String>(), rows = 2, columns = 4))
+    }
+
+    @Test fun aNewListKeepsThePageAndClampsWhenPagesGoAway() {
+        assertEquals(1, composerPanelPage(current = 1, pages = 2))
+        assertEquals(0, composerPanelPage(current = 1, pages = 1))
+        assertEquals(0, composerPanelPage(current = 3, pages = 0))
+    }
+
+    @Test fun plusIsHiddenWhenItHasNothingToOpenOrAttach() {
+        fun keys(canMore: Boolean) = composerToolKeys(
+            FlareStrings(), disabled = false, canEmoji = true, canVoice = false, canImage = true, canMore = canMore,
+            richMode = false, panelOpen = false,
+        ).map { it.id }
+        assertTrue("more" in keys(canMore = true))
+        assertFalse("more" in keys(canMore = false), "an empty menu hides the key instead of drawing it disabled")
+    }
 }

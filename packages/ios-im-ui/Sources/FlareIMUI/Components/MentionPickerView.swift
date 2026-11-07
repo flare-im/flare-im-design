@@ -7,6 +7,7 @@ import SwiftUI
 public struct MentionPickerView: View {
     private let candidates: [MentionCandidate]
     private let allowEveryone: Bool
+    private let editorQuery: String?
     private let onSelect: ((MentionCandidate) -> Void)?
     private let onClose: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
@@ -18,9 +19,11 @@ public struct MentionPickerView: View {
     @State private var highlighted = 0
     @FocusState private var searchFocused: Bool
 
-    public init(candidates: [MentionCandidate], allowEveryone: Bool = false,
+    /// When `editorQuery` is present the composer supplies the search text and keeps keyboard focus.
+    public init(candidates: [MentionCandidate], allowEveryone: Bool = false, editorQuery: String? = nil,
                 onSelect: ((MentionCandidate) -> Void)? = nil, onClose: (() -> Void)? = nil) {
         self.candidates = candidates; self.allowEveryone = allowEveryone
+        self.editorQuery = editorQuery
         self.onSelect = onSelect; self.onClose = onClose
     }
 
@@ -45,31 +48,34 @@ public struct MentionPickerView: View {
         return ((index + delta) % count + count) % count
     }
 
+    private var effectiveQuery: String { editorQuery ?? query }
+
     private var rows: [MentionCandidate] {
-        Self.results(candidates, allowEveryone: allowEveryone, everyoneLabel: strings.everyone, query: query)
+        Self.results(candidates, allowEveryone: allowEveryone, everyoneLabel: strings.everyone, query: effectiveQuery)
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let rows = self.rows
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: FlareSizes.spacingSm) {
-                Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
-                    .accessibilityHidden(true)
-                TextField(strings.searchMembers, text: $query)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
-                    .focused($searchFocused)
-                    // Return picks the highlighted person. The Return that commits an IME composition
-                    // belongs to the input method and does not submit.
-                    .onSubmit { pick(at: highlighted, in: rows) }
-                    .modifier(MentionPickerKeys(move: { delta in
-                        highlighted = Self.movedHighlight(highlighted, by: delta, count: rows.count)
-                    }, close: { onClose?() }))
+            if editorQuery == nil {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                        .accessibilityHidden(true)
+                    TextField(strings.searchMembers, text: $query)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: FlareSizes.fontSizeLg)).foregroundColor(colors.textPrimary)
+                        .focused($searchFocused)
+                        // Return picks the highlighted person. The Return that commits an IME composition
+                        // belongs to the input method and does not submit.
+                        .onSubmit { pick(at: highlighted, in: rows) }
+                        .modifier(MentionPickerKeys(move: { delta in
+                            highlighted = Self.movedHighlight(highlighted, by: delta, count: rows.count)
+                        }, close: { onClose?() }))
+                }
+                .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+                Divider().overlay(colors.borderPrimary)
             }
-            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
-
-            Divider().overlay(colors.borderPrimary)
 
             if rows.isEmpty {
                 Text(strings.noMatchingMembers)
@@ -102,10 +108,14 @@ public struct MentionPickerView: View {
             .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))
         .shadow(color: Color.black.opacity(0.16), radius: 28, y: 12)
         // A new query highlights its first match again.
-        .onChange(of: query) { _ in highlighted = 0 }
-        // With a hardware keyboard the search field takes focus, so "@", a few letters and Return mention
-        // someone without leaving the keyboard. Touch keeps its behaviour: no keyboard pops up by itself.
-        .onAppear { if Self.focusesSearchOnOpen(platform.capabilities) { searchFocused = true } }
+        .onChange(of: effectiveQuery) { _ in highlighted = 0 }
+        // Desktop toolbar search may take focus. A typed mention stays in the editor and mobile toolbar
+        // search waits for a tap.
+        .onAppear {
+            if editorQuery == nil, !flareUsesMobileComposerPanels, Self.focusesSearchOnOpen(platform.capabilities) {
+                searchFocused = true
+            }
+        }
     }
 
     /// Whether the search field takes focus when the picker opens: where a keyboard is the input (macOS,

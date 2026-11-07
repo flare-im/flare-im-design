@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "note": "What the update prompt, the progress bar and the version panel show for the host's update status. The four kits run this table against their own rules (Vue, Flutter, SwiftUI and Compose `flareUpdatePrompt`, `flareProgressBarValue`, `flareVersionPanel` and `flareVersionChannelText`); the components of each kit draw what they return. Apps do not decide any of it.",
+  "rules": {
+    "forced": "`mandatory` is true, the state is required, or the form is fullscreen. The state counts on its own because the server can refuse the client before any manifest has arrived, and then there is no release to say mandatory. A forced prompt has no later, no skip and no background; `canContinueReadOnly` adds continueReadOnly.",
+    "phase": "In order. The state downloading, verifying, readyToInstall or installing names the phase (downloading, verifying, ready, installing): work under way outranks a leftover error. Otherwise the error code update.meteredConfirmationRequired is metered. Otherwise the state failed, or any error code, is failed. Otherwise offer, for every other state or none.",
+    "dismissible": "Not forced and not installing. The scrim, Escape, platform back and the swipe then ask for later; otherwise they do nothing.",
+    "live": "assertive when forced, otherwise polite.",
+    "title": "offer: required when forced, otherwise available. Every other phase names itself (metered, downloading, verifying, ready, installing, failed).",
+    "message": "offer: reason when forced with a reason, requiredReadOnly when forced with canContinueReadOnly, required when forced, otherwise nothing. metered: metered with a known size, meteredUnknown without one. ready: ready. failed: the `failures` table. downloading, verifying and installing say nothing more than their title.",
+    "reason": "`reason` is why this build may not stay, already in the reader's language. On a forced offer it takes the place of the fixed words and is written as it arrived; a blank one is no reason. Every other phase keeps its own words, because they say what to do next, and a prompt that is not forced says no reason.",
+    "actions": "In order, the first drawn one is primary. offer: update, then the tail. metered: continueDownload, then the tail without skip. downloading and verifying: background unless forced, then continueReadOnly. ready: restart, then the tail without skip. installing: nothing. failed: retry when `retryable`, fallback, then the tail without skip. The tail is later and, in the sheet form, skip; forced it is continueReadOnly when allowed. A component draws an action only while the host handles it.",
+    "notes": "Drawn in offer, metered, downloading and verifying.",
+    "version": "The version line, with the size beside it, is drawn only for a version that is not blank: the server can refuse the client before any manifest has arrived, and then there is no release to name.",
+    "progress": "downloading: the fraction received of total, clamped to 0..1, when total is above zero; otherwise no value, which reads as indeterminate. verifying and installing: no value. Other phases draw no bar.",
+    "progressBar": "A value that is missing, not finite, or asked to be indeterminate has no value and reads as indeterminate. Otherwise it is clamped to 0..1, and the percent is rounded to a whole number.",
+    "versionPanel": "`row` names the words of the update row, `action` what tapping it does (none while work is under way, so the row is disabled), `detail` what is written at its end. Any unknown state reads as idle.",
+    "channels": "stable, beta and internal have words of their own; any other channel is written as it arrived. No channel draws no row."
+  },
+  "failures": [
+    { "errorCode": "update.manifestUnavailable", "message": "manifestUnavailable" },
+    { "errorCode": "update.manifestRejected", "message": "manifestRejected" },
+    { "errorCode": "update.noArtifact", "message": "noArtifact" },
+    { "errorCode": "update.insufficientSpace", "message": "insufficientSpace" },
+    { "errorCode": "update.downloadFailed", "message": "downloadFailed" },
+    { "errorCode": "update.hashMismatch", "message": "hashMismatch" },
+    { "errorCode": "update.installFailed", "message": "installFailed" },
+    { "errorCode": "update.signatureMismatch", "message": "signatureMismatch" },
+    { "errorCode": "update.downgradeRejected", "message": "downgradeRejected" },
+    { "errorCode": "update.notSkippable", "message": "notSkippable" },
+    { "errorCode": "update.somethingNew", "message": "unknown" },
+    { "errorCode": null, "message": "unknown" }
+  ],
+  "versions": [
+    { "version": "2.4.0", "shown": true },
+    { "version": "", "shown": false },
+    { "version": "   ", "shown": false },
+    { "version": null, "shown": false }
+  ],
+  "progressBar": [
+    { "value": 0.42, "indeterminate": false, "shown": 0.42, "percent": 42 },
+    { "value": 0, "indeterminate": false, "shown": 0, "percent": 0 },
+    { "value": 1, "indeterminate": false, "shown": 1, "percent": 100 },
+    { "value": 0.996, "indeterminate": false, "shown": 0.996, "percent": 100 },
+    { "value": -0.5, "indeterminate": false, "shown": 0, "percent": 0 },
+    { "value": 1.5, "indeterminate": false, "shown": 1, "percent": 100 },
+    { "value": null, "indeterminate": false, "shown": null, "percent": null },
+    { "value": 0.5, "indeterminate": true, "shown": null, "percent": null }
+  ],
+  "versionPanel": [
+    { "updateState": null, "row": "check", "action": "check", "detail": null },
+    { "updateState": "idle", "row": "check", "action": "check", "detail": null },
+    { "updateState": "somethingNew", "row": "check", "action": "check", "detail": null },
+    { "updateState": "checking", "row": "check", "action": null, "detail": "checking" },
+    { "updateState": "upToDate", "row": "check", "action": "check", "detail": "upToDate" },
+    { "updateState": "available", "row": "update", "action": "update", "detail": "available" },
+    { "updateState": "required", "row": "update", "action": "update", "detail": "required" },
+    { "updateState": "downloading", "row": "update", "action": null, "detail": "downloading" },
+    { "updateState": "verifying", "row": "update", "action": null, "detail": "verifying" },
+    { "updateState": "readyToInstall", "row": "restart", "action": "update", "detail": "ready" },
+    { "updateState": "installing", "row": "update", "action": null, "detail": "installing" },
+    { "updateState": "failed", "row": "check", "action": "check", "detail": "failed" }
+  ],
+  "channels": [
+    { "channel": "stable", "text": "stable" },
+    { "channel": "beta", "text": "beta" },
+    { "channel": "internal", "text": "internal" },
+    { "channel": "nightly", "text": null },
+    { "channel": "", "text": null },
+    { "channel": null, "text": null }
+  ],
+  "cases": [
+    {
+      "name": "an optional version in a sheet offers later and skip",
+      "input": { "form": "sheet", "state": "available", "sizeBytes": 52428800 },
+      "expect": { "phase": "offer", "forced": false, "dismissible": true, "live": "polite", "title": "available", "message": null, "actions": ["update", "later", "skip"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a recommended version in a modal offers later, not skip",
+      "input": { "form": "modal", "state": "available" },
+      "expect": { "phase": "offer", "forced": false, "dismissible": true, "live": "polite", "title": "available", "message": null, "actions": ["update", "later"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a mandatory version in a modal may continue read-only",
+      "input": { "form": "modal", "mandatory": true, "state": "required", "canContinueReadOnly": true },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "requiredReadOnly", "actions": ["update", "continueReadOnly"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a blocking version in fullscreen offers only the update",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "required" },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "required", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "fullscreen is forced even without the mandatory flag",
+      "input": { "form": "fullscreen", "state": "available" },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "required", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "the required state is forced before any release has arrived",
+      "input": { "form": "modal", "state": "required" },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "required", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a mandatory version in a sheet has neither later nor skip",
+      "input": { "form": "sheet", "mandatory": true, "state": "required" },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "required", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "no state, or one the kit does not know, is an offer",
+      "input": { "form": "modal", "state": "somethingNew" },
+      "expect": { "phase": "offer", "forced": false, "dismissible": true, "live": "polite", "title": "available", "message": null, "actions": ["update", "later"], "notes": true, "progress": null }
+    },
+    {
+      "name": "checking keeps the offer on screen",
+      "input": { "form": "sheet", "state": "checking" },
+      "expect": { "phase": "offer", "forced": false, "dismissible": true, "live": "polite", "title": "available", "message": null, "actions": ["update", "later", "skip"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a metered network with a known size",
+      "input": { "form": "sheet", "state": "available", "errorCode": "update.meteredConfirmationRequired", "sizeBytes": 52428800 },
+      "expect": { "phase": "metered", "forced": false, "dismissible": true, "live": "polite", "title": "metered", "message": "metered", "actions": ["continueDownload", "later"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a metered network with no known size",
+      "input": { "form": "modal", "state": "failed", "errorCode": "update.meteredConfirmationRequired" },
+      "expect": { "phase": "metered", "forced": false, "dismissible": true, "live": "polite", "title": "metered", "message": "meteredUnknown", "actions": ["continueDownload", "later"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a metered network on a forced prompt keeps read-only",
+      "input": { "form": "modal", "mandatory": true, "state": "required", "errorCode": "update.meteredConfirmationRequired", "sizeBytes": 1024, "canContinueReadOnly": true },
+      "expect": { "phase": "metered", "forced": true, "dismissible": false, "live": "assertive", "title": "metered", "message": "metered", "actions": ["continueDownload", "continueReadOnly"], "notes": true, "progress": null }
+    },
+    {
+      "name": "downloading shows the fraction and can go to the background",
+      "input": { "form": "sheet", "state": "downloading", "progress": { "received": 26214400, "total": 52428800 } },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": 0.5, "percent": 50 } }
+    },
+    {
+      "name": "downloading without a total is indeterminate",
+      "input": { "form": "modal", "state": "downloading", "progress": { "received": 1024, "total": null } },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": null, "percent": null } }
+    },
+    {
+      "name": "downloading with a zero total is indeterminate",
+      "input": { "form": "modal", "state": "downloading", "progress": { "received": 1024, "total": 0 } },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": null, "percent": null } }
+    },
+    {
+      "name": "downloading before the first progress event is indeterminate",
+      "input": { "form": "modal", "state": "downloading" },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": null, "percent": null } }
+    },
+    {
+      "name": "received past the total reads as complete",
+      "input": { "form": "modal", "state": "downloading", "progress": { "received": 60, "total": 50 } },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": 1, "percent": 100 } }
+    },
+    {
+      "name": "a forced download has no way out",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "downloading", "progress": { "received": 1, "total": 4 } },
+      "expect": { "phase": "downloading", "forced": true, "dismissible": false, "live": "assertive", "title": "downloading", "message": null, "actions": [], "notes": true, "progress": { "value": 0.25, "percent": 25 } }
+    },
+    {
+      "name": "a forced download keeps read-only when allowed",
+      "input": { "form": "modal", "mandatory": true, "state": "downloading", "progress": { "received": 1, "total": 4 }, "canContinueReadOnly": true },
+      "expect": { "phase": "downloading", "forced": true, "dismissible": false, "live": "assertive", "title": "downloading", "message": null, "actions": ["continueReadOnly"], "notes": true, "progress": { "value": 0.25, "percent": 25 } }
+    },
+    {
+      "name": "work under way outranks a leftover error",
+      "input": { "form": "modal", "state": "downloading", "errorCode": "update.downloadFailed", "progress": { "received": 1, "total": 2 } },
+      "expect": { "phase": "downloading", "forced": false, "dismissible": true, "live": "polite", "title": "downloading", "message": null, "actions": ["background"], "notes": true, "progress": { "value": 0.5, "percent": 50 } }
+    },
+    {
+      "name": "verifying has no value",
+      "input": { "form": "sheet", "state": "verifying", "progress": { "received": 4, "total": 4 } },
+      "expect": { "phase": "verifying", "forced": false, "dismissible": true, "live": "polite", "title": "verifying", "message": null, "actions": ["background"], "notes": true, "progress": { "value": null, "percent": null } }
+    },
+    {
+      "name": "ready asks for a restart and never restarts by itself",
+      "input": { "form": "sheet", "state": "readyToInstall" },
+      "expect": { "phase": "ready", "forced": false, "dismissible": true, "live": "polite", "title": "ready", "message": "ready", "actions": ["restart", "later"], "notes": false, "progress": null }
+    },
+    {
+      "name": "ready on a forced prompt",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "readyToInstall" },
+      "expect": { "phase": "ready", "forced": true, "dismissible": false, "live": "assertive", "title": "ready", "message": "ready", "actions": ["restart"], "notes": false, "progress": null }
+    },
+    {
+      "name": "ready on a forced prompt keeps read-only when allowed",
+      "input": { "form": "modal", "mandatory": true, "state": "readyToInstall", "canContinueReadOnly": true },
+      "expect": { "phase": "ready", "forced": true, "dismissible": false, "live": "assertive", "title": "ready", "message": "ready", "actions": ["restart", "continueReadOnly"], "notes": false, "progress": null }
+    },
+    {
+      "name": "installing cannot be left",
+      "input": { "form": "sheet", "state": "installing" },
+      "expect": { "phase": "installing", "forced": false, "dismissible": false, "live": "polite", "title": "installing", "message": null, "actions": [], "notes": false, "progress": { "value": null, "percent": null } }
+    },
+    {
+      "name": "a failure that can be retried",
+      "input": { "form": "sheet", "state": "failed", "errorCode": "update.downloadFailed" },
+      "expect": { "phase": "failed", "forced": false, "dismissible": true, "live": "polite", "title": "failed", "message": "downloadFailed", "actions": ["retry", "fallback", "later"], "notes": false, "progress": null }
+    },
+    {
+      "name": "a failure that cannot be retried leaves the fallback first",
+      "input": { "form": "modal", "state": "failed", "errorCode": "update.signatureMismatch", "retryable": false },
+      "expect": { "phase": "failed", "forced": false, "dismissible": true, "live": "polite", "title": "failed", "message": "signatureMismatch", "actions": ["fallback", "later"], "notes": false, "progress": null }
+    },
+    {
+      "name": "a forced failure has no later",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "failed", "errorCode": "update.hashMismatch" },
+      "expect": { "phase": "failed", "forced": true, "dismissible": false, "live": "assertive", "title": "failed", "message": "hashMismatch", "actions": ["retry", "fallback"], "notes": false, "progress": null }
+    },
+    {
+      "name": "a forced failure keeps read-only when allowed",
+      "input": { "form": "modal", "mandatory": true, "state": "failed", "errorCode": "update.installFailed", "canContinueReadOnly": true },
+      "expect": { "phase": "failed", "forced": true, "dismissible": false, "live": "assertive", "title": "failed", "message": "installFailed", "actions": ["retry", "fallback", "continueReadOnly"], "notes": false, "progress": null }
+    },
+    {
+      "name": "an error code alone is a failure",
+      "input": { "form": "modal", "state": "available", "errorCode": "update.insufficientSpace" },
+      "expect": { "phase": "failed", "forced": false, "dismissible": true, "live": "polite", "title": "failed", "message": "insufficientSpace", "actions": ["retry", "fallback", "later"], "notes": false, "progress": null }
+    },
+    {
+      "name": "the failed state with no code reads as unknown",
+      "input": { "form": "modal", "state": "failed" },
+      "expect": { "phase": "failed", "forced": false, "dismissible": true, "live": "polite", "title": "failed", "message": "unknown", "actions": ["retry", "fallback", "later"], "notes": false, "progress": null }
+    },
+    {
+      "name": "a forced offer says the reason in place of its fixed words",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "required", "reason": "This build has been withdrawn." },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "reason", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "the reason outranks the read-only words and keeps the read-only action",
+      "input": { "form": "modal", "mandatory": true, "state": "required", "canContinueReadOnly": true, "reason": "This build has been withdrawn." },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "reason", "actions": ["update", "continueReadOnly"], "notes": true, "progress": null }
+    },
+    {
+      "name": "the required state says the reason before any release has arrived",
+      "input": { "form": "modal", "state": "required", "reason": "This build has been withdrawn." },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "reason", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "an empty reason keeps the fixed words",
+      "input": { "form": "modal", "state": "required", "reason": "" },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "required", "actions": ["update"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a blank reason keeps the fixed words",
+      "input": { "form": "modal", "state": "required", "canContinueReadOnly": true, "reason": "   " },
+      "expect": { "phase": "offer", "forced": true, "dismissible": false, "live": "assertive", "title": "required", "message": "requiredReadOnly", "actions": ["update", "continueReadOnly"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a prompt that is not forced says no reason",
+      "input": { "form": "sheet", "state": "available", "reason": "This build has been withdrawn." },
+      "expect": { "phase": "offer", "forced": false, "dismissible": true, "live": "polite", "title": "available", "message": null, "actions": ["update", "later", "skip"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a metered network keeps its own words over the reason",
+      "input": { "form": "modal", "mandatory": true, "state": "required", "errorCode": "update.meteredConfirmationRequired", "sizeBytes": 1024, "reason": "This build has been withdrawn." },
+      "expect": { "phase": "metered", "forced": true, "dismissible": false, "live": "assertive", "title": "metered", "message": "metered", "actions": ["continueDownload"], "notes": true, "progress": null }
+    },
+    {
+      "name": "a forced download says nothing more for a reason",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "downloading", "progress": { "received": 1, "total": 4 }, "reason": "This build has been withdrawn." },
+      "expect": { "phase": "downloading", "forced": true, "dismissible": false, "live": "assertive", "title": "downloading", "message": null, "actions": [], "notes": true, "progress": { "value": 0.25, "percent": 25 } }
+    },
+    {
+      "name": "ready keeps its own words over the reason",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "readyToInstall", "reason": "This build has been withdrawn." },
+      "expect": { "phase": "ready", "forced": true, "dismissible": false, "live": "assertive", "title": "ready", "message": "ready", "actions": ["restart"], "notes": false, "progress": null }
+    },
+    {
+      "name": "a failure keeps its own words over the reason",
+      "input": { "form": "fullscreen", "mandatory": true, "state": "failed", "errorCode": "update.hashMismatch", "reason": "This build has been withdrawn." },
+      "expect": { "phase": "failed", "forced": true, "dismissible": false, "live": "assertive", "title": "failed", "message": "hashMismatch", "actions": ["retry", "fallback"], "notes": false, "progress": null }
+    }
+  ]
+}

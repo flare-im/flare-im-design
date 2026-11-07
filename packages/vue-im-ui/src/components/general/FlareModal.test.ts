@@ -45,6 +45,21 @@ const escape = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: 
 const pressEscape = (from: Element) => from.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
 
 describe("FlareModal DOM contract", () => {
+  it("puts a later-opened pre-mounted modal above the call regardless of teleport order", async () => {
+    const state = reactive({ call: false, picker: false });
+    host = mount(defineComponent({setup() {
+      useFlareI18nProvider("en-US");
+      return () => [h(FlareModal, {open: state.picker, title: "Devices"}), h(FlareModal, {open: state.call, title: "Call"})];
+    }}), {attachTo: document.body});
+    state.call = true;
+    await nextTick();
+    state.picker = true;
+    await nextTick();
+    const layer = (title: string) => (document.querySelector(`[aria-label="${title}"]`)!.parentElement as HTMLElement).style.zIndex;
+    expect(layer("Call")).toBe("calc(var(--flare-z-index-modal) + 0)");
+    expect(layer("Devices")).toBe("calc(var(--flare-z-index-modal) + 1)");
+  });
+
   it("is a named, modal dialog surface stamped dialog over the shared scrim", async () => {
     mountModal({ title: "Rename group" });
     await nextTick();
@@ -215,6 +230,15 @@ describe("FlareModal closing", () => {
       host = undefined;
       document.body.innerHTML = "";
     }
+  });
+
+  it("takes the whole window in the fullscreen form and drops the height cap", async () => {
+    mountModal({ fullscreen: true, showClose: false, label: "Update" });
+    await nextTick();
+    const surface = document.querySelector<HTMLElement>(".flare-modal");
+    expect(surface?.classList.contains("flare-modal--fullscreen")).toBe(true);
+    expect(surface?.style.maxHeight).toBe("");
+    expect(document.querySelector(".flare-modal-scrim")?.classList.contains("flare-modal-scrim--fullscreen")).toBe(true);
   });
 
   it("locks the page scroll while open and restores it when closed", async () => {

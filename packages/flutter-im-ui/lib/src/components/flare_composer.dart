@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:extended_text_field/extended_text_field.dart';
-import 'flare_bottom_sheet.dart';
 import 'flare_inline_voice.dart';
 import 'flare_mention_picker.dart';
 import '../emoji_sticker/flare_composer_emoji_span_builder.dart';
@@ -29,6 +28,8 @@ export '../models/message_data.dart' show FlareReplyTarget;
 
 enum FlareComposerSubmitMode { enter, modifierEnter }
 
+enum _ComposerPanel { emoji, mention, more }
+
 /// The message input — the **complete, ready-to-use** composer, assembled from
 /// composable parts (voice / attach panel / emoji / send / reply strip). Spec:
 /// Composer/Composer (`FlareComposer`). [onSend] reports whether the send was
@@ -48,6 +49,7 @@ enum FlareComposerSubmitMode { enter, modifierEnter }
 class _Metrics {
   const _Metrics({
     required this.wide,
+    required this.mobile,
     required this.text,
     required this.stripHeight,
     required this.stripInset,
@@ -55,17 +57,19 @@ class _Metrics {
   });
 
   final bool wide;
+  final bool mobile;
   final EdgeInsets text;
   final double stripHeight;
   final double stripInset;
   final double toolInset;
 
-  factory _Metrics.of(double width, int keys) {
+  factory _Metrics.of(double width, int keys, {required bool mobile}) {
     // The Web kit's FLARE_BREAKPOINT_TABLET_MIN is the same 600px boundary.
     if (width >= FlareSizes.navigationRailMinWidth) {
-      return const _Metrics(
+      return _Metrics(
         wide: true,
-        text: EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+        mobile: mobile,
+        text: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
         stripHeight: 32,
         stripInset: 0,
         toolInset: 0,
@@ -77,6 +81,7 @@ class _Metrics {
     // a 320px screen, and the targets are the part that must not shrink.
     return _Metrics(
       wide: false,
+      mobile: mobile,
       text: const EdgeInsets.fromLTRB(16, 11, 0, 11),
       stripHeight: FlareSizes.componentComposerActionWidth,
       stripInset: 6,
@@ -181,6 +186,9 @@ class FlareComposer extends StatefulWidget {
 }
 
 class FlareComposerState extends State<FlareComposer> {
+  bool _allowsTool(String id) => widget.capabilities.allowsTool(id);
+  bool get _effectiveRich =>
+      _allowsTool('richText') && (_richMode || widget.rich);
   List<FlareComposerAction> get _resolvedActions => resolveFlareComposerActions(
     actions: widget.actions,
     capabilities: widget.capabilities,
@@ -188,6 +196,11 @@ class FlareComposerState extends State<FlareComposer> {
   bool get _hasActionPanel =>
       _resolvedActions.isNotEmpty &&
       (widget.actions != null || widget.onAttach == null);
+
+  /// "+" with nothing to open or attach is hidden, not drawn disabled.
+  bool get _plusShown =>
+      _allowsTool('attachments') &&
+      (_hasActionPanel || widget.onAttach != null);
   String get _placeholder =>
       widget.placeholder ?? FlareStrings.of(context).composerPlaceholder;
   String get _replyLabel =>
@@ -196,22 +209,26 @@ class FlareComposerState extends State<FlareComposer> {
   late bool _ownsController;
   late FocusNode _focusNode;
   late bool _ownsFocusNode;
-  bool _emojiOpen = false;
+  _ComposerPanel? _panel;
   bool _expanded = false;
   bool _richMode = false;
   bool _formatLevelsOpen = false;
   RichComposerFormatting _formatting = const RichComposerFormatting();
   void dismissPanel() {
-    if (_panelOpen) setState(() => _panelOpen = false);
+    if (_panel != null) setState(_closeTransientPanels);
   }
 
   bool _canSend = false;
   bool _voiceMode = false;
-  bool _panelOpen = false;
   bool _sending = false;
-  bool _mentionOpen = false;
+  int? _typedMentionOffset;
   TextEditingValue _lastValue = TextEditingValue.empty;
   bool _suppressTyping = false;
+
+  List<FlareMentionCandidate> get _availableMentionCandidates =>
+      widget.disabled || !widget.enableMentions || !_allowsTool('mention')
+      ? const []
+      : widget.mentionCandidates;
 
   @override
   void initState() {
@@ -246,22 +263,38 @@ class FlareComposerState extends State<FlareComposer> {
   }
 
   void _changed() {
-    final wasMultiline = _textNeedsMultipleLines(_lastValue.text);
+    final previous = _lastValue;
+    final wasMultiline = _textNeedsMultipleLines(previous.text);
     final value = _controller.value;
-    final typedAt = _typedMentionAt(_lastValue, value);
+    final typedAt = _typedMentionAt(previous, value);
     // A controller notifies for the caret and the selection too. Tapping into a composer that already
     // holds a draft changes nothing about the text, and must not tell the conversation someone is typing.
-    final textChanged = _lastValue.text != value.text;
+    final textChanged = previous.text != value.text;
     _lastValue = value;
     final can = value.text.trim().isNotEmpty;
     final isMultiline = _textNeedsMultipleLines(value.text);
-    if (can != _canSend || wasMultiline != isMultiline) {
-      setState(() => _canSend = can);
+    if (can != _canSend ||
+        wasMultiline != isMultiline ||
+        (_typedMentionOffset != null && previous != value)) {
+      setState(() {
+        _canSend = can;
+        if (_typedMentionOffset != null && _typedMentionRange(value) == null) {
+          _closeTransientPanels();
+        }
+      });
     }
     if (textChanged && !_suppressTyping) widget.onTyping?.call(value.text);
-    if (typedAt != null && widget.mentionCandidates.isNotEmpty) {
+    if (typedAt != null && _availableMentionCandidates.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pickMention(typedAt: typedAt);
+        if (mounted &&
+            _controller.value == value &&
+            _availableMentionCandidates.isNotEmpty) {
+          setState(() {
+            _closeTransientPanels();
+            _panel = _ComposerPanel.mention;
+            _typedMentionOffset = typedAt;
+          });
+        }
       });
     }
   }
@@ -276,17 +309,26 @@ class FlareComposerState extends State<FlareComposer> {
   }
 
   void _closeTransientPanels() {
-    _panelOpen = false;
-    _emojiOpen = false;
+    _panel = null;
+    _typedMentionOffset = null;
     _formatLevelsOpen = false;
   }
 
+  void _togglePanel(_ComposerPanel panel, {required bool hideKeyboard}) {
+    if (hideKeyboard) _focusNode.unfocus();
+    final next = _panel == panel ? null : panel;
+    setState(() {
+      _closeTransientPanels();
+      _panel = next;
+    });
+  }
+
   void _toggleExpanded() {
+    _focusNode.unfocus();
     setState(() {
       _closeTransientPanels();
       _expanded = !_expanded;
     });
-    _focusInput();
   }
 
   /// Where "@" was just typed at the start of a word as a pure insertion
@@ -311,43 +353,80 @@ class FlareComposerState extends State<FlareComposer> {
     return at == 0 || text[at - 1].trim().isEmpty ? at : null;
   }
 
-  /// Presents the member picker. A pick replaces the "@" typed at [typedAt]
-  /// with "@name ", or goes in at the caret; closing leaves the text alone.
-  Future<void> _pickMention({int? typedAt}) async {
-    if (_mentionOpen || widget.mentionCandidates.isEmpty) return;
-    _mentionOpen = true;
-    // The picker sits over the composer it types into: a sheet on every form
-    // factor, like the emoji and more panels, not a centered Modal.
-    final picked = await FlareBottomSheet.show<FlareMentionCandidate>(
-      context,
-      title: FlareStrings.of(context).composerMention,
-      presentation: FlareSheetPresentation.sheet,
-      builder: (sheetContext) => FlareMentionPicker(
-        candidates: widget.mentionCandidates,
-        autofocus: true,
-        framed: false,
-        onSelect: (candidate) => Navigator.of(sheetContext).pop(candidate),
-      ),
-    );
-    _mentionOpen = false;
-    if (picked == null || !mounted) return;
-    final mention = '@${picked.name} ';
-    final text = _controller.text;
-    if (typedAt != null && typedAt < text.length && text[typedAt] == '@') {
+  TextRange? _typedMentionRange(TextEditingValue value) {
+    final start = _typedMentionOffset;
+    final caret = value.selection.end;
+    if (start == null ||
+        !value.selection.isCollapsed ||
+        caret <= start ||
+        caret > value.text.length ||
+        value.text[start] != '@' ||
+        value.text.substring(start + 1, caret).contains(RegExp(r'\s'))) {
+      return null;
+    }
+    return TextRange(start: start, end: caret);
+  }
+
+  void _onMention(_Metrics m) {
+    if (_panel == _ComposerPanel.mention ||
+        _availableMentionCandidates.isNotEmpty) {
+      _togglePanel(_ComposerPanel.mention, hideKeyboard: m.mobile);
+    } else {
+      if (m.mobile) _focusNode.unfocus();
+      dismissPanel();
+      _insert('@');
+    }
+  }
+
+  /// Use the latest authorized roster even if an older row callback runs.
+  void _selectMention(FlareMentionCandidate picked) {
+    if (_panel != _ComposerPanel.mention) return;
+    final current = _availableMentionCandidates
+        .where(
+          (candidate) =>
+              candidate.id == picked.id &&
+              candidate.isEveryone == picked.isEveryone,
+        )
+        .firstOrNull;
+    if (current == null) return;
+    final mention = '@${current.name} ';
+    final range = _typedMentionRange(_controller.value);
+    if (_typedMentionOffset != null && range == null) return;
+    setState(_closeTransientPanels);
+    if (range != null) {
       _controller.value = TextEditingValue(
-        text: text.replaceRange(typedAt, typedAt + 1, mention),
-        selection: TextSelection.collapsed(offset: typedAt + mention.length),
+        text: _controller.text.replaceRange(range.start, range.end, mention),
+        selection: TextSelection.collapsed(
+          offset: range.start + mention.length,
+        ),
       );
+      if (!_focusNode.hasFocus) _focusInput();
     } else {
       _insert(mention);
     }
-    _focusInput();
   }
 
   @override
   void didUpdateWidget(covariant FlareComposer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Revocation changes presentation immediately, including already-open
+    // panels. The controller/draft is deliberately not cleared.
+    final panelAvailable = switch (_panel) {
+      _ComposerPanel.emoji => _allowsTool('emoji'),
+      _ComposerPanel.mention => widget.enableMentions && _allowsTool('mention'),
+      _ComposerPanel.more => _allowsTool('attachments') && _hasActionPanel,
+      null => true,
+    };
+    if (widget.disabled || !panelAvailable) _closeTransientPanels();
+    if (widget.disabled || !_allowsTool('voice') || !widget.enableVoice)
+      _voiceMode = false;
+    if (widget.disabled || !_allowsTool('richText')) {
+      _richMode = false;
+      _formatLevelsOpen = false;
+      _formatting = const RichComposerFormatting();
+    }
     if (widget.controller != oldWidget.controller) {
+      if (_panel == _ComposerPanel.mention) _closeTransientPanels();
       _controller.removeListener(_changed);
       if (_ownsController) _controller.dispose();
       _ownsController = widget.controller == null;
@@ -364,10 +443,8 @@ class FlareComposerState extends State<FlareComposer> {
     if (widget.conversationKey != oldWidget.conversationKey) {
       if (_ownsController) _clearWithoutTyping();
       _voiceMode = false;
-      _panelOpen = false;
-      _emojiOpen = false;
+      _closeTransientPanels();
       _expanded = false;
-      _formatLevelsOpen = false;
       _formatting = const RichComposerFormatting();
       _richMode = false;
     }
@@ -389,7 +466,7 @@ class FlareComposerState extends State<FlareComposer> {
         text.isEmpty ||
         (widget.onSend == null && widget.onSendRich == null))
       return;
-    if ((_richMode || widget.rich) && widget.onSendRich != null) {
+    if (_effectiveRich && widget.onSendRich != null) {
       widget.onSendRich!(
         RichComposerMarkdownSerializer.serialize(text, _formatting),
       );
@@ -398,7 +475,6 @@ class FlareComposerState extends State<FlareComposer> {
         _expanded = false;
         _closeTransientPanels();
       });
-      _focusInput();
       return;
     }
     final onSend = widget.onSend;
@@ -425,7 +501,6 @@ class FlareComposerState extends State<FlareComposer> {
       _expanded = false;
       _closeTransientPanels();
     });
-    _focusInput();
   }
 
   bool _shouldSubmit(KeyDownEvent event) {
@@ -447,26 +522,30 @@ class FlareComposerState extends State<FlareComposer> {
     return intent == FlareFormKeyboardIntent.submit;
   }
 
-  void _onPlus() {
+  void _onPlus(_Metrics m) {
+    if (widget.disabled || !_allowsTool('attachments')) return;
     if (_hasActionPanel) {
-      setState(() {
-        _panelOpen = !_panelOpen;
-        _emojiOpen = false;
-      });
-      _focusInput();
+      _togglePanel(_ComposerPanel.more, hideKeyboard: m.mobile);
     } else {
+      _focusNode.unfocus();
+      dismissPanel();
       widget.onAttach?.call();
-      _focusInput();
     }
   }
 
   void _activatePanelAction(FlareComposerAction action) {
+    if (widget.disabled ||
+        !_allowsTool('attachments') ||
+        !_resolvedActions.any((x) => x.id == action.id && x.enabled))
+      return;
+    _focusNode.unfocus();
     // Voice is already a first-class composer mode. The Web composer exposes
     // it both in the toolbar and in the "+" surface; selecting either entry
     // must reach the same recorder instead of asking every host to recreate
     // the composer's private state transition.
     if (action.id == 'voice' &&
         widget.enableVoice &&
+        _allowsTool('voice') &&
         widget.onVoiceSend != null) {
       setState(() {
         _voiceMode = true;
@@ -476,43 +555,36 @@ class FlareComposerState extends State<FlareComposer> {
       return;
     }
     widget.onAction?.call(action);
-    setState(() => _panelOpen = false);
-    _focusInput();
+    dismissPanel();
   }
 
-  void _toggleEmoji() {
-    setState(() {
-      _emojiOpen = !_emojiOpen;
-      _panelOpen = false;
-      _formatLevelsOpen = false;
-    });
-    _focusInput();
-  }
-
-  void _onEmoji() {
+  void _onEmoji(_Metrics m) {
+    if (widget.disabled || !_allowsTool('emoji')) return;
     final handler = widget.onEmoji;
     if (handler == null) {
-      _toggleEmoji();
+      _togglePanel(_ComposerPanel.emoji, hideKeyboard: m.mobile);
       return;
     }
+    _focusNode.unfocus();
     setState(_closeTransientPanels);
     handler();
-    _focusInput();
   }
 
   void _openImage() {
+    if (widget.disabled || !_allowsTool('image')) return;
+    _focusNode.unfocus();
     setState(_closeTransientPanels);
     (widget.onImage ?? widget.onAttach)?.call();
-    _focusInput();
   }
 
   void _toggleRichMode() {
+    if (widget.disabled || !_allowsTool('richText')) return;
+    _focusNode.unfocus();
     setState(() {
       _richMode = !_richMode;
       _closeTransientPanels();
       if (!_richMode) _formatting = const RichComposerFormatting();
     });
-    _focusInput();
   }
 
   Widget _tool(
@@ -831,14 +903,22 @@ class FlareComposerState extends State<FlareComposer> {
               const Icon(Icons.link_outlined),
               RichComposerInlineStyle.link,
             ),
-            _formatControl(
-              id: 'image',
-              label: s.actionImage,
-              glyph: const Icon(Icons.image_outlined),
-              colors: colors,
-              coarse: coarse,
-              onTap: widget.onImage ?? () => _insert('![]()'),
-            ),
+            if (_allowsTool('image'))
+              _formatControl(
+                id: 'image',
+                label: s.actionImage,
+                glyph: const Icon(Icons.image_outlined),
+                colors: colors,
+                coarse: coarse,
+                onTap: () {
+                  if (widget.disabled || !_allowsTool('image')) return;
+                  if (widget.onImage != null) {
+                    _openImage();
+                  } else {
+                    _insert('![]()');
+                  }
+                },
+              ),
             inlineAction(
               'code',
               s.composerCode,
@@ -891,31 +971,30 @@ class FlareComposerState extends State<FlareComposer> {
     final s = FlareStrings.of(context);
     final keys = <Widget>[
       if (m.wide) _resizeTool(m),
-      _tool(
-        flareIconGlyph('emoji'),
-        s.composerEmoji,
-        _onEmoji,
-        compact: m.wide,
-      ),
-      if (widget.enableMentions)
+      if (_allowsTool('emoji'))
+        _tool(
+          flareIconGlyph('emoji'),
+          s.composerEmoji,
+          () => _onEmoji(m),
+          active: _panel == _ComposerPanel.emoji,
+          compact: m.wide,
+        ),
+      if (widget.enableMentions && _allowsTool('mention'))
         _tool(
           flareIconGlyph('mention'),
           s.composerMention,
-          widget.mentionCandidates.isEmpty
-              ? () {
-                  _insert('@');
-                  _focusInput();
-                }
-              : () => _pickMention(),
+          () => _onMention(m),
+          active: _panel == _ComposerPanel.mention,
           compact: m.wide,
         ),
-      if (widget.enableVoice)
+      if (widget.enableVoice && _allowsTool('voice'))
         _tool(
           flareIconGlyph('mic'),
           s.composerVoiceInput,
           widget.onVoiceSend == null
               ? null
               : () {
+                  _focusNode.unfocus();
                   setState(() {
                     _voiceMode = true;
                     _expanded = false;
@@ -924,44 +1003,52 @@ class FlareComposerState extends State<FlareComposer> {
                 },
           compact: m.wide,
         ),
-      _tool(
-        flareIconGlyph('image'),
-        s.actionImage,
-        _openImage,
-        compact: m.wide,
-      ),
-      _tool(
-        flareIconGlyph('rich-text'),
-        s.composerRichText,
-        _toggleRichMode,
-        active: _richMode || widget.rich,
-        compact: m.wide,
-      ),
-      _tool(
-        flareIconGlyph(_panelOpen ? 'close' : 'add'),
-        s.more,
-        _onPlus,
-        active: _panelOpen,
-        enabled: _hasActionPanel || widget.onAttach != null,
-        compact: m.wide,
-      ),
+      if (_allowsTool('image'))
+        _tool(
+          flareIconGlyph('image'),
+          s.actionImage,
+          _openImage,
+          compact: m.wide,
+        ),
+      if (_allowsTool('richText'))
+        _tool(
+          flareIconGlyph('rich-text'),
+          s.composerRichText,
+          _toggleRichMode,
+          active: _effectiveRich,
+          compact: m.wide,
+        ),
+      if (_plusShown)
+        _tool(
+          flareIconGlyph(_panel == _ComposerPanel.more ? 'close' : 'add'),
+          s.more,
+          () => _onPlus(m),
+          active: _panel == _ComposerPanel.more,
+          compact: m.wide,
+        ),
       FlareComposerSendButton(
         active:
             !widget.disabled &&
             (_canSend || _controller.text.trim().isNotEmpty) &&
             (widget.onSend != null || widget.onSendRich != null),
         busy: _sending,
-        onTap: _send,
+        onTap: () {
+          _focusNode.unfocus();
+          _send();
+        },
         compact: m.wide,
       ),
     ];
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: m.toolInset),
-      child: Row(
-        mainAxisAlignment: m.wide
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.spaceBetween,
-        children: keys,
+    return TapRegion(
+      groupId: _focusNode,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: m.toolInset),
+        child: Row(
+          mainAxisAlignment: m.wide
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.spaceBetween,
+          children: keys,
+        ),
       ),
     );
   }
@@ -996,7 +1083,11 @@ class FlareComposerState extends State<FlareComposer> {
 
   /// Emoji, mention, [voice], image, rich text, more, send.
   int get _keyCount =>
-      5 + (widget.enableVoice ? 1 : 0) + (widget.enableMentions ? 1 : 0);
+      1 +
+      ['emoji', 'image', 'richText'].where(_allowsTool).length +
+      (_plusShown ? 1 : 0) +
+      (widget.enableVoice && _allowsTool('voice') ? 1 : 0) +
+      (widget.enableMentions && _allowsTool('mention') ? 1 : 0);
 
   Widget _inputField(_Metrics m, FlareColors colors) {
     final inline = _formatting.inlineStyles;
@@ -1004,6 +1095,12 @@ class FlareComposerState extends State<FlareComposer> {
       padding: m.text,
       child: Focus(
         onKeyEvent: (_, event) {
+          if (_panel != null &&
+              event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.escape) {
+            dismissPanel();
+            return KeyEventResult.handled;
+          }
           if ((m.wide ||
                   FlarePlatform.of(context).capabilities.keyboardShortcut) &&
               event is KeyDownEvent &&
@@ -1015,57 +1112,76 @@ class FlareComposerState extends State<FlareComposer> {
         },
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-          child: ExtendedTextField(
-            // Keep the editable state and its platform text-input connection
-            // alive while the async catalog arrives. Re-keying this field used
-            // to discard the first keystroke on a cold composer. The rebuilt
-            // span builder below is enough to repaint restored `[key]` drafts.
-            key: const ValueKey('composer-input'),
-            specialTextSpanBuilder: FlareComposerEmojiSpanBuilder(
-              delegate: widget.specialTextSpanBuilder,
-              locale: Localizations.localeOf(context).toLanguageTag(),
-            ),
-            controller: _controller,
-            focusNode: _focusNode,
-            enabled: !widget.disabled,
-            minLines: _expanded ? 6 : 1,
-            maxLines: _expanded ? 14 : 6,
-            maxLength: widget.maxLength,
-            textInputAction: TextInputAction.newline,
-            onSubmitted: (_) => _send(),
-            buildCounter:
-                (_, {required currentLength, maxLength, required isFocused}) =>
-                    null,
-            style: TextStyle(
-              color: inline.contains(RichComposerInlineStyle.link)
-                  ? colors.primary
-                  : colors.textPrimary,
-              fontSize: 15,
-              height: 1.45,
-              fontWeight: inline.contains(RichComposerInlineStyle.bold)
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-              fontStyle: inline.contains(RichComposerInlineStyle.italic)
-                  ? FontStyle.italic
-                  : FontStyle.normal,
-              decoration:
-                  inline.contains(RichComposerInlineStyle.strike) ||
-                      inline.contains(RichComposerInlineStyle.underline) ||
-                      inline.contains(RichComposerInlineStyle.link)
-                  ? TextDecoration.combine([
-                      if (inline.contains(RichComposerInlineStyle.strike))
-                        TextDecoration.lineThrough,
-                      if (inline.contains(RichComposerInlineStyle.underline) ||
-                          inline.contains(RichComposerInlineStyle.link))
-                        TextDecoration.underline,
-                    ])
-                  : null,
-            ),
-            decoration: InputDecoration(
-              isCollapsed: true,
-              border: InputBorder.none,
-              hintText: _placeholder,
-              hintStyle: TextStyle(color: colors.textTertiary),
+          // Dismiss after the tap reaches its target. Changing the keyboard
+          // inset on pointer down can move a toolbar button before it is tapped.
+          child: TapRegion(
+            groupId: _focusNode,
+            onTapUpOutside: (_) {
+              _focusNode.unfocus();
+              dismissPanel();
+            },
+            child: ExtendedTextField(
+              // Keep the editable state and its platform text-input connection
+              // alive while the async catalog arrives. Re-keying this field used
+              // to discard the first keystroke on a cold composer. The rebuilt
+              // span builder below is enough to repaint restored `[key]` drafts.
+              key: const ValueKey('composer-input'),
+              specialTextSpanBuilder: FlareComposerEmojiSpanBuilder(
+                delegate: widget.specialTextSpanBuilder,
+                locale: Localizations.localeOf(context).toLanguageTag(),
+              ),
+              controller: _controller,
+              focusNode: _focusNode,
+              groupId: _focusNode,
+              onTap: dismissPanel,
+              onTapAlwaysCalled: true,
+              onTapOutside: (_) {},
+              enabled: !widget.disabled,
+              minLines: _expanded ? 6 : 1,
+              maxLines: _expanded ? 14 : 6,
+              maxLength: widget.maxLength,
+              textInputAction: TextInputAction.newline,
+              onSubmitted: (_) => _send(),
+              buildCounter:
+                  (
+                    _, {
+                    required currentLength,
+                    maxLength,
+                    required isFocused,
+                  }) => null,
+              style: TextStyle(
+                color: inline.contains(RichComposerInlineStyle.link)
+                    ? colors.primary
+                    : colors.textPrimary,
+                fontSize: 15,
+                height: 1.45,
+                fontWeight: inline.contains(RichComposerInlineStyle.bold)
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+                fontStyle: inline.contains(RichComposerInlineStyle.italic)
+                    ? FontStyle.italic
+                    : FontStyle.normal,
+                decoration:
+                    inline.contains(RichComposerInlineStyle.strike) ||
+                        inline.contains(RichComposerInlineStyle.underline) ||
+                        inline.contains(RichComposerInlineStyle.link)
+                    ? TextDecoration.combine([
+                        if (inline.contains(RichComposerInlineStyle.strike))
+                          TextDecoration.lineThrough,
+                        if (inline.contains(
+                              RichComposerInlineStyle.underline,
+                            ) ||
+                            inline.contains(RichComposerInlineStyle.link))
+                          TextDecoration.underline,
+                      ])
+                    : null,
+              ),
+              decoration: InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                hintText: _placeholder,
+                hintStyle: TextStyle(color: colors.textTertiary),
+              ),
             ),
           ),
         ),
@@ -1073,17 +1189,69 @@ class FlareComposerState extends State<FlareComposer> {
     );
   }
 
+  Widget _mentionPanel() {
+    final range = _typedMentionRange(_controller.value);
+    final query = range == null
+        ? ''
+        : _controller.text.substring(range.start + 1, range.end).toLowerCase();
+    final candidates = _availableMentionCandidates;
+    final conversationKey = widget.conversationKey;
+    final controller = _controller;
+    return FlareMentionPicker(
+      candidates: query.isEmpty
+          ? candidates
+          : candidates.where((candidate) {
+              return candidate.name.toLowerCase().contains(query) ||
+                  (candidate.detail?.toLowerCase().contains(query) ?? false);
+            }).toList(),
+      framed: false,
+      onClose: dismissPanel,
+      onSelect: (candidate) {
+        if (mounted &&
+            widget.conversationKey == conversationKey &&
+            identical(_controller, controller)) {
+          _selectMention(candidate);
+        }
+      },
+    );
+  }
+
+  Widget? _panelContent(_Metrics m) => switch (_panel) {
+    _ComposerPanel.emoji => FlareEmojiStickerPicker(
+      height: 240,
+      onInsertEmoji: (key) => _insert('[$key]'),
+      onSendSticker: widget.onSendSticker,
+    ),
+    _ComposerPanel.mention => _mentionPanel(),
+    _ComposerPanel.more => FlareComposerActionPanel(
+      actions: _resolvedActions,
+      onAction: _activatePanelAction,
+      formFactor: m.mobile
+          ? FlareComposerPanelFormFactor.mobile
+          : FlareComposerPanelFormFactor.desktop,
+    ),
+    null => null,
+  };
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
-    // Measured once, here: the composer can be narrower than the window when it
-    // sits in a pane, and every value below comes from the width it really got.
+    // Toolbar density follows the pane width. Panel direction follows the
+    // form factor so a narrow desktop pane still opens above the editor.
     return SafeArea(
       top: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final m = _Metrics.of(constraints.maxWidth, _keyCount);
-          final rich = _richMode || widget.rich;
+          final m = _Metrics.of(
+            constraints.maxWidth,
+            _keyCount,
+            mobile: FlarePlatform.usesMobileComposerPanels(context),
+          );
+          final rich = _effectiveRich;
+          final content = _panelContent(m);
+          final panel = content == null
+              ? null
+              : TapRegion(groupId: _focusNode, child: content);
           final multiline =
               _expanded ||
               rich ||
@@ -1123,14 +1291,14 @@ class FlareComposerState extends State<FlareComposer> {
                     disabled: widget.disabled,
                     onKeyboard: () {
                       setState(() => _voiceMode = false);
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) _focusNode.requestFocus();
-                      });
+                      _focusInput();
                     },
                     onSend: widget.onVoiceSend!,
                   )
                 else ...[
+                  if (!m.mobile && panel != null) panel,
                   Container(
+                    key: const ValueKey('composer-editor'),
                     color: colors.bgPrimary,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -1162,20 +1330,7 @@ class FlareComposerState extends State<FlareComposer> {
                     ),
                   ),
                   if (!m.wide) _tools(m),
-                  if (_emojiOpen)
-                    FlareEmojiStickerPicker(
-                      height: 240,
-                      onInsertEmoji: (key) {
-                        _insert('[$key]');
-                        _focusInput();
-                      },
-                      onSendSticker: widget.onSendSticker,
-                    ),
-                  if (_panelOpen && _hasActionPanel)
-                    FlareComposerActionPanel(
-                      actions: _resolvedActions,
-                      onAction: _activatePanelAction,
-                    ),
+                  if (m.mobile && panel != null) panel,
                 ],
               ],
             ),

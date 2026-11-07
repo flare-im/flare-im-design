@@ -147,6 +147,11 @@ const bundledStickerPacks: ComposerStickerPack[] = [
   },
 ];
 
+/** The packs that ship with the kit, which a resource pack may not replace. */
+export function bundledComposerStickerPackIds(): string[] {
+  return bundledStickerPacks.map((pack) => pack.packageId);
+}
+
 /** Reactive merged pack list used by the shared picker. */
 export const COMPOSER_STICKER_PACKS = reactive<ComposerStickerPack[]>([...bundledStickerPacks]);
 

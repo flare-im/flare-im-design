@@ -2,8 +2,8 @@ import SwiftUI
 
 // MARK: - GroupMemberGrid
 
-/// Group member grid — avatars + owner / admin badges + add-member tile.
-/// Spec: Contacts/GroupMemberGrid (`GroupMemberGridView`).
+/// Shows visible member avatars. A supplied display count can differ from the preview size.
+/// Provide `onViewAll` to make the header open the roster, including for an empty preview.
 public struct GroupMemberGridView: View {
     private let members: [Contact]
     private let ownerId: String?
@@ -18,6 +18,7 @@ public struct GroupMemberGridView: View {
     private let addLabelValue: String?
     private let memberCountTextValue: ((Int) -> String)?
     private let total: Int?
+    private let onViewAll: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -27,12 +28,13 @@ public struct GroupMemberGridView: View {
                 title: String? = nil, ownerLabel: String? = nil, adminLabel: String? = nil,
                 addLabel: String? = nil, memberCountText: ((Int) -> String)? = nil,
                 /// The group's member count when `members` is a preview of it; nil counts `members`.
-                total: Int? = nil) {
+                total: Int? = nil, onViewAll: (() -> Void)? = nil) {
         self.members = members; self.ownerId = ownerId; self.adminIds = adminIds; self.showAdd = showAdd
         self.columns = columns; self.onSelect = onSelect; self.onAddMember = onAddMember
         self.titleValue = title; self.ownerLabelValue = ownerLabel; self.adminLabelValue = adminLabel
         self.addLabelValue = addLabel; self.memberCountTextValue = memberCountText
         self.total = total
+        self.onViewAll = onViewAll
     }
 
     private var title: String { titleValue ?? strings.groupMembers }
@@ -51,10 +53,15 @@ public struct GroupMemberGridView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let cols = Array(repeating: GridItem(.flexible(), spacing: FlareSizes.spacing2sm), count: columns)
         VStack(alignment: .leading, spacing: FlareSizes.spacing2md) {
-            HStack {
-                Text(title).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
-                Spacer()
-                Text(memberCountText(total ?? members.count)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+            if let onViewAll {
+                Button(action: onViewAll) {
+                    header(colors)
+                        .frame(minHeight: FlareSizes.touchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else {
+                header(colors)
             }
             LazyVGrid(columns: cols, spacing: FlareSizes.spacing2md) {
                 ForEach(members) { m in cell(colors, m) }
@@ -62,6 +69,18 @@ public struct GroupMemberGridView: View {
             }
         }
         .padding(FlareSizes.spacingLg)
+    }
+
+    private func header(_ colors: FlareColors) -> some View {
+        HStack {
+            Text(title).font(.system(size: FlareSizes.fontSizeLg, weight: .semibold)).foregroundColor(colors.textPrimary)
+            Spacer()
+            Text(memberCountText(total ?? members.count)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+            if onViewAll != nil {
+                Image(systemName: "chevron.forward").font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                    .accessibilityHidden(true)
+            }
+        }
     }
 
     private func cell(_ colors: FlareColors, _ m: Contact) -> some View {

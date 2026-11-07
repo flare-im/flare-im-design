@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
+import 'flare_hit_slop.dart';
 
 /// A rounded checkbox with an optional [label]. When [value] or [indeterminate]
 /// the box fills with the brand primary and shows a check / remove glyph.
@@ -38,40 +39,43 @@ class FlareCheckbox extends StatelessWidget {
           cursor: disabled
               ? SystemMouseCursors.basic
               : SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: disabled ? null : () => onChanged?.call(!value),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 20,
-                  height: 20,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: on ? colors.primary : colors.bgPrimary,
-                    borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
-                    border: Border.all(
-                      color: on ? colors.primary : colors.borderHover,
-                      width: 1.5,
+          child: FlareHitSlop(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: disabled ? null : () => onChanged?.call(!value),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: FlareSizes.iconSizeMd,
+                    height: FlareSizes.iconSizeMd,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: on ? colors.primary : colors.bgPrimary,
+                      borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+                      border: Border.all(
+                        color: on ? colors.primary : colors.borderHover,
+                        width: 1.5,
+                      ),
                     ),
+                    child: on
+                        ? Icon(
+                            indeterminate ? Icons.remove : Icons.check,
+                            size: 13,
+                            color: Colors.white,
+                          )
+                        : null,
                   ),
-                  child: on
-                      ? Icon(
-                          indeterminate ? Icons.remove : Icons.check,
-                          size: 13,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
-                if (label != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    label!,
-                    style: TextStyle(fontSize: 14, color: colors.textPrimary),
-                  ),
+                  if (label != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      label!,
+                      style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

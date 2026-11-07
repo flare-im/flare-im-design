@@ -125,7 +125,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(Switch), findsOneWidget);
+    expect(find.byType(FlareSwitch), findsOneWidget);
     expect(find.textContaining('很长'), findsNothing);
   });
 }

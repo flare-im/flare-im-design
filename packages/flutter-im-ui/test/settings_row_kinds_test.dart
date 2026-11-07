@@ -130,4 +130,69 @@ void main() {
       expect(value.left, label.left, reason: '$kind');
     }
   });
+
+  testWidgets('a badge draws a red dot before the chevron, read with the row', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _row(
+        const FlareSettingsItem(
+          key: 'about',
+          label: '关于',
+          kind: FlareSettingKind.navigation,
+          detail: '2.3.2',
+          badge: true,
+        ),
+      ),
+    );
+    final dot = find.bySemanticsLabel(RegExp('有新内容'));
+    expect(dot, findsOneWidget);
+    final chevron = tester.getRect(find.byIcon(Icons.chevron_right));
+    final value = tester.getRect(find.text('2.3.2'));
+    final circle = tester.getRect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is DecoratedBox &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+      ),
+    );
+    expect(circle.left, greaterThanOrEqualTo(value.right));
+    expect(circle.right, lessThanOrEqualTo(chevron.left));
+    handle.dispose();
+  });
+
+  test('a toggle row draws no dot, and no badge is the default', () {
+    expect(
+      FlareSettingsRow.drawsBadge(
+        const FlareSettingsItem(
+          key: 'mute',
+          label: '免打扰',
+          kind: FlareSettingKind.toggle,
+          badge: true,
+        ),
+      ),
+      isFalse,
+    );
+    expect(
+      FlareSettingsRow.drawsBadge(
+        const FlareSettingsItem(key: 'about', label: '关于'),
+      ),
+      isFalse,
+    );
+    for (final kind in [
+      FlareSettingKind.navigation,
+      FlareSettingKind.action,
+      FlareSettingKind.value,
+    ]) {
+      expect(
+        FlareSettingsRow.drawsBadge(
+          FlareSettingsItem(key: 'k', label: '关于', kind: kind, badge: true),
+        ),
+        isTrue,
+        reason: '$kind',
+      );
+    }
+  });
 }

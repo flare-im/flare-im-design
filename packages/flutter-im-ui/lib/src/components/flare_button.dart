@@ -56,15 +56,18 @@ class _FlareButtonState extends State<FlareButton> {
   bool _focused = false;
 
   double get _height => switch (widget.size) {
-    FlareControlSize.sm => 32,
-    FlareControlSize.md => 40,
-    FlareControlSize.lg => 48,
+    FlareControlSize.sm => FlareSizes.controlHeightSm,
+    FlareControlSize.md => FlareSizes.controlHeightMd,
+    FlareControlSize.lg => FlareSizes.controlHeightLg,
   };
 
   double get _hPad => switch (widget.size) {
-    FlareControlSize.sm => 12,
-    FlareControlSize.md => widget.variant == FlareButtonVariant.text ? 8 : 18,
-    FlareControlSize.lg => 24,
+    FlareControlSize.sm => FlareSizes.controlPadXSm,
+    FlareControlSize.md =>
+      widget.variant == FlareButtonVariant.text
+          ? FlareSizes.spacingSm
+          : FlareSizes.controlPadXMd,
+    FlareControlSize.lg => FlareSizes.controlPadXLg,
   };
 
   double get _fontSize => switch (widget.size) {

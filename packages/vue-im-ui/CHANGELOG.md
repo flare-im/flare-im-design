@@ -1,5 +1,14 @@
 ## 未发布
 
+- 新增 `applyFlareResourceOverlay(packs)`（`./i18n`、包根）与类型 `FlareResourcePack`：把 `update.get_resources` 的结果折进 Kit，文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录（`spec/resource-overlay-vectors.json`，四端同一张表）。
+- `t()`、`translateFlare` 跟随 `registerFlareMessages`：首屏后才到的文案能换到已挂载的组件上。
+- 红点（只有 Vue）：`FlareIconButton` 新增 `dot`，`FlareActionItem` 新增 `dot`，缺省都是 false。画法和 `FlareSettingsRow` 的红点相同，读屏文案是 `settingsRow.badge`，写进按钮的名字。`FlareConversationHeader` 里动作收进「更多」菜单时，红点同时画在「更多」按钮和菜单项上。
+- `FlareUpdatePrompt` 新增 `reason`（`UpdateStatus.blockReason`）：强制提示的 offer 阶段用它代替固定文案，为空时保留固定文案。
+- 导出 `readStoredLocale()`（`./i18n`、包根）：用户在 App 内选定的语言，宿主不再直接读存储键。
+- `FlareCallDevicePicker` 在没有选中设备的分组里画出 `placeholder`，未传时取 `callDevicePicker.placeholder`。
+- 「+」面板的分页（四端同一规则）：`FlareComposerActionPanel` 新增 `formFactor`（缺省 `mobile`）与 `rows`。`mobile` 横向分页，每页 rows × columns，带名为「第 N 页」的页码点按钮，用滚动吸附翻页（触屏可滑动，聚焦到别页的项会滚过去）；`desktop` 最多显示 rows 行（缺省 3），其余在面板内滚动。列表变化时停在原来那一页，页数变少时夹到最后一页；保留的项移动、新项淡入 150 毫秒。`ComposerMoreSurface` 去掉自己的 8 个一页分页与「列表一变就回第一页」，`EnhancedComposer` 新增 `formFactor`（缺省 `desktop`）。菜单为空时不显示「+」，打开着的面板在菜单变空时收起并发出 `toggle-panel(null)`（原来打开一个「暂无可用内容」的空面板）。
+- 新增 `FlareAdminChecklist` 与 `FlareAdminHeatGrid`（`./admin`）：只读的发布前检查清单，把通过、未通过和未知分开；按行列展示读数的表格，缺数据的格子显示宿主给的文字而不是 0。`./admin` 同时导出 `FlareDescriptionList` 与 `FlareMetricTile`。
+- 新增 `FlareAdminSortableList`（`./admin`）：拖动手柄、Alt+↑ / Alt+↓、行菜单（上移、下移、移到最前）调整顺序，发出 `update:items` 并播报新位置，`item` / `trailing` 插槽（`docs/admin-sortable-list.md`）。文案 `sortableList.*`；`./icon-glyphs` 新增 `ReorderTwoOutline`（Lucide `GripVertical`）。
 - 读者是否在底部（`spec/message-list-paging-vectors.json` 的 `atBottom`，四端同一份）：`FlareMessageList` 的 `atBottomChange` 改按共享规则发出——末尾低于视口底部不超过 80 px（`FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX`）算在底部，只在回答变化时发，第一次布局后（含空列表、换会话）发一次。宿主没经读者要求就整体换掉的窗口、`scrollToMessage` 定位，立即发 false 并保持，直到读者用滚轮、触摸、指针或按键移动列表，点了新消息键，自己的消息追加在末尾，读者要的最新窗口到了，或窗口被清空。原来列表每次自己滚到底都发 true（围绕某条消息打开窗口时也发），空列表不发。
 - 整体替换的窗口与定位（`spec/message-list-paging-vectors.json` 的 `windows`、`locateAfterReplace`）：`FlareMessageList` 新增 `windowId`，名字换了、读者要的最新窗口到了或没有共同的行时是整体替换。替换后在最新一行打开，作废旧窗口的前插锚点，读者用滚轮、触摸、指针或按键移动之前不自动请求。`scrollToMessage` 接管阅读位置：作废之前记下的锚点，之后落下的一页以定位的行为锚点留在中间，高度变化不再把读者拉到底。原来锚点窗口替换后滚动位置会被留在 0（Chromium 焦点修正），触发一次多余的往旧，前插的位置恢复又打断滚到目标。整体替换的窗口不再给每一行播入场动画。
 - 计数角标的「还有更多」（`spec/count-badge-vectors.json`，四端同一张表）：`FlareNavigationBadge` 新增 `more`，`FlareFilterTabOption` 与 `FlareSettingsItem` 新增 `badgeMore`，缺省为 false；`./contracts` 新增 `flareCountBadgeText`、`flareCountBadgeDrawn`。`more` 或超过 99 时写 99+；`FlareFilterTabs` 超过 99 时也写 99+（原来写原数），筛选标签与设置行不再画 0 以下的数。

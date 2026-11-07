@@ -15,6 +15,8 @@ const props = defineProps<{
   error?: string;
   /** Use this id instead of the generated one; a host control of its own renders it and wires `${controlId}-hint` / `${controlId}-error`. */
   controlId?: string;
+  /** Keep the visible label alongside compact administrative controls. */
+  labelPlacement?: "top" | "left";
 }>();
 const uid = useId();
 const id = computed(() => props.controlId ?? `flare-field-${uid}`);
@@ -32,7 +34,7 @@ const labelFor = computed(() => boundId.value ?? props.controlId);
 </script>
 
 <template>
-  <div class="flare-form-field" :class="{ 'has-error': !!error }">
+  <div class="flare-form-field" :class="{ 'has-error': !!error, 'flare-form-field--inline': labelPlacement === 'left' }">
     <label v-if="label" :id="labelId" class="flare-form-field__label" :for="labelFor">
       {{ label }}<span v-if="required" class="flare-form-field__req">*</span>
     </label>
@@ -55,4 +57,25 @@ const labelFor = computed(() => boundId.value ?? props.controlId);
 .flare-form-field__control { display: flex; flex-direction: column; }
 .flare-form-field__hint { margin: 0; font-size: 12px; color: var(--flare-color-text-tertiary); }
 .flare-form-field__error { margin: 0; font-size: 12px; color: var(--flare-color-error-text); }
+.flare-form-field--inline {
+  display: grid;
+  grid-template-columns: fit-content(40%) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--flare-size-spacing-sm);
+}
+.flare-form-field--inline > .flare-form-field__label {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.flare-form-field--inline > .flare-form-field__control {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+.flare-form-field--inline > .flare-form-field__error,
+.flare-form-field--inline > .flare-form-field__hint {
+  grid-column: 2;
+}
 </style>

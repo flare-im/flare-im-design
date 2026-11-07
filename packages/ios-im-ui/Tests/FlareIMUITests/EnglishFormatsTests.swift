@@ -62,7 +62,7 @@ final class EnglishFormatsTests: XCTestCase {
         case "imagePreviewPosition": return s.imagePreviewPosition(a.int(0), a.int(1))
         case "voiceSeconds": return s.voiceSeconds(a.int(0))
         case "ratingStar": return s.ratingStar(a.int(0))
-        case "connectionDisconnectedReason": return s.connectionDisconnectedReason(a.text(0))
+        case "connectionRetryIn": return s.connectionRetryIn(a.int(0))
         case "groupDetailMembersTitle": return s.groupDetailMembersTitle(a.int(0))
         case "profilePanelEditProfile": return s.profilePanelEditProfile(a.text(0))
         case "momentReplyToComment": return s.momentReplyToComment(a.text(0), a.text(1))

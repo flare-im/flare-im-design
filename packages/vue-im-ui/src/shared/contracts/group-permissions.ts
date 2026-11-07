@@ -56,6 +56,7 @@ export interface FlareMemberActions {
   canChangeRole?: boolean;
   /** Hand ownership over to the member. */
   canTransferOwner?: boolean;
+  canRequestFriend?: boolean;
 }
 
 /** The management entries of a group page, in display order; identical on all four platforms. */

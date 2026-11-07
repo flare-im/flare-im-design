@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "note": "What the connection notice shows for the core SDK's connection status (the `connection://status` event) over time. The four kits run this table against their own tracker (Vue FlareConnectionNoticeTracker, Flutter FlareConnectionNoticeTracker, SwiftUI FlareConnectionNoticeTracker, Compose FlareConnectionNoticeTracker); the ConnectionNotice component of each kit draws what the tracker presents and wakes at `next`. Apps do not decide any of it.",
+  "thresholds": {
+    "syncingDelayMs": 1000,
+    "switchingDelayMs": 2000,
+    "reconnectingMinShownMs": 1500
+  },
+  "rules": {
+    "phases": "Before the first status, idle and online (good or poor quality) show nothing. connecting shows at once. syncing shows once it has lasted syncingDelayMs, with its progress (0 to 1, clamped) when the status has one. switching shows once it has lasted switchingDelayMs. reconnecting shows at once with a countdown and the retry action. waitingForNetwork shows at once, without an action. serviceUnavailable shows at once with the diagnose action (drawn only when the host handles it). actionRequired shows its reason: kicked and expired offer signIn, upgradeRequired offers update, tenantUnavailable offers nothing; a missing reason, or any other string, reads as expired. `reason` is the SDK's string as it arrives (switching carries failure, drain, failback, manual or manifest): any value is taken, and only actionRequired reads it.",
+    "tone": "info for connecting, syncing and switching; warning for reconnecting, waitingForNetwork and serviceUnavailable; danger for actionRequired.",
+    "pulse": "Every visible phase pulses except waitingForNetwork and actionRequired.",
+    "countdown": "Whole seconds to nextRetryAt, rounded up: ceil((nextRetryAt - now) / 1000) while that is above 0; none without nextRetryAt or once it has passed.",
+    "carry": "A phase change remembers what the banner showed at that moment (text, tone, pulse). While syncing or switching has not reached its delay, the banner keeps showing that, without countdown, progress or action, so a delayed phase never opens a gap in a banner that was already up.",
+    "hold": "Entering reconnecting starts a hold of reconnectingMinShownMs. When the phase then moves on to something that shows nothing, the banner keeps what it showed at that phase change (without countdown, progress or action) until the hold ends. Entering idle or actionRequired ends the hold; idle always shows nothing.",
+    "badge": "The development mode badge follows the current status's developmentMode, whatever the phase.",
+    "next": "The earliest moment after now at which the presentation can change without a new status: the delay of a syncing or switching phase that has not reached it, the next whole second of the countdown (nextRetryAt - (countdown - 1) * 1000), and the end of a hold while the banner is held. null when there is none.",
+    "phaseChange": "A status with the same phase as the last one replaces its fields (progress, nextRetryAt, reason, developmentMode) without restarting the phase's clock."
+  },
+  "driver": "Run the steps in order on a fresh tracker. A step with `status` first observes it at `at`; every step then reads the presentation and `next` at `at`. Missing expect fields take their defaults: text, tone, countdown, progress, action and next null; pulse and badge false.",
+  "cases": [
+    {
+      "name": "nothing shows before the first status",
+      "steps": [
+        { "at": 0, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "idle and online show nothing, whatever the quality",
+      "steps": [
+        { "at": 0, "status": { "phase": "idle" }, "expect": { "visible": false } },
+        { "at": 10, "status": { "phase": "online", "quality": "good" }, "expect": { "visible": false } },
+        { "at": 20, "status": { "phase": "online", "quality": "poor" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "connecting shows at once",
+      "steps": [
+        { "at": 0, "status": { "phase": "connecting" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } },
+        { "at": 5000, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } }
+      ]
+    },
+    {
+      "name": "a sync shorter than its delay never shows",
+      "steps": [
+        { "at": 0, "status": { "phase": "syncing" }, "expect": { "visible": false, "next": 1000 } },
+        { "at": 600, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a sync that lasts its delay shows, with its progress",
+      "steps": [
+        { "at": 0, "status": { "phase": "syncing", "progress": 0.2 }, "expect": { "visible": false, "next": 1000 } },
+        { "at": 999, "expect": { "visible": false, "next": 1000 } },
+        { "at": 1000, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 0.2 } },
+        { "at": 1500, "status": { "phase": "syncing", "progress": 0.65 }, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 0.65 } },
+        { "at": 2000, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a status that keeps its phase keeps its clock",
+      "steps": [
+        { "at": 0, "status": { "phase": "syncing", "progress": 0.1 }, "expect": { "visible": false, "next": 1000 } },
+        { "at": 600, "status": { "phase": "syncing", "progress": 0.5 }, "expect": { "visible": false, "next": 1000 } },
+        { "at": 1000, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 0.5 } }
+      ]
+    },
+    {
+      "name": "progress is clamped to 0 to 1",
+      "steps": [
+        { "at": 0, "status": { "phase": "syncing", "progress": 1.4 }, "expect": { "visible": false, "next": 1000 } },
+        { "at": 1000, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 1 } },
+        { "at": 1200, "status": { "phase": "syncing", "progress": -0.3 }, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 0 } }
+      ]
+    },
+    {
+      "name": "connecting carries into a sync until the sync has lasted its delay",
+      "steps": [
+        { "at": 0, "status": { "phase": "connecting" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } },
+        { "at": 300, "status": { "phase": "syncing", "progress": 0.3 }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true, "next": 1300 } },
+        { "at": 1300, "expect": { "visible": true, "text": "syncing", "tone": "info", "pulse": true, "progress": 0.3 } },
+        { "at": 1800, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a quick line switch stays quiet",
+      "steps": [
+        { "at": 0, "status": { "phase": "online" }, "expect": { "visible": false } },
+        { "at": 100, "status": { "phase": "switching" }, "expect": { "visible": false, "next": 2100 } },
+        { "at": 1500, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a slow line switch shows once it has lasted its delay",
+      "steps": [
+        { "at": 0, "status": { "phase": "online" }, "expect": { "visible": false } },
+        { "at": 100, "status": { "phase": "switching" }, "expect": { "visible": false, "next": 2100 } },
+        { "at": 2099, "expect": { "visible": false, "next": 2100 } },
+        { "at": 2100, "expect": { "visible": true, "text": "switching", "tone": "info", "pulse": true } },
+        { "at": 2600, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "reconnecting counts down to the next attempt and offers a retry",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting", "nextRetryAt": 5000, "attempt": 2 }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 5, "action": "retry", "next": 1000 } },
+        { "at": 400, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 5, "action": "retry", "next": 1000 } },
+        { "at": 1000, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 4, "action": "retry", "next": 2000 } },
+        { "at": 4999, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 1, "action": "retry", "next": 5000 } },
+        { "at": 5000, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 6000, "status": { "phase": "reconnecting", "nextRetryAt": 9500, "attempt": 3 }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 4, "action": "retry", "next": 6500 } }
+      ]
+    },
+    {
+      "name": "reconnecting without a next attempt time shows no countdown",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } }
+      ]
+    },
+    {
+      "name": "a reconnect that succeeds quickly keeps the banner up for the hold",
+      "steps": [
+        { "at": 0, "status": { "phase": "online" }, "expect": { "visible": false } },
+        { "at": 1000, "status": { "phase": "reconnecting", "nextRetryAt": 1500, "attempt": 1 }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 1, "action": "retry", "next": 1500 } },
+        { "at": 1300, "status": { "phase": "online" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "next": 2500 } },
+        { "at": 2499, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "next": 2500 } },
+        { "at": 2500, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "the held banner keeps what it showed last",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 200, "status": { "phase": "connecting" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } },
+        { "at": 500, "status": { "phase": "syncing" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true, "next": 1500 } },
+        { "at": 900, "status": { "phase": "online" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true, "next": 1500 } },
+        { "at": 1500, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a reconnect that outlasted the hold ends at once",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 2000, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "a switch after a drop keeps the banner it found until the switch shows",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 500, "status": { "phase": "switching" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "next": 1500 } },
+        { "at": 1500, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "next": 2500 } },
+        { "at": 2500, "expect": { "visible": true, "text": "switching", "tone": "info", "pulse": true } }
+      ]
+    },
+    {
+      "name": "waiting for the network shows without an action",
+      "steps": [
+        { "at": 0, "status": { "phase": "waitingForNetwork" }, "expect": { "visible": true, "text": "waitingForNetwork", "tone": "warning" } }
+      ]
+    },
+    {
+      "name": "an unavailable service recovers on its own and offers diagnostics",
+      "steps": [
+        { "at": 0, "status": { "phase": "serviceUnavailable" }, "expect": { "visible": true, "text": "serviceUnavailable", "tone": "warning", "pulse": true, "action": "diagnose" } }
+      ]
+    },
+    {
+      "name": "an action required names its reason and the way back",
+      "steps": [
+        { "at": 0, "status": { "phase": "actionRequired", "reason": "kicked" }, "expect": { "visible": true, "text": "kicked", "tone": "danger", "action": "signIn" } },
+        { "at": 10, "status": { "phase": "actionRequired", "reason": "expired" }, "expect": { "visible": true, "text": "expired", "tone": "danger", "action": "signIn" } },
+        { "at": 20, "status": { "phase": "actionRequired", "reason": "upgradeRequired" }, "expect": { "visible": true, "text": "upgradeRequired", "tone": "danger", "action": "update" } },
+        { "at": 30, "status": { "phase": "actionRequired", "reason": "tenantUnavailable" }, "expect": { "visible": true, "text": "tenantUnavailable", "tone": "danger" } },
+        { "at": 40, "status": { "phase": "actionRequired" }, "expect": { "visible": true, "text": "expired", "tone": "danger", "action": "signIn" } }
+      ]
+    },
+    {
+      "name": "a reason is the SDK's string: switching carries its own, and one without words reads as expired",
+      "steps": [
+        { "at": 0, "status": { "phase": "online" }, "expect": { "visible": false } },
+        { "at": 100, "status": { "phase": "switching", "reason": "drain" }, "expect": { "visible": false, "next": 2100 } },
+        { "at": 2100, "expect": { "visible": true, "text": "switching", "tone": "info", "pulse": true } },
+        { "at": 2200, "status": { "phase": "actionRequired", "reason": "accountSuspended" }, "expect": { "visible": true, "text": "expired", "tone": "danger", "action": "signIn" } }
+      ]
+    },
+    {
+      "name": "an action required ends the hold",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 200, "status": { "phase": "actionRequired", "reason": "kicked" }, "expect": { "visible": true, "text": "kicked", "tone": "danger", "action": "signIn" } },
+        { "at": 300, "status": { "phase": "idle" }, "expect": { "visible": false } },
+        { "at": 400, "status": { "phase": "connecting" }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } },
+        { "at": 600, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "idle shows nothing at once, even during a hold",
+      "steps": [
+        { "at": 0, "status": { "phase": "reconnecting" }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "action": "retry" } },
+        { "at": 300, "status": { "phase": "idle" }, "expect": { "visible": false } },
+        { "at": 400, "status": { "phase": "online" }, "expect": { "visible": false } }
+      ]
+    },
+    {
+      "name": "development mode shows its badge whatever the phase",
+      "steps": [
+        { "at": 0, "status": { "phase": "online", "developmentMode": true }, "expect": { "visible": false, "badge": true } },
+        { "at": 100, "status": { "phase": "reconnecting", "nextRetryAt": 3100, "developmentMode": true }, "expect": { "visible": true, "text": "reconnecting", "tone": "warning", "pulse": true, "countdown": 3, "action": "retry", "badge": true, "next": 1100 } },
+        { "at": 200, "status": { "phase": "idle", "developmentMode": true }, "expect": { "visible": false, "badge": true } },
+        { "at": 300, "status": { "phase": "connecting", "developmentMode": false }, "expect": { "visible": true, "text": "connecting", "tone": "info", "pulse": true } }
+      ]
+    }
+  ]
+}

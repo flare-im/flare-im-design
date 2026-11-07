@@ -81,6 +81,8 @@ const MAP = {
   LocateOutline: ["LocateFixed"],
   // The 我 page's wallet entry (the red packet account-entry).
   WalletOutline: ["Wallet"],
+  // The drag handle of an admin sortable list row.
+  ReorderTwoOutline: ["GripVertical"],
 };
 
 function walk(dir) {

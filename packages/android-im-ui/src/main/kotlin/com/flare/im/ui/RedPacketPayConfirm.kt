@@ -43,6 +43,8 @@ fun RedPacketPayConfirm(
     insufficient: Boolean = false,
     busy: Boolean = false,
     confirmLabel: String? = null,
+    credential: (@Composable () -> Unit)? = null,
+    confirmDisabled: Boolean = false,
 ) {
     val strings = flareStrings()
     BottomSheet(
@@ -52,7 +54,7 @@ fun RedPacketPayConfirm(
         titleHidden = true,
         dismissible = !busy,
     ) {
-        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel, confirmLabel)
+        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel, confirmLabel, credential, confirmDisabled)
     }
 }
 
@@ -65,6 +67,8 @@ internal fun RedPacketPayConfirmBody(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     confirmLabel: String? = null,
+    credential: (@Composable () -> Unit)? = null,
+    confirmDisabled: Boolean = false,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -96,6 +100,7 @@ internal fun RedPacketPayConfirmBody(
             }
             HorizontalDivider(thickness = RedPacketMetrics.hairline, color = colors.borderSecondary)
         }
+        credential?.invoke()
         if (insufficient) {
             Text(
                 strings.packetInsufficient, color = colors.errorText, fontSize = FlareSizes.fontSizeMd,
@@ -110,7 +115,7 @@ internal fun RedPacketPayConfirmBody(
             RedPacketMoneyTint {
                 Button(
                     label = confirmLabel ?: strings.packetPayConfirm, variant = FlareButtonVariant.Primary, size = FlareControlSize.Lg,
-                    loading = busy, disabled = insufficient, block = true, onClick = onConfirm,
+                    loading = busy, disabled = insufficient || confirmDisabled, block = true, onClick = onConfirm,
                 )
             }
             Button(

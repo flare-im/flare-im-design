@@ -98,6 +98,10 @@ class FlareModal extends StatelessWidget {
   /// [dismissible] false blocks the scrim, Escape and back. The route sits on
   /// the root navigator, so a modal opened inside a drawer covers the window.
   /// Motion is skipped when the platform asks for reduced motion.
+  ///
+  /// [fullscreen] gives [builder] the whole window, under the system bars: use
+  /// it with [framed] false for a page (a `FlareScreen`, which keeps clear of
+  /// the bars itself).
   static Future<T?> show<T>(
     BuildContext context, {
     String? title,
@@ -112,6 +116,7 @@ class FlareModal extends StatelessWidget {
     List<Widget> actions = const [],
     List<Widget> footer = const [],
     bool framed = true,
+    bool fullscreen = false,
     required WidgetBuilder builder,
   }) {
     final scopes = flareOverlayScopes(context);
@@ -119,6 +124,7 @@ class FlareModal extends StatelessWidget {
     return showDialog<T>(
       context: context,
       useRootNavigator: true,
+      useSafeArea: !fullscreen,
       barrierDismissible: dismissible,
       barrierColor: colors.scrim,
       animationStyle: flareReduceMotion(context)

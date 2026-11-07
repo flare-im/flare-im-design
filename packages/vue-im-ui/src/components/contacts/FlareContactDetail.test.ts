@@ -44,7 +44,7 @@ describe("FlareContactDetail", () => {
     expect(actions.map((button) => button.text())).toEqual(["发消息", "语音通话"]);
     expect(actions[1].attributes("disabled")).toBeDefined();
     const rows = view.findAll(".flare-settings__row");
-    expect(rows.map((row) => row.get(".flare-settings__label").text())).toEqual(["Flare ID", "备注", "描述", "星标好友"]);
+    expect(rows.map((row) => row.get(".flare-settings__label").text())).toEqual(["IM ID", "备注", "描述", "星标好友"]);
     expect(rows[0].find(".flare-settings__chev").exists()).toBe(false);
     expect(rows[1].find(".flare-settings__chev").exists()).toBe(true);
     await rows[1].trigger("click");
@@ -67,8 +67,9 @@ describe("FlareContactDetail primary action", () => {
     });
     const actions = view.findAll(".flare-contact-detail__actions button");
     expect(actions.map((button) => button.text())).toEqual(["添加到通讯录", "发消息"]);
-    expect(actions[0].classes()).toContain("is-primary");
-    expect(actions[1].classes()).not.toContain("is-primary");
+    expect(actions[0].classes()).toContain("flare-button--primary");
+    expect(actions.every((action) => action.classes().includes("flare-button--sm"))).toBe(true);
+    expect(actions[1].classes()).not.toContain("flare-button--primary");
     // Not a footer action: the footer keeps only the host's extra actions.
     expect(view.findAll(".flare-contact-detail__extra button").map((button) => button.text())).toEqual(["举报"]);
     await actions[0].trigger("click");
@@ -81,7 +82,7 @@ describe("FlareContactDetail primary action", () => {
     const busy = mountDetail({ primaryActionLabel: "添加到通讯录", onPrimaryAction: () => {}, busy: true });
     const only = busy.get('[data-contact-action="primary"]');
     expect(only.attributes("disabled")).toBeDefined();
-    expect(only.classes()).toContain("is-primary");
+    expect(only.classes()).toContain("flare-button--primary");
   });
 
   it("primaryActionBusy spins and locks the primary key alone, and lets go when the host clears it", async () => {
@@ -104,12 +105,12 @@ describe("FlareContactDetail primary action", () => {
     const primary = view.get('[data-contact-action="primary"]');
     expect(primary.attributes("disabled")).toBeDefined();
     expect(primary.attributes("aria-busy")).toBe("true");
-    expect(primary.find(".flare-contact-detail__spinner").exists()).toBe(true);
+    expect(primary.find(".flare-button__spinner").exists()).toBe(true);
     expect(primary.text()).toBe("添加到通讯录");
     await primary.trigger("click");
     const message = view.get('[data-contact-action="message"]');
     expect(message.attributes("disabled")).toBeUndefined();
-    expect(message.attributes("aria-busy")).toBeUndefined();
+    expect(message.attributes("aria-busy")).toBe("false");
     await message.trigger("click");
     const extra = view.get(".flare-contact-detail__extra button");
     expect(extra.attributes("disabled")).toBeUndefined();
@@ -118,8 +119,8 @@ describe("FlareContactDetail primary action", () => {
     busy.value = false;
     await nextTick();
     expect(primary.attributes("disabled")).toBeUndefined();
-    expect(primary.attributes("aria-busy")).toBeUndefined();
-    expect(primary.find(".flare-contact-detail__spinner").exists()).toBe(false);
+    expect(primary.attributes("aria-busy")).toBe("false");
+    expect(primary.find(".flare-button__spinner").exists()).toBe(false);
     await primary.trigger("click");
     expect(events).toEqual(["message", "primary"]);
   });

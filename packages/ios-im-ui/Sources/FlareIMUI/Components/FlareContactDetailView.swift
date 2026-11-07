@@ -179,7 +179,7 @@ public struct FlareContactDetail: View {
         ScrollView {
             VStack(spacing: FlareSizes.spacingLg) {
                 hero(colors)
-                if !intents.isEmpty { actions(intents, colors) }
+                if !intents.isEmpty { actions(intents) }
                 infoCard(colors, items: Self.infoItems(contact: contact, description: description, starred: starred, copy: copy,
                                                        editsRemark: onEditRemark != nil,
                                                        editsDescription: onEditDescription != nil,
@@ -219,43 +219,29 @@ public struct FlareContactDetail: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func actions(_ intents: [Intent], _ colors: FlareColors) -> some View {
+    private func actions(_ intents: [Intent]) -> some View {
         let lead = Self.primaryIntent(in: intents)
-        return HStack(spacing: FlareSizes.spacingMd) {
+        return FlareFlowLayout(spacing: FlareSizes.spacingSm, lineSpacing: FlareSizes.spacingSm,
+                               alignment: .center, constrainSubviews: true) {
             ForEach(intents, id: \.self) { intent in
                 switch intent {
                 case .primary:
-                    actionButton(primaryActionLabel ?? "", flareIconSymbol("person-add"), onPrimaryAction, colors,
+                    actionButton(primaryActionLabel ?? "", "person-add", onPrimaryAction,
                                  primary: true, busy: primaryActionBusy)
-                case .message: actionButton(copy.message, "message", onMessage, colors, primary: lead == .message)
-                case .call: actionButton(copy.voice, "phone", onCall, colors)
-                case .video: actionButton(copy.video, "video", onVideo, colors)
+                case .message: actionButton(copy.message, "comment", onMessage, primary: lead == .message)
+                case .call: actionButton(copy.voice, "phone", onCall)
+                case .video: actionButton(copy.video, "video", onVideo)
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, FlareSizes.spacingLg)
     }
 
-    private func actionButton(_ label: String, _ icon: String, _ action: (() -> Void)?, _ colors: FlareColors,
+    private func actionButton(_ label: String, _ icon: String, _ action: (() -> Void)?,
                               primary: Bool = false, busy: Bool = false) -> some View {
-        Button { if !busy { action?() } } label: {
-            VStack(spacing: 6) {
-                // The key the host is running keeps its colour: the spinner says why it takes no tap.
-                if busy {
-                    ProgressView().controlSize(.small).tint(primary ? .white : colors.textSecondary)
-                        .frame(height: FlareSizes.iconSizeMd)
-                } else {
-                    Image(systemName: icon).font(.system(size: FlareSizes.iconSizeMd))
-                }
-                Text(label).font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
-            }
-            .foregroundColor(primary ? .white : colors.textSecondary)
-            .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTargetMin).padding(.vertical, FlareSizes.spacingMd)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl)
-                .fill(primary ? colors.primary : colors.bgElevated))
-        }
-        .buttonStyle(.plain)
-        .disabled(busy)
+        ButtonView(label: label, variant: primary ? .primary : .secondary, size: .sm, loading: busy,
+                   icon: icon, maintainTouchTarget: true, action: action)
     }
 
     /// The 资料 card; nothing at all when it has no rows.
@@ -286,12 +272,12 @@ public struct FlareContactDetail: View {
     private func danger(_ colors: FlareColors) -> some View {
         VStack(spacing: FlareSizes.spacingSm) {
             ForEach(extraActions) { action in
-                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, block: true) {
+                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: .sm, block: true, maintainTouchTarget: true) {
                     onExtraAction?(action.id)
                 }
             }
-            if let onBlock { ButtonView(label: copy.block, variant: .secondary, block: true, action: onBlock) }
-            if let onRemove { ButtonView(label: copy.remove, variant: .danger, block: true, action: onRemove) }
+            if let onBlock { ButtonView(label: copy.block, variant: .secondary, size: .sm, block: true, maintainTouchTarget: true, action: onBlock) }
+            if let onRemove { ButtonView(label: copy.remove, variant: .danger, size: .sm, block: true, maintainTouchTarget: true, action: onRemove) }
         }
         .padding(.horizontal, FlareSizes.spacingLg)
         .padding(.top, FlareSizes.spacingSm)

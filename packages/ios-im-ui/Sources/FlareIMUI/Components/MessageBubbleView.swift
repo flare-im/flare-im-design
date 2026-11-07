@@ -121,6 +121,7 @@ public struct MessageBubbleView: View {
     private let onCardOpen: ((FlareMessageData, String) -> Void)?
     private let onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)?
     private let onReadReceiptOpen: ((FlareMessageData) -> Void)?
+    private let onAvatarTap: ((FlareMessageData) -> Void)?
     /// The list's media defaults; nil outside a list, where a media body owns its own.
     private var mediaSession: FlareMediaSession?
     /// The list's gallery; nil outside a list, where a picture opens alone.
@@ -174,6 +175,7 @@ public struct MessageBubbleView: View {
     ///     before `onMediaAction`.
     ///   - onLocationOpen: A tapped location (message, the location); before `onMediaAction`. Without either the
     ///     card opens Apple Maps at the point.
+    ///   - onAvatarTap: The host handles a visible sender avatar outside multi-select mode.
     ///   - onReadReceiptOpen: A tap on the read summary of the viewer's own group message; the host shows who has
     ///     read it. Without it the summary is plain text.
     public init(
@@ -199,6 +201,7 @@ public struct MessageBubbleView: View {
         onTaskToggle: ((FlareMessageData, Bool) -> Void)? = nil,
         onCardOpen: ((FlareMessageData, String) -> Void)? = nil,
         onLocationOpen: ((FlareMessageData, FlareLocationContent) -> Void)? = nil,
+        onAvatarTap: ((FlareMessageData) -> Void)? = nil,
         onReadReceiptOpen: ((FlareMessageData) -> Void)? = nil
     ) {
         self.message = message
@@ -224,6 +227,7 @@ public struct MessageBubbleView: View {
         self.onLocationOpen = onLocationOpen
         self.onLocateMessage = onLocateMessage
         self.onReadReceiptOpen = onReadReceiptOpen
+        self.onAvatarTap = onAvatarTap
     }
 
     /// This bubble inside a timeline whose media defaults are `session` and whose pictures are `gallery`.
@@ -408,8 +412,15 @@ public struct MessageBubbleView: View {
     @ViewBuilder
     private var avatar: some View {
         if showAvatar {
-            AvatarView(userId: message.senderId, displayName: message.senderName,
-                       avatarURL: message.senderAvatarURL, size: FlareSizes.componentMessageAvatarSize)
+            let picture = AvatarView(userId: message.senderId, displayName: message.senderName,
+                                     avatarURL: message.senderAvatarURL, size: FlareSizes.componentMessageAvatarSize)
+            if let onAvatarTap, !multiSelectMode {
+                Button { onAvatarTap(message) } label: { picture }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(message.senderName)
+            } else {
+                picture
+            }
         } else {
             Color.clear.frame(width: FlareSizes.componentMessageAvatarSize, height: 1)
         }

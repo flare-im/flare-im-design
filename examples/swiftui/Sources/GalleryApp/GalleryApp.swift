@@ -28,6 +28,8 @@ struct GalleryView: View {
     @State private var commandPaletteOpen = false
     @State private var commandQuery = ""
     @State private var selectedCommand: String? = "new-message"
+    @State private var updateForm: FlareUpdatePromptForm = .sheet
+    @State private var updateOpen = false
 
     private let commandGroups = [
         FlareCommandPaletteGroup(id: "workspace", label: "Workspace", commands: [
@@ -70,6 +72,20 @@ struct GalleryView: View {
                         ])
                         .frame(height: 140)
                     }
+                    section("ProgressBar") {
+                        ProgressBarView(value: 0.42, label: "下载中")
+                        ProgressBarView(value: 1, tone: .success, label: "已完成")
+                        ProgressBarView(indeterminate: true, label: "正在校验")
+                    }
+                    section("UpdatePrompt") {
+                        ButtonView(label: "sheet", variant: .secondary) { openUpdate(.sheet) }
+                        ButtonView(label: "modal", variant: .secondary) { openUpdate(.modal) }
+                        ButtonView(label: "fullscreen", variant: .secondary) { openUpdate(.fullscreen) }
+                    }
+                    section("VersionPanel") {
+                        VersionPanelView(version: "2.3.2", build: 20302, channel: "stable", updateState: "upToDate",
+                                         onCheck: {}, onUpdate: {})
+                    }
                     section("ProfilePanel") {
                         ProfilePanelView(user: UserProfile(id: "me", name: "Ivy Chen",
                                                            signature: "设计即沟通", flareId: "ivy_chen"))
@@ -98,6 +114,11 @@ struct GalleryView: View {
                 }
             }
             .navigationViewStyle(.stack)
+            .flareUpdatePrompt(isPresented: $updateOpen, prompt: UpdatePromptView(
+                form: updateForm, version: "2.4.0", notes: ["重连后消息同步更快", "语音播放更清晰"],
+                sizeBytes: 52_428_800, mandatory: updateForm == .fullscreen,
+                state: updateForm == .fullscreen ? "required" : "available",
+                onUpdate: { updateOpen = false }, onLater: { updateOpen = false }, onSkip: { updateOpen = false }))
 
             CommandPaletteView(
                 open: commandPaletteOpen,
@@ -113,6 +134,11 @@ struct GalleryView: View {
                 onSelectedIdChange: { selectedCommand = $0 }
             )
         }
+    }
+
+    private func openUpdate(_ form: FlareUpdatePromptForm) {
+        updateForm = form
+        updateOpen = true
     }
 
     @ViewBuilder

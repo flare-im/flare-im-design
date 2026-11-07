@@ -179,6 +179,12 @@
    自然就贴着名字行(飞书 / Slack),不再另写一条规则往下挪。改前是四个魔数(16/24/17/25)把 34px
    的头像底边对到单行气泡的底边 —— 一行以上的消息头像就飘在半空。40 与一条单行气泡等高
    (9 + 一行正文 + 9),所以每个 run 的第一条消息与它的头像上下两边都齐。 */
+button.message-avatar {
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 .message-avatar {
   position: absolute;
   top: var(--flare-size-spacing-sm);

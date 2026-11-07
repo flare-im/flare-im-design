@@ -114,7 +114,9 @@ void main() {
       ],
     });
     await tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: FlarePluginView(view: view))),
+      MaterialApp(
+        home: Scaffold(body: FlarePluginView(view: view)),
+      ),
     );
     String countdown() => tester
         .widget<Text>(find.byKey(const ValueKey('flare-plugin-countdown')))

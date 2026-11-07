@@ -10,6 +10,7 @@ import { NIcon } from "naive-ui";
 import FlareIcon from "./FlareIcon.vue";
 import { flareIcons, type FlareIconName } from "../../shared/icons";
 import { actionMenuEntries, type FlareActionItem } from "../../shared/contracts/action-menu";
+import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
 type MenuAction = FlareActionItem<string | Component>;
 
@@ -27,6 +28,7 @@ const emit = defineEmits<{
   (e: "tab"): void;
 }>();
 
+const { t } = useFlareI18nOptional();
 const root = ref<HTMLElement | null>(null);
 const entries = computed(() => actionMenuEntries(props.items));
 
@@ -127,6 +129,7 @@ onMounted(() => {
           <span v-if="entry.item.enabled === false && entry.item.disabledReason" class="flare-action-menu__reason">{{ entry.item.disabledReason }}</span>
         </span>
         <span v-if="entry.item.badge" class="flare-action-menu__badge">{{ entry.item.badge }}</span>
+        <span v-if="entry.item.dot" class="flare-action-menu__dot" role="img" :aria-label="t('settingsRow.badge')" />
         <span v-if="entry.item.pressed" class="flare-action-menu__check">
           <FlareIcon name="check" />
         </span>
@@ -232,6 +235,13 @@ onMounted(() => {
   color: var(--flare-color-text-secondary);
   font-size: var(--flare-size-font-size-sm);
   font-variant-numeric: tabular-nums;
+}
+.flare-action-menu__dot {
+  flex: 0 0 auto;
+  width: var(--flare-size-spacing-sm);
+  height: var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-full);
+  background: var(--flare-color-error);
 }
 .flare-action-menu__check {
   display: grid;

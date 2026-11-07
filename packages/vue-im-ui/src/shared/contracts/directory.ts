@@ -80,8 +80,11 @@ export interface FlareSettingsItem {
   kind?: FlareSettingKind;
   value?: boolean;
   detail?: string;
-  /** Optional red count badge (e.g. pending friend requests) on a navigation row; 99+ above 99. */
-  badge?: number;
+  /**
+   * `true` is a red dot before the chevron, with no number: something here is new (an update waiting in About). A number
+   * is the red count badge (pending friend requests) on a navigation row; 99+ above 99. A toggle row draws neither.
+   */
+  badge?: boolean | number;
   /** There are more than `badge` (the server had more than it counted): the badge reads 99+ (spec/count-badge-vectors.json). */
   badgeMore?: boolean;
   /**
@@ -132,6 +135,8 @@ export interface FlareGroupDetailModel {
   memberActions: Record<string, FlareMemberActions>;
   /** Viewer's own nickname in this group. */
   myNickname?: string;
+  /** Private remark, omitted when the host could not read it. */
+  myRemarkName?: string;
   /** Viewer's per-group notification/pin preference. */
   /** The viewer's own notification and pin settings; `null` when they could not be read, so no state is claimed. */
   myMuted: boolean | null;
@@ -144,6 +149,7 @@ export interface FlareGroupDetailModel {
   onlyAdminCanAtAll: boolean;
   onlyAdminCanPin: boolean;
   shareCardPermission: boolean;
+  forbidGroupFriendRequests?: boolean;
 }
 
 /** A pending group join request, resolved for display. */

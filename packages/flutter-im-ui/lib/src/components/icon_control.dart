@@ -29,6 +29,8 @@ class FlareIconControl extends StatelessWidget {
     this.inMutuallyExclusiveGroup,
     this.tooltip = true,
     this.alignment = Alignment.center,
+    this.minWidth = FlareSizes.touchTarget,
+    this.minHeight = FlareSizes.touchTarget,
   });
 
   /// The accessible name: what happens when the control is activated.
@@ -49,6 +51,8 @@ class FlareIconControl extends StatelessWidget {
   /// Show [label] as a tooltip on hover / long press.
   final bool tooltip;
   final AlignmentGeometry alignment;
+  final double minWidth;
+  final double minHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +84,9 @@ class FlareIconControl extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: active ? onTap : null,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: FlareSizes.touchTarget,
-              minHeight: FlareSizes.touchTarget,
+            constraints: BoxConstraints(
+              minWidth: minWidth,
+              minHeight: minHeight,
             ),
             child: Align(
               alignment: alignment,

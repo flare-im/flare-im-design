@@ -91,6 +91,8 @@ FlareComposer(
 
 Compose hoists the text with `value` and `onValueChange` (the app keeps a draft per conversation); iOS takes `text:` as a binding.
 
+Compose places the active emoji and sticker, mention, or attachment panel below the editor and toolbar on Android phones and tablets, including landscape. The kit opens one panel at a time. Toolbar taps dismiss the soft keyboard. Typing `@` keeps the editor focused and subsequent text filters the members. Picking a member replaces the typed token. Hosts can pass `onSendSticker` and let the kit own the panel.
+
 ## States
 
 | State | Behaviour |

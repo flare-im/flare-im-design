@@ -34,6 +34,7 @@ public struct ImagePreviewView: View {
     private let galleryCount: Int?
     private let onPrevious: (() -> Void)?
     private let onNext: (() -> Void)?
+    private let providedImageContent: AnyView?
 
     @State private var scale: CGFloat = 1
     @State private var dragOffset: CGFloat = 0
@@ -57,7 +58,8 @@ public struct ImagePreviewView: View {
         galleryCount: Int? = nil,
         onPrevious: (() -> Void)? = nil,
         onNext: (() -> Void)? = nil,
-        allowLocalFile: Bool = false
+        allowLocalFile: Bool = false,
+        imageContent: AnyView? = nil
     ) {
         self.show = show
         self.imageSrc = imageSrc
@@ -76,6 +78,7 @@ public struct ImagePreviewView: View {
         self.galleryCount = galleryCount
         self.onPrevious = onPrevious
         self.onNext = onNext
+        self.providedImageContent = imageContent
     }
 
     /// Whether the preview pages a gallery.
@@ -150,18 +153,13 @@ public struct ImagePreviewView: View {
     private var imageContent: some View {
         if loading {
             ProgressView().tint(.white)
+        } else if let providedImageContent {
+            interactiveImage(providedImageContent).onTapGesture { onClose?() }
         } else if let url = flarePictureURL(imageSrc, local: allowLocalFile) {
             AsyncImage(url: url) { phase in
                 switch phase {
                 case .success(let image):
-                    image.resizable().scaledToFit()
-                        .scaleEffect(scale)
-                        .gesture(MagnificationGesture().onChanged { v in
-                            scale = min(max(zoomMin, v), zoomMax)
-                        }.onEnded { _ in
-                            if scale < zoomMin { scale = zoomMin }
-                        })
-                        .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageImage)
+                    interactiveImage(image.resizable().scaledToFit())
                 case .failure:
                     failed
                 default:
@@ -172,6 +170,18 @@ public struct ImagePreviewView: View {
         } else {
             failed
         }
+    }
+
+    /// Hosts may render authenticated in-memory content without giving the kit
+    /// a private URL or file. Viewer zoom, close and accessibility stay shared.
+    private func interactiveImage<Content: View>(_ image: Content) -> some View {
+        image.scaleEffect(scale)
+            .gesture(MagnificationGesture().onChanged { value in
+                scale = min(max(zoomMin, value), zoomMax)
+            }.onEnded { _ in
+                if scale < zoomMin { scale = zoomMin }
+            })
+            .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageImage)
     }
 
     /// The image could not load: its glyph and what happened; the close key still closes.

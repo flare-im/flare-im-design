@@ -269,6 +269,20 @@ public final class FlareEmojiStickerCatalog: ObservableObject, @unchecked Sendab
                                     stickerIds: $0.stickers.map(\.stickerId)) }
     }
 
+    /// The keys that ship with the package, which a resource pack may not replace.
+    func bundledEmojiKeys() -> [String] {
+        ensureLoaded()
+        lock.lock(); defer { lock.unlock() }
+        return emojiKeys
+    }
+
+    /// The packs that ship with the package, which a resource pack may not replace.
+    func bundledStickerPackIds() -> [String] {
+        ensureLoaded()
+        lock.lock(); defer { lock.unlock() }
+        return stickerPacks.map(\.id)
+    }
+
     public func hasEmojiKey(_ key: String) -> Bool {
         ensureLoaded()
         let normalized = key.trimmingCharacters(in: .whitespaces)

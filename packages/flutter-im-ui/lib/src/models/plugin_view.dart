@@ -64,6 +64,7 @@ enum FlarePluginTextStyle { body, title, secondary }
 /// Form input kinds.
 enum FlarePluginInputKind {
   text,
+  password,
   textarea,
   number,
   toggle,
@@ -1424,7 +1425,7 @@ int _codePoints(String s) => s.runes.length;
 int? flarePluginMaxLength(FlarePluginInput input) =>
     input.maxLength ??
     switch (input.kind) {
-      FlarePluginInputKind.text => 256,
+      FlarePluginInputKind.text || FlarePluginInputKind.password => 256,
       FlarePluginInputKind.textarea => 2000,
       FlarePluginInputKind.options => 100,
       _ => null,
@@ -1467,6 +1468,8 @@ Object? flarePluginDraftValue(
                 if (x is String) x,
             ]
           : <String>[];
+    case FlarePluginInputKind.password:
+      return '';
     case FlarePluginInputKind.text:
     case FlarePluginInputKind.textarea:
     case FlarePluginInputKind.select:
@@ -1496,6 +1499,7 @@ FlarePluginFormIssue? flarePluginCheckInput(
 ) {
   final limit = flarePluginMaxLength(input);
   switch (input.kind) {
+    case FlarePluginInputKind.password:
     case FlarePluginInputKind.text:
     case FlarePluginInputKind.textarea:
       final text = '${draft ?? ''}'.trim();
@@ -1546,6 +1550,9 @@ Map<String, Object?> flarePluginFormValues(
   for (final input in inputs) {
     final value = draft[input.id];
     switch (input.kind) {
+      case FlarePluginInputKind.password:
+        final secret = value is String ? value : "";
+        if (secret.isNotEmpty) out[input.id] = secret;
       case FlarePluginInputKind.text:
       case FlarePluginInputKind.textarea:
         final text = '${value ?? ''}'.trim();

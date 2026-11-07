@@ -50,6 +50,11 @@ import "@flare-im/vue-ui/style.css";
 
 ## Ownership
 
+Message timelines fill the chat pane: incoming messages align to its left edge and
+outgoing messages to its right edge, with shared responsive gutters. Reading-width
+limits apply to individual bubbles; system notices remain centred. Hosts should
+not add a centred maximum width around the timeline.
+
 Admin tables can set `fill` inside a height-bounded panel: only the rows scroll, while
 the column toolbar and pagination remain reachable on narrow and short viewports.
 Set `paginationDisabled` during a host-owned mutation to lock both page and page-size

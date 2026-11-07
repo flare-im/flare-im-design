@@ -135,27 +135,46 @@ List<FlareComposerAction> resolveFlareComposerActions({
   return indexed.map((entry) => entry.value).toList(growable: false);
 }
 
+/// How [FlareComposerActionPanel] lays out: a phone pages the grid sideways, a
+/// desktop shows at most [FlareComposerActionPanel.rows] rows and scrolls the
+/// rest inside the panel.
+enum FlareComposerPanelFormFactor { mobile, desktop }
+
 /// The composer's bottom function area (下方功能区) — an inline, expandable grid
 /// of attachment actions (image / file / card / vote / …). A composable part:
 /// wrap it in an [AnimatedSize]/visibility to expand under the input, or use it
 /// standalone. This is the one attachment grid; the message long-press sheet
 /// is [FlareMessageActionSheet].
-class FlareComposerActionPanel extends StatelessWidget {
+///
+/// Items are ordered by `order`, then by position. On a phone ([formFactor]
+/// mobile) the grid pages sideways, [rows] × [crossAxisCount] per page, with
+/// page dots; on a desktop it shows at most [rows] rows and scrolls. A new list
+/// keeps the page the reader is on (clamped when pages go away); a tile that
+/// appears fades in (150 ms, none with reduced motion).
+class FlareComposerActionPanel extends StatefulWidget {
   const FlareComposerActionPanel({
     super.key,
     this.actions,
     this.capabilities = const FlareComposerCapabilities(),
     this.crossAxisCount = 4,
     this.onAction,
-    this.maxHeight = 240,
+    this.formFactor = FlareComposerPanelFormFactor.mobile,
+    this.rows,
   }) : assert(crossAxisCount > 0),
-       assert(maxHeight > 0);
+       assert(rows == null || rows > 0);
 
   final List<FlareComposerAction>? actions;
   final FlareComposerCapabilities capabilities;
   final int crossAxisCount;
-  final double maxHeight;
+  final FlareComposerPanelFormFactor formFactor;
+
+  /// Rows per page on a phone (default 2), most rows shown on a desktop
+  /// (default 3).
+  final int? rows;
   final void Function(FlareComposerAction action)? onAction;
+
+  /// Height of one row of tiles.
+  static const double rowExtent = 76;
 
   /// The built-in features of the panel, in the order every platform shows
   /// them (contract `composerActions.defaults`). Labels come from
@@ -201,48 +220,154 @@ class FlareComposerActionPanel extends StatelessWidget {
   ];
 
   @override
+  State<FlareComposerActionPanel> createState() =>
+      _FlareComposerActionPanelState();
+}
+
+class _FlareComposerActionPanelState extends State<FlareComposerActionPanel> {
+  final PageController _pages = PageController();
+  int _page = 0;
+
+  /// Ids drawn so far: a tile not among them fades in. The first frame draws
+  /// without a fade.
+  final Set<String> _seen = {};
+  bool _built = false;
+
+  bool get _paged => widget.formFactor == FlareComposerPanelFormFactor.mobile;
+  int get _rows => widget.rows ?? (_paged ? 2 : 3);
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final resolvedActions = resolveFlareComposerActions(
-      actions: actions,
-      capabilities: capabilities,
+      actions: widget.actions,
+      capabilities: widget.capabilities,
     );
-    final rows = <List<FlareComposerAction>>[];
-    for (var i = 0; i < resolvedActions.length; i += crossAxisCount) {
-      rows.add(
-        resolvedActions.sublist(
-          i,
-          (i + crossAxisCount).clamp(0, resolvedActions.length),
-        ),
+    final fresh = {
+      if (_built)
+        for (final action in resolvedActions)
+          if (!_seen.contains(action.id)) action.id,
+    };
+    _built = true;
+    _seen
+      ..clear()
+      ..addAll(resolvedActions.map((action) => action.id));
+    Widget tile(FlareComposerAction action) => _FadeIn(
+      key: ValueKey(action.id),
+      animate: fresh.contains(action.id) && !reduceMotion,
+      child: _tile(action, colors, strings),
+    );
+    final height =
+        _rows * FlareComposerActionPanel.rowExtent +
+        (_rows - 1) * FlareSizes.spacingLg;
+    final Widget body;
+    if (_paged) {
+      final size = _rows * widget.crossAxisCount;
+      final pages = <List<FlareComposerAction>>[
+        for (var i = 0; i < resolvedActions.length; i += size)
+          resolvedActions.sublist(
+            i,
+            (i + size).clamp(0, resolvedActions.length),
+          ),
+      ];
+      final page = _page.clamp(0, pages.isEmpty ? 0 : pages.length - 1);
+      body = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: height,
+            child: PageView.builder(
+              controller: _pages,
+              itemCount: pages.length,
+              onPageChanged: (index) => setState(() => _page = index),
+              itemBuilder: (context, index) => _grid(pages[index], tile),
+            ),
+          ),
+          if (pages.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: FlareSizes.spacingSm),
+              child: ExcludeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < pages.length; i++)
+                      AnimatedContainer(
+                        key: ValueKey('flare-action-panel-dot-$i'),
+                        duration: reduceMotion
+                            ? Duration.zero
+                            : FlareMotion.fast,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: FlareSizes.spacing3xs,
+                        ),
+                        width: i == page ? 12 : 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: i == page
+                              ? colors.primary
+                              : colors.borderPrimary,
+                          borderRadius: BorderRadius.circular(
+                            FlareSizes.radiusFull,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    } else {
+      body = ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: height),
+        child: SingleChildScrollView(child: _grid(resolvedActions, tile)),
       );
     }
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: SingleChildScrollView(
-        child: Container(
-          width: double.infinity,
-          color: colors.bgPrimary,
-          padding: const EdgeInsets.all(FlareSizes.spacingLg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final row in rows)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: FlareSizes.spacingLg),
-                  child: Row(
-                    children: [
-                      for (final a in row)
-                        Expanded(child: _tile(a, colors, strings)),
-                      for (var k = row.length; k < crossAxisCount; k++)
-                        const Expanded(child: SizedBox.shrink()),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+    return Container(
+      width: double.infinity,
+      color: colors.bgPrimary,
+      padding: const EdgeInsets.all(FlareSizes.spacingLg),
+      child: body,
+    );
+  }
+
+  Widget _grid(
+    List<FlareComposerAction> actions,
+    Widget Function(FlareComposerAction action) tile,
+  ) {
+    final rows = <List<FlareComposerAction>>[
+      for (var i = 0; i < actions.length; i += widget.crossAxisCount)
+        actions.sublist(
+          i,
+          (i + widget.crossAxisCount).clamp(0, actions.length),
         ),
-      ),
+    ];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var r = 0; r < rows.length; r++)
+          Padding(
+            padding: EdgeInsets.only(top: r == 0 ? 0 : FlareSizes.spacingLg),
+            child: SizedBox(
+              height: FlareComposerActionPanel.rowExtent,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final a in rows[r]) Expanded(child: tile(a)),
+                  for (var k = rows[r].length; k < widget.crossAxisCount; k++)
+                    const Expanded(child: SizedBox.shrink()),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -257,7 +382,7 @@ class FlareComposerActionPanel extends StatelessWidget {
       label: action.accessibilityLabel ?? action.resolveLabel(strings),
       hint: action.enabled ? null : action.disabledReason,
       child: InkWell(
-        onTap: action.enabled ? () => onAction?.call(action) : null,
+        onTap: action.enabled ? () => widget.onAction?.call(action) : null,
         borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -278,6 +403,8 @@ class FlareComposerActionPanel extends StatelessWidget {
             const SizedBox(height: FlareSizes.spacingXs),
             Text(
               action.resolveLabel(strings),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: FlareSizes.fontSizeXs,
@@ -288,4 +415,37 @@ class FlareComposerActionPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Fades a tile in once, when it first appears in the panel.
+class _FadeIn extends StatefulWidget {
+  const _FadeIn({super.key, required this.animate, required this.child});
+  final bool animate;
+  final Widget child;
+  @override
+  State<_FadeIn> createState() => _FadeInState();
+}
+
+class _FadeInState extends State<_FadeIn> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: FlareMotion.fast,
+    value: widget.animate ? 0 : 1,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animate) _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FadeTransition(opacity: _controller, child: widget.child);
 }

@@ -100,6 +100,7 @@ const props = withDefaults(defineProps<{
   actions?: readonly MessageMenuExtension[];
   mediaDownloadStates?: Record<string, MessageMediaDownloadUiState>;
   showIncomingAvatar?: boolean;
+  interactiveSenderAvatar?: boolean;
   showSelfAvatar?: boolean;
   showGroupSenderName?: boolean;
   /**
@@ -153,6 +154,7 @@ const emit = defineEmits<{
   (event: "taskToggle", messageId: string, done: boolean): void;
   /** A tapped person's card, with its user id: the host opens the profile. Without a listener cards only display. */
   (event: "cardOpen", messageId: string, userId: string): void;
+  (event: "senderOpen", userId: string): void;
   /** A tapped location card. Without a listener the card links to the web map of its provider. */
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
   /** A tapped group read summary ("3 unread"): the host fills ReadReceiptSheet. Without a listener it is text. */
@@ -1322,6 +1324,8 @@ defineExpose({
             :surface="item.surface"
             :fresh="freshIds.has(resolveMessageId(item.message))"
             :quote-locatable="quoteLocatable(item.message)"
+            :interactive-sender-avatar="interactiveSenderAvatar"
+            @sender-open="$emit('senderOpen', $event)"
             @react="(id: string, emoji: string) => $emit('react', id, emoji)"
             @edit="$emit('edit', $event)"
             @delete="$emit('delete', $event)"

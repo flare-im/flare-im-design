@@ -43,6 +43,12 @@ describe("listMessageMediaDownloadSources", () => {
     expect(hasDownloadableMessageMedia(recalled)).toBe(false);
   });
 
+  it("does not label a picture without an original filename as JPEG", () => {
+    const [source] = listMessageMediaDownloadSources(imageMessage("ivy", { imageId: "stored-png", mimeType: "image/png" }));
+    expect(source?.displayFileName).toBe("image");
+    const [named] = listMessageMediaDownloadSources(imageMessage("ivy", { imageId: "stored-png", fileName: "receipt.png" }));
+    expect(named?.displayFileName).toBe("receipt.png");
+  });
   it("saves your own not-yet-uploaded picture from the file on this device", () => {
     const [source] = listMessageMediaDownloadSources(
       imageMessage("me", { imageId: "/Users/me/Pictures/cat.png", url: "file:///Users/me/Pictures/cat.png" }),

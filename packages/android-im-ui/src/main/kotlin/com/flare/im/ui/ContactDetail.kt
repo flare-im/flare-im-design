@@ -2,36 +2,27 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.Videocam
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -147,6 +138,7 @@ internal fun contactDetailInfoItems(
  * intents; the host owns edit sheets, confirmations, and persistence. Mirrors the Vue
  * kit's `FlareContactDetail.vue`. Spec: Contacts/ContactDetail.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ContactDetail(
     contact: Contact,
@@ -210,16 +202,17 @@ fun ContactDetail(
             hasPrimary = contactDetailHasPrimaryAction(primaryActionLabel, onPrimaryAction != null),
             intents = contactDetailActions(onMessage != null, onCall != null, onVideo != null),
         )
-        if (row.isNotEmpty()) Row(
+        if (row.isNotEmpty()) FlowRow(
             Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingXs),
-            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
         ) {
             row.forEach { key ->
                 when (key.intent) {
-                    null -> action(primaryActionLabel.orEmpty(), flareIconVector("person-add"), onPrimaryAction ?: {}, colors, Modifier.weight(1f), primary = true, busy = contactDetailKeyBusy(key, primaryActionBusy))
-                    ContactDetailAction.Message -> action(labels.message, Icons.AutoMirrored.Outlined.Message, onMessage ?: {}, colors, Modifier.weight(1f), primary = key.primary)
-                    ContactDetailAction.Call -> action(labels.voice, Icons.Outlined.Phone, onCall ?: {}, colors, Modifier.weight(1f))
-                    ContactDetailAction.Video -> action(labels.video, Icons.Outlined.Videocam, onVideo ?: {}, colors, Modifier.weight(1f))
+                    null -> action(primaryActionLabel.orEmpty(), "person-add", onPrimaryAction, primary = true, busy = contactDetailKeyBusy(key, primaryActionBusy))
+                    ContactDetailAction.Message -> action(labels.message, "comment", onMessage, primary = key.primary)
+                    ContactDetailAction.Call -> action(labels.voice, "phone", onCall)
+                    ContactDetailAction.Video -> action(labels.video, "video", onVideo)
                 }
             }
         }
@@ -249,26 +242,19 @@ fun ContactDetail(
             Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
             verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
         ) {
-            for (action in extraActions) OutlinedButton(
+            for (action in extraActions) Button(
+                label = action.label, size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
+                variant = if (action.danger) FlareButtonVariant.Danger else FlareButtonVariant.Secondary,
                 onClick = { onExtraAction?.invoke(action.id) },
-                shape = RoundedCornerShape(FlareSizes.radiusLg),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (action.danger) colors.errorText else colors.textPrimary,
-                ),
-                modifier = Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget),
-            ) { Text(action.label) }
-            if (onBlock != null) OutlinedButton(
-                onClick = onBlock,
-                shape = RoundedCornerShape(FlareSizes.radiusLg),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.textPrimary),
-                modifier = Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget),
-            ) { Text(labels.block) }
+            )
+            if (onBlock != null) Button(
+                label = labels.block, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm,
+                block = true, maintainTouchTarget = true, onClick = onBlock,
+            )
             if (onRemove != null) Button(
-                onClick = onRemove,
-                shape = RoundedCornerShape(FlareSizes.radiusLg),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.error),
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-            ) { Text(labels.remove, color = Color.White, fontSize = FlareSizes.fontSizeXl.value.sp) }
+                label = labels.remove, variant = FlareButtonVariant.Danger, size = FlareControlSize.Sm,
+                block = true, maintainTouchTarget = true, onClick = onRemove,
+            )
         }
     }
 }
@@ -276,46 +262,18 @@ fun ContactDetail(
 @Composable
 private fun action(
     label: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    colors: FlareColors,
-    modifier: Modifier,
+    icon: String,
+    onClick: (() -> Unit)?,
     primary: Boolean = false,
     busy: Boolean = false,
 ) {
-    val container = if (primary) colors.primary else colors.bgSecondary
-    val content = if (primary) Color.White else colors.textPrimary
     Button(
+        label = label,
+        icon = icon,
+        variant = if (primary) FlareButtonVariant.Primary else FlareButtonVariant.Secondary,
+        size = FlareControlSize.Sm,
+        loading = busy,
+        maintainTouchTarget = true,
         onClick = onClick,
-        // The key the host is running keeps its colour (the spinner says why it takes no click), so its disabled
-        // colours are its own.
-        enabled = !busy,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = container,
-            contentColor = content,
-            disabledContainerColor = container,
-            disabledContentColor = content,
-        ),
-        shape = RoundedCornerShape(FlareSizes.radiusLg),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacing2sm),
-        // Parity with iOS/Flutter: action tiles float — brand-tinted glow on primary, soft neutral on the rest.
-        modifier = modifier.shadow(
-            if (primary) 10.dp else 6.dp,
-            RoundedCornerShape(FlareSizes.radiusLg),
-            clip = false,
-            ambientColor = if (primary) colors.primary else Color(0xFF151320),
-            spotColor = if (primary) colors.primary else Color(0xFF151320),
-        ),
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
-            if (busy) {
-                Box(Modifier.size(FlareSizes.iconSizeLg), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), color = content, strokeWidth = 2.dp)
-                }
-            } else {
-                Icon(icon, null, tint = content)
-            }
-            Text(label, fontSize = FlareSizes.fontSizeSm.value.sp, color = content)
-        }
-    }
+    )
 }

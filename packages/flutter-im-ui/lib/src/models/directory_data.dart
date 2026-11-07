@@ -128,12 +128,14 @@ class FlareGroupDetailModel {
     required this.memberCount,
     this.announcement,
     this.members = const [],
+    this.membersRevision = 0,
     required this.ownerId,
     this.adminIds = const [],
     this.mutedIds = const [],
     this.capabilities = FlareGroupCapabilities.none,
     this.memberActions = const {},
     this.myNickname,
+    this.myRemarkName,
     this.myMuted,
     this.myPinned,
     this.discoverable = false,
@@ -142,6 +144,7 @@ class FlareGroupDetailModel {
     this.onlyAdminCanAtAll = false,
     this.onlyAdminCanPin = false,
     this.shareCardPermission = true,
+    this.forbidGroupFriendRequests,
   });
 
   final String groupId;
@@ -150,6 +153,9 @@ class FlareGroupDetailModel {
   final int memberCount;
   final String? announcement;
   final List<FlareContact> members;
+
+  /// Changes when a fresh member snapshot invalidates open search results.
+  final int membersRevision;
   final String ownerId;
   final List<String> adminIds;
 
@@ -168,6 +174,7 @@ class FlareGroupDetailModel {
 
   /// Viewer's own nickname in this group.
   final String? myNickname;
+  final String? myRemarkName;
 
   /// Viewer's per-group notification / pin preference; null when the host
   /// could not read it, so the row claims no state (the same rule as
@@ -186,6 +193,7 @@ class FlareGroupDetailModel {
   final bool onlyAdminCanAtAll;
   final bool onlyAdminCanPin;
   final bool shareCardPermission;
+  final bool? forbidGroupFriendRequests;
 }
 
 /// A pending group join request, resolved for display.
@@ -244,6 +252,7 @@ class FlareSettingsItem {
     this.detail,
     this.disabled = false,
     this.danger = false,
+    this.badge = false,
   });
   final String key;
   final String label;
@@ -256,6 +265,10 @@ class FlareSettingsItem {
   final String? detail;
   final bool disabled;
   final bool danger;
+
+  /// A red dot before the chevron: something here is new (an update waiting in
+  /// About). A toggle row draws none.
+  final bool badge;
 }
 
 class FlareSettingsSection {

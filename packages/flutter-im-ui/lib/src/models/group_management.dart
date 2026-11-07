@@ -78,6 +78,7 @@ class FlareMemberActions {
     this.canMute = false,
     this.canChangeRole = false,
     this.canTransferOwner = false,
+    this.canRequestFriend = false,
   });
 
   /// Nothing may be done to the member.
@@ -94,6 +95,7 @@ class FlareMemberActions {
 
   /// Hand ownership over to the member.
   final bool canTransferOwner;
+  final bool canRequestFriend;
 
   @override
   bool operator ==(Object other) =>
@@ -101,11 +103,12 @@ class FlareMemberActions {
       other.canRemove == canRemove &&
       other.canMute == canMute &&
       other.canChangeRole == canChangeRole &&
-      other.canTransferOwner == canTransferOwner;
+      other.canTransferOwner == canTransferOwner &&
+      other.canRequestFriend == canRequestFriend;
 
   @override
   int get hashCode =>
-      Object.hash(canRemove, canMute, canChangeRole, canTransferOwner);
+      Object.hash(canRemove, canMute, canChangeRole, canTransferOwner, canRequestFriend);
 }
 
 /// The management entries of a group page, in display order; identical on all

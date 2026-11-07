@@ -10,19 +10,22 @@
 //   - 命令面板写死 `Teleport to="body"`,宿主把浮层限定到某个容器时它逃出去。
 // 所以栈、锁、键盘、返回键、传送目标都收在这里。每张模态只声明「我是一张模态」。
 import {
+  computed,
+  shallowReactive,
   nextTick,
   onBeforeUnmount,
   toValue,
   watch,
   type MaybeRefOrGetter,
   type Ref,
+  type ComputedRef,
 } from "vue";
 import { useFlareOverlayContainer, type FlareOverlayTarget } from "./useOverlayContainer";
 import { useFlarePlatformSafe } from "./platform/useFlarePlatform";
 import { claimNativeBack } from "./platform/useFlareNativeBack";
 
 /** 所有模态面共用的一个栈,叠起来时最上面那张才收键盘。 */
-const stack: symbol[] = [];
+const stack = shallowReactive<symbol[]>([]);
 let lockCount = 0;
 let priorOverflow = "";
 
@@ -68,6 +71,8 @@ export interface FlareModalSurface {
   overlayContainer: Ref<FlareOverlayTarget>;
   /** 这张面是不是栈顶(叠了好几层时只有它该响应)。 */
   isTopmost: () => boolean;
+  /** Opening order, shared with keyboard focus ownership. */
+  stackIndex: ComputedRef<number>;
 }
 
 /**
@@ -207,5 +212,5 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
     else opener = null;
   });
 
-  return { overlayContainer, isTopmost };
+  return { overlayContainer, isTopmost, stackIndex: computed(() => Math.max(0, stack.indexOf(id))) };
 }

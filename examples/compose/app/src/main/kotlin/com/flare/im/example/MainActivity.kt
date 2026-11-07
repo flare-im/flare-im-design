@@ -38,9 +38,14 @@ import com.flare.im.ui.FlareMessageDeliveryStatus
 import com.flare.im.ui.FlareTextContent
 import com.flare.im.ui.FlareThemeMode
 import com.flare.im.ui.FlareThemeProvider
+import com.flare.im.ui.FlareUpdatePromptForm
 import com.flare.im.ui.MessageBubble
 import com.flare.im.ui.Button
+import com.flare.im.ui.FlareButtonVariant
 import com.flare.im.ui.FlareControlSize
+import com.flare.im.ui.ProgressBar
+import com.flare.im.ui.UpdatePrompt
+import com.flare.im.ui.VersionPanel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +61,7 @@ private fun ExampleApp() {
     var commandPaletteOpen by remember { mutableStateOf(false) }
     var commandQuery by remember { mutableStateOf("") }
     var selectedCommand by remember { mutableStateOf("new-message") }
+    var updateForm by remember { mutableStateOf<FlareUpdatePromptForm?>(null) }
     val commandGroups = remember {
         listOf(
             FlareCommandPaletteGroup(
@@ -125,6 +131,26 @@ private fun ExampleApp() {
                         currentUserId = "me",
                         conversationKind = FlareConversationKind.Group,
                     )
+                    ProgressBar(value = 0.42, label = "Downloading")
+                    ProgressBar(indeterminate = true, label = "Verifying")
+                    VersionPanel(version = "2.3.2", build = 20302, channel = "stable", updateState = "upToDate", onCheck = {}, onUpdate = {})
+                    FlareUpdatePromptForm.entries.forEach { form ->
+                        Button(label = "Update prompt: ${form.name}", variant = FlareButtonVariant.Secondary, block = true, onClick = { updateForm = form })
+                    }
+                    updateForm?.let { form ->
+                        val forced = form == FlareUpdatePromptForm.Fullscreen
+                        UpdatePrompt(
+                            form = form,
+                            version = "2.4.0",
+                            notes = listOf("Faster message sync after reconnecting", "Clearer voice playback"),
+                            sizeBytes = 52_428_800,
+                            mandatory = forced,
+                            state = if (forced) "required" else "available",
+                            onUpdate = { updateForm = null },
+                            onLater = { updateForm = null },
+                            onSkip = { updateForm = null },
+                        )
+                    }
                     Button(label = "Open commands", size = FlareControlSize.Lg, block = true, onClick = { commandPaletteOpen = true })
                     CommandPalette(
                         open = commandPaletteOpen,

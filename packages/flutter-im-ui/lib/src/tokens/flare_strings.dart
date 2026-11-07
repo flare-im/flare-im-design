@@ -87,8 +87,10 @@ class FlareStrings {
     this.messageBatchPin = '置顶', // en: Pin
     this.messageBatchPinSelf = '仅自己置顶', // en: Pin for me
     this.messageBatchClear = '清除选择', // en: Clear selection
-    this.messageBatchUnforwardable = '{count} 条不支持转发', // en: {count} messages can't be forwarded
-    this.messageBatchUnforwardableOne = '{count} 条不支持转发', // en: {count} message can't be forwarded
+    this.messageBatchUnforwardable =
+        '{count} 条不支持转发', // en: {count} messages can't be forwarded
+    this.messageBatchUnforwardableOne =
+        '{count} 条不支持转发', // en: {count} message can't be forwarded
     this.messageBatchExit = '退出多选', // en: Exit multi-select
     // 提及
     this.searchMembers = '搜索成员',
@@ -148,7 +150,8 @@ class FlareStrings {
     this.packetForRecipient = '给 {name}',
     this.packetNotEligibleName = '仅 {name} 可领取',
     this.packetDeposited = '已存入钱包',
-    this.packetSummarySender = '已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}',
+    this.packetSummarySender =
+        '已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}',
     this.packetSummaryCompleted = '{shares} 个红包共 {totalMoney}，{duration}被抢光',
     this.packetSummaryCount = '已领取 {claimed}/{shares} 个',
     this.packetRefundAt = '未领取部分将于 {time} 退回',
@@ -178,10 +181,10 @@ class FlareStrings {
     this.callRecordPeerBusy = '对方忙线中',
     this.callRecordMissedBusy = '忙线未接听',
     this.callRecordUnavailable = '通话不可用',
-    this.callRecordConfirmCallBack = '确认回拨此通话？',
     this.callRecordFailed = '通话失败',
     this.callRecordJoin = '加入',
     this.callRecordCallBack = '回拨',
+    this.callRecordConfirmCallBack = '确认回拨此通话？',
     // 已读名单的纯文字标签（无摘要人数）、状态与分页；红包已退回；「我」页菜单；合并转发记录（*One 是复数 one 形态，flarePlural 选用）；指针菜单读取中
     this.readReceiptRead = '已读',
     this.readReceiptUnread = '未读',
@@ -378,9 +381,12 @@ class FlareStrings {
     this.downloaded = '已下载', // en: Downloaded
     this.voicePlaybackFailed = '播放失败', // en: Playback failed
     this.videoLoadFailed = '视频无法播放', // en: This video can't be played
-    this.mediaUnavailableImage = '图片暂时无法加载', // en: Image isn't available right now
-    this.mediaUnavailableVideo = '视频暂时无法加载', // en: Video isn't available right now
-    this.mediaUnavailableAudio = '语音暂时无法加载', // en: Voice message isn't available right now
+    this.mediaUnavailableImage =
+        '图片暂时无法加载', // en: Image isn't available right now
+    this.mediaUnavailableVideo =
+        '视频暂时无法加载', // en: Video isn't available right now
+    this.mediaUnavailableAudio =
+        '语音暂时无法加载', // en: Voice message isn't available right now
     // 权限提示（名词 / 动词短语 / 状态 / 说明）
     this.permissionNotifications = '通知',
     this.permissionStorage = '存储空间',
@@ -509,19 +515,25 @@ class FlareStrings {
     this.previewPlaceholder = '[占位]', // en: [Placeholder]
     this.previewUnknown = '[未知]', // en: [Unknown]
     this.systemEventGroupCreated = '群聊已创建', // en: Group created
-    this.systemEventGroupMemberJoined = '新成员加入了群聊', // en: A new member joined the group
-    this.systemEventGroupMemberRemoved = '有成员被移出群聊', // en: A member was removed from the group
+    this.systemEventGroupMemberJoined =
+        '新成员加入了群聊', // en: A new member joined the group
+    this.systemEventGroupMemberRemoved =
+        '有成员被移出群聊', // en: A member was removed from the group
     this.systemEventGroupMemberLeft = '有成员退出了群聊', // en: A member left the group
     this.systemEventGroupMemberMuted = '有成员被禁言', // en: A member was muted
     this.systemEventGroupMemberUnmuted = '有成员被解除禁言', // en: A member was unmuted
-    this.systemEventGroupOwnerTransferred = '群主已转让', // en: Group ownership was transferred
+    this.systemEventGroupOwnerTransferred =
+        '群主已转让', // en: Group ownership was transferred
     this.systemEventGroupDissolved = '群聊已解散', // en: The group was dissolved
-    this.systemEventGroupAnnouncementUpdated = '群公告已更新', // en: Group announcement updated
-    this.systemEventFriendshipEstablished = '你们已成为好友，可以开始聊天了', // en: You are now friends. Say hi!
+    this.systemEventGroupAnnouncementUpdated =
+        '群公告已更新', // en: Group announcement updated
+    this.systemEventFriendshipEstablished =
+        '你们已成为好友，可以开始聊天了', // en: You are now friends. Say hi!
     this.systemEventGroupProfileUpdated = '群名称已更新', // en: Group name updated
     this.systemEventGroupProfileUpdatedNamed =
         _systemEventGroupProfileUpdatedNamed, // en: Group renamed to {name}
-    this.systemEventGroupMemberRolesChanged = '有成员的群角色已变更', // en: A member's group role was changed
+    this.systemEventGroupMemberRolesChanged =
+        '有成员的群角色已变更', // en: A member's group role was changed
     this.systemEventGroupMuted = '已开启全员禁言', // en: All members were muted
     this.systemEventGroupUnmuted = '已解除全员禁言', // en: All members were unmuted
     this.displayNameUser = _displayNameUser, // en: User {idTail}
@@ -533,8 +545,9 @@ class FlareStrings {
     this.displayNameChannel = '频道', // en: Channel
     this.displayNameBroadcast = '广播', // en: Broadcast
     this.displayNameTemp = '临时会话', // en: Temporary chat
-    this.displayNameSeparator = '、', // en: , 
-    this.displayNameMembersMore = _displayNameMembersMore, // en: {names} and {others} others
+    this.displayNameSeparator = '、', // en: ,
+    this.displayNameMembersMore =
+        _displayNameMembersMore, // en: {names} and {others} others
     this.unknownMessageHint = '当前版本无法显示这条消息',
     this.unknownMessageUnsupported = '不支持的消息类型',
     this.unknownMessageDiagnostic = '消息类型',
@@ -643,6 +656,8 @@ class FlareStrings {
     this.groupDetailOnlyAdminAtAll = '仅管理员可@全体成员',
     this.groupDetailOnlyAdminPin = '仅管理员可置顶消息',
     this.groupDetailShareCard = '允许分享群名片',
+    this.groupDetailForbidFriendRequests = '禁止群内加好友',
+    this.groupDetailRequestFriend = '加好友',
     this.groupDetailLeave = '退出群聊',
     this.groupDetailDissolve = '解散群聊',
     this.groupDetailLeaveConfirm = '退出后将不再接收该群消息。',
@@ -679,7 +694,7 @@ class FlareStrings {
     this.conversationActionSheetUnarchive = '取消归档',
     this.conversationActionSheetHide = '隐藏',
     this.conversationActionSheetClearHistory =
-        '清空本地记录', // en: Clear local history
+        '清空聊天记录', // en: Clear chat history
     this.conversationActionSheetEmpty = '暂无可用操作',
     this.conversationHeaderAddActions =
         '添加会话操作', // en: Add conversation actions
@@ -849,18 +864,136 @@ class FlareStrings {
     this.presenceAway = '离开', // en: Away
     this.imageLoadFailed = '图片加载失败', // en: Image failed to load
     this.connectionConnecting = '正在连接…', // en: Connecting…
+    this.connectionSyncing = '正在同步消息…', // en: Syncing messages…
+    this.connectionSwitching = '正在切换线路…', // en: Switching connection…
     this.connectionReconnecting =
         '连接已断开，正在重连…', // en: Connection lost. Reconnecting…
-    this.connectionOffline =
-        '网络不可用，恢复后会自动重连', // en: No network. Messages will sync when it is back.
-    this.connectionDisconnected = '连接已断开', // en: Disconnected
-    this.connectionDisconnectedReason =
-        _connectionDisconnectedReason, // en: Disconnected: {reason}
-    this.connectionKicked =
-        '账号已在其他设备登录', // en: Your account signed in on another device
+    this.connectionWaitingForNetwork =
+        '网络不可用，恢复后会自动重连', // en: No network. Reconnects when it is back.
+    this.connectionServiceUnavailable =
+        '服务暂时不可用，正在自动恢复…', // en: Service temporarily unavailable. Recovering…
+    this.connectionKicked = '已在其他设备登录', // en: Signed in on another device
     this.connectionExpired = '登录已过期', // en: Your sign-in has expired
-    this.connectionReconnect = '重新连接', // en: Reconnect
+    this.connectionUpgradeRequired =
+        '需要更新后才能继续使用', // en: Update the app to keep using it
+    this.connectionTenantUnavailable = '服务已暂停', // en: Service suspended
+    this.connectionRetryIn = _connectionRetryIn, // en: Retrying in {seconds}s
+    this.connectionRetry = '立即重试', // en: Retry now
     this.connectionSignIn = '重新登录', // en: Sign in again
+    this.connectionUpdate = '立即更新', // en: Update now
+    this.connectionDiagnose = '诊断', // en: Diagnose
+    this.connectionDevelopmentMode = '开发模式', // en: Development mode
+    this.accessDiagnosticsTitle = '网络与线路', // en: Network and lines
+    this.accessDiagnosticsCurrent = '当前线路', // en: Current line
+    this.accessDiagnosticsLines = '全部线路', // en: All lines
+    this.accessDiagnosticsRecovery = '恢复工具', // en: Recovery
+    this.accessDiagnosticsAccessPoint = '接入点', // en: Access point
+    this.accessDiagnosticsRegion = '区域', // en: Region
+    this.accessDiagnosticsProtocol = '协议', // en: Protocol
+    this.accessDiagnosticsRtt = '延迟', // en: Latency
+    this.accessDiagnosticsSerial = '清单版本', // en: Manifest version
+    this.accessDiagnosticsSource = '清单来源', // en: Manifest source
+    this.accessDiagnosticsManifest = '清单状态', // en: Manifest status
+    this.accessDiagnosticsReportedAccessPoint = '服务端报告的接入点', // en: Reported by the server
+    this.accessDiagnosticsRecoveryRounds = '已尝试恢复轮数', // en: Recovery rounds so far
+    this.accessDiagnosticsManifestValid = '有效', // en: Valid
+    this.accessDiagnosticsManifestStale = '已过期', // en: Expired
+    this.accessDiagnosticsManifestNone = '暂无清单', // en: None yet
+    this.accessDiagnosticsOn = '开启', // en: On
+    this.accessDiagnosticsOff = '关闭', // en: Off
+    this.accessDiagnosticsRttGood = '良好', // en: Good
+    this.accessDiagnosticsRttFair = '一般', // en: Fair
+    this.accessDiagnosticsRttPoor = '较差', // en: Poor
+    this.accessDiagnosticsSourceSeed = '内置种子', // en: Built-in seed
+    this.accessDiagnosticsSourceMirror = '镜像', // en: Mirror
+    this.accessDiagnosticsSourceRecovery = '恢复链接', // en: Recovery link
+    this.accessDiagnosticsSourceDevelopment = '开发配置', // en: Development configuration
+    this.accessDiagnosticsSourceNone = '无', // en: None
+    this.accessDiagnosticsStatusActive = '可用', // en: Available
+    this.accessDiagnosticsStatusDraining = '即将下线', // en: Draining
+    this.accessDiagnosticsStatusDisabled = '已停用', // en: Disabled
+    this.accessDiagnosticsStatusUnknown = '未知', // en: Unknown
+    this.accessDiagnosticsBreakerOpen = '已熔断', // en: Circuit open
+    this.accessDiagnosticsBreakerHalfOpen = '试探中', // en: Testing
+    this.accessDiagnosticsCurrentTag = '当前', // en: Current
+    this.accessDiagnosticsPinnedTag = '已固定', // en: Pinned
+    this.accessDiagnosticsPin = '固定', // en: Pin
+    this.accessDiagnosticsUnpin = '取消固定', // en: Unpin
+    this.accessDiagnosticsNoLines = '暂无可用线路', // en: No lines available
+    this.accessDiagnosticsRefresh = '立即刷新', // en: Refresh now
+    this.accessDiagnosticsExport = '复制诊断', // en: Copy diagnostics
+    this.accessDiagnosticsImport = '导入', // en: Import
+    this.accessDiagnosticsImportLabel = '导入恢复链接', // en: Import a recovery link
+    this.accessDiagnosticsImportPlaceholder = '粘贴 flare-recover:// 链接', // en: Paste a flare-recover:// link
+    this.accessDiagnosticsImportHint = '线路一直无法恢复时，可向客服索取恢复链接。', // en: If the service does not come back, ask support for a recovery link.
+    this.accessDiagnosticsHealthy = '线路正常', // en: Connection is healthy
+    this.accessDiagnosticsNotConnected = '当前没有连接', // en: Not connected
+    this.accessDiagnosticsAccessPointMismatch = '服务端报告的接入点与当前线路不一致，连接不受影响', // en: The server reports a different access point. The connection is not affected.
+    this.accessDiagnosticsManifestStaleNotice = '线路清单已过期，仍可连接，正在更新', // en: The line manifest has expired. You can still connect while it updates.
+    this.accessDiagnosticsRefreshAdopted = '线路已更新', // en: Lines updated
+    this.accessDiagnosticsRefreshUpToDate = '线路已是最新', // en: Lines are up to date
+    this.accessDiagnosticsRefreshFailed = '暂时无法更新线路，稍后会自动重试', // en: Could not update the lines. Retrying automatically.
+    this.accessDiagnosticsRefreshSkipped = '开发模式下线路由配置决定', // en: In development mode the lines come from the configuration.
+    this.accessDiagnosticsImportAdopted = '恢复链接已导入，正在切换线路', // en: Recovery link imported. Switching lines.
+    this.accessDiagnosticsImportUnchanged = '这条链接已经导入过', // en: This link was already imported.
+    this.accessDiagnosticsImportRollback = '这条链接比本机线路旧，不需要导入', // en: This link is older than the lines on this device.
+    this.accessDiagnosticsImportExpired = '这条链接已过期，请重新获取', // en: This link has expired. Ask for a new one.
+    this.accessDiagnosticsImportWrongApp = '这条链接不属于当前应用', // en: This link belongs to another app.
+    this.accessDiagnosticsImportDevelopmentMode = '开发模式不使用恢复链接', // en: Recovery links are not used in development mode.
+    this.accessDiagnosticsImportUntrusted = '链接校验失败，请确认它来自官方渠道', // en: This link could not be verified. Make sure it came from an official channel.
+    this.accessDiagnosticsImportMalformed = '链接格式不正确，请完整复制后重试', // en: This link is malformed. Copy the whole link and try again.
+    this.accessDiagnosticsImportRejected = '无法导入这条链接', // en: This link cannot be imported.
+    this.accessDiagnosticsExportCopied = '诊断信息已复制', // en: Diagnostics copied
+    this.accessDiagnosticsExportFailed = '复制失败，请重试', // en: Could not copy. Try again.
+    this.updatePromptTitleAvailable = '发现新版本', // en: New version available
+    this.updatePromptTitleRequired = '需要更新', // en: Update required
+    this.updatePromptTitleMetered = '使用计费网络下载？', // en: Download on a metered network?
+    this.updatePromptTitleDownloading = '正在下载更新', // en: Downloading update
+    this.updatePromptTitleVerifying = '正在校验更新', // en: Verifying update
+    this.updatePromptTitleReady = '更新已就绪', // en: Update ready
+    this.updatePromptTitleInstalling = '正在安装更新', // en: Installing update
+    this.updatePromptTitleFailed = '更新失败', // en: Update failed
+    this.updatePromptVersion = '版本', // en: Version
+    this.updatePromptNotes = '更新内容', // en: What's new
+    this.updatePromptMessageRequired = '当前版本已停止支持，更新后才能继续使用。', // en: This version is no longer supported. Update to keep using the app.
+    this.updatePromptMessageRequiredReadOnly = '更新后才能发送消息，现在可以继续浏览本地内容。', // en: Update to send messages. You can keep browsing what is on this device.
+    this.composerReadOnlyUpdate = '更新后才能发送消息', // en: Update to send messages. You can keep browsing what is on this device.
+    this.updatePromptMessageMetered = '当前是计费网络，这次下载约', // en: You are on a metered network. This download is about
+    this.updatePromptMessageMeteredUnknown = '当前是计费网络，下载会消耗流量。', // en: You are on a metered network. The download will use data.
+    this.updatePromptMessageReady = '重启后新版本生效，应用不会自动重启。', // en: The new version starts after a restart. The app will not restart by itself.
+    this.updatePromptFailManifestUnavailable = '暂时获取不到更新信息，请检查网络后重试。', // en: Could not get the update information. Check your network and try again.
+    this.updatePromptFailManifestRejected = '更新信息未通过校验。', // en: The update information failed verification.
+    this.updatePromptFailNoArtifact = '这个版本暂时没有适合本设备的安装包。', // en: This version has no package for this device yet.
+    this.updatePromptFailInsufficientSpace = '存储空间不足，清理后重试。', // en: Not enough storage. Free up some space and try again.
+    this.updatePromptFailDownload = '下载失败，请检查网络后重试。', // en: The download failed. Check your network and try again.
+    this.updatePromptFailHashMismatch = '下载的文件未通过校验，请重试。', // en: The download failed verification. Try again.
+    this.updatePromptFailInstall = '安装失败，请重试。', // en: The installation failed. Try again.
+    this.updatePromptFailSignatureMismatch = '安装包签名不匹配，已停止安装。', // en: The package signature does not match. Installation stopped.
+    this.updatePromptFailDowngrade = '不能安装比当前更旧的版本。', // en: A version older than this one cannot be installed.
+    this.updatePromptFailNotSkippable = '这个版本不能跳过。', // en: This version cannot be skipped.
+    this.updatePromptFailUnknown = '更新没有完成，请稍后重试。', // en: The update did not finish. Try again later.
+    this.updatePromptContinueDownload = '继续下载', // en: Continue download
+    this.updatePromptRestart = '重启以完成更新', // en: Restart to finish updating
+    this.updatePromptRetry = '重试', // en: Try again
+    this.updatePromptFallbackWebsite = '前往官网下载', // en: Download from the website
+    this.updatePromptFallbackStore = '前往应用商店', // en: Go to the app store
+    this.updatePromptLater = '稍后', // en: Later
+    this.updatePromptBackground = '后台下载', // en: Download in background
+    this.updatePromptSkip = '跳过此版本', // en: Skip this version
+    this.updatePromptContinueReadOnly = '继续浏览', // en: Keep browsing
+    this.progressBarLabel = '进度', // en: Progress
+    this.progressBarLoading = '进行中', // en: In progress
+    this.versionPanelTitle = '版本信息', // en: Version information
+    this.versionPanelVersion = '版本', // en: Version
+    this.versionPanelBuild = '构建号', // en: Build
+    this.versionPanelChannel = '渠道', // en: Channel
+    this.versionPanelChannelStable = '正式版', // en: Stable
+    this.versionPanelChannelBeta = '测试版', // en: Beta
+    this.versionPanelChannelInternal = '内部版', // en: Internal
+    this.versionPanelCheck = '检查更新', // en: Check for updates
+    this.versionPanelChecking = '正在检查…', // en: Checking…
+    this.versionPanelUpToDate = '已是最新版本', // en: Up to date
+    this.settingsRowBadge = '有新内容', // en: New
     this.groupDetailMembersTitle =
         _groupDetailMembersTitle, // en: Members ({count})
     this.groupDetailSearchMembers = '搜索群成员', // en: Search members
@@ -983,6 +1116,7 @@ class FlareStrings {
   final String messageBatchPin;
   final String messageBatchPinSelf;
   final String messageBatchClear;
+
   /// The batch toolbar's count of selected messages the forward keys leave
   /// out (`{count}`), and its one form.
   final String messageBatchUnforwardable;
@@ -1079,10 +1213,10 @@ class FlareStrings {
   final String callRecordPeerBusy;
   final String callRecordMissedBusy;
   final String callRecordUnavailable;
-  final String callRecordConfirmCallBack;
   final String callRecordFailed;
   final String callRecordJoin;
   final String callRecordCallBack;
+  final String callRecordConfirmCallBack;
 
   // 已读名单状态与分页、红包已退回、「我」页菜单（flareMeMenuSections）、合并转发记录。
   // `{count}`、`{title}`、`{subtitle}` 由组件替换；*One 字段是复数 one 形态（flarePlural）。
@@ -1123,6 +1257,7 @@ class FlareStrings {
   final String locationMapUnavailable;
   final String locationOpenInMaps;
   final String locationCurrent;
+
   /// The first line of a location card with no title, no address and no
   /// coordinate (spec/location-vectors.json cardLines).
   final String locationCardPlace;
@@ -1474,6 +1609,7 @@ class FlareStrings {
   final String systemEventGroupMemberRolesChanged;
   final String systemEventGroupMuted;
   final String systemEventGroupUnmuted;
+
   /// Names (spec/display-name-vectors.json, flareDisplayNameText): an unnamed
   /// person, group or conversation, and a group named by its members.
   final String Function(String idTail) displayNameUser;
@@ -1486,6 +1622,7 @@ class FlareStrings {
   final String displayNameBroadcast;
   final String displayNameTemp;
   final String displayNameSeparator;
+
   /// names, total (the group's size, the reader included), others
   /// (total - names - 1): Chinese counts the group.
   final String Function(String names, int total, int others)
@@ -1598,6 +1735,8 @@ class FlareStrings {
   final String groupDetailOnlyAdminAtAll;
   final String groupDetailOnlyAdminPin;
   final String groupDetailShareCard;
+  final String groupDetailForbidFriendRequests;
+  final String groupDetailRequestFriend;
   final String groupDetailLeave;
   final String groupDetailDissolve;
   final String groupDetailLeaveConfirm;
@@ -1804,14 +1943,132 @@ class FlareStrings {
   final String presenceAway;
   final String imageLoadFailed;
   final String connectionConnecting;
+  final String connectionSyncing;
+  final String connectionSwitching;
   final String connectionReconnecting;
-  final String connectionOffline;
-  final String connectionDisconnected;
-  final String Function(String reason) connectionDisconnectedReason;
+  final String connectionWaitingForNetwork;
+  final String connectionServiceUnavailable;
   final String connectionKicked;
   final String connectionExpired;
-  final String connectionReconnect;
+  final String connectionUpgradeRequired;
+  final String connectionTenantUnavailable;
+  final String Function(int seconds) connectionRetryIn;
+  final String connectionRetry;
   final String connectionSignIn;
+  final String connectionUpdate;
+  final String connectionDiagnose;
+  final String connectionDevelopmentMode;
+  final String accessDiagnosticsTitle;
+  final String accessDiagnosticsCurrent;
+  final String accessDiagnosticsLines;
+  final String accessDiagnosticsRecovery;
+  final String accessDiagnosticsAccessPoint;
+  final String accessDiagnosticsRegion;
+  final String accessDiagnosticsProtocol;
+  final String accessDiagnosticsRtt;
+  final String accessDiagnosticsSerial;
+  final String accessDiagnosticsSource;
+  final String accessDiagnosticsManifest;
+  final String accessDiagnosticsReportedAccessPoint;
+  final String accessDiagnosticsRecoveryRounds;
+  final String accessDiagnosticsManifestValid;
+  final String accessDiagnosticsManifestStale;
+  final String accessDiagnosticsManifestNone;
+  final String accessDiagnosticsOn;
+  final String accessDiagnosticsOff;
+  final String accessDiagnosticsRttGood;
+  final String accessDiagnosticsRttFair;
+  final String accessDiagnosticsRttPoor;
+  final String accessDiagnosticsSourceSeed;
+  final String accessDiagnosticsSourceMirror;
+  final String accessDiagnosticsSourceRecovery;
+  final String accessDiagnosticsSourceDevelopment;
+  final String accessDiagnosticsSourceNone;
+  final String accessDiagnosticsStatusActive;
+  final String accessDiagnosticsStatusDraining;
+  final String accessDiagnosticsStatusDisabled;
+  final String accessDiagnosticsStatusUnknown;
+  final String accessDiagnosticsBreakerOpen;
+  final String accessDiagnosticsBreakerHalfOpen;
+  final String accessDiagnosticsCurrentTag;
+  final String accessDiagnosticsPinnedTag;
+  final String accessDiagnosticsPin;
+  final String accessDiagnosticsUnpin;
+  final String accessDiagnosticsNoLines;
+  final String accessDiagnosticsRefresh;
+  final String accessDiagnosticsExport;
+  final String accessDiagnosticsImport;
+  final String accessDiagnosticsImportLabel;
+  final String accessDiagnosticsImportPlaceholder;
+  final String accessDiagnosticsImportHint;
+  final String accessDiagnosticsHealthy;
+  final String accessDiagnosticsNotConnected;
+  final String accessDiagnosticsAccessPointMismatch;
+  final String accessDiagnosticsManifestStaleNotice;
+  final String accessDiagnosticsRefreshAdopted;
+  final String accessDiagnosticsRefreshUpToDate;
+  final String accessDiagnosticsRefreshFailed;
+  final String accessDiagnosticsRefreshSkipped;
+  final String accessDiagnosticsImportAdopted;
+  final String accessDiagnosticsImportUnchanged;
+  final String accessDiagnosticsImportRollback;
+  final String accessDiagnosticsImportExpired;
+  final String accessDiagnosticsImportWrongApp;
+  final String accessDiagnosticsImportDevelopmentMode;
+  final String accessDiagnosticsImportUntrusted;
+  final String accessDiagnosticsImportMalformed;
+  final String accessDiagnosticsImportRejected;
+  final String accessDiagnosticsExportCopied;
+  final String accessDiagnosticsExportFailed;
+  final String updatePromptTitleAvailable;
+  final String updatePromptTitleRequired;
+  final String updatePromptTitleMetered;
+  final String updatePromptTitleDownloading;
+  final String updatePromptTitleVerifying;
+  final String updatePromptTitleReady;
+  final String updatePromptTitleInstalling;
+  final String updatePromptTitleFailed;
+  final String updatePromptVersion;
+  final String updatePromptNotes;
+  final String updatePromptMessageRequired;
+  final String updatePromptMessageRequiredReadOnly;
+  final String composerReadOnlyUpdate;
+  final String updatePromptMessageMetered;
+  final String updatePromptMessageMeteredUnknown;
+  final String updatePromptMessageReady;
+  final String updatePromptFailManifestUnavailable;
+  final String updatePromptFailManifestRejected;
+  final String updatePromptFailNoArtifact;
+  final String updatePromptFailInsufficientSpace;
+  final String updatePromptFailDownload;
+  final String updatePromptFailHashMismatch;
+  final String updatePromptFailInstall;
+  final String updatePromptFailSignatureMismatch;
+  final String updatePromptFailDowngrade;
+  final String updatePromptFailNotSkippable;
+  final String updatePromptFailUnknown;
+  final String updatePromptContinueDownload;
+  final String updatePromptRestart;
+  final String updatePromptRetry;
+  final String updatePromptFallbackWebsite;
+  final String updatePromptFallbackStore;
+  final String updatePromptLater;
+  final String updatePromptBackground;
+  final String updatePromptSkip;
+  final String updatePromptContinueReadOnly;
+  final String progressBarLabel;
+  final String progressBarLoading;
+  final String versionPanelTitle;
+  final String versionPanelVersion;
+  final String versionPanelBuild;
+  final String versionPanelChannel;
+  final String versionPanelChannelStable;
+  final String versionPanelChannelBeta;
+  final String versionPanelChannelInternal;
+  final String versionPanelCheck;
+  final String versionPanelChecking;
+  final String versionPanelUpToDate;
+  final String settingsRowBadge;
   final String Function(int count) groupDetailMembersTitle;
   final String groupDetailSearchMembers;
   final String groupDetailNoMatchingMembers;
@@ -1895,6 +2152,7 @@ class FlareStrings {
     String? imagePreviewNext,
     String Function(int index, int count)? imagePreviewPosition,
     String? delete,
+    String? report,
     String? manage,
     String? selectAll,
     String? retry,
@@ -2007,10 +2265,10 @@ class FlareStrings {
     String? callRecordPeerBusy,
     String? callRecordMissedBusy,
     String? callRecordUnavailable,
-    String? callRecordConfirmCallBack,
     String? callRecordFailed,
     String? callRecordJoin,
     String? callRecordCallBack,
+    String? callRecordConfirmCallBack,
     String? readReceiptRead,
     String? readReceiptUnread,
     String? readReceiptLoadFailed,
@@ -2344,7 +2602,8 @@ class FlareStrings {
     String? displayNameBroadcast,
     String? displayNameTemp,
     String? displayNameSeparator,
-    String Function(String names, int total, int others)? displayNameMembersMore,
+    String Function(String names, int total, int others)?
+    displayNameMembersMore,
     String? unknownMessageHint,
     String? unknownMessageUnsupported,
     String? unknownMessageDiagnostic,
@@ -2444,6 +2703,8 @@ class FlareStrings {
     String? groupDetailOnlyAdminAtAll,
     String? groupDetailOnlyAdminPin,
     String? groupDetailShareCard,
+    String? groupDetailForbidFriendRequests,
+    String? groupDetailRequestFriend,
     String? groupDetailLeave,
     String? groupDetailDissolve,
     String? groupDetailLeaveConfirm,
@@ -2637,14 +2898,132 @@ class FlareStrings {
     String? presenceAway,
     String? imageLoadFailed,
     String? connectionConnecting,
+    String? connectionSyncing,
+    String? connectionSwitching,
     String? connectionReconnecting,
-    String? connectionOffline,
-    String? connectionDisconnected,
-    String Function(String reason)? connectionDisconnectedReason,
+    String? connectionWaitingForNetwork,
+    String? connectionServiceUnavailable,
     String? connectionKicked,
     String? connectionExpired,
-    String? connectionReconnect,
+    String? connectionUpgradeRequired,
+    String? connectionTenantUnavailable,
+    String Function(int seconds)? connectionRetryIn,
+    String? connectionRetry,
     String? connectionSignIn,
+    String? connectionUpdate,
+    String? connectionDiagnose,
+    String? connectionDevelopmentMode,
+    String? accessDiagnosticsTitle,
+    String? accessDiagnosticsCurrent,
+    String? accessDiagnosticsLines,
+    String? accessDiagnosticsRecovery,
+    String? accessDiagnosticsAccessPoint,
+    String? accessDiagnosticsRegion,
+    String? accessDiagnosticsProtocol,
+    String? accessDiagnosticsRtt,
+    String? accessDiagnosticsSerial,
+    String? accessDiagnosticsSource,
+    String? accessDiagnosticsManifest,
+    String? accessDiagnosticsReportedAccessPoint,
+    String? accessDiagnosticsRecoveryRounds,
+    String? accessDiagnosticsManifestValid,
+    String? accessDiagnosticsManifestStale,
+    String? accessDiagnosticsManifestNone,
+    String? accessDiagnosticsOn,
+    String? accessDiagnosticsOff,
+    String? accessDiagnosticsRttGood,
+    String? accessDiagnosticsRttFair,
+    String? accessDiagnosticsRttPoor,
+    String? accessDiagnosticsSourceSeed,
+    String? accessDiagnosticsSourceMirror,
+    String? accessDiagnosticsSourceRecovery,
+    String? accessDiagnosticsSourceDevelopment,
+    String? accessDiagnosticsSourceNone,
+    String? accessDiagnosticsStatusActive,
+    String? accessDiagnosticsStatusDraining,
+    String? accessDiagnosticsStatusDisabled,
+    String? accessDiagnosticsStatusUnknown,
+    String? accessDiagnosticsBreakerOpen,
+    String? accessDiagnosticsBreakerHalfOpen,
+    String? accessDiagnosticsCurrentTag,
+    String? accessDiagnosticsPinnedTag,
+    String? accessDiagnosticsPin,
+    String? accessDiagnosticsUnpin,
+    String? accessDiagnosticsNoLines,
+    String? accessDiagnosticsRefresh,
+    String? accessDiagnosticsExport,
+    String? accessDiagnosticsImport,
+    String? accessDiagnosticsImportLabel,
+    String? accessDiagnosticsImportPlaceholder,
+    String? accessDiagnosticsImportHint,
+    String? accessDiagnosticsHealthy,
+    String? accessDiagnosticsNotConnected,
+    String? accessDiagnosticsAccessPointMismatch,
+    String? accessDiagnosticsManifestStaleNotice,
+    String? accessDiagnosticsRefreshAdopted,
+    String? accessDiagnosticsRefreshUpToDate,
+    String? accessDiagnosticsRefreshFailed,
+    String? accessDiagnosticsRefreshSkipped,
+    String? accessDiagnosticsImportAdopted,
+    String? accessDiagnosticsImportUnchanged,
+    String? accessDiagnosticsImportRollback,
+    String? accessDiagnosticsImportExpired,
+    String? accessDiagnosticsImportWrongApp,
+    String? accessDiagnosticsImportDevelopmentMode,
+    String? accessDiagnosticsImportUntrusted,
+    String? accessDiagnosticsImportMalformed,
+    String? accessDiagnosticsImportRejected,
+    String? accessDiagnosticsExportCopied,
+    String? accessDiagnosticsExportFailed,
+    String? updatePromptTitleAvailable,
+    String? updatePromptTitleRequired,
+    String? updatePromptTitleMetered,
+    String? updatePromptTitleDownloading,
+    String? updatePromptTitleVerifying,
+    String? updatePromptTitleReady,
+    String? updatePromptTitleInstalling,
+    String? updatePromptTitleFailed,
+    String? updatePromptVersion,
+    String? updatePromptNotes,
+    String? updatePromptMessageRequired,
+    String? updatePromptMessageRequiredReadOnly,
+    String? composerReadOnlyUpdate,
+    String? updatePromptMessageMetered,
+    String? updatePromptMessageMeteredUnknown,
+    String? updatePromptMessageReady,
+    String? updatePromptFailManifestUnavailable,
+    String? updatePromptFailManifestRejected,
+    String? updatePromptFailNoArtifact,
+    String? updatePromptFailInsufficientSpace,
+    String? updatePromptFailDownload,
+    String? updatePromptFailHashMismatch,
+    String? updatePromptFailInstall,
+    String? updatePromptFailSignatureMismatch,
+    String? updatePromptFailDowngrade,
+    String? updatePromptFailNotSkippable,
+    String? updatePromptFailUnknown,
+    String? updatePromptContinueDownload,
+    String? updatePromptRestart,
+    String? updatePromptRetry,
+    String? updatePromptFallbackWebsite,
+    String? updatePromptFallbackStore,
+    String? updatePromptLater,
+    String? updatePromptBackground,
+    String? updatePromptSkip,
+    String? updatePromptContinueReadOnly,
+    String? progressBarLabel,
+    String? progressBarLoading,
+    String? versionPanelTitle,
+    String? versionPanelVersion,
+    String? versionPanelBuild,
+    String? versionPanelChannel,
+    String? versionPanelChannelStable,
+    String? versionPanelChannelBeta,
+    String? versionPanelChannelInternal,
+    String? versionPanelCheck,
+    String? versionPanelChecking,
+    String? versionPanelUpToDate,
+    String? settingsRowBadge,
     String Function(int count)? groupDetailMembersTitle,
     String? groupDetailSearchMembers,
     String? groupDetailNoMatchingMembers,
@@ -2703,6 +3082,7 @@ class FlareStrings {
       imagePreviewNext: imagePreviewNext ?? this.imagePreviewNext,
       imagePreviewPosition: imagePreviewPosition ?? this.imagePreviewPosition,
       delete: delete ?? this.delete,
+      report: report ?? this.report,
       manage: manage ?? this.manage,
       selectAll: selectAll ?? this.selectAll,
       retry: retry ?? this.retry,
@@ -2712,9 +3092,12 @@ class FlareStrings {
       messageSent: messageSent ?? this.messageSent,
       messageRead: messageRead ?? this.messageRead,
       messageFailed: messageFailed ?? this.messageFailed,
-      messageReadSummaryUnread: messageReadSummaryUnread ?? this.messageReadSummaryUnread,
-      messageReadSummaryAllRead: messageReadSummaryAllRead ?? this.messageReadSummaryAllRead,
-      messageSendFailedRetry: messageSendFailedRetry ?? this.messageSendFailedRetry,
+      messageReadSummaryUnread:
+          messageReadSummaryUnread ?? this.messageReadSummaryUnread,
+      messageReadSummaryAllRead:
+          messageReadSummaryAllRead ?? this.messageReadSummaryAllRead,
+      messageSendFailedRetry:
+          messageSendFailedRetry ?? this.messageSendFailedRetry,
       messageDeleted: messageDeleted ?? this.messageDeleted,
       messageEdited: messageEdited ?? this.messageEdited,
       messageReadOnce: messageReadOnce ?? this.messageReadOnce,
@@ -2732,8 +3115,10 @@ class FlareStrings {
       messageBatchPin: messageBatchPin ?? this.messageBatchPin,
       messageBatchPinSelf: messageBatchPinSelf ?? this.messageBatchPinSelf,
       messageBatchClear: messageBatchClear ?? this.messageBatchClear,
-      messageBatchUnforwardable: messageBatchUnforwardable ?? this.messageBatchUnforwardable,
-      messageBatchUnforwardableOne: messageBatchUnforwardableOne ?? this.messageBatchUnforwardableOne,
+      messageBatchUnforwardable:
+          messageBatchUnforwardable ?? this.messageBatchUnforwardable,
+      messageBatchUnforwardableOne:
+          messageBatchUnforwardableOne ?? this.messageBatchUnforwardableOne,
       messageBatchExit: messageBatchExit ?? this.messageBatchExit,
       searchMembers: searchMembers ?? this.searchMembers,
       everyone: everyone ?? this.everyone,
@@ -2785,48 +3170,65 @@ class FlareStrings {
       packetBadgeLucky: packetBadgeLucky ?? this.packetBadgeLucky,
       packetBadgeExclusive: packetBadgeExclusive ?? this.packetBadgeExclusive,
       packetForRecipient: packetForRecipient ?? this.packetForRecipient,
-      packetNotEligibleName: packetNotEligibleName ?? this.packetNotEligibleName,
+      packetNotEligibleName:
+          packetNotEligibleName ?? this.packetNotEligibleName,
       packetDeposited: packetDeposited ?? this.packetDeposited,
       packetSummarySender: packetSummarySender ?? this.packetSummarySender,
-      packetSummaryCompleted: packetSummaryCompleted ?? this.packetSummaryCompleted,
+      packetSummaryCompleted:
+          packetSummaryCompleted ?? this.packetSummaryCompleted,
       packetSummaryCount: packetSummaryCount ?? this.packetSummaryCount,
       packetRefundAt: packetRefundAt ?? this.packetRefundAt,
       packetRefundedNote: packetRefundedNote ?? this.packetRefundedNote,
-      packetDurationSeconds: packetDurationSeconds ?? this.packetDurationSeconds,
-      packetDurationMinutes: packetDurationMinutes ?? this.packetDurationMinutes,
+      packetDurationSeconds:
+          packetDurationSeconds ?? this.packetDurationSeconds,
+      packetDurationMinutes:
+          packetDurationMinutes ?? this.packetDurationMinutes,
       packetDurationHours: packetDurationHours ?? this.packetDurationHours,
       packetDurationDays: packetDurationDays ?? this.packetDurationDays,
       callRecordVoice: callRecordVoice ?? this.callRecordVoice,
       callRecordVideo: callRecordVideo ?? this.callRecordVideo,
-      callRecordWaitingAnswer: callRecordWaitingAnswer ?? this.callRecordWaitingAnswer,
+      callRecordWaitingAnswer:
+          callRecordWaitingAnswer ?? this.callRecordWaitingAnswer,
       callRecordIncoming: callRecordIncoming ?? this.callRecordIncoming,
-      callRecordGroupRinging: callRecordGroupRinging ?? this.callRecordGroupRinging,
+      callRecordGroupRinging:
+          callRecordGroupRinging ?? this.callRecordGroupRinging,
       callRecordInCall: callRecordInCall ?? this.callRecordInCall,
-      callRecordGroupOngoing: callRecordGroupOngoing ?? this.callRecordGroupOngoing,
-      callRecordGroupInProgress: callRecordGroupInProgress ?? this.callRecordGroupInProgress,
+      callRecordGroupOngoing:
+          callRecordGroupOngoing ?? this.callRecordGroupOngoing,
+      callRecordGroupInProgress:
+          callRecordGroupInProgress ?? this.callRecordGroupInProgress,
       callRecordDuration: callRecordDuration ?? this.callRecordDuration,
-      callRecordGroupEndedDuration: callRecordGroupEndedDuration ?? this.callRecordGroupEndedDuration,
+      callRecordGroupEndedDuration:
+          callRecordGroupEndedDuration ?? this.callRecordGroupEndedDuration,
       callRecordGroupEnded: callRecordGroupEnded ?? this.callRecordGroupEnded,
-      callRecordCancelledByYou: callRecordCancelledByYou ?? this.callRecordCancelledByYou,
-      callRecordCancelledByCaller: callRecordCancelledByCaller ?? this.callRecordCancelledByCaller,
-      callRecordDeclinedByPeer: callRecordDeclinedByPeer ?? this.callRecordDeclinedByPeer,
-      callRecordDeclinedByYou: callRecordDeclinedByYou ?? this.callRecordDeclinedByYou,
+      callRecordCancelledByYou:
+          callRecordCancelledByYou ?? this.callRecordCancelledByYou,
+      callRecordCancelledByCaller:
+          callRecordCancelledByCaller ?? this.callRecordCancelledByCaller,
+      callRecordDeclinedByPeer:
+          callRecordDeclinedByPeer ?? this.callRecordDeclinedByPeer,
+      callRecordDeclinedByYou:
+          callRecordDeclinedByYou ?? this.callRecordDeclinedByYou,
       callRecordNoAnswer: callRecordNoAnswer ?? this.callRecordNoAnswer,
       callRecordMissed: callRecordMissed ?? this.callRecordMissed,
       callRecordPeerBusy: callRecordPeerBusy ?? this.callRecordPeerBusy,
       callRecordMissedBusy: callRecordMissedBusy ?? this.callRecordMissedBusy,
-      callRecordUnavailable: callRecordUnavailable ?? this.callRecordUnavailable,
-      callRecordConfirmCallBack:
-          callRecordConfirmCallBack ?? this.callRecordConfirmCallBack,
+      callRecordUnavailable:
+          callRecordUnavailable ?? this.callRecordUnavailable,
       callRecordFailed: callRecordFailed ?? this.callRecordFailed,
       callRecordJoin: callRecordJoin ?? this.callRecordJoin,
       callRecordCallBack: callRecordCallBack ?? this.callRecordCallBack,
+      callRecordConfirmCallBack:
+          callRecordConfirmCallBack ?? this.callRecordConfirmCallBack,
       readReceiptRead: readReceiptRead ?? this.readReceiptRead,
       readReceiptUnread: readReceiptUnread ?? this.readReceiptUnread,
-      readReceiptLoadFailed: readReceiptLoadFailed ?? this.readReceiptLoadFailed,
-      readReceiptUnavailable: readReceiptUnavailable ?? this.readReceiptUnavailable,
+      readReceiptLoadFailed:
+          readReceiptLoadFailed ?? this.readReceiptLoadFailed,
+      readReceiptUnavailable:
+          readReceiptUnavailable ?? this.readReceiptUnavailable,
       readReceiptLoadMore: readReceiptLoadMore ?? this.readReceiptLoadMore,
-      readReceiptLoadMoreFailed: readReceiptLoadMoreFailed ?? this.readReceiptLoadMoreFailed,
+      readReceiptLoadMoreFailed:
+          readReceiptLoadMoreFailed ?? this.readReceiptLoadMoreFailed,
       packetRefundedNotice: packetRefundedNotice ?? this.packetRefundedNotice,
       meMenuMoments: meMenuMoments ?? this.meMenuMoments,
       meMenuReports: meMenuReports ?? this.meMenuReports,
@@ -2835,14 +3237,19 @@ class FlareStrings {
       meMenuPluginFallback: meMenuPluginFallback ?? this.meMenuPluginFallback,
       forwardRecordTitle: forwardRecordTitle ?? this.forwardRecordTitle,
       forwardRecordTotal: forwardRecordTotal ?? this.forwardRecordTotal,
-      forwardRecordTotalOne: forwardRecordTotalOne ?? this.forwardRecordTotalOne,
+      forwardRecordTotalOne:
+          forwardRecordTotalOne ?? this.forwardRecordTotalOne,
       forwardRecordMore: forwardRecordMore ?? this.forwardRecordMore,
       forwardRecordMoreOne: forwardRecordMoreOne ?? this.forwardRecordMoreOne,
-      forwardRecordViewDetails: forwardRecordViewDetails ?? this.forwardRecordViewDetails,
-      forwardRecordUnknownSender: forwardRecordUnknownSender ?? this.forwardRecordUnknownSender,
+      forwardRecordViewDetails:
+          forwardRecordViewDetails ?? this.forwardRecordViewDetails,
+      forwardRecordUnknownSender:
+          forwardRecordUnknownSender ?? this.forwardRecordUnknownSender,
       forwardRecordEmpty: forwardRecordEmpty ?? this.forwardRecordEmpty,
-      forwardRecordCountSuffix: forwardRecordCountSuffix ?? this.forwardRecordCountSuffix,
-      forwardRecordCardLabel: forwardRecordCardLabel ?? this.forwardRecordCardLabel,
+      forwardRecordCountSuffix:
+          forwardRecordCountSuffix ?? this.forwardRecordCountSuffix,
+      forwardRecordCardLabel:
+          forwardRecordCardLabel ?? this.forwardRecordCardLabel,
       pluginViewVotesOne: pluginViewVotesOne ?? this.pluginViewVotesOne,
       myInviteCountOnlyOne: myInviteCountOnlyOne ?? this.myInviteCountOnlyOne,
       messageMenuLoading: messageMenuLoading ?? this.messageMenuLoading,
@@ -2851,39 +3258,60 @@ class FlareStrings {
       locationLocateMe: locationLocateMe ?? this.locationLocateMe,
       locationLocating: locationLocating ?? this.locationLocating,
       locationDenied: locationDenied ?? this.locationDenied,
-      locationSearchPlaceholder: locationSearchPlaceholder ?? this.locationSearchPlaceholder,
+      locationSearchPlaceholder:
+          locationSearchPlaceholder ?? this.locationSearchPlaceholder,
       locationNoResults: locationNoResults ?? this.locationNoResults,
-      locationMapUnavailable: locationMapUnavailable ?? this.locationMapUnavailable,
+      locationMapUnavailable:
+          locationMapUnavailable ?? this.locationMapUnavailable,
       locationOpenInMaps: locationOpenInMaps ?? this.locationOpenInMaps,
       locationCurrent: locationCurrent ?? this.locationCurrent,
       locationCardPlace: locationCardPlace ?? this.locationCardPlace,
       contactPickerTitle: contactPickerTitle ?? this.contactPickerTitle,
       contactPickerFriends: contactPickerFriends ?? this.contactPickerFriends,
-      contactPickerGroupMembers: contactPickerGroupMembers ?? this.contactPickerGroupMembers,
+      contactPickerGroupMembers:
+          contactPickerGroupMembers ?? this.contactPickerGroupMembers,
       contactPickerSearch: contactPickerSearch ?? this.contactPickerSearch,
       contactPickerEmpty: contactPickerEmpty ?? this.contactPickerEmpty,
-      contactPickerSelfSuffix: contactPickerSelfSuffix ?? this.contactPickerSelfSuffix,
-      locationOsmAttribution: locationOsmAttribution ?? this.locationOsmAttribution,
+      contactPickerSelfSuffix:
+          contactPickerSelfSuffix ?? this.contactPickerSelfSuffix,
+      locationOsmAttribution:
+          locationOsmAttribution ?? this.locationOsmAttribution,
       pluginViewSubmit: pluginViewSubmit ?? this.pluginViewSubmit,
       pluginViewEnded: pluginViewEnded ?? this.pluginViewEnded,
-      pluginViewDeadlinePassed: pluginViewDeadlinePassed ?? this.pluginViewDeadlinePassed,
+      pluginViewDeadlinePassed:
+          pluginViewDeadlinePassed ?? this.pluginViewDeadlinePassed,
       pluginViewSeeAll: pluginViewSeeAll ?? this.pluginViewSeeAll,
       pluginViewDetail: pluginViewDetail ?? this.pluginViewDetail,
       pluginViewMore: pluginViewMore ?? this.pluginViewMore,
       pluginViewMe: pluginViewMe ?? this.pluginViewMe,
-      pluginViewUnavailableDisabled: pluginViewUnavailableDisabled ?? this.pluginViewUnavailableDisabled,
-      pluginViewUnavailableNotInstalled: pluginViewUnavailableNotInstalled ?? this.pluginViewUnavailableNotInstalled,
-      pluginViewUnavailableNoPermission: pluginViewUnavailableNoPermission ?? this.pluginViewUnavailableNoPermission,
-      pluginViewUnavailableUnsupportedPlatform: pluginViewUnavailableUnsupportedPlatform ?? this.pluginViewUnavailableUnsupportedPlatform,
-      pluginViewUnavailableIncompatibleVersion: pluginViewUnavailableIncompatibleVersion ?? this.pluginViewUnavailableIncompatibleVersion,
-      pluginViewUnavailableCatalogUnreachable: pluginViewUnavailableCatalogUnreachable ?? this.pluginViewUnavailableCatalogUnreachable,
-      pluginViewUnavailableUnboundCopy: pluginViewUnavailableUnboundCopy ?? this.pluginViewUnavailableUnboundCopy,
+      pluginViewUnavailableDisabled:
+          pluginViewUnavailableDisabled ?? this.pluginViewUnavailableDisabled,
+      pluginViewUnavailableNotInstalled:
+          pluginViewUnavailableNotInstalled ??
+          this.pluginViewUnavailableNotInstalled,
+      pluginViewUnavailableNoPermission:
+          pluginViewUnavailableNoPermission ??
+          this.pluginViewUnavailableNoPermission,
+      pluginViewUnavailableUnsupportedPlatform:
+          pluginViewUnavailableUnsupportedPlatform ??
+          this.pluginViewUnavailableUnsupportedPlatform,
+      pluginViewUnavailableIncompatibleVersion:
+          pluginViewUnavailableIncompatibleVersion ??
+          this.pluginViewUnavailableIncompatibleVersion,
+      pluginViewUnavailableCatalogUnreachable:
+          pluginViewUnavailableCatalogUnreachable ??
+          this.pluginViewUnavailableCatalogUnreachable,
+      pluginViewUnavailableUnboundCopy:
+          pluginViewUnavailableUnboundCopy ??
+          this.pluginViewUnavailableUnboundCopy,
       pluginPageRefresh: pluginPageRefresh ?? this.pluginPageRefresh,
-      pluginViewMaxSelections: pluginViewMaxSelections ?? this.pluginViewMaxSelections,
+      pluginViewMaxSelections:
+          pluginViewMaxSelections ?? this.pluginViewMaxSelections,
       pluginViewAll: pluginViewAll ?? this.pluginViewAll,
       accountTransactions: accountTransactions ?? this.accountTransactions,
       accountEmpty: accountEmpty ?? this.accountEmpty,
-      accountEmptyDescription: accountEmptyDescription ?? this.accountEmptyDescription,
+      accountEmptyDescription:
+          accountEmptyDescription ?? this.accountEmptyDescription,
       accountInformation: accountInformation ?? this.accountInformation,
       accountEntryDetails: accountEntryDetails ?? this.accountEntryDetails,
       accountEntryId: accountEntryId ?? this.accountEntryId,
@@ -2899,14 +3327,19 @@ class FlareStrings {
       pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
-      pluginViewDateTimeFormat: pluginViewDateTimeFormat ?? this.pluginViewDateTimeFormat,
-      pluginViewDateTimeYearFormat: pluginViewDateTimeYearFormat ?? this.pluginViewDateTimeYearFormat,
+      pluginViewDateTimeFormat:
+          pluginViewDateTimeFormat ?? this.pluginViewDateTimeFormat,
+      pluginViewDateTimeYearFormat:
+          pluginViewDateTimeYearFormat ?? this.pluginViewDateTimeYearFormat,
       pluginFormRequired: pluginFormRequired ?? this.pluginFormRequired,
       pluginFormTooLong: pluginFormTooLong ?? this.pluginFormTooLong,
       pluginFormOutOfRange: pluginFormOutOfRange ?? this.pluginFormOutOfRange,
-      pluginFormTooFewItems: pluginFormTooFewItems ?? this.pluginFormTooFewItems,
-      pluginFormTooManyItems: pluginFormTooManyItems ?? this.pluginFormTooManyItems,
-      pluginFormDuplicateItem: pluginFormDuplicateItem ?? this.pluginFormDuplicateItem,
+      pluginFormTooFewItems:
+          pluginFormTooFewItems ?? this.pluginFormTooFewItems,
+      pluginFormTooManyItems:
+          pluginFormTooManyItems ?? this.pluginFormTooManyItems,
+      pluginFormDuplicateItem:
+          pluginFormDuplicateItem ?? this.pluginFormDuplicateItem,
       pluginFormInvalid: pluginFormInvalid ?? this.pluginFormInvalid,
       select: select ?? this.select,
       selectDate: selectDate ?? this.selectDate,
@@ -3009,9 +3442,12 @@ class FlareStrings {
       downloaded: downloaded ?? this.downloaded,
       voicePlaybackFailed: voicePlaybackFailed ?? this.voicePlaybackFailed,
       videoLoadFailed: videoLoadFailed ?? this.videoLoadFailed,
-      mediaUnavailableImage: mediaUnavailableImage ?? this.mediaUnavailableImage,
-      mediaUnavailableVideo: mediaUnavailableVideo ?? this.mediaUnavailableVideo,
-      mediaUnavailableAudio: mediaUnavailableAudio ?? this.mediaUnavailableAudio,
+      mediaUnavailableImage:
+          mediaUnavailableImage ?? this.mediaUnavailableImage,
+      mediaUnavailableVideo:
+          mediaUnavailableVideo ?? this.mediaUnavailableVideo,
+      mediaUnavailableAudio:
+          mediaUnavailableAudio ?? this.mediaUnavailableAudio,
       permissionNotifications:
           permissionNotifications ?? this.permissionNotifications,
       permissionStorage: permissionStorage ?? this.permissionStorage,
@@ -3154,24 +3590,44 @@ class FlareStrings {
       previewCustom: previewCustom ?? this.previewCustom,
       previewPlaceholder: previewPlaceholder ?? this.previewPlaceholder,
       previewUnknown: previewUnknown ?? this.previewUnknown,
-      systemEventGroupCreated: systemEventGroupCreated ?? this.systemEventGroupCreated,
-      systemEventGroupMemberJoined: systemEventGroupMemberJoined ?? this.systemEventGroupMemberJoined,
-      systemEventGroupMemberRemoved: systemEventGroupMemberRemoved ?? this.systemEventGroupMemberRemoved,
-      systemEventGroupMemberLeft: systemEventGroupMemberLeft ?? this.systemEventGroupMemberLeft,
-      systemEventGroupMemberMuted: systemEventGroupMemberMuted ?? this.systemEventGroupMemberMuted,
-      systemEventGroupMemberUnmuted: systemEventGroupMemberUnmuted ?? this.systemEventGroupMemberUnmuted,
-      systemEventGroupOwnerTransferred: systemEventGroupOwnerTransferred ?? this.systemEventGroupOwnerTransferred,
-      systemEventGroupDissolved: systemEventGroupDissolved ?? this.systemEventGroupDissolved,
-      systemEventGroupAnnouncementUpdated: systemEventGroupAnnouncementUpdated ?? this.systemEventGroupAnnouncementUpdated,
-      systemEventFriendshipEstablished: systemEventFriendshipEstablished ?? this.systemEventFriendshipEstablished,
-      systemEventGroupProfileUpdated: systemEventGroupProfileUpdated ?? this.systemEventGroupProfileUpdated,
+      systemEventGroupCreated:
+          systemEventGroupCreated ?? this.systemEventGroupCreated,
+      systemEventGroupMemberJoined:
+          systemEventGroupMemberJoined ?? this.systemEventGroupMemberJoined,
+      systemEventGroupMemberRemoved:
+          systemEventGroupMemberRemoved ?? this.systemEventGroupMemberRemoved,
+      systemEventGroupMemberLeft:
+          systemEventGroupMemberLeft ?? this.systemEventGroupMemberLeft,
+      systemEventGroupMemberMuted:
+          systemEventGroupMemberMuted ?? this.systemEventGroupMemberMuted,
+      systemEventGroupMemberUnmuted:
+          systemEventGroupMemberUnmuted ?? this.systemEventGroupMemberUnmuted,
+      systemEventGroupOwnerTransferred:
+          systemEventGroupOwnerTransferred ??
+          this.systemEventGroupOwnerTransferred,
+      systemEventGroupDissolved:
+          systemEventGroupDissolved ?? this.systemEventGroupDissolved,
+      systemEventGroupAnnouncementUpdated:
+          systemEventGroupAnnouncementUpdated ??
+          this.systemEventGroupAnnouncementUpdated,
+      systemEventFriendshipEstablished:
+          systemEventFriendshipEstablished ??
+          this.systemEventFriendshipEstablished,
+      systemEventGroupProfileUpdated:
+          systemEventGroupProfileUpdated ?? this.systemEventGroupProfileUpdated,
       systemEventGroupProfileUpdatedNamed:
-          systemEventGroupProfileUpdatedNamed ?? this.systemEventGroupProfileUpdatedNamed,
-      systemEventGroupMemberRolesChanged: systemEventGroupMemberRolesChanged ?? this.systemEventGroupMemberRolesChanged,
-      systemEventGroupMuted: systemEventGroupMuted ?? this.systemEventGroupMuted,
-      systemEventGroupUnmuted: systemEventGroupUnmuted ?? this.systemEventGroupUnmuted,
+          systemEventGroupProfileUpdatedNamed ??
+          this.systemEventGroupProfileUpdatedNamed,
+      systemEventGroupMemberRolesChanged:
+          systemEventGroupMemberRolesChanged ??
+          this.systemEventGroupMemberRolesChanged,
+      systemEventGroupMuted:
+          systemEventGroupMuted ?? this.systemEventGroupMuted,
+      systemEventGroupUnmuted:
+          systemEventGroupUnmuted ?? this.systemEventGroupUnmuted,
       displayNameUser: displayNameUser ?? this.displayNameUser,
-      displayNameUnknownUser: displayNameUnknownUser ?? this.displayNameUnknownUser,
+      displayNameUnknownUser:
+          displayNameUnknownUser ?? this.displayNameUnknownUser,
       displayNameGroup: displayNameGroup ?? this.displayNameGroup,
       displayNameSystem: displayNameSystem ?? this.displayNameSystem,
       displayNameAi: displayNameAi ?? this.displayNameAi,
@@ -3180,7 +3636,8 @@ class FlareStrings {
       displayNameBroadcast: displayNameBroadcast ?? this.displayNameBroadcast,
       displayNameTemp: displayNameTemp ?? this.displayNameTemp,
       displayNameSeparator: displayNameSeparator ?? this.displayNameSeparator,
-      displayNameMembersMore: displayNameMembersMore ?? this.displayNameMembersMore,
+      displayNameMembersMore:
+          displayNameMembersMore ?? this.displayNameMembersMore,
       unknownMessageHint: unknownMessageHint ?? this.unknownMessageHint,
       unknownMessageUnsupported:
           unknownMessageUnsupported ?? this.unknownMessageUnsupported,
@@ -3364,6 +3821,11 @@ class FlareStrings {
       groupDetailOnlyAdminPin:
           groupDetailOnlyAdminPin ?? this.groupDetailOnlyAdminPin,
       groupDetailShareCard: groupDetailShareCard ?? this.groupDetailShareCard,
+      groupDetailForbidFriendRequests:
+          groupDetailForbidFriendRequests ??
+          this.groupDetailForbidFriendRequests,
+      groupDetailRequestFriend:
+          groupDetailRequestFriend ?? this.groupDetailRequestFriend,
       groupDetailLeave: groupDetailLeave ?? this.groupDetailLeave,
       groupDetailDissolve: groupDetailDissolve ?? this.groupDetailDissolve,
       groupDetailLeaveConfirm:
@@ -3687,17 +4149,249 @@ class FlareStrings {
       presenceAway: presenceAway ?? this.presenceAway,
       imageLoadFailed: imageLoadFailed ?? this.imageLoadFailed,
       connectionConnecting: connectionConnecting ?? this.connectionConnecting,
+      connectionSyncing: connectionSyncing ?? this.connectionSyncing,
+      connectionSwitching: connectionSwitching ?? this.connectionSwitching,
       connectionReconnecting:
           connectionReconnecting ?? this.connectionReconnecting,
-      connectionOffline: connectionOffline ?? this.connectionOffline,
-      connectionDisconnected:
-          connectionDisconnected ?? this.connectionDisconnected,
-      connectionDisconnectedReason:
-          connectionDisconnectedReason ?? this.connectionDisconnectedReason,
+      connectionWaitingForNetwork:
+          connectionWaitingForNetwork ?? this.connectionWaitingForNetwork,
+      connectionServiceUnavailable:
+          connectionServiceUnavailable ?? this.connectionServiceUnavailable,
       connectionKicked: connectionKicked ?? this.connectionKicked,
       connectionExpired: connectionExpired ?? this.connectionExpired,
-      connectionReconnect: connectionReconnect ?? this.connectionReconnect,
+      connectionUpgradeRequired:
+          connectionUpgradeRequired ?? this.connectionUpgradeRequired,
+      connectionTenantUnavailable:
+          connectionTenantUnavailable ?? this.connectionTenantUnavailable,
+      connectionRetryIn: connectionRetryIn ?? this.connectionRetryIn,
+      connectionRetry: connectionRetry ?? this.connectionRetry,
       connectionSignIn: connectionSignIn ?? this.connectionSignIn,
+      connectionUpdate: connectionUpdate ?? this.connectionUpdate,
+      connectionDiagnose: connectionDiagnose ?? this.connectionDiagnose,
+      connectionDevelopmentMode:
+          connectionDevelopmentMode ?? this.connectionDevelopmentMode,
+      accessDiagnosticsTitle:
+          accessDiagnosticsTitle ?? this.accessDiagnosticsTitle,
+      accessDiagnosticsCurrent:
+          accessDiagnosticsCurrent ?? this.accessDiagnosticsCurrent,
+      accessDiagnosticsLines:
+          accessDiagnosticsLines ?? this.accessDiagnosticsLines,
+      accessDiagnosticsRecovery:
+          accessDiagnosticsRecovery ?? this.accessDiagnosticsRecovery,
+      accessDiagnosticsAccessPoint:
+          accessDiagnosticsAccessPoint ?? this.accessDiagnosticsAccessPoint,
+      accessDiagnosticsRegion:
+          accessDiagnosticsRegion ?? this.accessDiagnosticsRegion,
+      accessDiagnosticsProtocol:
+          accessDiagnosticsProtocol ?? this.accessDiagnosticsProtocol,
+      accessDiagnosticsRtt: accessDiagnosticsRtt ?? this.accessDiagnosticsRtt,
+      accessDiagnosticsSerial:
+          accessDiagnosticsSerial ?? this.accessDiagnosticsSerial,
+      accessDiagnosticsSource:
+          accessDiagnosticsSource ?? this.accessDiagnosticsSource,
+      accessDiagnosticsManifest:
+          accessDiagnosticsManifest ?? this.accessDiagnosticsManifest,
+      accessDiagnosticsReportedAccessPoint:
+          accessDiagnosticsReportedAccessPoint ??
+          this.accessDiagnosticsReportedAccessPoint,
+      accessDiagnosticsRecoveryRounds:
+          accessDiagnosticsRecoveryRounds ??
+          this.accessDiagnosticsRecoveryRounds,
+      accessDiagnosticsManifestValid:
+          accessDiagnosticsManifestValid ?? this.accessDiagnosticsManifestValid,
+      accessDiagnosticsManifestStale:
+          accessDiagnosticsManifestStale ?? this.accessDiagnosticsManifestStale,
+      accessDiagnosticsManifestNone:
+          accessDiagnosticsManifestNone ?? this.accessDiagnosticsManifestNone,
+      accessDiagnosticsOn: accessDiagnosticsOn ?? this.accessDiagnosticsOn,
+      accessDiagnosticsOff: accessDiagnosticsOff ?? this.accessDiagnosticsOff,
+      accessDiagnosticsRttGood:
+          accessDiagnosticsRttGood ?? this.accessDiagnosticsRttGood,
+      accessDiagnosticsRttFair:
+          accessDiagnosticsRttFair ?? this.accessDiagnosticsRttFair,
+      accessDiagnosticsRttPoor:
+          accessDiagnosticsRttPoor ?? this.accessDiagnosticsRttPoor,
+      accessDiagnosticsSourceSeed:
+          accessDiagnosticsSourceSeed ?? this.accessDiagnosticsSourceSeed,
+      accessDiagnosticsSourceMirror:
+          accessDiagnosticsSourceMirror ?? this.accessDiagnosticsSourceMirror,
+      accessDiagnosticsSourceRecovery:
+          accessDiagnosticsSourceRecovery ??
+          this.accessDiagnosticsSourceRecovery,
+      accessDiagnosticsSourceDevelopment:
+          accessDiagnosticsSourceDevelopment ??
+          this.accessDiagnosticsSourceDevelopment,
+      accessDiagnosticsSourceNone:
+          accessDiagnosticsSourceNone ?? this.accessDiagnosticsSourceNone,
+      accessDiagnosticsStatusActive:
+          accessDiagnosticsStatusActive ?? this.accessDiagnosticsStatusActive,
+      accessDiagnosticsStatusDraining:
+          accessDiagnosticsStatusDraining ??
+          this.accessDiagnosticsStatusDraining,
+      accessDiagnosticsStatusDisabled:
+          accessDiagnosticsStatusDisabled ??
+          this.accessDiagnosticsStatusDisabled,
+      accessDiagnosticsStatusUnknown:
+          accessDiagnosticsStatusUnknown ?? this.accessDiagnosticsStatusUnknown,
+      accessDiagnosticsBreakerOpen:
+          accessDiagnosticsBreakerOpen ?? this.accessDiagnosticsBreakerOpen,
+      accessDiagnosticsBreakerHalfOpen:
+          accessDiagnosticsBreakerHalfOpen ??
+          this.accessDiagnosticsBreakerHalfOpen,
+      accessDiagnosticsCurrentTag:
+          accessDiagnosticsCurrentTag ?? this.accessDiagnosticsCurrentTag,
+      accessDiagnosticsPinnedTag:
+          accessDiagnosticsPinnedTag ?? this.accessDiagnosticsPinnedTag,
+      accessDiagnosticsPin: accessDiagnosticsPin ?? this.accessDiagnosticsPin,
+      accessDiagnosticsUnpin:
+          accessDiagnosticsUnpin ?? this.accessDiagnosticsUnpin,
+      accessDiagnosticsNoLines:
+          accessDiagnosticsNoLines ?? this.accessDiagnosticsNoLines,
+      accessDiagnosticsRefresh:
+          accessDiagnosticsRefresh ?? this.accessDiagnosticsRefresh,
+      accessDiagnosticsExport:
+          accessDiagnosticsExport ?? this.accessDiagnosticsExport,
+      accessDiagnosticsImport:
+          accessDiagnosticsImport ?? this.accessDiagnosticsImport,
+      accessDiagnosticsImportLabel:
+          accessDiagnosticsImportLabel ?? this.accessDiagnosticsImportLabel,
+      accessDiagnosticsImportPlaceholder:
+          accessDiagnosticsImportPlaceholder ??
+          this.accessDiagnosticsImportPlaceholder,
+      accessDiagnosticsImportHint:
+          accessDiagnosticsImportHint ?? this.accessDiagnosticsImportHint,
+      accessDiagnosticsHealthy:
+          accessDiagnosticsHealthy ?? this.accessDiagnosticsHealthy,
+      accessDiagnosticsNotConnected:
+          accessDiagnosticsNotConnected ?? this.accessDiagnosticsNotConnected,
+      accessDiagnosticsAccessPointMismatch:
+          accessDiagnosticsAccessPointMismatch ??
+          this.accessDiagnosticsAccessPointMismatch,
+      accessDiagnosticsManifestStaleNotice:
+          accessDiagnosticsManifestStaleNotice ??
+          this.accessDiagnosticsManifestStaleNotice,
+      accessDiagnosticsRefreshAdopted:
+          accessDiagnosticsRefreshAdopted ??
+          this.accessDiagnosticsRefreshAdopted,
+      accessDiagnosticsRefreshUpToDate:
+          accessDiagnosticsRefreshUpToDate ??
+          this.accessDiagnosticsRefreshUpToDate,
+      accessDiagnosticsRefreshFailed:
+          accessDiagnosticsRefreshFailed ?? this.accessDiagnosticsRefreshFailed,
+      accessDiagnosticsRefreshSkipped:
+          accessDiagnosticsRefreshSkipped ??
+          this.accessDiagnosticsRefreshSkipped,
+      accessDiagnosticsImportAdopted:
+          accessDiagnosticsImportAdopted ?? this.accessDiagnosticsImportAdopted,
+      accessDiagnosticsImportUnchanged:
+          accessDiagnosticsImportUnchanged ??
+          this.accessDiagnosticsImportUnchanged,
+      accessDiagnosticsImportRollback:
+          accessDiagnosticsImportRollback ??
+          this.accessDiagnosticsImportRollback,
+      accessDiagnosticsImportExpired:
+          accessDiagnosticsImportExpired ?? this.accessDiagnosticsImportExpired,
+      accessDiagnosticsImportWrongApp:
+          accessDiagnosticsImportWrongApp ??
+          this.accessDiagnosticsImportWrongApp,
+      accessDiagnosticsImportDevelopmentMode:
+          accessDiagnosticsImportDevelopmentMode ??
+          this.accessDiagnosticsImportDevelopmentMode,
+      accessDiagnosticsImportUntrusted:
+          accessDiagnosticsImportUntrusted ??
+          this.accessDiagnosticsImportUntrusted,
+      accessDiagnosticsImportMalformed:
+          accessDiagnosticsImportMalformed ??
+          this.accessDiagnosticsImportMalformed,
+      accessDiagnosticsImportRejected:
+          accessDiagnosticsImportRejected ??
+          this.accessDiagnosticsImportRejected,
+      accessDiagnosticsExportCopied:
+          accessDiagnosticsExportCopied ?? this.accessDiagnosticsExportCopied,
+      accessDiagnosticsExportFailed:
+          accessDiagnosticsExportFailed ?? this.accessDiagnosticsExportFailed,
+      updatePromptTitleAvailable:
+          updatePromptTitleAvailable ?? this.updatePromptTitleAvailable,
+      updatePromptTitleRequired:
+          updatePromptTitleRequired ?? this.updatePromptTitleRequired,
+      updatePromptTitleMetered:
+          updatePromptTitleMetered ?? this.updatePromptTitleMetered,
+      updatePromptTitleDownloading:
+          updatePromptTitleDownloading ?? this.updatePromptTitleDownloading,
+      updatePromptTitleVerifying:
+          updatePromptTitleVerifying ?? this.updatePromptTitleVerifying,
+      updatePromptTitleReady:
+          updatePromptTitleReady ?? this.updatePromptTitleReady,
+      updatePromptTitleInstalling:
+          updatePromptTitleInstalling ?? this.updatePromptTitleInstalling,
+      updatePromptTitleFailed:
+          updatePromptTitleFailed ?? this.updatePromptTitleFailed,
+      updatePromptVersion: updatePromptVersion ?? this.updatePromptVersion,
+      updatePromptNotes: updatePromptNotes ?? this.updatePromptNotes,
+      updatePromptMessageRequired:
+          updatePromptMessageRequired ?? this.updatePromptMessageRequired,
+      updatePromptMessageRequiredReadOnly:
+          updatePromptMessageRequiredReadOnly ?? this.updatePromptMessageRequiredReadOnly,
+      composerReadOnlyUpdate:
+          composerReadOnlyUpdate ?? this.composerReadOnlyUpdate,
+      updatePromptMessageMetered:
+          updatePromptMessageMetered ?? this.updatePromptMessageMetered,
+      updatePromptMessageMeteredUnknown:
+          updatePromptMessageMeteredUnknown ?? this.updatePromptMessageMeteredUnknown,
+      updatePromptMessageReady:
+          updatePromptMessageReady ?? this.updatePromptMessageReady,
+      updatePromptFailManifestUnavailable:
+          updatePromptFailManifestUnavailable ?? this.updatePromptFailManifestUnavailable,
+      updatePromptFailManifestRejected:
+          updatePromptFailManifestRejected ?? this.updatePromptFailManifestRejected,
+      updatePromptFailNoArtifact:
+          updatePromptFailNoArtifact ?? this.updatePromptFailNoArtifact,
+      updatePromptFailInsufficientSpace:
+          updatePromptFailInsufficientSpace ?? this.updatePromptFailInsufficientSpace,
+      updatePromptFailDownload:
+          updatePromptFailDownload ?? this.updatePromptFailDownload,
+      updatePromptFailHashMismatch:
+          updatePromptFailHashMismatch ?? this.updatePromptFailHashMismatch,
+      updatePromptFailInstall:
+          updatePromptFailInstall ?? this.updatePromptFailInstall,
+      updatePromptFailSignatureMismatch:
+          updatePromptFailSignatureMismatch ?? this.updatePromptFailSignatureMismatch,
+      updatePromptFailDowngrade:
+          updatePromptFailDowngrade ?? this.updatePromptFailDowngrade,
+      updatePromptFailNotSkippable:
+          updatePromptFailNotSkippable ?? this.updatePromptFailNotSkippable,
+      updatePromptFailUnknown:
+          updatePromptFailUnknown ?? this.updatePromptFailUnknown,
+      updatePromptContinueDownload:
+          updatePromptContinueDownload ?? this.updatePromptContinueDownload,
+      updatePromptRestart: updatePromptRestart ?? this.updatePromptRestart,
+      updatePromptRetry: updatePromptRetry ?? this.updatePromptRetry,
+      updatePromptFallbackWebsite:
+          updatePromptFallbackWebsite ?? this.updatePromptFallbackWebsite,
+      updatePromptFallbackStore:
+          updatePromptFallbackStore ?? this.updatePromptFallbackStore,
+      updatePromptLater: updatePromptLater ?? this.updatePromptLater,
+      updatePromptBackground:
+          updatePromptBackground ?? this.updatePromptBackground,
+      updatePromptSkip: updatePromptSkip ?? this.updatePromptSkip,
+      updatePromptContinueReadOnly:
+          updatePromptContinueReadOnly ?? this.updatePromptContinueReadOnly,
+      progressBarLabel: progressBarLabel ?? this.progressBarLabel,
+      progressBarLoading: progressBarLoading ?? this.progressBarLoading,
+      versionPanelTitle: versionPanelTitle ?? this.versionPanelTitle,
+      versionPanelVersion: versionPanelVersion ?? this.versionPanelVersion,
+      versionPanelBuild: versionPanelBuild ?? this.versionPanelBuild,
+      versionPanelChannel: versionPanelChannel ?? this.versionPanelChannel,
+      versionPanelChannelStable:
+          versionPanelChannelStable ?? this.versionPanelChannelStable,
+      versionPanelChannelBeta:
+          versionPanelChannelBeta ?? this.versionPanelChannelBeta,
+      versionPanelChannelInternal:
+          versionPanelChannelInternal ?? this.versionPanelChannelInternal,
+      versionPanelCheck: versionPanelCheck ?? this.versionPanelCheck,
+      versionPanelChecking: versionPanelChecking ?? this.versionPanelChecking,
+      versionPanelUpToDate: versionPanelUpToDate ?? this.versionPanelUpToDate,
+      settingsRowBadge: settingsRowBadge ?? this.settingsRowBadge,
       groupDetailMembersTitle:
           groupDetailMembersTitle ?? this.groupDetailMembersTitle,
       groupDetailSearchMembers:
@@ -3806,7 +4500,7 @@ class FlareStrings {
   static String _storageUsageFileCount(int count) => '$count 个文件';
   static String _momentAudienceSheetSelected(int count) => '已选 $count 人';
   static String _conversationHeaderMemberCount(int count) => '$count 位成员';
-  static String _connectionDisconnectedReason(String reason) => '连接已断开：$reason';
+  static String _connectionRetryIn(int seconds) => '$seconds 秒后重试';
   static String _groupDetailMembersTitle(int count) => '群成员（$count）';
   static String _profilePanelEditProfile(String name) => '$name，编辑资料';
   static String _momentReplyToComment(String name, String text) =>

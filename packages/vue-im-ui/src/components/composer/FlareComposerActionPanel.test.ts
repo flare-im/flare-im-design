@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, type Component } from "vue";
+import { defineComponent, h, nextTick, reactive, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareComposerActionPanel from "./FlareComposerActionPanel.vue";
 import FlareGlyph from "../general/FlareGlyph.vue";
@@ -94,5 +94,43 @@ describe("FlareComposerActionPanel", () => {
     ] });
     expect(wrapper.findAll("[data-custom-icon]")).toHaveLength(1);
     expect(wrapper.get('[data-action-id="custom"]').attributes("data-tone")).toBe("amber");
+  });
+
+  it("shows every item on a desktop and pages a phone by rows x columns", () => {
+    const actions: FlareComposerAction[] = Array.from({ length: 11 }, (_, index) => ({ id: `a${index}`, label: `A${index}` }));
+    const grids = (sheet: ReturnType<typeof mountSheet>) =>
+      sheet.findAll(".flare-action-panel__grid").map((grid) => grid.findAll("button").length);
+    const desktop = mountSheet({ actions, formFactor: "desktop" });
+    expect(desktop.attributes("data-form-factor")).toBe("desktop");
+    expect(grids(desktop)).toEqual([11]);
+    expect(desktop.find(".flare-action-panel__dots").exists()).toBe(false);
+    host.unmount();
+    const phone = mountSheet({ actions });
+    expect(phone.attributes("data-form-factor")).toBe("mobile");
+    expect(grids(phone)).toEqual([8, 3]);
+    expect(phone.findAll(".flare-action-panel__grid").map((grid) => grid.attributes("aria-label"))).toEqual(["Page 1", "Page 2"]);
+    expect(phone.findAll(".flare-action-panel__dots button")).toHaveLength(2);
+    host.unmount();
+    expect(grids(mountSheet({ actions, formFactor: "mobile", rows: 1, columns: 5 }))).toEqual([5, 5, 1]);
+  });
+
+  it("keeps the page across a new list and clamps when pages go away", async () => {
+    const props = reactive({
+      formFactor: "mobile",
+      actions: Array.from({ length: 12 }, (_, index) => ({ id: `a${index}`, label: `A${index}` })) as FlareComposerAction[],
+    });
+    const sheet = mountSheet(props);
+    const current = () => sheet.findAll(".flare-action-panel__dots button").findIndex((dot) => dot.attributes("aria-current") === "page");
+    await sheet.findAll(".flare-action-panel__dots button")[1]!.trigger("click");
+    expect(current()).toBe(1);
+    props.actions = props.actions.slice(1);
+    await nextTick();
+    expect(current()).toBe(1);
+    props.actions = props.actions.slice(0, 4);
+    await nextTick();
+    expect(sheet.find(".flare-action-panel__dots").exists()).toBe(false);
+    props.actions = Array.from({ length: 9 }, (_, index) => ({ id: `b${index}`, label: `B${index}` }));
+    await nextTick();
+    expect(current()).toBe(0);
   });
 });

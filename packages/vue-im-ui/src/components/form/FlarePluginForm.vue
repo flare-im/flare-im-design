@@ -137,10 +137,12 @@ function submit(): void {
   if (props.busy || unchanged.value) return;
   attempted.value = true;
   if (props.inputs.some((input) => flarePluginCheckInput(input, draft[input.id]) || !validSelection(input))) return;
-  emit("submit", flarePluginFormValues(props.inputs, draft));
+  const values = flarePluginFormValues(props.inputs, draft);
+  for (const input of props.inputs) if (input.kind === "password") draft[input.id] = "";
+  emit("submit", values);
 }
 function cancel(): void {
-  if (!props.busy) emit("cancel");
+  if (!props.busy) { for (const input of props.inputs) if (input.kind === "password") draft[input.id] = ""; emit("cancel"); }
 }
 
 function validSelection(input: FlarePluginInput): boolean {
@@ -212,7 +214,7 @@ defineExpose({ submit });
   <form class="flare-plugin-form" :class="{ 'flare-plugin-form--filters': presentation === 'filters' }" :aria-busy="busy" novalidate @submit.prevent="submit">
     <fieldset class="flare-plugin-form__fields" :disabled="busy">
       <template v-for="input in inputs" :key="input.id">
-        <FlareFormField v-if="selections?.[input.id]" :label="input.label" :required="input.required" :error="errorText(input)" :data-input-id="input.id">
+        <FlareFormField v-if="selections?.[input.id]" :label="input.label" :label-placement="presentation === 'filters' ? 'left' : undefined" :required="input.required" :error="errorText(input)" :data-input-id="input.id">
           <FlareAdminEntitySelect
             :label="input.label" :multiple="input.kind === 'options' || input.kind === 'members'"
             :value="typeof draft[input.id] === 'string' ? draft[input.id] as string : ''"
@@ -227,8 +229,9 @@ defineExpose({ submit });
           />
         </FlareFormField>
         <FlareFormField
-          v-else-if="input.kind === 'text'"
+          v-else-if="(input.kind === 'text' || input.kind === 'password')"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :hint="presentation === 'filters' ? undefined : flarePluginCounter(input, draft[input.id]) ?? undefined"
@@ -238,6 +241,9 @@ defineExpose({ submit });
             :size="presentation === 'filters' ? 'sm' : undefined"
             :model-value="String(draft[input.id] ?? '')"
             :placeholder="input.placeholder"
+            :secure="input.kind === 'password'"
+            :autocomplete="input.kind === 'password' ? 'off' : undefined"
+            :max-length="input.kind === 'password' ? input.maxLength : undefined"
             :disabled="busy"
             @update:model-value="(v: string) => set(input.id, v)"
           />
@@ -245,6 +251,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'textarea'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :hint="flarePluginCounter(input, draft[input.id]) ?? undefined"
@@ -261,6 +268,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'number'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :data-input-id="input.id"
@@ -282,6 +290,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'select'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :data-input-id="input.id"
@@ -307,6 +316,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'datetime'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :data-input-id="input.id"
@@ -331,6 +341,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'options'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :data-input-id="input.id"
@@ -365,6 +376,7 @@ defineExpose({ submit });
         <FlareFormField
           v-else-if="input.kind === 'members'"
           :label="input.label"
+          :label-placement="presentation === 'filters' ? 'left' : undefined"
           :required="input.required"
           :error="errorText(input)"
           :data-input-id="input.id"
@@ -387,6 +399,7 @@ defineExpose({ submit });
     <footer class="flare-plugin-form__actions">
       <FlareButton variant="secondary" :size="presentation === 'filters' ? 'sm' : undefined" :appearance="presentation === 'filters' ? 'text' : 'default'" :label="cancelLabel ?? t('pluginForm.cancel')" :disabled="busy" data-form-cancel="true" @click="cancel" />
       <FlareButton :size="presentation === 'filters' ? 'sm' : undefined" :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy || unchanged" data-form-submit="true" @click="submit" />
+      <slot name="actions" />
     </footer>
     <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
     <FlareBottomSheet :open="Boolean(picking)" :title="picking?.label" fill max-height="min(80vh, 600px)" @close="picking = null">
@@ -419,13 +432,13 @@ defineExpose({ submit });
   flex-direction: row;
   flex-wrap: wrap;
   align-items: flex-start;
-  padding: var(--flare-size-spacing-md) 0;
+  padding: var(--flare-size-spacing-xs) 0;
   gap: var(--flare-size-spacing-md);
 }
 .flare-plugin-form--filters .flare-plugin-form__fields {
   flex: 1 1 320px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
 }
 .flare-plugin-form--filters .flare-plugin-form__actions {
   align-self: flex-end;

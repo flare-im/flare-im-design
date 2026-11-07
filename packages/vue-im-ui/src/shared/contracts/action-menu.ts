@@ -21,6 +21,8 @@ export interface FlareActionItem<TIcon = string> {
   /** False keeps the action visible but unavailable. */
   enabled?: boolean;
   badge?: string;
+  /** Red dot: something new behind the action, nothing to count. Vue only so far. */
+  dot?: boolean;
   intent?: FlareActionIntent;
   accessibilityLabel?: string;
   /** Why the action is unavailable; shown and announced with it. */

@@ -44,8 +44,6 @@
   /* Width of a sheet presented as a dialog on pointer devices; a host widens it for a search palette. */
   /* 开关轨道的尺寸。44 恰好和 layout.avatarSize 同值,写成字面量会被裸值门禁当成
      「本该引用 avatarSize」——可它是轨道宽,不是头像。给它自己的名字。 */
-  --flare-component-switch-width: 44px;
-  --flare-component-switch-height: 26px;
   --flare-component-sheet-dialog-width: var(--flare-size-component-sheet-dialog-width);
   /* Data table rows: the touch row for reading, the control row for scanning (`density`); a pinned
      header needs its own scroll box, and this is how tall it is. A permission tree row is a control row. */

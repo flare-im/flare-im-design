@@ -17,6 +17,7 @@ class FlareGroupMemberGrid extends StatelessWidget {
     this.columns = 5,
     this.onSelect,
     this.onAddMember,
+    this.onOpenMembers,
     this.title = '群成员',
     this.ownerLabel = '群主',
     this.adminLabel = '管理员',
@@ -32,6 +33,7 @@ class FlareGroupMemberGrid extends StatelessWidget {
   final int columns;
   final void Function(String id)? onSelect;
   final VoidCallback? onAddMember;
+  final VoidCallback? onOpenMembers;
   final String title;
   final String ownerLabel;
   final String adminLabel;
@@ -53,48 +55,73 @@ class FlareGroupMemberGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final count = total ?? members.length;
+    final openMembers = onOpenMembers;
+    final header = Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: FlareSizes.fontSizeLg,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Flexible(
+          child: Text(
+            memberCountText?.call(count) ??
+                FlareStrings.of(context).memberCount(count),
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              color: colors.textTertiary,
+              fontSize: FlareSizes.fontSizeSm,
+            ),
+          ),
+        ),
+        if (openMembers != null)
+          Icon(Icons.chevron_right, color: colors.textTertiary),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.all(FlareSizes.spacingLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: FlareSizes.fontSizeLg,
-                  fontWeight: FontWeight.w600,
+          if (openMembers == null)
+            header
+          else
+            MergeSemantics(
+              child: Semantics(
+                button: true,
+                child: InkWell(
+                  onTap: openMembers,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: FlareSizes.touchTarget,
+                    ),
+                    child: header,
+                  ),
                 ),
               ),
-              Text(
-                memberCountText?.call(total ?? members.length) ??
-                    FlareStrings.of(
-                      context,
-                    ).memberCount(total ?? members.length),
-                style: TextStyle(
-                  color: colors.textTertiary,
-                  fontSize: FlareSizes.fontSizeSm,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          GridView.count(
-            crossAxisCount: columns,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.82,
-            children: [
-              ...members.map((m) => _cell(colors, m)),
-              if (showAdd) _addCell(colors),
-            ],
-          ),
+            ),
+          if (members.isNotEmpty || showAdd) ...[
+            const SizedBox(height: 14),
+            GridView.count(
+              crossAxisCount: columns,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.82,
+              children: [
+                ...members.map((m) => _cell(colors, m)),
+                if (showAdd) _addCell(colors),
+              ],
+            ),
+          ],
         ],
       ),
     );

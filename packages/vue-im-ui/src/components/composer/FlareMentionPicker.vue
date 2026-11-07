@@ -5,6 +5,8 @@ import FlareAvatar from '../conversation/FlareAvatar.vue';
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 const props = withDefaults(defineProps<{
   candidates: FlareMentionCandidate[];
+  /** Inline typed mentions search with the token in the main editor. */
+  editorQuery?: string;
   allowEveryone?: boolean;
   searchPlaceholder?: string;
   everyoneLabel?: string;
@@ -24,7 +26,7 @@ const results = computed(() => {
   const all: FlareMentionCandidate[] = props.allowEveryone
     ? [{ id: '__all__', name: strings.value.everyoneLabel, isEveryone: true }, ...props.candidates]
     : props.candidates;
-  const q = query.value.trim().toLocaleLowerCase();
+  const q = (props.editorQuery ?? query.value).trim().toLocaleLowerCase();
   return all.filter(c => `${c.name} ${c.detail ?? ''}`.toLocaleLowerCase().includes(q));
 });
 // Combobox: focus stays in the search field; the arrows move the highlighted person and Enter picks
@@ -50,10 +52,12 @@ function onKeydown(event: KeyboardEvent) {
     emit('select', results.value[activeIndex.value]);
   }
 }
+defineExpose({ onKeydown });
 </script>
 <template>
   <section class="flare-mention" :aria-label="strings.searchPlaceholder">
     <input
+      v-if="editorQuery === undefined"
       v-model="query"
       class="flare-mention__search"
       type="search"

@@ -14,9 +14,11 @@ package com.flare.im.ui
  * - a server-side watch dies with the stream that carried it (presence is a gRPC stream);
  * - a change that happened during the gap was never delivered, and a subscription only promises the next.
  *
- * The case that must *not* refresh is a session that ended. Being kicked or having the token expire is
- * terminal — the core does not reconnect by design — so asking the server to watch things again is work
- * for a session that no longer exists.
+ * Every phase other than online is a gap once the client has been online — a line switch included, since
+ * the new line is a new connection. The case that must *not* refresh is a session that ended:
+ * ActionRequired (kicked, expired, an update required, the tenant suspended) is terminal — the core does
+ * not reconnect from it by design — and Idle after a session is the host signing out. Asking the server
+ * to watch things again then is work for a session that no longer exists.
  */
 
 /**
@@ -47,17 +49,18 @@ class FlareConnectionRefresh {
         if (phase == previous) return FlareReconnectWork.None
         previous = phase
 
-        if (phase == FlareConnectionPhase.Kicked || phase == FlareConnectionPhase.Expired) {
+        if (phase == FlareConnectionPhase.ActionRequired || (phase == FlareConnectionPhase.Idle && hasBeenConnected)) {
             // A session that ended is not an interruption to recover from: it is over. Forgetting that
-            // this client was ever connected is what makes the next `Connected` a fresh start — the app's
-            // own open path does the work then, exactly as on a cold start, and nothing re-subscribes on
-            // the way out.
+            // this client was ever online is what makes the next `Online` a fresh start — the app's own
+            // open path does the work then, exactly as on a cold start, and nothing re-subscribes on the
+            // way out.
             interrupted = false
             hasBeenConnected = false
             return FlareReconnectWork(dropStaleBeliefs = true, resubscribe = false, reread = false)
         }
+        if (phase == FlareConnectionPhase.Idle) return FlareReconnectWork.None
 
-        if (phase == FlareConnectionPhase.Connected) {
+        if (phase == FlareConnectionPhase.Online) {
             if (hasBeenConnected && interrupted) {
                 interrupted = false
                 return FlareReconnectWork(dropStaleBeliefs = false, resubscribe = true, reread = true)
@@ -66,7 +69,7 @@ class FlareConnectionRefresh {
             return FlareReconnectWork.None
         }
 
-        // Connecting / Reconnecting / Offline / Disconnected
+        // Connecting / Syncing / Switching / Reconnecting / WaitingForNetwork / ServiceUnavailable
         if (!hasBeenConnected || interrupted) return FlareReconnectWork.None
         interrupted = true
         return FlareReconnectWork(dropStaleBeliefs = true, resubscribe = false, reread = false)

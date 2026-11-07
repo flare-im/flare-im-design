@@ -264,7 +264,9 @@ export const flareDesignTokens = {
       "2xl": "16px",
       "3xl": "18px",
       "4xl": "20px",
-      "5xl": "24px"
+      "5xl": "24px",
+      "authTitle": "28px",
+      "authHeadline": "36px"
     },
     "iconSize": {
       "lg": "24px",
@@ -273,9 +275,14 @@ export const flareDesignTokens = {
       "xl": "32px"
     },
     "layout": {
+      "authFormMaxWidth": "420px",
+      "authBrandLogoSize": "44px",
+      "authMobileLogoSize": "40px",
+      "authArtworkWidth": "320px",
       "avatarSize": "44px",
       "bubbleMaxWidth": "640px",
       "messageTimelineContentMaxWidth": "920px",
+      "directoryContentMaxWidth": "880px",
       "chatMinWidth": "360px",
       "navigationRailWidth": "72px",
       "navigationRailMinWidth": "600px",
@@ -330,6 +337,23 @@ export const flareDesignTokens = {
       "2xl": "24px"
     },
     "component": {
+      "switchWidthSm": "34px",
+      "switchHeightSm": "20px",
+      "switchThumbSm": "14px",
+      "switchWidthMd": "44px",
+      "switchHeightMd": "26px",
+      "switchThumbMd": "20px",
+      "switchWidthLg": "52px",
+      "switchHeightLg": "32px",
+      "switchThumbLg": "26px",
+      "iconButtonSideSm": "30px",
+      "iconButtonSideMd": "38px",
+      "iconButtonSideLg": "46px",
+      "iconButtonGlyphSm": "16px",
+      "iconButtonGlyphMd": "19px",
+      "iconButtonGlyphLg": "22px",
+      "radioIndicator": "18px",
+      "radioDot": "9px",
       "bubblePaddingX": "14px",
       "bubblePaddingY": "9px",
       "messageAvatarSize": "40px",

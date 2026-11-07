@@ -1,22 +1,12 @@
 import SwiftUI
 
-// MARK: - Size helpers
-// Private, file-scoped (Swift `private` is per-file) so they don't collide with the
-// identically-named helper in FormViews.swift.
-
 private extension FlareControlSize {
-    /// Control height. sm 32 / md 40 / lg 48.
-    var height: CGFloat { self == .sm ? 32 : self == .md ? 40 : 48 }
-    /// Square (icon-button) side used by the stepper +/- buttons. 30 / 38 / 46.
-    var square: CGFloat { self == .sm ? 30 : self == .md ? 38 : 46 }
-    /// Text/label font size. 13 / 14 / 15.
-    var font: CGFloat { self == .sm ? 13 : self == .md ? 14 : 15 }
-    /// Glyph size for the stepper +/- icons. 15 / 18 / 20 (mirrors the Vue font-size).
-    var glyph: CGFloat { self == .sm ? 15 : self == .md ? 18 : 20 }
+    /// Glyph size for the stepper +/- icons.
+    var stepperGlyph: CGFloat { self == .sm ? 15 : self == .md ? 18 : 20 }
     /// Field content padding (horizontal, vertical) for the textarea.
     var pad: (h: CGFloat, v: CGFloat) { self == .sm ? (10, 8) : self == .md ? (12, 10) : (14, 12) }
-    /// Horizontal padding for text triggers (matches the Select trigger). 12 / 16 / 20.
-    var hPadding: CGFloat { self == .sm ? 12 : self == .md ? 16 : 20 }
+    /// Horizontal padding for date and time triggers.
+    var dateTriggerPadding: CGFloat { self == .sm ? 12 : self == .md ? 16 : 20 }
 }
 
 // MARK: - Textarea
@@ -184,7 +174,7 @@ public struct StepperView: View {
                         action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: flareIconSymbol(icon))
-                .font(.system(size: size.glyph, weight: .medium))
+                .font(.system(size: size.stepperGlyph, weight: .medium))
                 .foregroundColor(enabled ? colors.textSecondary : colors.textTertiary)
                 .frame(width: size.square, height: size.height)
                 .flareTouchTarget()
@@ -410,7 +400,7 @@ public struct TimePickerView: View {
                 Spacer(minLength: 0)
             }
             .frame(height: size.height)
-            .padding(.horizontal, size.hPadding)
+            .padding(.horizontal, size.dateTriggerPadding)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
@@ -607,7 +597,7 @@ public struct DatePickerView: View {
                 Spacer(minLength: 0)
             }
             .frame(height: size.height)
-            .padding(.horizontal, size.hPadding)
+            .padding(.horizontal, size.dateTriggerPadding)
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)

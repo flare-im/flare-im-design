@@ -4,11 +4,8 @@ import { FLARE_SAFE_URL_PROTOCOLS } from "../shared/contracts/url-safety";
 export function safeDownloadFileName(fileName: string): string {
   const trimmed = fileName.trim();
   if (!trimmed) return "download";
-  const basename = trimmed
-    .replace(/\\/g, "/")
-    .split("/")
-    .filter(Boolean)
-    .pop() ?? "download";
+  const basename =
+    trimmed.replace(/\\/g, "/").split("/").filter(Boolean).pop() ?? "download";
   const safe = basename
     .replace(/[\u0000-\u001f<>:"|?*]+/g, "_")
     .replace(/\s+/g, " ")
@@ -17,8 +14,70 @@ export function safeDownloadFileName(fileName: string): string {
   return safe || "download";
 }
 
+/** Private administrative attachment: never send cookies, follow redirects,
+ * silently fall back to navigation, or save after the host's scope changed. */
+export async function downloadAuthorizedAttachment(
+  url: string,
+  fileName: string,
+  signal: AbortSignal,
+  isCurrent: () => boolean,
+): Promise<void> {
+  const parsed = new URL(url);
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username ||
+    parsed.password ||
+    parsed.hash ||
+    !isCurrent() ||
+    signal.aborted
+  )
+    throw new Error("Attachment unavailable");
+  const response = await fetch(parsed.href, {
+    credentials: "omit",
+    redirect: "error",
+    referrerPolicy: "no-referrer",
+    signal,
+    cache: "no-store",
+  });
+  const limit = 128 * 1024 * 1024;
+  if (
+    !response.ok ||
+    !response.body ||
+    Number(response.headers.get("content-length")) > limit
+  ) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error("Attachment unavailable or too large");
+  }
+  const reader = response.body.getReader();
+  const parts: BlobPart[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      total += chunk.value.byteLength;
+      if (total > limit || !isCurrent() || signal.aborted)
+        throw new Error("Attachment unavailable or too large");
+      parts.push(chunk.value.slice().buffer);
+    }
+    if (!isCurrent() || signal.aborted)
+      throw new Error("Attachment scope changed");
+    const objectUrl = URL.createObjectURL(new Blob(parts));
+    try {
+      triggerDownload(objectUrl, safeDownloadFileName(fileName));
+    } finally {
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+}
+
 function storageProxyPrefix(): string {
-  return mediaProxyFields().storageProxyPrefix?.trim().replace(/\/$/, "") || "/__flare-storage";
+  return (
+    mediaProxyFields().storageProxyPrefix?.trim().replace(/\/$/, "") ||
+    "/__flare-storage"
+  );
 }
 
 function isStorageProxyPath(path: string, prefix: string): boolean {
@@ -54,7 +113,10 @@ function downloadableHref(raw: string): string | null {
   // never appears in a real URL, so a sentence is not read as a relative path.
   const href = raw.trim().replace(/[\t\n\r]/g, "");
   if (!href || /\s/.test(href)) return null;
-  const base = typeof window !== "undefined" && window.location?.href ? window.location.href : "http://localhost/";
+  const base =
+    typeof window !== "undefined" && window.location?.href
+      ? window.location.href
+      : "http://localhost/";
   let resolved: URL;
   try {
     resolved = new URL(href, base);
@@ -64,7 +126,9 @@ function downloadableHref(raw: string): string | null {
   if (FLARE_SAFE_URL_PROTOCOLS.includes(resolved.protocol)) return href;
   if (resolved.protocol === "blob:") {
     try {
-      return new URL(resolved.pathname).origin === new URL(base).origin ? href : null;
+      return new URL(resolved.pathname).origin === new URL(base).origin
+        ? href
+        : null;
     } catch {
       return null;
     }
@@ -105,7 +169,11 @@ export async function downloadUrlWithFileName(
     return true;
   }
 
-  if (typeof fetch === "function" && typeof URL !== "undefined" && "createObjectURL" in URL) {
+  if (
+    typeof fetch === "function" &&
+    typeof URL !== "undefined" &&
+    "createObjectURL" in URL
+  ) {
     try {
       const response = await fetch(href, { credentials: "include" });
       if (response.ok) {
@@ -130,7 +198,10 @@ function sameOriginHref(href: string): boolean {
   try {
     const base = window.location.href;
     const resolved = new URL(href, base);
-    const origin = resolved.protocol === "blob:" ? new URL(resolved.pathname).origin : resolved.origin;
+    const origin =
+      resolved.protocol === "blob:"
+        ? new URL(resolved.pathname).origin
+        : resolved.origin;
     return origin === new URL(base).origin;
   } catch {
     return false;

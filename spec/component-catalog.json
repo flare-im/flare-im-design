@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 179,
-    "stable": 179,
-    "general": 57,
-    "im": 117
+    "total": 185,
+    "stable": 184,
+    "general": 58,
+    "im": 122
   },
   "specializedMessageGroups": {
     "Text": [
@@ -4215,6 +4215,13 @@
               "enter",
               "modifierEnter"
             ]
+          },
+          {
+            "name": "formFactor",
+            "values": [
+              "mobile",
+              "desktop"
+            ]
           }
         ],
         "states": [
@@ -4471,7 +4478,7 @@
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": false,
+        "variants": true,
         "states": true,
         "interaction": true,
         "responsive": true,
@@ -4481,7 +4488,15 @@
         "customization": true
       },
       "docExamples": {
-        "variants": [],
+        "variants": [
+          {
+            "name": "formFactor",
+            "values": [
+              "FlareComposerPanelFormFactor (mobile",
+              "desktop)"
+            ]
+          }
+        ],
         "states": [
           "default"
         ]
@@ -5673,6 +5688,16 @@
               "email",
               "decimal"
             ]
+          },
+          {
+            "name": "type",
+            "values": [
+              "text",
+              "email",
+              "tel",
+              "url",
+              "search"
+            ]
           }
         ],
         "states": [
@@ -6091,6 +6116,583 @@
       },
       "sourceOfTruth": "spec/components.json#StatusBanner",
       "searchText": "statusbanner feedback general-ui stable feedback default action dismiss supportsconfiguration supportsslots compact status strip (connection / sync / runtime) with a tone, an optional pulsing dot and an optional inline action. 紧凑状态条（连接 / 同步 / 运行时）—— 语气色 + 可选脉冲圆点 + 可选内联操作。"
+    },
+    {
+      "name": "ConnectionNotice",
+      "slug": "connection-notice",
+      "category": "Feedback",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "status",
+            "values": [
+              "FlareConnectionStatus",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "idle",
+          "connecting",
+          "syncing",
+          "online",
+          "switching",
+          "reconnecting",
+          "waitingForNetwork",
+          "serviceUnavailable",
+          "actionRequired"
+        ]
+      },
+      "summary": {
+        "en": "The app shell's connection notice — the core SDK's connection status in; the kit's words, tone, countdown, development mode badge and way back out, decided the same way in every app.",
+        "zh": "应用外壳的连接提示 —— 输入核心 SDK 的连接状态，输出 kit 统一的文案、语气、倒计时、开发模式角标与恢复动作，各应用判断方式一致。"
+      },
+      "aliases": [
+        "Feedback",
+        "idle",
+        "connecting",
+        "syncing",
+        "online",
+        "switching",
+        "reconnecting",
+        "waitingForNetwork",
+        "serviceUnavailable",
+        "actionRequired",
+        "retry",
+        "signIn",
+        "update",
+        "diagnose"
+      ],
+      "states": [
+        "idle",
+        "connecting",
+        "syncing",
+        "online",
+        "switching",
+        "reconnecting",
+        "waitingForNetwork",
+        "serviceUnavailable",
+        "actionRequired"
+      ],
+      "interactions": [
+        "retry",
+        "signIn",
+        "update",
+        "diagnose"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConnectionNotice"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareConnectionNotice"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConnectionNotice"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ConnectionNoticeView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/shell/FlareConnectionNotice.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_connection_notice.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ConnectionNotice.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConnectionNoticeView.swift"
+      },
+      "docs": {
+        "zh": "website/components/connection-notice.md",
+        "en": "website/en/components/connection-notice.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ConnectionNotice",
+      "searchText": "connectionnotice feedback im-ui stable feedback idle connecting syncing online switching reconnecting waitingfornetwork serviceunavailable actionrequired retry signin update diagnose supportsconfiguration the app shell's connection notice — the core sdk's connection status in; the kit's words, tone, countdown, development mode badge and way back out, decided the same way in every app. 应用外壳的连接提示 —— 输入核心 sdk 的连接状态，输出 kit 统一的文案、语气、倒计时、开发模式角标与恢复动作，各应用判断方式一致。"
+    },
+    {
+      "name": "AccessDiagnostics",
+      "slug": "access-diagnostics",
+      "category": "Feedback",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "status",
+            "values": [
+              "FlareAccessStatus",
+              "null"
+            ]
+          },
+          {
+            "name": "refreshOutcome",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "importOutcome",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "importCode",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "exportOutcome",
+            "values": [
+              "copied",
+              "failed",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "normal",
+          "recovering",
+          "warning"
+        ]
+      },
+      "summary": {
+        "en": "The network and line diagnostics page's body — the access directory the host read in; the current line, the lines by region, the recovery tools and the kit's words out, decided the same way in every app.",
+        "zh": "网络与线路诊断页的主体 —— 输入宿主读到的接入目录，输出当前线路、按区域分组的线路、恢复工具与 kit 统一的文案，各应用判断方式一致。"
+      },
+      "aliases": [
+        "Feedback",
+        "normal",
+        "recovering",
+        "warning",
+        "pin",
+        "unpin",
+        "refresh",
+        "importRecovery",
+        "exportDiagnostics"
+      ],
+      "states": [
+        "normal",
+        "recovering",
+        "warning"
+      ],
+      "interactions": [
+        "pin",
+        "unpin",
+        "refresh",
+        "importRecovery",
+        "exportDiagnostics"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccessDiagnostics"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareAccessDiagnostics"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "AccessDiagnostics"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "AccessDiagnosticsView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/shell/FlareAccessDiagnostics.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_access_diagnostics.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/AccessDiagnostics.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/AccessDiagnosticsView.swift"
+      },
+      "docs": {
+        "zh": "website/components/access-diagnostics.md",
+        "en": "website/en/components/access-diagnostics.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#AccessDiagnostics",
+      "searchText": "accessdiagnostics feedback im-ui stable feedback normal recovering warning pin unpin refresh importrecovery exportdiagnostics supportsconfiguration the network and line diagnostics page's body — the access directory the host read in; the current line, the lines by region, the recovery tools and the kit's words out, decided the same way in every app. 网络与线路诊断页的主体 —— 输入宿主读到的接入目录，输出当前线路、按区域分组的线路、恢复工具与 kit 统一的文案，各应用判断方式一致。"
+    },
+    {
+      "name": "UpdatePrompt",
+      "slug": "update-prompt",
+      "category": "Feedback",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "form",
+            "values": [
+              "sheet",
+              "modal",
+              "fullscreen"
+            ]
+          },
+          {
+            "name": "version",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "reason",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "sizeBytes",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
+          {
+            "name": "state",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "progress",
+            "values": [
+              "FlareUpdateProgress",
+              "null"
+            ]
+          },
+          {
+            "name": "errorCode",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "fallbackTarget",
+            "values": [
+              "website",
+              "store"
+            ]
+          }
+        ],
+        "states": [
+          "offer",
+          "metered",
+          "downloading",
+          "verifying",
+          "ready",
+          "installing",
+          "failed"
+        ]
+      },
+      "summary": {
+        "en": "The update prompt in its three forms — the update status the host read in; the phase, the words, the progress and the actions out, decided the same way in every app.",
+        "zh": "更新提示的三种形态 —— 输入宿主读到的更新状态，输出阶段、文案、进度与动作，各应用判断方式一致。"
+      },
+      "aliases": [
+        "Feedback",
+        "offer",
+        "metered",
+        "downloading",
+        "verifying",
+        "ready",
+        "installing",
+        "failed",
+        "update",
+        "later",
+        "skip",
+        "retry",
+        "fallback",
+        "continueReadOnly"
+      ],
+      "states": [
+        "offer",
+        "metered",
+        "downloading",
+        "verifying",
+        "ready",
+        "installing",
+        "failed"
+      ],
+      "interactions": [
+        "update",
+        "later",
+        "skip",
+        "retry",
+        "fallback",
+        "continueReadOnly"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUpdatePrompt"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareUpdatePrompt"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "UpdatePrompt"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "UpdatePromptView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/shell/FlareUpdatePrompt.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_update_prompt.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/UpdatePrompt.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/UpdatePromptView.swift"
+      },
+      "docs": {
+        "zh": "website/components/update-prompt.md",
+        "en": "website/en/components/update-prompt.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#UpdatePrompt",
+      "searchText": "updateprompt feedback im-ui stable feedback offer metered downloading verifying ready installing failed update later skip retry fallback continuereadonly supportsconfiguration the update prompt in its three forms — the update status the host read in; the phase, the words, the progress and the actions out, decided the same way in every app. 更新提示的三种形态 —— 输入宿主读到的更新状态，输出阶段、文案、进度与动作，各应用判断方式一致。"
+    },
+    {
+      "name": "ProgressBar",
+      "slug": "progress-bar",
+      "category": "Feedback",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": false,
+        "responsive": false,
+        "keyboard": false,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "value",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
+          {
+            "name": "tone",
+            "values": [
+              "primary",
+              "success",
+              "warning",
+              "danger",
+              "neutral"
+            ]
+          }
+        ],
+        "states": [
+          "determinate",
+          "indeterminate"
+        ]
+      },
+      "summary": {
+        "en": "A linear progress bar — a value from 0 to 1, or a sliding fill while the length of the work is not known, with its number for a screen reader.",
+        "zh": "线性进度条 —— 0 到 1 的值，长度未知时显示滑动填充，并向读屏提供数值。"
+      },
+      "aliases": [
+        "Feedback",
+        "determinate",
+        "indeterminate"
+      ],
+      "states": [
+        "determinate",
+        "indeterminate"
+      ],
+      "interactions": [],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareProgressBar"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareProgressBar"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ProgressBar"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ProgressBarView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/general/FlareProgressBar.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_progress_bar.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ProgressBar.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ProgressBarView.swift"
+      },
+      "docs": {
+        "zh": "website/components/progress-bar.md",
+        "en": "website/en/components/progress-bar.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ProgressBar",
+      "searchText": "progressbar feedback general-ui stable feedback determinate indeterminate supportsconfiguration a linear progress bar — a value from 0 to 1, or a sliding fill while the length of the work is not known, with its number for a screen reader. 线性进度条 —— 0 到 1 的值，长度未知时显示滑动填充，并向读屏提供数值。"
     },
     {
       "name": "FilterTabs",
@@ -7190,6 +7792,153 @@
       },
       "sourceOfTruth": "spec/components.json#SettingsList",
       "searchText": "settingslist profile im-ui stable profile default toggle select supportsconfiguration settings list — grouped toggles/navigation/choice rows; a general settings container. 设置列表 —— 分组的开关 / 跳转 / 选择项，通用设置容器。"
+    },
+    {
+      "name": "VersionPanel",
+      "slug": "version-panel",
+      "category": "Profile",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "build",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
+          {
+            "name": "channel",
+            "values": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "name": "updateState",
+            "values": [
+              "string",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "idle",
+          "checking",
+          "upToDate",
+          "available",
+          "required",
+          "downloading",
+          "verifying",
+          "readyToInstall",
+          "installing",
+          "failed"
+        ]
+      },
+      "summary": {
+        "en": "The version block of an About page, in the settings list's rows — the version, the build, the channel and the row that checks for an update.",
+        "zh": "「关于」页的版本区，沿用设置列表的行 —— 版本、构建号、渠道与检查更新行。"
+      },
+      "aliases": [
+        "Profile",
+        "idle",
+        "checking",
+        "upToDate",
+        "available",
+        "required",
+        "downloading",
+        "verifying",
+        "readyToInstall",
+        "installing",
+        "failed",
+        "check",
+        "update"
+      ],
+      "states": [
+        "idle",
+        "checking",
+        "upToDate",
+        "available",
+        "required",
+        "downloading",
+        "verifying",
+        "readyToInstall",
+        "installing",
+        "failed"
+      ],
+      "interactions": [
+        "check",
+        "update"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareVersionPanel"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareVersionPanel"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VersionPanel"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "VersionPanelView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/profile/FlareVersionPanel.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_version_panel.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/VersionPanel.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/VersionPanelView.swift"
+      },
+      "docs": {
+        "zh": "website/components/version-panel.md",
+        "en": "website/en/components/version-panel.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#VersionPanel",
+      "searchText": "versionpanel profile im-ui stable profile idle checking uptodate available required downloading verifying readytoinstall installing failed check update supportsconfiguration the version block of an about page, in the settings list's rows — the version, the build, the channel and the row that checks for an update. 「关于」页的版本区，沿用设置列表的行 —— 版本、构建号、渠道与检查更新行。"
     },
     {
       "name": "CallView",
@@ -19631,6 +20380,124 @@
       },
       "sourceOfTruth": "spec/components.json#UserIdentity",
       "searchText": "useridentity general general-ui stable general default loading unavailable supportsconfiguration user identity — one person in a console table cell or detail line: avatar, full nickname and one account name, with loading and unavailable states that never fall back to an internal id. 用户身份 —— 控制台表格单元格或详情行里的一个人：头像、完整昵称和一个账号，加载中与不可用状态绝不回落成内部 id。"
+    },
+    {
+      "name": "ImageUploadSlot",
+      "slug": "image-upload-slot",
+      "category": "Media",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "experimental",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "preview",
+            "values": [
+              "platform image",
+              "URL"
+            ]
+          }
+        ],
+        "states": [
+          "empty",
+          "selected",
+          "uploading",
+          "uploaded",
+          "failed"
+        ]
+      },
+      "summary": {
+        "zh": "固定照片表单槽：本次预览、上传状态与选择/重试操作。",
+        "en": "A fixed photo field with a transient preview, upload state and choose/retry intents."
+      },
+      "aliases": [
+        "Media",
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed",
+        "choose",
+        "action"
+      ],
+      "states": [
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed"
+      ],
+      "interactions": [
+        "choose",
+        "action"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ImageUploadSlotView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/media/FlareImageUploadSlot.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_image_upload_slot.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ImageUploadSlot.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ImageUploadSlotView.swift"
+      },
+      "docs": {
+        "zh": "website/components/image-upload-slot.md",
+        "en": "website/en/components/image-upload-slot.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ImageUploadSlot",
+      "searchText": "imageuploadslot media im-ui experimental media empty selected uploading uploaded failed choose action supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
     }
   ]
 }

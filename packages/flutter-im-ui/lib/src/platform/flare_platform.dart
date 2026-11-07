@@ -418,6 +418,18 @@ abstract final class FlarePlatform {
   /// capabilities to read.
   static FlarePlatformAdapter of(BuildContext context) =>
       maybeOf(context) ?? _fallback;
+
+  /// Native mobile composer panels stay below the editor on tablets and in
+  /// landscape. Web follows the viewport form factor.
+  static bool usesMobileComposerPanels(BuildContext context) {
+    if (kIsWeb) {
+      return FlarePlatformCapabilities.detect(
+        width: MediaQuery.maybeSizeOf(context)?.width,
+      ).bottomSheet;
+    }
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+  }
 }
 
 /// The capabilities a component lays itself out by: the installed adapter's,

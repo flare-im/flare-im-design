@@ -375,6 +375,18 @@
           }
         },
         {
+          "name": "dot",
+          "type": "boolean",
+          "required": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Red dot: something new behind the action, nothing to count. When the action folds into the overflow menu, the dot shows on the menu button and on the item.",
+            "zh": "红点：这个操作背后有新内容，没有数量。操作收进「更多」菜单时，红点同时画在菜单按钮和菜单项上。"
+          }
+        },
+        {
           "name": "intent",
           "type": "string",
           "required": false,
@@ -891,6 +903,15 @@
           "description": {
             "en": "Trailing detail text: the current value of a navigation row, or the information of a value row. Long text stacks under the label.",
             "zh": "尾部详情文本：navigation 行的当前值，或 value 行的信息。过长时换到标签下方。"
+          }
+        },
+        {
+          "name": "badge",
+          "type": "boolean | number",
+          "required": false,
+          "description": {
+            "en": "`true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither.",
+            "zh": "`true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。"
           }
         }
       ]
@@ -4001,6 +4022,433 @@
           "description": {
             "en": "Lookup state; absent means ready.",
             "zh": "查询状态；缺省为 ready。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ConnectionStatus",
+      "symbol": "FlareConnectionStatus",
+      "kind": "interface",
+      "summary": {
+        "en": "The core SDK's connection status (`connection://status`), as ConnectionNotice reads it.",
+        "zh": "核心 SDK 的连接状态（`connection://status`），ConnectionNotice 按此读取。"
+      },
+      "fields": [
+        {
+          "name": "phase",
+          "type": "FlareConnectionPhase",
+          "required": true,
+          "description": {
+            "en": "Where the connection stands.",
+            "zh": "连接所处的阶段。"
+          }
+        },
+        {
+          "name": "quality",
+          "type": "\"good\" | \"poor\"",
+          "required": false,
+          "description": {
+            "en": "online: the line's quality. Neither value shows a banner.",
+            "zh": "online：线路质量。两种取值都不显示横幅。"
+          }
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "syncing: how far the catch-up has come, 0 to 1.",
+            "zh": "syncing：补同步进度，0 到 1。"
+          }
+        },
+        {
+          "name": "nextRetryAt",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "reconnecting: when the next attempt starts, epoch milliseconds on the device clock.",
+            "zh": "reconnecting：下次尝试的时刻，设备时钟的毫秒时间戳。"
+          }
+        },
+        {
+          "name": "attempt",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "reconnecting: which attempt this is. Not shown.",
+            "zh": "reconnecting：第几次尝试。不显示。"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "FlareConnectionActionReason | string",
+          "required": false,
+          "description": {
+            "en": "Why, as the SDK reports it (any string is taken; switching carries its own). Only actionRequired reads it: kicked, expired, upgradeRequired and tenantUnavailable have words, and any other reason or none reads as expired.",
+            "zh": "原因，按 SDK 上报原样传入（任何字符串都接受；switching 也带自己的原因）。只有 actionRequired 读它：kicked、expired、upgradeRequired、tenantUnavailable 有对应文案，其它值或缺省按 expired。"
+          }
+        },
+        {
+          "name": "developmentMode",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The SDK runs on development endpoints: the notice draws the development mode badge.",
+            "zh": "SDK 运行在开发端点上：提示显示「开发模式」角标。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ConnectionPhase",
+      "symbol": "FlareConnectionPhase",
+      "kind": "enum",
+      "summary": {
+        "en": "The connection phases the core SDK reports.",
+        "zh": "核心 SDK 上报的连接阶段。"
+      },
+      "values": [
+        "idle",
+        "connecting",
+        "syncing",
+        "online",
+        "switching",
+        "reconnecting",
+        "waitingForNetwork",
+        "serviceUnavailable",
+        "actionRequired"
+      ]
+    },
+    {
+      "name": "ConnectionActionReason",
+      "symbol": "FlareConnectionActionReason",
+      "kind": "enum",
+      "summary": {
+        "en": "Why the core stopped and waits for the user (actionRequired).",
+        "zh": "核心停止并等待用户处理的原因（actionRequired）。"
+      },
+      "values": [
+        "kicked",
+        "expired",
+        "upgradeRequired",
+        "tenantUnavailable"
+      ]
+    },
+    {
+      "name": "AccessStatus",
+      "symbol": "FlareAccessStatus",
+      "kind": "interface",
+      "summary": {
+        "en": "What `access.getStatus` returns, as far as AccessDiagnostics reads it.",
+        "zh": "`access.getStatus` 的结果，AccessDiagnostics 读取其中这些字段。"
+      },
+      "fields": [
+        {
+          "name": "loaded",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The directory holds a usable manifest.",
+            "zh": "目录里有可用清单。"
+          }
+        },
+        {
+          "name": "serial",
+          "type": "number | null",
+          "required": false,
+          "description": {
+            "en": "The manifest's serial.",
+            "zh": "清单 serial。"
+          }
+        },
+        {
+          "name": "source",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "`seed`, `https:<mirror base>`, `wellKnown:<apId>`, `recovery`, `development` or `none`.",
+            "zh": "`seed`、`https:<镜像基址>`、`wellKnown:<apId>`、`recovery`、`development` 或 `none`。"
+          }
+        },
+        {
+          "name": "stale",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Past its expiry: still connectable.",
+            "zh": "已过期，仍可连接。"
+          }
+        },
+        {
+          "name": "developmentMode",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The SDK runs on development endpoints.",
+            "zh": "SDK 运行在开发端点上。"
+          }
+        },
+        {
+          "name": "regionId",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "The manifest's region.",
+            "zh": "清单所属区域。"
+          }
+        },
+        {
+          "name": "accessPointId",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "The access point of the current connection.",
+            "zh": "当前连接的接入点。"
+          }
+        },
+        {
+          "name": "protocol",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "The current connection's protocol: quic or ws.",
+            "zh": "当前连接的协议：quic 或 ws。"
+          }
+        },
+        {
+          "name": "connectAck",
+          "type": "FlareAccessConnectAck | null",
+          "required": false,
+          "description": {
+            "en": "The current connection's diagnostics.",
+            "zh": "当前连接的诊断字段。"
+          }
+        },
+        {
+          "name": "recovering",
+          "type": "FlareAccessRecovering | null",
+          "required": false,
+          "description": {
+            "en": "There only while every line has failed.",
+            "zh": "只在全部线路失败时才有。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AccessConnectAck",
+      "symbol": "FlareAccessConnectAck",
+      "kind": "interface",
+      "summary": {
+        "en": "The part of `access.getStatus.connectAck` AccessDiagnostics reads.",
+        "zh": "`access.getStatus.connectAck` 中 AccessDiagnostics 读取的部分。"
+      },
+      "fields": [
+        {
+          "name": "accessPointId",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "The access point the server reports for the connection.",
+            "zh": "服务端报告的接入点。"
+          }
+        },
+        {
+          "name": "accessPointMismatch",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The server reports a different access point than the client chose.",
+            "zh": "服务端报告的接入点与客户端选择的不一致。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AccessRecovering",
+      "symbol": "FlareAccessRecovering",
+      "kind": "interface",
+      "summary": {
+        "en": "`access.getStatus.recovering`, as AccessDiagnostics reads it.",
+        "zh": "`access.getStatus.recovering`，AccessDiagnostics 按此读取。"
+      },
+      "fields": [
+        {
+          "name": "rounds",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Bootstrap rounds so far.",
+            "zh": "已跑的引导拉取轮数。"
+          }
+        },
+        {
+          "name": "nextRoundAtMs",
+          "type": "number | null",
+          "required": false,
+          "description": {
+            "en": "When the next round starts; missing while the device has no network.",
+            "zh": "下一轮时刻；设备没有网络时缺失。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AccessPoint",
+      "symbol": "FlareAccessPoint",
+      "kind": "interface",
+      "summary": {
+        "en": "One line of `access.listAccessPoints`, as AccessDiagnostics reads it.",
+        "zh": "`access.listAccessPoints` 的一行，AccessDiagnostics 按此读取。"
+      },
+      "fields": [
+        {
+          "name": "accessPointId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The access point.",
+            "zh": "接入点。"
+          }
+        },
+        {
+          "name": "regionId",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "Its region; lines are grouped by it.",
+            "zh": "所属区域，线路按此分组。"
+          }
+        },
+        {
+          "name": "host",
+          "type": "string | null",
+          "required": false,
+          "description": {
+            "en": "Its host name.",
+            "zh": "主机名。"
+          }
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "active, draining, disabled or unknown; any other string reads unknown.",
+            "zh": "active、draining、disabled 或 unknown；其它字符串按 unknown。"
+          }
+        },
+        {
+          "name": "rttMs",
+          "type": "number | null",
+          "required": false,
+          "description": {
+            "en": "Measured latency in milliseconds.",
+            "zh": "测得的延迟，毫秒。"
+          }
+        },
+        {
+          "name": "breaker",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "closed, open or halfOpen.",
+            "zh": "closed、open 或 halfOpen。"
+          }
+        },
+        {
+          "name": "pinned",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Pinned by hand.",
+            "zh": "手动固定。"
+          }
+        },
+        {
+          "name": "current",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The line in use.",
+            "zh": "当前使用的线路。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "UpdateProgress",
+      "symbol": "FlareUpdateProgress",
+      "kind": "interface",
+      "summary": {
+        "en": "`UpdateStatus.progress`, as UpdatePrompt reads it.",
+        "zh": "`UpdateStatus.progress`，UpdatePrompt 按此读取。"
+      },
+      "fields": [
+        {
+          "name": "received",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Bytes received so far.",
+            "zh": "已接收字节数。"
+          }
+        },
+        {
+          "name": "total",
+          "type": "number | null",
+          "required": false,
+          "description": {
+            "en": "Bytes in all; missing while the size is not known, which reads as indeterminate.",
+            "zh": "总字节数；大小未知时缺失，此时按不确定显示。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ResourcePack",
+      "symbol": "FlareResourcePack",
+      "kind": "interface",
+      "summary": {
+        "en": "One entry of `update.get_resources`. The host hands the list over as it is: Vue `applyFlareResourceOverlay(packs)` folds it into the kit, and the native kits build a `FlareResourceOverlay` whose copy and colours go through the existing scope, environment or CompositionLocal. What a pack may change is the kit's (spec/resource-overlay-vectors.json): copy and colours that exist, and emoji it adds. A pack is data; it adds no behaviour.",
+        "zh": "`update.get_resources` 的一项。宿主把列表原样交给 kit：Vue 用 `applyFlareResourceOverlay(packs)` 折进 kit，原生三端构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。资源包能改什么由 kit 决定（spec/resource-overlay-vectors.json）：已有的文案和颜色，以及新增的表情。资源包只是数据，不增加行为。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The pack's id. Packs apply in the order given, which the engine sorts by id.",
+            "zh": "资源包 id。按传入顺序生效，引擎按 id 排序。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "'strings' | 'tokens' | 'emoji' | 'help'",
+          "required": true,
+          "description": {
+            "en": "What the pack holds. The kit has no help page, so a help pack stays with the host.",
+            "zh": "资源包内容的种类。kit 没有帮助页，help 包留给宿主。"
+          }
+        },
+        {
+          "name": "packVersion",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "The pack's version.",
+            "zh": "资源包版本。"
+          }
+        },
+        {
+          "name": "contentJson",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The pack as JSON text, with `schema` `flare.resource.v1`. The kit parses it; a pack it cannot read is ignored.",
+            "zh": "资源包的 JSON 文本，`schema` 为 `flare.resource.v1`。由 kit 解析，读不了的包忽略。"
           }
         }
       ]
@@ -9059,6 +9507,18 @@
             "en": "Desktop-only send-key policy; Shift+Enter always inserts a newline.",
             "zh": "仅桌面端的发送键策略；Shift+Enter 始终换行。"
           }
+        },
+        {
+          "name": "formFactor",
+          "type": "\"mobile\" | \"desktop\"",
+          "default": "desktop",
+          "description": {
+            "en": "How the \"+\" grid lays out (ComposerActionPanel formFactor). The native composers derive it from their own layout. \"+\" is hidden while the menu is empty, and an open panel closes when it empties.",
+            "zh": "「+」网格的排布（ComposerActionPanel 的 formFactor）。原生端的 composer 按自身布局决定。菜单为空时不显示「+」，打开着的面板在菜单变空时收起。"
+          },
+          "platforms": [
+            "vue"
+          ]
         }
       ],
       "states": [
@@ -9372,6 +9832,24 @@
           "platforms": [
             "vue"
           ]
+        },
+        {
+          "name": "formFactor",
+          "type": "FlareComposerPanelFormFactor (mobile | desktop)",
+          "default": "mobile",
+          "description": {
+            "en": "mobile pages the grid sideways, rows × columns per page, with page dots; desktop shows at most rows rows and scrolls the rest inside the panel. A new list keeps the page (clamped when pages go away); a tile that appears fades in over 150 ms (none with reduced motion).",
+            "zh": "mobile 横向分页，每页 rows × 列数，带页码点；desktop 最多显示 rows 行，其余在面板内滚动。列表变化时停留在原来那一页（页数变少时夹到最后一页）；新出现的项淡入 150 毫秒（减少动态效果时不做）。"
+          }
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": "2 (mobile) / 3 (desktop)",
+          "description": {
+            "en": "Rows per page on a phone, most rows shown on a desktop.",
+            "zh": "手机每页的行数，桌面最多显示的行数。"
+          }
         }
       ],
       "notes": {
@@ -10938,6 +11416,30 @@
             "en": "Draw the value in the platform's monospaced face for codes and identifiers; the field's geometry does not change.",
             "zh": "用平台等宽字体显示值（邀请码、标识符）；输入框几何不变。"
           }
+        },
+        {
+          "name": "type",
+          "type": "\"text\" | \"email\" | \"tel\" | \"url\" | \"search\"",
+          "default": "\"text\"",
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Native single-line text semantics; secure takes precedence.",
+            "zh": "单行文本的原生输入语义；secure 优先。"
+          }
+        },
+        {
+          "name": "showCount",
+          "type": "boolean",
+          "default": "true",
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Show the optional length counter; false retains maxLength enforcement without displaying a counter.",
+            "zh": "显示字数计数；false 只隐藏计数，仍保留 maxLength 限制。"
+          }
         }
       ],
       "states": [
@@ -11366,6 +11868,511 @@
       "notes": {
         "en": "Vue's `title` and `dismissible` turn the strip into a notice a person reads once and puts away — the console's platform announcements, by level (`tone`): a bold subject over the text and a close key (named by the kit's \"Close\", 48 logical px) that reports `dismiss`; the host keeps which notices were dismissed. Without them the banner is unchanged. They serve web consoles; the native banners stay status strips.",
         "zh": "Vue 的 `title` 与 `dismissible` 让这条状态条承载看过即可关闭的通知 —— 控制台按级别（`tone`）显示的平台公告：正文上方加粗的主题，以及一个关闭键（名称取组件库的「关闭」，48 逻辑像素），点击上报 `dismiss`；哪些公告已关闭由宿主记住。不传时横幅不变。它们服务于 Web 控制台；原生端横幅仍是状态条。"
+      }
+    },
+    {
+      "name": "ConnectionNotice",
+      "category": "Feedback",
+      "summary": {
+        "en": "The app shell's connection notice — the core SDK's connection status in; the kit's words, tone, countdown, development mode badge and way back out, decided the same way in every app.",
+        "zh": "应用外壳的连接提示 —— 输入核心 SDK 的连接状态，输出 kit 统一的文案、语气、倒计时、开发模式角标与恢复动作，各应用判断方式一致。"
+      },
+      "dataSource": {
+        "en": "The host passes the latest `connection://status` event as `status`; the kit's tracker decides what shows over time (spec/connection-notice-vectors.json). The host performs the actions: retry calls the SDK's `connection.reconnectNow`.",
+        "zh": "宿主把最新的 `connection://status` 事件作为 `status` 传入；何时显示什么由 kit 的跟踪器决定（spec/connection-notice-vectors.json）。动作由宿主执行：retry 调用 SDK 的 `connection.reconnectNow`。"
+      },
+      "props": [
+        {
+          "name": "status",
+          "type": "FlareConnectionStatus | null",
+          "required": true,
+          "description": {
+            "en": "The latest connection status, passed through as the SDK reports it: phase, plus quality (online), progress 0–1 (syncing), nextRetryAt epoch ms and attempt (reconnecting), reason (actionRequired) and developmentMode. null before the SDK has reported one; it reads as idle.",
+            "zh": "最新的连接状态，按 SDK 上报原样传入：phase，以及 quality（online）、progress 0–1（syncing）、nextRetryAt 毫秒时间戳与 attempt（reconnecting）、reason（actionRequired）和 developmentMode。SDK 尚未上报时为 null，按 idle 处理。"
+          }
+        },
+        {
+          "name": "floating",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Hang the banner over the content (StatusBanner `floating`).",
+            "zh": "横幅悬浮在内容之上（StatusBanner 的 `floating`）。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "connecting",
+        "syncing",
+        "online",
+        "switching",
+        "reconnecting",
+        "waitingForNetwork",
+        "serviceUnavailable",
+        "actionRequired"
+      ],
+      "events": [
+        "retry",
+        "signIn",
+        "update",
+        "diagnose"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareConnectionNotice"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareConnectionNotice"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ConnectionNoticeView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ConnectionNotice"
+        }
+      },
+      "accessibility": {
+        "role": "status",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab focuses the action when one is shown",
+          "Enter or Space activates it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The pulsing dot stays still; the banner appears and changes without motion.",
+        "screenReaderSemantics": "The message is announced politely when it changes (a live region on the web, an announcement on the natives); the countdown and the sync progress are on screen but not re-announced every second. The action is a button named by its text; the development mode badge is plain text."
+      },
+      "notes": {
+        "en": "Rules: spec/connection-notice-vectors.json, run by all four kits against their tracker (FlareConnectionNoticeTracker). idle and online show nothing (a poor-quality line shows no banner); connecting \"Connecting…\", reconnecting \"Connection lost. Reconnecting…\" with \"Retrying in Ns\" and Retry now, waitingForNetwork \"No network. Reconnects when it is back.\", serviceUnavailable \"Service temporarily unavailable. Recovering…\" with Diagnose, and actionRequired by reason (kicked \"Signed in on another device\" and expired \"Your sign-in has expired\" with Sign in again, upgradeRequired \"Update the app to keep using it\" with Update now, tenantUnavailable \"Service suspended\" with no action; a missing reason reads expired) show at once. syncing \"Syncing messages…\" (with its progress) shows once it has lasted 1 s, switching \"Switching connection…\" once it has lasted 2 s; until then a banner that was already up keeps what it showed. A reconnecting banner stays up at least 1.5 s. Tones: info for connecting, syncing, switching; warning for reconnecting, waitingForNetwork, serviceUnavailable; danger for actionRequired. An action is drawn only while the host handles it. developmentMode draws a 开发模式 / Development mode badge in every phase. The banner is the kit StatusBanner (48 logical px action target).",
+        "zh": "规则：spec/connection-notice-vectors.json，四端各用自己的跟踪器（FlareConnectionNoticeTracker）共跑。idle 与 online 不显示（线路质量差也不显示横幅）；connecting「正在连接…」、reconnecting「连接已断开，正在重连…」加「N 秒后重试」与「立即重试」、waitingForNetwork「网络不可用，恢复后会自动重连」、serviceUnavailable「服务暂时不可用，正在自动恢复…」加「诊断」、actionRequired 按原因（kicked「已在其他设备登录」与 expired「登录已过期」配「重新登录」，upgradeRequired「需要更新后才能继续使用」配「立即更新」，tenantUnavailable「服务已暂停」无动作；缺少原因按 expired）立即显示。syncing「正在同步消息…」（带进度）持续满 1 秒才显示，switching「正在切换线路…」持续满 2 秒才显示；在此之前，已经显示的横幅保持原内容。reconnecting 横幅至少显示 1.5 秒。语气：connecting、syncing、switching 为 info；reconnecting、waitingForNetwork、serviceUnavailable 为 warning；actionRequired 为 danger。宿主处理对应动作时才画出按钮。developmentMode 在任何阶段都显示「开发模式」角标。横幅就是 kit 的 StatusBanner（操作触控区 48 逻辑像素）。"
+      }
+    },
+    {
+      "name": "AccessDiagnostics",
+      "category": "Feedback",
+      "summary": {
+        "en": "The network and line diagnostics page's body — the access directory the host read in; the current line, the lines by region, the recovery tools and the kit's words out, decided the same way in every app.",
+        "zh": "网络与线路诊断页的主体 —— 输入宿主读到的接入目录，输出当前线路、按区域分组的线路、恢复工具与 kit 统一的文案，各应用判断方式一致。"
+      },
+      "dataSource": {
+        "en": "The host passes what `access.getStatus` and `access.listAccessPoints` returned, as plain data, and runs every action: pin calls `access.pin`, unpin `access.unpin`, refresh `access.refresh`, importRecovery `access.importRecovery`, exportDiagnostics `access.exportDiagnostics` and then the clipboard. What each result means on screen is the kit's (spec/access-diagnostics-vectors.json); the host feeds the result's `outcome` and `code` back. The component performs no network call and never touches the clipboard.",
+        "zh": "宿主把 `access.getStatus` 与 `access.listAccessPoints` 的结果作为纯数据传入，并执行所有动作：pin 调 `access.pin`，unpin 调 `access.unpin`，refresh 调 `access.refresh`，importRecovery 调 `access.importRecovery`，exportDiagnostics 调 `access.exportDiagnostics` 再写剪贴板。每种结果在屏幕上说什么由 kit 决定（spec/access-diagnostics-vectors.json），宿主把结果的 `outcome` 与 `code` 回填。组件不发网络请求，也不碰剪贴板。"
+      },
+      "props": [
+        {
+          "name": "status",
+          "type": "FlareAccessStatus | null",
+          "required": true,
+          "description": {
+            "en": "What `access.getStatus` returned: loaded, serial, source, stale, developmentMode, regionId, accessPointId, protocol, connectAck and recovering. null until the host has read it.",
+            "zh": "`access.getStatus` 的结果：loaded、serial、source、stale、developmentMode、regionId、accessPointId、protocol、connectAck 与 recovering。宿主读到之前为 null。"
+          }
+        },
+        {
+          "name": "accessPoints",
+          "type": "readonly FlareAccessPoint[]",
+          "default": "[]",
+          "description": {
+            "en": "What `access.listAccessPoints` returned, in its order. The row marked current also gives the current line's latency.",
+            "zh": "`access.listAccessPoints` 的结果，保持其顺序。标记 current 的一行同时给出当前线路的延迟。"
+          }
+        },
+        {
+          "name": "refreshing",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "`access.refresh` is in flight; its button shows it.",
+            "zh": "`access.refresh` 进行中，按钮显示加载态。"
+          }
+        },
+        {
+          "name": "refreshOutcome",
+          "type": "string | null",
+          "description": {
+            "en": "The `outcome` of the last `access.refresh`: adopted, upToDate, oldValues, failed or skipped. Any other string says nothing.",
+            "zh": "上一次 `access.refresh` 的 `outcome`：adopted、upToDate、oldValues、failed 或 skipped。其它字符串不显示。"
+          }
+        },
+        {
+          "name": "importing",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "`access.importRecovery` is in flight; the field locks.",
+            "zh": "`access.importRecovery` 进行中，输入框锁定。"
+          }
+        },
+        {
+          "name": "importOutcome",
+          "type": "string | null",
+          "description": {
+            "en": "The `outcome` of the last `access.importRecovery`: adopted, unchanged or rejected. adopted also clears the field.",
+            "zh": "上一次 `access.importRecovery` 的 `outcome`：adopted、unchanged 或 rejected。adopted 同时清空输入框。"
+          }
+        },
+        {
+          "name": "importCode",
+          "type": "string | null",
+          "description": {
+            "en": "Its `code` when rejected, as the SDK reports it.",
+            "zh": "rejected 时的 `code`，按 SDK 上报原样传入。"
+          }
+        },
+        {
+          "name": "exporting",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The host is gathering and copying the diagnostics.",
+            "zh": "宿主正在收集并复制诊断信息。"
+          }
+        },
+        {
+          "name": "exportOutcome",
+          "type": "\"copied\" | \"failed\" | null",
+          "description": {
+            "en": "The host's word on the clipboard.",
+            "zh": "宿主告知剪贴板的结果。"
+          }
+        }
+      ],
+      "states": [
+        "normal",
+        "recovering",
+        "warning"
+      ],
+      "events": [
+        "pin",
+        "unpin",
+        "refresh",
+        "importRecovery",
+        "exportDiagnostics"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareAccessDiagnostics"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareAccessDiagnostics"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "AccessDiagnosticsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "AccessDiagnostics"
+        }
+      },
+      "accessibility": {
+        "role": "region",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the pin buttons, the recovery buttons and the link field in visual order",
+          "Enter in the link field imports it",
+          "Enter or Space activates a button"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The pulsing dot stays still; the page changes without motion.",
+        "screenReaderSemantics": "The page is a named region with headed sections. The newest answer to an action, else the lead notice, is announced politely when it changes (a live region on the web, an announcement on the natives). Each fact reads its label with its value, a missing value reads as not set, each line reads as one group, and every tone repeats words that are already on screen."
+      },
+      "notes": {
+        "en": "Rules: spec/access-diagnostics-vectors.json, run by all four kits (flareAccessDiagnostics and its helpers). Three states: normal (\"Connection is healthy\", or \"Not connected\" off a line), recovering (every line failed, or no usable manifest: the kit's \"Service temporarily unavailable. Recovering…\", or \"No network. Reconnects when it is back.\" while the device is offline; the recovery tools move to the top and the rounds so far show), and warning (accessPointMismatch, which also shows the access point the server reports, and manifestStale). Recovering keeps its warnings. The line list groups by region in the order regions first appear and keeps the host's order inside. Latency reads good below 150 ms, poor above 400 ms and fair in between, on the whole milliseconds shown, in the success, warning and danger tones. A pin is offered on an active line whose breaker is not open; a pinned line always offers Unpin. An action is drawn only while the host handles it. Copy lives in the strings table (Vue `accessDiagnostics.*`, native `accessDiagnostics*`).",
+        "zh": "规则：spec/access-diagnostics-vectors.json，四端共跑（flareAccessDiagnostics 及其辅助函数）。三种状态：normal（「线路正常」，没有连接时「当前没有连接」）、recovering（全部线路失败或没有可用清单：kit 的「服务暂时不可用，正在自动恢复…」，设备无网时「网络不可用，恢复后会自动重连」；恢复工具移到最上面并显示已尝试轮数）、warning（accessPointMismatch，同时显示服务端报告的接入点；manifestStale）。recovering 保留告警。线路列表按区域首次出现的顺序分组，组内保持宿主顺序。延迟按显示的整数毫秒分级：低于 150 ms 良好，高于 400 ms 较差，其余一般，语气分别为 success、warning、danger。只有状态为 active 且未熔断 open 的线路提供「固定」；已固定的线路始终提供「取消固定」。宿主处理对应动作时才画出按钮。文案在词条表里（Vue `accessDiagnostics.*`，原生 `accessDiagnostics*`）。"
+      }
+    },
+    {
+      "name": "UpdatePrompt",
+      "category": "Feedback",
+      "summary": {
+        "en": "The update prompt in its three forms — the update status the host read in; the phase, the words, the progress and the actions out, decided the same way in every app.",
+        "zh": "更新提示的三种形态 —— 输入宿主读到的更新状态，输出阶段、文案、进度与动作，各应用判断方式一致。"
+      },
+      "dataSource": {
+        "en": "The host passes `update://state` as plain values and runs every action: update starts or finishes the update, later calls `update.defer` (while downloading or verifying the download carries on, only the prompt goes), skip calls `update.skip`, retry repeats the failed step, fallback opens the address the error gives and is bound only while there is one, continueReadOnly steps aside. What each state means on screen is the kit's (spec/update-prompt-vectors.json). The component performs no network call, holds no SDK and never closes itself.",
+        "zh": "宿主把 `update://state` 作为纯数据传入，并执行所有动作：update 开始或完成更新，later 调 `update.defer`（下载或校验中下载继续，只是提示消失），skip 调 `update.skip`，retry 重做失败的步骤，fallback 打开错误里给的地址，有地址时才绑定，continueReadOnly 退到只读。每种状态在屏幕上说什么由 kit 决定（spec/update-prompt-vectors.json）。组件不发网络请求，不依赖 SDK，也不自己关闭。"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "The prompt is on screen. SwiftUI uses `.flareUpdatePrompt(isPresented:prompt:)`, Flutter `FlareUpdatePromptPresenter(open:)`, and Compose shows it while it is composed.",
+            "zh": "提示是否显示。SwiftUI 用 `.flareUpdatePrompt(isPresented:prompt:)`，Flutter 用 `FlareUpdatePromptPresenter(open:)`，Compose 组合即显示。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
+          "name": "form",
+          "type": "\"sheet\" | \"modal\" | \"fullscreen\"",
+          "required": true,
+          "description": {
+            "en": "`UpdateStatus.prompt`: the kit's BottomSheet, its Modal, or a Screen page over the whole window.",
+            "zh": "`UpdateStatus.prompt`：kit 的 BottomSheet、Modal，或铺满窗口的 Screen 页面。"
+          }
+        },
+        {
+          "name": "version",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.release?.version`. Blank draws no version line: the server can refuse the client before any manifest has arrived.",
+            "zh": "`UpdateStatus.release?.version`。为空时不画版本行：服务端可能先拒绝，清单还没到。"
+          }
+        },
+        {
+          "name": "notes",
+          "type": "readonly string[]",
+          "default": "[]",
+          "description": {
+            "en": "`UpdateStatus.release.notes`, already in the reader's language.",
+            "zh": "`UpdateStatus.release.notes`，已按语言回退选好。"
+          }
+        },
+        {
+          "name": "reason",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.blockReason`, already in the reader's language. A forced offer says it in place of its fixed words; blank keeps them.",
+            "zh": "`UpdateStatus.blockReason`，已按语言回退选好。强制提示的 offer 阶段用它代替固定文案，为空时保留固定文案。"
+          }
+        },
+        {
+          "name": "sizeBytes",
+          "type": "number | null",
+          "description": {
+            "en": "`UpdateStatus.release.sizeBytes`; null on a store update.",
+            "zh": "`UpdateStatus.release.sizeBytes`；商店更新时为 null。"
+          }
+        },
+        {
+          "name": "mandatory",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "`UpdateStatus.release.mandatory`: nothing here can postpone it.",
+            "zh": "`UpdateStatus.release.mandatory`：这里无法推迟。"
+          }
+        },
+        {
+          "name": "state",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.state`. Any other string reads as an offer.",
+            "zh": "`UpdateStatus.state`。其它字符串按提供更新处理。"
+          }
+        },
+        {
+          "name": "progress",
+          "type": "FlareUpdateProgress | null",
+          "description": {
+            "en": "`UpdateStatus.progress`, as it arrives.",
+            "zh": "`UpdateStatus.progress`，原样传入。"
+          }
+        },
+        {
+          "name": "errorCode",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.error.code`. `update.meteredConfirmationRequired` asks to confirm the metered network; every other code is a failure.",
+            "zh": "`UpdateStatus.error.code`。`update.meteredConfirmationRequired` 请求确认计费网络，其它错误码都是失败。"
+          }
+        },
+        {
+          "name": "retryable",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "`UpdateStatus.error.retryable`: a failure offers a retry.",
+            "zh": "`UpdateStatus.error.retryable`：失败时提供重试。"
+          }
+        },
+        {
+          "name": "fallbackTarget",
+          "type": "\"website\" | \"store\"",
+          "default": "website",
+          "description": {
+            "en": "Where the fallback goes: the website on a direct install, the app store otherwise.",
+            "zh": "fallback 的去处：直装渠道是官网，其余是应用商店。"
+          }
+        },
+        {
+          "name": "canContinueReadOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "A forced prompt may step aside into read-only browsing.",
+            "zh": "强制提示可以退到只读浏览。"
+          }
+        }
+      ],
+      "states": [
+        "offer",
+        "metered",
+        "downloading",
+        "verifying",
+        "ready",
+        "installing",
+        "failed"
+      ],
+      "events": [
+        "update",
+        "later",
+        "skip",
+        "retry",
+        "fallback",
+        "continueReadOnly"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUpdatePrompt"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareUpdatePrompt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "UpdatePromptView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "UpdatePrompt"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab stays inside the prompt and visits its buttons in visual order",
+          "Enter or Space activates a button",
+          "Escape asks for later, and does nothing on a forced prompt"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The surfaces appear without motion; the indeterminate bar stands still and muted.",
+        "screenReaderSemantics": "A named modal dialog. The title and the message are announced when they change: politely, or assertively on a forced prompt. The percent is not announced as it moves; the bar carries it as its value."
+      },
+      "notes": {
+        "en": "Rules: spec/update-prompt-vectors.json, run by all four kits (flareUpdatePrompt and its helpers). Seven phases: offer, metered (the primary button is continue download and calls update), downloading and verifying (a bar, and Download in background unless forced), ready (Restart to finish updating; the app never restarts by itself), installing (no way out) and failed (retry when retryable, then the fallback). Forced means mandatory, the required state or fullscreen: no close button, no later, no skip, and continue browsing only with canContinueReadOnly. A forced offer says `reason` in place of its fixed words; every other phase keeps its own, and a prompt that is not forced says no reason. Skip is offered in the sheet form only. The scrim, Escape and platform back ask for later. An action is drawn only while the host handles it; the first one drawn is primary. Copy lives in the strings table (Vue `updatePrompt.*`, native `updatePrompt*`); the update button reuses `connection.update`.",
+        "zh": "规则：spec/update-prompt-vectors.json，四端共跑（flareUpdatePrompt 及其辅助函数）。七个阶段：offer、metered（主按钮「继续下载」，触发 update）、downloading 与 verifying（进度条；非强制时有「后台下载」）、ready（「重启以完成更新」，应用不会自动重启）、installing（不能离开）、failed（可重试时给重试，再给 fallback）。强制指 mandatory、required 状态或 fullscreen：无关闭按钮、无稍后、无跳过，canContinueReadOnly 为 true 时才有「继续浏览」。强制提示的 offer 阶段用 `reason` 代替固定文案；其它阶段保留各自文案，非强制提示不显示原因。「跳过此版本」只在 sheet 形态出现。遮罩、Escape 与平台返回键都请求 later。宿主处理对应动作时才画出按钮，第一个画出的是主按钮。文案在词条表里（Vue `updatePrompt.*`，原生 `updatePrompt*`），立即更新复用 `connection.update`。"
+      }
+    },
+    {
+      "name": "ProgressBar",
+      "category": "Feedback",
+      "summary": {
+        "en": "A linear progress bar — a value from 0 to 1, or a sliding fill while the length of the work is not known, with its number for a screen reader.",
+        "zh": "线性进度条 —— 0 到 1 的值，长度未知时显示滑动填充，并向读屏提供数值。"
+      },
+      "dataSource": {
+        "en": "presentational only",
+        "zh": "纯展示"
+      },
+      "props": [
+        {
+          "name": "value",
+          "type": "number | null",
+          "description": {
+            "en": "How far along, 0 to 1. Clamped; a missing or non-finite value reads as indeterminate.",
+            "zh": "进度，0 到 1。超出范围会夹取；缺失或非有限值按不确定处理。"
+          }
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The length of the work is not known: the fill slides instead.",
+            "zh": "长度未知：改为滑动填充。"
+          }
+        },
+        {
+          "name": "tone",
+          "type": "\"primary\" | \"success\" | \"warning\" | \"danger\" | \"neutral\"",
+          "default": "primary",
+          "description": {
+            "en": "What the colour says; the words around it carry the meaning.",
+            "zh": "颜色的语气；含义由旁边的文字表达。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": {
+            "en": "What is progressing, for a screen reader.",
+            "zh": "进度属于什么，给读屏用。"
+          }
+        }
+      ],
+      "states": [
+        "determinate",
+        "indeterminate"
+      ],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareProgressBar"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareProgressBar"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ProgressBarView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ProgressBar"
+        }
+      },
+      "accessibility": {
+        "role": "progressbar",
+        "labelRequired": false,
+        "focusable": "none",
+        "keyboardBehavior": [],
+        "touchTarget": {
+          "minWidth": 0,
+          "minHeight": 0,
+          "unit": "logicalPx",
+          "appliesTo": "none"
+        },
+        "reducedMotionBehavior": "The indeterminate fill stands still and muted; a value changes without easing.",
+        "screenReaderSemantics": "Reads its label with its value as a whole percent; while indeterminate the value says the work is under way. It is not a live region: whoever owns the work announces the milestones."
+      },
+      "notes": {
+        "en": "Rules: spec/update-prompt-vectors.json `progressBar`. Height is the spacing-xs token, the ends radius-full, the track bg-tertiary, and the fill the tone's text colour so it keeps its contrast in both modes. TransferProgress stays the attachment card; this is the bar alone.",
+        "zh": "规则：spec/update-prompt-vectors.json 的 `progressBar`。高度取 spacing-xs，圆角取 radius-full，轨道取 bg-tertiary，填充取语气的文字色，明暗两种模式都保持对比度。TransferProgress 仍是附件卡片，这里只是进度条本身。"
       }
     },
     {
@@ -12455,6 +13462,19 @@
             "en": "Grouped settings rows to render.",
             "zh": "要渲染的分组设置行。"
           }
+        },
+        {
+          "name": "scrollable",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "False when the host already owns vertical scrolling: the list sizes to its content.",
+            "zh": "宿主已负责纵向滚动时传 false：列表按内容撑高。"
+          },
+          "platforms": [
+            "ios",
+            "compose"
+          ]
         }
       ],
       "states": [
@@ -12502,6 +13522,108 @@
       "notes": {
         "en": "The 我 page: flareMeMenuSections(menu, labels?, summaries?) turns the social SDK's features.meMenu result into sections — everything but settings in the SDK's order, then settings alone; built-in labels from the kit (meMenuMoments / Reports / Invite / Settings) unless overridden, plugin titles (meMenuPluginFallback when blank), icons through flareIconNameOrFallback, the subtitle the host gives by item id (summaries: a plugin item's meMenuSummary, a built-in page's own copy) as its detail (spec/me-menu-vectors.json). Row icons outside the registry draw the plugin glyph, never a question mark.",
         "zh": "「我」页：flareMeMenuSections(menu, labels?, summaries?) 把社交 SDK 的 features.meMenu 结果变成分组 —— 除设置外按 SDK 顺序，设置单独成组在最后；内置项文案取 Kit（meMenuMoments / Reports / Invite / Settings）或宿主覆盖，插件项取标题（为空时 meMenuPluginFallback），图标经 flareIconNameOrFallback，宿主按项 id 给的副标题（summaries：插件项的 meMenuSummary、内置页自己的文案）作为副标题（spec/me-menu-vectors.json）。行图标不在注册表里时画 plugin 字形，不画问号。"
+      }
+    },
+    {
+      "name": "VersionPanel",
+      "category": "Profile",
+      "summary": {
+        "en": "The version block of an About page, in the settings list's rows — the version, the build, the channel and the row that checks for an update.",
+        "zh": "「关于」页的版本区，沿用设置列表的行 —— 版本、构建号、渠道与检查更新行。"
+      },
+      "dataSource": {
+        "en": "The host passes `UpdateStatus.current` and `UpdateStatus.state` as plain values and runs the actions: check calls `update.check` with `manual`, update starts or finishes the update. What the last row says and does is the kit's (spec/update-prompt-vectors.json).",
+        "zh": "宿主把 `UpdateStatus.current` 与 `UpdateStatus.state` 作为纯数据传入，并执行动作：check 调 `update.check` 并带 `manual`，update 开始或完成更新。最后一行写什么、做什么由 kit 决定（spec/update-prompt-vectors.json）。"
+      },
+      "props": [
+        {
+          "name": "version",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "`UpdateStatus.current.version`.",
+            "zh": "`UpdateStatus.current.version`。"
+          }
+        },
+        {
+          "name": "build",
+          "type": "number | null",
+          "description": {
+            "en": "`UpdateStatus.current.build`. No build draws no row.",
+            "zh": "`UpdateStatus.current.build`。没有时不画这一行。"
+          }
+        },
+        {
+          "name": "channel",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.current.channel`: stable, beta and internal have words of their own, any other channel is written as it arrived. No channel draws no row.",
+            "zh": "`UpdateStatus.current.channel`：stable、beta、internal 有专门的文案，其它渠道原样显示。没有时不画这一行。"
+          }
+        },
+        {
+          "name": "updateState",
+          "type": "string | null",
+          "description": {
+            "en": "`UpdateStatus.state`. Any other string reads as idle.",
+            "zh": "`UpdateStatus.state`。其它字符串按 idle 处理。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "checking",
+        "upToDate",
+        "available",
+        "required",
+        "downloading",
+        "verifying",
+        "readyToInstall",
+        "installing",
+        "failed"
+      ],
+      "events": [
+        "check",
+        "update"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareVersionPanel"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareVersionPanel"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "VersionPanelView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "VersionPanel"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the update row",
+          "Enter or Space activates it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Nothing moves.",
+        "screenReaderSemantics": "Each value row reads its label with its value as one element. The update row is a button, disabled while work is under way. What it says at its end is announced politely when it changes."
+      },
+      "notes": {
+        "en": "Rules: spec/update-prompt-vectors.json `versionPanel` and `channels`. The rows are SettingsList rows, so it follows the settings page. The row is disabled while work is under way (checking, downloading, verifying, installing) or while the host does not handle what it would do. It sizes to its content and goes inside the host's scrolling page. Copy: Vue `versionPanel.*`, native `versionPanel*`, and the prompt's titles for what the row writes at its end.",
+        "zh": "规则：spec/update-prompt-vectors.json 的 `versionPanel` 与 `channels`。行就是 SettingsList 的行，跟随设置页。工作进行中（checking、downloading、verifying、installing）或宿主不处理对应动作时，这一行禁用。组件按内容撑高，放在宿主的滚动页面里。文案：Vue `versionPanel.*`，原生 `versionPanel*`，行尾状态复用提示的标题。"
       }
     },
     {
@@ -19165,6 +20287,19 @@
             "zh": "选中态。",
             "en": "Active/pressed look."
           }
+        },
+        {
+          "name": "dot",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "红点：按钮背后有新内容，没有数量。读屏随按钮名称读出。",
+            "en": "Red dot: something new behind the button, nothing to count. Read out with the button's name."
+          }
         }
       ],
       "states": [],
@@ -24415,6 +25550,22 @@
             "en": "Draws a back key with this label above the heading (emits back). Native kits draw it only when onBack is set as well.",
             "zh": "在标题上方画一个带此文案的返回键（发出 back）。原生端还需同时传 onBack 才画。"
           }
+        },
+        {
+          "name": "eyebrow",
+          "type": "string",
+          "description": {
+            "en": "Optional account-entry label above the task heading.",
+            "zh": "任务标题上方的账号入口说明。"
+          }
+        },
+        {
+          "name": "footer",
+          "type": "string",
+          "description": {
+            "en": "Optional product or account-entry note after the form; scrolls with the form on phones.",
+            "zh": "表单后的产品或账号说明；手机上随表单滚动。"
+          }
         }
       ],
       "states": [
@@ -24455,11 +25606,11 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "No motion: the layout switches at the width breakpoint without a transition.",
-        "screenReaderSemantics": "The title is the page heading and names the form region; the back key is named by backLabel. The brand panel repeats the product copy and is hidden from assistive technology."
+        "screenReaderSemantics": "The title is the task heading and names the form region; backLabel names the back action. The active layout exposes its product name; decorative artwork is hidden from assistive technology."
       },
       "notes": {
-        "en": "The layout follows the shell's own width: at `appShellCompactMinWidth` (900) and wider the brand panel sits beside the form; below it the brand lockup moves above the heading and the headline and description are not drawn. Vue passes the form in the default slot, Flutter as `child`, SwiftUI and Compose as `content`. The kit owns the composition and the heading hierarchy only; fields, validation and submission stay in the app.",
-        "zh": "布局按骨架自身宽度切换：`appShellCompactMinWidth`（900）及以上品牌面板在表单旁；以下品牌标识移到标题上方，不画大标题与说明。表单在 Vue 走默认插槽，Flutter 走 `child`，SwiftUI 与 Compose 走 `content`。组件库只负责版式与标题层级；字段、校验与提交留在应用里。"
+        "en": "The layout follows the shell's own width: at `appShellCompactMinWidth` (900) and wider the brand panel sits beside the form; below it the brand lockup moves above the heading and the headline and description are not drawn. Vue passes the form in the default slot, Flutter as `child`, SwiftUI and Compose as `content`. The kit owns the composition and the heading hierarchy only; fields, validation and submission stay in the app. Product composition and shared metrics are specified in docs/auth-product-experience.md. Vue additionally supports utility and footer slots.",
+        "zh": "布局按骨架自身宽度切换：`appShellCompactMinWidth`（900）及以上品牌面板在表单旁；以下品牌标识移到标题上方，不画大标题与说明。表单在 Vue 走默认插槽，Flutter 走 `child`，SwiftUI 与 Compose 走 `content`。组件库只负责版式与标题层级；字段、校验与提交留在应用里。 品牌构图与跨端尺寸见 docs/auth-product-experience.md；Vue 额外提供 utility 与 footer 插槽。"
       }
     },
     {
@@ -24882,6 +26033,18 @@
             "zh": "操作占用中：所有关闭途径禁用，直到操作结束。",
             "en": "An operation owns the modal: every way of closing it is disabled until it finishes."
           }
+        },
+        {
+          "name": "fullscreen",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The surface takes the whole window, with no gutter, corners or shadow: `width`, `maxHeight` and `fill` no longer apply. Flutter takes it on `FlareModal.show`, for a page brought in with `framed: false`.",
+            "zh": "面铺满整个窗口，没有边距、圆角与阴影：`width`、`maxHeight`、`fill` 不再生效。Flutter 在 `FlareModal.show` 上提供，配合 `framed: false` 放入页面。"
+          },
+          "platforms": [
+            "vue"
+          ]
         },
         {
           "name": "scrollable",
@@ -26570,6 +27733,133 @@
         },
         "reducedMotionBehavior": "No motion.",
         "screenReaderSemantics": "Plain text: the nickname, then the account. The avatar is hidden from assistive technology because the name is already read; while loading the element is marked busy."
+      }
+    },
+    {
+      "name": "ImageUploadSlot",
+      "category": "Media",
+      "summary": {
+        "zh": "固定照片表单槽：本次预览、上传状态与选择/重试操作。",
+        "en": "A fixed photo field with a transient preview, upload state and choose/retry intents."
+      },
+      "dataSource": {
+        "zh": "宿主提供状态、文案与本次本地预览；组件不取图、不上传、不持久化。",
+        "en": "Host-owned state, copy and transient local preview; no network or persistence."
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "照片短标题。",
+            "en": "Short photo title."
+          }
+        },
+        {
+          "name": "state",
+          "type": "ImageUploadState",
+          "required": true,
+          "description": {
+            "zh": "宿主提供的上传状态。",
+            "en": "Host-owned upload state."
+          }
+        },
+        {
+          "name": "statusText",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "本地化状态文案。",
+            "en": "Localized status."
+          }
+        },
+        {
+          "name": "pickLabel",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "选择照片文案。",
+            "en": "Localized choose label."
+          }
+        },
+        {
+          "name": "actionLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "上传或重试文案。",
+            "en": "Localized upload or retry action."
+          }
+        },
+        {
+          "name": "preview",
+          "type": "platform image | URL",
+          "required": false,
+          "description": {
+            "zh": "仅当前尝试的受控本地预览。",
+            "en": "Controlled local preview for the current attempt."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "操作处理中或当前不可选择。",
+            "en": "Selection is currently unavailable."
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed"
+      ],
+      "events": [
+        "choose",
+        "action"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareImageUploadSlot"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ImageUploadSlotView"
+        }
+      },
+      "notes": {
+        "zh": "原生选择器可直接从空闲进入上传，不需要独立已选择步骤。已上传槽只读。私有历史照片须由业务先取得有效授权，不由组件取回。详见 docs/components/upload.md。",
+        "en": "Native pickers may go directly from empty to uploading without a separate selected step. Uploaded slots are read-only. The host must authorize any historical private image; the component never retrieves one. See docs/components/upload.md."
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
       }
     }
   ],

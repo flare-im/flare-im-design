@@ -23,18 +23,19 @@ data class FlareStickerPack(
 )
 
 /** User-installed emoji resource. [animatedUri] is used only by a standalone
- * sent emoji; every editing/picker/inline surface decodes [staticPreviewBytes]. */
+ * sent emoji; every editing/picker/inline surface decodes [staticPreviewBytes],
+ * or the first frame of [animatedUri] when there are none. */
 data class FlareEmojiAssetRegistration(
     val key: String,
     val animatedUri: String,
-    val staticPreviewBytes: ByteArray,
+    val staticPreviewBytes: ByteArray? = null,
     val labels: Map<String, String> = emptyMap(),
 )
 
 data class FlareStickerAssetRegistration(
     val stickerId: String,
     val uri: String,
-    val staticPreviewBytes: ByteArray,
+    val staticPreviewBytes: ByteArray? = null,
 )
 
 data class FlareStickerPackRegistration(
@@ -55,6 +56,10 @@ data class FlareStickerPackRegistration(
 private val PACK_KEY_TOKEN = Regex("\\[([a-z][a-z0-9_]*)]")
 private val EMOJI_KEY = Regex("^[a-z][a-z0-9_]*$")
 private const val STATIC_PREVIEW_BYTE_BUDGET = 8 * 1024 * 1024
+
+/** No preview is fine: the surface decodes the original. An empty or oversized one is a mistake. */
+private fun usablePreview(bytes: ByteArray?): Boolean =
+    bytes == null || (bytes.isNotEmpty() && bytes.size <= STATIC_PREVIEW_BYTE_BUDGET)
 
 object FlareEmojiStickerCatalog {
     const val ASSET_ROOT = "emoji-sticker"
@@ -136,6 +141,12 @@ object FlareEmojiStickerCatalog {
         loaded = true
     }
 
+    /** The keys that ship with the library, which a resource pack may not replace. */
+    internal fun bundledEmojiKeys(): List<String> = bundledEmojiKeys
+
+    /** The packs that ship with the library, which a resource pack may not replace. */
+    internal fun bundledStickerPackIds(): List<String> = bundledStickerPacks.map { it.id }
+
     fun hasEmojiKey(key: String): Boolean {
         val normalized = key.trim()
         return runtimeEmoji.containsKey(normalized) || emojiKeySet.contains(normalized)
@@ -148,13 +159,13 @@ object FlareEmojiStickerCatalog {
     fun registerEmojiAssets(assets: Iterable<FlareEmojiAssetRegistration>) {
         assets.forEach { asset ->
             val key = asset.key.trim()
-            if (!EMOJI_KEY.matches(key) || asset.animatedUri.isBlank() ||
-                asset.staticPreviewBytes.isEmpty() || asset.staticPreviewBytes.size > STATIC_PREVIEW_BYTE_BUDGET
-            ) return@forEach
+            if (!EMOJI_KEY.matches(key) || asset.animatedUri.isBlank() || !usablePreview(asset.staticPreviewBytes)) {
+                return@forEach
+            }
             runtimeEmoji[key] = asset.copy(
                 key = key,
                 animatedUri = asset.animatedUri.trim(),
-                staticPreviewBytes = asset.staticPreviewBytes.copyOf(),
+                staticPreviewBytes = asset.staticPreviewBytes?.copyOf(),
                 labels = asset.labels.toMap(),
             )
         }
@@ -180,13 +191,12 @@ object FlareEmojiStickerCatalog {
             if (!safeComponent(id) || pack.title.isBlank()) return@forEach
             val stickers = pack.stickers.filter { sticker ->
                 safeComponent(sticker.stickerId.trim()) && sticker.uri.isNotBlank() &&
-                    sticker.staticPreviewBytes.isNotEmpty() &&
-                    sticker.staticPreviewBytes.size <= STATIC_PREVIEW_BYTE_BUDGET
+                    usablePreview(sticker.staticPreviewBytes)
             }.map { sticker ->
                 sticker.copy(
                     stickerId = sticker.stickerId.trim(),
                     uri = sticker.uri.trim(),
-                    staticPreviewBytes = sticker.staticPreviewBytes.copyOf(),
+                    staticPreviewBytes = sticker.staticPreviewBytes?.copyOf(),
                 )
             }
             runtimeStickerPacks[id] = FlareStickerPackRegistration(id, pack.title.trim(), stickers)
@@ -228,6 +238,14 @@ object FlareEmojiStickerCatalog {
     fun stickerStaticPreviewBytes(stickerId: String, packageId: String?): ByteArray? =
         runtimeStickerPacks[packageId?.trim().takeUnless { it.isNullOrEmpty() } ?: STICKER_PACKAGE_GIFS]
             ?.stickers?.firstOrNull { it.stickerId == stickerId.trim() }?.staticPreviewBytes?.copyOf()
+
+    /** Where a static surface reads a registered emoji when it has no preview bytes; null for what ships with the library. */
+    internal fun emojiRuntimeUri(key: String): String? = runtimeEmoji[key.trim()]?.animatedUri
+
+    /** Where a static surface reads a registered sticker when it has no preview bytes; null for what ships with the library. */
+    internal fun stickerRuntimeUri(stickerId: String, packageId: String?): String? =
+        runtimeStickerPacks[packageId?.trim().takeUnless { it.isNullOrEmpty() } ?: STICKER_PACKAGE_GIFS]
+            ?.stickers?.firstOrNull { it.stickerId == stickerId.trim() }?.uri
 
     /**
      * Takes the parsed locale table. [ensureLoaded] calls this with what it read from the assets; a JVM

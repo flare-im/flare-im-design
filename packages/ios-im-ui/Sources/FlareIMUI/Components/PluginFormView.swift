@@ -88,6 +88,7 @@ public struct PluginFormView: View {
 
     private func submit() {
         guard !busy, let values = form.submit(inputs) else { return }
+        for input in inputs where input.kind == .password { form.draft[input.id] = .string("") }
         onSubmit?(values)
     }
 
@@ -95,10 +96,10 @@ public struct PluginFormView: View {
 
     @ViewBuilder private func field(_ input: PluginInput, _ colors: FlareColors) -> some View {
         switch input.kind {
-        case .text:
+        case .text, .password:
             FormFieldView(label: input.label, required: input.required,
                           hint: PluginFormRules.counter(input, form.draft[input.id]), error: errorText(input)) {
-                InputView(text: text(input), placeholder: input.placeholder ?? "", disabled: busy)
+                InputView(text: text(input), placeholder: input.placeholder ?? "", disabled: busy, secure: input.kind == .password)
                     .accessibilityLabel(input.label)
                     .accessibilityIdentifier("plugin.form.\(input.id)")
                     #if os(iOS)

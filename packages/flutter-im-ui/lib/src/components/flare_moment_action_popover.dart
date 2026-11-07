@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'flare_icon.dart';
+import 'flare_button.dart';
+import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// The dark capsule popover raised by a moment's ··· button: a Like/Unlike
-/// action and a Comment action split by a hairline divider, plus a destructive
+/// action and a Comment action, plus a destructive
 /// Delete action shown only for the viewer's own moments ([canDelete]), or a
 /// Report action in the same slot for everyone else's ([canReport]).
 ///
@@ -55,7 +57,6 @@ class FlareMomentActionPopover extends StatelessWidget {
     final colors = FlareColors.of(context);
     final s = FlareStrings.of(context);
     return Container(
-      height: 34,
       decoration: BoxDecoration(
         color: colors.bgPrimary,
         borderRadius: BorderRadius.circular(8),
@@ -68,9 +69,10 @@ class FlareMomentActionPopover extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      // Wrap whole actions at phone widths / large text sizes rather than
+      // squeezing the labels or overflowing the post's content column.
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           _btn(
             colors,
@@ -78,7 +80,6 @@ class FlareMomentActionPopover extends StatelessWidget {
             liked ? (unlikeLabel ?? s.unlike) : (likeLabel ?? s.like),
             onLike,
           ),
-          _divider(colors),
           _btn(
             colors,
             Icons.chat_bubble_outline,
@@ -86,7 +87,6 @@ class FlareMomentActionPopover extends StatelessWidget {
             onComment,
           ),
           if (canDelete) ...[
-            _divider(colors),
             _btn(
               colors,
               Icons.delete_outline,
@@ -98,7 +98,6 @@ class FlareMomentActionPopover extends StatelessWidget {
           // 举报 destroys nothing of mine, so it keeps the normal tint: the
           // danger colour stays reserved for "this deletes something of yours".
           else if (canReport) ...[
-            _divider(colors),
             _btn(
               colors,
               flareIconMap['report']!,
@@ -111,14 +110,6 @@ class FlareMomentActionPopover extends StatelessWidget {
     );
   }
 
-  Widget _divider(FlareColors colors) {
-    return Container(
-      width: 1,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      color: colors.borderSecondary,
-    );
-  }
-
   Widget _btn(
     FlareColors colors,
     IconData icon,
@@ -126,20 +117,18 @@ class FlareMomentActionPopover extends StatelessWidget {
     VoidCallback? onTap, {
     bool danger = false,
   }) {
-    final color = danger ? colors.error : colors.textPrimary;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2md),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 5),
-            Text(label, style: TextStyle(color: color, fontSize: 13)),
-          ],
-        ),
+    final color = danger ? colors.error : null;
+    return FlareButton(
+      onPressed: onTap,
+      variant: FlareButtonVariant.quiet,
+      size: FlareControlSize.sm,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: FlareSizes.iconSizeSm, color: color),
+          const SizedBox(width: FlareSizes.spacingXs),
+          Text(label, style: color == null ? null : TextStyle(color: color)),
+        ],
       ),
     );
   }

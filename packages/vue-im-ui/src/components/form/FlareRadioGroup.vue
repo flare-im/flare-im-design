@@ -39,7 +39,7 @@ function select(o: FlareSelectOption): void {
 </template>
 
 <style scoped>
-.flare-radio-group { display: inline-flex; gap: 18px; flex-wrap: wrap; }
+.flare-radio-group { display: inline-flex; gap: var(--flare-size-component-radio-indicator); flex-wrap: wrap; }
 .flare-radio-group.is-vertical { flex-direction: column; gap: 12px; align-items: flex-start; }
 .flare-radio {
   display: inline-flex;
@@ -54,8 +54,9 @@ function select(o: FlareSelectOption): void {
 }
 .flare-radio.is-disabled { opacity: 0.5; cursor: not-allowed; }
 .flare-radio__dot {
-  width: 18px;
-  height: 18px;
+  box-sizing: border-box;
+  width: var(--flare-size-component-radio-indicator);
+  height: var(--flare-size-component-radio-indicator);
   flex: 0 0 auto;
   border-radius: 50%;
   border: 1.5px solid var(--flare-color-border-hover);
@@ -67,8 +68,17 @@ function select(o: FlareSelectOption): void {
 .flare-radio.is-on .flare-radio__dot::after {
   content: "";
   position: absolute;
-  inset: 3.5px;
+  inset: 50% auto auto 50%;
+  width: var(--flare-size-component-radio-dot);
+  height: var(--flare-size-component-radio-dot);
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: var(--flare-color-primary);
+}
+@media (pointer: coarse) {
+  .flare-radio {
+    min-width: var(--flare-size-layout-touch-target);
+    min-height: var(--flare-size-layout-touch-target);
+  }
 }
 </style>

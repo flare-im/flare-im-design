@@ -108,8 +108,7 @@ String _momentAudienceSheetSelectedEnglish(int count) =>
     _english(count, '{count} person selected', '{count} people selected');
 String _conversationHeaderMemberCountEnglish(int count) =>
     _english(count, '{count} member', '{count} members');
-String _connectionDisconnectedReasonEnglish(String reason) =>
-    'Disconnected: $reason';
+String _connectionRetryInEnglish(int seconds) => 'Retrying in ${seconds}s';
 String _groupDetailMembersTitleEnglish(int count) => 'Members ($count)';
 String _profilePanelEditProfileEnglish(String name) => '$name, edit profile';
 String _momentReplyToCommentEnglish(String name, String text) =>

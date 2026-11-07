@@ -4,16 +4,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -21,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -120,6 +123,22 @@ internal fun settingsRowStacked(item: SettingsItem): Boolean {
 /** Whether [kind] draws the trailing chevron: only a row that opens a page or a picker does. */
 internal fun settingsRowHasChevron(kind: FlareSettingKind): Boolean = kind == FlareSettingKind.Navigation
 
+/** Whether [item] draws its red dot: every kind but a toggle, whose end is the switch. */
+internal fun settingsRowDrawsBadge(item: SettingsItem): Boolean = item.badge && item.kind != FlareSettingKind.Toggle
+
+/** The red dot of [SettingsItem.badge]. The row merges its description, so a screen reader hears it with the row. */
+@Composable
+private fun SettingsRowDot() {
+    val description = flareStrings().settingsRowBadge
+    Spacer(Modifier.width(FlareSizes.spacingSm))
+    Box(
+        Modifier.size(FlareSizes.spacingSm)
+            .clip(CircleShape)
+            .background(flareColors().error)
+            .semantics { contentDescription = description },
+    )
+}
+
 /**
  * One settings/profile entry row — icon, label, then the trailing affordance for its
  * [FlareSettingKind]: a switch (Toggle), detail + chevron (Navigation), a plain button (Action) or
@@ -169,6 +188,7 @@ fun SettingsRow(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(item.label, color = labelColor, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
+                    if (settingsRowDrawsBadge(item)) SettingsRowDot()
                     if (settingsRowHasChevron(item.kind)) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
                 }
                 Text(item.detail.orEmpty(), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
@@ -176,12 +196,15 @@ fun SettingsRow(
         } else {
             Text(item.label, color = labelColor, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
             when (item.kind) {
-                FlareSettingKind.Toggle -> Switch(checked = item.value, enabled = !item.disabled && onToggle != null, onCheckedChange = null)
+                FlareSettingKind.Toggle -> FlareSwitchTrack(item.value, size = FlareControlSize.Sm)
                 // A short value stays end-aligned on one line (at most 16 characters; a longer one stacks).
                 // An action's optional detail reads the same way; neither draws a chevron.
-                FlareSettingKind.Value, FlareSettingKind.Action -> item.detail?.let { d ->
-                    Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                FlareSettingKind.Value, FlareSettingKind.Action -> {
+                    item.detail?.let { d ->
+                        Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    if (settingsRowDrawsBadge(item)) SettingsRowDot()
                 }
                 FlareSettingKind.Navigation -> {
                     item.detail?.let { d ->
@@ -189,6 +212,7 @@ fun SettingsRow(
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.width(6.dp))
                     }
+                    if (settingsRowDrawsBadge(item)) SettingsRowDot()
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
                 }
             }

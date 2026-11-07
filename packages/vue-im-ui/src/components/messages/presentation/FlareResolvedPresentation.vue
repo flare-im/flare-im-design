@@ -23,7 +23,11 @@ const text=(v:unknown)=>typeof v==='string'?v:'';
 const journalUnknown=computed(()=>object(p.value.journal).known===false);
 // A failed submit can arrive before a refreshed journal projection. Require
 // review/recovery before offering another payment on that stale view.
-const paymentBlocked=computed(()=>journalUnknown.value||Boolean(props.error));
+const passwordInput=computed(()=>props.view.inputs?.find(i=>i.kind==='password'&&bound('confirm')?.form?.includes(i.id)));
+const paymentPassword=ref('');
+watch(()=>props.view,()=>{paymentPassword.value='';});
+const passwordInvalid=computed(()=>Boolean(passwordInput.value)&&!/^[0-9]{6}$/.test(paymentPassword.value));
+const paymentBlocked=computed(()=>journalUnknown.value||(Boolean(props.error)&&!passwordInput.value));
 const kind=ref<FlareRedPacketKind>('normal'),amount=ref(''),count=ref(1),greeting=ref(text(props.view.inputs?.find(i=>i.id==='greeting')?.default));
 const recipient=ref('');
 const asset=computed(()=>object(p.value.funding));
@@ -46,7 +50,13 @@ const sender=computed(()=>users.get(text(p.value.senderId))??{name:flarePluginFa
 const claims=computed<FlareRedPacketClaim[]>(()=>Array.isArray(p.value.claims)?p.value.claims.map(raw=>{const c=object(raw),id=text(c.id),user=users.get(id);return {id,name:user?.name??flarePluginFallbackName(id),avatar:user?.avatarUrl,amountMinor:text(c.amountMinor),claimedAtMs:typeof c.claimedAtMs==='number'?c.claimedAtMs:0,best:c.best===true};}):[]);
 const mayOpen=computed(()=>Boolean(bound('open'))&&details.value?.status==='open'&&!journalUnknown.value&&!props.error);
 function requestOpen(){open.value=false;const a=bound('open');if(a&&!props.busy&&!journalUnknown.value)emit('request',a.id);}
-function confirmPay(){payOpen.value=false;const a=bound('confirm');if(a&&!props.busy&&!paymentBlocked.value)emit('request',a.id);}
+function confirmPay(){
+ const a=bound('confirm');if(!a||props.busy||paymentBlocked.value||passwordInvalid.value)return;
+ payOpen.value=false;
+ if(passwordInput.value){const value=paymentPassword.value;paymentPassword.value='';emit('action',a.id,{formValues:{[passwordInput.value.id]:value}});}
+ else emit('request',a.id);
+}
+function cancelPay(){paymentPassword.value='';payOpen.value=false;}
 </script>
 <template>
   <FlareRedPacketCard v-if="renderer==='redPacket.card'" :blessing="text(p.blessing)" :kind="(text(p.kind)||'normal') as FlareRedPacketKind" :state="cardState" :busy="busy" :disabled="!bound('open')" @open="requestOpen" />
@@ -62,7 +72,9 @@ function confirmPay(){payOpen.value=false;const a=bound('confirm');if(a&&!props.
   </template>
   <template v-else-if="['redPacket.pay','payment.confirm'].includes(renderer)">
     <FlareButton v-if="bound('confirm')" :label="bound('confirm')!.label" :disabled="busy||paymentBlocked" @click="payOpen=true" />
-    <FlareRedPacketPayConfirm :open="payOpen&&Boolean(bound('confirm'))&&!paymentBlocked" :confirm-label="bound('confirm')?.label" :amount="text(p.amount)" :method-label="text(p.methodLabel)" :busy="busy" @confirm="confirmPay" @cancel="payOpen=false" />
+    <FlareRedPacketPayConfirm :open="payOpen&&Boolean(bound('confirm'))&&!paymentBlocked" :confirm-label="bound('confirm')?.label" :amount="text(p.amount)" :method-label="text(p.methodLabel)" :busy="busy" :confirm-disabled="passwordInvalid" @confirm="confirmPay" @cancel="cancelPay">
+      <template v-if="passwordInput" #credential><FlareInput v-model="paymentPassword" :placeholder="passwordInput.placeholder ?? passwordInput.label" :aria-label="passwordInput.label" :secure="true" inputmode="numeric" autocomplete="off" :max-length="6" :disabled="busy" @submit="confirmPay" /></template>
+    </FlareRedPacketPayConfirm>
   </template>
   <FlarePluginView v-if="renderer!=='redPacket.card'" :view="remainder" embedded :busy="busy" :form-errors="[...(formErrors??[])]" :settle-token="settleToken" :resolve-user="resolveUser" :members="members" @action="(id,payload)=>emit('action',id,payload)" />
 </template>

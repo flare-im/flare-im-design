@@ -11,11 +11,30 @@ import FlareRedPacketCard from '../FlareRedPacketCard.vue';
 import FlareRedPacketComposer from '../FlareRedPacketComposer.vue';
 import FlareRedPacketPayConfirm from '../FlareRedPacketPayConfirm.vue';
 import FlareRedPacketOpenSheet from '../FlareRedPacketOpenSheet.vue';
+import FlareInput from '../../general/FlareInput.vue';
 import type {FlarePluginViewModel} from '../../../shared/contracts/plugin-ui';
 const fixtures=JSON.parse(readFileSync(resolve(__dirname,'../../../../../../spec/financial-presentation-vectors.json'),'utf8')) as Record<string,FlarePluginViewModel>;
 const mounted:ReturnType<typeof mount>[]=[];afterEach(()=>{mounted.splice(0).forEach(w=>w.unmount());});
 function mountView(view:FlarePluginViewModel,error?:string){const root=mount(defineComponent({setup(){useFlareI18nProvider('zh-CN');return()=>h(FlarePluginView,{view,error});}}));mounted.push(root);return root.getComponent(FlarePluginView);}
 describe('resolved payment Kit composition',()=>{
+ it('requires a masked payment password and clears it before invoking the declared action',async()=>{
+  const view=structuredClone(fixtures.payment);
+  view.inputs=[{id:'password',kind:'password',label:'支付密码',required:true,maxLength:6}];
+  const id=view.presentation!.actions.authorize!;
+  view.presentation!.actions={confirm:id};
+  view.actions.find(a=>a.id===id)!.form=['password'];
+  const w=mountView(view);
+  const pay=w.getComponent(FlareRedPacketPayConfirm);
+  expect(pay.props('confirmDisabled')).toBe(true);
+  const input=w.getComponent(FlareInput);expect(input.props('secure')).toBe(true);
+  input.vm.$emit('update:modelValue','839271');await nextTick();
+  expect(pay.props('confirmDisabled')).toBe(false);
+  pay.vm.$emit('confirm');await nextTick();
+  expect(w.emitted('action')?.[0]).toEqual([id,{formValues:{password:'839271'}}]);
+  await w.findAll('button').find(b=>b.text()==='确认授权')!.trigger('click');
+  expect(w.getComponent(FlareInput).props('modelValue')).toBe('');
+ });
+
  it('uses the existing red packet card and routes only its declared action',async()=>{
   const w=mountView(fixtures.card);
   const card=w.getComponent(FlareRedPacketCard);expect(card.props('state')).toBe('refunded');

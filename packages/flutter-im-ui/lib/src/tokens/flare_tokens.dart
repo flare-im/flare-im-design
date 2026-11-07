@@ -1321,7 +1321,8 @@ class FlareColors {
         inherited?.mode ?? FlareThemeMode.system,
         systemDark: flareSystemDark(source),
       );
-      return inherited?.colors ?? resolve(dark ? Brightness.dark : Brightness.light, brand: inherited?.brand ?? brand);
+      final colors = dark ? inherited?.darkColors ?? inherited?.colors : inherited?.colors;
+      return colors ?? resolve(dark ? Brightness.dark : Brightness.light, brand: inherited?.brand ?? brand);
     }
     return resolve(source as Brightness, brand: brand);
   }
@@ -1345,14 +1346,22 @@ class FlareTheme extends InheritedWidget {
     this.brand = FlareBrandTheme.violet,
     this.mode = FlareThemeMode.system,
     this.colors,
+    this.darkColors,
     required super.child,
   });
   final FlareBrandTheme brand;
   final FlareThemeMode mode;
+
+  /// Fixed colours for this subtree, in either brightness unless [darkColors] is set.
   final FlareColors? colors;
+
+  /// The colours of dark mode. With these, [colors] holds for light mode alone, so a subtree that sets its own
+  /// brightness follows it.
+  final FlareColors? darkColors;
   static FlareTheme? maybeOf(BuildContext context) => context.dependOnInheritedWidgetOfExactType<FlareTheme>();
   @override
-  bool updateShouldNotify(FlareTheme oldWidget) => brand != oldWidget.brand || mode != oldWidget.mode || colors != oldWidget.colors;
+  bool updateShouldNotify(FlareTheme oldWidget) =>
+      brand != oldWidget.brand || mode != oldWidget.mode || colors != oldWidget.colors || darkColors != oldWidget.darkColors;
 }
 
 /// A named text role: what a title, a section header, body text or a caption is, in one place
@@ -1385,13 +1394,20 @@ abstract final class FlareSizes {
   static const double fontSize3xl = 18.0;
   static const double fontSize4xl = 20.0;
   static const double fontSize5xl = 24.0;
+  static const double fontSizeAuthTitle = 28.0;
+  static const double fontSizeAuthHeadline = 36.0;
   static const double iconSizeLg = 24.0;
   static const double iconSizeMd = 20.0;
   static const double iconSizeSm = 16.0;
   static const double iconSizeXl = 32.0;
+  static const double authFormMaxWidth = 420.0;
+  static const double authBrandLogoSize = 44.0;
+  static const double authMobileLogoSize = 40.0;
+  static const double authArtworkWidth = 320.0;
   static const double avatarSize = 44.0;
   static const double bubbleMaxWidth = 640.0;
   static const double messageTimelineContentMaxWidth = 920.0;
+  static const double directoryContentMaxWidth = 880.0;
   static const double chatMinWidth = 360.0;
   static const double navigationRailWidth = 72.0;
   static const double navigationRailMinWidth = 600.0;
@@ -1438,6 +1454,23 @@ abstract final class FlareSizes {
   static const double spacingLg = 16.0;
   static const double spacingXl = 20.0;
   static const double spacing2xl = 24.0;
+  static const double componentSwitchWidthSm = 34.0;
+  static const double componentSwitchHeightSm = 20.0;
+  static const double componentSwitchThumbSm = 14.0;
+  static const double componentSwitchWidthMd = 44.0;
+  static const double componentSwitchHeightMd = 26.0;
+  static const double componentSwitchThumbMd = 20.0;
+  static const double componentSwitchWidthLg = 52.0;
+  static const double componentSwitchHeightLg = 32.0;
+  static const double componentSwitchThumbLg = 26.0;
+  static const double componentIconButtonSideSm = 30.0;
+  static const double componentIconButtonSideMd = 38.0;
+  static const double componentIconButtonSideLg = 46.0;
+  static const double componentIconButtonGlyphSm = 16.0;
+  static const double componentIconButtonGlyphMd = 19.0;
+  static const double componentIconButtonGlyphLg = 22.0;
+  static const double componentRadioIndicator = 18.0;
+  static const double componentRadioDot = 9.0;
   static const double componentBubblePaddingX = 14.0;
   static const double componentBubblePaddingY = 9.0;
   static const double componentMessageAvatarSize = 40.0;

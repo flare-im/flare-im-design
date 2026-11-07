@@ -292,10 +292,14 @@ class FlareImageGroupContent extends FlareMessageContent {
 class FlareVideoContent extends FlareMessageContent {
   const FlareVideoContent({
     required this.url,
+    this.localPath,
     this.poster,
     this.durationSec = 0,
   });
   final String url;
+
+  /// Trusted host/SDK cache result, never a path decoded from message content.
+  final String? localPath;
   final String? poster;
   final int durationSec;
   @override
@@ -303,8 +307,15 @@ class FlareVideoContent extends FlareMessageContent {
 }
 
 class FlareAudioContent extends FlareMessageContent {
-  const FlareAudioContent({required this.url, this.durationSec = 0});
+  const FlareAudioContent({
+    required this.url,
+    this.localPath,
+    this.durationSec = 0,
+  });
   final String url;
+
+  /// Trusted host/SDK cache result, never a path decoded from message content.
+  final String? localPath;
   final int durationSec;
   @override
   String get type => 'audio';

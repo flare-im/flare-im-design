@@ -35,7 +35,7 @@ class FlareMediaController extends ChangeNotifier {
   /// Plays the voice message [key] from [url], or pauses it while it plays and
   /// resumes it while paused. Starting one stops the one before it; a failed
   /// one starts again.
-  Future<void> toggleVoice(String key, String url) async {
+  Future<void> toggleVoice(String key, String url, {String? localPath}) async {
     final player = _player;
     if (_voiceKey == key && player != null) {
       switch (_status) {
@@ -52,7 +52,7 @@ class FlareMediaController extends ChangeNotifier {
           break;
       }
     }
-    await _startVoice(key, url);
+    await _startVoice(key, url, localPath: localPath);
   }
 
   /// Stops voice playback, if any, and releases its player.
@@ -71,7 +71,7 @@ class FlareMediaController extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> _startVoice(String key, String url) async {
+  Future<void> _startVoice(String key, String url, {String? localPath}) async {
     final generation = ++_generation;
     await _release();
     if (_disposed || generation != _generation) return;
@@ -80,7 +80,7 @@ class FlareMediaController extends ChangeNotifier {
     _elapsedSeconds = 0;
     _durationSeconds = 0;
     _notify();
-    final source = flarePlayableMediaUri(url);
+    final source = flarePlayableMediaUri(url, localPath: localPath);
     if (source == null) {
       _status = _VoiceStatus.failed;
       _notify();
@@ -305,6 +305,7 @@ void flarePresentVideo(
     FlareVideoPlayer.present(
       context,
       videoSrc: video.url,
+      localPath: video.localPath,
       poster: video.poster,
       onDownload: onDownload,
       onReveal: onReveal,
@@ -423,7 +424,8 @@ class _FlareVoicePlaybackMessageState extends State<FlareVoicePlaybackMessage> {
   FlareMediaController get _controller =>
       _scoped ?? (_own ??= FlareMediaController()..addListener(_sync));
 
-  String get _key => widget.messageId ?? widget.content.url;
+  String get _key =>
+      widget.messageId ?? widget.content.localPath ?? widget.content.url;
 
   @override
   void didChangeDependencies() {
@@ -440,7 +442,8 @@ class _FlareVoicePlaybackMessageState extends State<FlareVoicePlaybackMessage> {
   void didUpdateWidget(FlareVoicePlaybackMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.messageId != widget.messageId ||
-        oldWidget.content.url != widget.content.url) {
+        oldWidget.content.url != widget.content.url ||
+        oldWidget.content.localPath != widget.content.localPath) {
       _view = _controller._viewOf(_key);
     }
   }
@@ -473,7 +476,13 @@ class _FlareVoicePlaybackMessageState extends State<FlareVoicePlaybackMessage> {
       failed: view.status == _VoiceStatus.failed,
       onPlay:
           widget.onPlay ??
-          () => unawaited(_controller.toggleVoice(_key, widget.content.url)),
+          () => unawaited(
+            _controller.toggleVoice(
+              _key,
+              widget.content.url,
+              localPath: widget.content.localPath,
+            ),
+          ),
     );
   }
 }

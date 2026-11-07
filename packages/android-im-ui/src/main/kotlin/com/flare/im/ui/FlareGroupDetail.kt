@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 /**
@@ -89,6 +90,7 @@ data class FlareGroupDetailModel(
     val onlyAdminCanAtAll: Boolean = false,
     val onlyAdminCanPin: Boolean = false,
     val shareCardPermission: Boolean = false,
+    val forbidGroupFriendRequests: Boolean? = null,
 )
 
 /** A pending group join request, resolved for display. */
@@ -135,6 +137,7 @@ data class FlareGroupDetailLabels(
     val onlyAdminAtAll: String = "仅管理员可@全体成员",
     val onlyAdminPin: String = "仅管理员可置顶消息",
     val shareCard: String = "允许分享群名片",
+    val forbidGroupFriendRequests: String = "禁止群内加好友",
     // 进群方式 options
     val joinOpen: String = "允许任何人加入",
     val joinApproval: String = "需管理员审批",
@@ -208,6 +211,7 @@ fun flareGroupDetailLabels(strings: FlareStrings): FlareGroupDetailLabels = Flar
     onlyAdminAtAll = strings.groupDetailOnlyAdminAtAll,
     onlyAdminPin = strings.groupDetailOnlyAdminPin,
     shareCard = strings.groupDetailShareCard,
+    forbidGroupFriendRequests = strings.groupDetailForbidGroupFriendRequests,
     joinOpen = strings.groupDetailJoinOpen,
     joinApproval = strings.groupDetailJoinApproval,
     joinInvite = strings.groupDetailJoinInvite,
@@ -338,7 +342,7 @@ internal fun groupMemberMuteTarget(model: FlareGroupDetailModel, userId: String)
  * Group detail / management — a full presentational screen: header, hero, member grid,
  * and Feishu-style settings (群信息 / 我在本群 / 群管理 / 群权限), plus the member action sheet,
  * join-request approval, invite picker and invite link. The grid previews the first 20 cells (19 members
- * and the add tile when the viewer may invite); the 群成员 row opens a sheet of every member with a search
+ * and the add tile when the viewer may invite); the grid heading opens the authorized roster with a search
  * field, where choosing a member opens the same member actions. It owns its editing dialogs / sheets and
  * reuses the kit [GroupMemberGrid] and [SettingsRow]. Purely presentational — NO SDK / session: it renders
  * [model] and emits intents.
@@ -398,7 +402,7 @@ fun FlareGroupDetail(
     /** Sets how people join; the join policy row opens its picker only when this is set. */
     onSetJoinPolicy: ((FlareGroupJoinPolicy) -> Unit)? = null,
     onToggleMuteAll: (Boolean) -> Unit = {},
-    /** key ∈ {"onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission"}. */
+    /** key ∈ {"onlyAdminCanAtAll", "onlyAdminCanPin", "shareCardPermission", "forbidGroupFriendRequests"}. */
     onSetFlag: (String, Boolean) -> Unit = { _, _ -> },
     onToggleMyMuted: (Boolean) -> Unit = {},
     onToggleMyPinned: (Boolean) -> Unit = {},
@@ -514,6 +518,8 @@ fun FlareGroupDetail(
                 showAdd = showAdd,
                 onSelect = { id -> if (sheetEntries(m, id).isNotEmpty()) memberSheet = id },
                 onAddMember = { onLoadContacts(); inviteMembersOpen = true },
+                title = labels.members,
+                onViewAll = { membersOpen = true },
             )
 
             // Settings sections — each is one elevated grouped card (Feishu-style), the same
@@ -533,11 +539,6 @@ fun FlareGroupDetail(
                 SettingsRow(
                     item = SettingsItem("announcement", labels.announcement, icon = "announcement", kind = if (canEditAnnouncement) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
                     onSelect = { if (canEditAnnouncement) edit(FlareGroupDetailEditKind.Announcement) },
-                )
-                FlareGroupedCardDivider()
-                SettingsRow(
-                    item = SettingsItem("members", labels.members, icon = "people", kind = FlareSettingKind.Navigation, detail = "${m.memberCount}"),
-                    onSelect = { membersOpen = true },
                 )
             }
             afterInfo?.let { slot ->
@@ -612,6 +613,14 @@ fun FlareGroupDetail(
             }
 
             val permRows = buildList<@Composable () -> Unit> {
+                val forbidGroupFriendRequests = m.forbidGroupFriendRequests
+                if (m.capabilities.canManageInfo && forbidGroupFriendRequests != null) add {
+                    SettingsRow(
+                        item = SettingsItem("forbidGroupFriendRequests", labels.forbidGroupFriendRequests,
+                            icon = "lock", kind = FlareSettingKind.Toggle, value = forbidGroupFriendRequests),
+                        onToggle = { _, v -> onSetFlag("forbidGroupFriendRequests", v) },
+                    )
+                }
                 if (can(FlareGroupManagementEntry.OnlyAdminCanAtAll)) add {
                     SettingsRow(
                         item = SettingsItem("onlyAdminAtAll", labels.onlyAdminAtAll, icon = "mention", kind = FlareSettingKind.Toggle, value = m.onlyAdminCanAtAll),
@@ -641,31 +650,28 @@ fun FlareGroupDetail(
                 }
             }
 
-            // Footer — 发消息 (only when the host opens chats) + 退出/解散, then the host footer slot
+            // Footer: compact visuals with the standard mobile hit area.
             Spacer(Modifier.height(FlareSizes.spacingLg))
             Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm)) {
                 onOpenChat?.let { openChat ->
                     Button(
-                        label = labels.message,
-                        size = FlareControlSize.Lg,
-                        block = true,
+                        label = labels.message, size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
                         onClick = { openChat(m.members.map { it.id }, m.name) },
                     )
                 }
                 for (action in extraActions) {
-                    if (action.danger) {
-                        DangerBlockButton(text = action.label, onClick = { onExtraAction?.invoke(action.id) })
-                    } else {
-                        Button(
-                            label = action.label,
-                            variant = FlareButtonVariant.Secondary,
-                            size = FlareControlSize.Lg,
-                            block = true,
-                            onClick = { onExtraAction?.invoke(action.id) },
-                        )
-                    }
+                    Button(
+                        label = action.label,
+                        variant = if (action.danger) FlareButtonVariant.Danger else FlareButtonVariant.Secondary,
+                        size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
+                        onClick = { onExtraAction?.invoke(action.id) },
+                    )
                 }
-                DangerBlockButton(text = if (can(FlareGroupManagementEntry.Dissolve)) labels.dissolve else labels.leave, onClick = onLeave)
+                Button(
+                    label = if (can(FlareGroupManagementEntry.Dissolve)) labels.dissolve else labels.leave,
+                    variant = FlareButtonVariant.Danger, size = FlareControlSize.Sm, block = true,
+                    maintainTouchTarget = true, onClick = onLeave,
+                )
                 footer?.invoke()
             }
         }
@@ -679,21 +685,18 @@ fun FlareGroupDetail(
         val m = model
         val strings = flareStrings()
         var query by remember { mutableStateOf("") }
-        var remoteMembers by remember(m.groupId) { mutableStateOf<List<Contact>?>(null) }
-        var searchingMembers by remember { mutableStateOf(false) }
-        var memberSearchError by remember { mutableStateOf<String?>(null) }
-        LaunchedEffect(query, onSearchMembers, m.members) {
+        var remoteMembers by remember(m.groupId, m.members, query) { mutableStateOf<List<Contact>?>(null) }
+        var searchingMembers by remember(m.groupId, m.members, query) { mutableStateOf(false) }
+        var memberSearchError by remember(m.groupId, m.members, query) { mutableStateOf<String?>(null) }
+        LaunchedEffect(m.groupId, m.members, query, onSearchMembers) {
             val search = onSearchMembers
             val trimmed = query.trim()
-            memberSearchError = null
-            if (search == null || trimmed.isEmpty()) {
-                remoteMembers = null
-                searchingMembers = false
-                return@LaunchedEffect
-            }
+            if (search == null || trimmed.isEmpty()) return@LaunchedEffect
             delay(250)
             searchingMembers = true
-            runCatching { search(trimmed) }
+            val result = runCatching { search(trimmed) }
+            ensureActive()
+            result
                 .onSuccess { remoteMembers = it }
                 .onFailure { remoteMembers = emptyList(); memberSearchError = it.message ?: strings.groupDetailNoMatchingMembers }
             searchingMembers = false
