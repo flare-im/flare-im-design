@@ -596,4 +596,33 @@ describe("resource card layout", () => {
     expect(list.text()).toContain("Read failed");
     expect(list.get(".flare-admin-list__card-empty").text()).not.toBe("");
   });
+  it("keeps the shared query bar for a content page without a table or empty column chooser", async () => {
+    layout();
+    const search = vi.fn();
+    const { list } = setup(
+      { layout: "content", pagination: undefined, onSearch: search },
+      {
+        actions: () => [],
+        content: () => h("section", { class: "policy-sections" }, "Effective policy"),
+      },
+    );
+    expect(list.findComponent(NDataTable).exists()).toBe(false);
+    expect(list.find(".flare-admin-list__toolbar").exists()).toBe(false);
+    expect(list.find(".flare-admin-list__footer").exists()).toBe(false);
+    expect(list.get(".flare-admin-list__content .policy-sections").text()).toBe(
+      "Effective policy",
+    );
+    expect(list.findAll(".flare-admin-list__field")).toHaveLength(3);
+    await list.get(".flare-admin-list__query-actions button").trigger("click");
+    expect(search).toHaveBeenCalledOnce();
+  });
+  it("draws a content page's toolbar only when it has actions", async () => {
+    layout();
+    const { list } = setup({ layout: "content", pagination: undefined }, {
+      content: () => h("p", "Readings"),
+    });
+    const toolbar = list.get(".flare-admin-list__toolbar");
+    expect(toolbar.text()).toContain("Create user");
+    expect(toolbar.findComponent(NPopover).exists()).toBe(false);
+  });
 });

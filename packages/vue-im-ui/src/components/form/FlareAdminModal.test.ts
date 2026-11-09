@@ -247,4 +247,26 @@ describe("FlareAdminModal", () => {
     expect(close).not.toHaveBeenCalled();
     expect(write).not.toHaveBeenCalled();
   });
+  it("resolves width presets, and an explicit width still wins", async () => {
+    const host = mount(FlareAdminModal, {
+      attachTo: document.body,
+      props: { open: true, title: "Access point", size: "wide" },
+      slots: { default: () => h(NInput, { value: "" }) },
+    });
+    hosts.push(host);
+    await settle();
+    const surface = () =>
+      document.querySelector<HTMLElement>('[aria-label="Access point"]')!;
+    expect(surface().style.getPropertyValue("--flare-admin-modal-width")).toBe(
+      "920px",
+    );
+    await host.setProps({ size: "small" });
+    expect(surface().style.getPropertyValue("--flare-admin-modal-width")).toBe(
+      "480px",
+    );
+    await host.setProps({ width: "640px" });
+    expect(surface().style.getPropertyValue("--flare-admin-modal-width")).toBe(
+      "640px",
+    );
+  });
 });

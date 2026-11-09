@@ -18,6 +18,29 @@ Console通过`@flare-im/vue-ui/admin`复用`FlareAdminForm`，不再在每个CRU
 </FlareAdminForm>
 ```
 
+## 分组与两列网格
+
+字段多的编辑器（接入点、镜像、版本、策略提案）按任务分组，组内两列：
+
+- 每组用`FlareAdminSection`给标题（基本信息、网络与安全、服务入口……）。`FlareAdminForm`的直接子级中，相邻分组之间自动加一条分隔线和上下间距，宿主不写分隔样式。
+- `FlareAdminFormGrid`把组内的`NFormItem`排成至多`columns`列（默认2，可选1／3），每列不窄于`min-column-width`（默认240px）；容器变窄时逐级退到一列，输入不重挂载，草稿不丢。子项带`data-flare-span="full"`时占满整行，用于长文本、说明和操作原因。
+- 网格里的字段用`label-placement="top"`：每个输入的标签就在自己上方，不会出现标签和输入错位。网格只负责布局，不拥有值、校验或提示。行与行之间保留8px，不显示反馈的字段也不会贴在一起。表单里的数字输入与日期选择一样占满字段宽度。
+- `FlareAdminModal`的`size`给出常用宽度：`small` 480px、`medium` 560px（默认）、`large` 720px、`wide` 920px，用于两列分组编辑器。显式`width`仍优先；两者都收到视口宽度以内。
+
+```vue
+<FlareAdminModal :open="open" size="wide" title="新建接入点" @close="open = false">
+  <FlareAdminForm label-placement="top">
+    <FlareAdminSection title="基本信息">
+      <FlareAdminFormGrid>
+        <n-form-item label="主机名"><n-input v-model:value="form.host" /></n-form-item>
+        <n-form-item label="状态"><n-select v-model:value="form.status" :options="statuses" /></n-form-item>
+      </FlareAdminFormGrid>
+    </FlareAdminSection>
+    <n-form-item label="操作原因" required><n-input v-model:value="reason" type="textarea" /></n-form-item>
+  </FlareAdminForm>
+</FlareAdminModal>
+```
+
 ## 容器选择（2026-10-17最新裁定）
 
 | 场景 | 共享容器 |
@@ -29,7 +52,7 @@ Console通过`@flare-im/vue-ui/admin`复用`FlareAdminForm`，不再在每个CRU
 
 模态框不占整屏空白。短表单按内容居中；长表单限制视口高度，标题／底部操作不随正文滚走。宽度由宿主选择（默认560px），手机左右各至少12px，最大高度保留上下边距，正文可纵向滚动。控件与操作仍使用Naive small、32px／8px；标签依实际布局宽度在桌面同行／手机上下切换，不以进入动画缩放后的矩形宽度判断。
 
-`FlareAdminModal`只接`open`／`title`／`width`／`dismissible`／`showClose`，以及正文、`actions`、`footer`插槽；只发`close`，不拥有model或提交。原校验、权限、请求世代、保存锁与未知结果仍由宿主控制。Native负责遮罩／动画／Card呈现，复用Kit已有浮层栈统一焦点、Tab、Escape、滚动锁及平台返回，因此不并行启用两个焦点陷阱。嵌套编辑只关闭上层；原生日期与Popconfirm仍可先消费Escape。
+`FlareAdminModal`只接`open`／`title`／`width`／`size`／`dismissible`／`showClose`，以及正文、`actions`、`footer`插槽；只发`close`，不拥有model或提交。原校验、权限、请求世代、保存锁与未知结果仍由宿主控制。Native负责遮罩／动画／Card呈现，复用Kit已有浮层栈统一焦点、Tab、Escape、滚动锁及平台返回，因此不并行启用两个焦点陷阱。嵌套编辑只关闭上层；原生日期与Popconfirm仍可先消费Escape。
 
 ## 详情抽屉
 

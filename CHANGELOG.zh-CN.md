@@ -38,6 +38,7 @@
   - `ComposerActionPanel` 新增 `formFactor`（缺省 `mobile`，或 `desktop`）与 `rows`（手机 2、桌面 3）：手机横向分页，每页 rows × 列数，带页码点；桌面最多显示三行，其余在面板内滚动。Vue 的 `ComposerMoreSurface` 原来在所有设备上 8 个一页，列表一变就跳回第一页；分页现在由面板自己负责，Vue `EnhancedComposer` 新增 `formFactor`（缺省 `desktop`）。Flutter 的 composer 宽布局时传 `desktop`。
   - 新列表按 id 做差异更新：读者停在原来那一页（页数变少时夹到最后一页），新出现的项淡入 150 毫秒（减少动态效果时不做）。原生端的页码点只作指示，读屏通过分页容器翻页；Vue 的页码点是名为「第 N 页」的按钮。
   - 菜单为空时 composer 不显示「+」（原来画成禁用，Vue 还会打开一个「暂无可用内容」的空面板），打开着的面板在菜单变空时收起，草稿保留。
+- Console 管理页（`./admin`）：`FlareAdminList` 新增 `layout="content"`，不是列表的页面沿用同一查询栏、提示和工具栏，正文走 `content` 插槽，没有列设置，工具栏为空时不画；新增 `FlareAdminFormGrid`，把表单项排成至多 2（或 1、3）列，容器变窄逐级退到一列，`data-flare-span="full"` 占满整行；`FlareAdminModal` 新增 `size`（`small` 480、`medium` 560 缺省、`large` 720、`wide` 920，显式 `width` 优先）；`FlareAdminForm` 里相邻的 `FlareAdminSection` 之间画分隔线（`docs/admin-naive-form.md`、`docs/admin-naive-list.md`）。
 - `@flare-im/vue-ui/admin` 新增 `FlareAdminChecklist` 与 `FlareAdminHeatGrid`：只读的发布前检查清单，把通过、未通过和未知分开；按行列展示读数的表格，缺数据的格子显示「暂无数据」而不是 0。admin 入口同时导出 `FlareDescriptionList` 与 `FlareMetricTile`。
 - **`FlareAdminSortableList`**（Vue，`@flare-im/vue-ui/admin`）：控制台的可排序列表，拖动行首手柄、在手柄上按 Alt+↑ / Alt+↓，或用行菜单（上移、下移、移到最前）调整顺序。每次移动发出整份列表（`update:items`）并播报新位置；`item`、`trailing` 插槽放行内容与行尾控件（`docs/admin-sortable-list.md`）。文案在 `sortableList.*`；图标 shim 新增 `ReorderTwoOutline` → Lucide `GripVertical` 作手柄。
 - **四端消息列表都告诉宿主读者是否在底部**（契约与四端 Kit）。

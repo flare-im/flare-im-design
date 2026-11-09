@@ -32,6 +32,7 @@ export { default as FlareComposerActionPanel } from "./components/composer/Flare
 export type { FlareComposerActionItem, FlareComposerPanelFormFactor } from "./components/composer/FlareComposerActionPanel.vue";
 export { default as FlareAdminForm } from "./components/form/FlareAdminForm.vue";
 export { default as FlareAdminModal } from "./components/form/FlareAdminModal.vue";
+export { default as FlareAdminFormGrid } from "./components/form/FlareAdminFormGrid.vue";
 export type {
   FlareAdminColumn,
   FlareAdminPagination,

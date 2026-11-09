@@ -1,5 +1,6 @@
 ## 未发布
 
+- Console 管理页（`./admin`）：`FlareAdminList` 新增 `layout="content"`，不是列表的页面沿用同一查询栏、提示和工具栏，正文走 `content` 插槽，没有列设置，工具栏为空时不画；新增 `FlareAdminFormGrid`，把表单项排成至多 2（或 1、3）列，容器变窄逐级退到一列，`data-flare-span="full"` 占满整行；`FlareAdminModal` 新增 `size`（`small` 480、`medium` 560 缺省、`large` 720、`wide` 920，显式 `width` 优先）；`FlareAdminForm` 里相邻的 `FlareAdminSection` 之间画分隔线（`docs/admin-naive-form.md`、`docs/admin-naive-list.md`）。
 - 新增 `applyFlareResourceOverlay(packs)`（`./i18n`、包根）与类型 `FlareResourcePack`：把 `update.get_resources` 的结果折进 Kit，文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录（`spec/resource-overlay-vectors.json`，四端同一张表）。
 - `t()`、`translateFlare` 跟随 `registerFlareMessages`：首屏后才到的文案能换到已挂载的组件上。
 - 红点（只有 Vue）：`FlareIconButton` 新增 `dot`，`FlareActionItem` 新增 `dot`，缺省都是 false。画法和 `FlareSettingsRow` 的红点相同，读屏文案是 `settingsRow.badge`，写进按钮的名字。`FlareConversationHeader` 里动作收进「更多」菜单时，红点同时画在「更多」按钮和菜单项上。
