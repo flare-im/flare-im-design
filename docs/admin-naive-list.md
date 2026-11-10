@@ -50,6 +50,7 @@
 - `columns`原生render与`cell-<key>`／显式`slot`均保留真实行对象，`row-actions`可添加业务行操作。不复制行来伪造ID；`rowKey`接受稳定字段或宿主函数。
 - `surface="plain"`供卡片目录去掉外围重复面板；默认`panel`保持标准表格边界，分页、错误及业务插槽契约不变。
 - `surface="plain"`配合`controls-surface="panel"`可给筛选与操作栏增加连续的主题底色、边界和内边距，资源卡片仍直接放在页面上；默认`inherit`沿用原来的表面。
+- `layout="content"`给不是列表的页面（策略、分布图、健康读数、签名摘要）复用同一外框：查询栏、`notice`、工具栏的样式与间距不变，正文改为`content`插槽，在框内独立滚动。没有列设置；`actions`／`tools`／`help`都为空时不画工具栏。查询与重置仍只发`search`／`reset`，读写由宿主决定。
 - `embedded`为抽屉／详情中的有界列表。`tableVisible`仅控制数据区，例如原错误状态不渲染旧行；错误及重试仍由宿主提供。
 - `disabled`锁住整个列表交互；`searchDisabled`、`paginationDisabled`、`selectionDisabled`分别锁住对应入口。`rowSelectable`可排除群主等不可选行；列显隐不是业务授权。
 - 计数分页例：`{page: 1, pageSize: 20, total: 300}`；加载快照例：`{page: 1, pageSize: 20, total: loaded.length, totalKind: 'loaded'}`；游标例：`{page: 2, pageSize: 20, hasNext: true}`。后者不传虚构total，旧分页回调在快照改变后失效。

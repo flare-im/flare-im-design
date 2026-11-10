@@ -12,12 +12,22 @@ const props = withDefaults(
     open: boolean;
     title?: string;
     label?: string;
+    /** An explicit CSS width wins over `size`. Both shrink to the viewport. */
     width?: string;
+    /** Width presets: short confirmations, ordinary forms, wide forms, grouped two-column editors. */
+    size?: "small" | "medium" | "large" | "wide";
     dismissible?: boolean;
     showClose?: boolean;
   }>(),
-  { width: "560px", dismissible: true, showClose: true },
+  { size: "medium", dismissible: true, showClose: true },
 );
+const SIZES = {
+  small: "480px",
+  medium: "560px",
+  large: "720px",
+  wide: "920px",
+} as const;
+const resolvedWidth = computed(() => props.width || SIZES[props.size]);
 const emit = defineEmits<{ close: [] }>();
 const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
@@ -71,7 +81,7 @@ watch(surface, () => void nextTick(focusContent));
       ref="surface"
       v-bind="$attrs"
       class="flare-admin-modal"
-      :style="{ '--flare-admin-modal-width': width }"
+      :style="{ '--flare-admin-modal-width': resolvedWidth }"
       role="dialog"
       aria-modal="true"
       :aria-label="accessibleName"

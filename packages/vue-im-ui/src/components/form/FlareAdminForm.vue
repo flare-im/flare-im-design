@@ -129,7 +129,8 @@ defineExpose({ form });
   width: 100%;
   box-sizing: border-box;
 }
-.flare-admin-form :deep(.n-date-picker) {
+.flare-admin-form :deep(.n-date-picker),
+.flare-admin-form :deep(.n-input-number) {
   width: 100%;
   min-width: 0;
 }
@@ -145,6 +146,14 @@ defineExpose({ form });
 }
 .flare-admin-form :deep(.n-form-item-feedback) {
   padding-block-end: var(--flare-size-spacing-sm);
+}
+/* Titled groups of one editor (basic, network, endpoints...) read as separate steps. */
+.flare-admin-form > :deep(.flare-admin-section + .flare-admin-section),
+.flare-admin-form > :deep(.flare-admin-section + .n-form-item),
+.flare-admin-form > :deep(.flare-admin-section + .flare-admin-form-grid) {
+  margin-block-start: var(--flare-size-spacing-md);
+  padding-block-start: var(--flare-size-spacing-md);
+  border-block-start: 1px solid var(--flare-color-border-secondary);
 }
 .flare-admin-form > :deep(details) {
   margin-bottom: var(--flare-size-spacing-md);

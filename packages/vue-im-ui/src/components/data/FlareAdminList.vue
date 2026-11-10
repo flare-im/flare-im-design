@@ -69,8 +69,12 @@ const props = withDefaults(
     /** Detail sections own a bounded, natural-height list, not another full viewport. */
     embedded?: boolean;
     tableVisible?: boolean;
-    /** Resource cards use the item slot; query, remote paging and busy guards stay shared. */
-    layout?: "table" | "cards";
+    /**
+     * Resource cards use the item slot; query, remote paging and busy guards stay shared.
+     * `content` keeps the same query bar, notice and toolbar for a page that is not a list
+     * (settings, charts, grouped sections) and renders the `content` slot in the body.
+     */
+    layout?: "table" | "cards" | "content";
     /** Resource collections may sit directly on the page without a second enclosing panel. */
     surface?: "panel" | "plain";
     /** Give filters and actions a joined theme surface on a plain resource collection. */
@@ -139,6 +143,14 @@ const slots = useSlots();
 const instance = getCurrentInstance();
 const fieldsId = `flare-admin-filters-${useId()}`;
 const compact = computed(() => width.value > 0 && width.value < 600);
+// A content page has no column chooser; draw the toolbar only when it holds something.
+const toolbarVisible = computed(
+  () =>
+    props.layout !== "content" ||
+    ["actions", "tools", "help"].some(
+      (name) => flattenQueryFields(slots[name]?.() ?? []).length > 0,
+    ),
+);
 const locked = computed(() => props.disabled || props.loading);
 const pagingLocked = computed(() => locked.value || props.paginationDisabled);
 const selectionLocked = computed(() => locked.value || props.selectionDisabled);
@@ -538,6 +550,7 @@ function onQueryKey(event: KeyboardEvent) {
       </div>
     </NForm>
     <div
+      v-if="toolbarVisible"
       class="flare-admin-list__toolbar"
       role="group"
       :aria-label="t('dataTable.actions')"
@@ -614,6 +627,15 @@ function onQueryKey(event: KeyboardEvent) {
           /></slot>
         </div>
       </NSpin>
+    </div>
+    <div
+      v-if="tableVisible && layout === 'content'"
+      class="flare-admin-list__content"
+      role="region"
+      :aria-label="label"
+      :aria-busy="loading"
+    >
+      <slot name="content" />
     </div>
     <div
       v-if="tableVisible && layout === 'table'"
@@ -823,6 +845,19 @@ function onQueryKey(event: KeyboardEvent) {
 .flare-admin-list--plain .flare-admin-list__footer {
   padding-inline: 0;
   border-top: 0;
+}
+.flare-admin-list__content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--flare-admin-line) var(--flare-admin-surface);
+  padding: var(--flare-size-spacing-md);
+}
+.flare-admin-list--plain .flare-admin-list__content {
+  padding: 0;
 }
 .flare-admin-list__cards::-webkit-scrollbar {
   width: 6px;
