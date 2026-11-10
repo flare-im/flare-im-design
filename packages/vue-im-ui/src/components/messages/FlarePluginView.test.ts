@@ -252,6 +252,48 @@ function expectBlock(_wrapper: VueWrapper, node: ReturnType<VueWrapper["find"]>,
 }
 
 describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
+  it("renders persistent plugin guidance as ordinary text when the host owns messages", () => {
+    const { wrapper } = render({
+      view: { ...viewOf("poll-open-single"), blocks: [{ kind: "note", text: "Review changes before publishing", tone: "warning" }] },
+      notePresentation: "plain",
+    });
+    const note = wrapper.get('[data-block="note"]');
+    expect(note.text()).toBe("Review changes before publishing");
+    expect(note.classes()).toContain("is-plain");
+    expect(note.classes()).not.toContain("is-warning");
+    expect(note.attributes("data-note-tone")).toBe("warning");
+  });
+  it("custom policy rows preserve row bindings and untouched form values until confirmation", async () => {
+    const action = {id:"edit",label:"Edit",form:["enabled","other"]};
+    const row = {key:"application",cells:[],actions:[{id:"edit",input:{scope:"application",expectedRevision:"9"}}]};
+    const block = {kind:"rows" as const,source:"read",columns:[],rows:[row],actions:[action]};
+    const view: FlarePluginViewModel = {available:true,title:"Application policy",fields:[],actions:[],blocks:[block],inputs:[
+      {id:"enabled",kind:"toggle",label:"Enabled"},{id:"other",kind:"toggle",label:"Other"},
+    ]};
+    const wrapper = mount(FlarePluginView, {attachTo:document.body, props:{view,embedded:true,formChangeActions:["edit"],
+      formInitialValues:()=>({enabled:true,other:true})}, slots:{rows:({run})=>h("button",{
+        'data-policy-toggle':true,onClick:()=>run(action,row,row.actions[0].input,{enabled:false}),
+      },"Toggle")}});
+    await wrapper.get('[data-policy-toggle]').trigger('click');
+    await flushPromises();
+    expect(wrapper.emitted('action')).toBeUndefined();
+    const form = wrapper.findComponent({name:"FlarePluginForm"});
+    expect(form.props('values')).toEqual({enabled:false,other:true});
+    (document.body.querySelector('[data-form-submit]') as HTMLButtonElement).click();
+    await flushPromises();
+    expect(wrapper.emitted('action')).toEqual([["edit",{row:{key:"application",input:row.actions[0].input},formValues:{enabled:false,other:true}}]]);
+  });
+  it("custom policy rows cannot open or send an action while locked", async () => {
+    const action = {id:"edit",label:"Edit",form:["enabled"]};
+    const row = {key:"application",cells:[],actions:[]};
+    const view: FlarePluginViewModel = {available:true,title:"Application policy",fields:[],actions:[],blocks:[{kind:"rows",source:"read",columns:[],rows:[row],actions:[action]}]};
+    const wrapper = mount(FlarePluginView,{props:{view,busy:true},slots:{rows:({run})=>h('button',{
+      onClick:()=>run(action,row,{}, {enabled:false}),
+    },'Toggle')}});
+    await wrapper.get('button').trigger('click');
+    expect(wrapper.findComponent({name:'FlarePluginForm'}).exists()).toBe(false);
+    expect(wrapper.emitted('action')).toBeUndefined();
+  });
   it("row editing captures host initial values once and emits only the declared typed form", async () => {
     let initial = {name:"旅行钱包",amount:"900719925474099301"};
     const view: FlarePluginViewModel = {available:true,title:"模板",fields:[],actions:[],inputs:[{id:"name",kind:"text",label:"名称",required:true},{id:"amount",kind:"text",label:"额度"}],blocks:[{kind:"rows",source:"read",columns:[{label:"名称",format:"text"}],rows:[{key:"travel",cells:[{text:"旅行钱包"}],actions:[{id:"edit",input:{id:"travel"}}]}],actions:[{id:"edit",label:"编辑",form:["name","amount"]}]}]};
@@ -518,6 +560,18 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
       expect(form()!.textContent).toContain("网络异常，请重试");
     });
 
+    it("keeps failed form values when an external notification presents the error", async () => {
+      const { state, wrapper } = await openSubmittedForm();
+      state.errorPresentation = "external";
+      state.error = "External notification failure";
+      state.settleToken = 1;
+      await flushPromises();
+      expect(form()).not.toBeNull();
+      expect((form()!.querySelector("textarea") as HTMLTextAreaElement).value).toBe("《小王子》");
+      expect(wrapper.text()).not.toContain("External notification failure");
+      expect(form()!.textContent).not.toContain("External notification failure");
+    });
+
     it("reverts a choice it carried into a form when the form comes back with errors", async () => {
       const base = viewOf("poll-open-single") as Record<string, any>;
       const view = {
@@ -550,14 +604,14 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     expect(plain.classes()).not.toContain("is-inset-sheet");
     const inset = render({ view: viewOf("task"), embedded: true, inset: "sheet" }).wrapper.get(".flare-plugin-view");
     expect(inset.classes()).toContain("is-inset-sheet");
-    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8");
+    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8").replace(/\s+/g, " ");
     expect(css).toMatch(/\.is-embedded\.is-inset-sheet \{ padding: var\(--flare-size-spacing-md\) var\(--flare-size-spacing-lg\) var\(--flare-size-spacing-xl\); \}/);
   });
 
   // spec/plugin-view-vectors.json insets: the sides of every value, on the embedded body.
   it.each(Object.entries(vectors.insets))("pads an embedded view by the inset table: %s", (name, sides) => {
     const root = render({ view: viewOf("task"), embedded: true, inset: name }).wrapper.get(".flare-plugin-view");
-    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8");
+    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8").replace(/\s+/g, " ");
     const side = (token: string | null) => (token ? `var(--flare-size-spacing-${token})` : "0");
     const modifier = name === "sheet" ? "is-inset-sheet" : name === "sheetTop" ? "is-inset-sheet-top" : null;
     if (!modifier) {
@@ -586,7 +640,7 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
       expect(card.classes()).not.toContain("is-embedded");
       expect(card.classes()).toContain(inset === "sheet" ? "is-inset-sheet" : "is-inset-sheet-top");
     }
-    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8");
+    const css = readFileSync(resolve(__dirname, "FlarePluginView.vue"), "utf8").replace(/\s+/g, " ");
     expect(css).toMatch(/\.is-inset-sheet:not\(\.is-embedded\),\s*\.flare-plugin-view\.is-inset-sheet-top:not\(\.is-embedded\) \{[^}]*margin: var\(--flare-size-spacing-md\) var\(--flare-size-spacing-lg\) var\(--flare-size-spacing-xl\);/);
     expect(css).toMatch(/\.is-inset-sheet-top:not\(\.is-embedded\) \{ margin-bottom: 0; \}/);
   });

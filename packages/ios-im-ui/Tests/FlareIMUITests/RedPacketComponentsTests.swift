@@ -342,6 +342,16 @@ final class RedPacketComponentsTests: XCTestCase {
     }
 
     @MainActor
+    func testCardUsesItsBrandSnapshotAndHistoricalDefault() throws {
+        let custom = try RedPacketCardView(blessing: "Hello", brandName: "  Company Gift  ")
+            .environment(\.flareStrings, zh).inspect()
+        XCTAssertNoThrow(try custom.find(text: "Company Gift"))
+        XCTAssertThrowsError(try custom.find(text: zh.packetBrand))
+        let historical = try RedPacketCardView(blessing: "Hello", brandName: " ")
+            .environment(\.flareStrings, zh).inspect()
+        XCTAssertNoThrow(try historical.find(text: zh.packetBrand))
+    }
+
     func testCardShowsTheKindOnTheBrandRowAndNamesItForVoiceOver() throws {
         let card = RedPacketCardView(blessing: "Hello", kind: .exclusive, recipientName: "Bob", state: .expired,
                                      onOpen: {})
@@ -774,6 +784,26 @@ final class RedPacketComponentsTests: XCTestCase {
                        try pixels(RedPacketCardView(blessing: "Hello", statusLabel: zh.packetUnavailable, onOpen: {})))
     }
 
+    @MainActor
+    func testQuotedCardRoutesQuoteAndPacketClicksIndependently() {
+        var located = 0
+        var opened = 0
+        let quote = AnyView(Button { located += 1 } label: {
+            Text("Quoted message")
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain))
+        let card = RedPacketCardView(blessing: "Hello", onOpen: { opened += 1 })
+            .environment(\.flareMessageCardQuote, quote)
+        let viewport = CGSize(width: 300, height: 240)
+        click(card, size: viewport, at: CGPoint(x: 150, y: 70))
+        XCTAssertEqual(located, 1)
+        XCTAssertEqual(opened, 0)
+        click(card, size: viewport, at: CGPoint(x: 150, y: 160))
+        XCTAssertEqual(located, 1)
+        XCTAssertEqual(opened, 1)
+    }
+
     /// A type registered as a card draws its own shell with nothing around it; an unregistered unknown type keeps the
     /// bubble's padding; a custom body is a card without registering.
     @MainActor
@@ -906,3 +936,57 @@ final class RedPacketComponentsTests: XCTestCase {
     }
     #endif
 }
+
+#if os(macOS)
+import AppKit
+
+final class RedPacketCardLayoutTests: XCTestCase {
+    @MainActor
+    func testPacketKeepsTheSameCompactWidthOnPhoneAndDesktop() {
+        _ = NSApplication.shared
+        let card = RedPacketCardView(blessing: "恭喜发财，大吉大利", onOpen: {})
+        let host = NSHostingController(rootView: card)
+        for width: CGFloat in [320, 393, 780, 1_200] {
+            let size = host.sizeThatFits(in: CGSize(width: width, height: 1_000))
+            XCTAssertEqual(size.width, FlareSizes.componentRedPacketCardWidth, accuracy: 0.5)
+            XCTAssertEqual(size.height, 102.4, accuracy: 1,
+                           "14pt padding, 39.4pt header, 12/1/8 divider and 14pt footer")
+        }
+        XCTAssertLessThanOrEqual(host.sizeThatFits(in: CGSize(width: 180, height: 1_000)).width, 180)
+    }
+
+    @MainActor
+    func testStatusWrapsAndQuotedPacketGrowsInsideTheSameWidth() {
+        _ = NSApplication.shared
+        func size<V: View>(_ view: V, width: CGFloat = 248) -> CGSize {
+            NSHostingController(rootView: view).sizeThatFits(in: CGSize(width: width, height: 1_000))
+        }
+        let card = RedPacketCardView(blessing: "Hello", onOpen: {})
+        let regular = size(card)
+        let wrapping = size(RedPacketCardView(blessing: "Hello", statusLabel: String(repeating: "Reconnect to view this packet. ", count: 4), onOpen: {}))
+        XCTAssertEqual(wrapping.width, regular.width, accuracy: 0.5)
+        XCTAssertGreaterThan(wrapping.height, regular.height + 20)
+        let quoted = size(card.environment(\.flareMessageCardQuote,
+            AnyView(Button("Quoted message") {}.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading))))
+        XCTAssertEqual(quoted.width, regular.width, accuracy: 0.5)
+        XCTAssertGreaterThan(quoted.height, regular.height + 40)
+    }
+}
+#endif
+
+#if os(iOS)
+import UIKit
+
+final class RedPacketDynamicTypeLayoutTests: XCTestCase {
+    @MainActor
+    func testLargeTextGrowsWithoutWideningThePacket() {
+        let card = RedPacketCardView(blessing: "Hello", onOpen: {})
+        let regular = UIHostingController(rootView: card)
+            .sizeThatFits(in: CGSize(width: 180, height: 1_000))
+        let large = UIHostingController(rootView: card.dynamicTypeSize(.accessibility3))
+            .sizeThatFits(in: CGSize(width: 180, height: 1_000))
+        XCTAssertLessThanOrEqual(large.width, 180)
+        XCTAssertGreaterThan(large.height, regular.height)
+    }
+}
+#endif

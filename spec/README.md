@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**185 components / 17 categories** (source in [`components.json`](./components.json);
+**186 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -73,10 +73,10 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
+- **Media** — 8
+  `FileUpload` · `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Media** — 7
-  `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Overlay** — 7
   `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
 - **Navigation** — 6

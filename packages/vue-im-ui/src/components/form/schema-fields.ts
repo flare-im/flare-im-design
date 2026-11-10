@@ -1,8 +1,22 @@
+import type { FlarePluginReference } from "../../shared/contracts/plugin-ui";
+
+/** Text by locale, as a manifest declares it. */
+export type SchemaLocalized = Record<string, string>;
 /** Bounded presentation of local JSON schemas. Validation remains with the schema owner. */
 export type SchemaHint = {
   group?: string | null;
   order?: number | null;
-  widget?: string;
+  widget?: string | null;
+  /** The field's name, in place of the schema's one-language `title`. */
+  label?: SchemaLocalized | null;
+  /** The field's help, in place of the schema's one-language `description`. */
+  description?: SchemaLocalized | null;
+  /** Labels of enumerated values, by value. */
+  options?: Record<string, SchemaLocalized> | null;
+  /** The field's options come from the host, read with the viewer's own permission. */
+  reference?: FlarePluginReference | null;
+  /** Hints of the properties of an object field or of the items of an object array. */
+  fields?: Record<string, SchemaHint>;
 };
 export type SchemaPresentation = {
   label?: string;
@@ -19,6 +33,11 @@ export type SchemaField = {
   nullable: boolean;
   defaultValue?: unknown;
   options?: string[];
+  /** `oneOf` titles by value: what the schema itself calls its options. */
+  optionLabels?: Record<string, string>;
+  reference?: FlarePluginReference;
+  /** Hints of what this field nests. */
+  childHints?: Record<string, SchemaHint>;
   group?: string;
   minimum?: number;
   maximum?: number;
@@ -60,10 +79,44 @@ function choices(field: JsonObject): string[] | undefined {
     ? (values as string[])
     : undefined;
 }
+function choiceTitles(field: JsonObject): Record<string, string> | undefined {
+  if (!Array.isArray(field.oneOf)) return undefined;
+  const titles = field.oneOf.flatMap((branch) => {
+    const entry = object(branch);
+    return typeof entry?.const === "string" && typeof entry.title === "string"
+      ? [[entry.const, entry.title] as const]
+      : [];
+  });
+  return titles.length ? Object.fromEntries(titles) : undefined;
+}
+/** The text for `locale`: the exact tag, then its language; absent otherwise, so the schema's own text stands. */
+export function schemaLocalized(
+  text: SchemaLocalized | null | undefined,
+  locale: string | undefined,
+): string | undefined {
+  if (!text || !locale) return undefined;
+  const language = locale.split("-")[0];
+  return (
+    text[locale] ??
+    Object.entries(text).find(([tag]) => tag.split("-")[0] === language)?.[1]
+  );
+}
+function hintOptionLabels(
+  hint: SchemaHint | undefined,
+  locale: string | undefined,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(hint?.options ?? {}).flatMap(([value, text]) => {
+      const label = schemaLocalized(text, locale);
+      return label ? [[value, label]] : [];
+    }),
+  );
+}
 export function schemaFields(
   schema: JsonObject,
   hints: Record<string, SchemaHint> = {},
   presentation: Record<string, SchemaPresentation> = {},
+  locale?: string,
 ): SchemaField[] {
   const required = Array.isArray(schema.required) ? schema.required : [];
   return Object.entries(object(schema.properties) ?? {})
@@ -95,14 +148,20 @@ export function schemaFields(
       )
         return [];
       const p = presentation[id];
+      const hint = hints[id];
+      const titles = choiceTitles(type === "array" ? (item ?? {}) : field);
+      const hintLabels = hintOptionLabels(hint, locale);
       return [
         {
           id,
           type: String(type),
           title:
-            p?.label ?? (typeof field.title === "string" ? field.title : id),
+            p?.label ??
+            schemaLocalized(hint?.label, locale) ??
+            (typeof field.title === "string" ? field.title : id),
           description:
             p?.description ??
+            schemaLocalized(hint?.description, locale) ??
             (typeof field.description === "string"
               ? field.description
               : undefined),
@@ -110,6 +169,12 @@ export function schemaFields(
           nullable,
           defaultValue: field.default,
           options: itemOptions ?? options,
+          optionLabels:
+            titles || Object.keys(hintLabels).length
+              ? { ...titles, ...hintLabels }
+              : undefined,
+          reference: hints[id]?.reference ?? undefined,
+          childHints: hints[id]?.fields,
           group: hints[id]?.group ?? undefined,
           minimum: Number.isSafeInteger(field.minimum)
             ? (field.minimum as number)

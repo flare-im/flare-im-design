@@ -18,6 +18,8 @@ import 'flare_radio_group.dart';
 import 'flare_switch.dart';
 import 'flare_textarea.dart';
 import 'flare_time_picker.dart';
+import 'flare_file_upload.dart';
+import 'flare_image_upload_slot.dart';
 
 /// The inputs of a plugin action (spec Form/PluginForm), put on the kit sheet
 /// by the host (or by [FlarePluginView] for a card action).
@@ -34,11 +36,19 @@ class FlarePluginForm extends StatefulWidget {
     this.values,
     this.errors = const [],
     this.submitLabel,
+    this.embedded = false,
     this.busy = false,
     this.error,
     this.members = const [],
+    this.membersLoading = false,
+    this.membersRevision = 0,
+    this.membersError,
+    this.onMemberSearch,
+    this.onMembersRetry,
     this.onSubmit,
     this.onCancel,
+    this.fileStates = const {},
+    this.onFileAction,
   });
 
   final List<FlarePluginInput> inputs;
@@ -51,6 +61,9 @@ class FlarePluginForm extends StatefulWidget {
 
   /// The submit key; `pluginViewSubmit` when null.
   final String? submitLabel;
+
+  /// Page composition: no sheet inset or cancel key; the submit fills the row.
+  final bool embedded;
   final bool busy;
 
   /// A failure line above the keys.
@@ -58,8 +71,19 @@ class FlarePluginForm extends StatefulWidget {
 
   /// Candidates for members inputs.
   final List<FlarePluginMember> members;
+
+  /// Server member-search state; without onMemberSearch the picker filters locally.
+  final bool membersLoading;
+
+  /// An authoritative roster/permission invalidation, never an ordinary search result.
+  final int membersRevision;
+  final String? membersError;
+  final ValueChanged<String>? onMemberSearch;
+  final VoidCallback? onMembersRetry;
   final ValueChanged<Map<String, Object?>>? onSubmit;
   final VoidCallback? onCancel;
+  final Map<String, FlarePluginFileState> fileStates;
+  final ValueChanged<FlarePluginFileAction>? onFileAction;
 
   @override
   State<FlarePluginForm> createState() => _FlarePluginFormState();
@@ -73,8 +97,111 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   final Map<String, TextEditingController> _text = {};
   final Map<String, List<TextEditingController>> _rows = {};
   final Map<String, ({String date, String time})> _dateParts = {};
-  late final _memberCandidates = ValueNotifier(widget.members);
+  final _memberRevision = ValueNotifier(0);
+  ModalRoute<Object?>? _memberRoute;
+  NavigatorState? _memberNavigator;
+  final _selectedMembers = <String, FlarePluginMember>{};
   String _signature = '';
+  String _fileScope = '';
+  final _fileGenerations = <String, int>{};
+  final _localFiles = <String, FlarePluginFileState>{};
+  List<FlarePluginInput> get _visible =>
+      flarePluginVisibleInputs(widget.inputs, _draft);
+
+  FlarePluginFileState _fileState(FlarePluginInput input) {
+    final generation = _fileGenerations[input.id] ?? 0;
+    final controlled = widget.fileStates[input.id];
+    if (controlled?.scope == _fileScope && controlled?.generation == generation)
+      return controlled!;
+    final local = _localFiles[input.id];
+    if (local?.scope == _fileScope && local?.generation == generation)
+      return local!;
+    final value = FlarePluginFileValue.fromValue(_draft[input.id]);
+    return FlarePluginFileState(
+      scope: _fileScope,
+      generation: generation,
+      phase: value == null
+          ? FlarePluginFilePhase.empty
+          : FlarePluginFilePhase.uploaded,
+      value: value,
+    );
+  }
+
+  bool get _filesPending =>
+      _visible.where((i) => i.kind == FlarePluginInputKind.file).any((input) {
+        final state = _fileState(input);
+        return state.phase != FlarePluginFilePhase.empty &&
+            (state.phase != FlarePluginFilePhase.uploaded ||
+                FlarePluginFileValue.fromValue(
+                      state.value ?? _draft[input.id],
+                    ) ==
+                    null);
+      });
+
+  FlarePluginFileAction _advanceFile(
+    FlarePluginInput input,
+    FlarePluginFileActionKind action,
+  ) {
+    if (action != FlarePluginFileActionKind.preview) {
+      _fileGenerations[input.id] = (_fileGenerations[input.id] ?? 0) + 1;
+      _draft[input.id] = null;
+      _editedSinceErrors.add(input.id);
+      _localFiles[input.id] = FlarePluginFileState(
+        scope: _fileScope,
+        generation: _fileGenerations[input.id]!,
+        phase:
+            const [
+              FlarePluginFileActionKind.choose,
+              FlarePluginFileActionKind.retry,
+              FlarePluginFileActionKind.replace,
+            ].contains(action)
+            ? FlarePluginFilePhase.selected
+            : FlarePluginFilePhase.empty,
+      );
+    }
+    return FlarePluginFileAction(
+      action: action,
+      inputId: input.id,
+      input: input,
+      scope: _fileScope,
+      generation: _fileGenerations[input.id] ?? 0,
+      formValues: flarePluginFormValues(widget.inputs, _draft),
+    );
+  }
+
+  void _fileAction(FlarePluginInput input, FlarePluginFileActionKind action) {
+    if (widget.busy || !_visible.contains(input)) return;
+    late FlarePluginFileAction event;
+    setState(() => event = _advanceFile(input, action));
+    widget.onFileAction?.call(event);
+  }
+
+  void _applyFiles() {
+    for (final input in _visible.where(
+      (i) => i.kind == FlarePluginInputKind.file,
+    )) {
+      final state = widget.fileStates[input.id];
+      if (state?.scope != _fileScope ||
+          state?.generation != (_fileGenerations[input.id] ?? 0))
+        continue;
+      final value = state!.phase == FlarePluginFilePhase.uploaded
+          ? FlarePluginFileValue.fromValue(state.value)
+          : null;
+      _draft[input.id] = value?.toJson();
+      // Ordinary refresh can release the host's transfer owner and preview.
+      // Preserve only a validated receipt for the exact same field ticket.
+      _localFiles[input.id] = FlarePluginFileState(
+        scope: state.scope,
+        generation: state.generation,
+        phase: state.phase == FlarePluginFilePhase.uploaded && value == null
+            ? FlarePluginFilePhase.failed
+            : state.phase,
+        value: value,
+        fileName: state.fileName,
+        error: state.error,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -86,7 +213,24 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   void didUpdateWidget(FlarePluginForm old) {
     super.didUpdateWidget(old);
     if (_signatureOf(widget) != _signature) _reset();
-    if (!identical(old.members, widget.members)) {
+    _applyFiles();
+    if (old.membersRevision != widget.membersRevision) {
+      _selectedMembers.clear();
+      for (final input in widget.inputs.where(
+        (input) => input.kind == FlarePluginInputKind.members,
+      )) {
+        _draft[input.id] = <String>[];
+        _edited.add(input.id);
+        _editedSinceErrors.add(input.id);
+      }
+      final route = _memberRoute, navigator = _memberNavigator;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator?.mounted == true && route?.isActive == true)
+          navigator!.removeRoute(route!);
+      });
+    }
+    if (!identical(old.members, widget.members) &&
+        widget.onMemberSearch == null) {
       final current = widget.members.map((member) => member.userId).toSet();
       final removed = old.members
           .map((member) => member.userId)
@@ -101,9 +245,14 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
               .toList();
         }
       }
-      // The picker is a separate route, so notify it after this build.
+    }
+    if (!identical(old.members, widget.members) ||
+        old.membersLoading != widget.membersLoading ||
+        old.membersRevision != widget.membersRevision ||
+        old.membersError != widget.membersError) {
+      // The sheet reads current props, including a phase change without new rows.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _memberCandidates.value = widget.members;
+        if (mounted) _memberRevision.value++;
       });
     }
     if (jsonEncode([
@@ -118,7 +267,18 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
 
   @override
   void dispose() {
-    _memberCandidates.dispose();
+    final emit = widget.onFileAction;
+    final events = [
+      for (final input in widget.inputs.where(
+        (i) => i.kind == FlarePluginInputKind.file,
+      ))
+        _advanceFile(input, FlarePluginFileActionKind.invalidate),
+    ];
+    if (emit != null)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final event in events) emit(event);
+      });
+    _memberRevision.dispose();
     _disposeControllers();
     super.dispose();
   }
@@ -128,7 +288,26 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     try {
       return jsonEncode([
         for (final input in form.inputs)
-          [input.id, input.kind.name, input.defaultValue],
+          [
+            input.id,
+            input.kind.name,
+            input.defaultValue,
+            input.showWhen == null
+                ? null
+                : [input.showWhen!.field, input.showWhen!.anyOf],
+            input.file == null
+                ? null
+                : [
+                    input.file!.accept,
+                    input.file!.maxBytes,
+                    input.file!.upload.prepareOperation,
+                    input.file!.upload.completeOperation,
+                    input.file!.upload.purpose,
+                  ],
+            [
+              for (final choice in input.choices) [choice.value, choice.label],
+            ],
+          ],
         form.values,
       ]);
     } on JsonUnsupportedObjectError {
@@ -153,6 +332,23 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
 
   /// A new form (other inputs or initial values): start over from them.
   void _reset() {
+    if (_fileScope.isNotEmpty) {
+      final emit = widget.onFileAction;
+      final events = [
+        for (final input in widget.inputs.where(
+          (i) => i.kind == FlarePluginInputKind.file,
+        ))
+          _advanceFile(input, FlarePluginFileActionKind.invalidate),
+      ];
+      if (emit != null)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          for (final event in events) emit(event);
+        });
+    }
+    _fileScope = flarePluginNewFileScope();
+    _fileGenerations.clear();
+    _localFiles.clear();
+    _selectedMembers.clear();
     _signature = _signatureOf(widget);
     _disposeControllers();
     _draft
@@ -170,7 +366,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
           );
         case FlarePluginInputKind.options:
           _rows[input.id] = [
-            for (final row in value as List<String>)
+            for (final row in value is List<String> ? value : const <String>[])
               TextEditingController(text: row),
           ];
         case FlarePluginInputKind.datetime:
@@ -193,11 +389,31 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   void _set(String id, Object? value) {
+    final events = <FlarePluginFileAction>[];
     setState(() {
+      final changed = _draft[id] != value;
       _draft[id] = value;
       _edited.add(id);
       _editedSinceErrors.add(id);
+      final dependents = changed
+          ? widget.inputs.where((i) => i.showWhen?.field == id).toList()
+          : <FlarePluginInput>[];
+      for (final input in dependents) {
+        _draft[input.id] = null;
+        _text[input.id]?.clear();
+        for (final row in _rows[input.id] ?? <TextEditingController>[]) {
+          row.clear();
+        }
+        _dateParts[input.id] = (date: '', time: '');
+        _edited.remove(input.id);
+        _editedSinceErrors.add(input.id);
+      }
+      for (final input in dependents) {
+        if (input.kind == FlarePluginInputKind.file)
+          events.add(_advanceFile(input, FlarePluginFileActionKind.invalidate));
+      }
     });
+    for (final event in events) widget.onFileAction?.call(event);
   }
 
   /// The host's first error for an input, else the client's issue once it may show.
@@ -214,9 +430,9 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   void _submit() {
-    if (widget.busy) return;
+    if (widget.busy || _filesPending) return;
     setState(() => _attempted = true);
-    if (widget.inputs.any(
+    if (_visible.any(
       (input) => flarePluginCheckInput(input, _draft[input.id]) != null,
     ))
       return;
@@ -269,38 +485,83 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   Future<void> _pickMembers(FlarePluginInput input) async {
     // fill: the picker takes the sheet's height and brings its own header, so
     // the sheet's title is its accessible name only.
+    if (widget.busy) return;
+    final revision = widget.membersRevision;
+    widget.onMemberSearch?.call('');
     final picked = await FlareBottomSheet.show<List<FlareContactPickerEntry>>(
       context,
       title: input.label,
       fill: true,
-      listenable: _memberCandidates,
-      builder: (sheetContext) => FlareContactPicker(
-        groups: [
-          FlareContactPickerGroup(
-            id: 'members',
-            label: input.label,
-            entries: [
-              for (final m in _memberCandidates.value)
-                FlareContactPickerEntry(
-                  userId: m.userId,
-                  name: m.name,
-                  avatarUrl: m.avatarUrl,
-                ),
-            ],
-          ),
-        ],
-        multiple: flarePluginMaxItems(input) != 1,
-        title: input.label,
-        onSelect: (chosen) => Navigator.of(sheetContext).pop(chosen),
-        onCancel: () => Navigator.of(sheetContext).pop(),
-      ),
+      listenable: _memberRevision,
+      builder: (sheetContext) {
+        _memberRoute = ModalRoute.of(sheetContext);
+        _memberNavigator = Navigator.of(sheetContext);
+        return FlareContactPicker(
+          groups: [
+            FlareContactPickerGroup(
+              id: 'members',
+              label: input.label,
+              entries: [
+                for (final m in widget.members)
+                  FlareContactPickerEntry(
+                    userId: m.userId,
+                    name: m.name,
+                    avatarUrl: m.avatarUrl,
+                  ),
+              ],
+            ),
+          ],
+          multiple: flarePluginMaxItems(input) != 1,
+          title: input.label,
+          loading: widget.membersLoading,
+          error: widget.membersError,
+          onSearch: widget.onMemberSearch,
+          onRetry: widget.onMembersRetry,
+          onSelect: (chosen) {
+            if (!mounted ||
+                revision != widget.membersRevision ||
+                widget.busy ||
+                widget.membersLoading ||
+                (widget.membersError?.isNotEmpty ?? false))
+              return;
+            Navigator.of(sheetContext).pop(chosen);
+          },
+          onCancel: () => Navigator.of(sheetContext).pop(),
+        );
+      },
     );
-    if (picked == null || !mounted) return;
+    _memberRoute = null;
+    _memberNavigator = null;
+    if (picked == null ||
+        !mounted ||
+        revision != widget.membersRevision ||
+        widget.membersLoading ||
+        (widget.membersError?.isNotEmpty ?? false))
+      return;
     final current = widget.members.map((member) => member.userId).toSet();
+    if (widget.onMemberSearch != null) {
+      for (final entry in picked) {
+        _selectedMembers[entry.userId] = FlarePluginMember(
+          userId: entry.userId,
+          name: entry.name,
+          avatarUrl: entry.avatarUrl,
+        );
+      }
+    }
+    for (final member in widget.members.where(
+      (member) => picked.any((entry) => entry.userId == member.userId),
+    )) {
+      _selectedMembers[member.userId] = member;
+    }
     _set(input.id, [
       for (final e
           in picked
-              .where((entry) => current.contains(entry.userId))
+              .where(
+                (entry) =>
+                    current.contains(entry.userId) ||
+                    (widget.onMemberSearch != null &&
+                        _selectedMembers.containsKey(entry.userId)),
+              )
               .take(flarePluginMaxItems(input)))
         e.userId,
     ]);
@@ -324,6 +585,41 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       ),
     );
     switch (input.kind) {
+      case FlarePluginInputKind.file:
+        final file = _fileState(input);
+        final policy = input.file;
+        final max = policy?.maxBytes ?? 0;
+        final size = max >= 1048576
+            ? '${(max / 1048576).toStringAsFixed(max % 1048576 == 0 ? 0 : 1)} MiB'
+            : '${(max / 1024).ceil()} KiB';
+        final hint = policy == null
+            ? strings.pluginFileChoose
+            : '${policy.accept.map((mime) => mime.split('/').last.toUpperCase()).join(', ')} · ≤ $size';
+        return wrap(
+          FlareFileUpload(
+            title: '${input.label}${input.required ? ' *' : ''}',
+            state: FlareImageUploadState.values.byName(file.phase.name),
+            fileName: file.fileName,
+            progress: file.progress,
+            error: file.error,
+            policyHint: hint,
+            preview: file.preview,
+            previewLoading: file.previewLoading,
+            disabled: disabled || widget.onFileAction == null || policy == null,
+            onChoose: () =>
+                _fileAction(input, FlarePluginFileActionKind.choose),
+            onReplace: () =>
+                _fileAction(input, FlarePluginFileActionKind.replace),
+            onRetry: () => _fileAction(input, FlarePluginFileActionKind.retry),
+            onCancel: () =>
+                _fileAction(input, FlarePluginFileActionKind.cancel),
+            onRemove: () =>
+                _fileAction(input, FlarePluginFileActionKind.remove),
+            onPreview: () =>
+                _fileAction(input, FlarePluginFileActionKind.preview),
+          ),
+          labelled: false,
+        );
       case FlarePluginInputKind.password:
       case FlarePluginInputKind.text:
         return wrap(
@@ -481,6 +777,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
                     .where((m) => m.userId == id)
                     .map((m) => m.name)
                     .firstOrNull ??
+                _selectedMembers[id]?.name ??
                 id,
         ].join('、');
         return wrap(
@@ -518,21 +815,23 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     final colors = FlareColors.of(context);
     final error = widget.error;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        FlareSizes.spacingLg,
-        FlareSizes.spacingMd,
-        FlareSizes.spacingLg,
-        FlareSizes.spacingXl,
-      ),
+      padding: widget.embedded
+          ? EdgeInsets.zero
+          : const EdgeInsets.fromLTRB(
+              FlareSizes.spacingLg,
+              FlareSizes.spacingMd,
+              FlareSizes.spacingLg,
+              FlareSizes.spacingXl,
+            ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final fields = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (var i = 0; i < widget.inputs.length; i += 1) ...[
+              for (var i = 0; i < _visible.length; i += 1) ...[
                 if (i > 0) const SizedBox(height: FlareSizes.spacingMd),
-                _field(widget.inputs[i], strings, colors),
+                _field(_visible[i], strings, colors),
               ],
             ],
           );
@@ -561,22 +860,24 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
               const SizedBox(height: FlareSizes.spacingLg),
               Row(
                 children: [
-                  Expanded(
-                    child: FlareButton(
-                      key: const ValueKey('flare-plugin-form-cancel'),
-                      label: strings.cancel,
-                      variant: FlareButtonVariant.secondary,
-                      disabled: widget.busy,
-                      onPressed: widget.onCancel,
+                  if (!widget.embedded) ...[
+                    Expanded(
+                      child: FlareButton(
+                        key: const ValueKey('flare-plugin-form-cancel'),
+                        label: strings.cancel,
+                        variant: FlareButtonVariant.secondary,
+                        disabled: widget.busy,
+                        onPressed: widget.onCancel,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: FlareSizes.spacingMd),
+                    const SizedBox(width: FlareSizes.spacingMd),
+                  ],
                   Expanded(
                     child: FlareButton(
                       key: const ValueKey('flare-plugin-form-submit'),
                       label: widget.submitLabel ?? strings.pluginViewSubmit,
                       loading: widget.busy,
-                      disabled: widget.busy,
+                      disabled: widget.busy || _filesPending,
                       onPressed: _submit,
                     ),
                   ),

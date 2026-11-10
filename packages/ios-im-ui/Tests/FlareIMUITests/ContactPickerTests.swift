@@ -122,4 +122,26 @@ final class ContactPickerTests: XCTestCase {
         let rowToggle = try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: "Ada")) != nil })
         XCTAssertTrue(rowToggle.isDisabled())
     }
+    @MainActor
+    func testRemoteLoadingDoesNotShowAnEmptyGroupOrStaleSelectableRows() throws {
+        let view = try ContactPickerView(groups: groups, loading: true, onSearch: { _ in }).inspect()
+        XCTAssertNoThrow(try view.find(ViewType.ProgressView.self))
+        XCTAssertNoThrow(try view.find(text: s.loading))
+        XCTAssertThrowsError(try view.find(text: s.contactPickerEmpty))
+        XCTAssertThrowsError(try view.find(ContactItemView.self))
+        XCTAssertNoThrow(try view.find(SearchBarView.self), "a new query can replace a pending one")
+    }
+
+    @MainActor
+    func testRemoteFailureShowsItsRetryInsteadOfAnEmptyOrStaleList() throws {
+        var retried = 0
+        let view = try ContactPickerView(groups: groups, error: "Members unavailable", onSearch: { _ in },
+                                         onRetry: { retried += 1 }).inspect()
+        XCTAssertNoThrow(try view.find(text: "Members unavailable"))
+        XCTAssertThrowsError(try view.find(text: s.contactPickerEmpty))
+        XCTAssertThrowsError(try view.find(ContactItemView.self))
+        try view.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: self.s.retry)) != nil }).tap()
+        XCTAssertEqual(retried, 1)
+    }
+
 }

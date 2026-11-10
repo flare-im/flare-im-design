@@ -6421,7 +6421,9 @@
           "flutter"
         ],
         "avatarTap": [
+          "vue",
           "flutter",
+          "ios",
           "compose"
         ],
         "forward": [
@@ -6486,7 +6488,15 @@
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
       },
-      "platformAliases": {}
+      "platformAliases": {
+        "vue": {
+          "events": {
+            "avatarTap": [
+              "senderOpen"
+            ]
+          }
+        }
+      }
     },
     {
       "name": "MessageList",
@@ -6855,7 +6865,9 @@
           "compose"
         ],
         "avatarTap": [
+          "vue",
           "flutter",
+          "ios",
           "compose"
         ],
         "locateMessage": [
@@ -6922,6 +6934,13 @@
         "flutter": {
           "slots": {
             "empty": "emptyPlaceholder"
+          }
+        },
+        "vue": {
+          "events": {
+            "avatarTap": [
+              "senderOpen"
+            ]
           }
         }
       },
@@ -13043,11 +13062,12 @@
         "inviteMembers",
         "leave",
         "searchMembers",
-        "extraAction"
+        "extraAction",
+        "requestFriend"
       ],
       "notes": {
-        "en": "Member intents carry the state the host should write: promoteMember(userId, admin) and muteMember(userId, muted), computed from the model when tapped, so the host never recomputes a toggle. One confirmation rule on every platform: transferring ownership is confirmed inside the component; removing a member and leaving (or dissolving) are emitted as tapped and the host confirms them with its presenter (Vue useFlareConfirm, Flutter FlareDangerConfirm.show, iOS FlareFeedback.confirm, Compose DangerConfirm), which also owns busy, error and retry for the write. Compose takes headerActions for host actions at the end of its header. The join policy is `FlareGroupJoinPolicy` (open, approval, invite); an unknown policy reads as not set and the picker opens with nothing selected, and `setJoinPolicy` carries the picked policy. The message button exists only when the host handles `openChat`. Every management entry follows the model's answers and nothing else: each row, the rename and announcement editors, the add tile and dissolving (instead of leaving) through `groupManagementEntries(capabilities)`, and a member's sheet through `groupDetailMemberActions` — a member without an entry in `memberActions` opens no sheet. The kit reads no role, owner or permission-bit rule; the shared cases are `spec/group-management-vectors.json`.",
-        "zh": "成员意图携带宿主应写入的目标状态：promoteMember(userId, admin) 与 muteMember(userId, muted)，在点击时由模型算出，宿主不再自行推算开关方向。各端同一条确认规则：转让群主在组件内确认；移除成员与退出（或解散）按点击直接发出，由宿主用自己的呈现器确认（Vue useFlareConfirm、Flutter FlareDangerConfirm.show、iOS FlareFeedback.confirm、Compose DangerConfirm），写操作的忙碌、错误与重试也由它负责。Compose 通过 headerActions 在头部末端放置宿主操作。 进群方式为 `FlareGroupJoinPolicy`（open、approval、invite）；未知时显示「未设置」，选择器打开时不选中任何项，`setJoinPolicy` 携带所选方式。只有宿主处理 `openChat` 时才有发消息按钮。 每个管理入口只跟模型里的答案走：各设置行、改名与公告编辑、添加成员格、解散（代替退出）走 `groupManagementEntries(capabilities)`，成员操作面板走 `groupDetailMemberActions`；`memberActions` 里没有条目的成员不打开面板。套件不含任何角色、群主或权限位规则；共用用例在 `spec/group-management-vectors.json`。"
+        "en": "Member intents carry the state the host should write: promoteMember(userId, admin) and muteMember(userId, muted), computed from the model when tapped, so the host never recomputes a toggle. One confirmation rule on every platform: transferring ownership is confirmed inside the component; removing a member and leaving (or dissolving) are emitted as tapped and the host confirms them with its presenter (Vue useFlareConfirm, Flutter FlareDangerConfirm.show, iOS FlareFeedback.confirm, Compose DangerConfirm), which also owns busy, error and retry for the write. Compose takes headerActions for host actions at the end of its header. The join policy is `FlareGroupJoinPolicy` (open, approval, invite); an unknown policy reads as not set and the picker opens with nothing selected, and `setJoinPolicy` carries the picked policy. The message button exists only when the host handles `openChat`. Every management entry follows the model's answers and nothing else: each row, the rename and announcement editors, the add tile and dissolving (instead of leaving) through `groupManagementEntries(capabilities)`, and a member's sheet through `groupDetailMemberActions` — a member without an entry in `memberActions` opens no sheet. The kit reads no role, owner or permission-bit rule; the shared cases are `spec/group-management-vectors.json`. requestFriend(userId) opens the host-owned friend request flow only when that member has canRequestFriend and the host supplies a handler. This can be the only action in the member sheet. The kit closes the member sheet before emitting; the host reuses its existing verification-message prompt and retains the group source. No role, self or friendship rule is inferred by the kit.",
+        "zh": "成员意图携带宿主应写入的目标状态：promoteMember(userId, admin) 与 muteMember(userId, muted)，在点击时由模型算出，宿主不再自行推算开关方向。各端同一条确认规则：转让群主在组件内确认；移除成员与退出（或解散）按点击直接发出，由宿主用自己的呈现器确认（Vue useFlareConfirm、Flutter FlareDangerConfirm.show、iOS FlareFeedback.confirm、Compose DangerConfirm），写操作的忙碌、错误与重试也由它负责。Compose 通过 headerActions 在头部末端放置宿主操作。 进群方式为 `FlareGroupJoinPolicy`（open、approval、invite）；未知时显示「未设置」，选择器打开时不选中任何项，`setJoinPolicy` 携带所选方式。只有宿主处理 `openChat` 时才有发消息按钮。 每个管理入口只跟模型里的答案走：各设置行、改名与公告编辑、添加成员格、解散（代替退出）走 `groupManagementEntries(capabilities)`，成员操作面板走 `groupDetailMemberActions`；`memberActions` 里没有条目的成员不打开面板。套件不含任何角色、群主或权限位规则；共用用例在 `spec/group-management-vectors.json`。 requestFriend(userId) 仅在该成员 canRequestFriend 为 true 且宿主提供回调时打开宿主的好友申请流程，也可作为成员面板中唯一的操作。组件先关闭成员面板再发出意图；宿主复用已有验证消息表单并保留群来源。组件不自行推导角色、本人或好友规则。"
       },
       "platforms": {
         "vue": {
@@ -13090,6 +13110,12 @@
       ],
       "eventPlatforms": {
         "searchMembers": [
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "requestFriend": [
           "vue",
           "flutter",
           "ios",
@@ -13746,11 +13772,12 @@
         "switchCamera",
         "recover",
         "minimize",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "notes": {
-        "en": "Video track uses a host-injected render slot (video); the host's own camera goes in localVideo, which the kit draws as a picture-in-picture at the top trailing corner (component token callPreviewWidth, 3:4, radius card) in video mode only. The control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo); the host upgrades the call and switches mode to video.",
-        "zh": "视频轨道用宿主注入的渲染 slot（video）；宿主本端摄像头放进 localVideo，由组件库画成右上角（行尾）画中画小窗（组件 token callPreviewWidth，3:4，圆角 card），只在视频模式显示。控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）；宿主升级通话后把 mode 切到 video。"
+        "en": "Video track uses a host-injected render slot (video); the host's own camera goes in localVideo, which the kit draws as a picture-in-picture at the top trailing corner (component token callPreviewWidth, 3:4, radius card) in video mode only. The control bar is CallControls. minimize asks the host to shrink the call into its CallDock: Vue always draws the control; the native kits draw it only when the host passes onMinimize. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo); the host upgrades the call and switches mode to video. pickDevices is the Flutter desktop/Web host callback for an anchored device selector; mobile speaker routing continues through toggleSpeaker. Vue supplies its device selector through the devices slot.",
+        "zh": "视频轨道用宿主注入的渲染 slot（video）；宿主本端摄像头放进 localVideo，由组件库画成右上角（行尾）画中画小窗（组件 token callPreviewWidth，3:4，圆角 card），只在视频模式显示。控制条为 CallControls。minimize 请宿主把通话收进 CallDock：Vue 始终绘制该控制；原生端只在宿主传入 onMinimize 时绘制。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）；宿主升级通话后把 mode 切到 video。 pickDevices 是 Flutter 桌面/Web 宿主的锚点设备选择回调；移动端扬声器路由继续使用 toggleSpeaker。Vue 通过 devices 插槽提供设备选择器。"
       },
       "platforms": {
         "vue": {
@@ -13804,6 +13831,11 @@
             "localVideo": "localVideoContent"
           }
         }
+      },
+      "eventPlatforms": {
+        "pickDevices": [
+          "flutter"
+        ]
       }
     },
     {
@@ -13958,7 +13990,8 @@
         "switchCamera",
         "hangup",
         "addMember",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "platforms": {
         "vue": {
@@ -13979,8 +14012,8 @@
         }
       },
       "notes": {
-        "zh": "四端都在挂断键前渲染「加人」键，前提是宿主提供了回调（Vue showAddMember，原生 onAddMember）；GroupCallView 把自己的 onAddMember 转发给控件条。startVideo 请宿主把音频通话升级为视频通话（服务端 flare.call.update_media）：四端都只在音频模式、且宿主提供了回调时（Vue canStartVideo，原生 onStartVideo）在扬声器键之后渲染「切换到视频」键（视频图标，文案 callSwitchToVideo），顺序为 麦克风、扬声器、切换到视频、加人、挂断；视频模式从不显示。它是普通按钮，不是设备开关。",
-        "en": "addMember renders an invite key before hang-up on every platform when the host supplies it (Vue showAddMember, natives onAddMember); GroupCallView forwards its own onAddMember to the control bar. startVideo asks the host to turn the audio call into a video call (server op flare.call.update_media): every platform renders a \"switch to video\" key (the video icon, string callSwitchToVideo) right after the speaker, only in audio mode and only when the host supplies it (Vue canStartVideo, natives onStartVideo), so the audio order is microphone, speaker, switch to video, add member, hang up; video mode never shows it. It is a plain button, not a device switch."
+        "zh": "四端都在挂断键前渲染「加人」键，前提是宿主提供了回调（Vue showAddMember，原生 onAddMember）；GroupCallView 把自己的 onAddMember 转发给控件条。startVideo 请宿主把音频通话升级为视频通话（服务端 flare.call.update_media）：四端都只在音频模式、且宿主提供了回调时（Vue canStartVideo，原生 onStartVideo）在扬声器键之后渲染「切换到视频」键（视频图标，文案 callSwitchToVideo），顺序为 麦克风、扬声器、切换到视频、加人、挂断；视频模式从不显示。它是普通按钮，不是设备开关。 pickDevices 是 Flutter 桌面/Web 宿主的锚点设备选择回调；移动端扬声器路由继续使用 toggleSpeaker。Vue 通过 devices 插槽提供设备选择器。",
+        "en": "addMember renders an invite key before hang-up on every platform when the host supplies it (Vue showAddMember, natives onAddMember); GroupCallView forwards its own onAddMember to the control bar. startVideo asks the host to turn the audio call into a video call (server op flare.call.update_media): every platform renders a \"switch to video\" key (the video icon, string callSwitchToVideo) right after the speaker, only in audio mode and only when the host supplies it (Vue canStartVideo, natives onStartVideo), so the audio order is microphone, speaker, switch to video, add member, hang up; video mode never shows it. It is a plain button, not a device switch. pickDevices is the Flutter desktop/Web host callback for an anchored device selector; mobile speaker routing continues through toggleSpeaker. Vue supplies its device selector through the devices slot."
       },
       "eventPlatforms": {
         "addMember": [
@@ -13988,6 +14021,9 @@
           "flutter",
           "ios",
           "compose"
+        ],
+        "pickDevices": [
+          "flutter"
         ]
       },
       "accessibility": {
@@ -14248,7 +14284,8 @@
         "addMember",
         "minimize",
         "startVideo",
-        "selectParticipant"
+        "selectParticipant",
+        "pickDevices"
       ],
       "platforms": {
         "vue": {
@@ -14277,6 +14314,9 @@
         ],
         "selectParticipant": [
           "vue"
+        ],
+        "pickDevices": [
+          "flutter"
         ]
       },
       "accessibility": {
@@ -14312,16 +14352,16 @@
         }
       },
       "notes": {
-        "en": "tile renders one participant's video and is asked only for a tile that shows video (a video call with the camera on); every other tile, and a tile the host leaves empty (Vue: an empty slot; Flutter tileBuilder, SwiftUI tile, Compose tileContent: null), shows the kit's avatar. The tile keeps its chrome over the video on every platform: the speaking ring, the mute or camera-off badge and the name. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo).",
-        "zh": "tile 渲染一位参与者的画面，只在格子显示画面时（视频通话且摄像头开着）才向宿主要；其余格子，以及宿主没给内容的格子（Vue 空插槽；Flutter tileBuilder、SwiftUI tile、Compose tileContent 返回 null），显示组件库的头像。四端格子的装饰都画在画面之上：说话环、静音或关摄像头角标、名字。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）。"
+        "en": "tile renders one participant's video and is asked only for a tile that shows video (a video call with the camera on); every other tile, and a tile the host leaves empty (Vue: an empty slot; Flutter tileBuilder, SwiftUI tile, Compose tileContent: null), shows the kit's avatar. The tile keeps its chrome over the video on every platform: the speaking ring, the mute or camera-off badge and the name. startVideo is forwarded from the control bar's \"switch to video\" key, drawn in audio mode only (Vue canStartVideo, natives onStartVideo). pickDevices is the Flutter desktop/Web host callback for an anchored device selector; mobile speaker routing continues through toggleSpeaker. Vue supplies its device selector through the devices slot.",
+        "zh": "tile 渲染一位参与者的画面，只在格子显示画面时（视频通话且摄像头开着）才向宿主要；其余格子，以及宿主没给内容的格子（Vue 空插槽；Flutter tileBuilder、SwiftUI tile、Compose tileContent 返回 null），显示组件库的头像。四端格子的装饰都画在画面之上：说话环、静音或关摄像头角标、名字。startVideo 来自控制条的「切换到视频」键，只在音频模式显示（Vue canStartVideo，原生 onStartVideo）。 pickDevices 是 Flutter 桌面/Web 宿主的锚点设备选择回调；移动端扬声器路由继续使用 toggleSpeaker。Vue 通过 devices 插槽提供设备选择器。"
       }
     },
     {
       "name": "CallRecordCard",
       "category": "Call",
       "summary": {
-        "en": "Call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and Join (a group call in progress) or Call back (an ended 1:1 call).",
-        "zh": "会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
+        "en": "Compact call record in the chat timeline — media icon, viewer-relative status and media name. Tap an ended 1:1 record to confirm a call back; ongoing group calls may offer Join.",
+        "zh": "会话时间线里的紧凑通话记录：媒体图标、按查看者视角的状态和媒体名称。点击已结束的单聊记录确认回拨；进行中群通话可提供「加入」。"
       },
       "dataSource": {
         "en": "The call plugin's record card (flare.call.record) and the viewer's own facts, mapped by the host",
@@ -14405,8 +14445,8 @@
           "type": "boolean",
           "required": true,
           "description": {
-            "en": "Host-decided: calls are available for this conversation. Shows Call back on an ended 1:1 call.",
-            "zh": "由宿主判定：该会话可以发起通话。已结束的单聊通话显示「回拨」。"
+            "en": "Host-decided: calls are available for this conversation. An ended 1:1 card becomes a call-back target; confirmation is required before notifying the host.",
+            "zh": "由宿主判定：该会话可以发起通话。已结束的单聊卡片整卡可点击，确认回拨后才通知宿主。"
           }
         },
         {
@@ -14424,8 +14464,8 @@
           "type": "boolean",
           "required": false,
           "description": {
-            "en": "The viewer's join or call back is in flight: the action shows progress and takes no tap.",
-            "zh": "查看者的加入或回拨正在处理：操作显示进度且不响应点击。"
+            "en": "The viewer's join or call back is in flight: Join shows progress; the call-back card takes no tap and cannot confirm another call.",
+            "zh": "查看者的加入或回拨正在处理：「加入」显示进度；回拨卡片不响应点击，也不能再次确认通话。"
           },
           "default": "false"
         }
@@ -14465,8 +14505,8 @@
         "labelRequired": true,
         "focusable": "descendants",
         "keyboardBehavior": [
-          "Tab focuses the action when one is shown",
-          "Enter or Space activates it"
+          "Tab focuses the card for call back, or the Join button",
+          "Enter or Space opens call-back confirmation or activates Join"
         ],
         "touchTarget": {
           "minWidth": 48,
@@ -14475,11 +14515,11 @@
           "appliesTo": "interactiveTargets"
         },
         "reducedMotionBehavior": "No motion; a busy action shows the button's progress indicator only.",
-        "screenReaderSemantics": "One named element carries the media name and the status line (the icon is decorative); the action is a separate button named by its text."
+        "screenReaderSemantics": "The card names the media and status; when call back is available it is a button with a call-back action hint. Group Join remains a separate named button. The icon is decorative."
       },
       "notes": {
-        "en": "Rules: spec/call-record-vectors.json (status, tone, action, duration), run by all four kits. Status: ringing — group \"Group call ringing\", caller \"Waiting for answer\", callee \"Calling you\"; ongoing — 1:1 \"In call\", group \"Group call · N joined\"; ended — completed \"Duration mm:ss\" (group \"Group call ended · mm:ss\"), cancelled \"Cancelled\" / \"Caller cancelled\", declined \"Declined\" / \"You declined\", missed \"No answer\" / \"Missed call\" (the callee's missed call takes the danger tone), busy \"Busy\" / \"Missed (busy)\", unavailable, failed; a group call that ended otherwise reads \"Group call ended\". Action: none while disabled; Join for a group call that has not ended when canJoin; Call back for an ended 1:1 call when canCallBack. The icon set has no outgoing / incoming variants, so the copy carries direction. The card is the message's card surface (the kit card shell, richCardWidth like every card): no bubble around it; outgoing and incoming records differ by alignment only.",
-        "zh": "规则：spec/call-record-vectors.json（状态、语气、操作、时长），四端共跑。状态：振铃 —— 群聊「群通话呼叫中」，主叫「等待对方接听」，被叫「邀请你通话」；进行中 —— 单聊「通话中」，群聊「群通话进行中 · N 人」；已结束 —— 完成「通话时长 mm:ss」（群聊「群通话已结束 · 时长 mm:ss」），取消「已取消」/「对方已取消」，拒绝「对方已拒绝」/「已拒绝」，未接「对方未接听」/「未接听」（被叫的未接来电用危险色），忙线「对方忙线中」/「忙线未接听」，不可用、失败；群通话以其他原因结束时显示「群通话已结束」。操作：disabled 时无；群通话未结束且 canJoin 时「加入」；单聊已结束且 canCallBack 时「回拨」。图标集没有呼出 / 呼入变体，方向由文案表达。卡片就是消息的 card 表面（kit 卡片外壳，与其他卡片同为 richCardWidth），外面不套气泡；收发两侧只靠对齐区分。"
+        "en": "Rules: spec/call-record-vectors.json (status, tone, action, duration), run by all four kits. Status: ringing — group \"Group call ringing\", caller \"Waiting for answer\", callee \"Calling you\"; ongoing — 1:1 \"In call\", group \"Group call · N joined\"; ended — completed \"Duration mm:ss\" (group \"Group call ended · mm:ss\"), cancelled \"Cancelled\" / \"Caller cancelled\", declined \"Declined\" / \"You declined\", missed \"No answer\" / \"Missed call\" (the callee's missed call takes the danger tone), busy \"Busy\" / \"Missed (busy)\", unavailable, failed; a group call that ended otherwise reads \"Group call ended\". Action: none while disabled; Join for a group call that has not ended when canJoin; Call back for an ended 1:1 call when canCallBack: activate the whole card to open the kit confirmation modal; only Confirm calls the host. Only Join has an inline button. Busy, unavailable, and missing callbacks prevent activation; confirmation rechecks the current action. The icon set has no outgoing / incoming variants, so the copy carries direction. The card is the message's card surface (the kit card shell, content-sized, capped by the available width and richCardWidth): no bubble around it; outgoing and incoming records differ by alignment only.",
+        "zh": "规则：spec/call-record-vectors.json（状态、语气、操作、时长），四端共跑。状态：振铃 —— 群聊「群通话呼叫中」，主叫「等待对方接听」，被叫「邀请你通话」；进行中 —— 单聊「通话中」，群聊「群通话进行中 · N 人」；已结束 —— 完成「通话时长 mm:ss」（群聊「群通话已结束 · 时长 mm:ss」），取消「已取消」/「对方已取消」，拒绝「对方已拒绝」/「已拒绝」，未接「对方未接听」/「未接听」（被叫的未接来电用危险色），忙线「对方忙线中」/「忙线未接听」，不可用、失败；群通话以其他原因结束时显示「群通话已结束」。操作：disabled 时无；群通话未结束且 canJoin 时「加入」；单聊已结束且 canCallBack 时整卡点击打开 kit 回拨确认弹窗，确认后才通知宿主；只有「加入」显示独立按钮。忙碌、不可用或缺少回调时不响应操作，确认前重查当前能力。图标集没有呼出 / 呼入变体，方向由文案表达。卡片就是消息的 card 表面（kit 卡片外壳，按内容收缩，以可用宽度与 richCardWidth 为上限），外面不套气泡；收发两侧只靠对齐区分。"
       }
     },
     {
@@ -14811,7 +14851,10 @@
       ],
       "eventPlatforms": {
         "viewAll": [
-          "vue"
+          "vue",
+          "flutter",
+          "ios",
+          "compose"
         ]
       },
       "platforms": {
@@ -14848,6 +14891,15 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "platformAliases": {
+        "flutter": {
+          "events": {
+            "viewAll": [
+              "onOpenMembers"
+            ]
+          }
+        }
       }
     },
     {
@@ -16072,6 +16124,15 @@
           }
         },
         {
+          "name": "brandName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Immutable packet brand snapshot in the footer. Missing or blank values use the localized default for historical packets. One line, ellipsized.",
+            "zh": "红包发送时快照的底部品牌名；历史红包缺失或空值时使用本地化默认名称。单行超出省略。"
+          }
+        },
+        {
           "name": "kind",
           "type": "FlareRedPacketKind",
           "required": false,
@@ -16792,6 +16853,63 @@
       },
       "props": [
         {
+          "name": "inlineFormActionId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Opt one visible top-level action into page data entry. Only complete non-password forms without confirmation qualify; otherwise the existing button and guarded sheet remain. The same validation, action payload and settlement runner owns submission; never submits on mount.",
+            "zh": "将一个当前可见的顶层动作选为页面内表单。仅完整、无密码、无需确认的表单生效，否则保留原按钮与受保护面板。提交仍由同一校验、动作载荷与结算执行器处理，挂载不提交。"
+          }
+        },
+        {
+          "name": "inlineFormTitle",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional heading immediately before an eligible inline form, after existing fields and rows. With a nonempty title or description, the form uses the shared primary-pane max width and leading alignment. Does not change form eligibility, validation, data or settlement.",
+            "zh": "可用内嵌表单之前、原字段和记录之后的可选标题。标题或说明非空时，表单使用共享主栏最大宽度并靠起始侧对齐。不改变表单资格、校验、数据或结算。"
+          }
+        },
+        {
+          "name": "inlineFormDescription",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional instructions beside inlineFormTitle, shown only when the original inline form is eligible. Omitted metadata preserves the existing full-width form and guarded sheets.",
+            "zh": "与 inlineFormTitle 配套的可选填写说明，仅原内嵌表单可用时展示。不声明时保留现有整宽表单与受保护面板。"
+          }
+        },
+        {
+          "name": "labelRows",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "In list rows, show the first cell with its declared column caption, then pair nonempty secondary values with their column labels. Account flow pages enable this so journal-entry amounts remain distinct from net changes; existing row actions, formatting and binding remain unchanged.",
+            "zh": "列表行首格显示声明的列标签与标题值，其余非空值与列标签成对展示。account flow 页面启用，以区分分录金额与实际净变动；既有行动作、格式化和绑定保持不变。"
+          }
+        },
+        {
+          "name": "actionLayout",
+          "type": "\"inline\" | \"compact\" | \"list\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": {
+            "en": "Visual grouping of the existing action runner: inline text keys, compact buttons or full-width service rows. Forms, confirmations, readonly/busy guards and settlement remain unchanged. Flutter uses FlarePluginActionLayout, SwiftUI/Compose use PluginViewActionLayout.",
+            "zh": "现有动作执行器的视觉分组：inline 文字键、compact 紧凑按钮、list 整行服务入口。表单、确认、只读／忙碌保护与结算流程保持不变。Flutter 使用 FlarePluginActionLayout，SwiftUI／Compose 使用 PluginViewActionLayout。"
+          }
+        },
+        {
+          "name": "showError",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": {
+            "en": "Show the host error banner. False hides only the banner; keep passing the real error, formErrors and settleToken so failed forms retain their values. The errorPresentation=external option additionally delegates form error text to an external host notification on Vue.",
+            "zh": "显示宿主错误横幅。false 只隐藏横幅；仍须传入真实 error、formErrors 和 settleToken，让失败表单保留输入。Vue 的 errorPresentation=external 还会将表单错误文案交给外部宿主通知。"
+          }
+        },
+        {
           "name": "view",
           "type": "FlarePluginViewModel",
           "required": true,
@@ -16924,6 +17042,35 @@
             "en": "The host's settle signal: an integer it increments once every time an action it ran has finished (after setting error / formErrors for that result). Each change settles the card: no error and no formErrors → a submitted form closes and an optimistic choice stays marked until the new view arrives; error → the optimistic choice reverts (an open form stays and shows it); formErrors → the form stays open with them (a choice it carries reverts). busyActionId leaving the action still settles as a fallback, but a host that sets and clears busyActionId in one frame settles only through this token.",
             "zh": "宿主的结算信号：一个整数，宿主每完成一次动作（并把这次结果的 error / formErrors 设好之后）就加 1。每次变化都结算卡片：没有 error 和 formErrors → 关闭已提交的表单面板，乐观选中保留到新视图到达；有 error → 撤回乐观选中（打开的表单留着并显示它）；有 formErrors → 表单留着并显示错误（表单携带的选中一并撤回）。busyActionId 离开该动作仍作为兜底结算；宿主在同一帧里设上又清掉 busyActionId 时，只能靠这个令牌结算。"
           }
+        },
+        {
+          "name": "membersLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A host member query is pending. The picker shows progress, never an empty group or stale selectable rows.",
+            "zh": "宿主成员查询进行中。选择器显示进度，不显示为空群或可选旧结果。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "membersError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The host member-query failure, with membersRetry when supplied. Failed results do not authorize a new choice.",
+            "zh": "宿主成员查询失败文案，可用时显示 membersRetry。失败结果不允许新增选择。"
+          }
+        },
+        {
+          "name": "membersRevision",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "An authoritative roster, visibility or permission invalidation. A change clears only member drafts, selected names and the old picker; amounts and other fields stay. Ordinary partial search results must not change it.",
+            "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
+          },
+          "default": "0"
         }
       ],
       "states": [
@@ -16942,7 +17089,11 @@
         "loadMore",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "eventPlatforms": {
         "loadMore": [
@@ -16955,6 +17106,12 @@
           "vue"
         ],
         "selectionMore": [
+          "vue"
+        ],
+        "referenceLoad": [
+          "vue"
+        ],
+        "protectedMediaRead": [
           "vue"
         ]
       },
@@ -16994,8 +17151,8 @@
         "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
       },
       "notes": {
-        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape: view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections). The ⋯ key of menuActions sits at the trailing edge of the title row, which spans the card's inner width. A choices block never draws its total (only the shares' denominator): its footer is the maxSelections hint and Ended.",
-        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。menuActions 的 ⋯ 键贴在标题行尾，标题行占满卡片内宽。choices 块不画 total（它只是百分比的分母）：页脚只有多选上限提示与「已结束」。"
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape: view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections). The ⋯ key of menuActions sits at the trailing edge of the title row, which spans the card's inner width. A choices block never draws its total (only the shares' denominator): its footer is the maxSelections hint and Ended. Vue administrative referenceLoad(request: FlarePluginReferenceRequest) asks the host to load or hydrate form choices through formSelections. protectedMediaRead(read: FlarePluginProtectedMediaRead) carries the chosen item and stated reason to the host for audited retrieval; the host supplies protectedMedia state. These administrative callbacks are Vue-only. Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。menuActions 的 ⋯ 键贴在标题行尾，标题行占满卡片内宽。choices 块不画 total（它只是百分比的分母）：页脚只有多选上限提示与「已结束」。 Vue 管理页面的 referenceLoad(request: FlarePluginReferenceRequest) 请求宿主加载或补全表单目录选项，宿主通过 formSelections 返回状态。protectedMediaRead(read: FlarePluginProtectedMediaRead) 将选中资料和查看原因交给宿主执行审计读取，宿主通过 protectedMedia 返回状态。这两项管理台回调仅用于 Vue。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。"
       },
       "slots": [
         "quote"
@@ -17014,14 +17171,24 @@
       "name": "PluginForm",
       "category": "Message",
       "summary": {
-        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet.",
-        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 Kit 底部面板。"
+        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page.",
+        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 Kit 底部面板或嵌入页面。"
       },
       "dataSource": {
         "en": "the resolved view's inputs (the ones an action's form names, or a composer action's); errors from the core SDK's validate_form",
         "zh": "解析后视图的 inputs（动作 form 列出的，或 composer 动作的）；错误来自核心 SDK 的 validate_form"
       },
       "props": [
+        {
+          "name": "embedded",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "Page-owned data entry: remove sheet insets and the cancel key, with a full-width submit action. Validation and typed values are unchanged; the page owns navigation.",
+            "zh": "页面内资料表单：去掉面板边距和取消键，使用整宽提交按钮。校验及类型值不变，导航由页面负责。"
+          }
+        },
         {
           "name": "inputs",
           "type": "FlarePluginInput[]",
@@ -17085,6 +17252,35 @@
             "en": "Candidates for members inputs, picked with the kit ContactPicker (max 1 picks one).",
             "zh": "members 输入的候选成员，用 Kit 的 ContactPicker 选择（max 为 1 时单选）。"
           }
+        },
+        {
+          "name": "membersLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A host member query is pending. The picker shows progress, never an empty group or stale selectable rows.",
+            "zh": "宿主成员查询进行中。选择器显示进度，不显示为空群或可选旧结果。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "membersError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The host member-query failure, with membersRetry when supplied. Failed results do not authorize a new choice.",
+            "zh": "宿主成员查询失败文案，可用时显示 membersRetry。失败结果不允许新增选择。"
+          }
+        },
+        {
+          "name": "membersRevision",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "An authoritative roster, visibility or permission invalidation. A change clears only member drafts, selected names and the old picker; amounts and other fields stay. Ordinary partial search results must not change it.",
+            "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
+          },
+          "default": "0"
         }
       ],
       "states": [
@@ -17098,7 +17294,10 @@
         "cancel",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "memberSearch",
+        "membersRetry"
       ],
       "eventPlatforms": {
         "selectionSearch": [
@@ -17108,6 +17307,9 @@
           "vue"
         ],
         "selectionMore": [
+          "vue"
+        ],
+        "referenceLoad": [
           "vue"
         ]
       },
@@ -17147,8 +17349,8 @@
         "screenReaderSemantics": "Each input is named by its label and marked required; its error is described by the field and announced as an alert; the length counter is read as part of the field; the members field reads the chosen names."
       },
       "notes": {
-        "en": "Client check and submitted values follow spec/plugin-view-vectors.json → form: required and length only (Unicode code points, trimmed), shown for an input once edited and for all after a submit attempt; the core SDK's errors are final. Controls: text and textarea with a counter, number, toggle (Switch), select as a single-choice list (RadioGroup), datetime (Vue: the kit DatePicker and TimePicker; natives: the platform picker), options as rows with add (addOption) and remove (removeOption) inside [max(min, 1), max], members through ContactPicker. Issue texts: pluginFormRequired, pluginFormTooLong, pluginFormOutOfRange, pluginFormTooFewItems / pluginFormTooManyItems ({n} from min / max), pluginFormDuplicateItem, otherwise pluginFormInvalid.",
-        "zh": "客户端校验和提交值以 spec/plugin-view-vectors.json → form 为准：只查必填和长度（按 Unicode 码点、去首尾空白），输入改过后即时提示、点提交后全部提示；最终以核心 SDK 的错误为准。控件：text、textarea 带计数；number；toggle（Switch）；select 为单选列表（RadioGroup）；datetime（Vue 用 Kit 的 DatePicker 和 TimePicker，原生用平台选择器）；options 为可增删的行（addOption、removeOption），条数在 [max(min, 1), max] 内；members 用 ContactPicker。错误文案：pluginFormRequired、pluginFormTooLong、pluginFormOutOfRange、pluginFormTooFewItems / pluginFormTooManyItems（{n} 取 min / max）、pluginFormDuplicateItem，其余为 pluginFormInvalid。"
+        "en": "Client check and submitted values follow spec/plugin-view-vectors.json → form: required and length only (Unicode code points, trimmed), shown for an input once edited and for all after a submit attempt; the core SDK's errors are final. Controls: text and textarea with a counter, number, toggle (Switch), select as a single-choice list (RadioGroup), datetime (Vue: the kit DatePicker and TimePicker; natives: the platform picker), options as rows with add (addOption) and remove (removeOption) inside [max(min, 1), max], members through ContactPicker. Issue texts: pluginFormRequired, pluginFormTooLong, pluginFormOutOfRange, pluginFormTooFewItems / pluginFormTooManyItems ({n} from min / max), pluginFormDuplicateItem, otherwise pluginFormInvalid. Vue administrative referenceLoad(request: FlarePluginReferenceRequest) requests choices for an input reference, including its parent values and current selection. The host answers through selections; the control stays disabled until that answer is available. Native forms receive resolved choices from the host. Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
+        "zh": "客户端校验和提交值以 spec/plugin-view-vectors.json → form 为准：只查必填和长度（按 Unicode 码点、去首尾空白），输入改过后即时提示、点提交后全部提示；最终以核心 SDK 的错误为准。控件：text、textarea 带计数；number；toggle（Switch）；select 为单选列表（RadioGroup）；datetime（Vue 用 Kit 的 DatePicker 和 TimePicker，原生用平台选择器）；options 为可增删的行（addOption、removeOption），条数在 [max(min, 1), max] 内；members 用 ContactPicker。错误文案：pluginFormRequired、pluginFormTooLong、pluginFormOutOfRange、pluginFormTooFewItems / pluginFormTooManyItems（{n} 取 min / max）、pluginFormDuplicateItem，其余为 pluginFormInvalid。 Vue 管理页面的 referenceLoad(request: FlarePluginReferenceRequest) 请求引用输入的目录选项，包含依赖字段值和当前选中项。宿主通过 selections 返回状态，返回之前控件保持禁用。原生表单由宿主传入已解析选项。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。"
       }
     },
     {
@@ -17296,12 +17498,16 @@
         "retry",
         "close",
         "action",
-        "loadMore"
+        "loadMore",
+        "protectedMediaRead"
       ],
       "eventPlatforms": {
         "close": [
           "vue",
           "compose"
+        ],
+        "protectedMediaRead": [
+          "vue"
         ]
       },
       "platforms": {
@@ -17340,8 +17546,8 @@
         "screenReaderSemantics": "Named by the title; the spinner is named by the loading string; the error is an alert next to its retry key."
       },
       "notes": {
-        "en": "The detail view is rendered by PluginView with embedded true (no card shell, no title row), so blocks, actions and their forms behave as on the card. Flutter: FlarePluginDetailSheet is the content and FlarePluginDetailSheet.show presents it on the kit sheet under a title; SwiftUI: PluginDetailSheetView inside flareBottomSheet(isPresented:title:); Compose: PluginDetailSheet composes the kit BottomSheet and reports onClose. Detail actions: busyActionId, actionError (as the view's error), formErrors, members and settleToken go to the embedded PluginView unchanged, so an action run from the detail spins, fails, collects its form and settles inside the sheet. The host keeps them apart from the card's own busy and error, so a failure in the detail never lands on the card below. Paging: a detail view with a non-blank nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore); a tap emits loadMore(cursor), the host fetches that page and passes back the merged view (the core SDK appends pages: entries pair up and number on; the kit merges nothing), and the key goes away with the last page (absent or blank nextCursor). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for is still the view's nextCursor, so one page is never asked for twice; a merged view with a new cursor makes it tappable again, and the kit forgets the asked cursor (allowing a retry) when loadingMore goes from true to false, when settleToken changes or when actionError becomes non-empty. A failure is shown through actionError. Rules and samples: spec/plugin-view-vectors.json detailPaging.",
-        "zh": "detail 视图由 embedded 为真的 PluginView 渲染（无卡片外壳、无标题行），块、动作和表单的行为与卡片一致。Flutter：FlarePluginDetailSheet 是内容，FlarePluginDetailSheet.show 在 Kit 面板上带标题呈现；SwiftUI：PluginDetailSheetView 放进 flareBottomSheet(isPresented:title:)；Compose：PluginDetailSheet 组合 Kit BottomSheet 并回调 onClose。详情里的动作：busyActionId、actionError（作为视图的 error）、formErrors、members、settleToken 原样交给内嵌 PluginView，详情里的动作在面板内转圈、出错、收表单、结算。宿主要把它们和卡片自己的 busy、error 分开，详情里的失败不会落到面板下面的卡片上。分页：detail 视图带非空的 nextCursor 时，在内嵌视图下方画一行整宽的「加载更多」（Vue 为 pluginView.loadMore，原生为 myInviteLoadMore）；点击发出 loadMore(cursor)，宿主取下一页后把合并好的视图传回（合并由核心 SDK 做：entries 依次接上、序号续排；Kit 不合并），最后一页（nextCursor 不存在或为空白）时按钮消失。loadingMore 为真，或 Kit 记下的已请求游标仍等于当前 nextCursor 时，按钮转圈并禁用，同一页不会被请求两次；合并后的视图换了游标即恢复可点；loadingMore 由真变假、settleToken 变化或 actionError 变为非空时，Kit 清掉已请求的游标，允许重试。失败经 actionError 显示。规则与样例见 spec/plugin-view-vectors.json 的 detailPaging。"
+        "en": "The detail view is rendered by PluginView with embedded true (no card shell, no title row), so blocks, actions and their forms behave as on the card. Flutter: FlarePluginDetailSheet is the content and FlarePluginDetailSheet.show presents it on the kit sheet under a title; SwiftUI: PluginDetailSheetView inside flareBottomSheet(isPresented:title:); Compose: PluginDetailSheet composes the kit BottomSheet and reports onClose. Detail actions: busyActionId, actionError (as the view's error), formErrors, members and settleToken go to the embedded PluginView unchanged, so an action run from the detail spins, fails, collects its form and settles inside the sheet. The host keeps them apart from the card's own busy and error, so a failure in the detail never lands on the card below. Paging: a detail view with a non-blank nextCursor shows a full-width load-more key under the embedded view (Vue pluginView.loadMore, natives myInviteLoadMore); a tap emits loadMore(cursor), the host fetches that page and passes back the merged view (the core SDK appends pages: entries pair up and number on; the kit merges nothing), and the key goes away with the last page (absent or blank nextCursor). The key spins and is disabled while loadingMore is true or while the cursor the kit last asked for is still the view's nextCursor, so one page is never asked for twice; a merged view with a new cursor makes it tappable again, and the kit forgets the asked cursor (allowing a retry) when loadingMore goes from true to false, when settleToken changes or when actionError becomes non-empty. A failure is shown through actionError. Rules and samples: spec/plugin-view-vectors.json detailPaging. Vue protectedMediaRead(read: FlarePluginProtectedMediaRead) forwards the embedded view protected-media request, including its stated reason, to the host for audited retrieval. The host returns protectedMedia state to this sheet.",
+        "zh": "detail 视图由 embedded 为真的 PluginView 渲染（无卡片外壳、无标题行），块、动作和表单的行为与卡片一致。Flutter：FlarePluginDetailSheet 是内容，FlarePluginDetailSheet.show 在 Kit 面板上带标题呈现；SwiftUI：PluginDetailSheetView 放进 flareBottomSheet(isPresented:title:)；Compose：PluginDetailSheet 组合 Kit BottomSheet 并回调 onClose。详情里的动作：busyActionId、actionError（作为视图的 error）、formErrors、members、settleToken 原样交给内嵌 PluginView，详情里的动作在面板内转圈、出错、收表单、结算。宿主要把它们和卡片自己的 busy、error 分开，详情里的失败不会落到面板下面的卡片上。分页：detail 视图带非空的 nextCursor 时，在内嵌视图下方画一行整宽的「加载更多」（Vue 为 pluginView.loadMore，原生为 myInviteLoadMore）；点击发出 loadMore(cursor)，宿主取下一页后把合并好的视图传回（合并由核心 SDK 做：entries 依次接上、序号续排；Kit 不合并），最后一页（nextCursor 不存在或为空白）时按钮消失。loadingMore 为真，或 Kit 记下的已请求游标仍等于当前 nextCursor 时，按钮转圈并禁用，同一页不会被请求两次；合并后的视图换了游标即恢复可点；loadingMore 由真变假、settleToken 变化或 actionError 变为非空时，Kit 清掉已请求的游标，允许重试。失败经 actionError 显示。规则与样例见 spec/plugin-view-vectors.json 的 detailPaging。 Vue 的 protectedMediaRead(read: FlarePluginProtectedMediaRead) 将内嵌视图的受保护资料读取请求和查看原因原样交给宿主执行审计读取；宿主通过本面板的 protectedMedia 返回状态。"
       }
     },
     {
@@ -17356,6 +17562,36 @@
         "zh": "核心 SDK 给出的页面解析视图（page 贡献的 ResolvedPluginView）"
       },
       "props": [
+        {
+          "name": "contentMaxWidth",
+          "type": "number | null",
+          "required": false,
+          "default": "880",
+          "description": {
+            "en": "Centered outer content width in logical units, including page gutters. Defaults to the 880 directory token for the header, filters, loaded/loading/error/unavailable body and pagination; null opts out. Account appearance does not change this width rule.",
+            "zh": "居中外层内容宽度，使用逻辑单位并包含页面边距。页头、筛选、加载／错误／不可用／已加载正文和分页默认共用880目录宽度；null 可取消限宽。账户呈现不改变此规则。"
+          }
+        },
+        {
+          "name": "appearance",
+          "type": "'document' | 'account'",
+          "required": false,
+          "default": "'document'",
+          "description": {
+            "en": "document is the default document host; a resolved presentation.renderer=account still automatically selects AccountView. account explicitly selects AccountView. Neither choice changes data, commands or contentMaxWidth.",
+            "zh": "document 是默认文档宿主；解析后的 presentation.renderer=account 仍自动选择 AccountView。account 显式选择账户呈现。两者均不改变数据、命令或 contentMaxWidth。"
+          }
+        },
+        {
+          "name": "pagingToken",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": {
+            "en": "Read-side completion/invalidation signal: increment after the current pagination request finishes, and when a new first-page query invalidates old pagination. Releases the cursor latch even for repeated identical fast errors. Independent from financial action settleToken, form errors and command locks.",
+            "zh": "读侧分页完成／作废信号：当前分页请求结束以及新首屏查询废弃旧分页时递增，使相同文案的快速失败也能释放游标锁。独立于资金动作 settleToken、表单错误与命令锁。"
+          }
+        },
         {
           "name": "page",
           "type": "FlarePluginPageRef",
@@ -17508,6 +17744,35 @@
             "zh": "页面里执行的动作的结算信号（同 PluginView settleToken）。"
           },
           "default": "0"
+        },
+        {
+          "name": "membersLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A host member query is pending. The picker shows progress, never an empty group or stale selectable rows.",
+            "zh": "宿主成员查询进行中。选择器显示进度，不显示为空群或可选旧结果。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "membersError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The host member-query failure, with membersRetry when supplied. Failed results do not authorize a new choice.",
+            "zh": "宿主成员查询失败文案，可用时显示 membersRetry。失败结果不允许新增选择。"
+          }
+        },
+        {
+          "name": "membersRevision",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "An authoritative roster, visibility or permission invalidation. A change clears only member drafts, selected names and the old picker; amounts and other fields stay. Ordinary partial search results must not change it.",
+            "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
+          },
+          "default": "0"
         }
       ],
       "states": [
@@ -17524,11 +17789,13 @@
         "retry",
         "loadMore",
         "filter",
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "notes": {
-        "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters).",
-        "zh": "任何插件 page 贡献的页面宿主 —— 红包钱包与明细（docs/design/red-packet-v5-roles-and-wallet.md §3.2）。Kit 的 Screen：页头标题取 view.title，没有时取宿主标题（不可用的页面保留宿主标题），带返回键；其下是筛选标签、由内嵌 PluginView 画的视图（与详情面板同一套文档渲染器：块、作为按钮排列的菜单动作、表单与结算行为一致；rows 画成带徽标的列表，同一个 key 只画一次，只有发起动作的那一行转圈），view.nextCursor 非空时视图下方是整宽的「加载更多」（同一游标只请求一次，同 PluginDetailSheet；刷新结束也会忘掉已请求的游标）。触屏下拉刷新，指针设备页头有刷新键。数据与动作：view.data 是页面解析所依据的数据；页面里执行的每个动作 —— 视图动作、菜单动作、choices 提交、行动作，在确认与表单之后 —— 发出 action(id, {page, data?, row?, selection?, formValues?})，即 invokePageAction 的请求，宿主原样转交并处理结果（page 目标用结果的 payload 作为参数打开下一页）。分页：loadMore(cursor) 请求下一页；宿主把核心 SDK 合并好的视图传回（新页的 rows 与 entries 接在已显示的后面，已显示的行 key 丢弃，data 保持）。筛选：rows 块列出的 select 输入（不列时为全部输入）各是一行 FilterTabs，「全部」在前；选中一项发出 filter(values)（宿主的 filters 改好之后的值），宿主重读第一页。不可用（view.available 为假）：Kit 空态显示原因文案，只有 catalog_unreachable 带重试键，其余都不画。取数由宿主负责：refresh、retry、loadMore、filter 都是请求，Kit 不调用任何接口，视图没声明的东西不画。页面没有 openDetail（页面视图没有详情）。事实见 spec/plugin-view-vectors.json（rules.page、pageRows、pagePaging、pageFilters；pageViews、pageActions、pagePaging、pageFilters）。"
+        "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters). Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
+        "zh": "任何插件 page 贡献的页面宿主 —— 红包钱包与明细（docs/design/red-packet-v5-roles-and-wallet.md §3.2）。Kit 的 Screen：页头标题取 view.title，没有时取宿主标题（不可用的页面保留宿主标题），带返回键；其下是筛选标签、由内嵌 PluginView 画的视图（与详情面板同一套文档渲染器：块、作为按钮排列的菜单动作、表单与结算行为一致；rows 画成带徽标的列表，同一个 key 只画一次，只有发起动作的那一行转圈），view.nextCursor 非空时视图下方是整宽的「加载更多」（同一游标只请求一次，同 PluginDetailSheet；刷新结束也会忘掉已请求的游标）。触屏下拉刷新，指针设备页头有刷新键。数据与动作：view.data 是页面解析所依据的数据；页面里执行的每个动作 —— 视图动作、菜单动作、choices 提交、行动作，在确认与表单之后 —— 发出 action(id, {page, data?, row?, selection?, formValues?})，即 invokePageAction 的请求，宿主原样转交并处理结果（page 目标用结果的 payload 作为参数打开下一页）。分页：loadMore(cursor) 请求下一页；宿主把核心 SDK 合并好的视图传回（新页的 rows 与 entries 接在已显示的后面，已显示的行 key 丢弃，data 保持）。筛选：rows 块列出的 select 输入（不列时为全部输入）各是一行 FilterTabs，「全部」在前；选中一项发出 filter(values)（宿主的 filters 改好之后的值），宿主重读第一页。不可用（view.available 为假）：Kit 空态显示原因文案，只有 catalog_unreachable 带重试键，其余都不画。取数由宿主负责：refresh、retry、loadMore、filter 都是请求，Kit 不调用任何接口，视图没声明的东西不画。页面没有 openDetail（页面视图没有详情）。事实见 spec/plugin-view-vectors.json（rules.page、pageRows、pagePaging、pageFilters；pageViews、pageActions、pagePaging、pageFilters）。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。"
       },
       "platforms": {
         "vue": {
@@ -17571,8 +17838,8 @@
       "name": "AccountView",
       "category": "Message",
       "summary": {
-        "en": "Account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse PluginView.",
-        "zh": "账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 PluginView 动作的本地交易详情。"
+        "en": "Account presentation with real wallet cards, labeled financial flows or grouped ledger records; shared guarded actions and exact server-formatted values.",
+        "zh": "账户呈现：实际钱包卡片、带标签的资金流程或分组账单；复用受保护动作并原样显示服务端格式化值。"
       },
       "dataSource": {
         "en": "the core SDK's resolved page view (`PluginViewModel`); every amount is server-formatted text the kit shows unchanged, and row actions keep their bound input",
@@ -17586,7 +17853,9 @@
         "error"
       ],
       "events": [
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "props": [
         {
@@ -17594,8 +17863,8 @@
           "type": "FlarePluginViewModel",
           "required": true,
           "description": {
-            "en": "The resolved page view: the first field is the headline, the remaining fields are statistics, and in rows blocks cell zero is the amount, the badge the entry type and a time column the date group. The kit derives no totals and combines no currencies.",
-            "zh": "解析后的页面视图：第一个 field 是首要余额，其余 fields 是统计；rows 块里第 0 格是金额、角标是交易类型、时间列决定日期分组。Kit 不推算合计、不合并币种。"
+            "en": "Resolved presentation.props.layout selects wallet cards, a flow receipt/form, or ledger records. Wallet cards use original row amounts; overview fields stay in account information. Flow fields are labeled receipt values, never an inferred balance. Without a layout, preserve the legacy first-field headline. Rows and action inputs remain opaque; no totals or currency conversion are calculated.",
+            "zh": "解析后的 presentation.props.layout 选择钱包卡片、流程明细／表单或账单。钱包卡片使用原行金额，overview 字段留在账户信息；流程字段是带标签的明细，不推断余额。没有 layout 时保留原首字段概览。行与动作输入保持不透明，不计算合计或换汇。"
           }
         },
         {
@@ -17667,11 +17936,40 @@
           "platforms": [
             "vue"
           ]
+        },
+        {
+          "name": "membersLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A host member query is pending. The picker shows progress, never an empty group or stale selectable rows.",
+            "zh": "宿主成员查询进行中。选择器显示进度，不显示为空群或可选旧结果。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "membersError",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The host member-query failure, with membersRetry when supplied. Failed results do not authorize a new choice.",
+            "zh": "宿主成员查询失败文案，可用时显示 membersRetry。失败结果不允许新增选择。"
+          }
+        },
+        {
+          "name": "membersRevision",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "An authoritative roster, visibility or permission invalidation. A change clears only member drafts, selected names and the old picker; amounts and other fields stay. Ordinary partial search results must not change it.",
+            "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
+          },
+          "default": "0"
         }
       ],
       "notes": {
-        "en": "Shared facts follow spec/account-view-vectors.json. PluginPage draws it when appearance is account (or a resolved presentation.renderer is account); hosts normally reach it through PluginPage, which keeps loading, unavailable reasons, refresh, filters and cursor pagination. The eye control hides every overview value (and row amounts when presentation.props.maskRowAmounts is set) and announces the hidden state. Each entry opens local details with its original columns, type, amount and row key; only actions both declared by the block and bound by the row are offered, and confirms, forms, busy and error signals are PluginView's. Rows are deduplicated by block and row key, keeping the first. See docs/account-page-ui.md.",
-        "zh": "共同事实见 spec/account-view-vectors.json。PluginPage 在 appearance 为 account（或解析出的 presentation.renderer 为 account）时绘制它；宿主一般经 PluginPage 使用，加载、不可用原因、刷新、筛选与游标分页仍归 PluginPage。眼睛按钮隐藏全部概览金额（presentation.props.maskRowAmounts 为真时连行金额一起隐藏），并播报隐藏状态。每条记录打开本地详情，显示原始列、类型、金额与行键；只提供块声明且该行绑定的动作，确认、表单、忙碌与错误信号沿用 PluginView。行按块与行键去重，保留第一条。见 docs/account-page-ui.md。"
+        "en": "PluginPage selects AccountView when appearance is account or presentation.renderer is account. wallet orders real wallet cards, shortcuts, account information and service rows; flow orders its step/description, result and original receipt/form; ledger orders context/description, records and services. Keep original amounts, rows, callbacks, guards and settlement. Nonblank warning/danger note and status blocks stay visible once outside wallet/ledger information; informational blocks remain under its disclosure. Flow keeps original block order and result/unavailable semantics. Heading semantics and a 48-unit information target are shared. Canonical metrics and display-only probes: docs/account-page-ui.md and spec/account-layout-vectors.json. Legacy no-layout behavior and payment components are unchanged. Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
+        "zh": "PluginPage 在 appearance 为 account 或 presentation.renderer 为 account 时使用 AccountView。wallet 依次展示实际钱包卡片、快捷入口、账户信息和服务；flow 展示步骤／说明、结果及原始明细／表单；ledger 展示范围／说明、记录和服务。原金额、行、回调、守卫与结算保持不变。钱包／账单的非空 warning／danger note 与 status 在信息折叠区外仅显示一次；普通说明仍可折叠。流程保留原块顺序及结果／不可提交语义。标题语义和48单位的信息开关触控区统一。尺寸规则与纯展示样例见 docs/account-page-ui.md、spec/account-layout-vectors.json。无 layout 的旧布局与付款组件保持不变。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。"
       },
       "platforms": {
         "vue": {
@@ -18532,15 +18830,38 @@
             "en": "The host is sending the card for the chosen person (the same meaning as LocationPicker's sending): in single mode the row that was tapped shows a spinner, in multiple mode the confirm key spins, and the rows and the confirm key take no taps. Cleared, single mode forgets the tapped row and multiple mode keeps its choice, so a failed send can go again; after a send that went through the host closes the sheet.",
             "zh": "宿主正在发送所选联系人的名片（与 LocationPicker 的 sending 同义）：单选时被点的那一行显示转圈，多选时确认键转圈，期间各行与确认键不接受点击。清掉后单选忘掉那一行，多选保留已选，发送失败可以再发；发送成功后由宿主关闭面板。"
           }
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "A remote search is pending: progress replaces the candidate list. Search and Cancel remain available.",
+            "zh": "远程搜索进行中：进度替代候选列表；搜索和取消仍可用。"
+          },
+          "default": "false"
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Remote search failed: show this error and the retry event, never a false empty state or stale candidate list.",
+            "zh": "远程搜索失败：显示此错误及重试事件，不显示伪空态或旧候选列表。"
+          }
         }
       ],
       "states": [
         "empty",
-        "sending"
+        "sending",
+        "loading",
+        "error"
       ],
       "events": [
         "select",
-        "cancel"
+        "cancel",
+        "search",
+        "retry"
       ],
       "platforms": {
         "vue": {
@@ -18578,8 +18899,8 @@
         "screenReaderSemantics": "A group named by the title; the list is named by the active tab; in multiple mode each row is a checkbox and the confirm key counts the chosen people."
       },
       "notes": {
-        "en": "`select` always carries a list: one entry on a tap in single mode, the chosen entries (in the order they were chosen) from the confirm key in multiple mode. The list builds only the rows on screen (Vue windows lists longer than 60 rows; the native kits use their lazy lists). The signed-in user (isSelf) stays selectable. Multiple mode's confirm key reuses the kit's confirm word. Own header: it draws its own header (Cancel, the title, the confirm key in multiple mode) and declares it, so put it in the kit BottomSheet with `fill` and the sheet keeps its title as the accessible name only. Sending: the host sets `sending` from `select` until the send settles, then clears it (and closes the sheet after a send that went through). The busy row is announced as in progress; Cancel, the search and the tabs stay usable — the sheet's own lock (dismissible, busy) decides whether the picker can be closed meanwhile.",
-        "zh": "`select` 总是列表：单选时点一行回传一项；多选时由确认键按选中顺序回传。列表只构建屏幕上的行（Vue 超过 60 行开始开窗，原生用各自的懒加载列表）。自己（isSelf）也可以选。多选确认键复用 Kit 的「确定」。自带标题：组件自己画标题栏（取消、标题、多选时的确认键）并声明这一点，放进带 `fill` 的 Kit BottomSheet 时，面板的 title 只作可及名称。发送中：宿主从 `select` 起设上 `sending`，发送结束后清掉（发送成功则关闭面板）。转圈的那一行读屏报进行中；取消、搜索和分组标签照常可用 —— 发送期间能否关闭由面板自己的锁（dismissible、busy）决定。"
+        "en": "`select` always carries a list: one entry on a tap in single mode, the chosen entries (in the order they were chosen) from the confirm key in multiple mode. The list builds only the rows on screen (Vue windows lists longer than 60 rows; the native kits use their lazy lists). The signed-in user (isSelf) stays selectable. Multiple mode's confirm key reuses the kit's confirm word. Own header: it draws its own header (Cancel, the title, the confirm key in multiple mode) and declares it, so put it in the kit BottomSheet with `fill` and the sheet keeps its title as the accessible name only. Sending: the host sets `sending` from `select` until the send settles, then clears it (and closes the sheet after a send that went through). The busy row is announced as in progress; Cancel, the search and the tabs stay usable — the sheet's own lock (dismissible, busy) decides whether the picker can be closed meanwhile. Remote search is optional: supplying onSearch (Vue: search event handler) sends query edits to the host and uses its results unchanged, without local name filtering. onRetry requests the current query again. Neither loading nor error allows a new pick. A partial result page does not remove a previously chosen entry in multiple mode.",
+        "zh": "`select` 总是列表：单选时点一行回传一项；多选时由确认键按选中顺序回传。列表只构建屏幕上的行（Vue 超过 60 行开始开窗，原生用各自的懒加载列表）。自己（isSelf）也可以选。多选确认键复用 Kit 的「确定」。自带标题：组件自己画标题栏（取消、标题、多选时的确认键）并声明这一点，放进带 `fill` 的 Kit BottomSheet 时，面板的 title 只作可及名称。发送中：宿主从 `select` 起设上 `sending`，发送结束后清掉（发送成功则关闭面板）。转圈的那一行读屏报进行中；取消、搜索和分组标签照常可用 —— 发送期间能否关闭由面板自己的锁（dismissible、busy）决定。 可选远程搜索：提供 onSearch（Vue 为 search 事件监听）后，将查询修改交宿主，并原样使用返回名单，不按本地姓名再次筛选。onRetry 重新请求当前查询。加载和错误均不允许新增选择；多选时普通部分结果页不删除已选项。"
       }
     },
     {
@@ -25376,6 +25697,16 @@
       },
       "props": [
         {
+          "name": "contentMaxWidth",
+          "type": "number | null",
+          "required": false,
+          "default": "null",
+          "description": {
+            "en": "Optional centered outer content width in logical units, including page gutters. Header and every body state share it; the background still fills the pane. Omitted or null leaves Screen unconstrained.",
+            "zh": "可选的居中外层内容宽度，使用逻辑单位并包含页面边距。页头和所有正文状态共用该宽度，背景仍铺满可用区域；省略或 null 不限宽。"
+          }
+        },
+        {
           "name": "title",
           "type": "string",
           "description": {
@@ -25476,8 +25807,8 @@
         "screenReaderSemantics": "Expose the title as the region name (heading), the back button with an accessible name, and the body as scrollable content."
       },
       "notes": {
-        "en": "Compose composes pages with Scaffold and ships no portable Screen; Flutter / iOS additionally accept actions and footer slots.",
-        "zh": "Compose 用 Scaffold 搭页面骨架，不提供可移植 Screen；Flutter / iOS 额外接受 actions 与 footer 槽位。"
+        "en": "All four Kits share the optional content column; the default remains unconstrained. Header and body use the same available-container width while the surface background fills the pane. Generic focused headers use 12 horizontal/8 vertical insets, a 48-unit inner minimum,48-unit back target, 8 gap and 24 bold title. Platform safe areas remain native. Actions/footer and navigation are composition, not business logic.",
+        "zh": "四套 Kit 共用可选内容栏，默认不限制宽度。页头与正文使用同一可用容器宽度，表面背景仍铺满区域。通用聚焦页头使用横向12／纵向8边距、内部至少48、返回键48触控区、8间距和24加粗标题。平台安全区保留原生适配；actions／footer 与导航属于组合，不包含业务规则。"
       }
     },
     {
@@ -27381,7 +27712,8 @@
         "update:modelValue",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad"
       ],
       "model": {
         "prop": "modelValue",
@@ -27411,8 +27743,13 @@
         "screenReaderSemantics": "Each field is named by its title (the property name when it has none); the description is the field's feedback line."
       },
       "notes": {
-        "en": "Vue only: native N/A. It renders a plugin's raw settings schema on a web console page; native apps draw plugin inputs the core SDK has already resolved with PluginForm. An enum longer than 100 values, a non-integer bound and every other type are skipped; strings are capped at 4096 characters.",
-        "zh": "仅 Vue，原生端 N/A：它在 Web 控制台页面上渲染插件的原始配置 schema；原生 App 用 PluginForm 渲染核心 SDK 解析好的插件输入。超过 100 项的枚举、非整数边界与其他类型一律跳过；字符串最长 4096 个字符。"
+        "en": "Vue only: native N/A. It renders a plugin's raw settings schema on a web console page; native apps draw plugin inputs the core SDK has already resolved with PluginForm. An enum longer than 100 values, a non-integer bound and every other type are skipped; strings are capped at 4096 characters. referenceLoad(request: FlarePluginReferenceRequest) reports a reference request or changed current selection using the full field pointer and resolved parent values. The host loads choices with its own authorization and supplies selections. Nested objects and array items preserve distinct pointers.",
+        "zh": "仅 Vue，原生端 N/A：它在 Web 控制台页面上渲染插件的原始配置 schema；原生 App 用 PluginForm 渲染核心 SDK 解析好的插件输入。超过 100 项的枚举、非整数边界与其他类型一律跳过；字符串最长 4096 个字符。 referenceLoad(request: FlarePluginReferenceRequest) 使用完整字段指针和已解析的依赖值报告目录请求或当前选中项变化。宿主按自身权限加载选项并通过 selections 返回状态；嵌套对象和数组项保留各自独立的字段指针。"
+      },
+      "eventPlatforms": {
+        "referenceLoad": [
+          "vue"
+        ]
       }
     },
     {
@@ -27658,12 +27995,16 @@
         }
       ],
       "notes": {
-        "en": "Not a control: no hover, no focus, no click (a filter a person toggles is FilterTabs, an action is a Button). Each tone writes its text colour on a 6% tint of the tone over the primary surface, which keeps 4.5:1 in every brand and both modes as painted (lowest 4.64:1); at 8% the light warning tag paints at 4.49:1. Vue only: native N/A. It is a console component (status and kind labels in console tables and detail drawers); no Flutter, SwiftUI or Compose app ships an admin console, and a native widget nobody renders would only drift from this one. Add the native kits when a native screen needs it, with the same contract.",
-        "zh": "不是控件：没有悬停、焦点与点击（可切换的筛选是 FilterTabs，动作是 Button）。每种色调把文字色写在该色调 6% 叠加主背景的底上，按实际绘制的颜色各品牌明暗两种模式都保持 4.5:1（最低 4.64:1）；用 8% 时浅色警告标签实绘只有 4.49:1。仅 Vue，原生端 N/A：这是控制台组件（控制台表格与详情抽屉里的状态与类型标签）；Flutter、SwiftUI、Compose 端没有任何 App 提供管理控制台，一个无人渲染的原生控件只会和这里渐行渐远。等原生界面真正需要时再按同一契约实现。"
+        "en": "Not a control: no hover, focus or click. Each semantic tone uses its text colour on a 6% tint over the primary surface. Vue contrast is verified across brands/modes (lowest 4.64:1). Flutter now exposes the same tag for consumer record states and reuses it in plugin badges; its tone is FlareStatusTone. SwiftUI/Compose reuse their internal PluginBadge views under the same visual contract; no public general Tag API is declared for those kits.",
+        "zh": "不是控件：没有悬停、焦点与点击。语义文字色配合 6% 叠加主背景的浅色底；Vue 已验证各品牌明暗对比度（最低 4.64:1）。Flutter 为用户记录状态提供相同的公共标签，插件徽标也复用它，tone 类型为 FlareStatusTone。SwiftUI／Compose 复用现有内部 PluginBadge 视图及相同视觉契约，暂不声明公共通用 Tag API。"
       },
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
+          "symbol": "FlareTag"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
           "symbol": "FlareTag"
         }
       },
@@ -27809,6 +28150,69 @@
             "zh": "操作处理中或当前不可选择。",
             "en": "Selection is currently unavailable."
           }
+        },
+        {
+          "name": "icon",
+          "type": "FlareIconName",
+          "required": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "可选空闲图标；Vue 通用文件控件复用此槽时使用。",
+            "en": "Optional idle glyph for the Vue file uploader composition."
+          }
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "宿主提供的百分比；缺省保持不确定进度。",
+            "en": "Host-reported percentage; omit for indeterminate progress."
+          }
+        },
+        {
+          "name": "replaceable",
+          "type": "boolean",
+          "required": false,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "zh": "Vue 显式允许完成后再次选择，默认完成后仍只读。",
+            "en": "Vue opt-in to choosing a replacement after completion; completed slots remain read-only by default."
+          }
+        },
+        {
+          "name": "previewLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "独立只读预览的本地化操作名。",
+            "en": "Localized independent read-only preview action."
+          }
+        },
+        {
+          "name": "previewLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "只读预览正在取得授权内容。",
+            "en": "Authorized preview content is loading."
+          }
+        },
+        {
+          "name": "previewDisabled",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "当前不允许执行只读预览。",
+            "en": "Read-only preview is unavailable."
+          }
         }
       ],
       "states": [
@@ -27820,7 +28224,8 @@
       ],
       "events": [
         "choose",
-        "action"
+        "action",
+        "preview"
       ],
       "platforms": {
         "vue": {
@@ -27841,8 +28246,8 @@
         }
       },
       "notes": {
-        "zh": "原生选择器可直接从空闲进入上传，不需要独立已选择步骤。已上传槽只读。私有历史照片须由业务先取得有效授权，不由组件取回。详见 docs/components/upload.md。",
-        "en": "Native pickers may go directly from empty to uploading without a separate selected step. Uploaded slots are read-only. The host must authorize any historical private image; the component never retrieves one. See docs/components/upload.md."
+        "zh": "原生选择器可直接从空闲进入上传，不需要独立已选择步骤。默认已上传槽只读；Vue 通用文件控件可显式开启 replaceable 并注入 actions 插槽。私有历史照片须由业务先取得有效授权，不由组件取回。详见 docs/components/upload.md。",
+        "en": "Native pickers may go directly from empty to uploading. Uploaded slots are read-only by default; the Vue file uploader may explicitly set replaceable and supply the actions slot. Hosts authorize private historical previews. See docs/components/upload.md."
       },
       "accessibility": {
         "role": "group",
@@ -27860,6 +28265,266 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "platformAliases": {
+        "vue": {
+          "props": {
+            "preview": "previewUrl"
+          }
+        },
+        "ios": {
+          "props": {
+            "pickLabel": "actionText",
+            "actionLabel": "retryText"
+          },
+          "events": {
+            "action": "onRetry"
+          }
+        },
+        "compose": {
+          "props": {
+            "pickLabel": "actionText",
+            "actionLabel": "retryText"
+          },
+          "events": {
+            "action": "onRetry"
+          }
+        }
+      },
+      "slots": [
+        "actions"
+      ],
+      "slotPlatforms": {
+        "actions": [
+          "vue"
+        ]
+      },
+      "slotReasons": {
+        "actions": "Vue composition for the shared file uploader; native slots retain their existing choose/retry controls."
+      }
+    },
+    {
+      "name": "FileUpload",
+      "category": "Media",
+      "summary": {
+        "zh": "受控的通用单文件与图片上传界面，复用共享照片槽。",
+        "en": "Controlled single-file and image upload surface, composed from the shared photo slot."
+      },
+      "dataSource": {
+        "zh": "宿主提供政策、状态、文件名和本地预览，接收原生文件选择与上传意图。",
+        "en": "The host supplies policy, state, file name and local preview, and receives native file selection and transfer intents."
+      },
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "控件的本地化标题。",
+            "en": "Localized control title."
+          }
+        },
+        {
+          "name": "state",
+          "type": "FlareUploadState",
+          "required": true,
+          "description": {
+            "zh": "宿主控制的上传状态。",
+            "en": "Host-controlled upload state."
+          }
+        },
+        {
+          "name": "statusText",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "本地化状态文案，不显示内部错误码。",
+            "en": "Localized status copy, without internal error codes."
+          }
+        },
+        {
+          "name": "pickLabel",
+          "type": "string",
+          "required": true,
+          "description": {
+            "zh": "打开原生选择器的本地化文案。",
+            "en": "Localized native picker action."
+          }
+        },
+        {
+          "name": "fileName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "已选择文件的名称。",
+            "en": "Selected file name."
+          }
+        },
+        {
+          "name": "image",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "显示图片预览；默认普通文件。",
+            "en": "Render an image preview; ordinary files are the default."
+          }
+        },
+        {
+          "name": "accept",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "来自服务端政策的选择器提示，不作为授权或类型验证。",
+            "en": "Picker hint from backend policy; not authorization or content validation."
+          }
+        },
+        {
+          "name": "previewUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "宿主拥有并负责回收的临时预览地址。",
+            "en": "Transient preview URL whose lifetime is owned by the host."
+          }
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "description": {
+            "zh": "宿主提供的百分比；缺省为不确定进度。",
+            "en": "Host-reported percentage; absent means indeterminate progress."
+          }
+        },
+        {
+          "name": "uploadLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "选中后开始上传的文案。",
+            "en": "Localized start-upload label."
+          }
+        },
+        {
+          "name": "replaceLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "显式提供更换文件操作的文案。",
+            "en": "Label that explicitly offers file replacement."
+          }
+        },
+        {
+          "name": "retryLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "失败后的重试文案。",
+            "en": "Localized retry label."
+          }
+        },
+        {
+          "name": "cancelLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "上传时取消的文案。",
+            "en": "Localized cancellation label during transfer."
+          }
+        },
+        {
+          "name": "removeLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "移除本地选择的文案，不代表删除远程媒体。",
+            "en": "Clear-local-selection label; it does not delete remote media."
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "关闭所有修改操作。",
+            "en": "Disable all mutation intents."
+          }
+        },
+        {
+          "name": "hostPicker",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "Vue 将选择器委托给宿主；旧行为默认不变。",
+            "en": "Vue delegates file picking to the host; existing default behavior is preserved."
+          }
+        },
+        {
+          "name": "previewLabel",
+          "type": "string",
+          "required": false,
+          "description": {
+            "zh": "开启独立的宿主私有预览意图。",
+            "en": "Enable an independent host-owned private preview intent."
+          }
+        },
+        {
+          "name": "previewLoading",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "zh": "私有预览正在加载。",
+            "en": "The private preview is loading."
+          }
+        }
+      ],
+      "states": [
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed"
+      ],
+      "events": [
+        "select",
+        "upload",
+        "retry",
+        "cancel",
+        "remove",
+        "choose",
+        "replace",
+        "preview"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareFileUpload"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareFileUpload"
+        }
+      },
+      "notes": {
+        "zh": "Vue 与 Flutter 已实现受控文件界面；各端 PluginForm 使用同一状态和意图。组件不请求网络、不保存材料引用、不定义 MIME 或大小限额；真实政策、私有预览、取消与迟到响应隔离由宿主负责。",
+        "en": "Vue and Flutter provide controlled file surfaces; plugin forms share state and intents across kits. No networking, material persistence or invented MIME/size limits. Hosts own policy, private preview, cancellation and late-result fencing."
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the picker and current recovery actions",
+          "Enter or Space opens the native picker"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No motion; transfer state remains readable.",
+        "screenReaderSemantics": "Expose a named file selection group, upload availability, status and native progress. Decorative previews are hidden."
       }
     }
   ],

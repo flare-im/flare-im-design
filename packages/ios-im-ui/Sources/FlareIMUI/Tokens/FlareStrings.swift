@@ -568,6 +568,7 @@ public struct FlareStrings: Sendable {
     public var groupDetailUnmute: String
     public var groupDetailTransferOwner: String
     public var groupDetailTransferConfirm: String
+    public var groupDetailRequestFriend: String
     public var groupDetailRemoveMember: String
     public var groupDetailNoRequests: String
     public var groupDetailRequestDefaultMessage: String
@@ -1132,6 +1133,15 @@ public struct FlareStrings: Sendable {
     public var pluginFormTooManyItems: String
     public var pluginFormDuplicateItem: String
     public var pluginFormInvalid: String
+    public var pluginFileChoose: String
+    public var pluginFileSelected: String
+    public var pluginFileUploading: String
+    public var pluginFileUploaded: String
+    public var pluginFileFailed: String
+    public var pluginFileRejected: String
+    public var pluginFileReplace: String
+    public var pluginFileRemove: String
+    public var pluginFilePreview: String
     /// OpenStreetMap's credit on a static map (ODbL); the same in every language.
     public var locationOsmAttribution: String
     /// A spinner's accessible name (en: "Loading…").
@@ -1219,6 +1229,7 @@ public struct FlareStrings: Sendable {
     public var callRecordFailed: String
     public var callRecordJoin: String
     public var callRecordCallBack: String
+    public var callRecordConfirmCallBack: String
     // The read list's plain tab labels (no summary count), its states and paging.
     public var readReceiptRead: String
     public var readReceiptUnread: String
@@ -1754,6 +1765,7 @@ public struct FlareStrings: Sendable {
         groupDetailUnmute: String = "取消禁言",
         groupDetailTransferOwner: String = "转让群主",
         groupDetailTransferConfirm: String = "确定把群主转让给「%@」吗？转让后你将变为普通成员，此操作不可撤销。",
+        groupDetailRequestFriend: String = "加好友",
         groupDetailRemoveMember: String = "移出群聊",
         groupDetailNoRequests: String = "暂无入群申请",
         groupDetailRequestDefaultMessage: String = "申请加入群聊",
@@ -2097,6 +2109,15 @@ public struct FlareStrings: Sendable {
         pluginFormTooManyItems: String = "最多 {n} 项",
         pluginFormDuplicateItem: String = "不能重复",
         pluginFormInvalid: String = "格式不正确",
+        pluginFileChoose: String = "选择文件",
+        pluginFileSelected: String = "等待上传完成",
+        pluginFileUploading: String = "上传中",
+        pluginFileUploaded: String = "已上传",
+        pluginFileFailed: String = "上传未完成，请重试或重新选择",
+        pluginFileRejected: String = "请选择符合格式与大小限制的文件",
+        pluginFileReplace: String = "更换文件",
+        pluginFileRemove: String = "移除文件",
+        pluginFilePreview: String = "预览",
         locationOsmAttribution: String = "© OpenStreetMap contributors",
         loading: String = "加载中",
         messageReadSummaryUnread: String = "{count} 人未读",
@@ -2170,6 +2191,7 @@ public struct FlareStrings: Sendable {
         callRecordFailed: String = "通话失败",
         callRecordJoin: String = "加入",
         callRecordCallBack: String = "回拨",
+        callRecordConfirmCallBack: String = "确认回拨此通话？",
         readReceiptRead: String = "已读",
         readReceiptUnread: String = "未读",
         readReceiptLoadFailed: String = "名单读取失败",
@@ -2660,6 +2682,7 @@ public struct FlareStrings: Sendable {
         self.groupDetailUnmute = groupDetailUnmute
         self.groupDetailTransferOwner = groupDetailTransferOwner
         self.groupDetailTransferConfirm = groupDetailTransferConfirm
+        self.groupDetailRequestFriend = groupDetailRequestFriend
         self.groupDetailRemoveMember = groupDetailRemoveMember
         self.groupDetailNoRequests = groupDetailNoRequests
         self.groupDetailRequestDefaultMessage = groupDetailRequestDefaultMessage
@@ -3003,6 +3026,15 @@ public struct FlareStrings: Sendable {
         self.pluginFormTooManyItems = pluginFormTooManyItems
         self.pluginFormDuplicateItem = pluginFormDuplicateItem
         self.pluginFormInvalid = pluginFormInvalid
+        self.pluginFileChoose = pluginFileChoose
+        self.pluginFileSelected = pluginFileSelected
+        self.pluginFileUploading = pluginFileUploading
+        self.pluginFileUploaded = pluginFileUploaded
+        self.pluginFileFailed = pluginFileFailed
+        self.pluginFileRejected = pluginFileRejected
+        self.pluginFileReplace = pluginFileReplace
+        self.pluginFileRemove = pluginFileRemove
+        self.pluginFilePreview = pluginFilePreview
         self.locationOsmAttribution = locationOsmAttribution
         self.loading = loading
         self.messageReadSummaryUnread = messageReadSummaryUnread
@@ -3076,6 +3108,7 @@ public struct FlareStrings: Sendable {
         self.callRecordFailed = callRecordFailed
         self.callRecordJoin = callRecordJoin
         self.callRecordCallBack = callRecordCallBack
+        self.callRecordConfirmCallBack = callRecordConfirmCallBack
         self.readReceiptRead = readReceiptRead
         self.readReceiptUnread = readReceiptUnread
         self.readReceiptLoadFailed = readReceiptLoadFailed

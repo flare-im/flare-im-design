@@ -46,6 +46,8 @@ const props = withDefaults(
      * feeds); the page background still fills the pane. Narrow panes are unchanged.
      */
     readable?: boolean;
+    /** Centre header, body and footer in one frame. Null/invalid widths leave the pane unconstrained. */
+    contentMaxWidth?: number | null;
   }>(),
   { title: undefined, back: false, surface: "canvas", padded: false, scroll: true, readable: false },
 );
@@ -72,10 +74,11 @@ useFlareDestinationDepth(() => props.back);
 
 const slots = useSlots();
 const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(slots.header));
+const contentWidth = computed(() => typeof props.contentMaxWidth === "number" && Number.isFinite(props.contentMaxWidth) && props.contentMaxWidth > 0 ? props.contentMaxWidth : undefined);
 </script>
 
 <template>
-  <section ref="root" class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--readable': readable }]">
+  <section ref="root" class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--readable': readable && contentWidth === undefined, 'flare-screen--constrained': contentWidth !== undefined }]" :style="{ '--flare-screen-content-max-width': contentWidth === undefined ? undefined : `${contentWidth}px` }">
     <header v-if="hasHeader" class="flare-screen__header">
       <slot name="header">
         <button
@@ -85,7 +88,7 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
           :aria-label="t('common.back')"
           @click="goBack"
         >
-          <n-icon aria-hidden="true" :size="22" :component="ArrowBackOutline" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="ArrowBackOutline" />
         </button>
         <h1 v-if="title" class="flare-screen__title">{{ title }}</h1>
         <div class="flare-screen__actions"><slot name="actions" /></div>
@@ -128,9 +131,11 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: var(--flare-size-spacing-2md) 16px;
-  padding-top: max(var(--flare-size-spacing-2md), env(safe-area-inset-top));
+  gap: var(--flare-size-spacing-sm);
+  min-height: calc(var(--flare-size-layout-touch-target) + var(--flare-size-spacing-sm) * 2 + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
+  padding-top: calc(var(--flare-size-spacing-sm) + env(safe-area-inset-top, 0px));
   position: relative;
   z-index: 1;
 }
@@ -139,10 +144,8 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  /* `-var(…)` is not a negated var(): it reads as an unknown function and the whole declaration is dropped. */
-  margin-left: calc(-1 * var(--flare-size-spacing-2sm));
+  width: var(--flare-size-layout-touch-target);
+  height: var(--flare-size-layout-touch-target);
   border: none;
   border-radius: 8px;
   background: none;
@@ -200,5 +203,13 @@ const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(s
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--flare-color-bg-primary);
   border-top: 1px solid var(--flare-color-border-primary);
+}
+.flare-screen--constrained > .flare-screen__header,
+.flare-screen--constrained > .flare-screen__body,
+.flare-screen--constrained > .flare-screen__footer {
+  width: 100%;
+  max-width: var(--flare-screen-content-max-width);
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 </style>

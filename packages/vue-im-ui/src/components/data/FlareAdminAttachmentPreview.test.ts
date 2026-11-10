@@ -37,4 +37,29 @@ describe("private attachment preview presentation", () => {
     expect(document.body.textContent).not.toContain(props.url);
     host.unmount();
   });
+  it("uses neutral failure content for message-owning hosts and keeps the close action available", async () => {
+    const host = mount(Preview, {
+      attachTo: document.body,
+      props: { ...props, error: "Preview unavailable", errorPresentation: "neutral" },
+    });
+    expect(document.querySelector(".n-alert")).toBeNull();
+    expect(document.querySelector('[role="status"]')?.textContent).toContain("Preview unavailable");
+    const close = Array.from(document.querySelectorAll("button")).find((button) => button.textContent === "Close");
+    close?.click();
+    await nextTick();
+    expect(host.emitted("close")).toHaveLength(1);
+    host.unmount();
+  });
+  it("keeps native playback failure neutral without exposing private URLs", async () => {
+    const host = mount(Preview, {
+      attachTo: document.body,
+      props: { ...props, kind: "audio", errorPresentation: "neutral" },
+    });
+    document.querySelector("audio")?.dispatchEvent(new Event("error"));
+    await nextTick();
+    expect(document.querySelector(".n-alert")).toBeNull();
+    expect(document.querySelector('[role="status"]')?.textContent).toContain("Media unavailable");
+    expect(document.body.textContent).not.toContain(props.url);
+    host.unmount();
+  });
 });

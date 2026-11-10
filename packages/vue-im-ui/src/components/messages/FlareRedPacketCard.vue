@@ -8,6 +8,8 @@ import {
   type FlareRedPacketKind,
 } from "../../shared/contracts/red-packet";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import { useFlareMessageQuote } from "../../shared/message-renderers";
+import MessageCardQuote from "./MessageCardQuote.vue";
 
 // A red packet card (red packet v5, spec/red-packet-vectors.json card / cardBadge): the greeting, the kind badge,
 // "For {name}" on exclusive packets and one status line — never an amount, not even the viewer's own. The card is
@@ -16,6 +18,8 @@ const props = withDefaults(
   defineProps<{
     /** Greeting on the packet, e.g. "恭喜发财，大吉大利". */
     blessing: string;
+    /** Immutable packet brand snapshot; absent on historical packets. */
+    brandName?: string;
     /** Packet kind: lucky and exclusive draw a badge, normal none. */
     kind?: FlareRedPacketKind;
     /** Exclusive packets: the designated member's name ("给 某某"). */
@@ -31,6 +35,9 @@ const props = withDefaults(
 const emit = defineEmits<{ (e: "open"): void }>();
 
 const { t } = useFlareI18n();
+const rowQuote = useFlareMessageQuote();
+rowQuote?.claim();
+const quoteShown = computed(() => rowQuote?.active() ? rowQuote : null);
 // Every state but busy and disabled stays tappable: the host routes by the viewer's tapAction.
 const blocked = computed(() => props.disabled || props.busy);
 const dimmed = computed(() => flareRedPacketCardDimmed(props.state));
@@ -69,50 +76,57 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
 </script>
 
 <template>
-  <button
-    type="button"
+  <div
     class="flare-red-packet"
-    :class="[`is-${state}`, { 'is-dimmed': dimmed }]"
-    :disabled="blocked"
-    :aria-busy="busy"
-    :aria-label="accessibleName"
+    :class="[`is-${state}`, { 'is-dimmed': dimmed, 'has-quote': $slots.quote || quoteShown }]"
     :data-state="state"
-    @click="!blocked && emit('open')"
   >
-    <svg
-      class="flare-red-packet__glyph"
-      :viewBox="`0 0 ${GLYPH_WIDTH} ${GLYPH_HEIGHT}`"
-      :width="GLYPH_WIDTH"
-      :height="GLYPH_HEIGHT"
-      aria-hidden="true"
-      focusable="false"
+    <div v-if="$slots.quote || quoteShown" class="flare-red-packet__quote">
+      <slot name="quote"><MessageCardQuote v-if="quoteShown" :preview="quoteShown.preview()" :locate="quoteShown.locate()" /></slot>
+    </div>
+    <button
+      type="button"
+      class="flare-red-packet__open"
+      :disabled="blocked"
+      :aria-busy="busy"
+      :aria-label="accessibleName"
+      @click="!blocked && emit('open')"
     >
-      <defs>
-        <linearGradient :id="`${glyphId}-body`" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" class="flare-red-packet__glyph-gold" />
-          <stop offset="1" class="flare-red-packet__glyph-gold-deep" />
-        </linearGradient>
-        <clipPath :id="`${glyphId}-clip`">
-          <rect :width="GLYPH_WIDTH" :height="GLYPH_HEIGHT" :rx="glyphCorner" :ry="glyphCorner" />
-        </clipPath>
-      </defs>
-      <g :clip-path="`url(#${glyphId}-clip)`">
-        <rect :width="GLYPH_WIDTH" :height="GLYPH_HEIGHT" :fill="`url(#${glyphId}-body)`" />
-        <path class="flare-red-packet__glyph-shadow" :d="glyphFlapPath" transform="translate(0 1)" />
-        <path class="flare-red-packet__glyph-flap" :d="glyphFlapPath" />
-        <circle class="flare-red-packet__glyph-seal" :cx="GLYPH_WIDTH / 2" :cy="glyphFlap" :r="glyphSealRadius" />
-      </g>
-    </svg>
-    <span class="flare-red-packet__body">
-      <span class="flare-red-packet__blessing">{{ blessing }}</span>
-      <span class="flare-red-packet__status" :aria-live="busy ? 'polite' : 'off'" data-red-packet-status="true">{{ status }}</span>
-    </span>
-    <span class="flare-red-packet__brand">
-      <span v-if="badge.badge" class="flare-red-packet__kind" data-red-packet-badge="true">{{ t(`redPacket.badge.${badge.badge}`) }}</span>
-      <span v-if="badge.recipient" class="flare-red-packet__recipient" data-red-packet-recipient="true">{{ t("redPacket.forRecipient", { name: badge.recipient }) }}</span>
-      <span class="flare-red-packet__brand-name">{{ t("redPacket.brand") }}</span>
-    </span>
-  </button>
+      <svg
+        class="flare-red-packet__glyph"
+        :viewBox="`0 0 ${GLYPH_WIDTH} ${GLYPH_HEIGHT}`"
+        :width="GLYPH_WIDTH"
+        :height="GLYPH_HEIGHT"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <defs>
+          <linearGradient :id="`${glyphId}-body`" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="flare-red-packet__glyph-gold" />
+            <stop offset="1" class="flare-red-packet__glyph-gold-deep" />
+          </linearGradient>
+          <clipPath :id="`${glyphId}-clip`">
+            <rect :width="GLYPH_WIDTH" :height="GLYPH_HEIGHT" :rx="glyphCorner" :ry="glyphCorner" />
+          </clipPath>
+        </defs>
+        <g :clip-path="`url(#${glyphId}-clip)`">
+          <rect :width="GLYPH_WIDTH" :height="GLYPH_HEIGHT" :fill="`url(#${glyphId}-body)`" />
+          <path class="flare-red-packet__glyph-shadow" :d="glyphFlapPath" transform="translate(0 1)" />
+          <path class="flare-red-packet__glyph-flap" :d="glyphFlapPath" />
+          <circle class="flare-red-packet__glyph-seal" :cx="GLYPH_WIDTH / 2" :cy="glyphFlap" :r="glyphSealRadius" />
+        </g>
+      </svg>
+      <span class="flare-red-packet__body">
+        <span class="flare-red-packet__blessing">{{ blessing }}</span>
+        <span class="flare-red-packet__status" :aria-live="busy ? 'polite' : 'off'" data-red-packet-status="true">{{ status }}</span>
+      </span>
+      <span class="flare-red-packet__brand">
+        <span v-if="badge.badge" class="flare-red-packet__kind" data-red-packet-badge="true">{{ t(`redPacket.badge.${badge.badge}`) }}</span>
+        <span v-if="badge.recipient" class="flare-red-packet__recipient" data-red-packet-recipient="true">{{ t("redPacket.forRecipient", { name: badge.recipient }) }}</span>
+        <span class="flare-red-packet__brand-name">{{ brandName?.trim() || t("redPacket.brand") }}</span>
+      </span>
+    </button>
+  </div>
 </template>
 
 <style scoped>
@@ -128,19 +142,16 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   --rp-status: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 85%, transparent);
   --rp-soft: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 60%, transparent);
   --rp-rule: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 28%, transparent);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--flare-size-spacing-md);
+  display: flex;
+  flex-direction: column;
   width: var(--flare-size-component-red-packet-card-width);
   max-width: 100%;
   min-height: var(--flare-size-layout-touch-target);
   min-width: 0;
   box-sizing: border-box;
-  padding: var(--flare-size-spacing-2md);
+  padding: 0;
   border: none;
   border-radius: var(--flare-size-radius-xl);
-  cursor: pointer;
   text-align: left;
   color: var(--rp-status);
   background: linear-gradient(135deg, var(--rp-start) 0%, var(--rp-middle) 52%, var(--rp-end) 100%);
@@ -149,10 +160,31 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   overflow: hidden;
   transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
 }
-.flare-red-packet:hover:not(:disabled) { filter: brightness(1.03); }
-.flare-red-packet:active:not(:disabled) { transform: scale(0.98); }
-.flare-red-packet:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 3px; }
-.flare-red-packet:disabled { cursor: default; }
+.flare-red-packet__quote { padding: var(--flare-size-spacing-2md) var(--flare-size-spacing-2md) 0; }
+.flare-red-packet__open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--flare-size-spacing-md);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--flare-size-layout-touch-target);
+  box-sizing: border-box;
+  padding: var(--flare-size-spacing-2md);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
+}
+.flare-red-packet.has-quote .flare-red-packet__open { padding-top: var(--flare-size-spacing-sm); }
+.flare-red-packet__open:hover:not(:disabled) { filter: brightness(1.03); }
+.flare-red-packet__open:active:not(:disabled) { transform: scale(0.98); }
+.flare-red-packet__open:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
+.flare-red-packet__open:disabled { cursor: default; }
 /* Opened, emptied or expired: the same envelope, quieter — every colour mixed with fadedMixTarget by the
    shared ratio (redPacketFadedMix, spec/red-packet-vectors.json → faded), the way a spent packet reads in
    every mainstream chat. The target is white in light mode and a deep red in dark mode, so the hue stays
@@ -184,6 +216,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
 .flare-red-packet__blessing {
   display: block;
   font-size: var(--flare-size-font-size-lg);
+  line-height: var(--flare-size-line-height-snug);
   font-weight: var(--flare-size-font-weight-semibold);
   color: var(--rp-text);
   overflow: hidden;
@@ -194,6 +227,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   display: block;
   margin-top: 3px;
   font-size: var(--flare-size-font-size-sm);
+  line-height: var(--flare-size-line-height-snug);
   color: var(--rp-status);
   overflow-wrap: anywhere;
 }
@@ -207,15 +241,13 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   padding-top: var(--flare-size-spacing-sm);
   border-top: 1px solid var(--rp-rule);
   font-size: var(--flare-size-font-size-2xs);
-  letter-spacing: 0.04em;
+  font-weight: var(--flare-size-font-weight-medium);
+  line-height: var(--flare-size-line-height-snug);
   color: var(--rp-soft);
   z-index: 1;
 }
 .flare-red-packet__kind {
   flex: none;
-  padding: 0 var(--flare-size-spacing-xs);
-  border: 1px solid var(--rp-rule);
-  border-radius: var(--flare-size-radius-xs);
 }
 .flare-red-packet__recipient {
   min-width: 0;
@@ -223,9 +255,9 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.flare-red-packet__brand-name { margin-inline-start: auto; flex: 0 0 auto; }
+.flare-red-packet__brand-name { margin-inline-start: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
-  .flare-red-packet { transition: none; }
-  .flare-red-packet:active:not(:disabled) { transform: none; }
+  .flare-red-packet__open { transition: none; }
+  .flare-red-packet__open:active:not(:disabled) { transform: none; }
 }
 </style>

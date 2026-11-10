@@ -248,6 +248,10 @@ public struct RedPacketOpenSheet: View {
                 Text(strings.packetOpenAction)
                     .font(.system(size: coin * RedPacketMetrics.openGlyphShare, weight: .semibold, design: .serif))
                     .foregroundColor(colors.redPacketEnd)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+                    .padding(.horizontal, FlareSizes.spacingSm)
+                    .frame(width: coin)
             }
         }
     }

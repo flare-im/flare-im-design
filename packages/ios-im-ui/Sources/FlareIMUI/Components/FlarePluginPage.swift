@@ -36,20 +36,29 @@ public struct FlarePluginPage: View {
     private let error: String?
     private let refreshing: Bool
     private let loadingMore: Bool
+    private let pagingToken: Int
     private let resolveUser: (@Sendable (String) async -> PluginUser?)?
     private let viewerId: String?
     private let busyActionId: String?
     private let actionError: String?
     private let formErrors: [PluginFormError]
     private let members: [PluginMember]
+    private let membersLoading: Bool
+    private let membersRevision: Int
+    private let membersError: String?
+    private let onMemberSearch: ((String) -> Void)?
+    private let onMembersRetry: (() -> Void)?
     private let settleToken: Int
     private let onBack: (() -> Void)?
     private let onRefresh: (() -> Void)?
     private let onRetry: (() -> Void)?
     private let onLoadMore: ((String) -> Void)?
     private let onFilter: (([String: PluginJSONValue]) -> Void)?
+    private let fileStates: [String: PluginFileState]
+    private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginPageActionPayload) -> Void)?
     private var appearance: FlarePluginPageAppearance = .document
+    private let contentMaxWidth: CGFloat?
     private let clock: PluginViewClock
     /// The cursor asked for and not answered yet.
     @State private var paging = PluginDetailPaging()
@@ -67,34 +76,44 @@ public struct FlarePluginPage: View {
     ///   - filters: The filter values applied, by input id (what the host passed to `pluginPage` as filters).
     public init(page: PluginPageRef, title: String? = nil, view: PluginPageViewModel? = nil,
                 filters: [String: PluginJSONValue] = [:], loading: Bool = false, error: String? = nil,
-                refreshing: Bool = false, loadingMore: Bool = false,
+                refreshing: Bool = false, loadingMore: Bool = false, pagingToken: Int = 0,
                 resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, viewerId: String? = nil,
                 busyActionId: String? = nil, actionError: String? = nil, formErrors: [PluginFormError] = [],
-                members: [PluginMember] = [], settleToken: Int = 0,
+                members: [PluginMember] = [], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
+                onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, settleToken: Int = 0,
                 onBack: (() -> Void)? = nil, onRefresh: (() -> Void)? = nil, onRetry: (() -> Void)? = nil,
                 onLoadMore: ((String) -> Void)? = nil, onFilter: (([String: PluginJSONValue]) -> Void)? = nil,
+                fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
                 onAction: ((String, PluginPageActionPayload) -> Void)? = nil,
-                appearance: FlarePluginPageAppearance = .document) {
+                appearance: FlarePluginPageAppearance = .document,
+                contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
-                  refreshing: refreshing, loadingMore: loadingMore, resolveUser: resolveUser, viewerId: viewerId,
-                  busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members,
+                  refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
+                  busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                   settleToken: settleToken, onBack: onBack, onRefresh: onRefresh, onRetry: onRetry,
-                  onLoadMore: onLoadMore, onFilter: onFilter, onAction: onAction, clock: .system)
+                  onLoadMore: onLoadMore, onFilter: onFilter, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, clock: .system, contentMaxWidth: contentMaxWidth)
         self.appearance = appearance
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
     init(page: PluginPageRef, title: String?, view: PluginPageViewModel?, filters: [String: PluginJSONValue],
-         loading: Bool, error: String?, refreshing: Bool, loadingMore: Bool,
+         loading: Bool, error: String?, refreshing: Bool, loadingMore: Bool, pagingToken: Int = 0,
          resolveUser: (@Sendable (String) async -> PluginUser?)?, viewerId: String?, busyActionId: String?,
-         actionError: String?, formErrors: [PluginFormError], members: [PluginMember], settleToken: Int,
+         actionError: String?, formErrors: [PluginFormError], members: [PluginMember], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
+                onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, settleToken: Int,
          onBack: (() -> Void)?, onRefresh: (() -> Void)?, onRetry: (() -> Void)?, onLoadMore: ((String) -> Void)?,
-         onFilter: (([String: PluginJSONValue]) -> Void)?, onAction: ((String, PluginPageActionPayload) -> Void)?,
-         clock: PluginViewClock) {
+         onFilter: (([String: PluginJSONValue]) -> Void)?,
+         fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil, onAction: ((String, PluginPageActionPayload) -> Void)?,
+         clock: PluginViewClock, contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth) {
+        self.fileStates = fileStates; self.onFileAction = onFileAction
+        self.contentMaxWidth = flareContentMaxWidth(contentMaxWidth)
         self.page = page; self.title = title; self.view = view; self.filters = filters
         self.loading = loading; self.error = error; self.refreshing = refreshing; self.loadingMore = loadingMore
+        self.pagingToken = pagingToken
         self.resolveUser = resolveUser; self.viewerId = viewerId; self.busyActionId = busyActionId
         self.actionError = actionError; self.formErrors = formErrors; self.members = members
+        self.membersLoading = membersLoading; self.membersRevision = membersRevision; self.membersError = membersError
+        self.onMemberSearch = onMemberSearch; self.onMembersRetry = onMembersRetry
         self.settleToken = settleToken
         self.onBack = onBack; self.onRefresh = onRefresh; self.onRetry = onRetry; self.onLoadMore = onLoadMore
         self.onFilter = onFilter; self.onAction = onAction; self.clock = clock
@@ -125,13 +144,16 @@ public struct FlarePluginPage: View {
     private var canRefresh: Bool { onRefresh != nil && phase == .loaded }
 
     /// The filters wait while the page is read again or grows.
-    private var filtersWaiting: Bool { refreshing || loadingMore }
+    private var filtersWaiting: Bool { loading || refreshing || loadingMore }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let screen = FlareScreen(title: Self.heading(view: view, title: title), onBack: onBack, surface: .surface,
-                                 actions: headerActions) {
+                                 actions: headerActions, contentMaxWidth: contentMaxWidth) {
             pageBody(colors)
+                .padding(.horizontal, FlareSizes.spacingLg)
+                .padding(.top, FlareSizes.spacingMd)
+                .padding(.bottom, FlareSizes.spacingXl)
         }
         Group {
             if canRefresh, !Self.refreshKeyInHeader {
@@ -143,7 +165,9 @@ public struct FlarePluginPage: View {
         // A failure, the host stopping or a page read again frees the load-more key; a merged page moves it on.
         .onChange(of: loadingMore) { loading in if !loading { paging.release() } }
         .onChange(of: settleToken) { _ in paging.release() }
+        .onChange(of: pagingToken) { _ in paging.release() }
         .onChange(of: actionError) { next in if !(next ?? "").isEmpty { paging.release() } }
+        .onChange(of: error) { next in if !(next ?? "").isEmpty { paging.release() } }
         .onChange(of: refreshing) { next in
             refreshInFlight = next
             if !next { paging.release() }
@@ -190,7 +214,6 @@ public struct FlarePluginPage: View {
                 retryKey
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, FlareSizes.spacingXl)
         case .unavailable:
             if let view {
                 EmptyStateView(title: PluginPageRules.unavailableText(view.view, strings), icon: "info",
@@ -201,24 +224,25 @@ public struct FlarePluginPage: View {
             if let view {
                 VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
                     if let error, !error.isEmpty {
-                        StatusBannerView(text: error, tone: .danger)
+                        StatusBannerView(text: error, tone: .danger,
+                                         actionText: onRefresh != nil && !refreshing ? strings.retry : nil,
+                                         onAction: !refreshing ? onRefresh : nil)
                     }
                     filterRows(view.view)
                     if appearance == .account || view.view.presentation?.renderer == "account" {
                         FlareAccountView(view: view.view, busyActionId: busyActionId, error: actionError,
-                                         formErrors: formErrors, members: members, settleToken: settleToken,
-                                         onAction: pageAction(view))
+                                         formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  settleToken: settleToken,
+                                         fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view))
+                            .accountContentWidth(contentMaxWidth)
                     } else {
                     PluginView(view: view.view, icon: nil, viewerId: viewerId, busy: false, busyActionId: busyActionId,
-                               error: actionError, embedded: true, resolveUser: resolveUser, members: members,
-                               formErrors: formErrors, settleToken: settleToken, onAction: pageAction(view),
+                               error: actionError, embedded: true, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
+                               formErrors: formErrors, settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view),
                                onOpenDetail: nil, clock: clock, users: [:])
                     }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
                 }
-                .padding(.horizontal, FlareSizes.spacingLg)
-                .padding(.top, FlareSizes.spacingMd)
-                .padding(.bottom, FlareSizes.spacingXl)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
@@ -242,6 +266,7 @@ public struct FlarePluginPage: View {
             let off = filtersWaiting || onFilter == nil
             VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
                 ForEach(rows) { filter in
+                    Text(filter.input.label).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textSecondary)
                     FilterTabsView(options: filter.tabs.map { FlareFilterTabOption(value: $0.value ?? "", label: $0.label) },
                                    selection: .constant(filter.selected ?? ""), enabled: !off,
                                    onChange: { key in choose(filter, key) })
@@ -262,7 +287,8 @@ public struct FlarePluginPage: View {
         switch state {
         case .hidden: EmptyView()
         case .ready(let cursor):
-            ButtonView(label: strings.myInviteLoadMore, variant: .text, disabled: onLoadMore == nil, block: true) {
+            ButtonView(label: strings.myInviteLoadMore, variant: .text, disabled: onLoadMore == nil || loading || refreshing, block: true) {
+                guard !loading, !refreshing else { return }
                 if let asked = paging.tap(cursor: cursor, loadingMore: loadingMore) { onLoadMore?(asked) }
             }
         case .loading:

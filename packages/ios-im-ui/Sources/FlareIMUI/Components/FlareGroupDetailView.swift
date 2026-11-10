@@ -433,6 +433,7 @@ public struct FlareGroupDetail: View {
     private let onMuteMember: ((_ userId: String, _ muted: Bool) -> Void)?
     private let onTransferOwner: ((String) -> Void)?
     private let onRemoveMember: ((String) -> Void)?
+    private let onRequestFriend: ((String) -> Void)?
     private let onLoadContacts: (() -> Void)?
     private let onInviteMembers: (([String]) -> Void)?
     private let memberRosterRevision: UInt64
@@ -496,7 +497,8 @@ public struct FlareGroupDetail: View {
                 onPromoteMember: ((_ userId: String, _ admin: Bool) -> Void)? = nil,
                 onMuteMember: ((_ userId: String, _ muted: Bool) -> Void)? = nil,
                 onTransferOwner: ((String) -> Void)? = nil,
-                onRemoveMember: ((String) -> Void)? = nil, onLoadContacts: (() -> Void)? = nil,
+                onRemoveMember: ((String) -> Void)? = nil,
+                onRequestFriend: ((String) -> Void)? = nil, onLoadContacts: (() -> Void)? = nil,
                 onInviteMembers: (([String]) -> Void)? = nil,
                 memberRosterRevision: UInt64 = 0,
                 onSearchMembers: ((String) async throws -> [Contact])? = nil,
@@ -515,6 +517,7 @@ public struct FlareGroupDetail: View {
         self.onRespondRequest = onRespondRequest; self.onEnsureInviteLink = onEnsureInviteLink
         self.onPromoteMember = onPromoteMember; self.onMuteMember = onMuteMember
         self.onTransferOwner = onTransferOwner; self.onRemoveMember = onRemoveMember
+        self.onRequestFriend = onRequestFriend
         self.onLoadContacts = onLoadContacts; self.onInviteMembers = onInviteMembers
         self.memberRosterRevision = memberRosterRevision
         self.onSearchMembers = onSearchMembers; self.onLeave = onLeave
@@ -550,6 +553,15 @@ public struct FlareGroupDetail: View {
     private func actions(for memberId: String) -> [FlareMemberRoleActionEntry] {
         guard let model else { return [] }
         return groupDetailMemberActions(model: model, memberId: memberId)
+    }
+
+    /// A friend action needs both the host's answer and an owner for the intent.
+    static func memberCanRequestFriend(_ memberId: String, in model: FlareGroupDetailModel?, hasHandler: Bool) -> Bool {
+        hasHandler && model?.memberActions[memberId]?.canRequestFriend == true
+    }
+
+    private func canRequestFriend(_ memberId: String) -> Bool {
+        Self.memberCanRequestFriend(memberId, in: model, hasHandler: onRequestFriend != nil)
     }
 
     /// The states a member's admin and mute buttons offer, read from the model at tap time: the
@@ -672,7 +684,7 @@ public struct FlareGroupDetail: View {
                     members: Self.previewMembers(m.members, addTile: can(.inviteMembers)), ownerId: m.ownerId,
                     adminIds: m.adminIds, showAdd: can(.inviteMembers),
                     onSelect: { uid in
-                        guard !actions(for: uid).isEmpty else { return }
+                        guard !actions(for: uid).isEmpty || canRequestFriend(uid) else { return }
                         memberAction = m.members.first { $0.id == uid }
                     },
                     onAddMember: { onLoadContacts?(); showInvite = true },
@@ -869,6 +881,13 @@ public struct FlareGroupDetail: View {
         if let mem = member, let m = model {
             // Each intent carries the state its label offers.
             let target = Self.memberIntentTargets(mem.id, in: m)
+            if canRequestFriend(mem.id) {
+                Button(strings.groupDetailRequestFriend) {
+                    guard canRequestFriend(mem.id) else { return }
+                    memberAction = nil
+                    onRequestFriend?(mem.id)
+                }
+            }
             ForEach(actions(for: mem.id), id: \.action) { entry in
                 switch entry.action {
                 case .promote, .demote:
@@ -1014,7 +1033,7 @@ public struct FlareGroupDetail: View {
 
     /// Whether choosing `member` offers anything: the host allows at least one action on them.
     private func memberSelectable(_ member: Contact) -> Bool {
-        !actions(for: member.id).isEmpty
+        !actions(for: member.id).isEmpty || canRequestFriend(member.id)
     }
 
     private func chooseListedMember(_ member: Contact) {

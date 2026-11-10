@@ -57,6 +57,9 @@ public enum PluginViewInset: String, Sendable, CaseIterable {
     case sheetTop
 }
 
+/// Visual arrangement only. Every arrangement uses the same guarded action/form runner.
+public enum PluginViewActionLayout: Sendable { case inline, compact, list }
+
 public struct PluginView: View {
     private let view: PluginViewModel
     private let icon: String?
@@ -67,10 +70,23 @@ public struct PluginView: View {
     let error: String?
     private let embedded: Bool
     let inset: PluginViewInset
+    private let actionLayout: PluginViewActionLayout
+    private let showError: Bool
+    private let labelRows: Bool
+    private let inlineFormActionId: String?
+    private let inlineFormTitle: String?
+    private let inlineFormDescription: String?
     private let resolveUser: (@Sendable (String) async -> PluginUser?)?
     let members: [PluginMember]
+    private let membersLoading: Bool
+    private let membersRevision: Int
+    private let membersError: String?
+    private let onMemberSearch: ((String) -> Void)?
+    private let onMembersRetry: (() -> Void)?
     let formErrors: [PluginFormError]
     let settleToken: Int
+    private let fileStates: [String: PluginFileState]
+    private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginActionPayload) -> Void)?
     private let onOpenDetail: (() -> Void)?
     private let clock: PluginViewClock
@@ -79,6 +95,7 @@ public struct PluginView: View {
     @State private var confirming: PluginActionRun?
     @State private var formRun: PluginActionRun?
     @State private var formSubmitted = false
+    @State private var inlineForm = PluginInlineFormState()
     /// The row whose key last went out: `busyActionId` spins that row's key, not every row's.
     @State private var activeRow: String?
     /// The host's signals as last seen, so a change is compared whole.
@@ -91,29 +108,57 @@ public struct PluginView: View {
     /// - Parameters:
     ///   - displayName: The card envelope's `displayName` (the plugin's name): it leads the unavailable reason line.
     ///   - viewerId: The viewer's user id: entries of that user carry the "我" tag.
+    ///   - showError: Hide only the outer banner; the original error still settles and validates an active form.
+    ///   - inlineFormTitle: Optional heading immediately before an eligible inline form; also bounds it to the primary pane width.
+    ///   - inlineFormDescription: Optional supporting text under that heading. Blank metadata keeps the existing form layout.
     public init(view: PluginViewModel, icon: String? = nil, displayName: String? = nil, viewerId: String? = nil,
                 busy: Bool = false, busyActionId: String? = nil,
                 error: String? = nil, embedded: Bool = false, inset: PluginViewInset = .none,
-                resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, members: [PluginMember] = [],
+                actionLayout: PluginViewActionLayout = .inline,
+                showError: Bool = true,
+                labelRows: Bool = false,
+                inlineFormActionId: String? = nil,
+                inlineFormTitle: String? = nil,
+                inlineFormDescription: String? = nil,
+                resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, members: [PluginMember] = [], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
+                onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
                 formErrors: [PluginFormError] = [], settleToken: Int = 0,
+                fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
                 onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil) {
         self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
                   busyActionId: busyActionId, error: error, embedded: embedded,
-                  inset: inset, resolveUser: resolveUser, members: members, formErrors: formErrors,
-                  settleToken: settleToken, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:])
+                  inset: inset, actionLayout: actionLayout, showError: showError, labelRows: labelRows, inlineFormActionId: inlineFormActionId, inlineFormTitle: inlineFormTitle, inlineFormDescription: inlineFormDescription, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors,
+                  settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:])
     }
 
     /// The card at a fixed clock and with users already resolved — how the tests pin `now`, the zone and names.
     init(view: PluginViewModel, icon: String?, displayName: String? = nil, viewerId: String? = nil, busy: Bool,
          busyActionId: String?, error: String?, embedded: Bool,
-         inset: PluginViewInset = .none, resolveUser: (@Sendable (String) async -> PluginUser?)?,
-         members: [PluginMember], formErrors: [PluginFormError], settleToken: Int = 0,
+         inset: PluginViewInset = .none, actionLayout: PluginViewActionLayout = .inline,
+         showError: Bool = true,
+         labelRows: Bool = false,
+         inlineFormActionId: String? = nil,
+         inlineFormTitle: String? = nil,
+         inlineFormDescription: String? = nil,
+         resolveUser: (@Sendable (String) async -> PluginUser?)?,
+         members: [PluginMember], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
+                onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, formErrors: [PluginFormError], settleToken: Int = 0,
+         fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
          onAction: ((String, PluginActionPayload) -> Void)?, onOpenDetail: (() -> Void)?, clock: PluginViewClock,
          users: [String: PluginUser]) {
         self.view = view; self.icon = icon; self.displayName = displayName; self.viewerId = viewerId
         self.busy = busy; self.busyActionId = busyActionId; self.error = error
         self.embedded = embedded; self.inset = inset; self.resolveUser = resolveUser; self.members = members
+        self.membersLoading = membersLoading; self.membersRevision = membersRevision; self.membersError = membersError
+        self.onMemberSearch = onMemberSearch; self.onMembersRetry = onMembersRetry
+        self.actionLayout = actionLayout
+        self.showError = showError
+        self.labelRows = labelRows
+        self.inlineFormActionId = inlineFormActionId
+        self.inlineFormTitle = inlineFormTitle
+        self.inlineFormDescription = inlineFormDescription
         self.formErrors = formErrors; self.settleToken = settleToken
+        self.fileStates = fileStates; self.onFileAction = onFileAction
         self.onAction = onAction; self.onOpenDetail = onOpenDetail; self.clock = clock
         self._users = State(initialValue: users)
         self._host = State(initialValue: PluginHostSignal(busy: busy, busyActionId: busyActionId, error: error,
@@ -141,7 +186,20 @@ public struct PluginView: View {
     }
 
     /// Every action, choice and submit waits while the card or one of its actions is busy; a read-only copy never acts.
-    private var locked: Bool { busy || busyActionId != nil || view.readOnly }
+    private var locked: Bool { busy || busyActionId != nil || view.readOnly || inlineForm.pending }
+
+    static func inlineAction(_ view: PluginViewModel, id: String?, hasAction: Bool) -> PluginViewAction? {
+        guard view.available, !view.readOnly, hasAction, let id,
+              let action = view.actions.first(where: { $0.id == id }), action.confirm?.isEmpty != false,
+              let form = action.form, !form.isEmpty else { return nil }
+        let inputs = view.formInputs(for: action)
+        return inputs.count == form.count && !inputs.contains(where: { $0.kind == .password }) ? action : nil
+    }
+    private var inlineAction: PluginViewAction? { Self.inlineAction(view, id: inlineFormActionId, hasAction: onAction != nil) }
+
+    static func inlineHeading(_ value: String?) -> String? {
+        value.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 }
+    }
 
     /// The keys of the action row: the footer actions, and on an embedded view (no title row) the menu actions.
     static func actionRow(_ view: PluginViewModel, embedded: Bool) -> [PluginViewAction] {
@@ -164,8 +222,10 @@ public struct PluginView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let reason = PluginViewFormat.reasonLine(view, displayName: displayName, strings)
-        let keys = Self.actionRow(view, embedded: embedded)
+        let keys = Self.actionRow(view, embedded: embedded).filter { $0.id != inlineAction?.id }
         let special = flareHasResolvedPresentation(view)
+        let formTitle = Self.inlineHeading(inlineFormTitle)
+        let formDescription = Self.inlineHeading(inlineFormDescription)
         let content = VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
             if !embedded && !special {
                 header(colors)
@@ -183,7 +243,7 @@ public struct PluginView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             if special {
-                ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members,
+                ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                     settleToken: settleToken, resolveUser: resolveUser, onAction: locked ? nil : onAction,
                     onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
                 if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
@@ -192,16 +252,47 @@ public struct PluginView: View {
                 ForEach(Array(view.blocks.enumerated()), id: \.offset) { index, block in
                     blockView(block, at: index)
                 }
+                if let action = inlineAction {
+                    VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+                        if let title = formTitle {
+                            Text(title).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold))
+                                .foregroundColor(colors.textPrimary).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityAddTraits(.isHeader)
+                        }
+                        if let description = formDescription {
+                            Text(description).font(.system(size: FlareSizes.fontSizeMd * textScale))
+                                .foregroundColor(colors.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        }
+                    PluginFormView(inputs: view.formInputs(for: action), errors: inlineForm.submitted ? formErrors : [],
+                                   submitLabel: action.label, busy: locked, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
+                                   fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in
+                        guard !locked, Self.inlineAction(view, id: action.id, hasAction: onAction != nil) != nil,
+                              inlineForm.begin(action.id) else { return }
+                        emit(PluginActionRun(action: action, payload: .empty, block: nil), formValues: values)
+                    }).id("\(action.id)/\(inlineForm.revision)")
+                    }.frame(maxWidth: formTitle != nil || formDescription != nil ? FlareSizes.primaryPaneMaxWidth : .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 if !keys.isEmpty {
                     VStack(spacing: FlareSizes.spacing2xs) {
                         if !embedded { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
-                        FlareFlowLayout(spacing: FlareSizes.spacingMd, lineSpacing: FlareSizes.spacingSm,
+                        if actionLayout == .list {
+                            VStack(spacing: 0) {
+                                ForEach(Array(keys.enumerated()), id: \.element.id) { index, action in
+                                    if index > 0 { Divider() }
+                                    listAction(action)
+                                }
+                                if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) { detailKey(onOpenDetail) }
+                            }
+                        } else {
+                        FlareFlowLayout(spacing: actionLayout == .compact ? FlareSizes.spacingSm : FlareSizes.spacingMd, lineSpacing: FlareSizes.spacingSm,
                                         trailingLast: onOpenDetail != nil && PluginViewFormat.showsDetailKey(view, embedded: embedded),
                                         constrainSubviews: true) {
                             actionKeys(keys)
                             if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) {
                                 detailKey(onOpenDetail)
                             }
+                        }
                         }
                     }
                 }
@@ -212,11 +303,11 @@ public struct PluginView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if let failure {
+            if showError, inlineAction == nil, let failure {
                 StatusBannerView(text: failure, tone: .danger)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: actionLayout == .compact ? nil : .infinity, alignment: .leading)
         Group {
             if embedded || special {
                 content
@@ -245,11 +336,12 @@ public struct PluginView: View {
         }
         .flareBottomSheet(item: $formRun, title: formRun?.action.label, dismissible: !formPending) { request in
             PluginFormView(inputs: view.formInputs(for: request.action), errors: formSubmitted ? formErrors : [],
-                           busy: formPending, error: formSubmitted ? failure : nil, members: members,
-                           onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
+                           busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
+                           fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
                            onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
         }
         .onChange(of: view) { _ in interaction.viewChanged() }
+        .onChange(of: inlineAction?.id) { _ in inlineForm = PluginInlineFormState() }
         // Every host signal arrives in one value (`next`), so an error set in the same update as the settle is read.
         .onChange(of: hostSignal) { next in hostChanged(to: next) }
         .task(id: PluginViewFormat.userIds(in: view)) { await resolve(PluginViewFormat.userIds(in: view)) }
@@ -331,7 +423,7 @@ public struct PluginView: View {
         case .note(let note): PluginNoteBlockView(block: note)
         case .rows(let rows):
             PluginRowsBlockView(block: rows, clock: clock, busyActionId: busyActionId, activeRow: activeRow,
-                                enabled: onAction != nil && !view.readOnly && !locked) { key, row in
+                                enabled: onAction != nil && !view.readOnly && !locked, labelRows: labelRows) { key, row in
                 run(key.action, PluginActionPayload(row: PluginRowRef(key: row.key, input: key.input)))
             }
         }
@@ -347,8 +439,24 @@ public struct PluginView: View {
             ButtonView(label: action.label, variant: PluginViewFormat.variant(action),
                        size: .sm, loading: busyActionId == action.id,
                        disabled: (locked && busyActionId != action.id) || onAction == nil,
-                       appearance: .text) { run(action, .empty) }
+                       block: actionLayout == .list,
+                       appearance: actionLayout == .inline ? .text : .standard,
+                       maintainTouchTarget: true) { run(action, .empty) }
         }
+    }
+    private func listAction(_ action: PluginViewAction) -> some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let color = action.style == .danger ? colors.errorText : action.style == .primary ? colors.primaryText : colors.textSecondary
+        return Button { run(action, .empty) } label: {
+            HStack(spacing: FlareSizes.spacingSm) {
+                Text(action.label).font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: FlareSizes.spacingSm)
+                if busyActionId == action.id { ProgressView().controlSize(.small) }
+                else { FlareIconImage(name: "chevron-right", size: FlareSizes.iconSizeSm) }
+            }.foregroundColor(color).frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget, alignment: .leading)
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain).disabled(locked || onAction == nil)
     }
 
     // MARK: Behaviour
@@ -358,6 +466,7 @@ public struct PluginView: View {
         let old = host
         host = next
         interaction.hostChanged(from: old, to: next)
+        if let action = inlineAction { inlineForm.settle(from: old, to: next, actionId: action.id) }
         guard let formRun, formSubmitted else { return }
         if PluginSettleRules.form(from: old, to: next, actionId: formRun.action.id) == .close {
             self.formRun = nil
@@ -780,6 +889,7 @@ struct PluginRowsBlockView: View {
     /// The row whose key last went out: its key spins while `busyActionId` is that action.
     let activeRow: String?
     let enabled: Bool
+    var labelRows = false
     let onKey: (PluginRowKey, PluginRow) -> Void
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
@@ -818,6 +928,9 @@ struct PluginRowsBlockView: View {
         let keys = PluginViewFormat.rowKeys(block, row)
         return HStack(spacing: FlareSizes.spacingSm) {
             VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+                if labelRows, let label = block.columns.first?.label, !label.isEmpty {
+                    Text(label).font(.system(size: FlareSizes.fontSizeSm * textScale)).foregroundColor(colors.textSecondary)
+                }
                 HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingXs) {
                     if let badge = row.badge { PluginBadgeView(badge: badge) }
                     Text(lines.primary)
@@ -825,7 +938,9 @@ struct PluginRowsBlockView: View {
                         .foregroundColor(colors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if let secondary = lines.secondary {
+                if labelRows {
+                    PluginFieldRows(fields: PluginViewFormat.rowFields(block, row, nowMs: clock.now(), strings, utcOffsetMinutes: clock.utcOffsetMinutes))
+                } else if let secondary = lines.secondary {
                     Text(secondary)
                         .font(.system(size: FlareSizes.fontSizeSm * textScale))
                         .foregroundColor(colors.textSecondary)

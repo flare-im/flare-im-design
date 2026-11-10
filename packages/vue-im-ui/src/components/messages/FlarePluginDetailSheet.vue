@@ -10,6 +10,8 @@ import {
   type FlarePluginActionPayload,
   type FlarePluginFormError,
   type FlarePluginMember,
+  type FlarePluginProtectedMediaRead,
+  type FlarePluginProtectedMediaState,
   type FlarePluginResolveUser,
   type FlarePluginViewModel,
 } from "../../shared/contracts/plugin-ui";
@@ -34,18 +36,31 @@ const props = withDefaults(
     busyActionId?: string;
     /** Failure of an action run from the detail, shown inside the sheet (the view's error), never on the card. */
     actionError?: string;
+    /** Keep action failure/settlement state while the host presents its own notification. */
+    errorPresentation?: "inline" | "external";
+    notePresentation?: "tinted" | "plain";
     /** The host's validation errors for a form opened from the detail. */
     formErrors?: FlarePluginFormError[];
     /** Candidates for members inputs in the detail's action forms. */
     members?: FlarePluginMember[];
+    membersLoading?: boolean;
+    membersRevision?: number;
+    membersError?: string;
+    onMemberSearch?: (query: string) => void;
+    onMembersRetry?: () => void;
     /** The host's settle signal for actions run from the detail (PluginView settleToken). */
     settleToken?: number;
     /** The host is fetching the next page: the load-more key spins and is disabled. */
     loadingMore?: boolean;
+    /** The scale the host knows for an asset (PluginView assetScale). */
+    assetScale?: (assetId: string) => number | undefined;
+    /** What the host has for each protected media item of the detail (PluginView protectedMedia). */
+    protectedMedia?: Record<string, FlarePluginProtectedMediaState>;
   }>(),
   {
     title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
-    actionError: undefined, formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
+    actionError: undefined, errorPresentation: "inline", formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
+    assetScale: undefined, protectedMedia: undefined,
   },
 );
 const emit = defineEmits<{
@@ -54,6 +69,8 @@ const emit = defineEmits<{
   action: [actionId: string, payload: FlarePluginActionPayload];
   /** The next page after `cursor` (the view's nextCursor); the host passes back the merged view. */
   loadMore: [cursor: string];
+  /** A protected media read of the detail with its reason: the host runs and audits it, then fills `protectedMedia`. */
+  protectedMediaRead: [read: FlarePluginProtectedMediaRead];
 }>();
 const { t } = useFlareI18nOptional();
 const heading = computed(() => props.view?.title || props.title);
@@ -85,10 +102,15 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
         :viewer-id="viewerId"
         :busy-action-id="busyActionId"
         :error="actionError"
+        :error-presentation="errorPresentation"
+        :note-presentation="notePresentation"
         :form-errors="formErrors"
-        :members="members"
+        :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry"
         :settle-token="settleToken"
+        :asset-scale="assetScale"
+        :protected-media="protectedMedia"
         @action="(id: string, payload: FlarePluginActionPayload) => emit('action', id, payload)"
+        @protected-media-read="(read: FlarePluginProtectedMediaRead) => emit('protectedMediaRead', read)"
       />
       <div v-if="state === 'loaded' && nextCursor" class="flare-plugin-detail__more">
         <FlareButton

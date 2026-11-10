@@ -52,6 +52,22 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("authoritative member revisions clear member selection without resetting other fields", async () => {
+    const searches:string[]=[];
+    const {wrapper,state,submits}=render({
+      inputs:[{id:"amount",kind:"text",label:"金额"},{id:"recipients",kind:"members",label:"成员",required:true,min:1,max:1}],
+      values:{amount:"1.30",recipients:["u_bob0002"]},membersRevision:0,
+      onMemberSearch:(query:string)=>searches.push(query),
+    });
+    expect(field(wrapper,"recipients").get('[data-members-chosen]').text()).toBe('Bob');
+    await field(wrapper,"recipients").get('[data-members-choose]').trigger('click');await flushPromises();
+    expect(searches).toEqual(['']);expect(document.body.querySelector('.flare-contact-picker')).not.toBeNull();
+    state.membersRevision=1;await flushPromises();
+    expect(field(wrapper,"recipients").find('[data-members-chosen]').exists()).toBe(false);
+    expect((field(wrapper,"amount").get('input').element as HTMLInputElement).value).toBe('1.30');
+    expect(document.body.querySelector('.flare-contact-picker')).toBeNull();
+    await wrapper.get('[data-form-submit]').trigger('click');expect(submits).toEqual([]);
+  });
   it("masks payment passwords, ignores prefills and clears secrets before submitting", async () => {
     const {wrapper,submits}=render({inputs:[{id:"password",kind:"password",label:"支付密码",required:true,maxLength:6,default:"111111"}],values:{password:"222222"}});
     const input=field(wrapper,"password").get("input");

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NModal, NCard, NImage, NButton, NAlert, NSpin } from "naive-ui";
+import { NModal, NCard, NImage, NButton, NAlert, NSpin, NEmpty } from "naive-ui";
 import { ref, watch } from "vue";
 const props = defineProps<{
   open: boolean;
@@ -8,6 +8,8 @@ const props = defineProps<{
   title: string;
   loading?: boolean;
   error?: string;
+  /** Persistent preview failure content for hosts that own external notifications. */
+  errorPresentation?: "inline" | "neutral";
   failedText: string;
   closeText: string;
   downloadText: string;
@@ -45,7 +47,8 @@ watch(
         :show="loading"
         content-class="flare-admin-attachment-preview__body"
       >
-        <NAlert v-if="error" type="error">{{ error }}</NAlert>
+        <NEmpty v-if="(error || mediaFailed) && errorPresentation === 'neutral'" :description="error || failedText" role="status" />
+        <NAlert v-else-if="error" type="error">{{ error }}</NAlert>
         <NAlert v-else-if="mediaFailed" type="error">{{ failedText }}</NAlert>
         <template v-else-if="open && url">
           <NImage

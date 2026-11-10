@@ -22,7 +22,11 @@ void main() {
             body: Column(
               children: [
                 const FlareInput(key: plain),
-                FlareInput(key: clearable, clearable: true, controller: controller),
+                FlareInput(
+                  key: clearable,
+                  clearable: true,
+                  controller: controller,
+                ),
                 const FlareInput(key: secure, secure: true, revealable: true),
               ],
             ),
@@ -100,6 +104,8 @@ void main() {
         hasEnabledState: true,
         isEnabled: true,
         hasTapAction: true,
+        hasFocusAction: true,
+        isFocusable: true,
       ),
     );
     await tester.tap(find.text('乙'));

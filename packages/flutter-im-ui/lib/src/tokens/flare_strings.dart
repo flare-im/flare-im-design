@@ -60,6 +60,15 @@ class FlareStrings {
     this.manage = '管理',
     this.selectAll = '全选',
     this.retry = '重试',
+    this.pluginFileChoose = '选择文件', // en: Choose file
+    this.pluginFileSelected = '等待上传完成', // en: Waiting for upload
+    this.pluginFileUploading = '上传中', // en: Uploading
+    this.pluginFileUploaded = '已上传', // en: Uploaded
+    this.pluginFileFailed = '上传未完成，请重试或重新选择', // en: Upload is incomplete. Retry or choose another file
+    this.pluginFileReplace = '替换', // en: Replace
+    this.pluginFileRemove = '移除', // en: Remove
+    this.pluginFilePreview = '预览', // en: Preview
+    this.pluginFileRejected = '请选择符合格式与大小限制的文件', // en: Choose a file within the allowed format and size limits
     this.loading = '加载中',
     this.messagePending = '等待发送',
     this.messageSending = '发送中',
@@ -1087,6 +1096,15 @@ class FlareStrings {
   final String manage;
   final String selectAll;
   final String retry;
+  final String pluginFileChoose;
+  final String pluginFileSelected;
+  final String pluginFileUploading;
+  final String pluginFileUploaded;
+  final String pluginFileFailed;
+  final String pluginFileReplace;
+  final String pluginFileRemove;
+  final String pluginFilePreview;
+  final String pluginFileRejected;
   final String loading;
   final String messagePending;
   final String messageSending;
@@ -2156,6 +2174,15 @@ class FlareStrings {
     String? manage,
     String? selectAll,
     String? retry,
+    String? pluginFileChoose,
+    String? pluginFileSelected,
+    String? pluginFileUploading,
+    String? pluginFileUploaded,
+    String? pluginFileFailed,
+    String? pluginFileReplace,
+    String? pluginFileRemove,
+    String? pluginFilePreview,
+    String? pluginFileRejected,
     String? loading,
     String? messagePending,
     String? messageSending,
@@ -3086,6 +3113,15 @@ class FlareStrings {
       manage: manage ?? this.manage,
       selectAll: selectAll ?? this.selectAll,
       retry: retry ?? this.retry,
+      pluginFileChoose: pluginFileChoose ?? this.pluginFileChoose,
+      pluginFileSelected: pluginFileSelected ?? this.pluginFileSelected,
+      pluginFileUploading: pluginFileUploading ?? this.pluginFileUploading,
+      pluginFileUploaded: pluginFileUploaded ?? this.pluginFileUploaded,
+      pluginFileFailed: pluginFileFailed ?? this.pluginFileFailed,
+      pluginFileReplace: pluginFileReplace ?? this.pluginFileReplace,
+      pluginFileRemove: pluginFileRemove ?? this.pluginFileRemove,
+      pluginFilePreview: pluginFilePreview ?? this.pluginFilePreview,
+      pluginFileRejected: pluginFileRejected ?? this.pluginFileRejected,
       loading: loading ?? this.loading,
       messagePending: messagePending ?? this.messagePending,
       messageSending: messageSending ?? this.messageSending,

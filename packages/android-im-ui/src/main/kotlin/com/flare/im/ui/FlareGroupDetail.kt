@@ -338,6 +338,10 @@ internal fun groupMemberAdminTarget(model: FlareGroupDetailModel, userId: String
 /** The mute state the member's mute action asks for — the one its label offers: muted unless already muted. */
 internal fun groupMemberMuteTarget(model: FlareGroupDetailModel, userId: String): Boolean = userId !in model.mutedIds
 
+/** A friend action needs both the host's answer and an owner for the intent. */
+internal fun groupMemberCanRequestFriend(model: FlareGroupDetailModel?, userId: String, hasHandler: Boolean): Boolean =
+    hasHandler && model?.memberActions?.get(userId)?.canRequestFriend == true
+
 /**
  * Group detail / management — a full presentational screen: header, hero, member grid,
  * and Feishu-style settings (群信息 / 我在本群 / 群管理 / 群权限), plus the member action sheet,
@@ -415,6 +419,8 @@ fun FlareGroupDetail(
     onMuteMember: ((userId: String, muted: Boolean) -> Unit)? = null,
     onTransferOwner: (String) -> Unit = {},
     onRemoveMember: (String) -> Unit = {},
+    /** Opens the host's existing friend-request flow only for a member the host permits. */
+    onRequestFriend: ((String) -> Unit)? = null,
     onLoadContacts: () -> Unit = {},
     onInviteMembers: (List<String>) -> Unit = {},
     /**
@@ -463,6 +469,9 @@ fun FlareGroupDetail(
                 FlareMemberRoleAction.TransferOwner, FlareMemberRoleAction.Remove -> true
             }
         }
+
+    fun hasMemberActions(m: FlareGroupDetailModel, id: String): Boolean =
+        sheetEntries(m, id).isNotEmpty() || groupMemberCanRequestFriend(m, id, onRequestFriend != null)
 
     Column(modifier.fillMaxSize().background(colors.bgSecondary)) {
         Row(
@@ -516,7 +525,7 @@ fun FlareGroupDetail(
                 ownerId = m.ownerId,
                 adminIds = m.adminIds,
                 showAdd = showAdd,
-                onSelect = { id -> if (sheetEntries(m, id).isNotEmpty()) memberSheet = id },
+                onSelect = { id -> if (hasMemberActions(m, id)) memberSheet = id },
                 onAddMember = { onLoadContacts(); inviteMembersOpen = true },
                 title = labels.members,
                 onViewAll = { membersOpen = true },
@@ -725,7 +734,7 @@ fun FlareGroupDetail(
                         indexed = false,
                         // The same member actions as the grid: a member opens the sheet only with something to do to them.
                         onSelect = if (m.memberActions.isEmpty()) null else ({ member ->
-                            if (sheetEntries(m, member.id).isNotEmpty()) { membersOpen = false; memberSheet = member.id }
+                            if (hasMemberActions(m, member.id)) { membersOpen = false; memberSheet = member.id }
                         }),
                     )
                 }
@@ -744,6 +753,14 @@ fun FlareGroupDetail(
                     .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
+                if (groupMemberCanRequestFriend(m, selected, onRequestFriend != null)) {
+                    SecondaryBlockButton(text = flareStrings().groupDetailRequestFriend) {
+                        if (groupMemberCanRequestFriend(model, selected, onRequestFriend != null)) {
+                            memberSheet = null
+                            onRequestFriend?.invoke(selected)
+                        }
+                    }
+                }
                 for (entry in sheetEntries(m, selected)) {
                     when (entry.action) {
                         FlareMemberRoleAction.Promote, FlareMemberRoleAction.Demote -> onPromoteMember?.let { promote ->

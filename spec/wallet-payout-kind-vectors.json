@@ -1,0 +1,3875 @@
+{
+  "cases": [
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [
+          "bankCard",
+          "alipay",
+          "wechat",
+          "address"
+        ],
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": [
+          {
+            "label": "银行卡",
+            "value": "bankCard"
+          },
+          {
+            "label": "支付宝",
+            "value": "alipay"
+          },
+          {
+            "label": "微信",
+            "value": "wechat"
+          },
+          {
+            "label": "收款地址",
+            "value": "address"
+          }
+        ]
+      },
+      "synthetic": true,
+      "variant": "all4",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "保存收款方式",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "设为默认",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "确认删除此收款方式？",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "删除",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "类型"
+              },
+              {
+                "format": "text",
+                "label": "户名"
+              },
+              {
+                "format": "text",
+                "label": "账号"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "银行卡"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "已批准"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "银行卡",
+                "value": "bankCard"
+              },
+              {
+                "label": "支付宝",
+                "value": "alipay"
+              },
+              {
+                "label": "微信",
+                "value": "wechat"
+              },
+              {
+                "label": "收款地址",
+                "value": "address"
+              }
+            ],
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "户名",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "账号",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "银行名称（银行卡必填）",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "收款地址",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+            "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+            "emptyTitle": "暂无收款账户",
+            "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+            "formTitle": "添加收款方式",
+            "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "已添加的收款方式",
+            "servicesTitle": "更多操作",
+            "stepLabel": "管理收款方式"
+          },
+          "renderer": "account"
+        },
+        "title": "收款方式"
+      }
+    },
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "en-US",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [
+          "bankCard",
+          "alipay",
+          "wechat",
+          "address"
+        ],
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": [
+          {
+            "label": "银行卡",
+            "value": "bankCard"
+          },
+          {
+            "label": "支付宝",
+            "value": "alipay"
+          },
+          {
+            "label": "微信",
+            "value": "wechat"
+          },
+          {
+            "label": "收款地址",
+            "value": "address"
+          }
+        ]
+      },
+      "synthetic": true,
+      "variant": "all4",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "Save payout method",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Set default",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "Delete this payout method?",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Remove",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Type"
+              },
+              {
+                "format": "text",
+                "label": "Account holder"
+              },
+              {
+                "format": "text",
+                "label": "Account number"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "Bank card"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "Approved"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Bank card",
+                "value": "bankCard"
+              },
+              {
+                "label": "Alipay",
+                "value": "alipay"
+              },
+              {
+                "label": "WeChat",
+                "value": "wechat"
+              },
+              {
+                "label": "Payout address",
+                "value": "address"
+              }
+            ],
+            "id": "kind",
+            "kind": "select",
+            "label": "Type",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "Account holder",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "Account number",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "Bank name (required for bank cards)",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "Payout address",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+            "emptyDescription": "Add payout details for review. After approval, select the account for withdrawals.",
+            "emptyTitle": "No payout accounts",
+            "formDescription": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+            "formTitle": "Add a payout method",
+            "formUnavailableDescription": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Saved payout methods",
+            "servicesTitle": "More actions",
+            "stepLabel": "Manage payout methods"
+          },
+          "renderer": "account"
+        },
+        "title": "Payout methods"
+      }
+    },
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [
+          "alipay"
+        ],
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": [
+          {
+            "label": "支付宝",
+            "value": "alipay"
+          }
+        ]
+      },
+      "synthetic": true,
+      "variant": "alipay_only",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "保存收款方式",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "设为默认",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "确认删除此收款方式？",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "删除",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "类型"
+              },
+              {
+                "format": "text",
+                "label": "户名"
+              },
+              {
+                "format": "text",
+                "label": "账号"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "银行卡"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "已批准"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "支付宝",
+                "value": "alipay"
+              }
+            ],
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "户名",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "账号",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "银行名称（银行卡必填）",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "收款地址",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+            "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+            "emptyTitle": "暂无收款账户",
+            "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+            "formTitle": "添加收款方式",
+            "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "已添加的收款方式",
+            "servicesTitle": "更多操作",
+            "stepLabel": "管理收款方式"
+          },
+          "renderer": "account"
+        },
+        "title": "收款方式"
+      }
+    },
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "en-US",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [
+          "alipay"
+        ],
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": [
+          {
+            "label": "支付宝",
+            "value": "alipay"
+          }
+        ]
+      },
+      "synthetic": true,
+      "variant": "alipay_only",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "Save payout method",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Set default",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "Delete this payout method?",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Remove",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Type"
+              },
+              {
+                "format": "text",
+                "label": "Account holder"
+              },
+              {
+                "format": "text",
+                "label": "Account number"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "Bank card"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "Approved"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Alipay",
+                "value": "alipay"
+              }
+            ],
+            "id": "kind",
+            "kind": "select",
+            "label": "Type",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "Account holder",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "Account number",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "Bank name (required for bank cards)",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "Payout address",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+            "emptyDescription": "Add payout details for review. After approval, select the account for withdrawals.",
+            "emptyTitle": "No payout accounts",
+            "formDescription": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+            "formTitle": "Add a payout method",
+            "formUnavailableDescription": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Saved payout methods",
+            "servicesTitle": "More actions",
+            "stepLabel": "Manage payout methods"
+          },
+          "renderer": "account"
+        },
+        "title": "Payout methods"
+      }
+    },
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [],
+        "features": {
+          "payoutProfiles": {
+            "available": false,
+            "enabled": true,
+            "reasonCode": "PAYOUT_PROFILE_UNAVAILABLE"
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": []
+      },
+      "synthetic": true,
+      "variant": "empty",
+      "view": {
+        "actions": [],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "status",
+            "label": "服务状态",
+            "text": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+            "tone": "warning"
+          },
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "设为默认",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "确认删除此收款方式？",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "删除",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "类型"
+              },
+              {
+                "format": "text",
+                "label": "户名"
+              },
+              {
+                "format": "text",
+                "label": "账号"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "银行卡"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "已批准"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "户名",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "账号",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "银行名称（银行卡必填）",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "收款地址",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+            "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+            "emptyTitle": "暂无收款账户",
+            "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+            "formTitle": "添加收款方式",
+            "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "已添加的收款方式",
+            "servicesTitle": "更多操作",
+            "stepLabel": "管理收款方式"
+          },
+          "renderer": "account"
+        },
+        "title": "收款方式"
+      }
+    },
+    {
+      "declaration": {
+        "id": "flare.wallet.page.payout_profiles",
+        "kind": "page",
+        "requiredPermissions": [
+          "flare.wallet.read"
+        ],
+        "schema": {
+          "actions": [
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "continuation": {
+                "input": {},
+                "page": "flare.wallet.page.payout_profiles"
+              },
+              "form": [
+                "kind",
+                "accountName",
+                "accountNumber",
+                "bankName",
+                "address"
+              ],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "true"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                }
+              ],
+              "id": "save",
+              "input": {},
+              "label": "保存收款方式",
+              "style": "primary",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.save"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "form": [],
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "approved"
+                  ],
+                  "negate": true,
+                  "path": "/status"
+                }
+              ],
+              "id": "default",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "设为默认",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.set_default"
+              }
+            },
+            {
+              "command": {
+                "slot": "flare.wallet.cashflows",
+                "terminalErrorCodes": [
+                  "INVALID_REQUEST",
+                  "ACCESS_DENIED",
+                  "COMMAND_CONFLICT",
+                  "VERSION_CONFLICT",
+                  "FEATURE_DISABLED",
+                  "CHANNEL_UNAVAILABLE",
+                  "PAYOUT_PROFILE_REQUIRED",
+                  "PAYOUT_PROFILE_UNAVAILABLE",
+                  "CASHFLOW_LIMIT",
+                  "KYC_REQUIRED",
+                  "PAYOUT_PAUSED",
+                  "INSUFFICIENT_FUNDS",
+                  "AUTHORIZATION_EXPIRED",
+                  "INVALID_TRANSITION",
+                  "RULE_VIOLATION"
+                ]
+              },
+              "confirm": "确认删除此收款方式？",
+              "form": [],
+              "id": "remove",
+              "input": {
+                "expectedRevision": "/revision",
+                "id": "/id"
+              },
+              "label": "删除",
+              "style": "danger",
+              "target": {
+                "kind": "operation",
+                "operation": "flare.wallet.ui.payout_profiles.remove"
+              }
+            }
+          ],
+          "blocks": [
+            {
+              "hiddenWhen": [
+                {
+                  "anyOf": [
+                    "false"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/available"
+                },
+                {
+                  "anyOf": [
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE"
+                  ],
+                  "negate": true,
+                  "path": "/features/payoutProfiles/reasonCode"
+                }
+              ],
+              "kind": "status",
+              "label": "服务状态",
+              "path": "/features/payoutProfiles/reasonCode",
+              "values": {
+                "CHANNEL_UNAVAILABLE": {
+                  "label": "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "FEATURE_DISABLED": {
+                  "label": "当前未开放新申请，已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "KYC_REQUIRED": {
+                  "label": "请先完成实名认证，再继续提交申请；已有记录仍可查看。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PAUSED": {
+                  "label": "提现目前暂停，已有申请仍可查看处理进度。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_REQUIRED": {
+                  "label": "请先添加并通过审核的收款方式，再申请提现。",
+                  "tone": "warning"
+                },
+                "PAYOUT_PROFILE_UNAVAILABLE": {
+                  "label": "当前未开放可用的收款类型，已有收款方式仍可查看和管理。",
+                  "tone": "warning"
+                }
+              }
+            },
+            {
+              "actions": [
+                "default",
+                "remove"
+              ],
+              "columns": [
+                {
+                  "label": "类型",
+                  "path": "/kind",
+                  "values": {
+                    "address": "收款地址",
+                    "alipay": "支付宝",
+                    "bankCard": "银行卡",
+                    "wechat": "微信"
+                  }
+                },
+                {
+                  "label": "户名",
+                  "path": "/accountName"
+                },
+                {
+                  "label": "账号",
+                  "path": "/maskedAccountNumber"
+                },
+                {
+                  "label": "状态",
+                  "path": "/status",
+                  "values": {
+                    "approved": "已批准",
+                    "failed": "失败",
+                    "pending": "待审核",
+                    "processing": "出款中",
+                    "rejected": "已拒绝",
+                    "removed": "已移除",
+                    "succeeded": "已完成",
+                    "unknown": "结果待查"
+                  }
+                },
+                {
+                  "label": "原因",
+                  "path": "/reason"
+                }
+              ],
+              "emptyText": "暂无记录",
+              "filters": [],
+              "keyPath": "/id",
+              "kind": "rows",
+              "path": "/items",
+              "source": "flare.wallet.ui.payout_profiles"
+            }
+          ],
+          "fields": [],
+          "inputs": [
+            {
+              "choices": [],
+              "choicesPath": "/payoutProfileKindChoices",
+              "id": "kind",
+              "kind": "select",
+              "label": "类型",
+              "required": true
+            },
+            {
+              "id": "accountName",
+              "kind": "text",
+              "label": "户名",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "accountNumber",
+              "kind": "text",
+              "label": "账号",
+              "maxLength": 128,
+              "required": true
+            },
+            {
+              "id": "bankName",
+              "kind": "text",
+              "label": "银行名称（银行卡必填）",
+              "maxLength": 128,
+              "required": false
+            },
+            {
+              "id": "address",
+              "kind": "text",
+              "label": "收款地址",
+              "maxLength": 128,
+              "required": false
+            }
+          ],
+          "presentation": {
+            "actions": {
+              "submit": "save"
+            },
+            "bindings": {
+              "groupByDate": "/groupByDate",
+              "maskRowAmounts": "/maskRowAmounts"
+            },
+            "labels": {
+              "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+              "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+              "emptyTitle": "暂无收款账户",
+              "formDescription": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+              "formTitle": "添加收款方式",
+              "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+              "informationTitle": "账户信息",
+              "layout": "flow",
+              "sectionTitle": "已添加的收款方式",
+              "servicesTitle": "更多操作",
+              "stepLabel": "管理收款方式"
+            },
+            "renderer": "account"
+          },
+          "title": "收款方式",
+          "translations": {
+            "en-US": {
+              "actions": {
+                "default": "Set default",
+                "remove": "Remove",
+                "save": "Save payout method"
+              },
+              "fields": [],
+              "texts": {
+                "保存收款方式": "Save payout method",
+                "出款中": "Processing",
+                "删除": "Remove",
+                "原因": "Reason",
+                "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "失败": "Failed",
+                "已完成": "Completed",
+                "已批准": "Approved",
+                "已拒绝": "Rejected",
+                "已添加的收款方式": "Saved payout methods",
+                "已移除": "Removed",
+                "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+                "当前未开放可用的收款类型，已有收款方式仍可查看和管理。": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+                "当前未开放新申请，已有记录仍可查看。": "New requests are not enabled. Existing records remain available.",
+                "待审核": "Pending review",
+                "微信": "WeChat",
+                "户名": "Account holder",
+                "提现目前暂停，已有申请仍可查看处理进度。": "Withdrawals are paused. Existing requests can still be tracked.",
+                "支付宝": "Alipay",
+                "收款地址": "Payout address",
+                "收款方式": "Payout methods",
+                "暂无可用渠道，暂不能提交新申请；已有记录仍可查看。": "No channel is available for new requests. Existing records remain available.",
+                "暂无收款账户": "No payout accounts",
+                "暂无记录": "No records",
+                "更多操作": "More actions",
+                "服务状态": "Service status",
+                "添加并管理提现收款账户，审核通过后可用于提现。": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "添加收款方式": "Add a payout method",
+                "添加收款资料并通过审核后，即可选择该账户提现。": "Add payout details for review. After approval, select the account for withdrawals.",
+                "状态": "Status",
+                "确认删除此收款方式？": "Delete this payout method?",
+                "管理收款方式": "Manage payout methods",
+                "类型": "Type",
+                "结果待查": "Result unknown",
+                "设为默认": "Set default",
+                "请先完成实名认证，再继续提交申请；已有记录仍可查看。": "Complete identity verification before submitting a request. Existing records remain available.",
+                "请先添加并通过审核的收款方式，再申请提现。": "Add a payout method and have it approved before requesting a withdrawal.",
+                "账号": "Account number",
+                "账户信息": "Account information",
+                "银行卡": "Bank card",
+                "银行名称（银行卡必填）": "Bank name (required for bank cards)"
+              },
+              "title": "Payout methods"
+            }
+          }
+        },
+        "schemaVersion": 1,
+        "source": {
+          "commandSlot": "flare.wallet.cashflows",
+          "cursorPath": "/nextCursor",
+          "input": {
+            "authorizationId": "/authorizationId",
+            "recordId": "/recordId",
+            "walletId": "/walletId"
+          },
+          "operation": "flare.wallet.ui.payout_profiles"
+        }
+      },
+      "id": "payout_profiles",
+      "locale": "en-US",
+      "page": "flare.wallet.page.payout_profiles",
+      "sourceData": {
+        "allowedPayoutProfileKinds": [],
+        "features": {
+          "payoutProfiles": {
+            "available": false,
+            "enabled": true,
+            "reasonCode": "PAYOUT_PROFILE_UNAVAILABLE"
+          }
+        },
+        "items": [
+          {
+            "accountName": "Example owner",
+            "id": "fixture-existing-bank",
+            "kind": "bankCard",
+            "maskedAccountNumber": "****1234",
+            "reason": null,
+            "revision": "1",
+            "status": "approved"
+          }
+        ],
+        "nextCursor": null,
+        "payoutProfileKindChoices": []
+      },
+      "synthetic": true,
+      "variant": "empty",
+      "view": {
+        "actions": [],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "status",
+            "label": "Service status",
+            "text": "No payout method types are currently enabled. Existing payout methods can still be viewed and managed.",
+            "tone": "warning"
+          },
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Set default",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "confirm": "Delete this payout method?",
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Remove",
+                "style": "danger",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Type"
+              },
+              {
+                "format": "text",
+                "label": "Account holder"
+              },
+              {
+                "format": "text",
+                "label": "Account number"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "default",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  },
+                  {
+                    "id": "remove",
+                    "input": {
+                      "expectedRevision": "1",
+                      "id": "fixture-existing-bank"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "Bank card"
+                  },
+                  {
+                    "text": "Example owner"
+                  },
+                  {
+                    "text": "****1234"
+                  },
+                  {
+                    "text": "Approved"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "fixture-existing-bank"
+              }
+            ],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "kind",
+            "kind": "select",
+            "label": "Type",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "Account holder",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "Account number",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "Bank name (required for bank cards)",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "Payout address",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+            "emptyDescription": "Add payout details for review. After approval, select the account for withdrawals.",
+            "emptyTitle": "No payout accounts",
+            "formDescription": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+            "formTitle": "Add a payout method",
+            "formUnavailableDescription": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Saved payout methods",
+            "servicesTitle": "More actions",
+            "stepLabel": "Manage payout methods"
+          },
+          "renderer": "account"
+        },
+        "title": "Payout methods"
+      }
+    }
+  ],
+  "contractVersion": "0.3.2",
+  "description": "Synthetic display-only projection inputs resolved by the real 0.3.2 wallet contract and public UiContribution resolver. Not database output, payout destinations or financial operations. Existing bank-card history remains readable when allowed new kinds shrink or become empty.",
+  "schema": "wallet-payout-kind-vectors/v1"
+}

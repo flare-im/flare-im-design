@@ -11,6 +11,7 @@ import {
   NInput,
   NPagination,
   NPopover,
+  NSelect,
 } from "naive-ui";
 import FlareAdminList from "./FlareAdminList.vue";
 import FlareDrawer from "../general/FlareDrawer.vue";
@@ -364,6 +365,20 @@ describe("FlareAdminList / Naive UI composition", () => {
     expect(list.findComponent(NPagination).props("disabled")).toBe(true);
     expect(list.get(".flare-admin-list__total").text()).toBe("正在加载");
   });
+  it("retains persistent failure and retry controls without a notification strip when the host owns messages", async () => {
+    const retry = vi.fn();
+    const { list, set } = setup(
+      { error: "Request unavailable", errorPresentation: "neutral" },
+      { "error-actions": () => h(NButton, { onClick: retry }, () => "Retry") },
+    );
+    expect(list.find(".n-alert").exists()).toBe(false);
+    const state = list.get('[role="status"]');
+    expect(state.text()).toContain("Request unavailable");
+    await state.get("button").trigger("click");
+    expect(retry).toHaveBeenCalledTimes(1);
+    await set({ error: "" });
+    expect(list.find('[role="status"]').exists()).toBe(false);
+  });
   it("renders genuine empty data with zero total and no selection column for a read-only host", () => {
     const { list } = setup({
       rows: [],
@@ -464,6 +479,27 @@ describe("FlareAdminList / Naive UI composition", () => {
     input.element.removeAttribute("aria-expanded");
     await input.trigger("keydown", { key: "Enter" });
     expect(list.emitted("search")).toHaveLength(1);
+  });
+  it("keeps a guarded page-size picker beside the compact numbered pager", async () => {
+    const resize = layout();
+    const { list, set } = setup();
+    await resize(1, 390);
+    const picker = list
+      .get(".flare-admin-list__compact-page-size")
+      .findComponent(NSelect);
+    expect(picker.props("options")).toEqual([
+      { value: 10, label: "每页 10 条" },
+      { value: 20, label: "每页 20 条" },
+    ]);
+    expect(list.findComponent(NPagination).props("simple")).toBe(true);
+    picker.vm.$emit("update:value", 20);
+    expect(list.emitted("update:pagination")).toEqual([
+      [{ page: 1, pageSize: 20, total: 40, pageSizes: [10, 20] }],
+    ]);
+    await set({ disabled: true });
+    expect(picker.props("disabled")).toBe(true);
+    picker.vm.$emit("update:value", 20);
+    expect(list.emitted("update:pagination")).toHaveLength(1);
   });
   it("locks query, reset, selection and pagination during writes", async () => {
     const { list } = setup({ disabled: true, selectable: true });

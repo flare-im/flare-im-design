@@ -61,6 +61,7 @@ class FlareScreen extends StatelessWidget {
         : colors.bgSecondary;
     final hasHeader =
         title != null || onBack != null || (actions?.isNotEmpty ?? false);
+    final maxWidth = contentMaxWidth;
 
     Widget body = padded
         ? Padding(
@@ -102,7 +103,10 @@ class FlareScreen extends StatelessWidget {
               alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: contentMaxWidth ?? double.infinity,
+                  maxWidth:
+                      maxWidth != null && maxWidth.isFinite && maxWidth > 0
+                      ? maxWidth
+                      : double.infinity,
                 ),
                 child: SafeArea(
                   child: Column(
@@ -116,41 +120,52 @@ class FlareScreen extends StatelessWidget {
                             FlareSizes.spacingMd,
                             FlareSizes.spacingSm,
                           ),
-                          child: Row(
-                            children: [
-                              if (onBack != null)
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.arrow_back,
-                                    color: colors.textPrimary,
-                                  ),
-                                  onPressed: onBack,
-                                  tooltip: MaterialLocalizations.of(
-                                    context,
-                                  ).backButtonTooltip,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: FlareSizes.touchTarget,
-                                    minHeight: FlareSizes.touchTarget,
-                                  ),
-                                ),
-                              if (title != null)
-                                Expanded(
-                                  child: Text(
-                                    title!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minHeight: FlareSizes.touchTarget,
+                            ),
+                            child: Row(
+                              children: [
+                                if (onBack != null)
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.arrow_back,
+                                      size: FlareSizes.iconSizeMd,
                                       color: colors.textPrimary,
-                                      fontSize: FlareSizes.fontSize5xl,
-                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    onPressed: onBack,
+                                    tooltip: MaterialLocalizations.of(
+                                      context,
+                                    ).backButtonTooltip,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: FlareSizes.touchTarget,
+                                      minHeight: FlareSizes.touchTarget,
                                     ),
                                   ),
-                                )
-                              else
-                                const Spacer(),
-                              ...?actions,
-                            ],
+                                if (onBack != null)
+                                  const SizedBox(width: FlareSizes.spacingSm),
+                                if (title != null)
+                                  Expanded(
+                                    child: Semantics(
+                                      header: true,
+                                      child: Text(
+                                        title!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: colors.textPrimary,
+                                          fontSize: FlareSizes.fontSize5xl,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  const Spacer(),
+                                ...?actions,
+                              ],
+                            ),
                           ),
                         ),
                       Expanded(child: body),

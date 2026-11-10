@@ -30,6 +30,26 @@ const schema = {
   },
 };
 describe("schema configuration forms", () => {
+  it("applies string maxLength to Unicode scalar values instead of truncating surrogate pairs", async () => {
+    const wrapper = mount(FlareSchemaForm, {
+      props: {
+        schema: {
+          properties: { brandName: { type: "string", maxLength: 32 } },
+        },
+        modelValue: {},
+      },
+    });
+    const input = wrapper.findComponent(NInput).get("input");
+    expect(input.attributes("maxlength")).toBeUndefined();
+    const name = "🧧".repeat(32);
+    await input.setValue(name);
+    expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual([
+      { brandName: name },
+    ]);
+    await input.setValue(`${name}🧧`);
+    expect(wrapper.emitted("update:modelValue")).toHaveLength(1);
+    wrapper.unmount();
+  });
   it("edits a bounded object array through referenced fields without losing sibling data", async () => {
     const nested = {
       $defs: {
@@ -377,14 +397,23 @@ it("required references cannot be cleared and default wallet selection has no du
 it("an integer field has no unnamed step buttons, and stays a labelled spinbutton", () => {
   const wrapper = mount(FlareSchemaForm, {
     props: {
-      schema: { properties: { rate: { type: "integer", title: "Rate", minimum: 1, maximum: 600 } } },
+      schema: {
+        properties: {
+          rate: { type: "integer", title: "Rate", minimum: 1, maximum: 600 },
+        },
+      },
       modelValue: { rate: 5 },
     },
   });
   // naive-ui's step buttons carry no text and no label (axe button-name, critical).
   const unnamed = wrapper
     .findAll("button")
-    .filter((b) => !b.text().trim() && !b.attributes("aria-label") && !b.attributes("title"));
+    .filter(
+      (b) =>
+        !b.text().trim() &&
+        !b.attributes("aria-label") &&
+        !b.attributes("title"),
+    );
   expect(unnamed).toHaveLength(0);
   expect(wrapper.find("input").attributes("aria-label")).toBe("Rate");
   wrapper.unmount();

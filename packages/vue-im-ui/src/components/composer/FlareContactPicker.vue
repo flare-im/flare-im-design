@@ -31,8 +31,13 @@ const props = withDefaults(
     title?: string;
     /** The host is sending the card: the tapped row (multiple mode: the confirm key) spins; rows take no taps. */
     sending?: boolean;
+    /** A remote source owns matching, loading and retry when provided. */
+    onSearch?: (query: string) => void;
+    loading?: boolean;
+    error?: string;
+    onRetry?: () => void;
   }>(),
-  { searchable: true, multiple: false, title: undefined, sending: false },
+  { searchable: true, multiple: false, title: undefined, sending: false, loading: false },
 );
 const emit = defineEmits<{
   (e: "select", entries: FlareContactPickerEntry[]): void;
@@ -53,6 +58,7 @@ watch(() => props.groups, (groups) => {
   if (!groups.some((group) => group.id === activeGroupId.value)) activeGroupId.value = groups[0]?.id ?? "";
 });
 const query = ref("");
+watch(query, value => props.onSearch?.(value));
 const chosen = ref<string[]>([]);
 // The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
 const pendingId = ref<string | null>(null);
@@ -70,7 +76,7 @@ const tabs = computed(() => props.groups.map((group) => ({ value: group.id, labe
 const activeGroup = computed(() => props.groups.find((group) => group.id === activeGroupId.value) ?? props.groups[0]);
 const filtered = computed(() => {
   const entries = activeGroup.value?.entries ?? [];
-  return props.searchable && query.value.trim()
+  return !props.onSearch && props.searchable && query.value.trim()
     ? entries.filter((entry) => matchesFlareContactPickerEntry(entry, query.value))
     : entries;
 });
@@ -125,7 +131,7 @@ const isPending = (entry: FlareContactPickerEntry): boolean =>
 const atLimit = (entry: FlareContactPickerEntry): boolean => props.multiple && props.maxSelected !== undefined && chosen.value.length >= Math.max(0, props.maxSelected) && !isChosen(entry);
 watch(() => props.maxSelected, limit => { if (limit !== undefined) chosen.value = chosen.value.slice(0, Math.max(0, limit)); });
 function tap(entry: FlareContactPickerEntry): void {
-  if (props.sending || atLimit(entry)) return;
+  if (props.sending || props.loading || props.error || atLimit(entry) || !props.groups.some(group=>group.entries.some(current=>current.userId===entry.userId))) return;
   if (!props.multiple) {
     pendingId.value = entry.userId;
     emit("select", [entry]);
@@ -134,7 +140,7 @@ function tap(entry: FlareContactPickerEntry): void {
   chosen.value = isChosen(entry) ? chosen.value.filter((id) => id !== entry.userId) : [...chosen.value, entry.userId];
 }
 function confirm(): void {
-  if (props.sending) return;
+  if (props.sending || props.loading || props.error) return;
   const everyone = props.groups.flatMap((group) => group.entries);
   const picked = chosen.value
     .map((id) => everyone.find((entry) => entry.userId === id))
@@ -153,7 +159,7 @@ function confirm(): void {
           v-if="multiple"
           size="sm"
           :label="chosen.length ? `${t('contactPicker.confirm')} (${chosen.length}${maxSelected === undefined ? '' : '/' + maxSelected})` : t('contactPicker.confirm')"
-          :disabled="!chosen.length"
+          :disabled="!chosen.length||loading||Boolean(error)"
           :loading="sending"
           @click="confirm"
         />
@@ -180,7 +186,9 @@ function confirm(): void {
       :aria-multiselectable="multiple ? undefined : 'false'"
       @scroll.passive="onScroll"
     >
-      <FlareEmptyState v-if="!filtered.length" :title="t('contactPicker.empty')" :icon="query.trim() ? 'search' : 'people'" />
+      <FlareEmptyState v-if="loading" :title="t('common.loading')" loading />
+      <FlareEmptyState v-else-if="error" :title="error" tone="error" :action-text="onRetry?t('common.retry'):undefined" @action="onRetry?.()" />
+      <FlareEmptyState v-else-if="!filtered.length" :title="t('contactPicker.empty')" :icon="query.trim() ? 'search' : 'people'" />
       <template v-else>
         <div v-if="topSpacer" :style="{ height: `${topSpacer}px` }" aria-hidden="true" />
         <button

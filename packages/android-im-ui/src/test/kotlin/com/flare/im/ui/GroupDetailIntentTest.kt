@@ -47,6 +47,18 @@ class GroupDetailIntentTest {
         assertEquals(FlareStrings().groupDetailDiscoverable, flareGroupDetailLabels(FlareStrings()).discoverable)
     }
 
+    @Test fun friendOnlyMemberNeedsTheHostPermissionAndHandler() {
+        val m = model.copy(memberActions = mapOf("ann" to FlareMemberActions(canRequestFriend = true), "bob" to FlareMemberActions()))
+        assertTrue(groupDetailMemberActions(m, "ann").isEmpty(), "friend-only does not need management rights")
+        assertTrue(groupMemberCanRequestFriend(m, "ann", hasHandler = true))
+        assertFalse(groupMemberCanRequestFriend(m, "ann", hasHandler = false))
+        assertFalse(groupMemberCanRequestFriend(m, "bob", hasHandler = true))
+        assertFalse(groupMemberCanRequestFriend(m, "missing", hasHandler = true))
+        assertFalse(groupMemberCanRequestFriend(null, "ann", hasHandler = true))
+        assertEquals("加好友", FlareStrings().groupDetailRequestFriend)
+        assertEquals("Add friend", flareStringsEnglish().groupDetailRequestFriend)
+    }
+
     @Test fun theGridPreviewsTwentyCellsWithTheAddTileWhenInviting() {
         val members = (1..500).map { Contact("u$it", "成员$it") }
         assertEquals(19, groupPreviewMembers(members, showAdd = true).size)

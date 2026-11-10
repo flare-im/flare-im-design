@@ -7,7 +7,13 @@ import FlareAdminSettings from "./FlareAdminSettings.vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 
 function setup(options: {
-  props: { label: string; title?: string; density?: "comfortable" | "compact" };
+  props: {
+    label: string;
+    title?: string;
+    density?: "comfortable" | "compact";
+    surface?: "card" | "integrated";
+    bodyLayout?: "scroll" | "pane";
+  };
   slots?: Record<string, Slot>;
 }) {
   return mount(
@@ -28,6 +34,35 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 describe("FlareAdminSettings", () => {
+  it("opts into an integrated pane without replacing the content or compact navigation", async () => {
+    let width = 1000;
+    let resize = () => {};
+    vi.stubGlobal("ResizeObserver", class {
+      constructor(callback: () => void) { resize = callback; }
+      observe() {}
+      disconnect() {}
+    });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(() => new DOMRect(0, 0, width, 800));
+    const host = setup({ props: { label: "Workspace", surface: "integrated", bodyLayout: "pane" }, slots: {
+      navigation: () => [h("nav", "Plugins")],
+      "compact-navigation": () => [h("select", { "aria-label": "Plugins" }, [h("option", "Poll")])],
+      default: () => [h(NInput, { defaultValue: "Keep draft" })],
+    } });
+    hosts.push(host);
+    await nextTick();
+    expect(host.classes()).toContain("flare-admin-settings--integrated");
+    expect(host.classes()).toContain("flare-admin-settings--pane");
+    const content = host.get(".flare-admin-settings__content").element;
+    const input = host.get("input").element;
+    width = 600;
+    resize();
+    await nextTick();
+    expect(host.find("aside").exists()).toBe(false);
+    expect(host.find('select[aria-label="Plugins"]').exists()).toBe(true);
+    expect(host.get(".flare-admin-settings__content").element).toBe(content);
+    expect(host.get("input").element).toBe(input);
+    expect(host.get("input").element.value).toBe("Keep draft");
+  });
   it("composes a compact heading with the existing scope, preserves its draft and disabled tools", async () => {
     const props = reactive({ label: "插件工作区", title: "审核中心", density: "compact" as "comfortable" | "compact" });
     const host = setup({ props, slots: {
@@ -155,5 +190,7 @@ describe("FlareAdminSettings", () => {
     expect(host.find("footer").exists()).toBe(false);
     expect(host.findComponent(NButton).exists()).toBe(false);
     expect(host.emitted()).toEqual({});
+    expect(host.classes()).not.toContain("flare-admin-settings--integrated");
+    expect(host.classes()).not.toContain("flare-admin-settings--pane");
   });
 });

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
-import { NSelect } from "naive-ui";
+import { NSelect, NAvatar } from "naive-ui";
 import Select from "./FlareAdminEntitySelect.vue";
 import FlareModal from "../general/FlareModal.vue";
 import { h, nextTick } from "vue";
@@ -18,12 +18,26 @@ const props = {
 };
 describe("FlareAdminEntitySelect", () => {
   it("Escape dismisses an open directory menu without closing its parent edit modal", async () => {
-    let closes=0;
-    const host=mount({render:()=>h(FlareModal,{open:true,onClose:()=>closes++},{default:()=>h(Select,props)})},{attachTo:document.body});
-    const child=host.getComponent(Select);
-    child.getComponent(NSelect).vm.$emit("update:show",true);
+    let closes = 0;
+    const host = mount(
+      {
+        render: () =>
+          h(
+            FlareModal,
+            { open: true, onClose: () => closes++ },
+            { default: () => h(Select, props) },
+          ),
+      },
+      { attachTo: document.body },
+    );
+    const child = host.getComponent(Select);
+    child.getComponent(NSelect).vm.$emit("update:show", true);
     await nextTick();
-    const event=new KeyboardEvent("keydown",{key:"Escape",bubbles:true,cancelable:true});
+    const event = new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      cancelable: true,
+    });
     child.get("input").element.dispatchEvent(event);
     await nextTick();
     expect(event.defaultPrevented).toBe(true);
@@ -31,12 +45,13 @@ describe("FlareAdminEntitySelect", () => {
     expect(child.getComponent(NSelect).props("show")).toBe(false);
     host.unmount();
   });
-  it("renders identities as two-line candidates but concise selected names, escaping their data", () => {
+  it("renders single-line avatar identities and concise selected names, escaping their data", () => {
     const option = {
       value: "u1",
       label: "<Alice> · alice@example.invalid",
       title: "<Alice>",
       description: "alice@example.invalid",
+      avatarUrl: "/admin/v1/apps/test/users/u1/avatar",
     };
     const host = mount(Select, { props: { ...props, options: [option] } });
     const renderLabel = host.getComponent(NSelect).props("renderLabel")!;
@@ -46,10 +61,27 @@ describe("FlareAdminEntitySelect", () => {
     expect(candidate.text()).toContain("<Alice>");
     expect(candidate.text()).toContain("alice@example.invalid");
     expect(candidate.find("alice").exists()).toBe(false);
+    expect(candidate.getComponent(NAvatar).props("src")).toBe(option.avatarUrl);
+    expect(candidate.getComponent(NAvatar).props("imgProps")).toEqual({
+      referrerpolicy: "no-referrer",
+    });
+    expect(candidate.get("img").attributes("crossorigin")).toBeUndefined();
+    expect(candidate.getComponent(NAvatar).vm.$slots.default).toBeUndefined();
     const selected = mount({
       render: () => renderLabel(option as never, true),
     });
-    expect(selected.text()).toBe("<Alice>");
+    expect(selected.get(".flare-admin-entity-label__name").text()).toBe(
+      "<Alice>",
+    );
+    expect(selected.find(".n-avatar").exists()).toBe(true);
+    expect(
+      selected.find(".flare-admin-entity-label__description").exists(),
+    ).toBe(false);
+    expect(
+      Object.keys(candidate.attributes()).some((key) =>
+        key.startsWith("data-v-"),
+      ),
+    ).toBe(true);
     expect(selected.attributes("title")).toBe(option.label);
     selected.unmount();
     candidate.unmount();

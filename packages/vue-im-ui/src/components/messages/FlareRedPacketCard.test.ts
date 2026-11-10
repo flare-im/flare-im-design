@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { describe, expect, it } from "vitest";
 import {
   flareRedPacketCardBadge,
@@ -14,6 +14,7 @@ import {
 } from "../../shared/contracts/red-packet";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareRedPacketCard from "./FlareRedPacketCard.vue";
+import { provideFlareMessageQuote } from "../../shared/message-renderers";
 
 function render(props: InstanceType<typeof FlareRedPacketCard>["$props"], locale: "zh-CN" | "en-US" = "zh-CN") {
   return mount(defineComponent({
@@ -62,6 +63,25 @@ const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/
 const tokens = JSON.parse(readFileSync(resolve(__dirname, "../../../../../tokens/tokens.json"), "utf8"));
 const cardSource = readFileSync(resolve(__dirname, "FlareRedPacketCard.vue"), "utf8");
 
+it("uses the same localized packet brand as the native kits", () => {
+  const brand = JSON.parse(readFileSync(resolve(__dirname, "../../../../../strings/en.json"), "utf8")).packetBrand;
+  for (const [locale, key] of [["zh-CN", "zh"], ["en-US", "en"]] as const) {
+    const card = render({ blessing: "Hello" }, locale);
+    expect(card.get(".flare-red-packet__brand-name").text()).toBe(brand[key]);
+    card.unmount();
+  }
+});
+
+it("keeps the packet brand snapshot and falls back only for historical blank values", () => {
+  const card = render({ blessing: "Hello", brandName: "  Company Gift  " }, "en-US");
+  expect(card.get(".flare-red-packet__brand-name").text()).toBe("Company Gift");
+  expect(card.get(".flare-red-packet__brand-name").text()).not.toBe("Flare red packet");
+  card.unmount();
+  const historical = render({ blessing: "Hello", brandName: "  " }, "en-US");
+  expect(historical.get(".flare-red-packet__brand-name").text()).toBe("Flare red packet");
+  historical.unmount();
+});
+
 const token = (path: string, dark = false): string => {
   const darkValue = dark ? path.split(".").reduce((node, key) => node?.[key], tokens.dark) : undefined;
   return darkValue ?? path.split(".").reduce((node, key) => node[key], tokens);
@@ -92,6 +112,37 @@ const copyOf = (vector: CardVector, locale: "zh" | "en") =>
  * saturated; claimed, finished, expired and refunded fade and stay tappable. Only busy and disabled block the tap.
  */
 describe("FlareRedPacketCard", () => {
+  it("keeps the quoted reply inside the envelope and independent of a blocked open button", async () => {
+    let located = 0;
+    const blocked = ref(false);
+    const wrapper = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        provideFlareMessageQuote({ active: () => true, preview: () => "Earlier message", locate: () => () => located++, claim: () => {} });
+        return () => h(FlareRedPacketCard, { blessing: "Hello", disabled: blocked.value });
+      },
+    }));
+    const card = wrapper.getComponent(FlareRedPacketCard);
+    const quote = card.get("[data-card-quote]");
+    expect(quote.element.closest(".flare-red-packet")).not.toBeNull();
+    expect(quote.element.closest(".flare-red-packet__open")).toBeNull();
+    expect(card.findAll("button button")).toHaveLength(0);
+    await quote.trigger("click");
+    expect(located).toBe(1);
+    expect(card.emitted("open")).toBeUndefined();
+    await card.get(".flare-red-packet__open").trigger("click");
+    expect(card.emitted("open")).toHaveLength(1);
+    blocked.value = true;
+    await nextTick();
+    expect(card.get(".flare-red-packet__open").attributes("disabled")).toBeDefined();
+    expect(quote.attributes("disabled")).toBeUndefined();
+    await quote.trigger("click");
+    await card.get(".flare-red-packet__open").trigger("click");
+    expect(located).toBe(2);
+    expect(card.emitted("open")).toHaveLength(1);
+    wrapper.unmount();
+  });
+
   it.each(vectors.cardState.map((v) => [v.id, v] as const))("maps the public and personal layers: %s", (_id, vector) => {
     expect(flareRedPacketCardState(vector.view)).toBe(vector.state);
   });
@@ -108,7 +159,7 @@ describe("FlareRedPacketCard", () => {
       const card = wrapper.findComponent(FlareRedPacketCard);
       const button = card.get("button");
       expect(card.get("[data-red-packet-status]").text()).toBe(copyOf(vector, locale));
-      expect(button.classes().includes("is-dimmed")).toBe(vector.dimmed);
+      expect(card.classes().includes("is-dimmed")).toBe(vector.dimmed);
       expect(button.attributes("disabled") === undefined).toBe(vector.tappable);
       await button.trigger("click");
       expect(card.emitted("open")?.length ?? 0).toBe(vector.tappable ? 1 : 0);
@@ -143,7 +194,7 @@ describe("FlareRedPacketCard", () => {
     for (const state of ["finished", "expired", "refunded", "viewable"] as const) {
       const card = render({ blessing: "恭喜发财", state }).findComponent(FlareRedPacketCard);
       expect(card.get("button").attributes("disabled")).toBeUndefined();
-      expect(card.get("button").attributes("data-state")).toBe(state);
+      expect(card.attributes("data-state")).toBe(state);
       await card.get("button").trigger("click");
       expect(card.emitted("open")).toHaveLength(1);
     }
@@ -212,9 +263,9 @@ describe("FlareRedPacketCard", () => {
     });
 
     it.each([{ busy: true }, { disabled: true }])("keeps the unopened face for %o — only the status line changes", (flags) => {
-      const button = render({ blessing: "Hello", ...flags }).get("button");
-      expect(button.classes()).not.toContain("is-dimmed");
-      expect(button.classes()).toContain("is-unopened");
+      const card = render({ blessing: "Hello", ...flags }).getComponent(FlareRedPacketCard);
+      expect(card.classes()).not.toContain("is-dimmed");
+      expect(card.classes()).toContain("is-unopened");
       // Nothing in the stylesheet greys out a blocked card.
       expect(cardSource).not.toMatch(/:disabled\s*\{[^}]*(opacity|filter|color|background)/);
     });

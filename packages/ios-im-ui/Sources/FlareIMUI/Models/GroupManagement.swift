@@ -47,13 +47,16 @@ public struct FlareMemberActions: Equatable, Sendable {
     public var canChangeRole: Bool
     /// Hand ownership over to the member.
     public var canTransferOwner: Bool
+    /// Ask to add the member as a friend; the host excludes self and existing friends.
+    public var canRequestFriend: Bool
 
     public init(canRemove: Bool = false, canMute: Bool = false,
-                canChangeRole: Bool = false, canTransferOwner: Bool = false) {
+                canChangeRole: Bool = false, canTransferOwner: Bool = false, canRequestFriend: Bool = false) {
         self.canRemove = canRemove
         self.canMute = canMute
         self.canChangeRole = canChangeRole
         self.canTransferOwner = canTransferOwner
+        self.canRequestFriend = canRequestFriend
     }
 
     /// Nothing may be done to the member.

@@ -225,7 +225,9 @@ void main() {
         onOpen: () => taps++,
       );
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Center(child: card))),
+        MaterialApp(
+          home: Scaffold(body: Center(child: card)),
+        ),
       );
       expect(find.text(expected(v, const FlareStrings())), findsOneWidget);
       expect(
@@ -261,12 +263,15 @@ void main() {
         ),
       ),
     );
-    expect(find.text('专属 · 给 Bob'), findsOneWidget);
+    expect(find.text('专属'), findsOneWidget);
+    expect(find.text('给 Bob'), findsOneWidget);
     expect(find.text('Flare 红包'), findsOneWidget);
     expect(find.text('已过期'), findsOneWidget);
-    final kind = tester.getRect(find.text('专属 · 给 Bob'));
+    final kind = tester.getRect(find.text('专属'));
+    final recipient = tester.getRect(find.text('给 Bob'));
     final brand = tester.getRect(find.text('Flare 红包'));
-    expect(kind.right, lessThanOrEqualTo(brand.left));
+    expect(recipient.left - kind.right, closeTo(FlareSizes.spacingSm, 0.1));
+    expect(recipient.right, lessThanOrEqualTo(brand.left));
     expect((kind.center.dy - brand.center.dy).abs(), lessThan(2));
     // Nothing on the card looks like money.
     final texts = tester

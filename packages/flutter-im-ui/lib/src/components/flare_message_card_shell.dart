@@ -18,8 +18,7 @@ class FlareCardQuote extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<FlareCardQuote>()?.quote;
 
   @override
-  bool updateShouldNotify(FlareCardQuote oldWidget) =>
-      quote != oldWidget.quote;
+  bool updateShouldNotify(FlareCardQuote oldWidget) => quote != oldWidget.quote;
 }
 
 /// The kit's message card shell — the card surface of a contact card, link
@@ -52,7 +51,7 @@ class FlareMessageCardShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final quote = this.quote ?? FlareCardQuote.maybeOf(context);
-    return ConstrainedBox(
+    final card = ConstrainedBox(
       constraints: const BoxConstraints(
         maxWidth: FlareSizes.componentRichCardWidth,
       ),
@@ -78,6 +77,14 @@ class FlareMessageCardShell extends StatelessWidget {
                 ),
         ),
       ),
+    );
+    // A tight row must not override the surface's cap. In a loose timeline
+    // this still follows the content, which keeps call records compact.
+    return Align(
+      alignment: AlignmentDirectional.topStart,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: card,
     );
   }
 }

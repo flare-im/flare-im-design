@@ -6,6 +6,11 @@ export { default as FlareDataTable } from "./components/data/FlareDataTable.vue"
 export { default as FlareAdminList } from "./components/data/FlareAdminList.vue";
 export { default as FlareAdminActions } from "./components/data/FlareAdminActions.vue";
 export { default as FlareAdminSettings } from "./components/data/FlareAdminSettings.vue";
+export { default as FlareAdminWorkspaceNavigation } from "./components/data/FlareAdminWorkspaceNavigation.vue";
+export type {
+  FlareAdminWorkspaceNavigationGroup,
+  FlareAdminWorkspaceNavigationItem,
+} from "./components/data/FlareAdminWorkspaceNavigation.vue";
 export { default as FlareAdminSection } from "./components/data/FlareAdminSection.vue";
 export { default as FlareAdminPolicyCard } from "./components/data/FlareAdminPolicyCard.vue";
 export { default as FlareAdminCardGrid } from "./components/data/FlareAdminCardGrid.vue";
@@ -29,7 +34,10 @@ export { default as FlareAdminSortableList } from "./components/data/FlareAdminS
 export type { FlareAdminSortableItem } from "./components/data/FlareAdminSortableList.vue";
 // The composer "+" grid, for a console's preview of an application's panel layout.
 export { default as FlareComposerActionPanel } from "./components/composer/FlareComposerActionPanel.vue";
-export type { FlareComposerActionItem, FlareComposerPanelFormFactor } from "./components/composer/FlareComposerActionPanel.vue";
+export type {
+  FlareComposerActionItem,
+  FlareComposerPanelFormFactor,
+} from "./components/composer/FlareComposerActionPanel.vue";
 export { default as FlareAdminForm } from "./components/form/FlareAdminForm.vue";
 export { default as FlareAdminModal } from "./components/form/FlareAdminModal.vue";
 export type {
@@ -60,6 +68,8 @@ export { default as FlareDrawer } from "./components/general/FlareDrawer.vue";
 export { default as FlareDangerConfirm } from "./components/scenes/FlareDangerConfirm.vue";
 export { default as FlareAdminPopconfirm } from "./components/scenes/FlareAdminPopconfirm.vue";
 export { default as FlareInput } from "./components/general/FlareInput.vue";
+export { default as FlareFileUpload } from "./components/media/FlareFileUpload.vue";
+export type { FlareUploadState } from "./shared/contracts/upload";
 export { default as FlareFormField } from "./components/form/FlareFormField.vue";
 export { default as FlareFilterTabs } from "./components/general/FlareFilterTabs.vue";
 export { default as FlareActionMenu } from "./components/general/FlareActionMenu.vue";
@@ -77,10 +87,19 @@ export { default as FlareSchemaForm } from "./components/form/FlareSchemaForm.vu
 // Plugin admin pages (core SDK dispatch_admin views): the same PluginView, PluginForm and detail sheet the
 // chat cards use, so a console draws plugin pages without importing the whole component index.
 export { default as FlarePluginView } from "./components/messages/FlarePluginView.vue";
+export { default as FlarePluginAdminList } from "./components/messages/FlarePluginAdminList.vue";
+export { default as FlareMarkdownPreview } from "./components/message-preview/MarkdownPreview.vue";
 export { default as FlarePluginForm } from "./components/form/FlarePluginForm.vue";
 export { default as FlarePluginDetailSheet } from "./components/messages/FlarePluginDetailSheet.vue";
 export type {
   FlarePluginField,
+  FlarePluginFormat,
+  FlarePluginProtectedItem,
+  FlarePluginProtectedMediaBlock,
+  FlarePluginProtectedMediaRead,
+  FlarePluginProtectedMediaState,
+  FlarePluginReference,
+  FlarePluginReferenceRequest,
   FlarePluginRowCell,
   FlarePluginAction,
   FlarePluginActionPayload,
@@ -93,6 +112,7 @@ export type {
   FlarePluginMember,
   FlarePluginResolveUser,
   FlarePluginRow,
+  FlarePluginStrings,
   FlarePluginRowsBlock,
   FlarePluginUser,
   FlarePluginViewInset,
@@ -100,9 +120,13 @@ export type {
 } from "./shared/contracts/plugin-ui";
 export { flarePluginFilterInputs } from "./shared/contracts/plugin-ui";
 
-export type { SchemaSelection, SchemaSelectionLabels } from "./components/form/schema-selections";
+export type {
+  SchemaSelection,
+  SchemaSelectionLabels,
+} from "./components/form/schema-selections";
 
 export { default as FlareUserIdentity } from "./components/data/FlareUserIdentity.vue";
 export type { FlareUserIdentityValue } from "./components/data/FlareUserIdentity.vue";
 export { default as FlareAdminIconPicker } from "./components/form/FlareAdminIconPicker.vue";
 export type { FlareAdminIconOption } from "./components/form/FlareAdminIconPicker.vue";
+export { flarePluginProtectedMediaUrl } from "./shared/contracts/plugin-ui";

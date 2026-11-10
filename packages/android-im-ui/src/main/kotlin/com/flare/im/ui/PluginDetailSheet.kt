@@ -64,6 +64,11 @@ fun PluginDetailSheet(
     onAction: ((String, PluginActionPayload) -> Unit)? = null,
     /** "Load more" of a paged detail: the view's `nextCursor`. */
     onLoadMore: ((String) -> Unit)? = null,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
     onClose: () -> Unit,
 ) {
     val colors = flareColors()
@@ -99,7 +104,7 @@ fun PluginDetailSheet(
                     val actions = pluginDetailActionState(busyActionId, actionError, formErrors, members, settleToken)
                     PluginView(
                         view = it, busyActionId = actions.busyActionId, error = actions.error, embedded = true,
-                        resolveUser = resolveUser, members = actions.members, formErrors = actions.formErrors,
+                        resolveUser = resolveUser, members = actions.members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = actions.formErrors,
                         settleToken = actions.settleToken, viewerId = viewerId, quote = null, onAction = onAction,
                     )
                     PluginLoadMoreKey(paging.key(it.nextCursor, loadingMore), onLoadMore) { cursor ->

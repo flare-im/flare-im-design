@@ -17,6 +17,15 @@ export const FLARE_DEFAULT_LOCALE: FlareLocale = "zh-CN";
 
 export const flareMessages: Record<string, FlareMessageTree> = {
   "zh-CN": {
+    pluginFileChoose: "选择文件",
+    pluginFileReplace: "替换",
+    pluginFileRemove: "移除",
+    pluginFilePreview: "预览",
+    pluginFileSelected: "等待上传完成",
+    pluginFileUploading: "上传中",
+    pluginFileUploaded: "已上传",
+    pluginFileFailed: "上传未完成，请重试或重新选择",
+    pluginFileRejected: "请选择符合格式与大小限制的文件",
     userIdentity: { loading: "正在加载用户资料", unavailable: "用户资料不可用", accountUnavailable: "暂无账号资料" },
     iconPicker: { choose: "选择菜单图标", default: "默认图标", search: "搜索图标", empty: "没有匹配的图标" },
     account: { transactions: "交易记录", empty: "暂无交易记录", emptyDescription: "收支明细会显示在这里", information: "账户说明与规则", entryDetails: "交易详情", entryId: "记录编号", type: "类型", today: "今天", yesterday: "昨天", otherEntries: "其他记录", showBalance: "显示余额", hideBalance: "隐藏余额", balanceHidden: "余额已隐藏" },
@@ -384,6 +393,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       rangeEmpty: "共 0 条",
       loadedRange: "第 {from}–{to} 条，已加载 {total} 条",
       loadedEmpty: "已加载 0 条",
+      loadedItems: "已加载 {count} 条",
       perPage: "每页 {size} 条",
       pageSize: "每页条数",
       pagination: "分页",
@@ -490,6 +500,12 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       cancel: "取消",
     },
     pluginView: {
+      referenceUnavailable: "暂不可用",
+      protectedMedia: {
+        reason: "查看原因",
+        notice: "查看受保护材料需要说明原因，操作会留下审计记录。",
+        open: "打开",
+      },
       submit: "提交",
       ended: "已结束",
       deadlinePassed: "已截止",
@@ -553,7 +569,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     pluginRuntime: { rejected: "插件操作未完成，请检查权限及当前业务状态。", unavailable: "插件暂时不可用，请重新打开核对当前结果。" },
     redPacket: {
-      brand: "IM 红包",
+      brand: "Flare 红包",
       busy: "处理中…",
       unavailable: "暂不可用",
       tapToOpen: "领取红包",
@@ -1675,6 +1691,15 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
   },
   "en-US": {
+    pluginFileChoose: "Choose file",
+    pluginFileReplace: "Replace",
+    pluginFileRemove: "Remove",
+    pluginFilePreview: "Preview",
+    pluginFileSelected: "Waiting for upload",
+    pluginFileUploading: "Uploading",
+    pluginFileUploaded: "Uploaded",
+    pluginFileFailed: "Upload is incomplete. Retry or choose another file",
+    pluginFileRejected: "Choose a file within the allowed format and size limits",
     userIdentity: { loading: "Loading user profile", unavailable: "User profile unavailable", accountUnavailable: "Account unavailable" },
     iconPicker: { choose: "Choose menu icon", default: "Default icon", search: "Search icons", empty: "No matching icons" },
     account: { transactions: "Transactions", empty: "No transactions yet", emptyDescription: "Account entries will appear here", information: "Account information and rules", entryDetails: "Transaction details", entryId: "Record ID", type: "Type", today: "Today", yesterday: "Yesterday", otherEntries: "Other entries", showBalance: "Show balance", hideBalance: "Hide balance", balanceHidden: "Balance hidden" },
@@ -2042,6 +2067,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       rangeEmpty: "0 items",
       loadedRange: "{from}–{to} of {total} loaded items",
       loadedEmpty: "0 loaded items",
+      loadedItems: "{count} loaded items",
       perPage: "{size} per page",
       pageSize: "Rows per page",
       pagination: "Pagination",
@@ -2148,6 +2174,12 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       cancel: "Cancel",
     },
     pluginView: {
+      referenceUnavailable: "Unavailable",
+      protectedMedia: {
+        reason: "Reason for viewing",
+        notice: "Viewing protected material needs a reason and is recorded in the audit log.",
+        open: "Open",
+      },
       submit: "Submit",
       ended: "Ended",
       deadlinePassed: "Closed",
@@ -2211,7 +2243,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
     },
     pluginRuntime: { rejected: "Plugin command rejected. Check permission and business state.", unavailable: "Plugin unavailable. Reopen to check the current result." },
     redPacket: {
-      brand: "IM Packet",
+      brand: "Flare red packet",
       busy: "Processing…",
       unavailable: "Unavailable",
       tapToOpen: "Open",

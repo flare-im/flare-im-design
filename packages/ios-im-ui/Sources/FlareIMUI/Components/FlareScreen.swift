@@ -3,6 +3,11 @@ import SwiftUI
 /// Page surface for `FlareScreen` — mirrors the Vue contract.
 public enum FlareScreenSurface { case canvas, surface, brand }
 
+func flareContentMaxWidth(_ value: CGFloat?) -> CGFloat? {
+    guard let value, value.isFinite, value > 0 else { return nil }
+    return value
+}
+
 /// FlareScreen — the base page scaffold every Flare business page builds on.
 ///
 /// It owns the themed page surface (auto light/dark via `@Environment(\.colorScheme)`,
@@ -11,7 +16,7 @@ public enum FlareScreenSurface { case canvas, surface, brand }
 /// writes `FlareScreen(title: "设置", onBack: pop) { … }` and gets a consistent,
 /// fully themeable page — no page-level colours are hard-coded.
 public struct FlareScreen<Content: View>: View {
-    @ScaledMetric(relativeTo: .title2) private var titleSize: CGFloat = 24
+    @ScaledMetric(relativeTo: .title2) private var titleSize: CGFloat = FlareSizes.fontSize5xl
     private let backLabel: String?
     private let title: String?
     private let onBack: (() -> Void)?
@@ -19,6 +24,7 @@ public struct FlareScreen<Content: View>: View {
     private let padded: Bool
     private let scroll: Bool
     private let actions: AnyView?
+    private let contentMaxWidth: CGFloat?
     private let content: Content
 
     @Environment(\.colorScheme) private var scheme
@@ -33,8 +39,10 @@ public struct FlareScreen<Content: View>: View {
         scroll: Bool = true,
         actions: AnyView? = nil,
         backLabel: String? = nil,
+        contentMaxWidth: CGFloat? = nil,
         @ViewBuilder content: () -> Content
     ) {
+        self.contentMaxWidth = flareContentMaxWidth(contentMaxWidth)
         self.backLabel = backLabel
         self.title = title
         self.onBack = onBack
@@ -52,11 +60,11 @@ public struct FlareScreen<Content: View>: View {
         let base: Color = surface == .surface ? colors.bgPrimary : colors.bgSecondary
         VStack(spacing: 0) {
             if hasHeader {
-                HStack(spacing: 8) {
+                HStack(spacing: FlareSizes.spacingSm) {
                     if let onBack {
                         Button(action: onBack) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .semibold))
+                                .font(.system(size: FlareSizes.iconSizeMd, weight: .semibold))
                                 .foregroundColor(colors.textPrimary)
                                 .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                         }
@@ -72,15 +80,21 @@ public struct FlareScreen<Content: View>: View {
                     Spacer(minLength: 0)
                     if let actions { actions }
                 }
+                .frame(minHeight: FlareSizes.touchTarget)
                 .padding(.horizontal, FlareSizes.spacingMd)
                 .padding(.vertical, FlareSizes.spacingSm)
+                .frame(maxWidth: contentMaxWidth ?? .infinity)
+                .frame(maxWidth: .infinity)
             }
             if scroll {
-                ScrollView { content.padding(padded ? FlareSizes.spacingLg : 0) }
+                ScrollView { content.padding(padded ? FlareSizes.spacingLg : 0)
+                        .frame(maxWidth: contentMaxWidth ?? .infinity)
+                        .frame(maxWidth: .infinity) }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 content
                     .padding(padded ? FlareSizes.spacingLg : 0)
+                    .frame(maxWidth: contentMaxWidth ?? .infinity)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }

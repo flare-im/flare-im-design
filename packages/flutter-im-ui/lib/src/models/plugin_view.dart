@@ -63,6 +63,7 @@ enum FlarePluginTextStyle { body, title, secondary }
 
 /// Form input kinds.
 enum FlarePluginInputKind {
+  file,
   text,
   password,
   textarea,
@@ -640,6 +641,8 @@ class FlarePluginInput {
     this.max,
     this.defaultValue,
     this.choices = const [],
+    this.file,
+    this.showWhen,
   });
   static FlarePluginInput? fromJson(Map<String, Object?> json) {
     final kind = _enum(FlarePluginInputKind.values, json['kind']);
@@ -658,6 +661,16 @@ class FlarePluginInput {
         for (final c in _maps(json['choices']))
           (value: _string(c['value']), label: _string(c['label'])),
       ],
+      file: json['file'] is Map
+          ? FlarePluginFilePolicy.fromJson(
+              (json['file'] as Map).cast<String, Object?>(),
+            )
+          : null,
+      showWhen: json['showWhen'] is Map
+          ? FlarePluginInputCondition.fromJson(
+              (json['showWhen'] as Map).cast<String, Object?>(),
+            )
+          : null,
     );
   }
 
@@ -677,7 +690,155 @@ class FlarePluginInput {
 
   /// select only.
   final List<({String value, String label})> choices;
+  final FlarePluginFilePolicy? file;
+  final FlarePluginInputCondition? showWhen;
 }
+
+@immutable
+class FlarePluginInputCondition {
+  const FlarePluginInputCondition({required this.field, required this.anyOf});
+  factory FlarePluginInputCondition.fromJson(Map<String, Object?> json) =>
+      FlarePluginInputCondition(
+        field: _string(json['field']),
+        anyOf: (json['anyOf'] as List? ?? const [])
+            .whereType<String>()
+            .toList(),
+      );
+  final String field;
+  final List<String> anyOf;
+}
+
+@immutable
+class FlarePluginFileUploadPolicy {
+  const FlarePluginFileUploadPolicy({
+    required this.prepareOperation,
+    required this.completeOperation,
+    required this.purpose,
+  });
+  final String prepareOperation, completeOperation, purpose;
+}
+
+@immutable
+class FlarePluginFilePolicy {
+  const FlarePluginFilePolicy({
+    required this.accept,
+    required this.maxBytes,
+    required this.upload,
+  });
+  factory FlarePluginFilePolicy.fromJson(Map<String, Object?> json) {
+    final upload = json['upload'] is Map ? (json['upload'] as Map) : const {};
+    return FlarePluginFilePolicy(
+      accept: (json['accept'] as List? ?? const [])
+          .whereType<String>()
+          .toList(),
+      maxBytes: _optInt(json['maxBytes']) ?? 0,
+      upload: FlarePluginFileUploadPolicy(
+        prepareOperation: _string(upload['prepareOperation']),
+        completeOperation: _string(upload['completeOperation']),
+        purpose: _string(upload['purpose']),
+      ),
+    );
+  }
+  final List<String> accept;
+  final int maxBytes;
+  final FlarePluginFileUploadPolicy upload;
+}
+
+/// Opaque protected material identity. No bytes, URL, or read grant is a form value.
+@immutable
+class FlarePluginFileValue {
+  const FlarePluginFileValue({required this.fileId});
+  final String fileId;
+  Map<String, Object?> toJson() => {'fileId': fileId};
+  static FlarePluginFileValue? fromValue(Object? value) {
+    if (value is FlarePluginFileValue) value = value.toJson();
+    if (value is! Map || value.length != 1 || value['fileId'] is! String)
+      return null;
+    final id = value['fileId'] as String;
+    return RegExp(r'^[A-Za-z0-9_:-]{1,128}$').hasMatch(id) && id == id.trim()
+        ? FlarePluginFileValue(fileId: id)
+        : null;
+  }
+}
+
+enum FlarePluginFilePhase { empty, selected, uploading, uploaded, failed }
+
+enum FlarePluginFileActionKind {
+  choose,
+  retry,
+  cancel,
+  replace,
+  remove,
+  preview,
+  invalidate,
+}
+
+/// Host-only transfer state. Both tickets must match the mounted form field.
+@immutable
+class FlarePluginFileState {
+  const FlarePluginFileState({
+    required this.scope,
+    required this.generation,
+    required this.phase,
+    this.value,
+    this.fileName,
+    this.progress,
+    this.error,
+    this.preview = false,
+    this.previewLoading = false,
+  });
+  final String scope;
+  final int generation;
+  final FlarePluginFilePhase phase;
+  final FlarePluginFileValue? value;
+  final String? fileName, error;
+  final double? progress;
+  final bool preview, previewLoading;
+}
+
+@immutable
+class FlarePluginFileAction {
+  const FlarePluginFileAction({
+    required this.action,
+    required this.inputId,
+    required this.input,
+    required this.scope,
+    required this.generation,
+    required this.formValues,
+  });
+  final FlarePluginFileActionKind action;
+  final String inputId, scope;
+  final FlarePluginInput input;
+  final int generation;
+  final Map<String, Object?> formValues;
+}
+
+int _pluginFileScope = 0;
+String flarePluginNewFileScope() =>
+    'plugin-form-${DateTime.now().microsecondsSinceEpoch}-${++_pluginFileScope}';
+bool flarePluginInputVisible(
+  FlarePluginInput input,
+  List<FlarePluginInput> inputs,
+  Map<String, Object?> draft,
+) {
+  final condition = input.showWhen;
+  if (condition == null) return true;
+  final index = inputs.indexOf(input);
+  final controller = inputs.indexWhere((item) => item.id == condition.field);
+  return controller >= 0 &&
+      controller < index &&
+      inputs[controller].kind == FlarePluginInputKind.select &&
+      inputs[controller].showWhen == null &&
+      draft[condition.field] is String &&
+      condition.anyOf.contains(draft[condition.field]);
+}
+
+List<FlarePluginInput> flarePluginVisibleInputs(
+  List<FlarePluginInput> inputs,
+  Map<String, Object?> draft,
+) => inputs
+    .where((input) => flarePluginInputVisible(input, inputs, draft))
+    .toList();
 
 /// One problem with a submitted value (UiFormError).
 @immutable
@@ -828,7 +989,9 @@ class FlarePluginViewModel {
             FlarePluginAction.fromJson(a),
         ],
         unavailableReason: _reasonOf(json['unavailableReason']),
-        presentation: json['presentation'] is Map ? Map<String, Object?>.from(json['presentation'] as Map) : null,
+        presentation: json['presentation'] is Map
+            ? Map<String, Object?>.from(json['presentation'] as Map)
+            : null,
         source: jsonEncode(json),
       );
 
@@ -1401,6 +1564,31 @@ String? flarePluginReasonLine(
 bool flarePluginReadOnly(FlarePluginViewModel view) =>
     view.unavailableReason == FlarePluginUnavailableReason.unboundCopy;
 
+/// An explicitly selected top-level form may be composed into a page.
+/// Confirmation and password forms retain the existing guarded sheet path.
+FlarePluginAction? flarePluginInlineFormAction(
+  FlarePluginViewModel view,
+  String? id, {
+  required bool interactive,
+}) {
+  if (!interactive ||
+      !view.available ||
+      flarePluginReadOnly(view) ||
+      id == null)
+    return null;
+  final action = view.actions.where((a) => a.id == id).firstOrNull;
+  if (action == null ||
+      action.form.isEmpty ||
+      (action.confirm?.isNotEmpty ?? false))
+    return null;
+  for (final inputId in action.form) {
+    final input = view.inputs.where((input) => input.id == inputId).firstOrNull;
+    if (input == null || input.kind == FlarePluginInputKind.password)
+      return null;
+  }
+  return action;
+}
+
 /// The header row of a group in a grouped entries list (rules.entriesGrouped):
 /// the label, then "N 票" when the count is known (plural by [locale]) and
 /// "P%" when the percent is, joined with " · ".
@@ -1455,6 +1643,8 @@ Object? flarePluginDraftValue(
       ? values[input.id]
       : input.defaultValue;
   switch (input.kind) {
+    case FlarePluginInputKind.file:
+      return FlarePluginFileValue.fromValue(raw)?.toJson();
     case FlarePluginInputKind.toggle:
       return raw == true;
     case FlarePluginInputKind.options:
@@ -1483,9 +1673,15 @@ Object? flarePluginDraftValue(
 Map<String, Object?> flarePluginDraft(
   List<FlarePluginInput> inputs,
   Map<String, Object?>? values,
-) => {
-  for (final input in inputs) input.id: flarePluginDraftValue(input, values),
-};
+) {
+  final draft = {
+    for (final input in inputs) input.id: flarePluginDraftValue(input, values),
+  };
+  for (final input in inputs) {
+    if (!flarePluginInputVisible(input, inputs, draft)) draft.remove(input.id);
+  }
+  return draft;
+}
 
 List<String> _items(Object? value) => [
   for (final x in (value is List ? value : const []))
@@ -1499,6 +1695,12 @@ FlarePluginFormIssue? flarePluginCheckInput(
 ) {
   final limit = flarePluginMaxLength(input);
   switch (input.kind) {
+    case FlarePluginInputKind.file:
+      return draft == null
+          ? (input.required ? FlarePluginFormIssue.required : null)
+          : FlarePluginFileValue.fromValue(draft) != null
+          ? null
+          : FlarePluginFormIssue.invalidType;
     case FlarePluginInputKind.password:
     case FlarePluginInputKind.text:
     case FlarePluginInputKind.textarea:
@@ -1535,7 +1737,7 @@ List<FlarePluginFormError> flarePluginCheckForm(
   List<FlarePluginInput> inputs,
   Map<String, Object?> draft,
 ) => [
-  for (final input in inputs)
+  for (final input in flarePluginVisibleInputs(inputs, draft))
     if (flarePluginCheckInput(input, draft[input.id]) case final issue?)
       FlarePluginFormError(input: input.id, issue: issue),
 ];
@@ -1547,9 +1749,12 @@ Map<String, Object?> flarePluginFormValues(
   Map<String, Object?> draft,
 ) {
   final out = <String, Object?>{};
-  for (final input in inputs) {
+  for (final input in flarePluginVisibleInputs(inputs, draft)) {
     final value = draft[input.id];
     switch (input.kind) {
+      case FlarePluginInputKind.file:
+        final file = FlarePluginFileValue.fromValue(value);
+        if (file != null) out[input.id] = file.toJson();
       case FlarePluginInputKind.password:
         final secret = value is String ? value : "";
         if (secret.isNotEmpty) out[input.id] = secret;

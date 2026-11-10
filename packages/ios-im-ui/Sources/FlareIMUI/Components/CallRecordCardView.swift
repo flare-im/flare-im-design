@@ -27,6 +27,10 @@ public struct CallRecordCardView: View {
     private let busy: Bool
     private let onJoin: (() -> Void)?
     private let onCallBack: (() -> Void)?
+    @State private var confirmingCallBack = false
+    @State private var callBackConfirmed = false
+    @ScaledMetric(relativeTo: .body) private var statusFontSize = FlareSizes.fontSizeLg
+    @ScaledMetric(relativeTo: .caption) private var mediaFontSize = FlareSizes.fontSizeSm
     @Environment(\.flareStrings) private var strings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -59,43 +63,103 @@ public struct CallRecordCardView: View {
 
     var mediaText: String { media == .video ? strings.callRecordVideo : strings.callRecordVoice }
 
+    private var canActivateCallBack: Bool {
+        action == .callBack && !busy && onCallBack != nil
+    }
+
     public var body: some View {
+        FlareMessageCardShell(padded: false, fillWidth: false) {
+            if action == .callBack {
+                Button {
+                    guard canActivateCallBack, !confirmingCallBack else { return }
+                    callBackConfirmed = false
+                    confirmingCallBack = true
+                } label: {
+                    recordContents
+                }
+                .buttonStyle(.plain)
+                .disabled(!canActivateCallBack)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(mediaText)
+                .accessibilityValue(statusText)
+                .accessibilityHint(strings.callRecordCallBack)
+            } else {
+                recordContents
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .flareModal(isPresented: $confirmingCallBack,
+                    title: "\(strings.callRecordCallBack) · \(mediaText)",
+                    footer: AnyView(CallRecordConfirmationActions(isPresented: $confirmingCallBack,
+                                                                  enabled: canActivateCallBack) {
+                        callBackConfirmed = true
+                    }), onDismiss: {
+                        guard callBackConfirmed else { return }
+                        callBackConfirmed = false
+                        guard canActivateCallBack else { return }
+                        onCallBack?()
+                    }) {
+            Text(strings.callRecordConfirmCallBack)
+        }
+    }
+
+    private var recordContents: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let danger = FlareCallRecordRules.tone(status) == .danger
         let accent = danger ? colors.error : colors.primary
         let ink = danger ? colors.errorText : colors.primaryText
-        FlareMessageCardShell(padded: false, fillWidth: false) {
-            HStack(spacing: FlareSizes.spacingSm) {
-                ZStack {
-                    Circle().fill(accent.opacity(FlareOpacity.tintWeak))
-                    IconView(media == .video ? "video" : "phone", size: FlareSizes.iconSizeMd, color: ink)
-                }
-                .frame(width: FlareSizes.controlHeightSm, height: FlareSizes.controlHeightSm)
-                .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
-                    Text(statusText)
-                        .font(.system(size: FlareSizes.fontSizeLg, weight: .medium))
-                        .foregroundColor(danger ? colors.errorText : colors.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(mediaText)
-                        .font(.system(size: FlareSizes.fontSizeSm))
-                        .foregroundColor(colors.textTertiary)
-                        .lineLimit(1)
-                }
-                // One element for what the card says; the action names itself.
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(mediaText)
-                .accessibilityValue(statusText)
-                if let action {
-                    ButtonView(label: action == .join ? strings.callRecordJoin : strings.callRecordCallBack,
-                               variant: .secondary, size: .sm, loading: busy,
-                               action: action == .join ? onJoin : onCallBack)
-                        .fixedSize()
-                }
+        return HStack(spacing: FlareSizes.spacingSm) {
+            ZStack {
+                Circle().fill(accent.opacity(FlareOpacity.tintWeak))
+                IconView(media == .video ? "video" : "phone", size: FlareSizes.iconSizeMd, color: ink)
             }
-            .padding(.horizontal, FlareSizes.spacingSm)
-            .padding(.vertical, FlareSizes.spacingXs)
+            .frame(width: FlareSizes.controlHeightSm, height: FlareSizes.controlHeightSm)
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                Text(statusText)
+                    .font(.system(size: statusFontSize, weight: .medium))
+                    .foregroundColor(danger ? colors.errorText : colors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: statusFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
+                Text(mediaText)
+                    .font(.system(size: mediaFontSize))
+                    .foregroundColor(colors.textTertiary)
+                    .lineLimit(1)
+                    .frame(minHeight: mediaFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
+            }
+            // One element for what the card says; the action names itself.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(mediaText)
+            .accessibilityValue(statusText)
+            if action == .join {
+                ButtonView(label: strings.callRecordJoin,
+                           variant: .secondary, size: .sm, loading: busy,
+                           action: onJoin)
+                    .fixedSize()
+            }
         }
-        .accessibilityElement(children: .contain)
+        .padding(.horizontal, FlareSizes.spacingSm)
+        .padding(.vertical, canActivateCallBack ? FlareSizes.spacing2xs : FlareSizes.spacingXs)
+        .frame(minHeight: action == .callBack ? FlareSizes.touchTarget : nil)
+        .contentShape(RoundedRectangle(cornerRadius: FlareSizes.radiusLg))
+    }
+}
+
+/// The modal owns dismissal; only a still-available, explicitly confirmed callback reaches the host.
+struct CallRecordConfirmationActions: View {
+    @Binding var isPresented: Bool
+    let enabled: Bool
+    let onConfirm: () -> Void
+    @Environment(\.flareStrings) private var strings
+
+    var body: some View {
+        HStack(spacing: FlareSizes.spacingSm) {
+            ButtonView(label: strings.cancel, variant: .secondary) { isPresented = false }
+            ButtonView(label: strings.confirm, disabled: !enabled) {
+                guard isPresented, enabled else { return }
+                isPresented = false
+                onConfirm()
+            }
+        }
     }
 }

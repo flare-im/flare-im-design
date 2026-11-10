@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 185,
-    "stable": 184,
-    "general": 58,
-    "im": 122
+    "total": 186,
+    "stable": 185,
+    "general": 60,
+    "im": 121
   },
   "specializedMessageGroups": {
     "Text": [
@@ -7211,7 +7211,8 @@
         "inviteMembers",
         "leave",
         "searchMembers",
-        "extraAction"
+        "extraAction",
+        "requestFriend"
       ],
       "states": [
         "default",
@@ -7240,7 +7241,8 @@
         "inviteMembers",
         "leave",
         "searchMembers",
-        "extraAction"
+        "extraAction",
+        "requestFriend"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -7282,7 +7284,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupDetail",
-      "searchText": "groupdetail contacts im-ui stable contacts default manage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglediscoverable togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
+      "searchText": "groupdetail contacts im-ui stable contacts default manage back openchat updatename updateannouncement updatemynickname setjoinpolicy togglediscoverable togglemuteall setflag togglemymuted togglemypinned loadjoinrequests respondrequest ensureinvitelink promotemember mutemember transferowner removemember loadcontacts invitemembers leave searchmembers extraaction requestfriend supportsconfiguration supportscapabilities supportsresponsive group detail/management — info / my settings / management / permissions, member grid, member actions, join approval, invite link. 群详情 / 管理 —— 群信息 / 我在本群 / 群管理 / 群权限 + 成员网格 + 成员操作 + 入群审批 + 邀请链接。"
     },
     {
       "name": "NewFriendRequests",
@@ -8020,7 +8022,8 @@
         "switchCamera",
         "recover",
         "minimize",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "states": [
         "calling",
@@ -8037,7 +8040,8 @@
         "switchCamera",
         "recover",
         "minimize",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -8079,7 +8083,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#CallView",
-      "searchText": "callview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera recover minimize startvideo supportsconfiguration supportsresponsive in-call surface — peer video/avatar, state, duration, with an overlaid control bar. video render is host-injected. 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
+      "searchText": "callview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera recover minimize startvideo pickdevices supportsconfiguration supportsresponsive in-call surface — peer video/avatar, state, duration, with an overlaid control bar. video render is host-injected. 音视频通话中界面 —— 对端画面 / 头像、状态、时长，叠加控制条。视频渲染由宿主注入。"
     },
     {
       "name": "IncomingCall",
@@ -8250,7 +8254,8 @@
         "switchCamera",
         "hangup",
         "addMember",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "states": [
         "audio",
@@ -8263,7 +8268,8 @@
         "switchCamera",
         "hangup",
         "addMember",
-        "startVideo"
+        "startVideo",
+        "pickDevices"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -8305,7 +8311,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#CallControls",
-      "searchText": "callcontrols call im-ui stable call audio video togglemute togglecamera togglespeaker switchcamera hangup addmember startvideo supportsconfiguration supportscustomactions supportscapabilities call control bar — mute, camera, speaker, flip camera, switch to video, hang up (adapts to audio/video). 通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、切换到视频、挂断（音 / 视频自适应）。"
+      "searchText": "callcontrols call im-ui stable call audio video togglemute togglecamera togglespeaker switchcamera hangup addmember startvideo pickdevices supportsconfiguration supportscustomactions supportscapabilities call control bar — mute, camera, speaker, flip camera, switch to video, hang up (adapts to audio/video). 通话控制条 —— 静音、摄像头、扬声器、翻转摄像头、切换到视频、挂断（音 / 视频自适应）。"
     },
     {
       "name": "ResponsiveLayout",
@@ -8484,7 +8490,8 @@
         "addMember",
         "minimize",
         "startVideo",
-        "selectParticipant"
+        "selectParticipant",
+        "pickDevices"
       ],
       "states": [
         "calling",
@@ -8502,7 +8509,8 @@
         "addMember",
         "minimize",
         "startVideo",
-        "selectParticipant"
+        "selectParticipant",
+        "pickDevices"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -8544,7 +8552,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#GroupCallView",
-      "searchText": "groupcallview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera addmember minimize startvideo selectparticipant supportsconfiguration supportsresponsive group (multi-party) call — participant grid, speaking highlight, mute/camera badges, add member. 群聊多人通话 —— 参与者网格、说话高亮、静音/关摄像头角标、加人。"
+      "searchText": "groupcallview call im-ui stable call calling ringing connected reconnecting failed hangup togglemute togglecamera togglespeaker switchcamera addmember minimize startvideo selectparticipant pickdevices supportsconfiguration supportsresponsive group (multi-party) call — participant grid, speaking highlight, mute/camera badges, add member. 群聊多人通话 —— 参与者网格、说话高亮、静音/关摄像头角标、加人。"
     },
     {
       "name": "CallRecordCard",
@@ -8591,8 +8599,8 @@
         ]
       },
       "summary": {
-        "en": "Call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and Join (a group call in progress) or Call back (an ended 1:1 call).",
-        "zh": "会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
+        "en": "Compact call record in the chat timeline — media icon, viewer-relative status and media name. Tap an ended 1:1 record to confirm a call back; ongoing group calls may offer Join.",
+        "zh": "会话时间线里的紧凑通话记录：媒体图标、按查看者视角的状态和媒体名称。点击已结束的单聊记录确认回拨；进行中群通话可提供「加入」。"
       },
       "aliases": [
         "Call",
@@ -8657,7 +8665,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#CallRecordCard",
-      "searchText": "callrecordcard call im-ui stable call ringing ongoing ended missed disabled busy join callback supportsconfiguration call record in the chat timeline — the media icon, one viewer-relative status line, the media name, and join (a group call in progress) or call back (an ended 1:1 call). 会话时间线里的通话记录 —— 媒体图标、一行按查看者视角的状态、媒体名称，以及「加入」（进行中的群通话）或「回拨」（已结束的单聊通话）。"
+      "searchText": "callrecordcard call im-ui stable call ringing ongoing ended missed disabled busy join callback supportsconfiguration compact call record in the chat timeline — media icon, viewer-relative status and media name. tap an ended 1:1 record to confirm a call back; ongoing group calls may offer join. 会话时间线里的紧凑通话记录：媒体图标、按查看者视角的状态和媒体名称。点击已结束的单聊记录确认回拨；进行中群通话可提供「加入」。"
     },
     {
       "name": "TypingIndicator",
@@ -10923,6 +10931,14 @@
       "docExamples": {
         "variants": [
           {
+            "name": "actionLayout",
+            "values": [
+              "inline",
+              "compact",
+              "list"
+            ]
+          },
+          {
             "name": "resolveUser",
             "values": [
               "(userId: string) => FlarePluginUser",
@@ -10962,7 +10978,11 @@
         "loadMore",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "states": [
         "unavailable",
@@ -10980,7 +11000,11 @@
         "loadMore",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11022,7 +11046,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -11067,8 +11091,8 @@
         ]
       },
       "summary": {
-        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet.",
-        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 Kit 底部面板。"
+        "en": "Plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page.",
+        "zh": "插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 Kit 底部面板或嵌入页面。"
       },
       "aliases": [
         "Message",
@@ -11080,7 +11104,10 @@
         "cancel",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "memberSearch",
+        "membersRetry"
       ],
       "states": [
         "editing",
@@ -11093,7 +11120,10 @@
         "cancel",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad",
+        "memberSearch",
+        "membersRetry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11135,7 +11165,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginForm",
-      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; put it in the kit bottom sheet. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；放进 kit 底部面板。"
+      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore referenceload membersearch membersretry supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 kit 底部面板或嵌入页面。"
     },
     {
       "name": "PluginDetailSheet",
@@ -11200,7 +11230,8 @@
         "retry",
         "close",
         "action",
-        "loadMore"
+        "loadMore",
+        "protectedMediaRead"
       ],
       "states": [
         "loading",
@@ -11211,7 +11242,8 @@
         "retry",
         "close",
         "action",
-        "loadMore"
+        "loadMore",
+        "protectedMediaRead"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11253,7 +11285,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginDetailSheet",
-      "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
+      "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore protectedmediaread supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
     },
     {
       "name": "PluginPage",
@@ -11271,9 +11303,10 @@
       "supportsCapabilities": false,
       "supportsDensity": false,
       "supportsResponsive": false,
-      "previewMode": "single",
+      "previewMode": "responsive",
       "previewViewports": [
-        "desktop"
+        "desktop",
+        "mobile"
       ],
       "previewPresentation": "isolated",
       "previewOpener": null,
@@ -11282,7 +11315,7 @@
         "variants": true,
         "states": true,
         "interaction": true,
-        "responsive": false,
+        "responsive": true,
         "keyboard": true,
         "density": false,
         "slots": false,
@@ -11290,6 +11323,20 @@
       },
       "docExamples": {
         "variants": [
+          {
+            "name": "contentMaxWidth",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
+          {
+            "name": "appearance",
+            "values": [
+              "document",
+              "account"
+            ]
+          },
           {
             "name": "resolveUser",
             "values": [
@@ -11332,7 +11379,9 @@
         "retry",
         "loadMore",
         "filter",
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "states": [
         "loading",
@@ -11348,7 +11397,9 @@
         "retry",
         "loadMore",
         "filter",
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11390,7 +11441,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
-      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
     },
     {
       "name": "AccountView",
@@ -11408,9 +11459,10 @@
       "supportsCapabilities": false,
       "supportsDensity": false,
       "supportsResponsive": false,
-      "previewMode": "single",
+      "previewMode": "responsive",
       "previewViewports": [
-        "desktop"
+        "desktop",
+        "mobile"
       ],
       "previewPresentation": "isolated",
       "previewOpener": null,
@@ -11419,7 +11471,7 @@
         "variants": true,
         "states": true,
         "interaction": true,
-        "responsive": false,
+        "responsive": true,
         "keyboard": true,
         "density": false,
         "slots": false,
@@ -11446,8 +11498,8 @@
         ]
       },
       "summary": {
-        "en": "Account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse PluginView.",
-        "zh": "账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 PluginView 动作的本地交易详情。"
+        "en": "Account presentation with real wallet cards, labeled financial flows or grouped ledger records; shared guarded actions and exact server-formatted values.",
+        "zh": "账户呈现：实际钱包卡片、带标签的资金流程或分组账单；复用受保护动作并原样显示服务端格式化值。"
       },
       "aliases": [
         "Message",
@@ -11456,7 +11508,9 @@
         "hidden",
         "busy",
         "error",
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "states": [
         "loaded",
@@ -11466,7 +11520,9 @@
         "error"
       ],
       "interactions": [
-        "action"
+        "action",
+        "memberSearch",
+        "membersRetry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11508,7 +11564,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#AccountView",
-      "searchText": "accountview message im-ui stable message loaded empty hidden busy error action supportsconfiguration account view — the account presentation of a plugin page: a headline balance with secondary statistics that can all be hidden, a ledger grouped by date, and local entry details whose actions reuse pluginview. 账户视图 —— 插件页面的账户呈现：首要余额与可整体隐藏的次级统计、按日期分组的账单，以及复用 pluginview 动作的本地交易详情。"
+      "searchText": "accountview message im-ui stable message loaded empty hidden busy error action membersearch membersretry supportsconfiguration account presentation with real wallet cards, labeled financial flows or grouped ledger records; shared guarded actions and exact server-formatted values. 账户呈现：实际钱包卡片、带标签的资金流程或分组账单；复用受保护动作并原样显示服务端格式化值。"
     },
     {
       "name": "SlashCommandMenu",
@@ -12370,7 +12426,9 @@
         "variants": [],
         "states": [
           "empty",
-          "sending"
+          "sending",
+          "loading",
+          "error"
         ]
       },
       "summary": {
@@ -12381,16 +12439,24 @@
         "Composer",
         "empty",
         "sending",
+        "loading",
+        "error",
         "select",
-        "cancel"
+        "cancel",
+        "search",
+        "retry"
       ],
       "states": [
         "empty",
-        "sending"
+        "sending",
+        "loading",
+        "error"
       ],
       "interactions": [
         "select",
-        "cancel"
+        "cancel",
+        "search",
+        "retry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -12432,7 +12498,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ContactPicker",
-      "searchText": "contactpicker composer im-ui stable composer empty sending select cancel supportsconfiguration contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user. 联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
+      "searchText": "contactpicker composer im-ui stable composer empty sending loading error select cancel search retry supportsconfiguration contact picker — choose the person a contact card names: group tabs (friends, group members), search, a windowed list, \"(me)\" on the signed-in user. 联系人选择 —— 选择名片里的人：分组标签（好友、群成员）、搜索、虚拟列表，自己显示「（我）」。"
     },
     {
       "name": "ChatWallpaperPicker",
@@ -18258,9 +18324,10 @@
       "supportsCapabilities": false,
       "supportsDensity": false,
       "supportsResponsive": false,
-      "previewMode": "single",
+      "previewMode": "responsive",
       "previewViewports": [
-        "desktop"
+        "desktop",
+        "mobile"
       ],
       "previewPresentation": "isolated",
       "previewOpener": null,
@@ -18269,7 +18336,7 @@
         "variants": true,
         "states": true,
         "interaction": true,
-        "responsive": false,
+        "responsive": true,
         "keyboard": true,
         "density": false,
         "slots": false,
@@ -18277,6 +18344,13 @@
       },
       "docExamples": {
         "variants": [
+          {
+            "name": "contentMaxWidth",
+            "values": [
+              "number",
+              "null"
+            ]
+          },
           {
             "name": "surface",
             "values": [
@@ -19946,7 +20020,8 @@
         "update:modelValue",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad"
       ],
       "states": [
         "default",
@@ -19956,7 +20031,8 @@
         "update:modelValue",
         "selectionSearch",
         "selectionRetry",
-        "selectionMore"
+        "selectionMore",
+        "referenceLoad"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -19989,7 +20065,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#SchemaForm",
-      "searchText": "schemaform form general-ui stable json schema dynamic form plugin settings settings form 动态表单 插件配置 配置表单 表单生成 form default disabled update:modelvalue selectionsearch selectionretry selectionmore supportsconfiguration schema form — fields drawn from a json schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it. schema 表单 —— 按 json schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
+      "searchText": "schemaform form general-ui stable json schema dynamic form plugin settings settings form 动态表单 插件配置 配置表单 表单生成 form default disabled update:modelvalue selectionsearch selectionretry selectionmore referenceload supportsconfiguration schema form — fields drawn from a json schema object: an enum of strings as a select, integer as a whole-number input within minimum and maximum, boolean as a switch, string as a text input; title labels a field, description explains it. schema 表单 —— 按 json schema 对象画字段：字符串枚举画成下拉，integer 画成在 minimum 与 maximum 之间的整数输入，boolean 画成开关，string 画成文本框；title 作字段标签，description 作说明。"
     },
     {
       "name": "DescriptionList",
@@ -20267,7 +20343,9 @@
           "symbol": "FlareTag"
         },
         "flutter": {
-          "support": "not-applicable"
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareTag"
         },
         "compose": {
           "support": "not-applicable"
@@ -20277,7 +20355,8 @@
         }
       },
       "sourcePaths": {
-        "vue": "packages/vue-im-ui/src/components/general/FlareTag.vue"
+        "vue": "packages/vue-im-ui/src/components/general/FlareTag.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_tag.dart"
       },
       "docs": {
         "zh": "website/components/tag.md",
@@ -20385,7 +20464,7 @@
       "name": "ImageUploadSlot",
       "slug": "image-upload-slot",
       "category": "Media",
-      "layer": "im-ui",
+      "layer": "general-ui",
       "scope": "public-library",
       "status": "experimental",
       "since": "2.0.0-rc.1",
@@ -20444,7 +20523,8 @@
         "uploaded",
         "failed",
         "choose",
-        "action"
+        "action",
+        "preview"
       ],
       "states": [
         "empty",
@@ -20455,7 +20535,8 @@
       ],
       "interactions": [
         "choose",
-        "action"
+        "action",
+        "preview"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -20497,7 +20578,123 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ImageUploadSlot",
-      "searchText": "imageuploadslot media im-ui experimental media empty selected uploading uploaded failed choose action supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
+      "searchText": "imageuploadslot media general-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
+    },
+    {
+      "name": "FileUpload",
+      "slug": "file-upload",
+      "category": "Media",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "empty",
+          "selected",
+          "uploading",
+          "uploaded",
+          "failed"
+        ]
+      },
+      "summary": {
+        "zh": "受控的通用单文件与图片上传界面，复用共享照片槽。",
+        "en": "Controlled single-file and image upload surface, composed from the shared photo slot."
+      },
+      "aliases": [
+        "Media",
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed",
+        "select",
+        "upload",
+        "retry",
+        "cancel",
+        "remove",
+        "choose",
+        "replace",
+        "preview"
+      ],
+      "states": [
+        "empty",
+        "selected",
+        "uploading",
+        "uploaded",
+        "failed"
+      ],
+      "interactions": [
+        "select",
+        "upload",
+        "retry",
+        "cancel",
+        "remove",
+        "choose",
+        "replace",
+        "preview"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareFileUpload"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareFileUpload"
+        },
+        "compose": {
+          "support": "not-applicable"
+        },
+        "ios": {
+          "support": "not-applicable"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/media/FlareFileUpload.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_file_upload.dart"
+      },
+      "docs": {
+        "zh": "website/components/file-upload.md",
+        "en": "website/en/components/file-upload.md"
+      },
+      "examples": {
+        "live": false,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#FileUpload",
+      "searchText": "fileupload media general-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
     }
   ]
 }

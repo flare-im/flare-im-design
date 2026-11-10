@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -119,6 +120,11 @@ fun ContactPicker(
     onCancel: (() -> Unit)? = null,
     /** The host is sending the card for the chosen person: the tapped row (multiple mode: the confirm key) spins. */
     sending: Boolean = false,
+    /** A remote source owns matching when supplied; the picker never filters a partial page again. */
+    onSearch: ((String) -> Unit)? = null,
+    loading: Boolean = false,
+    error: String? = null,
+    onRetry: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -129,7 +135,16 @@ fun ContactPicker(
     var pending by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(sending) { if (!sending) pending = null }
     val open = groups.firstOrNull { it.id == activeGroup } ?: groups.firstOrNull()
-    val entries = filterContactPickerEntries(open?.entries.orEmpty(), if (searchable) query else "")
+    val entries = if (onSearch != null) open?.entries.orEmpty() else filterContactPickerEntries(open?.entries.orEmpty(), if (searchable) query else "")
+    val currentGroups by rememberUpdatedState(groups)
+    val blocked by rememberUpdatedState(sending || loading || !error.isNullOrBlank())
+    val select by rememberUpdatedState(onSelect)
+    fun choose(entry: FlareContactPickerEntry) {
+        if (blocked) return
+        val current = currentGroups.flatMap { it.entries }.firstOrNull { it.userId == entry.userId } ?: return
+        pending = current.userId
+        select?.invoke(listOf(current))
+    }
     val fills = flareSheetFills()
     FlareSheetOwnHeader()
 
@@ -154,12 +169,17 @@ fun ContactPicker(
         }
         if (searchable) {
             Box(Modifier.padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, bottom = FlareSizes.spacingSm)) {
-                SearchBar(value = query, onValueChange = { query = it }, placeholder = strings.contactPickerSearch)
+                SearchBar(value = query, onValueChange = { query = it; onSearch?.invoke(it) }, placeholder = strings.contactPickerSearch)
             }
         }
         // In a filled sheet the list takes the height left; elsewhere it stays bounded.
         val listModifier = if (fills) Modifier.weight(1f) else Modifier.weight(1f, fill = false).heightIn(max = CONTACT_PICKER_LIST_MAX_HEIGHT)
-        if (entries.isEmpty()) {
+        if (loading) {
+            Box(listModifier.fillMaxWidth()) { EmptyState(title = strings.loading, loading = true) }
+        } else if (!error.isNullOrBlank()) {
+            Box(listModifier.fillMaxWidth()) { EmptyState(title = error, tone = FlareEmptyStateTone.Error,
+                actionText = if (onRetry != null) strings.retry else null, onAction = onRetry) }
+        } else if (entries.isEmpty()) {
             Box(listModifier.fillMaxWidth()) { EmptyState(title = strings.contactPickerEmpty, icon = "people") }
         } else {
             LazyColumn(listModifier) {
@@ -178,9 +198,9 @@ fun ContactPicker(
                     ) {
                         ContactItem(
                             item = contact, showPresence = false,
-                            onSelect = if (multiple || sending) null else { { pending = entry.userId; onSelect?.invoke(listOf(entry)) } },
+                            onSelect = if (multiple || sending) null else { { choose(entry) } },
                             selectable = multiple, selected = entry.userId in picked,
-                            onToggleSelect = if (multiple && !sending) { { picked = contactPickerToggled(picked, entry.userId) } } else null,
+                            onToggleSelect = if (multiple && !sending) { { if (!blocked) picked = contactPickerToggled(picked, entry.userId) } } else null,
                             trailing = if (spins) { { CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeSm), color = colors.primaryText, strokeWidth = 2.dp) } } else null,
                         )
                     }
@@ -197,8 +217,8 @@ fun ContactPicker(
                 Text(strings.selectedCount(picked.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
                 Spacer(Modifier.weight(1f))
                 Button(
-                    label = strings.confirm, disabled = picked.isEmpty(), loading = sending,
-                    onClick = { if (!sending) onSelect?.invoke(contactPickerPicked(picked, groups)) },
+                    label = strings.confirm, disabled = picked.isEmpty() || loading || !error.isNullOrBlank(), loading = sending,
+                    onClick = { if (!blocked) select?.invoke(contactPickerPicked(picked, currentGroups)) },
                 )
             }
         }

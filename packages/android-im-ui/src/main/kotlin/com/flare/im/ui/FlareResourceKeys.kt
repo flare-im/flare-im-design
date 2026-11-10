@@ -527,6 +527,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "groupDetailMute",
     "groupDetailUnmute",
     "groupDetailTransferOwner",
+    "groupDetailRequestFriend",
     "groupDetailRemoveMember",
     "groupDetailTransferConfirmPrefix",
     "groupDetailTransferConfirmSuffix",
@@ -763,6 +764,15 @@ internal val flareStringKeys: Set<String> = setOf(
     "pluginFormTooFewItems",
     "pluginFormTooManyItems",
     "pluginFormDuplicateItem",
+    "pluginFileChoose",
+    "pluginFileSelected",
+    "pluginFileUploading",
+    "pluginFileUploaded",
+    "pluginFileRejected",
+    "pluginFileFailed",
+    "pluginFileReplace",
+    "pluginFileRemove",
+    "pluginFilePreview",
     "pluginFormInvalid",
     "locationOsmAttribution",
     "loading",
@@ -843,6 +853,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "callRecordFailed",
     "callRecordJoin",
     "callRecordCallBack",
+    "callRecordConfirmCallBack",
     "readReceiptLoadFailed",
     "readReceiptUnavailable",
     "readReceiptLoadMore",
@@ -1393,6 +1404,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "groupDetailMute" -> this.groupDetailMute
     "groupDetailUnmute" -> this.groupDetailUnmute
     "groupDetailTransferOwner" -> this.groupDetailTransferOwner
+    "groupDetailRequestFriend" -> this.groupDetailRequestFriend
     "groupDetailRemoveMember" -> this.groupDetailRemoveMember
     "groupDetailTransferConfirmPrefix" -> this.groupDetailTransferConfirmPrefix
     "groupDetailTransferConfirmSuffix" -> this.groupDetailTransferConfirmSuffix
@@ -1629,6 +1641,15 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "pluginFormTooFewItems" -> this.pluginFormTooFewItems
     "pluginFormTooManyItems" -> this.pluginFormTooManyItems
     "pluginFormDuplicateItem" -> this.pluginFormDuplicateItem
+    "pluginFileChoose" -> this.pluginFileChoose
+    "pluginFileSelected" -> this.pluginFileSelected
+    "pluginFileUploading" -> this.pluginFileUploading
+    "pluginFileUploaded" -> this.pluginFileUploaded
+    "pluginFileRejected" -> this.pluginFileRejected
+    "pluginFileFailed" -> this.pluginFileFailed
+    "pluginFileReplace" -> this.pluginFileReplace
+    "pluginFileRemove" -> this.pluginFileRemove
+    "pluginFilePreview" -> this.pluginFilePreview
     "pluginFormInvalid" -> this.pluginFormInvalid
     "locationOsmAttribution" -> this.locationOsmAttribution
     "loading" -> this.loading
@@ -1709,6 +1730,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "callRecordFailed" -> this.callRecordFailed
     "callRecordJoin" -> this.callRecordJoin
     "callRecordCallBack" -> this.callRecordCallBack
+    "callRecordConfirmCallBack" -> this.callRecordConfirmCallBack
     "readReceiptLoadFailed" -> this.readReceiptLoadFailed
     "readReceiptUnavailable" -> this.readReceiptUnavailable
     "readReceiptLoadMore" -> this.readReceiptLoadMore

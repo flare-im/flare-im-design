@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, h, nextTick, ref, watch } from "vue";
-import { NSelect, NButton, NAvatar, NText, type SelectOption } from "naive-ui";
+import { NSelect, NButton, NText, type SelectOption } from "naive-ui";
+import FlareAdminEntityLabel from "./FlareAdminEntityLabel.vue";
 
 export interface FlareAdminEntityOption extends SelectOption {
   value: string;
   label: string;
   title?: string;
   description?: string;
+  avatarUrl?: string;
   disabled?: boolean;
 }
 const props = withDefaults(
@@ -98,33 +100,13 @@ watch(
 function renderLabel(option: SelectOption, selected: boolean) {
   const item = option as FlareAdminEntityOption;
   if (!item.title) return item.label;
-  if (selected)
-    return h(
-      "span",
-      { title: item.label, class: "flare-admin-entity-select__selected-label" },
-      item.title,
-    );
-  return h(
-    "div",
-    { class: "flare-admin-entity-select__option", title: item.label },
-    [
-      h(
-        NAvatar,
-        { size: 28, round: true, "aria-hidden": true },
-        () => Array.from(item.title!)[0],
-      ),
-      h("div", { class: "flare-admin-entity-select__identity" }, [
-        h("div", { class: "flare-admin-entity-select__name" }, item.title),
-        item.description
-          ? h(
-              "div",
-              { class: "flare-admin-entity-select__description" },
-              item.description,
-            )
-          : null,
-      ]),
-    ],
-  );
+  return h(FlareAdminEntityLabel, {
+    label: item.label,
+    name: item.title,
+    description: item.description,
+    avatarUrl: item.avatarUrl,
+    selected,
+  });
 }
 const EntityLabel = (props: { option: FlareAdminEntityOption }) =>
   renderLabel(props.option, false);
@@ -282,29 +264,6 @@ function select(value: string | number | Array<string | number> | null) {
   font-size: 12px;
   overflow-wrap: anywhere;
   margin-top: var(--flare-size-spacing-xs, 4px);
-}
-.flare-admin-entity-select__option {
-  display: flex;
-  align-items: center;
-  gap: var(--flare-size-spacing-sm, 8px);
-  min-width: 0;
-  padding-block: var(--flare-size-spacing-xs, 4px);
-}
-.flare-admin-entity-select__identity {
-  min-width: 0;
-  flex: 1;
-}
-.flare-admin-entity-select__name,
-.flare-admin-entity-select__description,
-.flare-admin-entity-select__selected-label {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.flare-admin-entity-select__description {
-  color: var(--flare-color-text-secondary);
-  font-size: var(--flare-size-font-size-xs, 11px);
 }
 .flare-admin-entity-select__summary {
   display: flex;

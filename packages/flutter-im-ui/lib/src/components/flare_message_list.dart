@@ -21,6 +21,7 @@ import '../models/time_format.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_date_pill.dart';
+import 'flare_empty_state.dart';
 import 'flare_icon.dart';
 import 'flare_locate_highlight_scope.dart';
 import 'flare_media_controller.dart';
@@ -553,6 +554,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       _measureBottom(position);
     });
   }
+
   FlareMessageListController get _handle => widget.controller ?? _ownedHandle;
   ScrollController get _controller => _handle.scroll;
 
@@ -1305,6 +1307,42 @@ class _FlareMessageListState extends State<FlareMessageList>
     );
   }
 
+  Widget _emptyWindow() {
+    if (widget.loading || widget.loadingOlder || widget.loadingNewer) {
+      return const CircularProgressIndicator();
+    }
+    if (widget.emptyPlaceholder case final placeholder?) {
+      return placeholder;
+    }
+    if (!widget.hasOlder &&
+        !widget.hasNewer &&
+        widget.olderError == null &&
+        widget.newerError == null) {
+      return _Empty(_emptyText);
+    }
+
+    // A window with more history has not proved that this conversation is
+    // empty. Keep the failure recoverable without automatically requesting it.
+    final strings = FlareStrings.of(context);
+    final older = widget.hasOlder;
+    final handled = older
+        ? widget.onLoadOlder != null
+        : widget.hasNewer && widget.onLoadNewer != null;
+    final requested = older ? _requested : _requestedNewer;
+    return FlareEmptyState(
+      title:
+          widget.olderError ??
+          widget.newerError ??
+          strings.conversationWorkspaceChatFailure,
+      tone: FlareEmptyStateTone.error,
+      actionText: handled ? strings.retry : null,
+      onAction: !handled || requested
+          ? null
+          : () =>
+                older ? _requestOlder(retry: true) : _requestNewer(retry: true),
+    );
+  }
+
   Widget _message(int i) {
     _indexTimeline();
     final msg = widget.messages[i];
@@ -1419,6 +1457,7 @@ class _FlareMessageListState extends State<FlareMessageList>
     final before = [for (var i = split - 1; i >= 0; i--) widget.messages[i].id];
     final after = widget.messages.skip(split).map((m) => m.id).toList();
     final newBelow = _newBelow;
+    final emptyWindow = widget.messages.isEmpty;
     final olderEdge = flareMessageListEdge(_olderEnd);
     final newerEdge = flareMessageListEdge(_newerEnd);
     final latest = flareMessageListLatestEntry(
@@ -1444,7 +1483,7 @@ class _FlareMessageListState extends State<FlareMessageList>
             color: colors.bgSecondary,
             child: Column(
               children: [
-                if (olderEdge.visible)
+                if (olderEdge.visible && !emptyWindow)
                   _endBand(
                     olderEdge,
                     error: widget.olderError,
@@ -1455,11 +1494,7 @@ class _FlareMessageListState extends State<FlareMessageList>
                   ),
                 Expanded(
                   child: widget.messages.isEmpty
-                      ? Center(
-                          child: widget.loading
-                              ? const CircularProgressIndicator()
-                              : (widget.emptyPlaceholder ?? _Empty(_emptyText)),
-                        )
+                      ? Center(child: _emptyWindow())
                       : Stack(
                           children: [
                             Positioned.fill(
@@ -1475,10 +1510,12 @@ class _FlareMessageListState extends State<FlareMessageList>
                                       // Content that grew or shrank without a
                                       // scroll moves the end of the timeline.
                                       if (n is ScrollMetricsNotification) {
-                                        if (n.depth == 0) _measureBottom(n.metrics);
+                                        if (n.depth == 0)
+                                          _measureBottom(n.metrics);
                                         return false;
                                       }
-                                      if (n is! ScrollNotification || n.depth != 0)
+                                      if (n is! ScrollNotification ||
+                                          n.depth != 0)
                                         return false;
                                       // The reader's own drag: the place is
                                       // theirs again, not the located row's.
@@ -1607,7 +1644,7 @@ class _FlareMessageListState extends State<FlareMessageList>
                           ],
                         ),
                 ),
-                if (newerEdge.visible)
+                if (newerEdge.visible && !emptyWindow)
                   _endBand(
                     newerEdge,
                     error: widget.newerError,

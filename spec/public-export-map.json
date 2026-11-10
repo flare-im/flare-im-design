@@ -4573,6 +4573,11 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareTag",
           "sourcePath": "packages/vue-im-ui/src/components/general/FlareTag.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareTag",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_tag.dart"
         }
       }
     },
@@ -4610,6 +4615,22 @@
           "package": "FlareIMUI",
           "symbol": "ImageUploadSlotView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ImageUploadSlotView.swift"
+        }
+      }
+    },
+    {
+      "name": "FileUpload",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareFileUpload",
+          "sourcePath": "packages/vue-im-ui/src/components/media/FlareFileUpload.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareFileUpload",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_file_upload.dart"
         }
       }
     }

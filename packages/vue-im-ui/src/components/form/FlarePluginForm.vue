@@ -1,33 +1,35 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
-import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
-import type { SchemaSelection, SchemaSelectionLabels } from "./schema-selections";
+import { computed, getCurrentInstance, h, onBeforeUnmount, reactive, ref, useSlots, watch } from "vue";
+import PluginFormInput, {
+  type PluginFormInputState,
+} from "./PluginFormInput.vue";
+import type {
+  SchemaSelection,
+  SchemaSelectionLabels,
+} from "./schema-selections";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
-import FlareIconButton from "../general/FlareIconButton.vue";
-import FlareInput from "../general/FlareInput.vue";
-import FlareFormField from "./FlareFormField.vue";
-import FlareTextarea from "./FlareTextarea.vue";
-import FlareSwitch from "./FlareSwitch.vue";
-import FlareRadioGroup from "./FlareRadioGroup.vue";
-import FlareSelect from "./FlareSelect.vue";
-import FlareDatePicker from "./FlareDatePicker.vue";
-import FlareTimePicker from "./FlareTimePicker.vue";
 import FlareContactPicker from "../composer/FlareContactPicker.vue";
-import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import type { FlareContactPickerEntry } from "../../shared/contracts/contact-picker";
 import {
   flarePluginCheckInput,
-  flarePluginCounter,
   flarePluginDraft,
   flarePluginFormValues,
   flarePluginIssueText,
   flarePluginMaxItems,
   flarePluginMinRows,
+  flarePluginReferenceParents,
+  flarePluginFileValue,
+  flarePluginNewFileScope,
+  flarePluginVisibleInputs,
+  type FlarePluginFileAction,
+  type FlarePluginFileActionKind,
+  type FlarePluginFileState,
   type FlarePluginFormError,
   type FlarePluginInput,
   type FlarePluginMember,
+  type FlarePluginReferenceRequest,
   type FlarePluginStrings,
 } from "../../shared/contracts/plugin-ui";
 
@@ -44,12 +46,18 @@ const props = withDefaults(
     selectionLabels?: SchemaSelectionLabels;
     /** Initial values by input id; an input without one starts from its default. */
     values?: Record<string, unknown>;
+    /** Original record when a host opens a form with a proposed edit already applied. */
+    baselineValues?: Record<string, unknown>;
     /** The host's errors (UiFormError). */
     errors?: FlarePluginFormError[];
     submitLabel?: string;
     cancelLabel?: string;
     /** Same typed inputs/validation; compact query presentation for administrative filters. */
     presentation?: "form" | "filters";
+    /** Host-only control presentation for administrative action forms; not a plugin wire field. */
+    selectPresentation?: "radio" | "dropdown";
+    /** Page-owned form: no sheet insets or cancel key; the page owns navigation. */
+    embedded?: boolean;
     busy?: boolean;
     /** Editing an existing record may require an actual typed value change. */
     requireChange?: boolean;
@@ -57,11 +65,38 @@ const props = withDefaults(
     error?: string;
     /** Candidates for members inputs. */
     members?: FlarePluginMember[];
+    membersLoading?: boolean;
+    membersRevision?: number;
+    membersError?: string;
+    onMemberSearch?: (query: string) => void;
+    onMembersRetry?: () => void;
+    fileStates?: Record<string, FlarePluginFileState>;
   }>(),
-  { values: undefined, errors: () => [], submitLabel: undefined, presentation: "form", busy: false, error: undefined, members: () => [] },
+  {
+    values: undefined,
+    errors: () => [],
+    submitLabel: undefined,
+    presentation: "form",
+    selectPresentation: "radio",
+    embedded: false,
+    busy: false,
+    error: undefined,
+    members: () => [],
+  },
 );
-const emit = defineEmits<{ (e: "submit", values: Record<string, unknown>): void; (e: "cancel"): void; (e: "selection-search", id: string, query: string): void; (e: "selection-retry", id: string): void; (e: "selection-more", id: string): void }>();
+const emit = defineEmits<{
+  (e: "submit", values: Record<string, unknown>): void;
+  (e: "cancel"): void;
+  (e: "selection-search", id: string, query: string): void;
+  (e: "selection-retry", id: string): void;
+  (e: "selection-more", id: string): void;
+  /** A reference request or selected-value update; hosts may retain the same directory's options. */
+  (e: "reference-load", request: FlarePluginReferenceRequest): void;
+  (e: "file-action", request: FlarePluginFileAction): void;
+}>();
 const { t } = useFlareI18nOptional();
+const slots = useSlots();
+const instance = getCurrentInstance();
 
 const strings = computed<FlarePluginStrings>(() => ({
   deadlinePassed: t("pluginView.deadlinePassed"),
@@ -86,37 +121,177 @@ const edited = reactive(new Set<string>());
 const editedSinceErrors = reactive(new Set<string>());
 const attempted = ref(false);
 const initialValues = ref("");
-const unchanged = computed(() => props.requireChange && JSON.stringify(flarePluginFormValues(props.inputs, draft)) === initialValues.value);
+const unchanged = computed(
+  () =>
+    props.requireChange &&
+    JSON.stringify(flarePluginFormValues(props.inputs, draft)) ===
+      initialValues.value,
+);
 const numberText = reactive<Record<string, string>>({});
+const fileScope = ref("");
+const fileGenerations = reactive<Record<string, number>>({});
+const localFiles = reactive<Record<string, FlarePluginFileState>>({});
+const visibleInputs = computed(() => flarePluginVisibleInputs(props.inputs, draft));
+function fileState(input: FlarePluginInput): FlarePluginFileState {
+  const generation = fileGenerations[input.id] ?? 0;
+  const controlled = props.fileStates?.[input.id];
+  if (controlled?.scope === fileScope.value && controlled.generation === generation) return controlled;
+  const local = localFiles[input.id];
+  if (local?.scope === fileScope.value && local.generation === generation) return local;
+  const value = draft[input.id];
+  return { scope: fileScope.value, generation, phase: flarePluginFileValue(value) ? "uploaded" : "empty",
+    ...(flarePluginFileValue(value) ? { value } : {}) };
+}
+const filesPending = computed(() => visibleInputs.value.some((input) => {
+  if (input.kind !== "file") return false;
+  const state = fileState(input);
+  return state.phase !== "empty" && (state.phase !== "uploaded" || !flarePluginFileValue(state.value ?? draft[input.id]));
+}));
+function fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind): void {
+  if (input.kind !== "file" || (action !== "invalidate" && (props.busy || !visibleInputs.value.includes(input)))) return;
+  if (action !== "preview") {
+    fileGenerations[input.id] = (fileGenerations[input.id] ?? 0) + 1;
+    draft[input.id] = null;
+    editedSinceErrors.add(input.id);
+    localFiles[input.id] = { scope: fileScope.value, generation: fileGenerations[input.id],
+      phase: ["choose", "replace", "retry"].includes(action) ? "selected" : "empty" };
+  }
+  emit("file-action", { action, inputId: input.id, input, scope: fileScope.value,
+    generation: fileGenerations[input.id] ?? 0, formValues: flarePluginFormValues(props.inputs, draft) });
+}
 const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
 /** A new form (other inputs or initial values, compared by content): start over from them. */
 function reset(): void {
+  if (fileScope.value) for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate");
+  fileScope.value = flarePluginNewFileScope();
+  for (const id of Object.keys(fileGenerations)) delete fileGenerations[id];
+  for (const id of Object.keys(localFiles)) delete localFiles[id];
   for (const key of Object.keys(draft)) delete draft[key];
   Object.assign(draft, flarePluginDraft(props.inputs, props.values));
   for (const input of props.inputs) {
-    if (props.selections?.[input.id] && Array.isArray(draft[input.id])) draft[input.id] = (draft[input.id] as unknown[]).filter(value => value !== "");
+    if (
+      (props.selections?.[input.id] ||
+        (input.kind === "options" && input.choices?.length)) &&
+      Array.isArray(draft[input.id])
+    )
+      draft[input.id] = (draft[input.id] as unknown[]).filter(
+        (value) => value !== "",
+      );
     const value = draft[input.id];
-    if (input.kind === "number") numberText[input.id] = typeof value === "number" ? String(value) : "";
+    if (input.kind === "number")
+      numberText[input.id] = typeof value === "number" ? String(value) : "";
     if (input.kind === "datetime") {
       const d = typeof value === "number" ? new Date(value) : null;
       dateParts[input.id] = d
-        ? { date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`, time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}` }
+        ? {
+            date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+            time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+          }
         : { date: "", time: "" };
     }
   }
-  initialValues.value = JSON.stringify(flarePluginFormValues(props.inputs, draft));
+  initialValues.value = JSON.stringify(
+    flarePluginFormValues(
+      props.inputs,
+      props.baselineValues
+        ? flarePluginDraft(props.inputs, props.baselineValues)
+        : draft,
+    ),
+  );
   edited.clear();
   editedSinceErrors.clear();
   attempted.value = false;
 }
-watch(() => JSON.stringify([props.inputs, props.values ?? null]), reset, { immediate: true });
-watch(() => JSON.stringify(props.errors), () => editedSinceErrors.clear());
+watch(
+  () =>
+    JSON.stringify([
+      props.inputs,
+      props.values ?? null,
+      props.baselineValues ?? null,
+    ]),
+  reset,
+  { immediate: true },
+);
+watch(() => props.fileStates, () => {
+  for (const input of visibleInputs.value) {
+    if (input.kind !== "file") continue;
+    const state = props.fileStates?.[input.id];
+    if (state?.scope !== fileScope.value || state.generation !== (fileGenerations[input.id] ?? 0)) continue;
+    const value = state.phase === "uploaded" && flarePluginFileValue(state.value) ? { fileId: state.value.fileId } : undefined;
+    draft[input.id] = value ?? null;
+    // A normal host refresh may release its upload owner and local preview.
+    // Keep only this ticket's completed reference, never its preview capability.
+    localFiles[input.id] = { scope: state.scope, generation: state.generation,
+      phase: state.phase === "uploaded" && !value ? "failed" : state.phase,
+      ...(value ? { value } : {}), fileName: state.fileName, error: state.error, preview: false };
+  }
+}, { deep: true });
+onBeforeUnmount(() => { for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate"); });
+watch(
+  () => JSON.stringify(props.errors),
+  () => editedSinceErrors.clear(),
+);
+
+// A reference input is a directory the host fills: closed until the host answers and its parents hold values, so
+// a viewer without the permission never gets a free-text or stale control.
+const CLOSED: SchemaSelection = { options: [], disabled: true };
+const referenceParents = (input: FlarePluginInput) =>
+  input.reference
+    ? flarePluginReferenceParents(input.reference, (id) => draft[id])
+    : null;
+function selectionOf(input: FlarePluginInput): SchemaSelection | undefined {
+  const selection = props.selections?.[input.id];
+  // Options that declare their choices pick from them: nothing to load, nothing to type.
+  if (input.kind === "options" && input.choices?.length)
+    return selection ?? { options: [...input.choices], remote: false };
+  if (!input.reference) return selection;
+  return referenceParents(input) ? (selection ?? CLOSED) : CLOSED;
+}
+const referenceRequests = computed<FlarePluginReferenceRequest[]>(() =>
+  props.inputs.flatMap((input) => {
+    const parents = referenceParents(input);
+    if (!input.reference || !parents) return [];
+    const selected =
+      typeof draft[input.id] === "string" && draft[input.id]
+        ? (draft[input.id] as string)
+        : undefined;
+    return [{ id: input.id, reference: input.reference, parents, selected }];
+  }),
+);
+const askedFor = new Map<string, string>();
+// Keep the host's selected value current for search/hydration; it decides when options need a read.
+watch(
+  referenceRequests,
+  (requests) => {
+    for (const request of requests) {
+      const key = JSON.stringify([
+        request.reference,
+        request.parents,
+        request.selected,
+      ]);
+      if (askedFor.get(request.id) === key) continue;
+      askedFor.set(request.id, key);
+      emit("reference-load", request);
+    }
+  },
+  { immediate: true },
+);
 
 function set(id: string, value: unknown): void {
+  const changed = !Object.is(draft[id], value);
   draft[id] = value;
   edited.add(id);
   editedSinceErrors.add(id);
+  const dependents = changed ? props.inputs.filter((input) => input.showWhen?.field === id) : [];
+  for (const dependent of dependents) {
+    draft[dependent.id] = null;
+    delete numberText[dependent.id];
+    dateParts[dependent.id] = { date: "", time: "" };
+    edited.delete(dependent.id);
+    editedSinceErrors.add(dependent.id);
+  }
+  for (const dependent of dependents) if (dependent.kind === "file") fileAction(dependent, "invalidate");
 }
 
 /** The text under an input: the host's first error for it, else the client's issue once it may show. */
@@ -125,38 +300,87 @@ function errorText(input: FlarePluginInput): string | undefined {
     const host = props.errors.find((e) => e.input === input.id);
     if (host) return flarePluginIssueText(host.issue, input, strings.value);
   }
-  const directory = props.selections?.[input.id];
-  if (directory?.error || directory?.invalid) return directory.error || directory.invalid;
+  const directory = selectionOf(input);
+  if (directory?.error || directory?.invalid)
+    return directory.error || directory.invalid;
   if (!attempted.value && !edited.has(input.id)) return undefined;
-  if (directory && !directory.loading && !validSelection(input)) return props.selectionLabels?.unavailable || strings.value.invalid;
+  if (directory && !directory.loading && !validSelection(input))
+    return props.selectionLabels?.unavailable || strings.value.invalid;
   const issue = flarePluginCheckInput(input, draft[input.id]);
   return issue ? flarePluginIssueText(issue, input, strings.value) : undefined;
 }
 
 function submit(): void {
-  if (props.busy || unchanged.value) return;
+  if (props.busy || unchanged.value || filesPending.value) return;
   attempted.value = true;
-  if (props.inputs.some((input) => flarePluginCheckInput(input, draft[input.id]) || !validSelection(input))) return;
+  if (
+    visibleInputs.value.some(
+      (input) =>
+        flarePluginCheckInput(input, draft[input.id]) || !validSelection(input),
+    )
+  )
+    return;
   const values = flarePluginFormValues(props.inputs, draft);
-  for (const input of props.inputs) if (input.kind === "password") draft[input.id] = "";
+  for (const input of props.inputs)
+    if (input.kind === "password") draft[input.id] = "";
   emit("submit", values);
 }
 function cancel(): void {
-  if (!props.busy) { for (const input of props.inputs) if (input.kind === "password") draft[input.id] = ""; emit("cancel"); }
+  if (!props.busy) {
+    for (const input of props.inputs)
+      if (input.kind === "password") draft[input.id] = "";
+    emit("cancel");
+  }
+}
+/** A query reset also discards unapplied edits when the controlled values were already empty. */
+function resetFilters(): void {
+  if (props.busy) return;
+  reset();
+  cancel();
 }
 
 function validSelection(input: FlarePluginInput): boolean {
-  const selection = props.selections?.[input.id];
+  const selection = selectionOf(input);
   if (!selection) return true;
-  if (selection.loading || selection.error || selection.invalid || selection.disabled) return false;
-  const values = Array.isArray(draft[input.id]) ? draft[input.id] as unknown[] : draft[input.id] ? [draft[input.id]] : [];
-  return values.every(value => selection.options.some(option => option.value === value && !option.disabled));
+  const values = Array.isArray(draft[input.id])
+    ? (draft[input.id] as unknown[])
+    : draft[input.id]
+      ? [draft[input.id]]
+      : [];
+  // An optional reference the viewer cannot read stays empty and does not hold the form back.
+  if (input.reference && selection.disabled && !values.length)
+    return !input.required;
+  if (
+    selection.loading ||
+    selection.error ||
+    selection.invalid ||
+    selection.disabled
+  )
+    return false;
+  return values.every((value) =>
+    selection.options.some(
+      (option) => option.value === value && !option.disabled,
+    ),
+  );
 }
 function directoryOptions(input: FlarePluginInput) {
-  const selection = props.selections?.[input.id];
+  const selection = selectionOf(input);
   const options = [...(selection?.options ?? [])];
-  const values = Array.isArray(draft[input.id]) ? draft[input.id] as unknown[] : draft[input.id] ? [draft[input.id]] : [];
-  for (const value of values) if (typeof value === "string" && !options.some(option => option.value === value)) options.push({value,label:props.selectionLabels?.unavailable || input.label,disabled:true});
+  const values = Array.isArray(draft[input.id])
+    ? (draft[input.id] as unknown[])
+    : draft[input.id]
+      ? [draft[input.id]]
+      : [];
+  for (const value of values)
+    if (
+      typeof value === "string" &&
+      !options.some((option) => option.value === value)
+    )
+      options.push({
+        value,
+        label: props.selectionLabels?.unavailable || input.label,
+        disabled: true,
+      });
   return options;
 }
 
@@ -173,261 +397,258 @@ function setDatePart(id: string, part: "date" | "time", value: string): void {
   dateParts[id] = parts;
   const [y, m, d] = parts.date.split("-").map(Number);
   const [hh, mm] = parts.time.split(":").map(Number);
-  const ms = parts.date && parts.time ? new Date(y, m - 1, d, hh, mm).getTime() : Number.NaN;
+  const ms =
+    parts.date && parts.time
+      ? new Date(y, m - 1, d, hh, mm).getTime()
+      : Number.NaN;
   set(id, Number.isFinite(ms) ? ms : null);
 }
 
 // ── options ──
-const rowsOf = (id: string) => (Array.isArray(draft[id]) ? (draft[id] as string[]) : []);
+const rowsOf = (id: string) =>
+  Array.isArray(draft[id]) ? (draft[id] as string[]) : [];
 function setRow(id: string, index: number, value: string): void {
   const rows = [...rowsOf(id)];
   rows[index] = value;
   set(id, rows);
 }
 function addRow(input: FlarePluginInput): void {
-  if (rowsOf(input.id).length < flarePluginMaxItems(input)) set(input.id, [...rowsOf(input.id), ""]);
+  if (rowsOf(input.id).length < flarePluginMaxItems(input))
+    set(input.id, [...rowsOf(input.id), ""]);
 }
 function removeRow(input: FlarePluginInput, index: number): void {
-  if (rowsOf(input.id).length > flarePluginMinRows(input)) set(input.id, rowsOf(input.id).filter((_, i) => i !== index));
+  if (rowsOf(input.id).length > flarePluginMinRows(input))
+    set(
+      input.id,
+      rowsOf(input.id).filter((_, i) => i !== index),
+    );
 }
 
 // ── members: the kit ContactPicker over the host's candidates ──
 const picking = ref<FlarePluginInput | null>(null);
-const memberEntries = computed<FlareContactPickerEntry[]>(() => props.members.map((m) => ({ userId: m.userId, name: m.name, avatarUrl: m.avatarUrl })));
+let pickingRevision = props.membersRevision ?? 0;
+const chosenMembers = ref<Record<string, FlarePluginMember>>({});
+watch(() => props.membersRevision ?? 0, () => {
+  picking.value = null;
+  chosenMembers.value = {};
+  for (const input of props.inputs) if (input.kind === "members") set(input.id, []);
+});
+watch(picking, input => { if (input) { pickingRevision = props.membersRevision ?? 0; props.onMemberSearch?.(""); } });
+const memberEntries = computed<FlareContactPickerEntry[]>(() =>
+  props.members.map((m) => ({
+    userId: m.userId,
+    name: m.name,
+    avatarUrl: m.avatarUrl,
+  })),
+);
 const chosenNames = (id: string) => {
   const ids = Array.isArray(draft[id]) ? (draft[id] as string[]) : [];
-  return ids.map((userId) => props.members.find((m) => m.userId === userId)?.name ?? userId).join("、");
+  return ids
+    .map(
+      (userId) =>
+        props.members.find((m) => m.userId === userId)?.name ?? chosenMembers.value[userId]?.name ?? userId,
+    )
+    .join("、");
 };
 function pickMembers(entries: FlareContactPickerEntry[]): void {
+  if (pickingRevision !== (props.membersRevision ?? 0) || props.membersLoading || props.membersError) return;
   const input = picking.value;
   picking.value = null;
-  if (input) set(input.id, entries.map((entry) => entry.userId).slice(0, flarePluginMaxItems(input)));
+  if (input) {
+    const selected = entries.flatMap(entry => props.members.find(member => member.userId === entry.userId) ?? []).slice(0, flarePluginMaxItems(input));
+    for (const member of selected) chosenMembers.value[member.userId] = member;
+    set(
+      input.id,
+      selected.map(member => member.userId),
+    );
+  }
 }
 
-const choicesOf = (input: FlarePluginInput) => (input.choices ?? []).map((c) => ({ value: c.value, label: c.label }));
-const removeIcon = flareIcons.close;
-const addIcon = flareIcons.add;
+const choicesOf = (input: FlarePluginInput) =>
+  (input.choices ?? []).map((c) => ({ value: c.value, label: c.label }));
+const fieldState: PluginFormInputState = {
+  get presentation() {
+    return props.presentation;
+  },
+  get selectPresentation() {
+    return props.selectPresentation;
+  },
+  get busy() {
+    return props.busy;
+  },
+  get fileEnabled() { return !!instance?.vnode.props?.onFileAction; },
+  fileState,
+  fileAction,
+  get selectionLabels() {
+    return props.selectionLabels;
+  },
+  draft,
+  numberText,
+  dateParts,
+  get picking() {
+    return picking.value;
+  },
+  set picking(value) {
+    picking.value = value;
+  },
+  selectionOf,
+  directoryOptions,
+  errorText,
+  choicesOf,
+  rowsOf,
+  chosenNames,
+  set,
+  setNumber,
+  setDatePart,
+  setRow,
+  addRow,
+  removeRow,
+  selectionSearch: (id, query) => emit("selection-search", id, query),
+  selectionRetry: (id) => emit("selection-retry", id),
+  selectionMore: (id) => emit("selection-more", id),
+};
+const bareFields = computed(() =>
+  visibleInputs.value.map((input) => {
+    const override = slots[`field-${input.id}`] ?? slots.field;
+    return h(
+      PluginFormInput,
+      { key: input.id, input, state: fieldState, native: true },
+      override ? { default: override } : undefined,
+    );
+  }),
+);
+const invalid = computed(() =>
+  filesPending.value || visibleInputs.value.some((input) => !!errorText(input)),
+);
+defineOptions({ inheritAttrs: false });
 defineExpose({ submit });
 </script>
 
 <template>
-  <form class="flare-plugin-form" :class="{ 'flare-plugin-form--filters': presentation === 'filters' }" :aria-busy="busy" novalidate @submit.prevent="submit">
+  <slot
+    v-if="$slots.layout"
+    name="layout"
+    :fields="bareFields"
+    :submit="submit"
+    :reset="resetFilters"
+    :busy="busy"
+    :unchanged="unchanged"
+    :invalid="invalid"
+  />
+  <form
+    v-else
+    v-bind="$attrs"
+    class="flare-plugin-form"
+    :class="{
+      'flare-plugin-form--filters': presentation === 'filters',
+      'is-embedded': embedded,
+    }"
+    :aria-busy="busy"
+    novalidate
+    @submit.prevent="submit"
+  >
     <fieldset class="flare-plugin-form__fields" :disabled="busy">
-      <template v-for="input in inputs" :key="input.id">
-        <FlareFormField v-if="selections?.[input.id]" :label="input.label" :label-placement="presentation === 'filters' ? 'left' : undefined" :required="input.required" :error="errorText(input)" :data-input-id="input.id">
-          <FlareAdminEntitySelect
-            :label="input.label" :multiple="input.kind === 'options' || input.kind === 'members'"
-            :value="typeof draft[input.id] === 'string' ? draft[input.id] as string : ''"
-            :values="Array.isArray(draft[input.id]) ? draft[input.id] as string[] : []"
-            :options="directoryOptions(input)" :remote="selections[input.id].remote ?? true" :clearable="!input.required"
-            :max="flarePluginMaxItems(input)" :loading="selections[input.id].loading"
-            :disabled="busy || selections[input.id].disabled" :error="selections[input.id].error || selections[input.id].invalid"
-            :has-more="selections[input.id].hasMore"
-            :placeholder="selectionLabels?.placeholder || input.label" :empty-text="selectionLabels?.empty || ''" :more-text="selectionLabels?.more || ''" :retry-text="selectionLabels?.retry || ''"
-            @update:value="set(input.id, $event)" @update:values="set(input.id, $event)"
-            @search="emit('selection-search',input.id,$event)" @retry="emit('selection-retry',input.id)" @more="emit('selection-more',input.id)"
+      <PluginFormInput
+        v-for="input in visibleInputs"
+        :key="input.id"
+        :input="input"
+        :state="fieldState"
+      >
+        <template
+          v-if="slots[`field-${input.id}`] || slots.field"
+          #default="field"
+        >
+          <slot
+            :name="slots[`field-${input.id}`] ? `field-${input.id}` : 'field'"
+            v-bind="field"
           />
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="(input.kind === 'text' || input.kind === 'password')"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :hint="presentation === 'filters' ? undefined : flarePluginCounter(input, draft[input.id]) ?? undefined"
-          :data-input-id="input.id"
-        >
-          <FlareInput
-            :size="presentation === 'filters' ? 'sm' : undefined"
-            :model-value="String(draft[input.id] ?? '')"
-            :placeholder="input.placeholder"
-            :secure="input.kind === 'password'"
-            :autocomplete="input.kind === 'password' ? 'off' : undefined"
-            :max-length="input.kind === 'password' ? input.maxLength : undefined"
-            :disabled="busy"
-            @update:model-value="(v: string) => set(input.id, v)"
-          />
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'textarea'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :hint="flarePluginCounter(input, draft[input.id]) ?? undefined"
-          :data-input-id="input.id"
-        >
-          <FlareTextarea
-            :model-value="String(draft[input.id] ?? '')"
-            :placeholder="input.placeholder"
-            :disabled="busy"
-            :max-rows="6"
-            @update:model-value="(v: string) => set(input.id, v)"
-          />
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'number'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :data-input-id="input.id"
-        >
-          <FlareInput
-            :model-value="numberText[input.id] ?? ''"
-            :placeholder="input.placeholder"
-            inputmode="decimal"
-            :disabled="busy"
-            @update:model-value="(v: string) => setNumber(input.id, v)"
-          />
-        </FlareFormField>
-        <FlareFormField v-else-if="input.kind === 'toggle'" :error="errorText(input)" :data-input-id="input.id">
-          <label class="flare-plugin-form__toggle">
-            <span>{{ input.label }}</span>
-            <FlareSwitch :model-value="Boolean(draft[input.id])" :disabled="busy" @update:model-value="(v: boolean) => set(input.id, v)" />
-          </label>
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'select'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :data-input-id="input.id"
-        >
-          <FlareSelect
-            v-if="presentation === 'filters'"
-            :model-value="String(draft[input.id] ?? '')"
-            :options="input.required ? choicesOf(input) : [{ value: '', label: t('pluginView.all') }, ...choicesOf(input)]"
-            :placeholder="input.placeholder || input.label"
-            :title="input.label"
-            :disabled="busy"
-            size="sm"
-            @update:model-value="(v: string) => set(input.id, v)"
-          />
-          <FlareRadioGroup
-            v-else
-            :model-value="String(draft[input.id] ?? '')"
-            :options="choicesOf(input)"
-            vertical
-            @update:model-value="(v: string) => set(input.id, v)"
-          />
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'datetime'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :data-input-id="input.id"
-        >
-          <div class="flare-plugin-form__datetime">
-            <FlareDatePicker
-              :model-value="dateParts[input.id]?.date ?? ''"
-              :placeholder="t('pluginForm.date')"
-              :title="input.label"
-              :disabled="busy"
-              @update:model-value="(v: string) => setDatePart(input.id, 'date', v)"
-            />
-            <FlareTimePicker
-              :model-value="dateParts[input.id]?.time ?? ''"
-              :placeholder="t('pluginForm.time')"
-              :title="input.label"
-              :disabled="busy"
-              @update:model-value="(v: string) => setDatePart(input.id, 'time', v)"
-            />
-          </div>
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'options'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :data-input-id="input.id"
-        >
-          <div class="flare-plugin-form__options">
-            <div v-for="(row, index) in rowsOf(input.id)" :key="index" class="flare-plugin-form__option" data-option-row="true">
-              <FlareInput
-                :model-value="row"
-                :placeholder="input.placeholder"
-                :aria-label="`${input.label} ${index + 1}`"
-                :disabled="busy"
-                @update:model-value="(v: string) => setRow(input.id, index, v)"
-              />
-              <FlareIconButton
-                :icon="removeIcon"
-                :ariaLabel="t('pluginForm.removeOption')"
-                :disabled="busy || rowsOf(input.id).length <= flarePluginMinRows(input)"
-                data-option-remove="true"
-                @click="removeRow(input, index)"
-              />
-            </div>
-            <FlareButton
-              variant="text"
-              :icon="addIcon"
-              :label="t('pluginForm.addOption')"
-              :disabled="busy || rowsOf(input.id).length >= flarePluginMaxItems(input)"
-              data-option-add="true"
-              @click="addRow(input)"
-            />
-          </div>
-        </FlareFormField>
-        <FlareFormField
-          v-else-if="input.kind === 'members'"
-          :label="input.label"
-          :label-placement="presentation === 'filters' ? 'left' : undefined"
-          :required="input.required"
-          :error="errorText(input)"
-          :data-input-id="input.id"
-        >
-          <div class="flare-plugin-form__members">
-            <span v-if="chosenNames(input.id)" class="flare-plugin-form__chosen" data-members-chosen="true">{{ chosenNames(input.id) }}</span>
-            <FlareButton
-              variant="secondary"
-              size="sm"
-              :label="input.placeholder || t('pluginForm.chooseMembers')"
-              :disabled="busy"
-              data-members-choose="true"
-              @click="picking = input"
-            />
-          </div>
-        </FlareFormField>
-      </template>
+        </template>
+      </PluginFormInput>
     </fieldset>
-    <p v-if="error" class="flare-plugin-form__error" role="alert">{{ error }}</p>
+    <p v-if="error" class="flare-plugin-form__error" role="alert">
+      {{ error }}
+    </p>
     <footer class="flare-plugin-form__actions">
-      <FlareButton variant="secondary" :size="presentation === 'filters' ? 'sm' : undefined" :appearance="presentation === 'filters' ? 'text' : 'default'" :label="cancelLabel ?? t('pluginForm.cancel')" :disabled="busy" data-form-cancel="true" @click="cancel" />
-      <FlareButton :size="presentation === 'filters' ? 'sm' : undefined" :label="submitLabel ?? t('pluginView.submit')" :loading="busy" :disabled="busy || unchanged" data-form-submit="true" @click="submit" />
+      <FlareButton
+        v-if="!embedded"
+        variant="secondary"
+        :size="presentation === 'filters' ? 'sm' : undefined"
+        :appearance="presentation === 'filters' ? 'text' : 'default'"
+        :label="cancelLabel ?? t('pluginForm.cancel')"
+        :disabled="busy"
+        data-form-cancel="true"
+        @click="cancel"
+      />
+      <FlareButton
+        :size="presentation === 'filters' ? 'sm' : undefined"
+        :label="submitLabel ?? t('pluginView.submit')"
+        :loading="busy"
+        :disabled="busy || unchanged || filesPending"
+        data-form-submit="true"
+        @click="submit"
+      />
       <slot name="actions" />
     </footer>
-    <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
-    <FlareBottomSheet :open="Boolean(picking)" :title="picking?.label" fill max-height="min(80vh, 600px)" @close="picking = null">
-      <FlareContactPicker
-        v-if="picking"
-        :groups="[{ id: 'members', label: picking.label, entries: memberEntries }]"
-        :multiple="flarePluginMaxItems(picking) !== 1"
-        :title="picking.label"
-        @select="pickMembers"
-        @cancel="picking = null"
-      />
-    </FlareBottomSheet>
   </form>
+  <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
+  <FlareBottomSheet
+    :open="Boolean(picking)"
+    :title="picking?.label"
+    fill
+    max-height="min(80vh, 600px)"
+    @close="picking = null"
+  >
+    <FlareContactPicker
+      v-if="picking"
+      :groups="[
+        { id: 'members', label: picking.label, entries: memberEntries },
+      ]"
+      :multiple="flarePluginMaxItems(picking) !== 1"
+      :loading="membersLoading"
+      :error="membersError"
+      :on-search="onMemberSearch"
+      :on-retry="onMembersRetry"
+      :title="picking.label"
+      @select="pickMembers"
+      @cancel="picking = null"
+    />
+  </FlareBottomSheet>
 </template>
 
 <style scoped>
-.flare-plugin-form { display: flex; flex-direction: column; gap: var(--flare-size-spacing-lg); width: 100%; box-sizing: border-box; padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl); }
-.flare-plugin-form__fields { display: flex; flex-direction: column; gap: var(--flare-size-spacing-md); min-width: 0; margin: 0; padding: 0; border: 0; }
-.flare-plugin-form__toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--flare-size-spacing-md); font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-primary); }
-.flare-plugin-form__datetime { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--flare-size-spacing-sm); }
-.flare-plugin-form__options { display: grid; gap: var(--flare-size-spacing-xs); justify-items: start; }
-.flare-plugin-form__option { display: flex; align-items: center; gap: var(--flare-size-spacing-xs); width: 100%; }
-.flare-plugin-form__option > :first-child { flex: 1; min-width: 0; }
-.flare-plugin-form__members { display: flex; flex-wrap: wrap; align-items: center; gap: var(--flare-size-spacing-sm); }
-.flare-plugin-form__chosen { min-width: 0; overflow-wrap: anywhere; font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-primary); }
-.flare-plugin-form__error { margin: 0; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-error-text); }
-.flare-plugin-form__actions { display: flex; gap: var(--flare-size-spacing-md); }
-.flare-plugin-form__actions > * { flex: 1; }
+.flare-plugin-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--flare-size-spacing-lg);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg)
+    var(--flare-size-spacing-xl);
+}
+.flare-plugin-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--flare-size-spacing-md);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.flare-plugin-form.is-embedded {
+  padding: 0;
+}
+.flare-plugin-form__error {
+  margin: 0;
+  font-size: var(--flare-size-font-size-sm);
+  color: var(--flare-color-error-text);
+}
+.flare-plugin-form__actions {
+  display: flex;
+  gap: var(--flare-size-spacing-md);
+}
+.flare-plugin-form__actions > * {
+  flex: 1;
+}
 .flare-plugin-form--filters {
   flex-direction: row;
   flex-wrap: wrap;
@@ -445,6 +666,10 @@ defineExpose({ submit });
   flex-wrap: wrap;
   gap: var(--flare-size-spacing-sm);
 }
-.flare-plugin-form--filters .flare-plugin-form__actions > * { flex: none; }
-.flare-plugin-form--filters .flare-plugin-form__error { flex-basis: 100%; }
+.flare-plugin-form--filters .flare-plugin-form__actions > * {
+  flex: none;
+}
+.flare-plugin-form--filters .flare-plugin-form__error {
+  flex-basis: 100%;
+}
 </style>

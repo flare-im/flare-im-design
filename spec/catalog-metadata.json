@@ -280,7 +280,10 @@
       "DataTable",
       "AuthShell",
       "FilterBar",
-      "DescriptionList"
+      "DescriptionList",
+      "Screen",
+      "PluginPage",
+      "AccountView"
     ],
     "workspace": [
       "AppLayout",

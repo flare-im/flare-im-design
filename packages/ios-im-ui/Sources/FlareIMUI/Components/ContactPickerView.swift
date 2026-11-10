@@ -60,11 +60,16 @@ public struct ContactPickerView: View {
     private let title: String?
     /// The host is sending the card for the chosen person.
     private let sending: Bool
+    private let loading: Bool
+    private let error: String?
+    private let onSearch: ((String) -> Void)?
+    private let onRetry: (() -> Void)?
     private let onSelect: (([FlareContactPickerEntry]) -> Void)?
     private let onCancel: (() -> Void)?
     @State private var activeGroup: String
     @State private var query = ""
     @State private var picked: [String] = []
+    @State private var selectedEntries: [String: FlareContactPickerEntry] = [:]
     /// The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
     @State private var pending: String?
     @Environment(\.colorScheme) private var scheme
@@ -73,9 +78,13 @@ public struct ContactPickerView: View {
 
     public init(groups: [FlareContactPickerGroup], searchable: Bool = true, multiple: Bool = false,
                 title: String? = nil, sending: Bool = false,
+                loading: Bool = false, error: String? = nil,
+                onSearch: ((String) -> Void)? = nil, onRetry: (() -> Void)? = nil,
                 onSelect: (([FlareContactPickerEntry]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.groups = groups; self.searchable = searchable; self.multiple = multiple; self.title = title
-        self.sending = sending; self.onSelect = onSelect; self.onCancel = onCancel
+        self.sending = sending; self.loading = loading; self.error = error
+        self.onSearch = onSearch; self.onRetry = onRetry
+        self.onSelect = onSelect; self.onCancel = onCancel
         self._activeGroup = State(initialValue: groups.first?.id ?? "")
     }
 
@@ -120,7 +129,7 @@ public struct ContactPickerView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let entries = Self.filter(openGroup?.entries ?? [], query: searchable ? query : "")
+        let entries = onSearch == nil ? Self.filter(openGroup?.entries ?? [], query: searchable ? query : "") : (openGroup?.entries ?? [])
         VStack(spacing: 0) {
             ZStack {
                 Text(title ?? strings.contactPickerTitle)
@@ -146,7 +155,12 @@ public struct ContactPickerView: View {
 
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    if entries.isEmpty {
+                    if loading {
+                        EmptyStateView(title: strings.loading, loading: true)
+                    } else if let error, !error.isEmpty {
+                        EmptyStateView(title: error, actionText: onRetry == nil ? nil : strings.retry,
+                                       tone: .error, onAction: onRetry)
+                    } else if entries.isEmpty {
                         EmptyStateView(title: strings.contactPickerEmpty, icon: "people")
                     } else {
                         ForEach(entries) { entry in row(entry) }
@@ -161,9 +175,10 @@ public struct ContactPickerView: View {
                     Text(strings.selectedCount(picked.count))
                         .font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
                     Spacer()
-                    ButtonView(label: strings.confirm, loading: sending, disabled: picked.isEmpty) {
-                        guard !sending else { return }
-                        onSelect?(Self.pickedEntries(picked, in: groups))
+                    ButtonView(label: strings.confirm, loading: sending, disabled: picked.isEmpty || loading || error?.isEmpty == false) {
+                        guard !sending, !loading, error?.isEmpty != false else { return }
+                        let current = Dictionary(groups.flatMap(\.entries).map { ($0.userId, $0) }, uniquingKeysWith: { first, _ in first })
+                        onSelect?(picked.compactMap { current[$0] ?? (onSearch == nil ? nil : selectedEntries[$0]) })
                     }
                 }
                 .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingMd)
@@ -173,6 +188,7 @@ public struct ContactPickerView: View {
         .background(colors.bgPrimary)
         .flareSheetOwnHeader()
         .onChange(of: sending) { if !$0 { pending = nil } }
+        .onChange(of: query) { onSearch?($0) }
     }
 
     private func row(_ entry: FlareContactPickerEntry) -> some View {
@@ -185,16 +201,18 @@ public struct ContactPickerView: View {
             selectable: multiple, selected: picked.contains(entry.userId),
             trailing: spins ? AnyView(ProgressView().controlSize(.small).tint(colors.primaryText)) : nil,
             onSelect: multiple ? nil : {
-                guard !sending else { return }
+                guard !sending, !loading, error?.isEmpty != false else { return }
                 pending = entry.userId
                 onSelect?([entry])
             },
             onToggleSelect: multiple ? {
-                guard !sending else { return }
+                guard !sending, !loading, error?.isEmpty != false else { return }
                 picked = Self.toggled(picked, entry.userId)
+                if picked.contains(entry.userId) { selectedEntries[entry.userId] = entry }
+                else { selectedEntries.removeValue(forKey: entry.userId) }
             } : nil
         )
-        .disabled(sending)
+        .disabled(sending || loading || error?.isEmpty == false)
         .accessibilityAddTraits(spins ? .isSelected : [])
         .padding(.horizontal, FlareSizes.spacingLg).padding(.vertical, FlareSizes.spacingSm)
         .background(spins ? colors.bgSelected : Color.clear)

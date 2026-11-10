@@ -124,6 +124,7 @@ export 'src/components/flare_message_bubble.dart';
 export 'src/components/flare_media_image.dart';
 export 'src/components/flare_upload_progress.dart';
 export 'src/components/flare_image_upload_slot.dart';
+export 'src/components/flare_file_upload.dart';
 export 'src/components/flare_private_memory_image.dart';
 export 'src/components/flare_message_content_view.dart';
 export 'src/components/flare_forward_message.dart';
@@ -226,6 +227,7 @@ export 'src/components/flare_conversation_workspace.dart';
 export 'src/components/flare_inline_voice.dart';
 
 export 'src/components/flare_plugin_view.dart';
+export 'src/components/flare_tag.dart';
 export 'src/components/flare_plugin_form.dart';
 export 'src/components/flare_plugin_detail_sheet.dart';
 export 'src/components/flare_plugin_page.dart';

@@ -219,7 +219,7 @@ data class PluginRowsBlock(
 /** Form input kinds (UiInput). */
 enum class PluginInputKind(val wire: String) {
     Text("text"), Password("password"), Textarea("textarea"), Number("number"), Toggle("toggle"), Select("select"), Datetime("datetime"),
-    Options("options"), Members("members");
+    Options("options"), Members("members"), File("file");
 
     companion object {
         fun fromWire(value: String?): PluginInputKind? = entries.firstOrNull { it.wire == value }
@@ -245,6 +245,8 @@ data class PluginInput(
     val max: Double? = null,
     val default: Any? = null,
     val choices: List<PluginInputChoice>? = null,
+    val file: PluginFileConfiguration? = null,
+    val showWhen: PluginInputShowWhen? = null,
 )
 
 /** What is wrong with a submitted value (UiFormIssue). */
@@ -521,6 +523,23 @@ private fun Map<*, *>.badge(): PluginBadge? {
 private fun Map<*, *>.input(): PluginInput? {
     val id = string("id") ?: return null
     val kind = PluginInputKind.fromWire(string("kind")) ?: return null
+    val file = (this["file"] as? Map<*, *>)?.let { policy ->
+        val upload = policy["upload"] as? Map<*, *> ?: return null
+        val accept = (policy["accept"] as? List<*>)?.filterIsInstance<String>() ?: return null
+        val maxBytes = (policy["maxBytes"] as? Number)?.toDouble() ?: return null
+        if (accept.isEmpty() || maxBytes % 1.0 != 0.0 || maxBytes !in 1.0..5_242_880.0) return null
+        PluginFileConfiguration(accept, maxBytes.toInt(), PluginFileUpload(
+            upload.string("prepareOperation")?.takeIf { it.isNotBlank() } ?: return null,
+            upload.string("completeOperation")?.takeIf { it.isNotBlank() } ?: return null,
+            upload.string("purpose")?.takeIf { it.isNotBlank() } ?: return null,
+        ))
+    }
+    if (kind == PluginInputKind.File && file == null) return null
+    val showWhen = (this["showWhen"] as? Map<*, *>)?.let { condition ->
+        val field = condition.string("field")?.takeIf { it.isNotBlank() } ?: return null
+        val anyOf = (condition["anyOf"] as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() } ?: return null
+        PluginInputShowWhen(field, anyOf)
+    }
     return PluginInput(
         id = id, kind = kind, label = string("label") ?: "", required = bool("required") ?: false,
         placeholder = string("placeholder"), maxLength = int("maxLength"), min = double("min"), max = double("max"),
@@ -529,6 +548,7 @@ private fun Map<*, *>.input(): PluginInput? {
             val c = raw as? Map<*, *> ?: return@mapNotNull null
             PluginInputChoice(c.string("value") ?: return@mapNotNull null, c.string("label") ?: "")
         },
+        file = file, showWhen = showWhen,
     )
 }
 
@@ -678,6 +698,15 @@ internal object PluginViewFormat {
         val rest = texts.drop(1).filter { it.isNotBlank() }
         return PluginRowLines(texts.firstOrNull().orEmpty(), rest.takeIf { it.isNotEmpty() }?.joinToString(" · "))
     }
+
+    /** Labelled receipt cells keep column meanings and the existing time formatter; values remain opaque. */
+    fun rowFields(block: PluginRowsBlock, row: PluginRow, nowMs: Long, strings: FlareStrings, utcOffsetMinutes: Int?): List<PluginViewField> =
+        block.columns.mapIndexedNotNull { index, column ->
+            if (index == 0) return@mapIndexedNotNull null
+            val cell = row.cells.getOrNull(index) ?: return@mapIndexedNotNull null
+            val value = if (column.format == PluginRowsFormat.Time && cell.timeMs != null) dateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes) else cell.text
+            value.takeIf { it.isNotBlank() }?.let { PluginViewField(column.label, it) }
+        }
 
     /** A row's action keys: the block actions it lists, each with the input the view bound for it. */
     fun rowActions(block: PluginRowsBlock, row: PluginRow): List<Pair<PluginViewAction, PluginRowAction>> =
@@ -1001,6 +1030,24 @@ internal data class PluginHostSignal(
 /** What a host change does to an open form the user submitted: nothing yet, close it (a clean result) or keep it. */
 internal enum class PluginFormSettle { Wait, Close, Keep }
 
+internal fun pluginInlineFormAction(view: PluginViewModel, id: String?, hasAction: Boolean): PluginViewAction? {
+    if (!view.available || PluginViewFormat.readOnly(view) || !hasAction || id == null) return null
+    val action = view.actions.firstOrNull { it.id == id } ?: return null
+    val form = action.form?.takeIf { it.isNotEmpty() } ?: return null
+    if (!action.confirm.isNullOrEmpty()) return null
+    val inputs = view.formInputs(action)
+    return action.takeIf { inputs.size == form.size && inputs.none { it.kind == PluginInputKind.Password } }
+}
+
+internal data class PluginInlineFormState(val pending: Boolean = false, val submitted: Boolean = false, val revision: Int = 0) {
+    fun begin(): PluginInlineFormState? = if (pending) null else copy(pending = true, submitted = true)
+    fun settle(old: PluginHostSignal, new: PluginHostSignal, id: String): PluginInlineFormState = if (!pending) this else when (pluginFormSettle(old, new, id)) {
+        PluginFormSettle.Wait -> this
+        PluginFormSettle.Keep -> copy(pending = false)
+        PluginFormSettle.Close -> copy(pending = false, submitted = false, revision = revision + 1)
+    }
+}
+
 /**
  * The form of [actionId] settles when `settleToken` moves, or (the fallback) when the card or that action stops being
  * busy: it closes on a clean result and stays open with the error or the form errors.
@@ -1061,11 +1108,14 @@ internal object PluginFormRules {
             PluginInputKind.Password -> ""
             PluginInputKind.Text, PluginInputKind.Textarea, PluginInputKind.Select -> raw as? String ?: ""
             PluginInputKind.Number, PluginInputKind.Datetime -> (raw as? Number)?.toDouble()?.takeIf { it.isFinite() }
+            PluginInputKind.File -> pluginFileReference(raw)
         }
     }
 
     fun draft(inputs: List<PluginInput>, values: Map<String, Any?>?): Map<String, Any?> =
-        LinkedHashMap<String, Any?>().apply { inputs.forEach { putIfAbsent(it.id, draftValue(it, values)) } }
+        LinkedHashMap<String, Any?>().apply {
+            inputs.forEach { input -> if (input.visibleIn(this)) putIfAbsent(input.id, draftValue(input, values)) }
+        }
 
     private fun items(value: Any?): List<String> = (value as? List<*>).orEmpty().map { trimmed(text(it)) }.filter { it.isNotEmpty() }
 
@@ -1093,16 +1143,22 @@ internal object PluginFormRules {
             }
             PluginInputKind.Members -> if (input.required && (draft as? List<*>).isNullOrEmpty()) PluginFormIssue.Required else null
             PluginInputKind.Toggle -> null
+            PluginInputKind.File -> when {
+                draft == null -> if (input.required) PluginFormIssue.Required else null
+                pluginFileReference(draft) == null -> PluginFormIssue.InvalidType
+                else -> null
+            }
         }
     }
 
     fun check(inputs: List<PluginInput>, draft: Map<String, Any?>): List<PluginFormError> =
-        inputs.mapNotNull { input -> check(input, draft[input.id])?.let { PluginFormError(input.id, it) } }
+        inputs.filter { it.visibleIn(draft) }.mapNotNull { input -> check(input, draft[input.id])?.let { PluginFormError(input.id, it) } }
 
     /** What submit hands over: trimmed text, cleaned option rows, only the inputs with a value. */
     fun values(inputs: List<PluginInput>, draft: Map<String, Any?>): Map<String, Any?> {
         val out = LinkedHashMap<String, Any?>()
         for (input in inputs) {
+            if (!input.visibleIn(draft)) continue
             val value = draft[input.id]
             when (input.kind) {
                 PluginInputKind.Password -> (value as? String ?: "").takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
@@ -1112,6 +1168,7 @@ internal object PluginFormRules {
                 PluginInputKind.Select -> (value as? String)?.takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Options -> items(value).takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Members -> (value as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
+                PluginInputKind.File -> pluginFileReference(value)?.let { out[input.id] = it }
             }
         }
         return out
@@ -1145,19 +1202,31 @@ internal data class PluginFormState(
     val edited: Set<String> = emptySet(),
     val editedSinceErrors: Set<String> = emptySet(),
     val attempted: Boolean = false,
+    val clearedDependents: Set<String> = emptySet(),
 ) {
     companion object {
         fun initial(inputs: List<PluginInput>, values: Map<String, Any?>?) = PluginFormState(PluginFormRules.draft(inputs, values))
     }
 
     fun set(id: String, value: Any?): PluginFormState =
-        copy(draft = draft + (id to value), edited = edited + id, editedSinceErrors = editedSinceErrors + id)
+        copy(draft = draft + (id to value), edited = edited + id, editedSinceErrors = editedSinceErrors + id,
+            clearedDependents = clearedDependents - id)
+
+    /** A controller change clears every dependent even if it stays visible (for example Alipay to WeChat). */
+    fun set(id: String, value: Any?, inputs: List<PluginInput>): PluginFormState {
+        if (draft[id] == value) return set(id, value)
+        val dependents = inputs.filter { it.showWhen?.field == id }.map { it.id }.toSet()
+        val next = set(id, value)
+        return next.copy(draft = next.draft - dependents, edited = next.edited - dependents,
+            editedSinceErrors = next.editedSinceErrors + dependents, clearedDependents = next.clearedDependents + dependents)
+    }
 
     /** New host errors apply again to every input. */
     fun hostErrorsChanged(): PluginFormState = copy(editedSinceErrors = emptySet())
 
     /** The text under an input: the host's first error for it, else the client's issue once it may show. */
     fun errorText(input: PluginInput, hostErrors: List<PluginFormError>, strings: FlareStrings): String? {
+        if (!input.visibleIn(draft) || input.id in clearedDependents) return null
         if (input.id !in editedSinceErrors) {
             hostErrors.firstOrNull { it.input == input.id }?.let { return PluginFormRules.issueText(it.issue, input, strings) }
         }
@@ -1167,7 +1236,7 @@ internal data class PluginFormState(
 
     /** Runs the check: the next state, and the values to submit (null, with every issue showing, when one fails). */
     fun submit(inputs: List<PluginInput>): Pair<PluginFormState, Map<String, Any?>?> {
-        val next = copy(attempted = true)
+        val next = copy(attempted = true, clearedDependents = emptySet())
         if (PluginFormRules.check(inputs, draft).isNotEmpty()) return next to null
         return next to PluginFormRules.values(inputs, draft)
     }

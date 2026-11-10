@@ -9,7 +9,11 @@ withDefaults(defineProps<{
   /** Visible workspace heading, composed with its scope and tools in one row. */
   title?: string;
   density?: "comfortable" | "compact";
-}>(), { density: "comfortable" });
+  /** The host owns the surrounding surface when this workspace is integrated. */
+  surface?: "card" | "integrated";
+  /** Pane content owns its scroll area; the default body scrolls ordinary settings. */
+  bodyLayout?: "scroll" | "pane";
+}>(), { density: "comfortable", surface: "card", bodyLayout: "scroll" });
 const { t } = useFlareI18n();
 const slots = useSlots();
 const root = ref<HTMLElement>();
@@ -31,7 +35,11 @@ onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <template>
-  <section ref="root" class="flare-admin-settings" :class="{ 'flare-admin-settings--compact': density === 'compact' }" :aria-label="label">
+  <section ref="root" class="flare-admin-settings" :class="{
+    'flare-admin-settings--compact': density === 'compact',
+    'flare-admin-settings--integrated': surface === 'integrated',
+    'flare-admin-settings--pane': bodyLayout === 'pane',
+  }" :aria-label="label">
     <header class="flare-admin-settings__toolbar">
       <h3 v-if="title" class="flare-admin-settings__title">{{ title }}</h3>
       <div v-if="$slots.scope" class="flare-admin-settings__scope">
@@ -59,7 +67,7 @@ onBeforeUnmount(() => observer?.disconnect());
         <div v-if="$slots['compact-navigation'] && narrow" class="flare-admin-settings__compact-navigation">
           <slot name="compact-navigation" />
         </div>
-        <slot :narrow="narrow" />
+        <div class="flare-admin-settings__content"><slot :narrow="narrow" /></div>
       </div>
     </div>
     <footer v-if="$slots.footer" class="flare-admin-settings__footer">
@@ -91,6 +99,10 @@ onBeforeUnmount(() => observer?.disconnect());
   gap: var(--flare-size-spacing-sm);
   padding: 12px;
   flex: none;
+}
+.flare-admin-settings--integrated {
+  border: 0;
+  border-radius: 0;
 }
 .flare-admin-settings__toolbar {
   border-bottom: 1px solid var(--flare-color-border-secondary);
@@ -169,6 +181,25 @@ onBeforeUnmount(() => observer?.disconnect());
 }
 .flare-admin-settings__compact-navigation {
   padding-block: var(--flare-size-spacing-md);
+}
+.flare-admin-settings--pane .flare-admin-settings__body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.flare-admin-settings--pane .flare-admin-settings__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.flare-admin-settings--pane .flare-admin-settings__compact-navigation {
+  flex: none;
+  padding: var(--flare-size-spacing-md);
+  border-bottom: 1px solid var(--flare-color-border-secondary);
 }
 .flare-admin-settings__footer {
   border-top: 1px solid var(--flare-color-border-secondary);

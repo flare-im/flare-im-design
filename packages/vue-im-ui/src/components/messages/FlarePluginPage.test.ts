@@ -118,6 +118,33 @@ function render(props: Record<string, unknown>, { pointer = "fine" as "fine" | "
   }), { attachTo: document.body });
   return { wrapper, state, events };
 }
+
+describe("read-side paging recovery", () => {
+  it("settles repeated identical quick read failures without a financial settlement", async () => {
+    const {wrapper, state, events} = render({view: wallet, error: "读取失败", pagingToken: 0, settleToken: 7});
+    const more = () => wrapper.get('[data-page-load-more]');
+    await more().trigger("click");
+    expect(more().attributes("disabled")).toBeDefined();
+    state.pagingToken = 1;
+    await flushPromises();
+    expect(more().attributes("disabled")).toBeUndefined();
+    await more().trigger("click");
+    state.pagingToken = 2;
+    await flushPromises();
+    expect(more().attributes("disabled")).toBeUndefined();
+    expect(state.settleToken).toBe(7);
+    expect(events.filter(event => event[0] === "loadMore")).toHaveLength(2);
+  });
+  it("keeps next-page controls disabled during a first-page refresh", async () => {
+    const {wrapper, state, events} = render({view: wallet, refreshing: true});
+    await wrapper.get('[data-page-load-more]').trigger("click");
+    expect(events.filter(event => event[0] === "loadMore")).toHaveLength(0);
+    state.refreshing = false;
+    await flushPromises();
+    await wrapper.get('[data-page-load-more]').trigger("click");
+    expect(events.filter(event => event[0] === "loadMore")).toHaveLength(1);
+  });
+});
 function renderCase(c: PageCase, extra: Record<string, unknown> = {}) {
   return render({ title: c.title, page: c.page, filters: c.filters, view: c.view, ...extra });
 }

@@ -46,12 +46,38 @@ Flutter, Compose and SwiftUI. It presents a short title, a bounded photo area,
 localized state and optional upload/retry action. The host owns the native picker,
 local preview lifetime, validation and transfer; the component never requests a
 remote image or persists bytes. States are empty, selected, uploading, uploaded
-and failed. Uploaded slots are read-only. A host can explicitly supply an independent
-preview callback and localized label; it never enables choosing, replacing or deleting
-the uploaded file. The host owns access checks, expiring preview bytes and cleanup.
+and failed. Uploaded slots are read-only by default. A host can explicitly supply an independent
+preview callback and localized label; preview does not enable choosing, replacing or deleting
+the uploaded file. The Vue wrapper below can separately opt into controlled replacement.
+The host owns access checks, expiring preview bytes and cleanup.
 Put format and size guidance once above the group. Use three columns
 on desktop, two on mobile, and one for narrow layouts or large text; preserve
 48 logical pixel interaction targets.
+
+## Vue file and image field
+
+`FlareFileUpload` composes the existing photo slot and a native single-file picker.
+It is exported from the main, components and focused admin entries. The host
+supplies localized labels, `empty | selected | uploading | uploaded | failed`,
+file name, optional image preview and percentage progress. It emits `select(File)`,
+`upload`, `retry`, `cancel` and `remove`; it never performs these operations itself.
+Choosing the same file again works, while cancelling the native picker leaves the
+current host-owned selection intact. Read-only state disables every mutation.
+
+The `accept` hint comes from the authenticated backend policy. No file-size or MIME
+limit is invented by the component, and native picker filtering is not a security
+check. The host keeps durable media IDs separate from temporary previews, cancels
+pending work when application/identity/form lifetime changes, rejects late results
+and revokes object URLs. Replacing or removing a local selection is not remote media
+deletion. Network progress reaching 100 percent is not proof of server completion.
+
+Vue and Flutter provide `FlareFileUpload`. Native plugin forms compose the shared photo slots with equivalent controlled intents. No uploader or business transport is implied.
+
+For SDK-resolved private material inputs, use the host-picker mode and typed
+`PluginForm` file states/events described in [Plugin file inputs](../plugin-file-inputs.md).
+The default Vue `select(File)` picker behavior remains available to existing general upload consumers.
+The Vue slot's optional `replaceable`, `icon`, `progress` and `actions` slot enable
+this composition while preserving its completed/read-only default.
 
 ## Do / Don't
 Do keep task hierarchy and recovery explicit. Don't duplicate business state, invent platform-only semantics, or introduce local visual constants.
@@ -60,7 +86,7 @@ Do keep task hierarchy and recovery explicit. Don't duplicate business state, in
 
 Use `FlareImageUploadSlot` (Compose) / `ImageUploadSlotView` (SwiftUI) for a small image form field. This is a presentation component, not an uploader. The host supplies the title, localized status/action copy, `empty | uploading | uploaded | failed`, optional transient local preview and choose/retry callbacks. It never owns file picking, transport, remote material grants, persistence or business validation.
 
-The rectangular body keeps stable geometry while uploading. Its title is outside the slot; an empty slot shows a camera/action, an uploading slot shows an indeterminate indicator, an uploaded slot shows a check or the current local preview, and failure preserves a retry intent. The host may offer choosing again only before the business layer says the material is uploaded. Uploaded slots are read-only, with no invented remove or replace action. Do not fetch a historical private preview without an existing grant.
+The rectangular body keeps stable geometry while uploading. Its title is outside the slot; an empty slot shows a camera/action, an uploading slot shows an indicator, an uploaded slot shows a check or the current local preview, and failure preserves a retry intent. The native slots and default Vue slot offer choosing again only before the business layer says the material is uploaded. The Vue file wrapper separately opts into controlled replacement; remote deletion is never implied. Do not fetch a historical private preview without an existing grant.
 
 Place one format/size hint above a group, rather than repeating it on every field. Group layout belongs to the page: three columns at 600 logical pixels, two at 320, and one on narrow or large-text views. The slot and retry controls keep at least the kit touch target; status is exposed to assistive technology without displaying internal error codes. Titles, status, action and retry strings must be localized by the host.
 

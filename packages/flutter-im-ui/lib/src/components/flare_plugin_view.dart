@@ -18,6 +18,10 @@ import 'flare_message_card_shell.dart';
 import 'flare_plugin_form.dart';
 import 'flare_scene_panels.dart';
 import 'flare_status_banner.dart';
+import 'flare_tag.dart';
+
+/// Visual placement only; every layout keeps the same guarded action runner.
+enum FlarePluginActionLayout { inline, compact, list }
 
 /// A plugin card: the core SDK's resolved view drawn as a kit business card
 /// (spec Message/PluginView; facts in spec/plugin-view-vectors.json). Inert —
@@ -63,10 +67,23 @@ class FlarePluginView extends StatefulWidget {
     this.busyActionId,
     this.error,
     this.embedded = false,
+    this.actionLayout = FlarePluginActionLayout.inline,
+    this.labelRows = false,
+    this.inlineFormActionId,
+    this.inlineFormTitle,
+    this.inlineFormDescription,
+    this.showError = true,
     this.inset = FlarePluginViewInset.none,
     this.resolveUser,
     this.members = const [],
+    this.membersLoading = false,
+    this.membersRevision = 0,
+    this.membersError,
+    this.onMemberSearch,
+    this.onMembersRetry,
     this.formErrors = const [],
+    this.fileStates = const {},
+    this.onFileAction,
     this.settleToken = 0,
     this.onAction,
     this.onOpenDetail,
@@ -99,6 +116,23 @@ class FlarePluginView extends StatefulWidget {
   /// of secondary text.
   final bool embedded;
 
+  final FlarePluginActionLayout actionLayout;
+
+  /// Show page row details as column label/value pairs below each row title.
+  final bool labelRows;
+
+  /// A top-level action whose eligible form is composed into this view.
+  final String? inlineFormActionId;
+
+  /// Optional heading immediately before an eligible inline form.
+  final String? inlineFormTitle;
+
+  /// Supporting copy for that inline form; no effect on action eligibility.
+  final String? inlineFormDescription;
+
+  /// Composed pages may draw the host error once, while open forms still receive it.
+  final bool showError;
+
   /// Where the view sits: [FlarePluginViewInset.sheet] gives it the
   /// bottom-sheet insets (md / lg / xl, as [FlarePluginForm]) for a view put
   /// straight into a kit sheet; [FlarePluginViewInset.sheetTop] the same
@@ -112,8 +146,19 @@ class FlarePluginView extends StatefulWidget {
   /// Candidates for members inputs in action forms.
   final List<FlarePluginMember> members;
 
+  /// Server member-search state; without onMemberSearch the picker filters locally.
+  final bool membersLoading;
+
+  /// An authoritative roster/permission invalidation, never an ordinary search result.
+  final int membersRevision;
+  final String? membersError;
+  final ValueChanged<String>? onMemberSearch;
+  final VoidCallback? onMembersRetry;
+
   /// The host's validation errors for the open action form.
   final List<FlarePluginFormError> formErrors;
+  final Map<String, FlarePluginFileState> fileStates;
+  final ValueChanged<FlarePluginFileAction>? onFileAction;
 
   /// The host's settle signal: incremented once per finished action, after
   /// that result's [error] / [formErrors] are set. Every change settles the
@@ -181,8 +226,17 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   BuildContext? _sheetContext;
   final ValueNotifier<_FormState> _form = ValueNotifier(const _FormState());
   final ValueNotifier<bool> _formBusy = ValueNotifier(false);
+  String? _inlineSubmitted;
+  int _inlineRevision = 0;
 
-  bool get _locked => widget.busy || widget.busyActionId != null;
+  bool get _locked =>
+      widget.busy || widget.busyActionId != null || _inlineSubmitted != null;
+
+  FlarePluginAction? get _inlineAction => flarePluginInlineFormAction(
+    widget.view,
+    widget.inlineFormActionId,
+    interactive: widget.onAction != null,
+  );
 
   @override
   void initState() {
@@ -198,6 +252,15 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     if (old.view != widget.view) {
       _pending = null;
       _drafts.clear();
+    }
+    final previousInline = flarePluginInlineFormAction(
+      old.view,
+      old.inlineFormActionId,
+      interactive: old.onAction != null,
+    );
+    if (previousInline?.id != _inlineAction?.id) {
+      _inlineSubmitted = null;
+      _inlineRevision++;
     }
     final error = widget.error;
     if (error != null && error.isNotEmpty && error != old.error) _revert();
@@ -357,6 +420,11 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   void _settle(String? actionId) {
     final failed =
         (widget.error ?? '').isNotEmpty || widget.formErrors.isNotEmpty;
+    if (_inlineSubmitted != null &&
+        (actionId == null || actionId == _inlineSubmitted)) {
+      _inlineSubmitted = null;
+      if (!failed) _inlineRevision++;
+    }
     final pending = _pending;
     if (failed &&
         pending != null &&
@@ -402,6 +470,32 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       ...widget.view.inputs.where((input) => input.id == id).take(1),
   ];
 
+  void _submitFormValues(
+    FlarePluginAction action,
+    Map<String, Object?> values, {
+    FlarePluginActionPayload carry = const FlarePluginActionPayload(),
+    VoidCallback? before,
+    bool inline = false,
+  }) {
+    if (!mounted ||
+        _locked ||
+        widget.onAction == null ||
+        !widget.view.available ||
+        flarePluginReadOnly(widget.view))
+      return;
+    if (inline && _inlineAction?.id != action.id) return;
+    if (inline) setState(() => _inlineSubmitted = action.id);
+    before?.call();
+    widget.onAction!(
+      action.id,
+      FlarePluginActionPayload(
+        selection: carry.selection,
+        row: carry.row,
+        formValues: values,
+      ),
+    );
+  }
+
   void _syncForm() {
     final action = _formAction;
     final busy =
@@ -434,23 +528,28 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         return ValueListenableBuilder<_FormState>(
           valueListenable: _form,
           builder: (context, state, _) => FlarePluginForm(
+            fileStates: widget.fileStates,
+            onFileAction: widget.onFileAction,
             inputs: inputs,
             errors: state.errors,
             busy: state.busy,
             error: state.error,
             members: widget.members,
+            membersLoading: widget.membersLoading,
+            membersRevision: widget.membersRevision,
+            membersError: widget.membersError,
+            onMemberSearch: widget.onMemberSearch,
+            onMembersRetry: widget.onMembersRetry,
             onSubmit: (values) {
+              if (!mounted || _locked) return;
               _formSubmitted = true;
               _syncForm();
               // Every platform sends the carried selection with the values.
-              _formBefore?.call();
-              widget.onAction?.call(
-                action.id,
-                FlarePluginActionPayload(
-                  selection: _formCarry.selection,
-                  row: _formCarry.row,
-                  formValues: values,
-                ),
+              _submitFormValues(
+                action,
+                values,
+                carry: _formCarry,
+                before: _formBefore,
               );
             },
             onCancel: () => Navigator.of(sheetContext).maybePop(),
@@ -490,11 +589,29 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   @override
   Widget build(BuildContext context) {
     if (flareHasResolvedPresentation(widget.view)) {
-      return FlareResolvedPresentation(view: widget.view, busy: _locked, error: widget.error,
-        formErrors: widget.formErrors, settleToken: widget.settleToken, members: widget.members,
-        resolveUser: widget.resolveUser, onAction: _locked ? null : widget.onAction,
-        onRequest: (id) { final action = widget.view.actions.where((a) => a.id == id).firstOrNull;
-          if (action != null) _run(action, const FlarePluginActionPayload()); });
+      return FlareResolvedPresentation(
+        view: widget.view,
+        fileStates: widget.fileStates,
+        onFileAction: widget.onFileAction,
+        busy: _locked,
+        error: widget.error,
+        formErrors: widget.formErrors,
+        settleToken: widget.settleToken,
+        members: widget.members,
+        membersLoading: widget.membersLoading,
+        membersRevision: widget.membersRevision,
+        membersError: widget.membersError,
+        onMemberSearch: widget.onMemberSearch,
+        onMembersRetry: widget.onMembersRetry,
+        resolveUser: widget.resolveUser,
+        onAction: _locked ? null : widget.onAction,
+        onRequest: (id) {
+          final action = widget.view.actions
+              .where((a) => a.id == id)
+              .firstOrNull;
+          if (action != null) _run(action, const FlarePluginActionPayload());
+        },
+      );
     }
     final colors = FlareColors.of(context);
     final view = widget.view;
@@ -507,11 +624,21 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     );
     // A read-only copy runs nothing, even if a copy still carried actions.
     final readOnly = flarePluginReadOnly(view);
+    final inlineAction = _inlineAction;
+    final hasInlineFormCopy =
+        (widget.inlineFormTitle?.trim().isNotEmpty ?? false) ||
+        (widget.inlineFormDescription?.trim().isNotEmpty ?? false);
     final menuActions = view.available && !readOnly
         ? view.menuActions
         : const <FlarePluginAction>[];
     final keys = view.available && !readOnly
-        ? [...view.actions, if (widget.embedded) ...menuActions]
+        ? [
+            for (final action in [
+              ...view.actions,
+              if (widget.embedded) ...menuActions,
+            ])
+              if (action.id != inlineAction?.id) action,
+          ]
         : <FlarePluginAction>[];
     final openDetail = widget.onOpenDetail;
     final detail =
@@ -617,6 +744,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
               FlarePluginNoteBlock() => _NoteBlock(block: block),
               FlarePluginRowsBlock() => _RowsBlock(
                 block: block,
+                labelRows: widget.labelRows,
                 readOnly: readOnly,
                 locked: _locked || widget.onAction == null,
                 busyActionId: widget.busyActionId,
@@ -624,6 +752,77 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 onAction: (action, row, input) => _runRow(action, row, input),
               ),
             },
+          ),
+        );
+      }
+      if (inlineAction != null) {
+        children.add(
+          Align(
+            alignment: AlignmentDirectional.topStart,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: hasInlineFormCopy
+                    ? FlareSizes.primaryPaneMaxWidth
+                    : double.infinity,
+              ),
+              child: SizedBox(
+                key: const ValueKey('flare-plugin-inline-form-region'),
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.inlineFormTitle case final title?
+                        when title.trim().isNotEmpty) ...[
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: FlareSizes.fontSizeXl,
+                            fontWeight: FontWeight.w600,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: FlareSizes.spacingSm),
+                    ],
+                    if (widget.inlineFormDescription case final description?
+                        when description.trim().isNotEmpty) ...[
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: FlareSizes.fontSizeSm,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: FlareSizes.spacingMd),
+                    ],
+                    FlarePluginForm(
+                      fileStates: widget.fileStates,
+                      onFileAction: widget.onFileAction,
+                      key: ValueKey(
+                        'flare-plugin-inline-form:${inlineAction.id}:$_inlineRevision',
+                      ),
+                      inputs: _formInputs(inlineAction),
+                      embedded: true,
+                      submitLabel: inlineAction.label,
+                      busy: _locked,
+                      errors: widget.formErrors,
+                      error: widget.error,
+                      members: widget.members,
+                      membersLoading: widget.membersLoading,
+                      membersRevision: widget.membersRevision,
+                      membersError: widget.membersError,
+                      onMemberSearch: widget.onMemberSearch,
+                      onMembersRetry: widget.onMembersRetry,
+                      onSubmit: (values) =>
+                          _submitFormValues(inlineAction, values, inline: true),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       }
@@ -639,33 +838,89 @@ class _FlarePluginViewState extends State<FlarePluginView> {
               padding: EdgeInsets.only(
                 top: widget.embedded ? 0 : FlareSizes.spacing2xs,
               ),
-              child: OverflowBar(
-                spacing: FlareSizes.spacingSm,
-                overflowSpacing: FlareSizes.spacingSm,
-                alignment: MainAxisAlignment.spaceBetween,
-                overflowAlignment: OverflowBarAlignment.end,
-                children: [
-                  Wrap(
-                    spacing: FlareSizes.spacingMd,
-                    runSpacing: FlareSizes.spacingSm,
-                    children: [
-                      for (final action in keys)
-                        FlareButton(
-                          key: ValueKey('flare-plugin-action-${action.id}'),
-                          label: action.label,
-                          variant: _variantOf(action),
-                          size: FlareControlSize.sm,
-                          appearance: FlareButtonAppearance.text,
-                          loading: widget.busyActionId == action.id,
-                          disabled: _locked || widget.onAction == null,
-                          onPressed: () =>
-                              _run(action, const FlarePluginActionPayload()),
+              child: widget.actionLayout == FlarePluginActionLayout.list
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final (index, action) in keys.indexed) ...[
+                          if (index > 0)
+                            Divider(height: 1, color: colors.borderSecondary),
+                          FlareButton(
+                            key: ValueKey('flare-plugin-action-${action.id}'),
+                            label: action.label,
+                            variant: _variantOf(action),
+                            appearance: FlareButtonAppearance.text,
+                            block: true,
+                            loading: widget.busyActionId == action.id,
+                            disabled: _locked || widget.onAction == null,
+                            onPressed: () =>
+                                _run(action, const FlarePluginActionPayload()),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(action.label)),
+                                const SizedBox(width: FlareSizes.spacingSm),
+                                const FlareIcon(
+                                  'chevron-right',
+                                  size: FlareSizes.iconSizeSm,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (detail != null) detail,
+                      ],
+                    )
+                  : widget.actionLayout == FlarePluginActionLayout.compact
+                  ? Wrap(
+                      spacing: FlareSizes.spacingSm,
+                      runSpacing: FlareSizes.spacingSm,
+                      children: [
+                        for (final action in keys)
+                          FlareButton(
+                            key: ValueKey('flare-plugin-action-${action.id}'),
+                            label: action.label,
+                            variant: _variantOf(action),
+                            size: FlareControlSize.sm,
+                            maintainTouchTarget: true,
+                            loading: widget.busyActionId == action.id,
+                            disabled: _locked || widget.onAction == null,
+                            onPressed: () =>
+                                _run(action, const FlarePluginActionPayload()),
+                          ),
+                        if (detail != null) detail,
+                      ],
+                    )
+                  : OverflowBar(
+                      spacing: FlareSizes.spacingSm,
+                      overflowSpacing: FlareSizes.spacingSm,
+                      alignment: MainAxisAlignment.spaceBetween,
+                      overflowAlignment: OverflowBarAlignment.end,
+                      children: [
+                        Wrap(
+                          spacing: FlareSizes.spacingMd,
+                          runSpacing: FlareSizes.spacingSm,
+                          children: [
+                            for (final action in keys)
+                              FlareButton(
+                                key: ValueKey(
+                                  'flare-plugin-action-${action.id}',
+                                ),
+                                label: action.label,
+                                variant: _variantOf(action),
+                                size: FlareControlSize.sm,
+                                appearance: FlareButtonAppearance.text,
+                                loading: widget.busyActionId == action.id,
+                                disabled: _locked || widget.onAction == null,
+                                onPressed: () => _run(
+                                  action,
+                                  const FlarePluginActionPayload(),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
-                  if (detail != null) detail,
-                ],
-              ),
+                        if (detail != null) detail,
+                      ],
+                    ),
             ),
           ),
         );
@@ -675,13 +930,22 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       }
     }
     final error = widget.error;
-    if (error != null && error.isNotEmpty) {
+    if (widget.showError &&
+        inlineAction == null &&
+        error != null &&
+        error.isNotEmpty) {
       children.add(
         FlareStatusBanner(text: error, tone: FlareStatusTone.danger),
       );
     }
     final body = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment:
+          widget.actionLayout == FlarePluginActionLayout.compact &&
+              inlineAction == null &&
+              view.fields.isEmpty &&
+              view.blocks.isEmpty
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < children.length; i += 1) ...[
@@ -1475,6 +1739,7 @@ class _EntriesBlock extends StatelessWidget {
 class _RowsBlock extends StatelessWidget {
   const _RowsBlock({
     required this.block,
+    required this.labelRows,
     required this.readOnly,
     required this.locked,
     this.busyActionId,
@@ -1482,6 +1747,7 @@ class _RowsBlock extends StatelessWidget {
     required this.onAction,
   });
   final FlarePluginRowsBlock block;
+  final bool labelRows;
   final bool readOnly;
 
   /// Busy, an action in flight, or no host for actions: the keys wait.
@@ -1553,6 +1819,96 @@ class _RowsBlock extends StatelessWidget {
           ];
     final badge = row.badge;
     final secondary = lines.secondary;
+    final heading = Row(
+      children: [
+        if (badge != null) ...[
+          _ToneTag(
+            key: ValueKey('flare-plugin-row-badge:${row.key}'),
+            text: badge.text,
+            tone: badge.tone,
+            maxWidth: FlareSizes.componentRichCardCompactWidth / 2,
+          ),
+          const SizedBox(width: FlareSizes.spacingXs),
+        ],
+        Flexible(
+          child: Text(
+            lines.primary,
+            key: ValueKey('flare-plugin-row-primary:${row.key}'),
+            style: TextStyle(
+              fontSize: FlareSizes.fontSizeMd,
+              color: colors.textPrimary,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (labelRows &&
+            (block.columns.firstOrNull?.label.isNotEmpty ?? false)) ...[
+          Text(
+            block.columns.first.label,
+            key: ValueKey('flare-plugin-row-caption:${row.key}'),
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: FlareSizes.fontSizeSm,
+            ),
+          ),
+          const SizedBox(height: FlareSizes.spacing2xs),
+        ],
+        heading,
+        if (labelRows)
+          Padding(
+            padding: const EdgeInsets.only(top: FlareSizes.spacingSm),
+            child: _FieldsList(
+              fields: [
+                for (final (index, column) in block.columns.indexed.skip(1))
+                  if (row.cells.elementAtOrNull(index) case final cell?
+                      when cell.text.isNotEmpty || cell.timeMs != null)
+                    FlarePluginField(
+                      label: column.label,
+                      value:
+                          column.format == FlarePluginColumnFormat.time &&
+                              cell.timeMs != null
+                          ? flarePluginDateTime(cell.timeMs!, nowMs, strings)
+                          : cell.text,
+                    ),
+              ],
+            ),
+          )
+        else if (secondary != null)
+          Padding(
+            padding: const EdgeInsets.only(top: FlareSizes.spacing2xs),
+            child: Text(
+              secondary,
+              key: ValueKey('flare-plugin-row-secondary:${row.key}'),
+              style: TextStyle(
+                fontSize: FlareSizes.fontSizeSm,
+                color: colors.textSecondary,
+              ),
+            ),
+          ),
+      ],
+    );
+    final actionKeys = Wrap(
+      spacing: FlareSizes.spacingXs,
+      runSpacing: FlareSizes.spacingXs,
+      children: [
+        for (final (action, input) in keys)
+          FlareButton(
+            key: FlarePluginView.rowActionKey(row.key, action.id),
+            label: action.label,
+            size: FlareControlSize.sm,
+            variant: _variantOf(action),
+            loading: busyActionId == action.id && rowInFlight == row.key,
+            disabled: locked,
+            onPressed: () => onAction(action, row, input),
+          ),
+      ],
+    );
     return Padding(
       key: FlarePluginView.rowKey(row.key),
       padding: EdgeInsets.only(
@@ -1561,77 +1917,27 @@ class _RowsBlock extends StatelessWidget {
       ),
       child: Semantics(
         container: true,
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: labelRows
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      if (badge != null) ...[
-                        _ToneTag(
-                          key: ValueKey('flare-plugin-row-badge:${row.key}'),
-                          text: badge.text,
-                          tone: badge.tone,
-                          maxWidth:
-                              FlareSizes.componentRichCardCompactWidth / 2,
-                        ),
-                        const SizedBox(width: FlareSizes.spacingXs),
-                      ],
-                      Flexible(
-                        child: Text(
-                          lines.primary,
-                          key: ValueKey('flare-plugin-row-primary:${row.key}'),
-                          style: TextStyle(
-                            fontSize: FlareSizes.fontSizeMd,
-                            color: colors.textPrimary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (secondary != null)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: FlareSizes.spacing2xs,
-                      ),
-                      child: Text(
-                        secondary,
-                        key: ValueKey('flare-plugin-row-secondary:${row.key}'),
-                        style: TextStyle(
-                          fontSize: FlareSizes.fontSizeSm,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ),
+                  content,
+                  if (keys.isNotEmpty) ...[
+                    const SizedBox(height: FlareSizes.spacingSm),
+                    actionKeys,
+                  ],
                 ],
-              ),
-            ),
-            if (keys.isNotEmpty) ...[
-              const SizedBox(width: FlareSizes.spacingSm),
-              Wrap(
-                spacing: FlareSizes.spacingXs,
-                runSpacing: FlareSizes.spacingXs,
+              )
+            : Row(
                 children: [
-                  for (final (action, input) in keys)
-                    FlareButton(
-                      key: FlarePluginView.rowActionKey(row.key, action.id),
-                      label: action.label,
-                      size: FlareControlSize.sm,
-                      variant: _variantOf(action),
-                      loading:
-                          busyActionId == action.id && rowInFlight == row.key,
-                      disabled: locked,
-                      onPressed: () => onAction(action, row, input),
-                    ),
+                  Expanded(child: content),
+                  if (keys.isNotEmpty) ...[
+                    const SizedBox(width: FlareSizes.spacingSm),
+                    actionKeys,
+                  ],
                 ],
               ),
-            ],
-          ],
-        ),
       ),
     );
   }
@@ -1748,24 +2054,75 @@ class _StatusBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final label = block.label;
-    return Row(
-      children: [
-        if (label != null) ...[
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: FlareSizes.fontSizeMd,
-              color: colors.textSecondary,
+    final labelStyle = TextStyle(
+      fontSize: FlareSizes.fontSizeMd,
+      color: colors.textSecondary,
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.hasBoundedWidth) {
+          final padding =
+              FlareSizes.spacing2xs * 2 +
+              (label == null ? 0 : FlareSizes.spacingSm);
+          final text =
+              TextPainter(
+                text: TextSpan(
+                  style: DefaultTextStyle.of(context).style,
+                  children: [
+                    if (label != null) TextSpan(text: label, style: labelStyle),
+                    TextSpan(
+                      text: block.text,
+                      style: const TextStyle(
+                        fontSize: FlareSizes.fontSizeSm,
+                        fontWeight: FontWeight.w500,
+                        height: FlareSizes.lineHeightNormal,
+                      ),
+                    ),
+                  ],
+                ),
+                textDirection: Directionality.of(context),
+                textScaler: MediaQuery.textScalerOf(context),
+                maxLines: 1,
+              )..layout(
+                maxWidth: (constraints.maxWidth - padding)
+                    .clamp(0.0, double.infinity)
+                    .toDouble(),
+              );
+          final wraps = text.didExceedMaxLines;
+          text.dispose();
+          if (wraps) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (label != null) ...[
+                  Text(label, style: labelStyle),
+                  const SizedBox(height: FlareSizes.spacingSm),
+                ],
+                FlareStatusBanner(
+                  key: const ValueKey('flare-plugin-status'),
+                  text: block.text,
+                  tone: FlareStatusTone.values.byName(block.tone.name),
+                  dot: false,
+                ),
+              ],
+            );
+          }
+        }
+        return Row(
+          children: [
+            if (label != null) ...[
+              Text(label, style: labelStyle),
+              const SizedBox(width: FlareSizes.spacingSm),
+            ],
+            _ToneTag(
+              key: const ValueKey('flare-plugin-status'),
+              text: block.text,
+              tone: block.tone,
             ),
-          ),
-          const SizedBox(width: FlareSizes.spacingSm),
-        ],
-        _ToneTag(
-          key: const ValueKey('flare-plugin-status'),
-          text: block.text,
-          tone: block.tone,
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -1789,28 +2146,9 @@ class _ToneTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = FlareColors.of(context);
-    final ink = _toneInk(colors, tone);
-    final tag = DecoratedBox(
-      decoration: BoxDecoration(
-        color: _toneSurface(colors, tone),
-        borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
-        border: Border.all(color: ink.withValues(alpha: 0.18)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacing2xs),
-        child: Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: FlareSizes.fontSizeSm,
-            fontWeight: FontWeight.w500,
-            height: FlareSizes.lineHeightNormal,
-            color: ink,
-          ),
-        ),
-      ),
+    final tag = FlareTag(
+      label: text,
+      tone: FlareStatusTone.values.byName(tone.name),
     );
     final max = maxWidth;
     return max == null

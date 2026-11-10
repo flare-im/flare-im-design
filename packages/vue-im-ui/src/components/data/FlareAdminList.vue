@@ -7,6 +7,7 @@ import {
   ref,
   useId,
   useSlots,
+  watch,
   type HTMLAttributes,
 } from "vue";
 import {
@@ -55,11 +56,15 @@ const props = withDefaults(
     rowKey: string | ((row: DataTableRowData, index: number) => string);
     loading?: boolean;
     error?: string;
+    /** Hosts using external notifications retain read failures as neutral, actionable content. */
+    errorPresentation?: "inline" | "neutral";
     /** A pending write locks query, selection and paging, but leaves current rows visible. */
     disabled?: boolean;
     paginationDisabled?: boolean;
     selectionDisabled?: boolean;
     searchDisabled?: boolean;
+    /** Reveal invalid advanced fields without discarding their drafts or measured nodes. */
+    filtersInvalid?: boolean;
     rowSelectable?: (row: DataTableRowData, index: number) => boolean;
     /** Detail sections own a bounded, natural-height list, not another full viewport. */
     embedded?: boolean;
@@ -82,6 +87,7 @@ const props = withDefaults(
   {
     loading: false,
     error: "",
+    errorPresentation: "inline",
     disabled: false,
     selectable: false,
     tableVisible: true,
@@ -105,6 +111,13 @@ const visibleColumnKeys = defineModel<string[] | null>("visibleColumnKeys", {
 /** Native Naive tree expansion only; hierarchy does not imply row selection. */
 const expandedRowKeys = defineModel<string[] | undefined>("expandedRowKeys");
 const expanded = ref(false);
+watch(
+  () => props.filtersInvalid,
+  (invalid) => {
+    if (invalid) expanded.value = true;
+  },
+  { immediate: true },
+);
 const chooserOpen = ref(false);
 const chooserTrigger = ref<HTMLElement | null>(null);
 function closeChooserByKeyboard(event: KeyboardEvent) {
@@ -438,12 +451,20 @@ function onQueryKey(event: KeyboardEvent) {
     }"
   >
     <NAlert
-      v-if="error"
+      v-if="error && errorPresentation === 'inline'"
       type="error"
       :bordered="false"
       class="flare-admin-list__error"
       >{{ error }}<slot name="error-actions"
     /></NAlert>
+    <div
+      v-else-if="error"
+      class="flare-admin-list__error flare-admin-list__error--neutral"
+      role="status"
+    >
+      <span>{{ error }}</span
+      ><slot name="error-actions" />
+    </div>
     <div
       v-if="slots.notice && flattenQueryFields(slots.notice()).length"
       class="flare-admin-list__notice"
@@ -630,14 +651,40 @@ function onQueryKey(event: KeyboardEvent) {
       </NDataTable>
     </div>
     <footer
-      v-if="(pagination && tableVisible) || slots['footer-extra']"
+      v-if="
+        (pagination && tableVisible) ||
+        slots['footer-extra'] ||
+        slots['footer-summary']
+      "
       class="flare-admin-list__footer"
       :aria-label="t('dataTable.pagination')"
     >
-      <NText depth="3" class="flare-admin-list__total" aria-live="polite">{{
-        rangeText
-      }}</NText>
+      <NText depth="3" class="flare-admin-list__total" aria-live="polite">
+        <slot name="footer-summary">{{ rangeText }}</slot>
+      </NText>
       <slot name="footer-extra" />
+      <NSelect
+        v-if="
+          pagination &&
+          !dataTableIsCursor(pagination) &&
+          compact &&
+          pagination.pageSizes?.length
+        "
+        class="flare-admin-list__compact-page-size"
+        size="small"
+        :aria-label="t('dataTable.pageSize')"
+        :input-props="{ 'aria-label': t('dataTable.pageSize') }"
+        :value="pagination.pageSize"
+        :options="
+          pagination.pageSizes.map((value) => ({
+            value,
+            label: t('dataTable.perPage', { size: value }),
+          }))
+        "
+        :disabled="pagingLocked"
+        style="width: 112px"
+        @update:value="pageSizeHandler"
+      />
       <div
         v-if="pagination && dataTableIsCursor(pagination)"
         class="flare-admin-list__cursor"
@@ -684,7 +731,7 @@ function onQueryKey(event: KeyboardEvent) {
         :page-sizes="
           pagination.pageSizes ? [...pagination.pageSizes] : undefined
         "
-        :show-size-picker="!!pagination.pageSizes?.length"
+        :show-size-picker="!compact && !!pagination.pageSizes?.length"
         :page-slot="width > 1000 ? 7 : 5"
         :simple="compact || dataTableIsCursor(pagination)"
         :page-count="
@@ -742,23 +789,29 @@ function onQueryKey(event: KeyboardEvent) {
   padding: var(--flare-size-spacing-sm) 0 var(--flare-size-spacing-md);
   border-bottom: 0;
 }
-.flare-admin-list--plain.flare-admin-list--controls-panel .flare-admin-list__query,
-.flare-admin-list--plain.flare-admin-list--controls-panel .flare-admin-list__toolbar {
+.flare-admin-list--plain.flare-admin-list--controls-panel
+  .flare-admin-list__query,
+.flare-admin-list--plain.flare-admin-list--controls-panel
+  .flare-admin-list__toolbar {
   padding: var(--flare-size-spacing-md);
   border: 1px solid var(--flare-admin-line);
   border-radius: var(--flare-size-radius-md);
   background: var(--flare-admin-surface);
 }
-.flare-admin-list--plain.flare-admin-list--controls-panel .flare-admin-list__query {
+.flare-admin-list--plain.flare-admin-list--controls-panel
+  .flare-admin-list__query {
   padding-bottom: var(--flare-size-spacing-sm);
   border-bottom: 0;
   border-end-start-radius: 0;
   border-end-end-radius: 0;
 }
-.flare-admin-list--plain.flare-admin-list--controls-panel .flare-admin-list__toolbar {
+.flare-admin-list--plain.flare-admin-list--controls-panel
+  .flare-admin-list__toolbar {
   margin-bottom: var(--flare-size-spacing-md);
 }
-.flare-admin-list--plain.flare-admin-list--controls-panel .flare-admin-list__query + .flare-admin-list__toolbar {
+.flare-admin-list--plain.flare-admin-list--controls-panel
+  .flare-admin-list__query
+  + .flare-admin-list__toolbar {
   padding-top: var(--flare-size-spacing-sm);
   border-top: 0;
   border-start-start-radius: 0;
@@ -791,6 +844,14 @@ function onQueryKey(event: KeyboardEvent) {
   flex: none;
   max-height: 100px;
   overflow: auto;
+}
+.flare-admin-list__error--neutral {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--flare-size-spacing-sm);
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
+  color: var(--flare-color-text-secondary);
 }
 .flare-admin-list__notice {
   flex: none;
@@ -890,6 +951,7 @@ function onQueryKey(event: KeyboardEvent) {
   align-items: center;
   gap: var(--flare-size-spacing-sm);
   padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
+  padding-bottom: var(--flare-size-spacing-lg);
   border-top: 1px solid var(--flare-admin-line);
 }
 .flare-admin-list__total {

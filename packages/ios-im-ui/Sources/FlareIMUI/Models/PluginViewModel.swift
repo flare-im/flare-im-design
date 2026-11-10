@@ -549,7 +549,36 @@ public enum PluginBlock: Codable, Equatable, Sendable {
 
 /// Form input kinds (UiInput).
 public enum PluginInputKind: String, Codable, Sendable, CaseIterable {
-    case text, password, textarea, number, toggle, select, datetime, options, members
+    case text, password, textarea, number, toggle, select, datetime, options, members, file
+}
+
+public struct PluginInputCondition: Codable, Equatable, Sendable {
+    public let field: String
+    public let anyOf: [String]
+    public init(field: String, anyOf: [String]) { self.field = field; self.anyOf = anyOf }
+}
+
+public struct PluginFileUploadPolicy: Codable, Equatable, Sendable {
+    public let prepareOperation: String
+    public let completeOperation: String
+    public let purpose: String
+    public init(prepareOperation: String, completeOperation: String, purpose: String) {
+        self.prepareOperation = prepareOperation; self.completeOperation = completeOperation; self.purpose = purpose
+    }
+}
+
+public struct PluginFileInput: Codable, Equatable, Sendable {
+    public let accept: [String]
+    public let maxBytes: Int
+    public let upload: PluginFileUploadPolicy
+    public init(accept: [String], maxBytes: Int, upload: PluginFileUploadPolicy) {
+        self.accept = accept; self.maxBytes = maxBytes; self.upload = upload
+    }
+    public var valid: Bool {
+        maxBytes > 0 && maxBytes <= 5_242_880 && !accept.isEmpty &&
+        accept.allSatisfy { $0.range(of: #"^[A-Za-z0-9.+-]+/[A-Za-z0-9.+-]+$"#, options: .regularExpression) != nil } &&
+        !upload.prepareOperation.isEmpty && !upload.completeOperation.isEmpty && !upload.purpose.isEmpty
+    }
 }
 
 /// One choice of a select input.
@@ -576,16 +605,19 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
     public let defaultValue: PluginJSONValue?
     /// select only.
     public let choices: [PluginInputChoice]?
+    public let file: PluginFileInput?
+    public let showWhen: PluginInputCondition?
 
     public init(id: String, kind: PluginInputKind, label: String, required: Bool = false, placeholder: String? = nil,
                 maxLength: Int? = nil, min: Double? = nil, max: Double? = nil, defaultValue: PluginJSONValue? = nil,
-                choices: [PluginInputChoice]? = nil) {
+                choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, showWhen: PluginInputCondition? = nil) {
         self.id = id; self.kind = kind; self.label = label; self.required = required; self.placeholder = placeholder
         self.maxLength = maxLength; self.min = min; self.max = max; self.defaultValue = defaultValue; self.choices = choices
+        self.file = file; self.showWhen = showWhen
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, label, required, placeholder, maxLength, min, max, choices
+        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, showWhen
         case defaultValue = "default"
     }
 
@@ -601,6 +633,11 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
         max = c.lenient(Double.self, .max)
         defaultValue = c.lenient(PluginJSONValue.self, .defaultValue)
         choices = c.lenient([PluginInputChoice].self, .choices)
+        file = try c.decodeIfPresent(PluginFileInput.self, forKey: .file)
+        showWhen = try c.decodeIfPresent(PluginInputCondition.self, forKey: .showWhen)
+        if kind == .file && file?.valid != true {
+            throw DecodingError.dataCorruptedError(forKey: .file, in: c, debugDescription: "Invalid file policy")
+        }
     }
 }
 

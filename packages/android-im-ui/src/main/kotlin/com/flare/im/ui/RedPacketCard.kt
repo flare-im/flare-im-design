@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,11 +40,13 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * What a red packet card shows. Spec: dataTypes `RedPacketCardState` (spec/red-packet-vectors.json `cardState`), derived
@@ -160,6 +163,7 @@ fun RedPacketCard(
     statusLabel: String? = null,
     busy: Boolean = false,
     disabled: Boolean = false,
+    brandName: String? = null,
     onOpen: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -168,6 +172,7 @@ fun RedPacketCard(
     val canOpen = redPacketCardInteractive(busy, disabled, onOpen != null)
     val faded = redPacketCardFaded(state)
     val badge = redPacketCardBadge(kind, recipientName, strings)
+    val quote = LocalFlareCardQuote.current
     val shape = RoundedCornerShape(FlareSizes.radiusXl)
     val ink = if (faded) colors.redPacketFadedInk else colors.redPacketOnSurface
     Column(
@@ -176,50 +181,67 @@ fun RedPacketCard(
             .shadow(if (faded) 0.dp else FlareSizes.spacingSm, shape, clip = false,
                 ambientColor = colors.redPacketEnd, spotColor = colors.redPacketEnd)
             .clip(shape)
-            .background(redPacketCoverBrush(colors, faded))
-            .semantics(mergeDescendants = true) {
-                stateDescription = status
-                if (busy) liveRegion = LiveRegionMode.Polite
-            }
-            .clickable(enabled = canOpen, role = Role.Button) { if (canOpen) onOpen?.invoke() },
+            .background(redPacketCoverBrush(colors, faded)),
     ) {
-        Row(
-            Modifier.padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacingMd),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            RedPacketGlyph(RedPacketMetrics.cardGlyphWidth, faded)
-            Spacer(Modifier.width(FlareSizes.spacingMd))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    blessing, color = ink, fontWeight = FontWeight.SemiBold,
-                    fontSize = FlareSizes.fontSizeXl, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    status,
-                    color = if (faded) ink else ink.copy(alpha = 0.85f),
-                    fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = FlareSizes.spacing3xs),
-                )
-            }
+        if (quote != null) {
+            Box(Modifier.fillMaxWidth().padding(start = FlareSizes.spacing2md, end = FlareSizes.spacing2md,
+                top = FlareSizes.spacing2md)) { quote() }
         }
-        HorizontalDivider(
-            Modifier.padding(horizontal = FlareSizes.spacing2md),
-            thickness = RedPacketMetrics.hairline,
-            color = ink.copy(alpha = if (faded) 0.18f else 0.24f),
-        )
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacingXs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
+        // Quoted replies locate their source independently of the envelope's open action.
+        Column(
+            Modifier.fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    stateDescription = status
+                    if (busy) liveRegion = LiveRegionMode.Polite
+                }
+                .clickable(enabled = canOpen, role = Role.Button) { if (canOpen) onOpen?.invoke() }
+                .padding(start = FlareSizes.spacing2md, end = FlareSizes.spacing2md,
+                    top = if (quote == null) FlareSizes.spacing2md else FlareSizes.spacingSm,
+                    bottom = FlareSizes.spacing2md),
         ) {
-            val footer = ink.copy(alpha = if (faded) 0.72f else 0.75f)
-            badge.badge?.let { Text(it, color = footer, fontSize = FlareSizes.fontSize2xs, fontWeight = FontWeight.SemiBold, maxLines = 1) }
-            badge.recipient?.let {
-                Text(it, color = footer, fontSize = FlareSizes.fontSize2xs, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RedPacketGlyph(RedPacketMetrics.cardGlyphWidth, faded)
+                Spacer(Modifier.width(FlareSizes.spacingMd))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        blessing, color = ink, fontWeight = FontWeight.SemiBold,
+                        fontSize = FlareSizes.fontSizeLg, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        lineHeight = (FlareSizes.fontSizeLg.value * FlareSizes.lineHeightSnug).sp,
+                    )
+                    Text(
+                        status,
+                        color = if (faded) ink else ink.copy(alpha = 0.85f),
+                        fontSize = FlareSizes.fontSizeSm,
+                        lineHeight = (FlareSizes.fontSizeSm.value * FlareSizes.lineHeightSnug).sp,
+                        modifier = Modifier.padding(top = 3.dp),
+                    )
+                }
             }
-            Spacer(Modifier.weight(1f))
-            Text(strings.packetBrand, color = footer, fontSize = FlareSizes.fontSize2xs, maxLines = 1)
+            Spacer(Modifier.height(FlareSizes.spacingMd))
+            HorizontalDivider(thickness = 1.dp, color = ink.copy(alpha = if (faded) 0.18f else 0.28f))
+            Spacer(Modifier.height(FlareSizes.spacingSm))
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            ) {
+                val footer = ink.copy(alpha = if (faded) 0.72f else 0.6f)
+                val footerHeight = (FlareSizes.fontSize2xs.value * FlareSizes.lineHeightSnug).sp
+                if (badge.badge != null || badge.recipient != null) {
+                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+                        badge.badge?.let { Text(it, color = footer, fontSize = FlareSizes.fontSize2xs,
+                            fontWeight = FontWeight.Medium, lineHeight = footerHeight, maxLines = 1) }
+                        badge.recipient?.let {
+                            Text(it, color = footer, fontSize = FlareSizes.fontSize2xs, fontWeight = FontWeight.Medium,
+                                lineHeight = footerHeight, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false))
+                        }
+                    }
+                }
+                Text(brandName?.trim()?.takeIf { it.isNotEmpty() } ?: strings.packetBrand, color = footer, fontSize = FlareSizes.fontSize2xs,
+                    fontWeight = FontWeight.Medium, lineHeight = footerHeight, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+            }
         }
     }
 }

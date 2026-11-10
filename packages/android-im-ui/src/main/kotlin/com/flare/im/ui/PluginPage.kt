@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 
 /** What a plugin page shows (spec rules.page): the first load, its failure, an unavailable page, or the view. */
 internal enum class PluginPagePhase { Loading, Error, Unavailable, Loaded }
@@ -138,6 +139,7 @@ fun FlarePluginPage(
     error: String? = null,
     refreshing: Boolean = false,
     loadingMore: Boolean = false,
+    pagingToken: Int = 0,
     resolveUser: (suspend (String) -> PluginUser?)? = null,
     /** The viewer's user id: entries of that user carry the "me" tag. */
     viewerId: String? = null,
@@ -153,6 +155,14 @@ fun FlarePluginPage(
     /** A filter tab was chosen: the host's filters updated; the host reads the first page with them. */
     onFilter: ((Map<String, Any?>) -> Unit)? = null,
     appearance: FlarePluginPageAppearance = FlarePluginPageAppearance.Document,
+    contentMaxWidth: Dp? = FlareSizes.directoryContentMaxWidth,
+    fileStates: Map<String, PluginFileState> = emptyMap(),
+    onFileAction: ((PluginFileAction) -> Unit)? = null,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
     onAction: ((String, PluginPageActionPayload) -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -163,7 +173,9 @@ fun FlarePluginPage(
     var paging by remember { mutableStateOf(PluginDetailPaging()) }
     PluginOnChange(loadingMore) { _, more -> if (!more) paging = paging.released() }
     PluginOnChange(settleToken) { _, _ -> paging = paging.released() }
+    PluginOnChange(pagingToken) { _, _ -> paging = paging.released() }
     PluginOnChange(actionError) { _, next -> if (!next.isNullOrEmpty()) paging = paging.released() }
+    PluginOnChange(error) { _, next -> if (!next.isNullOrEmpty()) paging = paging.released() }
     // A refresh reads the first page again and may bring the same cursor back (spec rules.pagePaging).
     PluginOnChange(refreshing) { before, now -> if (before && !now) paging = paging.released() }
     val refreshes = pluginPageRefreshes(phase, onRefresh != null)
@@ -172,8 +184,10 @@ fun FlarePluginPage(
     val padding = PaddingValues(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacingMd, bottom = FlareSizes.spacingXl)
     FlareScreen(
         title = heading.ifEmpty { null },
+        surface = if (appearance == FlarePluginPageAppearance.Account || view?.view?.presentation?.get("renderer") == "account") FlareScreenSurface.Surface else FlareScreenSurface.Canvas,
         onBack = onBack,
         scroll = false,
+        contentMaxWidth = contentMaxWidth,
         actions = if (!refreshKey) null else ({
             FlareIconControl(label = strings.pluginPageRefresh, onClick = { onRefresh?.invoke() }, enabled = !refreshing) {
                 if (refreshing) CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), color = colors.primaryText, strokeWidth = 2.dp)
@@ -184,14 +198,14 @@ fun FlarePluginPage(
         val body: @Composable () -> Unit = {
             Box(Modifier.fillMaxSize().semantics { paneTitle = heading }) {
                 when (phase) {
-                    PluginPagePhase.Loading -> Box(Modifier.fillMaxWidth().heightIn(min = 160.dp), contentAlignment = Alignment.Center) {
+                    PluginPagePhase.Loading -> Box(Modifier.fillMaxWidth().padding(padding).heightIn(min = 160.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(FlareSizes.iconSizeLg).semantics { contentDescription = strings.loading },
                             color = colors.primaryText, strokeWidth = 2.dp,
                         )
                     }
                     PluginPagePhase.Error -> Column(
-                        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(padding).padding(vertical = FlareSizes.spacingXl),
+                        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(padding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
                     ) {
@@ -214,7 +228,7 @@ fun FlarePluginPage(
                     }
                     PluginPagePhase.Loaded -> view?.let { loaded ->
                         val pageFilters = pluginPageFilters(loaded.view, filters, strings.pluginViewAll)
-                        val filtersBusy = refreshing || loadingMore
+                        val filtersBusy = loading || refreshing || loadingMore
                         val more = paging.key(loaded.view.nextCursor, loadingMore)
                         val failed = error?.takeIf { it.isNotEmpty() }
                         val list = PluginViewList(
@@ -224,7 +238,9 @@ fun FlarePluginPage(
                                 // A refresh that failed while the view shows.
                                 if (failed != null) item(key = "page:banner") {
                                     Box(Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacingMd)) {
-                                        StatusBanner(text = failed, tone = FlareStatusTone.Danger)
+                                        StatusBanner(text = failed, tone = FlareStatusTone.Danger,
+                                            actionText = strings.retry.takeIf { onRefresh != null && !refreshing },
+                                            onAction = onRefresh.takeUnless { refreshing })
                                     }
                                 }
                                 if (pageFilters.isNotEmpty()) item(key = "page:filters") {
@@ -238,7 +254,8 @@ fun FlarePluginPage(
                             },
                             footer = {
                                 if (more != PluginDetailLoadMore.Hidden) item(key = "page:more") {
-                                    PluginLoadMoreKey(more, onLoadMore) { cursor ->
+                                    PluginLoadMoreKey(more, onLoadMore.takeUnless { loading || refreshing }) { cursor ->
+                                        if (loading || refreshing) return@PluginLoadMoreKey null
                                         val (next, asked) = paging.tap(cursor, loadingMore)
                                         paging = next
                                         asked
@@ -251,11 +268,11 @@ fun FlarePluginPage(
                             AccountViewContent(loaded.view, actions.busyActionId, actions.error, actions.formErrors,
                                 actions.members, actions.settleToken, onAction?.let { emit ->
                                     { id, payload -> emit(id, PluginPageActionPayload.of(page, loaded, payload)) }
-                                }, list)
+                                }, list, contentMaxWidth = null, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, fileStates = fileStates, onFileAction = onFileAction)
                         } else
                         PluginViewContent(
                             view = loaded.view, icon = null, busy = false, busyActionId = actions.busyActionId, error = actions.error,
-                            embedded = true, inset = PluginViewInset.None, resolveUser = resolveUser, members = actions.members,
+                            embedded = true, inset = PluginViewInset.None, resolveUser = resolveUser, members = actions.members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
                             formErrors = actions.formErrors, settleToken = actions.settleToken, displayName = null, viewerId = viewerId,
                             quote = null,
                             onAction = onAction?.let { emit ->
@@ -263,6 +280,7 @@ fun FlarePluginPage(
                             },
                             onOpenDetail = null,
                             list = list,
+                            fileStates = fileStates, onFileAction = onFileAction,
                         )
                     }
                 }
@@ -286,6 +304,8 @@ private fun PluginPageFilterRow(
 ) {
     // Tabs are keyed by position: all is the first, and a choice's value never has to double as a key.
     val selected = filter.tabs.indexOfFirst { it.value == filter.selected }.coerceAtLeast(0)
+    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+    Text(filter.input.label, color = flareColors().textSecondary, fontSize = FlareSizes.fontSizeSm)
     FilterTabs(
         options = filter.tabs.mapIndexed { i, tab -> FlareFilterTabOption(i.toString(), tab.label) },
         selected = selected.toString(),
@@ -296,4 +316,5 @@ private fun PluginPageFilterRow(
         enabled = !busy && onFilter != null,
         label = filter.input.label,
     )
+    }
 }

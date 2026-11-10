@@ -13,6 +13,7 @@ group = "com.flare.im"
 version = "2.0.0-rc.1"
 
 android {
+    sourceSets.getByName("androidTest").assets.srcDir("../../spec")
     namespace = "com.flare.im.ui"
     compileSdk = 35
 

@@ -291,6 +291,18 @@ enum PluginViewFormat {
         return PluginRowLines(primary: texts.first ?? "", secondary: rest.isEmpty ? nil : rest.joined(separator: " · "))
     }
 
+    /// A labelled receipt keeps column meanings and the existing time formatter; values remain opaque strings.
+    static func rowFields(_ block: PluginRowsBlock, _ row: PluginRow, nowMs: Int64, _ strings: FlareStrings,
+                          utcOffsetMinutes: Int?) -> [PluginViewField] {
+        block.columns.enumerated().dropFirst().compactMap { index, column in
+            guard row.cells.indices.contains(index) else { return nil }
+            let cell = row.cells[index]
+            let value = column.format == .time && cell.timeMs != nil
+                ? dateTime(cell.timeMs!, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes) : cell.text
+            return value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : PluginViewField(label: column.label, value: value)
+        }
+    }
+
     /// The keys of a row: the block actions it offers, in the row's order, each with the input the view bound for it.
     static func rowKeys(_ block: PluginRowsBlock, _ row: PluginRow) -> [PluginRowKey] {
         row.actions.compactMap { offered in
@@ -521,6 +533,26 @@ struct PluginHostSignal: Equatable, Sendable {
 /// open with the error or the form errors.
 enum PluginFormSettle: Equatable, Sendable { case wait, close, keep }
 
+/// Local synchronous lock while an inline submit waits for the same host completion signals as a sheet form.
+struct PluginInlineFormState {
+    private(set) var pending = false
+    private(set) var submitted = false
+    private(set) var revision = 0
+    mutating func begin(_ actionId: String) -> Bool {
+        guard !pending else { return false }
+        pending = true; submitted = true
+        return true
+    }
+    mutating func settle(from old: PluginHostSignal, to new: PluginHostSignal, actionId: String) {
+        guard pending else { return }
+        switch PluginSettleRules.form(from: old, to: new, actionId: actionId) {
+        case .wait: break
+        case .keep: pending = false
+        case .close: pending = false; submitted = false; revision += 1
+        }
+    }
+}
+
 enum PluginSettleRules {
     /// The form of `actionId` settles when `settleToken` moves, or (the fallback) when the card or that action stops
     /// being busy.
@@ -535,6 +567,21 @@ enum PluginSettleRules {
 // MARK: - Forms
 
 enum PluginFormRules {
+    /// Conditions may only refer to an earlier unconditional select in this same form.
+    static func visible(_ input: PluginInput, in inputs: [PluginInput], draft: [String: PluginJSONValue]) -> Bool {
+        guard let condition = input.showWhen else { return true }
+        guard let at = inputs.firstIndex(where: { $0.id == input.id }),
+              let controller = inputs[..<at].first(where: { $0.id == condition.field }),
+              controller.kind == .select, controller.showWhen == nil, !condition.anyOf.isEmpty,
+              let selected = draft[controller.id]?.stringValue,
+              controller.choices?.contains(where: { $0.value == selected }) == true else { return false }
+        return condition.anyOf.contains(selected)
+    }
+
+    static func visibleInputs(_ inputs: [PluginInput], _ draft: [String: PluginJSONValue]) -> [PluginInput] {
+        inputs.filter { visible($0, in: inputs, draft: draft) }
+    }
+
     static func maxLength(_ input: PluginInput) -> Int? {
         if let length = input.maxLength { return length }
         switch input.kind {
@@ -589,6 +636,7 @@ enum PluginFormRules {
             return .array(Array(repeating: .string(""), count: minRows(input)))
         case .members:
             return .array((raw?.arrayValue ?? []).compactMap { $0.stringValue.map(PluginJSONValue.string) })
+        case .file: return PluginFileValue.read(raw)?.json ?? .null
         case .password: return .string("")
         case .text, .textarea, .select:
             return .string(raw?.stringValue ?? "")
@@ -599,7 +647,11 @@ enum PluginFormRules {
     }
 
     static func draft(_ inputs: [PluginInput], values: [String: PluginJSONValue]?) -> [String: PluginJSONValue] {
-        Dictionary(inputs.map { ($0.id, draftValue($0, values: values)) }, uniquingKeysWith: { first, _ in first })
+        var result: [String: PluginJSONValue] = [:]
+        for input in inputs where visible(input, in: inputs, draft: result) {
+            if result[input.id] == nil { result[input.id] = draftValue(input, values: values) }
+        }
+        return result
     }
 
     private static func items(_ value: PluginJSONValue?) -> [String] {
@@ -626,19 +678,22 @@ enum PluginFormRules {
             return nil
         case .members:
             return input.required && (draft?.arrayValue ?? []).isEmpty ? .required : nil
+        case .file:
+            if draft == nil || draft == .null { return input.required ? .required : nil }
+            return PluginFileValue.read(draft) == nil ? .invalidType : nil
         case .toggle:
             return nil
         }
     }
 
     static func check(_ inputs: [PluginInput], _ draft: [String: PluginJSONValue]) -> [PluginFormError] {
-        inputs.compactMap { input in check(input, draft[input.id]).map { PluginFormError(input: input.id, issue: $0) } }
+        visibleInputs(inputs, draft).compactMap { input in check(input, draft[input.id]).map { PluginFormError(input: input.id, issue: $0) } }
     }
 
     /// What submit hands over: trimmed text, cleaned option rows, only the inputs with a value.
     static func values(_ inputs: [PluginInput], _ draft: [String: PluginJSONValue]) -> [String: PluginJSONValue] {
         var out: [String: PluginJSONValue] = [:]
-        for input in inputs {
+        for input in visibleInputs(inputs, draft) {
             let value = draft[input.id]
             switch input.kind {
             case .password:
@@ -658,6 +713,8 @@ enum PluginFormRules {
                 if !rows.isEmpty { out[input.id] = .array(rows.map(PluginJSONValue.string)) }
             case .members:
                 if let ids = value?.arrayValue, !ids.isEmpty { out[input.id] = .array(ids) }
+            case .file:
+                if let file = PluginFileValue.read(value) { out[input.id] = file.json }
             }
         }
         return out
@@ -688,19 +745,63 @@ enum PluginFormRules {
 /// A form being filled in: the draft, which inputs were edited (their client issue shows; their host error is
 /// spent) and whether submit was tried (every issue shows).
 struct PluginFormState: Equatable, Sendable {
+    let inputs: [PluginInput]
+    let scope: String
+    var files: [String: PluginFileState] = [:]
     var draft: [String: PluginJSONValue]
     var edited: Set<String> = []
     var editedSinceErrors: Set<String> = []
     var attempted = false
 
-    init(inputs: [PluginInput], values: [String: PluginJSONValue]?) {
+    init(inputs: [PluginInput], values: [String: PluginJSONValue]?, scope: String = UUID().uuidString) {
+        self.inputs = inputs; self.scope = scope
         draft = PluginFormRules.draft(inputs, values: values)
+        for input in inputs where input.kind == .file {
+            let value = PluginFileValue.read(draft[input.id])
+            files[input.id] = PluginFileState(scope: scope, generation: 0, phase: value == nil ? .empty : .uploaded, value: value)
+        }
     }
 
-    mutating func set(_ id: String, _ value: PluginJSONValue) {
+    @discardableResult mutating func set(_ id: String, _ value: PluginJSONValue) -> [PluginFileAction] {
+        guard draft[id] != value else { return [] }
+        var invalidations: [PluginFileAction] = []
+        for dependent in inputs where dependent.showWhen?.field == id {
+            draft[dependent.id] = nil
+            edited.remove(dependent.id); editedSinceErrors.insert(dependent.id)
+            if dependent.kind == .file { invalidations.append(fileAction(.invalidate, input: dependent)) }
+        }
         draft[id] = value
         edited.insert(id)
         editedSinceErrors.insert(id)
+        return invalidations
+    }
+
+    mutating func fileAction(_ action: PluginFileActionKind, input: PluginInput) -> PluginFileAction {
+        var state = files[input.id] ?? PluginFileState(scope: scope, generation: 0)
+        if [.choose, .replace, .cancel, .remove, .invalidate].contains(action) {
+            state = PluginFileState(scope: scope, generation: state.generation + 1,
+                                    phase: [.choose, .replace].contains(action) ? .selected : .empty)
+            draft[input.id] = nil
+        }
+        files[input.id] = state
+        editedSinceErrors.insert(input.id)
+        return PluginFileAction(action: action, input: input, scope: scope, generation: state.generation,
+                                formValues: PluginFormRules.values(inputs, draft))
+    }
+
+    mutating func acceptFiles(_ updates: [String: PluginFileState]) {
+        for input in PluginFormRules.visibleInputs(inputs, draft) where input.kind == .file {
+            guard let next = updates[input.id], let own = files[input.id],
+                  next.scope == scope, next.generation == own.generation else { continue }
+            files[input.id] = next
+            draft[input.id] = next.phase == .uploaded ? next.value?.json : nil
+        }
+    }
+
+    var filePending: Bool {
+        PluginFormRules.visibleInputs(inputs, draft).contains {
+            $0.kind == .file && [.selected, .uploading, .failed].contains(files[$0.id]?.phase ?? .empty)
+        }
     }
 
     /// New host errors apply again to every input.
@@ -708,6 +809,7 @@ struct PluginFormState: Equatable, Sendable {
 
     /// The text under an input: the host's first error for it, else the client's issue once it may show.
     func errorText(_ input: PluginInput, hostErrors: [PluginFormError], _ strings: FlareStrings) -> String? {
+        guard PluginFormRules.visible(input, in: inputs, draft: draft) else { return nil }
         if !editedSinceErrors.contains(input.id), let host = hostErrors.first(where: { $0.input == input.id }) {
             return PluginFormRules.issueText(host.issue, input, strings)
         }
@@ -718,7 +820,7 @@ struct PluginFormState: Equatable, Sendable {
     /// Runs the check: the values to submit, or nil (and every issue shows) when one fails.
     mutating func submit(_ inputs: [PluginInput]) -> [String: PluginJSONValue]? {
         attempted = true
-        guard PluginFormRules.check(inputs, draft).isEmpty else { return nil }
+        guard !filePending, PluginFormRules.check(inputs, draft).isEmpty else { return nil }
         return PluginFormRules.values(inputs, draft)
     }
 

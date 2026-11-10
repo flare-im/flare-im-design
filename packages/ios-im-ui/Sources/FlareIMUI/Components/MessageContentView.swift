@@ -567,24 +567,43 @@ struct FlareMessageCardShell<Content: View>: View {
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
-        VStack(alignment: .leading, spacing: 0) {
-            if quote != nil {
-                FlareMessageCardQuoteSlot()
-                    .padding(.horizontal, FlareSizes.spacingMd)
-                    .padding(.top, FlareSizes.spacingMd)
-                    .padding(.bottom, padded ? 0 : FlareSizes.spacingSm)
+        FlareMessageCardLayout(fillWidth: fillWidth) {
+            VStack(alignment: .leading, spacing: 0) {
+                if quote != nil {
+                    FlareMessageCardQuoteSlot()
+                        .padding(.horizontal, FlareSizes.spacingMd)
+                        .padding(.top, FlareSizes.spacingMd)
+                        .padding(.bottom, padded ? 0 : FlareSizes.spacingSm)
+                }
+                content
+                    .environment(\.flareInMessageCardShell, true)
+                    .padding(padded ? FlareSizes.spacingMd : 0)
+                    .frame(maxWidth: fillWidth ? .infinity : nil, alignment: .leading)
             }
-            content
-                .environment(\.flareInMessageCardShell, true)
-                .padding(padded ? FlareSizes.spacingMd : 0)
-                .frame(maxWidth: fillWidth ? .infinity : nil, alignment: .leading)
         }
-        // Cap the shell within the available timeline width.
-        .frame(maxWidth: FlareSizes.componentRichCardWidth, alignment: .leading)
         .background(shape.fill(colors.bgPrimary))
         .clipShape(shape)
         // Decoration only: a stroke over the body must not take the taps meant for its controls.
         .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1).allowsHitTesting(false))
         .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Bounds a card without making a content-sized card occupy the entire width proposal.
+/// A maxWidth frame alone expands even when the content does not request that space.
+private struct FlareMessageCardLayout: Layout {
+    let fillWidth: Bool
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let cap = min(proposal.width ?? FlareSizes.componentRichCardWidth, FlareSizes.componentRichCardWidth)
+        let width = fillWidth ? cap : min(content.sizeThatFits(.unspecified).width, cap)
+        let size = content.sizeThatFits(ProposedViewSize(width: width, height: nil))
+        return CGSize(width: width, height: size.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading,
+                              proposal: ProposedViewSize(width: bounds.width, height: bounds.height))
     }
 }

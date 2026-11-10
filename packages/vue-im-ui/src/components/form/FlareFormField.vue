@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from "vue";
+import { NFormItem } from "naive-ui";
 import { provideFlareFormField } from "../../shared/useFlareFormField";
 // A form field wrapper — label (+ required mark), the control (default slot),
 // an optional hint, and an error message that replaces the hint when present.
@@ -17,6 +18,8 @@ const props = defineProps<{
   controlId?: string;
   /** Keep the visible label alongside compact administrative controls. */
   labelPlacement?: "top" | "left";
+  /** A single native query field, measured and folded by FlareAdminList. */
+  native?: boolean;
 }>();
 const uid = useId();
 const id = computed(() => props.controlId ?? `flare-field-${uid}`);
@@ -26,37 +29,101 @@ const errorId = computed(() => `${id.value}-error`);
 const { boundId } = provideFlareFormField({
   id,
   labelId: computed(() => (props.label ? labelId.value : undefined)),
-  describedBy: computed(() => (props.error ? errorId.value : props.hint ? hintId.value : undefined)),
+  describedBy: computed(() =>
+    props.error ? errorId.value : props.hint ? hintId.value : undefined,
+  ),
   invalid: computed(() => Boolean(props.error)),
   required: computed(() => props.required),
 });
-const labelFor = computed(() => boundId.value ?? props.controlId);
+const labelFor = computed(
+  () =>
+    boundId.value ?? props.controlId ?? (props.native ? id.value : undefined),
+);
 </script>
 
 <template>
-  <div class="flare-form-field" :class="{ 'has-error': !!error, 'flare-form-field--inline': labelPlacement === 'left' }">
-    <label v-if="label" :id="labelId" class="flare-form-field__label" :for="labelFor">
+  <NFormItem
+    v-if="native"
+    :label="label"
+    label-width="max-content"
+    :content-style="{ minWidth: '0' }"
+    :label-props="{ id: labelId, for: labelFor }"
+    :required="required"
+    :show-feedback="!!(error || hint)"
+    :validation-status="error ? 'error' : undefined"
+  >
+    <slot
+      :control-id="id"
+      :label-id="labelId"
+      :described-by="error ? errorId : hint ? hintId : undefined"
+      :invalid="!!error"
+    />
+    <template #feedback
+      ><span :id="error ? errorId : hintId">{{ error || hint }}</span></template
+    >
+  </NFormItem>
+  <div
+    v-else
+    class="flare-form-field"
+    :class="{
+      'has-error': !!error,
+      'flare-form-field--inline': labelPlacement === 'left',
+    }"
+  >
+    <label
+      v-if="label"
+      :id="labelId"
+      class="flare-form-field__label"
+      :for="labelFor"
+    >
       {{ label }}<span v-if="required" class="flare-form-field__req">*</span>
     </label>
     <div class="flare-form-field__control">
-      <slot />
+      <slot
+        :control-id="id"
+        :label-id="labelId"
+        :described-by="error ? errorId : hint ? hintId : undefined"
+        :invalid="!!error"
+      />
     </div>
-    <p v-if="error" :id="errorId" class="flare-form-field__error">{{ error }}</p>
-    <p v-else-if="hint" :id="hintId" class="flare-form-field__hint">{{ hint }}</p>
+    <p v-if="error" :id="errorId" class="flare-form-field__error">
+      {{ error }}
+    </p>
+    <p v-else-if="hint" :id="hintId" class="flare-form-field__hint">
+      {{ hint }}
+    </p>
   </div>
 </template>
 
 <style scoped>
-.flare-form-field { display: flex; flex-direction: column; gap: 6px; }
+.flare-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .flare-form-field__label {
   font-size: var(--flare-component-form-label-size);
   font-weight: var(--flare-component-form-label-weight);
   color: var(--flare-component-form-label-color);
 }
-.flare-form-field__req { color: var(--flare-color-error-text); margin-left: 2px; }
-.flare-form-field__control { display: flex; flex-direction: column; }
-.flare-form-field__hint { margin: 0; font-size: 12px; color: var(--flare-color-text-tertiary); }
-.flare-form-field__error { margin: 0; font-size: 12px; color: var(--flare-color-error-text); }
+.flare-form-field__req {
+  color: var(--flare-color-error-text);
+  margin-left: 2px;
+}
+.flare-form-field__control {
+  display: flex;
+  flex-direction: column;
+}
+.flare-form-field__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--flare-color-text-tertiary);
+}
+.flare-form-field__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--flare-color-error-text);
+}
 .flare-form-field--inline {
   display: grid;
   grid-template-columns: fit-content(40%) minmax(0, 1fr);

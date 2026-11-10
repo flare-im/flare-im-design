@@ -86,6 +86,15 @@ class RedPacketComponentsInteractionTest {
 
     // MARK: Card
 
+    @Test fun cardUsesItsBrandSnapshotAndHistoricalDefault() {
+        val brand = mutableStateOf<String?>("  Company Gift  ")
+        content { RedPacketCard(blessing = "Hello", brandName = brand.value) }
+        compose.onNodeWithText("Company Gift").assertExists()
+        compose.onNodeWithText(zh.packetBrand).assertDoesNotExist()
+        compose.runOnIdle { brand.value = " " }
+        compose.onNodeWithText(zh.packetBrand).assertExists()
+    }
+
     @Test fun everyCardStateOpensAndShowsItsStatus() {
         val state = mutableStateOf(FlareRedPacketCardState.Unopened)
         val opened = mutableListOf<FlareRedPacketCardState>()

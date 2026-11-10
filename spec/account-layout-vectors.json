@@ -1,0 +1,2509 @@
+{
+  "schema": "flare.account-layout-vectors/v1",
+  "description": "Synthetic display-only clones of historical resolved views. Not new Rust resolver output, database data or financial operations. Exact original strings and opaque row/action bindings are preserved; no totals are calculated.",
+  "metrics": {
+    "outerMaxWidth": 880,
+    "pageGutter": 16,
+    "pageTop": 12,
+    "pageBottom": 20,
+    "receiptInset": 16,
+    "formMaxWidth": 420,
+    "gridInnerThreshold": 572,
+    "maxColumns": 2,
+    "cardGap": 12,
+    "minimumInformationTarget": 48
+  },
+  "viewports": [
+    {
+      "width": 320,
+      "outerWidth": 320,
+      "innerWidth": 288,
+      "walletColumns": 1,
+      "formWidth": 256
+    },
+    {
+      "width": 390,
+      "outerWidth": 390,
+      "innerWidth": 358,
+      "walletColumns": 1,
+      "formWidth": 326
+    },
+    {
+      "width": 603,
+      "outerWidth": 603,
+      "innerWidth": 571,
+      "walletColumns": 1,
+      "formWidth": 420
+    },
+    {
+      "width": 604,
+      "outerWidth": 604,
+      "innerWidth": 572,
+      "walletColumns": 2,
+      "formWidth": 420
+    },
+    {
+      "width": 768,
+      "outerWidth": 768,
+      "innerWidth": 736,
+      "walletColumns": 2,
+      "formWidth": 420
+    },
+    {
+      "width": 880,
+      "outerWidth": 880,
+      "innerWidth": 848,
+      "walletColumns": 2,
+      "formWidth": 420
+    },
+    {
+      "width": 1360,
+      "outerWidth": 880,
+      "innerWidth": 848,
+      "walletColumns": 2,
+      "formWidth": 420
+    }
+  ],
+  "cases": [
+    {
+      "id": "wallet-zh-CN",
+      "layout": "wallet",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.home",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-card-vectors.json",
+        "caseId": "multipleWallets",
+        "sha256": "95967752f8d641227c1abe2512e4d4e6f649881bd07598bec65c3d569e37230c"
+      },
+      "sourceData": {
+        "defaultWalletName": "零钱钱包",
+        "features": {
+          "payoutProfiles": {
+            "enabled": true
+          },
+          "recharge": {
+            "enabled": true
+          },
+          "withdrawal": {
+            "enabled": true
+          }
+        },
+        "journal": null,
+        "maskRowAmounts": true,
+        "openings": [],
+        "overview": {
+          "label": "CNY · cash",
+          "spendable": "900.00"
+        },
+        "paymentsAvailable": true,
+        "wallet": {
+          "version": "1"
+        },
+        "walletId": "wallet-cny-fixture",
+        "wallets": [
+          {
+            "assetLabel": "CNY · cash",
+            "displayBalance": "1000.00",
+            "instanceKey": "零钱钱包",
+            "status": "active",
+            "walletId": "wallet-cny-fixture"
+          },
+          {
+            "assetLabel": "USD · cash",
+            "displayBalance": "88.50",
+            "instanceKey": "旅行钱包",
+            "status": "active",
+            "walletId": "wallet-usd-fixture"
+          },
+          {
+            "assetLabel": "CNY · cash",
+            "displayBalance": "1000.00",
+            "instanceKey": "零钱钱包",
+            "status": "active",
+            "walletId": "wallet-cny-fixture"
+          }
+        ]
+      },
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "充值",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "提现",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "收款方式",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "充值记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "支付密码",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transactionHistory",
+            "input": {},
+            "label": "交易记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "openings",
+            "input": {},
+            "label": "开户进度",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.openings"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "form": [
+              "definitionId",
+              "instanceKey"
+            ],
+            "id": "create",
+            "input": {
+              "action": "/actions/open"
+            },
+            "label": "开户",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.wallets.open"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "items": [],
+            "kind": "entries",
+            "more": false,
+            "numbered": true,
+            "total": 0
+          },
+          {
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "/walletId"
+                },
+                "label": "查看明细",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "余额"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金类型与币种"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "用于个人旅行与日常支出的超长自定义钱包名称"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "正常"
+                  }
+                ],
+                "key": "wallet-cny-fixture"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-usd-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "88.50"
+                  },
+                  {
+                    "text": "旅行钱包"
+                  },
+                  {
+                    "text": "USD · cash"
+                  },
+                  {
+                    "text": "正常"
+                  }
+                ],
+                "key": "wallet-usd-fixture"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "用于个人旅行与日常支出的超长自定义钱包名称"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "正常"
+                  }
+                ],
+                "key": "wallet-cny-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.home"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "警告：此原始状态无需展开账户信息也必须可见。"
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "需要处理：此原始错误必须可见且不能重复显示。"
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "重要提示：保留原始提示及其顺序。"
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "补充账户信息可在说明中查看。"
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "其他原始参考信息。"
+          }
+        ],
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "900.00"
+          },
+          {
+            "label": "资金类型与币种",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "当前钱包",
+            "value": "零钱钱包"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "definitionId",
+            "kind": "select",
+            "label": "模板",
+            "required": true
+          },
+          {
+            "id": "instanceKey",
+            "kind": "text",
+            "label": "实例名称",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "shortcutPrimary": "transactionHistory",
+            "shortcutSecondary": "rechargeHistory",
+            "shortcutTertiary": "withdrawalHistory",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "分别查看各钱包及其原始余额。",
+            "emptyDescription": "开通钱包后可管理资金与账单。",
+            "emptyTitle": "尚未开通钱包",
+            "informationTitle": "账户信息",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "rowEntryAction": "wallet",
+            "sectionTitle": "钱包账户",
+            "servicesTitle": "账户与安全",
+            "shortcutsTitle": "账单与记录",
+            "summaryTitle": "钱包账户"
+          },
+          "renderer": "account"
+        },
+        "title": "钱包"
+      },
+      "expected": {
+        "urgentTexts": [
+          "警告：此原始状态无需展开账户信息也必须可见。",
+          "需要处理：此原始错误必须可见且不能重复显示。",
+          "重要提示：保留原始提示及其顺序。"
+        ],
+        "informationTexts": [
+          "补充账户信息可在说明中查看。",
+          "其他原始参考信息。"
+        ],
+        "exactAmounts": [
+          "123456789012345678901234567890.1234567890",
+          "88.50",
+          "123456789012345678901234567890.1234567890"
+        ],
+        "uniqueRowKeys": [
+          "wallet-cny-fixture",
+          "wallet-usd-fixture"
+        ],
+        "rowActions": [
+          {
+            "key": "wallet-cny-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-cny-fixture"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-usd-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-usd-fixture"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-cny-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-cny-fixture"
+                }
+              }
+            ]
+          }
+        ],
+        "topLevelActionIds": [
+          "recharge",
+          "withdrawal",
+          "payoutProfiles",
+          "rechargeHistory",
+          "withdrawalHistory",
+          "paymentSecurity",
+          "transactionHistory",
+          "openings",
+          "create",
+          "recovery"
+        ],
+        "noFinancialExecution": true
+      }
+    },
+    {
+      "id": "wallet-en-US",
+      "layout": "wallet",
+      "locale": "en-US",
+      "page": "flare.wallet.page.home",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-card-vectors.json",
+        "caseId": "multipleWallets",
+        "sha256": "95967752f8d641227c1abe2512e4d4e6f649881bd07598bec65c3d569e37230c"
+      },
+      "sourceData": {
+        "defaultWalletName": "零钱钱包",
+        "features": {
+          "payoutProfiles": {
+            "enabled": true
+          },
+          "recharge": {
+            "enabled": true
+          },
+          "withdrawal": {
+            "enabled": true
+          }
+        },
+        "journal": null,
+        "maskRowAmounts": true,
+        "openings": [],
+        "overview": {
+          "label": "CNY · cash",
+          "spendable": "900.00"
+        },
+        "paymentsAvailable": true,
+        "wallet": {
+          "version": "1"
+        },
+        "walletId": "wallet-cny-fixture",
+        "wallets": [
+          {
+            "assetLabel": "CNY · cash",
+            "displayBalance": "1000.00",
+            "instanceKey": "零钱钱包",
+            "status": "active",
+            "walletId": "wallet-cny-fixture"
+          },
+          {
+            "assetLabel": "USD · cash",
+            "displayBalance": "88.50",
+            "instanceKey": "旅行钱包",
+            "status": "active",
+            "walletId": "wallet-usd-fixture"
+          },
+          {
+            "assetLabel": "CNY · cash",
+            "displayBalance": "1000.00",
+            "instanceKey": "零钱钱包",
+            "status": "active",
+            "walletId": "wallet-cny-fixture"
+          }
+        ]
+      },
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "Recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "Withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "Payout methods",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "Recharge history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "Withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "Payment password",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transactionHistory",
+            "input": {},
+            "label": "Transactions",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "openings",
+            "input": {},
+            "label": "Opening progress",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.openings"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "form": [
+              "definitionId",
+              "instanceKey"
+            ],
+            "id": "create",
+            "input": {
+              "action": "/actions/open"
+            },
+            "label": "Open wallet",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.wallets.open"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Pending operations",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "items": [],
+            "kind": "entries",
+            "more": false,
+            "numbered": true,
+            "total": 0
+          },
+          {
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "/walletId"
+                },
+                "label": "View transactions",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Balance"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Asset and currency"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "Long personal travel wallet name with original labels"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "Active"
+                  }
+                ],
+                "key": "wallet-cny-fixture"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-usd-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "88.50"
+                  },
+                  {
+                    "text": "Travel wallet"
+                  },
+                  {
+                    "text": "USD · cash"
+                  },
+                  {
+                    "text": "Active"
+                  }
+                ],
+                "key": "wallet-usd-fixture"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "Long personal travel wallet name with original labels"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "Active"
+                  }
+                ],
+                "key": "wallet-cny-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.home"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "Warning: this original status stays visible without opening account information."
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "Action required: this original error stays visible and must not be duplicated."
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "Important note: preserve the original notice and its position."
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "Supplementary account information is available in the disclosure."
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "Additional original reference information."
+          }
+        ],
+        "fields": [
+          {
+            "label": "Spendable amount",
+            "value": "900.00"
+          },
+          {
+            "label": "Asset and currency",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "Current wallet",
+            "value": "Cash wallet"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "No available options",
+                "value": "unavailable"
+              }
+            ],
+            "id": "definitionId",
+            "kind": "select",
+            "label": "Definition",
+            "required": true
+          },
+          {
+            "id": "instanceKey",
+            "kind": "text",
+            "label": "Wallet name",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "shortcutPrimary": "transactionHistory",
+            "shortcutSecondary": "rechargeHistory",
+            "shortcutTertiary": "withdrawalHistory",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "Manage each wallet and its original balance.",
+            "emptyDescription": "Open a wallet to manage funds and records.",
+            "emptyTitle": "No wallet opened",
+            "informationTitle": "Account information",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "rowEntryAction": "wallet",
+            "sectionTitle": "Wallet accounts",
+            "servicesTitle": "Account and security",
+            "shortcutsTitle": "Bills and records",
+            "summaryTitle": "Wallets"
+          },
+          "renderer": "account"
+        },
+        "title": "Wallet"
+      },
+      "expected": {
+        "urgentTexts": [
+          "Warning: this original status stays visible without opening account information.",
+          "Action required: this original error stays visible and must not be duplicated.",
+          "Important note: preserve the original notice and its position."
+        ],
+        "informationTexts": [
+          "Supplementary account information is available in the disclosure.",
+          "Additional original reference information."
+        ],
+        "exactAmounts": [
+          "123456789012345678901234567890.1234567890",
+          "88.50",
+          "123456789012345678901234567890.1234567890"
+        ],
+        "uniqueRowKeys": [
+          "wallet-cny-fixture",
+          "wallet-usd-fixture"
+        ],
+        "rowActions": [
+          {
+            "key": "wallet-cny-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-cny-fixture"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-usd-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-usd-fixture"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-cny-fixture",
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "wallet-cny-fixture"
+                }
+              }
+            ]
+          }
+        ],
+        "topLevelActionIds": [
+          "recharge",
+          "withdrawal",
+          "payoutProfiles",
+          "rechargeHistory",
+          "withdrawalHistory",
+          "paymentSecurity",
+          "transactionHistory",
+          "openings",
+          "create",
+          "recovery"
+        ],
+        "noFinancialExecution": true
+      }
+    },
+    {
+      "id": "flow-zh-CN",
+      "layout": "flow",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.withdrawal",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-cashflow-vectors.json",
+        "caseId": "withdrawal",
+        "sha256": "44aa0590db18d4ffee858316aea5c52ef6f324e2d0c4050e8f01ad47466c7e0f"
+      },
+      "sourceData": {
+        "assetLabel": "CNY · cash",
+        "assets": [
+          {
+            "label": "CNY · cash",
+            "value": "cny"
+          }
+        ],
+        "authorizationId": "authorization-fixture",
+        "channelDetails": [
+          {
+            "assetId": "cny",
+            "direction": "withdrawal",
+            "enabled": true,
+            "id": "manual-withdrawal-fixture",
+            "instructions": "提交真实付款信息并保留凭证，工作人员核验后处理。",
+            "name": "人工提现"
+          }
+        ],
+        "channels": [
+          {
+            "label": "人工提现",
+            "value": "manual-withdrawal-fixture"
+          }
+        ],
+        "displayAmount": "100.00",
+        "displayFee": "1.00",
+        "displayReceivedAmount": "99.00",
+        "displaySpendable": "1000.00",
+        "expiresAtMs": "1999999999999",
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          },
+          "recharge": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          },
+          "withdrawal": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [],
+        "journal": null,
+        "profileLabel": "测试用户 · ****1234",
+        "profiles": [
+          {
+            "label": "测试用户 · ****1234",
+            "value": "profile-fixture"
+          }
+        ],
+        "state": "prepared",
+        "walletId": "wallet-cashflow-fixture",
+        "walletLabel": "余额钱包",
+        "wallets": [
+          {
+            "label": "余额钱包",
+            "value": "wallet-cashflow-fixture"
+          }
+        ]
+      },
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/data/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "profileId",
+              "decimalAmount"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/prepareWithdrawal"
+            },
+            "label": "核对提现",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.withdrawals.prepare"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "收款方式",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "请核对固定收款账户、金额与费用。审核通过后由工作人员处理付款。",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "渠道名称"
+              },
+              {
+                "format": "text",
+                "label": "渠道说明"
+              }
+            ],
+            "emptyText": "暂无可用渠道",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "人工提现"
+                  },
+                  {
+                    "text": "提交真实付款信息并保留凭证，工作人员核验后处理。"
+                  }
+                ],
+                "key": "manual-withdrawal-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.withdrawal"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "警告：此原始状态无需展开账户信息也必须可见。"
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "需要处理：此原始错误必须可见且不能重复显示。"
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "重要提示：保留原始提示及其顺序。"
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "补充账户信息可在说明中查看。"
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "其他原始参考信息。"
+          }
+        ],
+        "fields": [
+          {
+            "label": "币种",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "可用金额",
+            "value": "123456789012345678901234567890.1234567890"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "余额钱包",
+                "value": "wallet-cashflow-fixture"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "付款钱包",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "CNY · cash",
+                "value": "cny"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "币种",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人工提现",
+                "value": "manual-withdrawal-fixture"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "提现渠道",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "测试用户 · ****1234",
+                "value": "profile-fixture"
+              }
+            ],
+            "id": "profileId",
+            "kind": "select",
+            "label": "收款账户",
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "选择付款钱包、渠道与收款账户，下一步核对金额和费用。",
+            "emptyDescription": "当前没有可用提现渠道，已有记录仍可查看。",
+            "emptyTitle": "暂无可用渠道",
+            "formDescription": "选择原始钱包、渠道与收款方式后，再核对金额与费用。",
+            "formTitle": "填写提现信息",
+            "formUnavailableDescription": "当前暂不可提交申请，请确认功能已开放且资料可用；已有记录仍可查看。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "提现信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写信息"
+          },
+          "renderer": "account"
+        },
+        "title": "提现"
+      },
+      "expected": {
+        "urgentTexts": [
+          "警告：此原始状态无需展开账户信息也必须可见。",
+          "需要处理：此原始错误必须可见且不能重复显示。",
+          "重要提示：保留原始提示及其顺序。"
+        ],
+        "informationTexts": [
+          "补充账户信息可在说明中查看。",
+          "其他原始参考信息。"
+        ],
+        "exactAmounts": [
+          "人工提现"
+        ],
+        "uniqueRowKeys": [
+          "manual-withdrawal-fixture"
+        ],
+        "rowActions": [
+          {
+            "key": "manual-withdrawal-fixture",
+            "actions": []
+          }
+        ],
+        "topLevelActionIds": [
+          "submit",
+          "history",
+          "payoutProfiles"
+        ],
+        "noFinancialExecution": true
+      }
+    },
+    {
+      "id": "flow-en-US",
+      "layout": "flow",
+      "locale": "en-US",
+      "page": "flare.wallet.page.withdrawal",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-cashflow-vectors.json",
+        "caseId": "withdrawal",
+        "sha256": "44aa0590db18d4ffee858316aea5c52ef6f324e2d0c4050e8f01ad47466c7e0f"
+      },
+      "sourceData": {
+        "assetLabel": "CNY · cash",
+        "assets": [
+          {
+            "label": "CNY · cash",
+            "value": "cny"
+          }
+        ],
+        "authorizationId": "authorization-fixture",
+        "channelDetails": [
+          {
+            "assetId": "cny",
+            "direction": "withdrawal",
+            "enabled": true,
+            "id": "manual-withdrawal-fixture",
+            "instructions": "提交真实付款信息并保留凭证，工作人员核验后处理。",
+            "name": "人工提现"
+          }
+        ],
+        "channels": [
+          {
+            "label": "人工提现",
+            "value": "manual-withdrawal-fixture"
+          }
+        ],
+        "displayAmount": "100.00",
+        "displayFee": "1.00",
+        "displayReceivedAmount": "99.00",
+        "displaySpendable": "1000.00",
+        "expiresAtMs": "1999999999999",
+        "features": {
+          "payoutProfiles": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          },
+          "recharge": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          },
+          "withdrawal": {
+            "available": true,
+            "enabled": true,
+            "reasonCode": null
+          }
+        },
+        "items": [],
+        "journal": null,
+        "profileLabel": "测试用户 · ****1234",
+        "profiles": [
+          {
+            "label": "测试用户 · ****1234",
+            "value": "profile-fixture"
+          }
+        ],
+        "state": "prepared",
+        "walletId": "wallet-cashflow-fixture",
+        "walletLabel": "余额钱包",
+        "wallets": [
+          {
+            "label": "余额钱包",
+            "value": "wallet-cashflow-fixture"
+          }
+        ]
+      },
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/data/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "profileId",
+              "decimalAmount"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/prepareWithdrawal"
+            },
+            "label": "Review withdrawal",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.withdrawals.prepare"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "Withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "Payout methods",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Check the fixed payout account, amount and fee. Staff process payment after review.",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Channel name"
+              },
+              {
+                "format": "text",
+                "label": "Channel instructions"
+              }
+            ],
+            "emptyText": "No channels available",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "人工提现"
+                  },
+                  {
+                    "text": "提交真实付款信息并保留凭证，工作人员核验后处理。"
+                  }
+                ],
+                "key": "manual-withdrawal-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.withdrawal"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "Warning: this original status stays visible without opening account information."
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "Action required: this original error stays visible and must not be duplicated."
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "Important note: preserve the original notice and its position."
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "Supplementary account information is available in the disclosure."
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "Additional original reference information."
+          }
+        ],
+        "fields": [
+          {
+            "label": "Asset",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "Available amount",
+            "value": "123456789012345678901234567890.1234567890"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "余额钱包",
+                "value": "wallet-cashflow-fixture"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "Wallet",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "CNY · cash",
+                "value": "cny"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "Asset",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人工提现",
+                "value": "manual-withdrawal-fixture"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "Withdrawal channel",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "测试用户 · ****1234",
+                "value": "profile-fixture"
+              }
+            ],
+            "id": "profileId",
+            "kind": "select",
+            "label": "Payout account",
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "Choose the source wallet, channel and payout account. Review the amount and fees next.",
+            "emptyDescription": "No withdrawal channels are available. Existing records remain available.",
+            "emptyTitle": "No channels available",
+            "formDescription": "Choose the original wallet, channel and payout method before reviewing the amount and fees.",
+            "formTitle": "Enter withdrawal information",
+            "formUnavailableDescription": "Requests cannot be submitted right now. Check that the feature is enabled and the required details are available. Existing records remain available.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Withdrawal details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details"
+          },
+          "renderer": "account"
+        },
+        "title": "Withdraw"
+      },
+      "expected": {
+        "urgentTexts": [
+          "Warning: this original status stays visible without opening account information.",
+          "Action required: this original error stays visible and must not be duplicated.",
+          "Important note: preserve the original notice and its position."
+        ],
+        "informationTexts": [
+          "Supplementary account information is available in the disclosure.",
+          "Additional original reference information."
+        ],
+        "exactAmounts": [
+          "人工提现"
+        ],
+        "uniqueRowKeys": [
+          "manual-withdrawal-fixture"
+        ],
+        "rowActions": [
+          {
+            "key": "manual-withdrawal-fixture",
+            "actions": []
+          }
+        ],
+        "topLevelActionIds": [
+          "submit",
+          "history",
+          "payoutProfiles"
+        ],
+        "noFinancialExecution": true
+      }
+    },
+    {
+      "id": "ledger-zh-CN",
+      "layout": "ledger",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.history",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-record-vectors.json",
+        "caseId": "history",
+        "sha256": "4b3c7df65c5fd9ee86950167f29fa93e74869430fb2d05efb828ded872200312"
+      },
+      "sourceData": {
+        "features": {},
+        "groupByDate": true,
+        "items": [],
+        "journal": null,
+        "rows": [
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-hold-order",
+            "commandId": "command-hold-order",
+            "committedAtMs": "1794099600000",
+            "delta": "0",
+            "description": "冻结",
+            "direction": "neutral",
+            "displayAmount": "0.00",
+            "entryKey": "wallet-records-cny/hold-order/cny",
+            "kind": "hold",
+            "orderId": "hold-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          },
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-expense-order",
+            "commandId": "command-expense-order",
+            "committedAtMs": "1794099600000",
+            "delta": "-2500",
+            "description": "转账",
+            "direction": "expense",
+            "displayAmount": "-25.00",
+            "entryKey": "wallet-records-cny/expense-order/cny",
+            "kind": "transfer",
+            "orderId": "expense-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          },
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-income-order",
+            "commandId": "command-income-order",
+            "committedAtMs": "1794099600000",
+            "delta": "10000",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+100.00",
+            "entryKey": "wallet-records-cny/income-order/cny",
+            "kind": "settlement",
+            "orderId": "income-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          }
+        ],
+        "walletContext": "零钱钱包 · CNY · cash",
+        "walletId": "wallet-records-cny",
+        "walletScoped": true
+      },
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "钱包管理",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "交易详情",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "变动金额"
+              },
+              {
+                "format": "text",
+                "label": "业务"
+              },
+              {
+                "format": "text",
+                "label": "钱包与资产"
+              },
+              {
+                "format": "time",
+                "label": "时间"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金单"
+              },
+              {
+                "format": "text",
+                "label": "原业务单"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "hold-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "内部变动",
+                  "tone": "info"
+                },
+                "cells": [
+                  {
+                    "text": "+123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "必须完整换行且不能遮挡原始金额的超长交易标题"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "hold-order"
+                  },
+                  {
+                    "text": "business-hold-order"
+                  }
+                ],
+                "key": "wallet-records-cny/hold-order/cny"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "expense-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "支出",
+                  "tone": "neutral"
+                },
+                "cells": [
+                  {
+                    "text": "-25.00"
+                  },
+                  {
+                    "text": "转账"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "expense-order"
+                  },
+                  {
+                    "text": "business-expense-order"
+                  }
+                ],
+                "key": "wallet-records-cny/expense-order/cny"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "income-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "收入",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+100.00"
+                  },
+                  {
+                    "text": "结算"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "income-order"
+                  },
+                  {
+                    "text": "business-income-order"
+                  }
+                ],
+                "key": "wallet-records-cny/income-order/cny"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "警告：此原始状态无需展开账户信息也必须可见。"
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "需要处理：此原始错误必须可见且不能重复显示。"
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "重要提示：保留原始提示及其顺序。"
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "补充账户信息可在说明中查看。"
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "其他原始参考信息。"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "收入",
+                "value": "income"
+              },
+              {
+                "label": "支出",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "收支方向"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "零钱钱包 · CNY · cash",
+            "description": "查看资金变动与处理结果。",
+            "emptyDescription": "资金操作完成后会显示在这里。",
+            "emptyTitle": "暂无账单",
+            "groupByDate": true,
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "rowBadgeLabel": "收支方向",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "账单明细",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "交易记录"
+      },
+      "expected": {
+        "urgentTexts": [
+          "警告：此原始状态无需展开账户信息也必须可见。",
+          "需要处理：此原始错误必须可见且不能重复显示。",
+          "重要提示：保留原始提示及其顺序。"
+        ],
+        "informationTexts": [
+          "补充账户信息可在说明中查看。",
+          "其他原始参考信息。"
+        ],
+        "exactAmounts": [
+          "+123456789012345678901234567890.1234567890",
+          "-25.00",
+          "+100.00"
+        ],
+        "uniqueRowKeys": [
+          "wallet-records-cny/hold-order/cny",
+          "wallet-records-cny/expense-order/cny",
+          "wallet-records-cny/income-order/cny"
+        ],
+        "rowActions": [
+          {
+            "key": "wallet-records-cny/hold-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "hold-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-records-cny/expense-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "expense-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-records-cny/income-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "income-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          }
+        ],
+        "topLevelActionIds": [
+          "manageWallet",
+          "recovery"
+        ],
+        "noFinancialExecution": true
+      }
+    },
+    {
+      "id": "ledger-en-US",
+      "layout": "ledger",
+      "locale": "en-US",
+      "page": "flare.wallet.page.history",
+      "synthetic": true,
+      "derivedFrom": {
+        "file": "wallet-record-vectors.json",
+        "caseId": "history",
+        "sha256": "4b3c7df65c5fd9ee86950167f29fa93e74869430fb2d05efb828ded872200312"
+      },
+      "sourceData": {
+        "features": {},
+        "groupByDate": true,
+        "items": [],
+        "journal": null,
+        "rows": [
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-hold-order",
+            "commandId": "command-hold-order",
+            "committedAtMs": "1794099600000",
+            "delta": "0",
+            "description": "冻结",
+            "direction": "neutral",
+            "displayAmount": "0.00",
+            "entryKey": "wallet-records-cny/hold-order/cny",
+            "kind": "hold",
+            "orderId": "hold-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          },
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-expense-order",
+            "commandId": "command-expense-order",
+            "committedAtMs": "1794099600000",
+            "delta": "-2500",
+            "description": "转账",
+            "direction": "expense",
+            "displayAmount": "-25.00",
+            "entryKey": "wallet-records-cny/expense-order/cny",
+            "kind": "transfer",
+            "orderId": "expense-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          },
+          {
+            "assetId": "cny",
+            "assetLabel": "CNY · cash",
+            "businessKey": "business-income-order",
+            "commandId": "command-income-order",
+            "committedAtMs": "1794099600000",
+            "delta": "10000",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+100.00",
+            "entryKey": "wallet-records-cny/income-order/cny",
+            "kind": "settlement",
+            "orderId": "income-order",
+            "sourcePluginId": "flare.wallet",
+            "status": "committed",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-records-cny",
+            "walletLabel": "零钱钱包"
+          }
+        ],
+        "walletContext": "零钱钱包 · CNY · cash",
+        "walletId": "wallet-records-cny",
+        "walletScoped": true
+      },
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Manage wallet",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "Transaction details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Net change"
+              },
+              {
+                "format": "text",
+                "label": "Activity"
+              },
+              {
+                "format": "text",
+                "label": "Wallet and asset"
+              },
+              {
+                "format": "time",
+                "label": "Time"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Funds order reference"
+              },
+              {
+                "format": "text",
+                "label": "Original business reference"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "hold-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Internal movement",
+                  "tone": "info"
+                },
+                "cells": [
+                  {
+                    "text": "+123456789012345678901234567890.1234567890"
+                  },
+                  {
+                    "text": "A long original transaction title that must wrap without obscuring the exact amount"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "hold-order"
+                  },
+                  {
+                    "text": "business-hold-order"
+                  }
+                ],
+                "key": "wallet-records-cny/hold-order/cny"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "expense-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Expense",
+                  "tone": "neutral"
+                },
+                "cells": [
+                  {
+                    "text": "-25.00"
+                  },
+                  {
+                    "text": "Transfer"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "expense-order"
+                  },
+                  {
+                    "text": "business-expense-order"
+                  }
+                ],
+                "key": "wallet-records-cny/expense-order/cny"
+              },
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "income-order",
+                      "walletId": "wallet-records-cny"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Income",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+100.00"
+                  },
+                  {
+                    "text": "Settlement"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "零钱钱包"
+                  },
+                  {
+                    "text": "income-order"
+                  },
+                  {
+                    "text": "business-income-order"
+                  }
+                ],
+                "key": "wallet-records-cny/income-order/cny"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          },
+          {
+            "kind": "status",
+            "tone": "warning",
+            "text": "Warning: this original status stays visible without opening account information."
+          },
+          {
+            "kind": "status",
+            "tone": "danger",
+            "text": "Action required: this original error stays visible and must not be duplicated."
+          },
+          {
+            "kind": "note",
+            "tone": "warning",
+            "text": "Important note: preserve the original notice and its position."
+          },
+          {
+            "kind": "status",
+            "tone": "info",
+            "text": "Supplementary account information is available in the disclosure."
+          },
+          {
+            "kind": "note",
+            "tone": "neutral",
+            "text": "Additional original reference information."
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Income",
+                "value": "income"
+              },
+              {
+                "label": "Expense",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "Direction"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "零钱钱包 · CNY · cash",
+            "description": "Review fund movements and their outcomes.",
+            "emptyDescription": "Completed fund operations will appear here.",
+            "emptyTitle": "No transactions yet",
+            "groupByDate": true,
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "rowBadgeLabel": "Direction",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "Transaction details",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Transactions"
+      },
+      "expected": {
+        "urgentTexts": [
+          "Warning: this original status stays visible without opening account information.",
+          "Action required: this original error stays visible and must not be duplicated.",
+          "Important note: preserve the original notice and its position."
+        ],
+        "informationTexts": [
+          "Supplementary account information is available in the disclosure.",
+          "Additional original reference information."
+        ],
+        "exactAmounts": [
+          "+123456789012345678901234567890.1234567890",
+          "-25.00",
+          "+100.00"
+        ],
+        "uniqueRowKeys": [
+          "wallet-records-cny/hold-order/cny",
+          "wallet-records-cny/expense-order/cny",
+          "wallet-records-cny/income-order/cny"
+        ],
+        "rowActions": [
+          {
+            "key": "wallet-records-cny/hold-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "hold-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-records-cny/expense-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "expense-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          },
+          {
+            "key": "wallet-records-cny/income-order/cny",
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "cny",
+                  "orderId": "income-order",
+                  "walletId": "wallet-records-cny"
+                }
+              }
+            ]
+          }
+        ],
+        "topLevelActionIds": [
+          "manageWallet",
+          "recovery"
+        ],
+        "noFinancialExecution": true
+      }
+    }
+  ]
+}

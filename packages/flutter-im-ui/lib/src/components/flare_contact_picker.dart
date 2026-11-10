@@ -36,6 +36,10 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
     this.maxSelected,
     this.title,
     this.sending = false,
+    this.loading = false,
+    this.error,
+    this.onSearch,
+    this.onRetry,
     this.onSelect,
     this.onCancel,
   });
@@ -52,6 +56,12 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
   /// [multiple] mode the confirm key) spins, and the rows take no taps.
   final bool sending;
 
+  /// Host-owned server search. Results are already filtered when onSearch is set.
+  final bool loading;
+  final String? error;
+  final ValueChanged<String>? onSearch;
+  final VoidCallback? onRetry;
+
   /// The chosen people: one on a tap in single mode, the toggled ones from the
   /// confirm key in [multiple] mode.
   final ValueChanged<List<FlareContactPickerEntry>>? onSelect;
@@ -66,6 +76,7 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
   final ScrollController _scroll = ScrollController();
   late String _groupId = widget.groups.isEmpty ? '' : widget.groups.first.id;
   final List<String> _chosen = <String>[];
+  final _selectedEntries = <String, FlareContactPickerEntry>{};
 
   /// The row a single-mode tap answered with: it spins while the host sends,
   /// and is forgotten once the send settles.
@@ -77,7 +88,7 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
     if (!widget.groups.any((group) => group.id == _groupId)) {
       _groupId = widget.groups.isEmpty ? '' : widget.groups.first.id;
     }
-    if (_chosen.isNotEmpty) {
+    if (_chosen.isNotEmpty && widget.onSearch == null) {
       final current = {
         for (final group in widget.groups)
           for (final entry in group.entries) entry.userId,
@@ -118,7 +129,8 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
   List<FlareContactPickerEntry> get _filtered {
     final entries = _group?.entries ?? const <FlareContactPickerEntry>[];
     final query = _query.text;
-    if (!widget.searchable || query.trim().isEmpty) return entries;
+    if (widget.onSearch != null || !widget.searchable || query.trim().isEmpty)
+      return entries;
     return entries
         .where((entry) => entry.matches(query))
         .toList(growable: false);
@@ -134,29 +146,40 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
       _chosen.length >= widget.maxSelected! &&
       !_chosen.contains(entry.userId);
   void _tap(FlareContactPickerEntry entry) {
-    if (widget.sending || _atLimit(entry)) return;
+    if (widget.sending ||
+        widget.loading ||
+        (widget.error?.isNotEmpty ?? false) ||
+        _atLimit(entry))
+      return;
     if (!widget.multiple) {
       setState(() => _pending = entry.userId);
       widget.onSelect?.call([entry]);
       return;
     }
     setState(() {
-      if (!_chosen.remove(entry.userId)) _chosen.add(entry.userId);
+      if (!_chosen.remove(entry.userId)) {
+        _chosen.add(entry.userId);
+        _selectedEntries[entry.userId] = entry;
+      } else {
+        _selectedEntries.remove(entry.userId);
+      }
     });
   }
 
   void _confirm() {
-    if (widget.sending) return;
-    final everyone = [for (final group in widget.groups) ...group.entries];
-    final picked = <FlareContactPickerEntry>[];
-    for (final id in _chosen) {
-      for (final entry in everyone) {
-        if (entry.userId == id) {
-          picked.add(entry);
-          break;
-        }
-      }
-    }
+    if (widget.sending || widget.loading || (widget.error?.isNotEmpty ?? false))
+      return;
+    final current = {
+      for (final group in widget.groups)
+        for (final entry in group.entries) entry.userId: entry,
+    };
+    final picked = <FlareContactPickerEntry>[
+      for (final id in _chosen)
+        if ((current[id] ??
+                (widget.onSearch == null ? null : _selectedEntries[id]))
+            case final entry?)
+          entry,
+    ];
     if (picked.isNotEmpty) widget.onSelect?.call(picked);
   }
 
@@ -225,7 +248,10 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                                 label: _chosen.isEmpty
                                     ? strings.confirm
                                     : '${strings.confirm} (${_chosen.length}${widget.maxSelected == null ? '' : '/${widget.maxSelected}'})',
-                                disabled: _chosen.isEmpty,
+                                disabled:
+                                    _chosen.isEmpty ||
+                                    widget.loading ||
+                                    (widget.error?.isNotEmpty ?? false),
                                 loading: widget.sending,
                                 onPressed: _chosen.isEmpty ? null : _confirm,
                               )
@@ -245,8 +271,9 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                 child: FlareSearchBar(
                   controller: _query,
                   placeholder: strings.contactPickerSearch,
-                  onChanged: (_) {
+                  onChanged: (query) {
                     setState(() {});
+                    widget.onSearch?.call(query);
                     _resetScroll();
                   },
                 ),
@@ -276,7 +303,18 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
               child: Semantics(
                 container: true,
                 label: group == null ? null : _label(group, strings),
-                child: entries.isEmpty
+                child: widget.loading
+                    ? FlareEmptyState(title: strings.loading, loading: true)
+                    : (widget.error?.isNotEmpty ?? false)
+                    ? FlareEmptyState(
+                        title: widget.error!,
+                        tone: FlareEmptyStateTone.error,
+                        actionText: widget.onRetry == null
+                            ? null
+                            : strings.retry,
+                        onAction: widget.onRetry,
+                      )
+                    : entries.isEmpty
                     ? FlareEmptyState(
                         title: strings.contactPickerEmpty,
                         icon: _query.text.trim().isEmpty ? 'people' : 'search',

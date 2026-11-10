@@ -26,6 +26,7 @@ import AppKit
 ///   ``FlareSizes/componentRedPacketCardWidth`` wide inside its parent, never under the touch target tall.
 public struct RedPacketCardView: View {
     private let blessing: String
+    private let brandName: String?
     private let kind: FlareRedPacketKind?
     private let recipientName: String?
     private let state: FlareRedPacketCardState
@@ -33,28 +34,48 @@ public struct RedPacketCardView: View {
     private let busy: Bool
     private let statusLabel: String?
     private let onOpen: (() -> Void)?
+    @ScaledMetric(relativeTo: .body) private var blessingFontSize = FlareSizes.fontSizeLg
+    @ScaledMetric(relativeTo: .caption) private var statusFontSize = FlareSizes.fontSizeSm
+    @ScaledMetric(relativeTo: .caption2) private var brandFontSize = FlareSizes.fontSize2xs
     @Environment(\.flareStrings) private var strings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareMessageCardQuote) private var quote
 
     /// - Parameters:
     ///   - kind: Lucky and exclusive draw their badge on the brand line; normal (and nil) draws none.
     ///   - recipientName: An exclusive packet's designated member, from the host's directory ("给 某某").
     public init(blessing: String, kind: FlareRedPacketKind? = nil, recipientName: String? = nil,
                 state: FlareRedPacketCardState = .unopened, disabled: Bool = false, busy: Bool = false,
-                statusLabel: String? = nil, onOpen: (() -> Void)? = nil) {
+                statusLabel: String? = nil, brandName: String? = nil, onOpen: (() -> Void)? = nil) {
         self.blessing = blessing; self.kind = kind; self.recipientName = recipientName; self.state = state
-        self.disabled = disabled; self.busy = busy; self.statusLabel = statusLabel; self.onOpen = onOpen
+        self.disabled = disabled; self.busy = busy; self.statusLabel = statusLabel; self.brandName = brandName; self.onOpen = onOpen
     }
 
     public var body: some View {
-        Button { if canOpen { onOpen?() } } label: { card }
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let faded = FlareRedPacketCardRules.faded(state)
+        VStack(alignment: .leading, spacing: 0) {
+            if quote != nil {
+                // Keep a quote's locate button outside the packet action.
+                FlareMessageCardQuoteSlot()
+                    .padding(.horizontal, FlareSizes.spacing2md)
+                    .padding(.top, FlareSizes.spacing2md)
+            }
+            Button { if canOpen { onOpen?() } } label: { card }
             // Not `.plain`: the system dims a disabled plain button, and a busy or unavailable packet keeps its
             // colours — only its status line says why it does not open.
             .buttonStyle(RedPacketCardPressStyle())
             .disabled(!canOpen)
             .accessibilityLabel(accessibilityName)
             .accessibilityValue(statusText)
+        }
+        .frame(maxWidth: FlareSizes.componentRedPacketCardWidth, minHeight: FlareSizes.touchTarget, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(RedPacketPalette.cover(colors, faded: faded)))
+        .compositingGroup()
+        .shadow(color: colors.redPacketEnd.opacity(faded ? 0 : 0.3), radius: FlareSizes.spacingSm, y: FlareSizes.spacingXs)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .contain)
     }
 
     var canOpen: Bool { FlareRedPacketCardRules.tappable(busy: busy, disabled: disabled) && onOpen != nil }
@@ -62,6 +83,11 @@ public struct RedPacketCardView: View {
     var statusText: String {
         FlareRedPacketCardRules.status(state: state, statusLabel: statusLabel, busy: busy, disabled: disabled)
             .text(strings)
+    }
+
+    private var brandLabel: String {
+        let value = brandName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return value.isEmpty ? strings.packetBrand : value
     }
 
     private var badge: String? { FlareRedPacketCardRules.badge(kind, strings: strings) }
@@ -79,44 +105,41 @@ public struct RedPacketCardView: View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: FlareSizes.spacingMd) {
                 RedPacketGlyph(width: RedPacketMetrics.cardGlyphWidth, faded: faded)
-                VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                VStack(alignment: .leading, spacing: RedPacketMetrics.cardTextGap) {
                     Text(blessing)
-                        .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
+                        .font(.system(size: blessingFontSize, weight: .semibold))
                         .foregroundColor(ink)
                         .lineLimit(1)
                         .truncationMode(.tail)
+                        .frame(minHeight: blessingFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
                     Text(statusText)
-                        .font(.system(size: FlareSizes.fontSizeSm))
-                        .foregroundColor(faded ? ink : colors.redPacketOnSurface.opacity(0.85))
-                        .lineLimit(1)
+                        .font(.system(size: statusFontSize))
+                        .foregroundColor(faded ? ink : ink.opacity(0.85))
+                        .lineSpacing(statusFontSize * (FlareSizes.lineHeightSnug - FlareSizes.lineHeightTight))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(minHeight: statusFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, FlareSizes.spacing2md)
-            .padding(.vertical, FlareSizes.spacingMd)
-            Rectangle().fill(ink.opacity(faded ? 0.18 : 0.24)).frame(height: RedPacketMetrics.hairline)
-                .padding(.horizontal, FlareSizes.spacing2md)
+            Rectangle().fill(ink.opacity(faded ? 0.18 : 0.28)).frame(height: 1)
+                .padding(.top, FlareSizes.spacingMd)
             HStack(spacing: FlareSizes.spacingSm) {
                 if let badge {
-                    Text(badge).fontWeight(.semibold).lineLimit(1)
+                    Text(badge).lineLimit(1)
                 }
                 if let recipient { Text(recipient).lineLimit(1).truncationMode(.tail) }
                 Spacer(minLength: 0)
-                Text(strings.packetBrand).lineLimit(1)
+                Text(brandLabel).lineLimit(1).truncationMode(.tail)
             }
-            .font(.system(size: FlareSizes.fontSize2xs))
-            .foregroundColor(ink.opacity(faded ? 0.72 : 0.75))
-            .padding(.horizontal, FlareSizes.spacing2md)
-            .padding(.vertical, FlareSizes.spacingXs)
+            .font(.system(size: brandFontSize, weight: .medium))
+            .foregroundColor(ink.opacity(faded ? 0.72 : 0.6))
+            .frame(minHeight: brandFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
+            .padding(.top, FlareSizes.spacingSm)
         }
-        .frame(maxWidth: FlareSizes.componentRedPacketCardWidth, minHeight: FlareSizes.touchTarget, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(RedPacketPalette.cover(colors, faded: faded)))
+        .padding(.horizontal, FlareSizes.spacing2md)
+        .padding(.top, quote == nil ? FlareSizes.spacing2md : FlareSizes.spacingSm)
+        .padding(.bottom, FlareSizes.spacing2md)
         .contentShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
-        // One shadow under the card's outline, not one under each line of text; a spent card lies flat.
-        .compositingGroup()
-        .shadow(color: colors.redPacketEnd.opacity(faded ? 0 : 0.3), radius: FlareSizes.spacingSm, y: FlareSizes.spacingXs)
-        // Never squeezed below its content by a crowded parent.
-        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -135,6 +158,7 @@ enum RedPacketMetrics {
     /// The close button's ring.
     static let ringWidth: CGFloat = 1.5
     static let cardGlyphWidth: CGFloat = 30
+    static let cardTextGap: CGFloat = 3
     /// The glyph is an envelope: taller than wide.
     static let glyphAspect: CGFloat = 1.3
     /// The envelope's flap covers this share of its minimum height; the open button sits on its edge.

@@ -49,25 +49,19 @@
 }
 
 :root {
-  --flare-component-rich-card-width: 332px;
-  --flare-component-rich-card-compact-width: 292px;
   --flare-component-rich-card-media-height: 118px;
 }
 
-/* A rich card is sized for the timeline it sits in, not the window (`container: flare-timeline`);
-   `cqw` is a percentage of that box, where `vw` would still be the whole screen. */
+/* Width comes from the shared richCardWidth token (320) and each row's available space.
+   Viewport-specific visual widths here would diverge from the native and Flutter kits. */
 @container flare-timeline (max-width: 599px) {
   .message-list {
-    --flare-component-rich-card-width: min(320px, calc(100cqw - 84px));
-    --flare-component-rich-card-compact-width: min(292px, calc(100cqw - 84px));
     --flare-component-rich-card-media-height: 106px;
   }
 }
 
 @container flare-timeline (min-width: 900px) {
   .message-list {
-    --flare-component-rich-card-width: min(348px, 34cqw);
-    --flare-component-rich-card-compact-width: min(304px, 30cqw);
     --flare-component-rich-card-media-height: 124px;
   }
 }
@@ -75,7 +69,7 @@
 .im-rich-message-card,
 .business-message-view {
   /* A fixed card width, not a share of the bubble: a chromeless bubble sizes to its content, so a
-     percentage here would shrink the card to its text. The token already narrows with the list. */
+     percentage here would shrink the card to its text. The parent constrains narrow timelines. */
   width: var(--flare-component-rich-card-width);
   min-width: 0;
   max-width: 100%;
@@ -108,7 +102,7 @@ a.im-rich-message-card:focus-visible {
 }
 
 .im-rich-message-card--compact {
-  width: min(var(--flare-component-rich-card-compact-width), 100%);
+  width: min(var(--flare-component-rich-card-width), 100%);
 }
 
 .im-rich-message-card__header {

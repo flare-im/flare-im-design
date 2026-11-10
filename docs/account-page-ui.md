@@ -1,15 +1,39 @@
 # Account page presentation
 
-`FlarePluginPage.appearance` explicitly selects `document` or `account` in Vue, Flutter, SwiftUI and Compose. Without an explicit override, a resolved `presentation.renderer: "account"` selects the shared account presentation. The design kit contains no plugin IDs, SDK calls, financial validation or calculated balances.
+The four design Kits serve Web/Tauri, Flutter, iOS and Android. `PluginPage.appearance` defaults to `document`; a resolved `presentation.renderer: "account"` still selects AccountView automatically. `account` explicitly selects AccountView. The Kit contains no plugin IDs, SDK calls, financial validation or calculated balances.
 
-The first declared field is the account headline, and remaining fields are statistics. Values are opaque, server-formatted strings. The eye control hides every overview value and announces the hidden state. `presentation.props.maskRowAmounts` also masks asset/wallet row amounts; transaction pages leave it false. No totals are inferred from a partially loaded ledger; currencies are not combined.
+`presentation.props.layout` selects the hierarchy:
 
-In account rows, cell zero is the amount. The resolved badge names the entry type; other text cells are its description. A declared time column supplies its date group and time; absent times remain unknown. Row identity is the block and the original row key; duplicates within a block keep the first row. The existing merged resolved rows are authoritative, rather than the first page's raw data. A leading plus changes display colour only.
+- `wallet`: real wallet cards, declared record shortcuts, account information, then service rows. Cards use original row amounts and their column labels; overview fields remain in account information. Book and spendable amounts are not interchangeable. Wallet home does not render its description; flow and ledger descriptions remain unchanged.
+- `flow`: step, summary and description, result state, then the original labeled receipt and guarded form. No field becomes a large balance merely because it is first. The original block order and result/unavailable fallback remain authoritative.
+- `ledger`: wallet context and description, optional declared summary, records, then services. The description is not repeated inside a summary. Filters and pagination remain server queries.
 
-Each entry opens local details, including entries without a packet action. Original columns, type, amount and row key are shown. Only actions both declared by the block and bound by that row are available. Existing PluginView confirms, forms, busy/error signals and settling are reused. Original row key/input and original page/data are forwarded unchanged. The parent page still owns loading, unavailable reasons, refresh, filters and cursor pagination.
+Without a layout, the legacy first-field headline and remaining statistics remain unchanged. Values are opaque server-formatted strings. The eye control hides overview values and announces the hidden state; `maskRowAmounts` additionally hides row amounts. No totals are inferred or currencies combined.
 
-Actions use low-emphasis text appearance; semantic primary/danger colours remain. Touch/focus targets remain present. Shared theme tokens and localized labels support light/dark and narrow layouts. Warning/danger notices stay visible, including unknown-operation recovery. Informational rules remain under a disclosure. `groupByDate: false` omits date headings for asset/wallet lists, and `sectionTitle` supplies the translated section label. There are no fabricated top-up or withdrawal controls.
+In rows, cell zero is the exact amount. Declared labels, independent badges and time columns supply the remaining context. Identity is the block and original row key; duplicates within one block keep the first. Existing merged rows remain authoritative. Direct navigation only uses the explicitly declared eligible row action; otherwise local details reuse the original PluginView action, confirmation and form runner. Original page, data, row input, busy/error state, unknown-outcome lock and settlement signals remain intact.
 
-Common regression fixture: `spec/account-view-vectors.json` (fictional balances and transactions). The Vue preview is `examples/vue/wallet.html`. Widget/unit regressions cover exact amount text, row identity, unknown dates, empty/unavailable/error states, balance masking, original bound action input and page data. Product builds are verified separately from fixture interaction tests.
+## Shared available-container geometry
 
-详情标题可由 `presentation.props.detailTitle` 指定，缺省使用 `sectionTitle`；`rowKeyLabel` 可覆盖详情中的“记录编号”标签。
+`Screen.contentMaxWidth` is optional and defaults to no constraint. `PluginPage.contentMaxWidth` defaults to the 880 directory token; explicit null opts out. The outer width includes page gutters and applies to the header, filters, every body state and pagination. Backgrounds fill the pane. Tauri uses the existing generic drawer width prop for plugin pages, with its normal window clamp; other settings drawers keep their width.
+
+For container width `w`, outer width is `min(w, 880)` and inner width is outer minus 32. Body insets are 16 horizontal, 12 top and 20 bottom plus native safe areas. Wallet cards use one column below 572 inner width, otherwise at most two with a 12 gap. One card fills the row. A labeled inline form is at most 420 wide and lives inside 16-unit receipt insets: 256 at a 320 container, 326 at 390, and 420 at 768 or wider.
+
+Wallet title and action groups keep a minimum 12-unit gap both inline and when wrapped. Wallet cards align at the top and retain their natural height; the tallest card determines only the next row’s vertical position, without stretching its neighbours.
+
+Focused headers use 12 horizontal and 8 vertical insets, a 48-unit minimum inner height, a 48-unit back target, an 8 gap and a 24 bold title. Account section titles are 15 semibold; ledger sections 18 semibold; wallet names 20 semibold and amounts 24 bold. Metadata labels are 12, values 14 medium, with a 4 label gap, 12 column gap and 8 row gap, at most two columns. Wallet cards use 16 padding and an 8 internal gap. Legacy 44-unit headlines and specialized payment components are unchanged.
+
+Flow step/summary/description use an 8 gap, followed by 12 to the result or receipt. Step text is 12 semibold brand, summary 15 semibold and description 12 secondary. Ledger context is 13 medium primary and description 12 secondary, with an 8 gap. Shared tokens provide theme, borders and surfaces.
+
+## Visibility and accessibility
+
+Nonblank warning/danger **note and status** blocks stay visible exactly once outside the wallet/ledger information disclosure. Info/neutral blocks remain ordinary information. Flow keeps its original blocks and existing result/unavailable priority; Kit does not infer a business outcome. Information controls have a 48-unit minimum target. Section and date headings expose heading semantics; hidden balances are announced. Long original amounts, labels and status reasons wrap without truncating financial text.
+
+Loading, first-read failure, loaded-read failure, unavailable, read-only, busy, empty, form errors and unknown outcomes remain distinct. Failed form settlement retains values; successful settlement resets only the original form. Passwords and confirmations retain their existing guarded components.
+
+## Shared display probes
+
+`spec/account-layout-vectors.json` provides six display-only clones: wallet, flow and ledger in Chinese and English. Seven viewport expectations cover 320/390/603/604/768/880/1360, including the exact one-to-two-column boundary, form caps, typed warning/danger, ordinary information, long amounts and opaque row actions. These are explicitly synthetic modifications of historical resolved fixtures, not new resolver or database output. The generator is preserved in the workspace's `.planning/2026-11-09-wallet-ui-kit-alignment/` directory.
+
+Existing `account-view-vectors.json`, 44 wallet flows, 32 cashflows, multiple-wallet, record, scoped-history and payout-kind fixtures remain available without rewriting historical data. Rendering tests collect emitted actions only and never execute a financial operation. Product builds and actual-device acceptance are separate evidence.
+
+Local detail titles may use `presentation.props.detailTitle`, falling back to `sectionTitle`; `rowKeyLabel` overrides the record-key caption.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from "vue";
+import { computed, useId, watch } from "vue";
 import {
   NButton,
   NFormItem,
@@ -11,9 +11,11 @@ import {
 import {
   schemaFields,
   schemaFieldValue,
+  schemaLocalized,
   updateSchemaField,
   type SchemaField,
   type SchemaHint,
+  type SchemaLocalized,
   type SchemaPresentation,
 } from "./schema-fields";
 import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
@@ -22,6 +24,11 @@ import {
   type SchemaSelection,
   type SchemaSelectionLabels,
 } from "./schema-selections";
+import {
+  flarePluginReferenceParents,
+  type FlarePluginReferenceRequest,
+} from "../../shared/contracts/plugin-ui";
+import { useFlareLocaleOptional } from "../../shared/i18n/useFlareI18n";
 const props = defineProps<{
   selections?: Record<string, SchemaSelection>;
   selectionLabels?: SchemaSelectionLabels;
@@ -31,7 +38,10 @@ const props = defineProps<{
   disabled?: boolean;
   uiHints?: Record<string, SchemaHint>;
   presentation?: Record<string, SchemaPresentation>;
-  groupLabels?: Record<string, string>;
+  /** Headings by group key: already in the reader's language, or by locale as a manifest declares them. */
+  groupLabels?: Record<string, string | SchemaLocalized>;
+  /** The language of the manifest's texts; the kit's when absent. */
+  locale?: string;
   resetLabel?: string;
   /** Two columns only when the form itself has enough room; defaults to one. */
   columns?: 1 | 2;
@@ -45,18 +55,40 @@ const emit = defineEmits<{
   "selection-search": [path: string, search: string];
   "selection-more": [path: string];
   "selection-retry": [path: string];
+  /** A reference request or selected-value update; hosts may retain the same directory's options. */
+  "reference-load": [request: FlarePluginReferenceRequest];
 }>();
 const fieldPrefix = useId();
+const kitLocale = useFlareLocaleOptional();
+const textLocale = computed(() => props.locale ?? kitLocale.value);
 const fields = computed(() =>
-  schemaFields(props.schema, props.uiHints, props.presentation),
+  schemaFields(
+    props.schema,
+    props.uiHints,
+    props.presentation,
+    textLocale.value,
+  ),
 );
+const groupHeading = (group: string) => {
+  const label = props.groupLabels?.[group];
+  return (
+    (typeof label === "string"
+      ? label
+      : schemaLocalized(label, textLocale.value)) ?? group
+  );
+};
 const groups = computed(() => [
   ...new Set(fields.value.map((field) => field.group ?? "")),
 ]);
 const value = (field: SchemaField) => schemaFieldValue(props.modelValue, field);
+// JSON Schema string lengths count Unicode scalar values, not UTF-16 code units.
+const countCharacters = (text: string) => Array.from(text).length;
 const options = (field: SchemaField) =>
   (field.options ?? []).map((option) => ({
-    label: props.presentation?.[field.id]?.options?.[option] ?? option,
+    label:
+      props.presentation?.[field.id]?.options?.[option] ??
+      field.optionLabels?.[option] ??
+      option,
     value: option,
   }));
 function set(field: SchemaField, next: unknown) {
@@ -65,7 +97,52 @@ function set(field: SchemaField, next: unknown) {
 }
 const path = (field: SchemaField) =>
   schemaFieldPath(props.path ?? "", field.id);
-const selection = (field: SchemaField) => props.selections?.[path(field)];
+// A reference field is closed until the host answers and the properties beside it hold its parents.
+const CLOSED: SchemaSelection = { options: [], disabled: true };
+const referenceParents = (field: SchemaField) =>
+  field.reference
+    ? flarePluginReferenceParents(field.reference, (id) => props.modelValue[id])
+    : null;
+const selection = (field: SchemaField) => {
+  const state = props.selections?.[path(field)];
+  if (!field.reference) return state;
+  return referenceParents(field) ? (state ?? CLOSED) : CLOSED;
+};
+const childHints = (field: SchemaField) =>
+  field.childHints ? { ...props.uiHints, ...field.childHints } : props.uiHints;
+const referenceRequests = computed<FlarePluginReferenceRequest[]>(() =>
+  fields.value.flatMap((field) => {
+    const parents = referenceParents(field);
+    if (!field.reference || !parents) return [];
+    const current = value(field);
+    return [
+      {
+        id: path(field),
+        reference: field.reference,
+        parents,
+        selected: typeof current === "string" && current ? current : undefined,
+      },
+    ];
+  }),
+);
+const askedFor = new Map<string, string>();
+// Keep the host's selected value current for search/hydration; it decides when options need a read.
+watch(
+  referenceRequests,
+  (requests) => {
+    for (const request of requests) {
+      const key = JSON.stringify([
+        request.reference,
+        request.parents,
+        request.selected,
+      ]);
+      if (askedFor.get(request.id) === key) continue;
+      askedFor.set(request.id, key);
+      emit("reference-load", request);
+    }
+  },
+  { immediate: true },
+);
 function selectionOptions(field: SchemaField) {
   const state = selection(field)!;
   const list = [...state.options];
@@ -130,7 +207,7 @@ function removeRow(field: SchemaField, index: number) {
       class="flare-schema-form-group"
     >
       <h3 v-if="group" class="flare-schema-form-heading">
-        {{ groupLabels?.[group] ?? group }}
+        {{ groupHeading(group) }}
       </h3>
       <div class="flare-schema-form-fields">
         <NFormItem
@@ -153,11 +230,13 @@ function removeRow(field: SchemaField, index: number) {
               :path="path(field)"
               :selections="selections"
               :selection-labels="selectionLabels"
-              :ui-hints="uiHints"
+              :ui-hints="childHints(field)"
               :group-labels="groupLabels"
+              :locale="locale"
               @selection-search="(p, q) => emit('selection-search', p, q)"
               @selection-more="emit('selection-more', $event)"
               @selection-retry="emit('selection-retry', $event)"
+              @reference-load="emit('reference-load', $event)"
               :columns="columns"
               :depth="(depth ?? 0) + 1"
               :disabled="disabled"
@@ -189,11 +268,13 @@ function removeRow(field: SchemaField, index: number) {
                   :path="schemaFieldPath(path(field), index)"
                   :selections="selections"
                   :selection-labels="selectionLabels"
-                  :ui-hints="uiHints"
+                  :ui-hints="childHints(field)"
                   :group-labels="groupLabels"
+                  :locale="locale"
                   @selection-search="(p, q) => emit('selection-search', p, q)"
                   @selection-more="emit('selection-more', $event)"
                   @selection-retry="emit('selection-retry', $event)"
+                  @reference-load="emit('reference-load', $event)"
                   @update:model-value="changeRow(field, index, $event)"
                 />
                 <NButton
@@ -290,6 +371,7 @@ function removeRow(field: SchemaField, index: number) {
               "
               :disabled="disabled"
               :maxlength="field.maxLength ?? 4096"
+              :count-graphemes="countCharacters"
               @update:value="set(field, $event)"
             />
             <NButton

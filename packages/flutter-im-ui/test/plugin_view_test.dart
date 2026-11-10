@@ -1624,6 +1624,69 @@ void main() {
       }
     });
 
+    testWidgets('resets a selection when dynamic choices change', (
+      tester,
+    ) async {
+      final submitted = <Map<String, Object?>>[];
+      Widget selectionForm(List<({String value, String label})> choices) =>
+          MaterialApp(
+            home: Scaffold(
+              body: FlarePluginForm(
+                inputs: [
+                  FlarePluginInput(
+                    id: 'method',
+                    kind: FlarePluginInputKind.select,
+                    label: 'Method',
+                    required: true,
+                    choices: choices,
+                  ),
+                ],
+                onSubmit: submitted.add,
+              ),
+            ),
+          );
+      List<({String value, String label})> allChoices() => [
+        (value: 'bankCard', label: 'Bank card'),
+        (value: 'alipay', label: 'Alipay'),
+        (value: 'wechat', label: 'WeChat'),
+        (value: 'address', label: 'Address'),
+      ];
+
+      await tester.pumpWidget(selectionForm(allChoices()));
+      await tester.tap(find.text('Bank card'));
+      await tester.pump();
+      expect(
+        tester.widget<FlareRadioGroup>(find.byType(FlareRadioGroup)).value,
+        'bankCard',
+      );
+
+      // A host rebuild with identical choices preserves the current draft.
+      await tester.pumpWidget(selectionForm(allChoices()));
+      expect(
+        tester.widget<FlareRadioGroup>(find.byType(FlareRadioGroup)).value,
+        'bankCard',
+      );
+
+      await tester.pumpWidget(
+        selectionForm([(value: 'alipay', label: 'Alipay')]),
+      );
+      expect(
+        tester.widget<FlareRadioGroup>(find.byType(FlareRadioGroup)).value,
+        isEmpty,
+      );
+      await tester.tap(find.byKey(const ValueKey('flare-plugin-form-submit')));
+      await tester.pump();
+      expect(submitted, isEmpty);
+
+      await tester.tap(find.text('Alipay'));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('flare-plugin-form-submit')));
+      await tester.pump();
+      expect(submitted, [
+        {'method': 'alipay'},
+      ]);
+    });
+
     testWidgets('shows the host errors until the input is edited', (
       tester,
     ) async {

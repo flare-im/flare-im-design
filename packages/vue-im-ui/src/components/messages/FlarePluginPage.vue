@@ -19,6 +19,7 @@ import { usePluginPaging } from "./plugin/pluginPaging";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
+import { flareLayout } from "../../design-system/theme/layout-tokens";
 import {
   flarePluginPageFilters,
   flarePluginPageFilterValues,
@@ -27,6 +28,8 @@ import {
   flarePluginUnavailableKey,
   type FlarePluginActionPayload,
   type FlarePluginFormError,
+  type FlarePluginFileState,
+  type FlarePluginFileAction,
   type FlarePluginMember,
   type FlarePluginPageActionPayload,
   type FlarePluginPageFilter,
@@ -41,6 +44,8 @@ const props = withDefaults(
     /** The page shown: every page action carries it. */
     page: FlarePluginPageRef;
     appearance?: FlarePluginPageAppearance;
+    /** Shared frame for the header and every loading/content state; null opts out. */
+    contentMaxWidth?: number | null;
     /** Page title while there is no view (or the view has none); the view's title wins. */
     title?: string;
     /** The resolved page view (pluginPage's result, with data); absent while the first load runs. */
@@ -55,6 +60,8 @@ const props = withDefaults(
     refreshing?: boolean;
     /** The next page is loading: the load-more key spins and is disabled. */
     loadingMore?: boolean;
+    /** Read-side completion/invalidation signal, independent from financial action settlement. */
+    pagingToken?: number;
     /** Draw the back key (emits back); the platform back does the same. */
     back?: boolean;
     resolveUser?: FlarePluginResolveUser;
@@ -64,18 +71,25 @@ const props = withDefaults(
     /** Failure of an action run on the page (the view's error). */
     actionError?: string;
     formErrors?: FlarePluginFormError[];
+    fileStates?: Record<string, FlarePluginFileState>;
     members?: FlarePluginMember[];
+    membersLoading?: boolean;
+    membersRevision?: number;
+    membersError?: string;
+    onMemberSearch?: (query: string) => void;
+    onMembersRetry?: () => void;
     /** The host's settle signal for actions run on the page (PluginView settleToken). */
     settleToken?: number;
   }>(),
   {
-    appearance: "document", title: "", view: undefined, filters: () => ({}), loading: false, error: undefined, refreshing: false, loadingMore: false, back: false,
+    appearance: "document", contentMaxWidth: flareLayout.directoryContentMaxWidth, title: "", view: undefined, filters: () => ({}), loading: false, error: undefined, refreshing: false, loadingMore: false, pagingToken: 0, back: false,
     resolveUser: undefined, viewerId: undefined, busyActionId: undefined, actionError: undefined, formErrors: () => [],
     members: () => [], settleToken: 0,
   },
 );
 const emit = defineEmits<{
   back: [];
+  fileAction: [event: FlarePluginFileAction];
   /** Pull to refresh or the refresh key: the host fetches the page again and passes back the view. */
   refresh: [];
   /** The first load failed and the reader asked again. */
@@ -92,6 +106,7 @@ const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
 const platform = useFlarePlatformSafe();
 const heading = computed(() => props.view?.title || props.title);
+const isAccount = computed(() => props.appearance === "account" || props.view?.presentation?.renderer === "account");
 const state = computed(() => flarePluginPageState(props.view, props.loading, props.error));
 // An unavailable page (spec rules.page) says why; only an unreachable catalog is worth asking again.
 const unavailableText = computed(() => {
@@ -108,6 +123,8 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
   loadingMore: () => props.loadingMore,
   settleToken: () => props.settleToken,
   actionError: () => props.actionError,
+  pageError: () => props.error,
+  pagingToken: () => props.pagingToken,
   refreshing: () => props.refreshing,
   request: (cursor) => emit("loadMore", cursor),
 });
@@ -163,15 +180,18 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   if (value === filter.selected) return;
   emit("filter", flarePluginPageFilterValues(props.filters, filter.input.id, value));
 }
+function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
 </script>
 
 <template>
   <FlareScreen
     class="flare-plugin-page"
     :title="heading"
-    :class="{ 'is-account': appearance === 'account' }"
+    :class="{ 'is-account': isAccount }"
+    :surface="isAccount ? 'surface' : 'canvas'"
     :back="back"
     :scroll="false"
+    :content-max-width="contentMaxWidth"
     :aria-label="heading || undefined"
     :data-state="state"
     @back="emit('back')"
@@ -213,11 +233,11 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
         </template>
       </FlareEmptyState>
       <template v-else-if="view">
-        <FlareStatusBanner v-if="error" class="flare-plugin-page__banner" :text="error" tone="danger" />
+        <FlareStatusBanner v-if="error" class="flare-plugin-page__banner" :text="error" tone="danger" :action-text="canRefresh && !refreshing ? t('pluginView.retry') : undefined" @action="refresh" />
         <div v-if="filterRows.length" class="flare-plugin-page__filters" data-page-filters="true">
+          <div v-for="filter in filterRows" :key="filter.input.id" class="flare-plugin-page__filter-row">
+          <span class="flare-plugin-page__filter-label">{{ filter.input.label }}</span>
           <FlareFilterTabs
-            v-for="filter in filterRows"
-            :key="filter.input.id"
             :options="tabsOf(filter)"
             :model-value="filter.selected ?? ''"
             :aria-label="filter.input.label"
@@ -227,15 +247,21 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
             @update:model-value="() => undefined"
             @change="(key: string) => choose(filter, key)"
           />
+          </div>
         </div>
         <div class="flare-plugin-page__body">
           <FlareAccountView
-            v-if="appearance === 'account' || view.presentation?.renderer === 'account'"
+            :file-states="fileStates"
+            :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
+          v-if="isAccount"
+            style="max-width: none"
             :view="view" :resolve-user="resolveUser" :viewer-id="viewerId"
             :busy-action-id="busyActionId" :error="actionError" :form-errors="formErrors"
-            :members="members" :settle-token="settleToken" @action="runAction"
+            :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry" :settle-token="settleToken" :onAction="instance?.vnode.props?.onAction ? runAction : undefined"
           />
           <FlarePluginView
+            :file-states="fileStates"
+            :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
             v-else
             :view="view"
             embedded
@@ -245,9 +271,9 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
             :busy-action-id="busyActionId"
             :error="actionError"
             :form-errors="formErrors"
-            :members="members"
+            :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry"
             :settle-token="settleToken"
-            @action="runAction"
+            :onAction="instance?.vnode.props?.onAction ? runAction : undefined"
           />
         </div>
         <div v-if="nextCursor" class="flare-plugin-page__more">
@@ -274,10 +300,9 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding: 0 var(--flare-size-spacing-lg) max(var(--flare-size-spacing-xl), env(safe-area-inset-bottom));
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) calc(var(--flare-size-spacing-xl) + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
-.flare-plugin-page.is-account .flare-plugin-page__scroll { max-width: 760px; width: 100%; margin-inline: auto; padding-top: var(--flare-size-spacing-lg); }
 .flare-plugin-page.is-account .flare-plugin-page__body { padding: 0; background: transparent; border-radius: 0; }
 .flare-plugin-page__pull {
   display: flex;
@@ -307,6 +332,8 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   padding-top: var(--flare-size-spacing-sm);
 }
 .flare-plugin-page__more { padding-top: var(--flare-size-spacing-md); }
+.flare-plugin-page__filter-row { display: grid; gap: var(--flare-size-spacing-sm); min-width: 0; }
+.flare-plugin-page__filter-label { color: var(--flare-color-text-secondary); font-size: var(--flare-size-font-size-sm); }
 .flare-plugin-page__error {
   display: grid;
   justify-items: center;

@@ -59,6 +59,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+/** Visual arrangement only; all layouts share the guarded confirmation/form/action runner. */
+enum class PluginViewActionLayout { Inline, Compact, List }
+
+internal fun pluginInlineFormHeading(value: String?): String? = value?.trim()?.takeIf { it.isNotEmpty() }
+
 /**
  * Plugin card — the core SDK's resolved plugin view drawn as a kit business card. Spec: Message/PluginView
  * (`PluginView`). Render facts follow `spec/plugin-view-vectors.json`.
@@ -125,12 +130,29 @@ fun PluginView(
     viewerId: String? = null,
     /** A quoted reply drawn inside the shell, above the title row; a card message row passes its own. */
     quote: (@Composable () -> Unit)? = LocalFlareCardQuote.current,
+    actionLayout: PluginViewActionLayout = PluginViewActionLayout.Inline,
+    /** Hide only the outer banner; the error still settles the form and remains visible in an active form. */
+    showError: Boolean = true,
+    labelRows: Boolean = false,
+    inlineFormActionId: String? = null,
+    /** Optional heading before an eligible inline form, using the primary pane width only when metadata is nonblank. */
+    inlineFormTitle: String? = null,
+    /** Optional supporting text below the inline form heading; blank metadata preserves the existing form layout. */
+    inlineFormDescription: String? = null,
+    fileStates: Map<String, PluginFileState> = emptyMap(),
+    onFileAction: ((PluginFileAction) -> Unit)? = null,
     onAction: ((String, PluginActionPayload) -> Unit)? = null,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
     onOpenDetail: (() -> Unit)? = null,
 ) = PluginViewContent(
     view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
-    resolveUser = resolveUser, members = members, formErrors = formErrors, settleToken = settleToken, displayName = displayName,
-    viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null,
+    resolveUser = resolveUser, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = formErrors, settleToken = settleToken, displayName = displayName,
+    viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null, actionLayout = actionLayout, showError = showError, labelRows = labelRows, inlineFormActionId = inlineFormActionId, inlineFormTitle = inlineFormTitle, inlineFormDescription = inlineFormDescription,
+    fileStates = fileStates, onFileAction = onFileAction,
 )
 
 /**
@@ -165,6 +187,19 @@ internal fun PluginViewContent(
     onAction: ((String, PluginActionPayload) -> Unit)?,
     onOpenDetail: (() -> Unit)?,
     list: PluginViewList?,
+    actionLayout: PluginViewActionLayout = PluginViewActionLayout.Inline,
+    showError: Boolean = true,
+    labelRows: Boolean = false,
+    inlineFormActionId: String? = null,
+    inlineFormTitle: String? = null,
+    inlineFormDescription: String? = null,
+    fileStates: Map<String, PluginFileState> = emptyMap(),
+    onFileAction: ((PluginFileAction) -> Unit)? = null,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -179,9 +214,11 @@ internal fun PluginViewContent(
     var confirming by remember { mutableStateOf<PluginActionRun?>(null) }
     var formRun by remember { mutableStateOf<PluginActionRun?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
+    val inlineAction = pluginInlineFormAction(view, inlineFormActionId, onAction != null)
+    var inlineForm by remember(inlineAction?.id) { mutableStateOf(PluginInlineFormState()) }
     // The rows action last handed over, as (action id, row key): only that row's key spins while the action runs.
     var rowRun by remember { mutableStateOf<Pair<String, String>?>(null) }
-    val locked = busy || busyActionId != null
+    val locked = busy || busyActionId != null || inlineForm.pending || PluginViewFormat.readOnly(view)
     val failure = error?.takeIf { it.isNotEmpty() }
     val formPending = formRun?.let { busy || busyActionId == it.action.id } ?: false
     val emitAction by rememberUpdatedState(onAction)
@@ -195,6 +232,7 @@ internal fun PluginViewContent(
     // optimistic choice; a settle closes the submitted form unless it came back with errors.
     PluginOnChange(PluginHostSignal(busy, busyActionId, error, formErrors, settleToken)) { old, new ->
         interaction = interaction.hostChanged(old, new)
+        inlineAction?.let { inlineForm = inlineForm.settle(old, new, it.id) }
         val request = formRun
         if (request != null && formSubmitted && pluginFormSettle(old, new, request.action.id) == PluginFormSettle.Close) {
             formRun = null
@@ -234,17 +272,43 @@ internal fun PluginViewContent(
         advance(PluginActionRun(action, payload, block).start())
     }
 
-    val keys = PluginViewFormat.keys(view, embedded)
+    val keys = PluginViewFormat.keys(view, embedded).filter { it.id != inlineAction?.id }
     val detailKey = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
-    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure, strings)
+    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure.takeIf { showError && inlineAction == null }, strings).toMutableList().apply {
+        if (inlineAction != null) {
+            val footer = indexOfFirst { it is PluginViewPart.Keys || it is PluginViewPart.Error }
+            add(if (footer < 0) size else footer, PluginViewPart.InlineForm)
+        }
+    }
         .filterNot { it is PluginViewPart.DetailKey }
     val detail: @Composable () -> Unit = {
         Button(label = strings.pluginViewDetail, variant = FlareButtonVariant.Quiet, size = FlareControlSize.Sm,
             disabled = detailKey != true, appearance = FlareButtonAppearance.Text, onClick = onOpenDetail)
     }
+    val formTitle = pluginInlineFormHeading(inlineFormTitle)
+    val formDescription = pluginInlineFormHeading(inlineFormDescription)
 
     val drawPart: @Composable (PluginViewPart) -> Unit = { part ->
         when (part) {
+            PluginViewPart.InlineForm -> inlineAction?.let { action -> key(action.id, inlineForm.revision) {
+                Column(Modifier.then(if (formTitle != null || formDescription != null) Modifier.widthIn(max = FlareSizes.primaryPaneMaxWidth) else Modifier).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+                    formTitle?.let {
+                        Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
+                    }
+                    formDescription?.let {
+                        Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
+                    }
+                PluginForm(inputs = view.formInputs(action), errors = if (inlineForm.submitted) formErrors else emptyList(),
+                    submitLabel = action.label, busy = locked, error = failure, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  embedded = true,
+                    fileStates = fileStates, onFileAction = onFileAction,
+                    onSubmit = { values ->
+                        if (!locked && pluginInlineFormAction(view, action.id, emitAction != null) != null) {
+                            val next = inlineForm.begin()
+                            if (next != null) { inlineForm = next; advance(PluginActionRun(action, PluginActionPayload.Empty, null).submitted(values)) }
+                        }
+                    })
+                }
+            } }
             // The quote slot: a reply's quote sits inside the shell, above the title row; nothing nested inherits it.
             PluginViewPart.Quote -> quote?.invoke()
             // The row spans the card and the title takes what the icon and the ⋯ key leave, so the key sits at the
@@ -330,25 +394,41 @@ internal fun PluginViewContent(
                 nowMs = nowMs,
                 spinning = { action -> busyActionId == action.id && rowRun == (action.id to part.row.key) },
                 disabled = locked || onAction == null,
+                labelRows = labelRows,
                 onRun = { action, bound -> run(action, PluginActionPayload(row = PluginActionRow(part.row.key, bound.input))) },
             )
             is PluginViewPart.RowsEmpty -> Text(part.text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
             is PluginViewPart.Keys -> Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                 if (!embedded) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
-                PluginActionFooter(trailingDetail = detailKey != null) {
-                    part.actions.forEach { action ->
+                val keys: @Composable () -> Unit = {
+                    part.actions.forEachIndexed { index, action ->
+                        val actionColor = if (action.style == PluginActionStyle.Danger) colors.errorText else if (action.style == PluginActionStyle.Primary) colors.primaryText else colors.textSecondary
+                        if (actionLayout == PluginViewActionLayout.List && index > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
                         Button(label = action.label, variant = PluginViewFormat.variant(action),
                             loading = busyActionId == action.id,
                             disabled = (locked && busyActionId != action.id) || onAction == null,
-                            size = FlareControlSize.Sm, appearance = FlareButtonAppearance.Text,
-                            onClick = { run(action, PluginActionPayload.Empty) })
+                            size = if (actionLayout == PluginViewActionLayout.List) FlareControlSize.Md else FlareControlSize.Sm,
+                            block = actionLayout == PluginViewActionLayout.List,
+                            appearance = if (actionLayout == PluginViewActionLayout.Compact) FlareButtonAppearance.Standard else FlareButtonAppearance.Text,
+                            maintainTouchTarget = true,
+                            onClick = { run(action, PluginActionPayload.Empty) },
+                            content = if (actionLayout != PluginViewActionLayout.List) null else ({
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(action.label, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.SemiBold,
+                                        color = actionColor,
+                                        modifier = Modifier.weight(1f))
+                                    FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = actionColor)
+                                }
+                            }))
                     }
                     if (detailKey != null) detail()
                 }
+                if (actionLayout == PluginViewActionLayout.List) Column(Modifier.fillMaxWidth()) { keys() }
+                else PluginActionFooter(trailingDetail = detailKey != null, compact = actionLayout == PluginViewActionLayout.Compact) { keys() }
             }
             // Detail is drawn beside the action keys, or in the header without actions.
             is PluginViewPart.DetailKey -> Unit
-            is PluginViewPart.Error -> StatusBanner(text = part.text, tone = FlareStatusTone.Danger)
+            is PluginViewPart.Error -> if (showError) StatusBanner(text = part.text, tone = FlareStatusTone.Danger)
         }
     }
 
@@ -356,7 +436,8 @@ internal fun PluginViewContent(
         val content: @Composable () -> Unit = {
             quote?.invoke()
             ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
-                onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } })
+                onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
+                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision)
             if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
         }
         if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }
@@ -368,7 +449,7 @@ internal fun PluginViewContent(
     } else if (list == null) {
         val shape = RoundedCornerShape(FlareSizes.radiusLg)
         // Every state takes the inset; a card shell kept in a sheet takes it around the shell.
-        val shell = if (embedded) Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset)) else Modifier
+        val shell = if (embedded) Modifier.then(if (actionLayout == PluginViewActionLayout.Compact) Modifier else Modifier.fillMaxWidth()).padding(pluginViewInsetPadding(inset)) else Modifier
             .padding(pluginViewInsetPadding(inset))
             .widthIn(max = FlareSizes.componentRichCardWidth)
             .fillMaxWidth()
@@ -379,7 +460,7 @@ internal fun PluginViewContent(
         Column(shell) {
             parts.forEachIndexed { i, part ->
                 key(part.key) {
-                    Box(Modifier.fillMaxWidth().padding(top = pluginPartGap(parts.getOrNull(i - 1), part))) { drawPart(part) }
+                    Box(Modifier.then(if (actionLayout == PluginViewActionLayout.Compact) Modifier else Modifier.fillMaxWidth()).padding(top = pluginPartGap(parts.getOrNull(i - 1), part))) { drawPart(part) }
                 }
             }
         }
@@ -416,7 +497,8 @@ internal fun PluginViewContent(
                     errors = if (formSubmitted) formErrors else emptyList(),
                     busy = formPending,
                     error = if (formSubmitted) failure else null,
-                    members = members,
+                    members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
+                    fileStates = fileStates, onFileAction = onFileAction,
                     onSubmit = { values -> formSubmitted = true; advance(request.submitted(values)) },
                     onCancel = { if (!formPending) { formRun = null; formSubmitted = false } },
                 )
@@ -465,6 +547,7 @@ internal sealed interface PluginActionStep {
 /** One thing a view draws, in order, with a key that is unique within the view (rows are drawn once per key). */
 internal sealed interface PluginViewPart {
     val key: String
+    data object InlineForm : PluginViewPart { override val key = "inline-form" }
 
     data object Quote : PluginViewPart { override val key: String get() = "quote" }
     data object TitleRow : PluginViewPart { override val key: String get() = "title" }
@@ -532,13 +615,13 @@ internal fun pluginViewParts(
 
 /** Wrapping text actions; the optional final details key stays at the trailing edge of its row. */
 @Composable
-private fun PluginActionFooter(trailingDetail: Boolean, content: @Composable () -> Unit) {
-    Layout(content = content, modifier = Modifier.fillMaxWidth()) { measurables, constraints ->
-        val gap = FlareSizes.spacingMd.roundToPx()
+private fun PluginActionFooter(trailingDetail: Boolean, compact: Boolean = false, content: @Composable () -> Unit) {
+    Layout(content = content, modifier = if (compact) Modifier else Modifier.fillMaxWidth()) { measurables, constraints ->
+        val gap = (if (compact) FlareSizes.spacingSm else FlareSizes.spacingMd).roundToPx()
         val lineGap = FlareSizes.spacingSm.roundToPx()
         val items = measurables.map { it.measure(constraints.copy(minWidth = 0, minHeight = 0)) }
-        val width = constraints.constrainWidth(if (constraints.hasBoundedWidth) constraints.maxWidth
-            else items.sumOf { it.width } + gap * (items.size - 1).coerceAtLeast(0))
+        val ideal = items.sumOf { it.width } + gap * (items.size - 1).coerceAtLeast(0)
+        val width = constraints.constrainWidth(if (constraints.hasBoundedWidth && !compact) constraints.maxWidth else ideal)
         val positions = mutableListOf<Pair<Int, Int>>()
         var x = 0
         var y = 0
@@ -860,6 +943,7 @@ private fun PluginRowItem(
     nowMs: Long,
     spinning: (PluginViewAction) -> Boolean,
     disabled: Boolean,
+    labelRows: Boolean = false,
     onRun: (PluginViewAction, PluginRowAction) -> Unit,
 ) {
     val colors = flareColors()
@@ -877,12 +961,16 @@ private fun PluginRowItem(
                 Modifier.weight(1f).semantics(mergeDescendants = true) {},
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
             ) {
+                if (labelRows) block.columns.firstOrNull()?.label?.takeIf { it.isNotEmpty() }?.let {
+                    Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
+                }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                     row.badge?.let { PluginBadgeTag(it) }
                     Text(lines.primary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        maxLines = if (labelRows) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 }
-                lines.secondary?.let {
+                if (labelRows) PluginFieldRows(PluginViewFormat.rowFields(block, row, nowMs, strings, null))
+                else lines.secondary?.let {
                     Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -937,7 +1025,7 @@ private fun PluginStatusBlockView(block: PluginStatusBlock) {
         block.label?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd) }
         Text(
             block.text, color = pluginToneText(block.tone), fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusFull)).background(pluginToneGround(block.tone))
+            modifier = Modifier.background(pluginToneGround(block.tone), RoundedCornerShape(FlareSizes.radiusFull))
                 .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing3xs),
         )
     }

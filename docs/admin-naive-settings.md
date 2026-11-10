@@ -35,3 +35,17 @@ Console的系统配置、功能开关与通知页面。系统配置将应用／�
 ## 紧凑工作区
 
 `FlareAdminSettings` 的 `title` 可把工作区标题与 scope/tools 放在同一个工具栏，`density="compact"` 缩减垂直间距。宿主仍负责应用范围、权限和操作锁，窄屏自动换行，不隐藏应用范围或错误。插件筛选表单使用 `FlareFormField label-placement="left"` 的同行可见标签，保持标签关联、错误提示及键盘访问。
+
+### 连续面板与两级导航
+
+`body-layout="pane"` 将正文改为零内边距的弹性面板。范围／工具栏、左侧导航和正文共用工作区外框，导航只保留一条右侧分隔线；宿主在默认插槽中提供 `flex: 1; min-height: 0; overflow: auto` 的内容区并按需使用间距 token。窄屏 `compact-navigation` 保持固定内边距且不随内容滚动。默认 `body-layout="scroll"` 仍由框架正文滚动，适合普通设置表单。
+
+`surface="integrated"` 用于已由宿主共享容器提供外框的组合，去除本组件的外边框和圆角。默认 `surface="card"` 保留现有独立工作区外框；不要让宿主与框架分别添加一层卡片。
+
+`FlareAdminWorkspaceNavigation` 通过同一 admin 入口提供工作区两级菜单，复用 Naive `NMenu`。`groups` 使用 `{ key, label, icon?, disabled?, items: [{ key, label, disabled? }] }`；`icon` 为设计库语义图标名，所有 key 在一份导航内唯一。`value` 是受控的二级功能 key，`label` 是导航的可访问名称；`disabled` 禁用整个菜单。点击二级功能同时发出 `update:value` 与 `change`，组件不写入路由或推断权限。
+
+一级菜单每次只展开一组，外部选中功能变化时自动打开对应组。鼠标、Enter／空格可展开一级或选择二级；上下方向键及 Home／End 移动焦点并跳过禁用项，左右方向键展开／收起一级或返回父级。选中功能使用 `aria-current="page"`，一级保留展开状态；空组不可操作。窄屏选择器由宿主放入 `compact-navigation` 插槽，沿用同一组目的地与权限数据。
+
+### Message 宿主的持续错误内容
+
+`FlareAdminList` 与 `FlareAdminAttachmentPreview` 支持 `error-presentation="neutral"`：列表保留无背景错误正文和 `error-actions` 重试插槽；附件预览保留中性失败状态和关闭入口。默认仍是内嵌错误横条。采用全局 Naive Message 的控制台应显式选择 neutral，由请求所属页面发出瞬时消息；持续失败内容不随消息过期而丢失，也不自动重试操作。

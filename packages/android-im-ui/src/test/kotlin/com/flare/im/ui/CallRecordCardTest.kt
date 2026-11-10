@@ -64,8 +64,11 @@ class CallRecordCardTest {
             "callRecordVideo" to zh.callRecordVideo,
             "callRecordJoin" to zh.callRecordJoin,
             "callRecordCallBack" to zh.callRecordCallBack,
+            "callRecordConfirmCallBack" to zh.callRecordConfirmCallBack,
         )) assertEquals(SpecTables.copy(key, "zh"), value, key)
         assertEquals(SpecTables.copy("callRecordCallBack", "en"), en.callRecordCallBack)
         assertEquals(SpecTables.copy("callRecordJoin", "en"), en.callRecordJoin)
+        assertEquals(SpecTables.copy("callRecordConfirmCallBack", "en"), en.callRecordConfirmCallBack)
+        assertEquals("Call again?", FlareStrings(en) { callRecordConfirmCallBack = "Call again?" }.callRecordConfirmCallBack)
     }
 }

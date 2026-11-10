@@ -2,15 +2,22 @@
 import { computed } from "vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareIcon from "../general/FlareIcon.vue";
+import type { FlareIconName } from "../../shared/icons";
+import type { FlareUploadState } from "../../shared/contracts/upload";
 
 /** Presentation only. The host owns the picker, bytes, transport and preview lifetime. */
 const props = withDefaults(
   defineProps<{
     title: string;
-    state: "empty" | "selected" | "uploading" | "uploaded" | "failed";
+    state: FlareUploadState;
     statusText: string;
     pickLabel: string;
     actionLabel?: string;
+    icon?: FlareIconName;
+    /** Percentage reported by the host. Absent means indeterminate transfer progress. */
+    progress?: number;
+    /** Keep the historical completed/read-only behavior unless replacement is explicitly offered. */
+    replaceable?: boolean;
     previewUrl?: string;
     /** Opt an uploaded material into a separate, read-only preview intent. */
     previewLabel?: string;
@@ -28,8 +35,13 @@ const bodyDisabled = computed(() =>
   previewMode.value
     ? props.previewDisabled || props.previewLoading
     : props.disabled ||
-      props.state === "uploaded" ||
+      (props.state === "uploaded" && !props.replaceable) ||
       props.state === "uploading",
+);
+const progressValue = computed(() =>
+  typeof props.progress === "number" && Number.isFinite(props.progress)
+    ? Math.min(100, Math.max(0, props.progress))
+    : undefined,
 );
 function activate() {
   if (bodyDisabled.value) return;
@@ -40,6 +52,7 @@ function activate() {
 
 <template>
   <section
+    role="group"
     class="flare-image-upload"
     :class="`flare-image-upload--${state}`"
     :aria-label="title"
@@ -57,11 +70,13 @@ function activate() {
         v-if="previewUrl"
         class="flare-image-upload__preview"
         :src="previewUrl"
+        :crossorigin="previewUrl.startsWith('/') ? 'anonymous' : undefined"
+        referrerpolicy="no-referrer"
         alt=""
       />
       <template v-else>
         <FlareIcon
-          :name="state === 'uploaded' ? 'check' : 'camera'"
+          :name="state === 'uploaded' ? 'check' : (icon ?? 'camera')"
           :size="28"
         />
         <span>{{
@@ -74,6 +89,8 @@ function activate() {
       </template>
       <progress
         v-if="state === 'uploading' || previewLoading"
+        :value="previewLoading ? undefined : progressValue"
+        :max="100"
         :aria-label="`${title}: ${statusText}`"
       />
     </button>
@@ -81,13 +98,15 @@ function activate() {
       <span role="status" class="flare-image-upload__status">{{
         statusText
       }}</span>
-      <FlareButton
-        v-if="actionLabel && (state === 'selected' || state === 'failed')"
-        size="sm"
-        :label="actionLabel"
-        :disabled="disabled"
-        @click="emit('action')"
-      />
+      <slot name="actions">
+        <FlareButton
+          v-if="actionLabel && (state === 'selected' || state === 'failed')"
+          size="sm"
+          :label="actionLabel"
+          :disabled="disabled"
+          @click="emit('action')"
+        />
+      </slot>
     </div>
   </section>
 </template>

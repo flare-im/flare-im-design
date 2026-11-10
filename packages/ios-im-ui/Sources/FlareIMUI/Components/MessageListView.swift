@@ -495,6 +495,24 @@ public struct MessageListView: View {
         .init(has: hasNewer, loading: loadingNewer, error: newerError, handled: onLoadNewer != nil)
     }
 
+    /// An empty window with unread history is incomplete, not an empty conversation. Keep its page progress or
+    /// recovery in one place; a host-provided empty slot still owns an idle placeholder.
+    private var emptyNeedsRecovery: Bool {
+        messages.isEmpty && (loadingOlder || loadingNewer
+            || (empty == nil && (hasOlder || hasNewer || olderEnd.failed || newerEnd.failed)))
+    }
+
+    @ViewBuilder private var emptyRecovery: some View {
+        let error = olderEnd.failed ? olderError : (newerEnd.failed ? newerError : nil)
+        let retry: (() -> Void)? = hasOlder && onLoadOlder != nil ? { askOlder(retry: true) }
+            : (hasNewer && onLoadNewer != nil ? { askNewer(retry: true) } : nil)
+        EmptyStateView(title: error ?? strings.conversationWorkspaceChatFailure, icon: "chats", tone: .error,
+            actions: retry.map { action in
+                AnyView(ButtonView(label: strings.retry, variant: .secondary, size: .lg,
+                                   disabled: requested || requestedNewer, action: action))
+            })
+    }
+
     private func askOlder(retry: Bool) {
         guard !requested, !loadingOlder, hasOlder, let onLoadOlder, retry || !olderEnd.failed else { return }
         requested = true
@@ -539,20 +557,25 @@ public struct MessageListView: View {
     @ViewBuilder
     private func timelineBody(_ colors: FlareColors) -> some View {
         VStack(spacing: 0) {
-            endBand(FlareMessageListPaging.edge(olderEnd), error: olderError, label: loadOlderText ?? strings.messageListLoadOlder,
-                    disabled: requested, colors: colors) { askOlder(retry: true) }
+            if !emptyNeedsRecovery {
+                endBand(FlareMessageListPaging.edge(olderEnd), error: olderError, label: loadOlderText ?? strings.messageListLoadOlder,
+                        disabled: requested, colors: colors) { askOlder(retry: true) }
+            }
             if messages.isEmpty {
                 Group {
-                    if loading { ProgressView() }
+                    if loading || loadingOlder || loadingNewer { ProgressView() }
                     else if let empty { empty }
+                    else if emptyNeedsRecovery { emptyRecovery }
                     else { Text(emptyText ?? strings.messageListEmpty).font(.body).foregroundColor(colors.textTertiary) }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 timeline.id(conversationId)
             }
-            endBand(FlareMessageListPaging.edge(newerEnd), error: newerError, label: strings.messageListLoadNewer,
-                    disabled: requestedNewer, colors: colors) { askNewer(retry: true) }
+            if !emptyNeedsRecovery {
+                endBand(FlareMessageListPaging.edge(newerEnd), error: newerError, label: strings.messageListLoadNewer,
+                        disabled: requestedNewer, colors: colors) { askNewer(retry: true) }
+            }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(colors.bgSecondary)
             .onChange(of: loadingOlder) { if !$0 { requested = false } }

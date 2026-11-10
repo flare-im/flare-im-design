@@ -1,16 +1,24 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -151,7 +160,7 @@ fun flareCallRecordStatusText(
     }
 }
 
-/** Test tag of the card's action button. */
+/** Test tag of the tappable callback card or the group join button. */
 const val CALL_RECORD_ACTION_TAG = "flare-call-record-action"
 
 /**
@@ -165,7 +174,8 @@ const val CALL_RECORD_ACTION_TAG = "flare-call-record-action"
  * record and drops the action, and [busy] shows the action in progress without taking another tap.
  *
  * The card is the message's card surface (the kit card shell, at most `componentRichCardWidth` like every card): the
- * timeline draws no bubble around it.
+ * timeline draws no bubble around it. A completed 1:1 record is the callback target and asks for confirmation;
+ * only an in-progress group call adds a separate join button, matching Flutter.
  */
 @Composable
 fun CallRecordCard(
@@ -193,10 +203,28 @@ fun CallRecordCard(
     val mediaText = if (media == FlareCallMode.Video) strings.callRecordVideo else strings.callRecordVoice
     val accent = if (danger) colors.error else colors.primary
     val ink = if (danger) colors.errorText else colors.primaryText
+    val quote = LocalFlareCardQuote.current
+    val callbackEnabled = action == FlareCallRecordAction.CallBack && !busy && onCallBack != null
+    var confirming by remember(media, scope, state, endReason, durationSeconds, joinedCount, viewerIsInitiator) {
+        mutableStateOf(false)
+    }
+    // A capability or handler can disappear while the confirmation is visible.
+    LaunchedEffect(callbackEnabled) { if (!callbackEnabled) confirming = false }
     Box(modifier) {
-        FlareMessageCardShell(card = true, quote = null, padded = false, fillWidth = false) { shell ->
+        FlareMessageCardShell(card = true, quote = quote, padded = false, fillWidth = false) { shell ->
+            val callback = if (action == FlareCallRecordAction.CallBack) {
+                Modifier.testTag(CALL_RECORD_ACTION_TAG)
+                    .heightIn(min = FlareSizes.touchTarget)
+                    .clip(RoundedCornerShape(FlareSizes.radiusLg))
+                    .then(if (onCallBack != null) Modifier.clickable(
+                        enabled = callbackEnabled,
+                        role = Role.Button,
+                        onClickLabel = strings.callRecordCallBack,
+                    ) { if (callbackEnabled && !confirming) confirming = true } else Modifier)
+            } else Modifier
             Row(
-                shell.padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacingXs),
+                shell.then(callback).padding(horizontal = FlareSizes.spacingSm,
+                    vertical = if (callbackEnabled) FlareSizes.spacing2xs else FlareSizes.spacingXs),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
@@ -220,20 +248,39 @@ fun CallRecordCard(
                         fontSize = FlareSizes.fontSizeLg.value.sp, fontWeight = FontWeight.Medium,
                         lineHeight = (FlareSizes.fontSizeLg.value * FlareSizes.lineHeightSnug).sp)
                     Text(mediaText, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                        lineHeight = (FlareSizes.fontSizeSm.value * FlareSizes.lineHeightSnug).sp,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                if (action != null) {
+                if (action == FlareCallRecordAction.Join) {
                     Box(Modifier.testTag(CALL_RECORD_ACTION_TAG)) {
                         Button(
-                            label = if (action == FlareCallRecordAction.Join) strings.callRecordJoin else strings.callRecordCallBack,
+                            label = strings.callRecordJoin,
                             variant = FlareButtonVariant.Secondary,
                             size = FlareControlSize.Sm,
                             loading = busy,
-                            onClick = if (action == FlareCallRecordAction.Join) onJoin else onCallBack,
+                            onClick = onJoin,
                         )
                     }
                 }
             }
         }
+    }
+    if (confirming && callbackEnabled) {
+        Modal(
+            title = "${strings.callRecordCallBack} · $mediaText",
+            onClose = { confirming = false },
+            footer = {
+                Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+                    Button(label = strings.cancel, variant = FlareButtonVariant.Secondary,
+                        onClick = { confirming = false })
+                    Button(label = strings.confirm, onClick = {
+                        if (confirming && callbackEnabled) {
+                            confirming = false
+                            onCallBack?.invoke()
+                        }
+                    })
+                }
+            },
+        ) { Text(strings.callRecordConfirmCallBack, color = colors.textPrimary) }
     }
 }

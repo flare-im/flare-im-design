@@ -1326,6 +1326,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["groupDetailUnmute"] as? (String)) ?: "取消禁言"
     val groupDetailTransferOwner: String
         get() = (overrides["groupDetailTransferOwner"] as? (String)) ?: "转让群主"
+    val groupDetailRequestFriend: String
+        get() = (overrides["groupDetailRequestFriend"] as? (String)) ?: "加好友"
     val groupDetailRemoveMember: String
         get() = (overrides["groupDetailRemoveMember"] as? (String)) ?: "移出群聊"
     val groupDetailTransferConfirmPrefix: String
@@ -1846,6 +1848,24 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["pluginFormTooManyItems"] as? (String)) ?: "最多 {n} 项"
     val pluginFormDuplicateItem: String
         get() = (overrides["pluginFormDuplicateItem"] as? (String)) ?: "不能重复"
+    val pluginFileChoose: String
+        get() = (overrides["pluginFileChoose"] as? (String)) ?: "选择文件"
+    val pluginFileSelected: String
+        get() = (overrides["pluginFileSelected"] as? (String)) ?: "等待上传完成"
+    val pluginFileUploading: String
+        get() = (overrides["pluginFileUploading"] as? (String)) ?: "上传中"
+    val pluginFileUploaded: String
+        get() = (overrides["pluginFileUploaded"] as? (String)) ?: "上传完成"
+    val pluginFileRejected: String
+        get() = (overrides["pluginFileRejected"] as? (String)) ?: "请选择符合格式与大小限制的文件"
+    val pluginFileFailed: String
+        get() = (overrides["pluginFileFailed"] as? (String)) ?: "上传未完成，请重试或重新选择"
+    val pluginFileReplace: String
+        get() = (overrides["pluginFileReplace"] as? (String)) ?: "更换文件"
+    val pluginFileRemove: String
+        get() = (overrides["pluginFileRemove"] as? (String)) ?: "移除文件"
+    val pluginFilePreview: String
+        get() = (overrides["pluginFilePreview"] as? (String)) ?: "查看文件"
     val pluginFormInvalid: String
         get() = (overrides["pluginFormInvalid"] as? (String)) ?: "格式不正确"
     val locationOsmAttribution: String
@@ -2021,6 +2041,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["callRecordJoin"] as? String) ?: "加入"
     val callRecordCallBack: String
         get() = (overrides["callRecordCallBack"] as? String) ?: "回拨"
+    val callRecordConfirmCallBack: String
+        get() = (overrides["callRecordConfirmCallBack"] as? String) ?: "确认回拨此通话？"
     // 已读名单（ReadReceiptSheet，spec/read-receipt-vectors.json）：读取失败、不可用、分页末尾键、没有摘要数字时的标签
     val readReceiptLoadFailed: String
         get() = (overrides["readReceiptLoadFailed"] as? String) ?: "名单读取失败"
@@ -4289,6 +4311,9 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["groupDetailTransferOwner"] as? (String)) ?: "转让群主"
         set(value) { values["groupDetailTransferOwner"] = value }
 
+    var groupDetailRequestFriend: String
+        get() = (values["groupDetailRequestFriend"] as? (String)) ?: "加好友"
+        set(value) { values["groupDetailRequestFriend"] = value }
     var groupDetailRemoveMember: String
         get() = (values["groupDetailRemoveMember"] as? (String)) ?: "移出群聊"
         set(value) { values["groupDetailRemoveMember"] = value }
@@ -5212,6 +5237,33 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["pluginFormDuplicateItem"] as? (String)) ?: "不能重复"
         set(value) { values["pluginFormDuplicateItem"] = value }
 
+    var pluginFileChoose: String
+        get() = (values["pluginFileChoose"] as? (String)) ?: "选择文件"
+        set(value) { values["pluginFileChoose"] = value }
+    var pluginFileSelected: String
+        get() = (values["pluginFileSelected"] as? (String)) ?: "等待上传完成"
+        set(value) { values["pluginFileSelected"] = value }
+    var pluginFileUploading: String
+        get() = (values["pluginFileUploading"] as? (String)) ?: "上传中"
+        set(value) { values["pluginFileUploading"] = value }
+    var pluginFileUploaded: String
+        get() = (values["pluginFileUploaded"] as? (String)) ?: "上传完成"
+        set(value) { values["pluginFileUploaded"] = value }
+    var pluginFileRejected: String
+        get() = (values["pluginFileRejected"] as? (String)) ?: "请选择符合格式与大小限制的文件"
+        set(value) { values["pluginFileRejected"] = value }
+    var pluginFileFailed: String
+        get() = (values["pluginFileFailed"] as? (String)) ?: "上传未完成，请重试或重新选择"
+        set(value) { values["pluginFileFailed"] = value }
+    var pluginFileReplace: String
+        get() = (values["pluginFileReplace"] as? (String)) ?: "更换文件"
+        set(value) { values["pluginFileReplace"] = value }
+    var pluginFileRemove: String
+        get() = (values["pluginFileRemove"] as? (String)) ?: "移除文件"
+        set(value) { values["pluginFileRemove"] = value }
+    var pluginFilePreview: String
+        get() = (values["pluginFilePreview"] as? (String)) ?: "查看文件"
+        set(value) { values["pluginFilePreview"] = value }
     var pluginFormInvalid: String
         get() = (values["pluginFormInvalid"] as? (String)) ?: "格式不正确"
         set(value) { values["pluginFormInvalid"] = value }
@@ -5469,6 +5521,9 @@ class FlareStringsBuilder internal constructor() {
     var callRecordCallBack: String
         get() = (values["callRecordCallBack"] as? String) ?: "回拨"
         set(value) { values["callRecordCallBack"] = value }
+    var callRecordConfirmCallBack: String
+        get() = (values["callRecordConfirmCallBack"] as? String) ?: "确认回拨此通话？"
+        set(value) { values["callRecordConfirmCallBack"] = value }
     // 已读名单（ReadReceiptSheet，spec/read-receipt-vectors.json）：读取失败、不可用、分页末尾键、没有摘要数字时的标签
     var readReceiptLoadFailed: String
         get() = (values["readReceiptLoadFailed"] as? String) ?: "名单读取失败"

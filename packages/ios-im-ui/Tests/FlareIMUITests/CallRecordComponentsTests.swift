@@ -99,7 +99,7 @@ final class CallRecordComponentsTests: XCTestCase {
         }
     }
 
-    func testJoinAndCallBackReachTheHost() throws {
+    func testJoinReachesTheHostAndCallBackWaitsForConfirmation() throws {
         var joins = 0, callBacks = 0
         let join = CallRecordCardView(media: .video, scope: .group, state: .ongoing, joinedCount: 4,
                                       viewerIsInitiator: false, canJoin: true, canCallBack: false,
@@ -113,8 +113,10 @@ final class CallRecordComponentsTests: XCTestCase {
                                           durationSeconds: 75, viewerIsInitiator: true, canJoin: false,
                                           canCallBack: true, onCallBack: { callBacks += 1 })
         XCTAssertNoThrow(try callBack.inspect().find(text: "通话时长 01:15"))
+        XCTAssertThrowsError(try callBack.inspect().find(text: zh.callRecordCallBack),
+                             "the card itself is the callback control, as on Flutter")
         try callBack.inspect().find(ViewType.Button.self).tap()
-        XCTAssertEqual(callBacks, 1)
+        XCTAssertEqual(callBacks, 0, "tapping a record must not start a call before confirmation")
     }
 
     func testNamesTheMediaAndTheStatus() throws {
@@ -133,6 +135,36 @@ final class CallRecordComponentsTests: XCTestCase {
         XCTAssertTrue(try view.inspect().findAll(ViewType.Button.self).isEmpty)
     }
 
+    func testMissingCallBackHandlerLeavesTheRecordInert() throws {
+        let view = CallRecordCardView(media: .audio, scope: .single, state: .ended,
+                                      viewerIsInitiator: true, canJoin: false, canCallBack: true)
+        XCTAssertTrue(try view.inspect().find(ViewType.Button.self).isDisabled())
+    }
+
+    func testCallBackConfirmationCancelsAndConfirmsOnlyOnce() throws {
+        var shown = true
+        var calls = 0
+        let binding = Binding(get: { shown }, set: { shown = $0 })
+        let actions = CallRecordConfirmationActions(isPresented: binding, enabled: true) { calls += 1 }
+        let buttons = try actions.inspect().findAll(ViewType.Button.self)
+        try buttons[0].tap()
+        XCTAssertFalse(shown)
+        XCTAssertEqual(calls, 0)
+        // A queued confirm from a dismissed dialog cannot start a call.
+        try buttons[1].tap()
+        XCTAssertEqual(calls, 0)
+        shown = true
+        try buttons[1].tap()
+        try buttons[1].tap()
+        XCTAssertFalse(shown)
+        XCTAssertEqual(calls, 1)
+
+        shown = true
+        let unavailable = CallRecordConfirmationActions(isPresented: binding, enabled: false) { calls += 1 }
+        XCTAssertTrue(try unavailable.inspect().findAll(ViewType.Button.self)[1].isDisabled())
+        XCTAssertEqual(calls, 1)
+    }
+
     func testCallViewMinimizesOnlyWhenTheHostCan() throws {
         let without = CallView(peerName: "Ada", mode: .audio, state: .connected)
         XCTAssertThrowsError(try without.inspect().find(viewWithAccessibilityLabel: zh.callMinimize))
@@ -142,3 +174,73 @@ final class CallRecordComponentsTests: XCTestCase {
         XCTAssertEqual(minimized, 1)
     }
 }
+
+#if os(macOS)
+import AppKit
+
+final class CallRecordLayoutTests: XCTestCase {
+    @MainActor
+    func testShortRecordFitsItsContentAndLongRecordWrapsWithinAvailableWidth() {
+        _ = NSApplication.shared
+        let record = CallRecordCardView(media: .video, scope: .single, state: .ended,
+                                        durationSeconds: 30, viewerIsInitiator: true,
+                                        canJoin: false, canCallBack: true, onCallBack: {})
+        let host = NSHostingController(rootView: record)
+        let roomy = host.sizeThatFits(in: CGSize(width: 400, height: 1_000))
+        let narrow = host.sizeThatFits(in: CGSize(width: 140, height: 1_000))
+        XCTAssertLessThan(roomy.width, FlareSizes.componentRichCardWidth - 20,
+                          "short records must not stretch their white surface to the card cap")
+        XCTAssertLessThanOrEqual(narrow.width, 140)
+        XCTAssertGreaterThan(narrow.height, roomy.height, "the status wraps instead of overflowing")
+    }
+
+    @MainActor
+    func testQuotedCompactCardStillFitsAvailableWidth() {
+        _ = NSApplication.shared
+        let quote = AnyView(Text(String(repeating: "Long quote ", count: 20))
+            .lineLimit(1).frame(maxWidth: .infinity, alignment: .leading))
+        let card = FlareMessageCardShell(padded: false, fillWidth: false) {
+            Text("Short record").padding(FlareSizes.spacingSm)
+        }.environment(\.flareMessageCardQuote, quote)
+        let size = NSHostingController(rootView: card).sizeThatFits(in: CGSize(width: 160, height: 1_000))
+        XCTAssertLessThanOrEqual(size.width, 160)
+        XCTAssertGreaterThan(size.height, 40)
+    }
+
+    @MainActor
+    func testFullWidthCardsKeepTheirCapAndCallBackMeetsTheTouchTarget() {
+        _ = NSApplication.shared
+        let full = FlareMessageCardShell(padded: true) { Text("Contact") }
+        let fullHost = NSHostingController(rootView: full)
+        XCTAssertEqual(fullHost.sizeThatFits(in: CGSize(width: 500, height: 1_000)).width,
+                       FlareSizes.componentRichCardWidth, accuracy: 0.5)
+        XCTAssertEqual(fullHost.sizeThatFits(in: CGSize(width: 160, height: 1_000)).width, 160, accuracy: 0.5)
+
+        let record = CallRecordCardView(media: .audio, scope: .single, state: .ended,
+                                        durationSeconds: 754, viewerIsInitiator: false,
+                                        canJoin: false, canCallBack: true, onCallBack: {})
+        let regular = NSHostingController(rootView: record)
+            .sizeThatFits(in: CGSize(width: 200, height: 1_000))
+        XCTAssertGreaterThanOrEqual(regular.height, FlareSizes.touchTarget)
+    }
+}
+#endif
+
+#if os(iOS)
+import UIKit
+
+final class CallRecordDynamicTypeLayoutTests: XCTestCase {
+    @MainActor
+    func testLargeTextGrowsWithoutLeavingTheTimeline() {
+        let record = CallRecordCardView(media: .audio, scope: .single, state: .ended,
+                                        durationSeconds: 754, viewerIsInitiator: false,
+                                        canJoin: false, canCallBack: true, onCallBack: {})
+        let regular = UIHostingController(rootView: record)
+            .sizeThatFits(in: CGSize(width: 200, height: 1_000))
+        let large = UIHostingController(rootView: record.dynamicTypeSize(.accessibility3))
+            .sizeThatFits(in: CGSize(width: 200, height: 1_000))
+        XCTAssertLessThanOrEqual(large.width, 200)
+        XCTAssertGreaterThan(large.height, regular.height)
+    }
+}
+#endif

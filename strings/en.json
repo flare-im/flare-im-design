@@ -2911,6 +2911,15 @@
     ],
     "zh": "置顶该群"
   },
+  "groupDetailRequestFriend": {
+    "en": "Add friend",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加好友"
+  },
   "groupDetailRemoveMember": {
     "en": "Remove from group",
     "kits": [
@@ -7725,7 +7734,9 @@
   "callRecordConfirmCallBack": {
     "en": "Call back now?",
     "kits": [
-      "flutter"
+      "android",
+      "flutter",
+      "ios"
     ],
     "zh": "确认回拨此通话？"
   },
@@ -8435,5 +8446,86 @@
       "ios"
     ],
     "zh": "有新内容"
+  },
+  "pluginFileChoose": {
+    "zh": "选择文件",
+    "en": "Choose file",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileSelected": {
+    "zh": "等待上传完成",
+    "en": "Waiting for upload",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileUploading": {
+    "zh": "上传中",
+    "en": "Uploading",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileUploaded": {
+    "zh": "已上传",
+    "en": "Uploaded",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileFailed": {
+    "zh": "上传未完成，请重试或重新选择",
+    "en": "Upload is incomplete. Retry or choose another file",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileReplace": {
+    "zh": "替换",
+    "en": "Replace",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileRemove": {
+    "zh": "移除",
+    "en": "Remove",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFilePreview": {
+    "zh": "预览",
+    "en": "Preview",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "pluginFileRejected": {
+    "zh": "请选择符合格式与大小限制的文件",
+    "en": "Choose a file within the allowed format and size limits",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
   }
 }

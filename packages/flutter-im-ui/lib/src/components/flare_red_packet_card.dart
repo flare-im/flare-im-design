@@ -32,6 +32,7 @@ class FlareRedPacketCard extends StatelessWidget {
   const FlareRedPacketCard({
     super.key,
     required this.blessing,
+    this.brandName,
     this.kind = FlareRedPacketKind.normal,
     this.recipientName,
     this.state = FlareRedPacketCardState.unopened,
@@ -43,6 +44,9 @@ class FlareRedPacketCard extends StatelessWidget {
 
   /// The greeting.
   final String blessing;
+
+  /// Immutable packet brand snapshot; historical packets use the localized brand.
+  final String? brandName;
   final FlareRedPacketKind kind;
 
   /// Exclusive packets: the designated member's name (from the IM directory).
@@ -70,6 +74,10 @@ class FlareRedPacketCard extends StatelessWidget {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final status = statusFor(strings);
+    final brand = brandName?.trim();
+    final brandLabel = brand == null || brand.isEmpty
+        ? strings.packetBrand
+        : brand;
     final dimmed = flareRedPacketCardDimmed(state);
     final badge = flareRedPacketCardBadge(
       strings,
@@ -79,108 +87,107 @@ class FlareRedPacketCard extends StatelessWidget {
     final canOpen = !disabled && !busy && onOpen != null;
     final palette = _Palette(colors, faded: dimmed);
     final quote = FlareCardQuote.maybeOf(context);
-    final kindLine = [
-      ?badge.badge,
-      ?badge.recipient,
-    ].join(' · ');
-    final card = Container(
-      width: FlareSizes.componentRedPacketCardWidth,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [palette.start, palette.middle, palette.end],
-          stops: const [0, 0.52, 1],
-        ),
-        borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
-        boxShadow: dimmed
-            ? null
-            : [
-                BoxShadow(
-                  color: colors.redPacketEnd.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(FlareSizes.spacing2md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final kindLine = [?badge.badge, ?badge.recipient].join(' · ');
+    final contents = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (quote != null) ...[
-              quote,
-              const SizedBox(height: FlareSizes.spacingSm),
-            ],
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _glyph(palette),
-                const SizedBox(width: FlareSizes.spacingMd),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        blessing,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: palette.text,
-                          fontSize: FlareSizes.fontSizeLg,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        status,
-                        softWrap: true,
-                        style: TextStyle(
-                          color: palette.status,
-                          fontSize: FlareSizes.fontSizeSm,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: FlareSizes.spacingMd),
-            Container(height: 1, color: palette.rule),
-            const SizedBox(height: FlareSizes.spacingSm),
-            if (kindLine.isEmpty)
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: Text(strings.packetBrand, style: _brandStyle(palette)),
-              )
-            else
-              Row(
+            _glyph(palette),
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Text(
-                      kindLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: _brandStyle(palette),
+                  Text(
+                    blessing,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: FlareSizes.fontSizeLg,
+                      fontWeight: FontWeight.w600,
+                      height: FlareSizes.lineHeightSnug,
                     ),
                   ),
-                  const SizedBox(width: FlareSizes.spacingSm),
+                  const SizedBox(height: 3),
                   Text(
-                    strings.packetBrand,
-                    maxLines: 1,
-                    textAlign: TextAlign.end,
-                    style: _brandStyle(palette),
+                    status,
+                    softWrap: true,
+                    style: TextStyle(
+                      color: palette.status,
+                      fontSize: FlareSizes.fontSizeSm,
+                      height: FlareSizes.lineHeightSnug,
+                    ),
                   ),
                 ],
               ),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: FlareSizes.spacingMd),
+        Container(height: 1, color: palette.rule),
+        const SizedBox(height: FlareSizes.spacingSm),
+        if (kindLine.isEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Text(
+              brandLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _brandStyle(palette),
+            ),
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (badge.badge case final label?)
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _brandStyle(palette),
+                        ),
+                      ),
+                    if (badge.recipient case final recipient?) ...[
+                      const SizedBox(width: FlareSizes.spacingSm),
+                      Flexible(
+                        child: Text(
+                          recipient,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _brandStyle(palette),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: FlareSizes.spacingSm),
+              Flexible(
+                child: Text(
+                  brandLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: _brandStyle(palette),
+                ),
+              ),
+            ],
+          ),
+      ],
     );
 
-    return Semantics(
+    final interactiveCard = Semantics(
       button: true,
       enabled: canOpen,
       label: blessing,
@@ -194,8 +201,61 @@ class FlareRedPacketCard extends StatelessWidget {
           child: InkWell(
             onTap: canOpen ? onOpen : null,
             borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
-            child: card,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                FlareSizes.spacing2md,
+                quote == null ? FlareSizes.spacing2md : FlareSizes.spacingSm,
+                FlareSizes.spacing2md,
+                FlareSizes.spacing2md,
+              ),
+              child: contents,
+            ),
           ),
+        ),
+      ),
+    );
+    // Loosen a stretching parent's minimum width before applying the envelope
+    // token, so the painted face and its tap target stay the same size.
+    return Align(
+      alignment: AlignmentDirectional.topStart,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: Container(
+        width: FlareSizes.componentRedPacketCardWidth,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [palette.start, palette.middle, palette.end],
+            stops: const [0, 0.52, 1],
+          ),
+          borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
+          boxShadow: dimmed
+              ? null
+              : [
+                  BoxShadow(
+                    color: colors.redPacketEnd.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (quote != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  FlareSizes.spacing2md,
+                  FlareSizes.spacing2md,
+                  FlareSizes.spacing2md,
+                  0,
+                ),
+                child: quote,
+              ),
+            interactiveCard,
+          ],
         ),
       ),
     );
@@ -205,6 +265,7 @@ class FlareRedPacketCard extends StatelessWidget {
     color: palette.soft,
     fontSize: FlareSizes.fontSize2xs,
     fontWeight: FontWeight.w500,
+    height: FlareSizes.lineHeightSnug,
   );
 
   Widget _glyph(_Palette palette) => ExcludeSemantics(
@@ -235,7 +296,9 @@ class _Palette {
       gold = _tone(colors.redPacketGold, colors, faded),
       goldDeep = _tone(colors.redPacketGoldDeep, colors, faded),
       text = faded ? colors.redPacketFadedInk : Colors.white,
-      status = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface,
+      status = faded
+          ? colors.redPacketFadedInk
+          : colors.redPacketOnSurface.withValues(alpha: 0.85),
       soft = faded
           ? colors.redPacketFadedInk.withValues(alpha: 0.72)
           : colors.redPacketOnSurface.withValues(alpha: 0.6),

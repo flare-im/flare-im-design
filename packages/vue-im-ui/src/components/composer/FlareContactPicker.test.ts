@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, mount } from "@vue/test-utils";
-import { defineComponent, h, nextTick, ref } from "vue";
+import { defineComponent, h, nextTick, reactive, ref } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type { FlareContactPickerEntry, FlareContactPickerGroup } from "../../shared/contracts/contact-picker";
@@ -36,6 +36,29 @@ const names = (wrapper: ReturnType<typeof render>["wrapper"]) =>
   wrapper.findAll(".flare-contact-picker__row").map((row) => row.attributes("data-user-id"));
 
 describe("FlareContactPicker", () => {
+  it("delegates remote matching without filtering a partial authorized result again", async () => {
+    const queries: string[] = [];
+    const picker = render({groups:[{id:"groupMembers",entries:[IVY]}],onSearch:(query:string)=>queries.push(query)});
+    await picker.wrapper.get(".flare-contact-picker__search input").setValue("matched-by-directory-id");
+    expect(queries).toEqual(["matched-by-directory-id"]);
+    expect(names(picker.wrapper)).toEqual(["u1"]);
+    await picker.wrapper.get('[data-user-id="u1"]').trigger("click");
+    expect(picker.selections).toEqual([[IVY]]);
+  });
+
+  it("replaces stale results during remote loading and errors and only retries explicitly", async () => {
+    let retries=0;
+    const state=reactive({groups:[{id:"groupMembers",entries:[IVY]}],loading:false,error:undefined as string|undefined,onRetry:()=>{retries++;}});
+    const picker=render(state);const old=picker.wrapper.get('[data-user-id="u1"]');
+    state.loading=true;await nextTick();
+    expect(names(picker.wrapper)).toEqual([]);await old.trigger("click");expect(picker.selections).toEqual([]);
+    state.loading=false;state.error="Directory unavailable";await nextTick();
+    expect(names(picker.wrapper)).toEqual([]);expect(retries).toBe(0);
+    await picker.wrapper.get('.flare-empty__act').trigger('click');expect(retries).toBe(1);
+    state.error=undefined;state.groups=[{id:"groupMembers",entries:[ZHOU]}];await nextTick();
+    await old.trigger("click");expect(picker.selections).toEqual([]);
+    await picker.wrapper.get('[data-user-id="u2"]').trigger('click');expect(picker.selections).toEqual([[ZHOU]]);
+  });
   it("shows a tab per group, the friends first, and switches", async () => {
     const picker = render({});
     const tabs = picker.wrapper.findAll('[role="tab"]');

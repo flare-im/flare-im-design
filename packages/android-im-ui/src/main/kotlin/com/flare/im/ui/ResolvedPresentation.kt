@@ -15,7 +15,13 @@ internal fun hasResolvedPresentation(view: PluginViewModel): Boolean {
 /** Visual composition over resolved values. Requests are opaque IDs of visible actions. */
 @Composable
 internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: String?, formErrors: List<PluginFormError>, members: List<PluginMember>, settleToken: Int,
- resolveUser: (suspend (String)->PluginUser?)?, onAction: ((String,PluginActionPayload)->Unit)?, onRequest: (String)->Unit) {
+ resolveUser: (suspend (String)->PluginUser?)?, onAction: ((String,PluginActionPayload)->Unit)?, onRequest: (String)->Unit,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
+) {
  val p=view.presentation?.get("props").props()
  val renderer=view.presentation?.get("renderer")
  val bound=view.presentation?.get("actions").props()
@@ -27,11 +33,26 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
  val paymentBlocked=unknown||(!error.isNullOrBlank()&&passwordInput==null)
  fun request(name:String){action(name)?.let { if(!busy&&!unknown&&!(name=="confirm"&&paymentBlocked))onRequest(it.id) }}
  val strings=flareStrings()
- var recipient by remember { mutableStateOf("") }
+ var recipient by remember { mutableStateOf<PluginMember?>(null) }
+ var choosingRecipient by remember { mutableStateOf(false) }
+ var recipientRevision by remember { mutableStateOf(membersRevision) }
+ var memberGeneration by remember { mutableStateOf(membersRevision) }
+ val currentMembers by rememberUpdatedState(members)
+ val currentMemberLoading by rememberUpdatedState(membersLoading)
+ val currentMemberError by rememberUpdatedState(membersError)
+ val currentMemberRevision by rememberUpdatedState(membersRevision)
+ val currentBlocked by rememberUpdatedState(busy || unknown)
  var kind by remember { mutableStateOf(FlareRedPacketKind.Normal) }
  var amount by remember { mutableStateOf("") }
  var count by remember { mutableStateOf(1) }
  var greeting by remember { mutableStateOf(view.inputs.firstOrNull { it.id=="greeting" }?.default.words()) }
+ val kinds = when(p["conversationType"]) {
+  "single" -> listOf(FlareRedPacketKind.Normal)
+  "group" -> FlareRedPacketKind.entries
+  else -> emptyList()
+ }
+ LaunchedEffect(p["conversationType"]) { if(kind !in kinds)kind=FlareRedPacketKind.Normal;recipient=null;choosingRecipient=false }
+ LaunchedEffect(membersRevision) { if(memberGeneration!=membersRevision) { memberGeneration=membersRevision;recipient=null;choosingRecipient=false } }
  var envelope by remember { mutableStateOf(false) }
  var paying by remember { mutableStateOf(true) }
  var people by remember { mutableStateOf<Map<String,PluginUser>>(emptyMap()) }
@@ -45,16 +66,24 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
  Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingMd)) {
   when(renderer) {
    "redPacket.card" -> RedPacketCard(blessing=p["blessing"].words(),kind=FlareRedPacketKind.entries.firstOrNull { it.name.equals(p["kind"].words(),true) }?:FlareRedPacketKind.Normal,
-    state=flareRedPacketCardState(FlareRedPacketStatus.entries.firstOrNull { it.wire==p["status"] }?:FlareRedPacketStatus.Open,p["claimedByMe"]==true,if(p["canClaim"]==false)FlareRedPacketTapAction.Details else FlareRedPacketTapAction.Open),busy=busy,disabled=action("open")==null,onOpen={request("open")})
+    state=flareRedPacketCardState(FlareRedPacketStatus.entries.firstOrNull { it.wire==p["status"] }?:FlareRedPacketStatus.Open,p["claimedByMe"]==true,if(p["canClaim"]==false)FlareRedPacketTapAction.Details else FlareRedPacketTapAction.Open),busy=busy,disabled=action("open")==null,brandName=p["brandName"].words(),onOpen={request("open")})
    "redPacket.composer" -> {
     val asset=p["funding"].props()
      val exponent=(asset["currencyExponent"] as? Number)?.toInt()?:2
      val minor=flareRedPacketAmountMinor(amount,exponent)
-     val total=if(minor!=null&&minor.length<=64)flareRedPacketAmountText((BigInteger(minor)*BigInteger.valueOf(if(kind==FlareRedPacketKind.Normal)count.toLong() else 1)).toString(),exponent).orEmpty() else ""
-     RedPacketComposer(kinds=FlareRedPacketKind.entries,kind=kind,amount=amount,total="${asset["currency"].words()} $total",count=count,greeting=greeting,currencyExponent=exponent,
-      busy=busy,locked=unknown||action("submit")==null,error=if(formErrors.isEmpty())null else strings.pluginFormInvalid,submitLabel=action("submit")?.label,
-      recipient={Input(value=recipient,onValueChange={recipient=it},placeholder=view.inputs.firstOrNull { it.id=="designatedUserId" }?.label,disabled=busy||unknown,maxLength=128)},onKindChange={kind=it},onAmountChange={amount=it},onCountChange={count=it},onGreetingChange={greeting=it},
-      onSubmit={action("submit")?.let { a->if(!busy&&!unknown)onAction?.invoke(a.id,PluginActionPayload(formValues=mapOf("designatedUserId" to if(kind==FlareRedPacketKind.Exclusive)recipient else "","kind" to kind.name.lowercase(),"decimalAmount" to amount,"shareCount" to if(kind==FlareRedPacketKind.Exclusive)1 else count,"greeting" to greeting))) }})
+     val shares=if(kind==FlareRedPacketKind.Exclusive||p["conversationType"]=="single")1 else count
+     val total=if(minor!=null&&minor.length<=64)flareRedPacketAmountText((BigInteger(minor)*BigInteger.valueOf(if(kind==FlareRedPacketKind.Normal)shares.toLong() else 1)).toString(),exponent).orEmpty() else ""
+     val recipientInput=view.inputs.firstOrNull { it.id=="designatedUserIds" }
+     val recipientLabel=recipientInput?.label?:strings.packetFieldRecipient
+     RedPacketComposer(kinds=kinds,kind=kind,amount=amount,total="${asset["currency"].words()} $total",count=count,greeting=greeting,currencyExponent=exponent,
+      busy=busy,locked=unknown||action("submit")==null||kinds.isEmpty()||(kind==FlareRedPacketKind.Exclusive&&recipient==null),error=if(formErrors.isEmpty())null else strings.pluginFormInvalid,submitLabel=action("submit")?.label,
+      recipient={Button(label=recipient?.name?:strings.select,variant=FlareButtonVariant.Secondary,disabled=busy||unknown||(onMemberSearch==null&&members.isEmpty()),onClick={recipientRevision=membersRevision;choosingRecipient=true;onMemberSearch?.invoke("")})},onKindChange={kind=it},onAmountChange={amount=it},onCountChange={count=it},onGreetingChange={greeting=it},
+      onSubmit={action("submit")?.let { a->if(!busy&&!unknown&&kind in kinds&&(kind!=FlareRedPacketKind.Exclusive||recipient!=null))onAction?.invoke(a.id,PluginActionPayload(formValues=mapOf("designatedUserIds" to if(kind==FlareRedPacketKind.Exclusive)listOfNotNull(recipient?.userId) else emptyList<String>(),"kind" to kind.name.lowercase(),"decimalAmount" to amount,"shareCount" to shares,"greeting" to greeting))) }})
+     if(choosingRecipient)BottomSheet(onClose={choosingRecipient=false},title=recipientLabel,titleHidden=true) {
+      ContactPicker(groups=listOf(FlareContactPickerGroup(FlareContactPickerGroup.GROUP_MEMBERS,recipientLabel,members.map { FlareContactPickerEntry(it.userId,it.name,it.avatarUrl) })),multiple=false,title=recipientLabel,
+       onSearch=onMemberSearch,loading=membersLoading,error=membersError,onRetry=onMembersRetry,
+       onSelect={entries->if(choosingRecipient&&!currentBlocked&&!currentMemberLoading&&currentMemberError.isNullOrBlank()&&currentMemberRevision==recipientRevision) { val id=entries.firstOrNull()?.userId;recipient=currentMembers.firstOrNull { it.userId==id };choosingRecipient=false }},onCancel={choosingRecipient=false})
+     }
    }
    "redPacket.detail" -> {
     val d=p["details"].props()
@@ -75,6 +104,6 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
       onConfirm={if(passwordValid&&!busy&&!paymentBlocked){paying=false;if(passwordInput!=null){val value=paymentPassword;paymentPassword="";onAction?.invoke(a.id,PluginActionPayload(formValues=mapOf(passwordInput.id to value)))}else request("confirm")}})
    }
   }
-  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members,settleToken=settleToken,resolveUser=resolveUser,onAction=onAction)
+  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, settleToken=settleToken,resolveUser=resolveUser,onAction=onAction)
  }
 }

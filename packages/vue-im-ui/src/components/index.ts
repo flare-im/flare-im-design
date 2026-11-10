@@ -89,7 +89,10 @@ export { default as FlareSkeleton } from "./general/FlareSkeleton.vue";
 
 export type { FlareReactionGroup } from "../shared/contracts";
 export type { FlareMentionCandidate } from "../shared/contracts";
-export type { FlareQuickPhrase, FlareQuickPhraseGroup } from "../shared/contracts";
+export type {
+  FlareQuickPhrase,
+  FlareQuickPhraseGroup,
+} from "../shared/contracts";
 export type {
   FlareSearchResultKind,
   FlareSearchResultItem,
@@ -138,7 +141,11 @@ export type { FlareGridImage, FlareWallpaperOption } from "../shared/contracts";
 export { default as FlareVoicePlayer } from "./messages/FlareVoicePlayer.vue";
 export { default as FlareEmojiPicker } from "./composer/FlareEmojiPicker.vue";
 export { default as FlareStickerPanel } from "./composer/FlareStickerPanel.vue";
-export type { FlareEmojiCategory, FlareStickerItem, FlareStickerPack } from "../shared/contracts";
+export type {
+  FlareEmojiCategory,
+  FlareStickerItem,
+  FlareStickerPack,
+} from "../shared/contracts";
 
 export type {
   FlareCallMode,
@@ -175,11 +182,18 @@ export type {
   FlareDataTableSortOrder,
 } from "./data/data-table";
 export { default as FlarePermissionTree } from "./data/FlarePermissionTree.vue";
-export type { FlarePermissionCheckState, FlarePermissionNode } from "./data/permission-tree";
+export type {
+  FlarePermissionCheckState,
+  FlarePermissionNode,
+} from "./data/permission-tree";
 // Console detail and query surfaces — a record's facts, a raw payload, a status label, a query form
 export { default as FlareDescriptionList } from "./data/FlareDescriptionList.vue";
 export { default as FlareAdminSection } from "./data/FlareAdminSection.vue";
-export type { FlareDescriptionItem, FlareDescriptionLabelPlacement, FlareDescriptionValue } from "./data/description-list";
+export type {
+  FlareDescriptionItem,
+  FlareDescriptionLabelPlacement,
+  FlareDescriptionValue,
+} from "./data/description-list";
 export { default as FlareCodeBlock } from "./data/FlareCodeBlock.vue";
 export { default as FlareTag } from "./general/FlareTag.vue";
 export { default as FlareFilterBar } from "./general/FlareFilterBar.vue";
@@ -189,6 +203,7 @@ export { default as FlareButton } from "./general/FlareButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";
 export { default as FlareIcon } from "./general/FlareIcon.vue";
 export { default as FlareImageUploadSlot } from "./media/FlareImageUploadSlot.vue";
+export { default as FlareFileUpload } from "./media/FlareFileUpload.vue";
 export { default as FlareBrandLogo } from "./general/FlareBrandLogo.vue";
 export { default as FlareBottomSheet } from "./general/FlareBottomSheet.vue";
 export { default as FlareActionMenu } from "./general/FlareActionMenu.vue";
@@ -197,7 +212,13 @@ export type { FlareSheetPresentation } from "./general/FlareBottomSheet.vue";
 export { default as FlareModal } from "./general/FlareModal.vue";
 export { default as FlareDrawer } from "./general/FlareDrawer.vue";
 export type { FlareDrawerPlacement } from "./general/FlareDrawer.vue";
-export { flareIcons, flareIconNames, flareIconNameOrFallback, FLARE_ICON_FALLBACK, type FlareIconName } from "../shared/icons";
+export {
+  flareIcons,
+  flareIconNames,
+  flareIconNameOrFallback,
+  FLARE_ICON_FALLBACK,
+  type FlareIconName,
+} from "../shared/icons";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
 export { default as FlareInviteCodeField } from "./form/FlareInviteCodeField.vue";
 export { default as FlareSwitch } from "./form/FlareSwitch.vue";
@@ -210,7 +231,11 @@ export { default as FlareSlider } from "./form/FlareSlider.vue";
 export { default as FlareRating } from "./form/FlareRating.vue";
 export { default as FlareTimePicker } from "./form/FlareTimePicker.vue";
 export { default as FlareDatePicker } from "./form/FlareDatePicker.vue";
-export type { FlareButtonVariant, FlareControlSize, FlareSelectOption } from "../shared/contracts";
+export type {
+  FlareButtonVariant,
+  FlareControlSize,
+  FlareSelectOption,
+} from "../shared/contracts";
 
 // Moments (圈子) — social feed
 export { default as FlareMomentCard } from "./moments/FlareMomentCard.vue";
@@ -240,24 +265,27 @@ export { default as FlareMentionPicker } from "./composer/FlareMentionPicker.vue
 
 export { default as FlareTransferProgress } from "./media/FlareTransferProgress.vue";
 
-export { default as FlareSearchPanel } from './general/FlareSearchPanel.vue';
-export { default as FlareRecentSearches } from './general/FlareRecentSearches.vue';
-export { default as FlareCommandPalette } from './general/FlareCommandPalette.vue';
-export type { FlareCommandPaletteCommand, FlareCommandPaletteGroup } from '../shared/contracts/command-palette';
+export { default as FlareSearchPanel } from "./general/FlareSearchPanel.vue";
+export { default as FlareRecentSearches } from "./general/FlareRecentSearches.vue";
+export { default as FlareCommandPalette } from "./general/FlareCommandPalette.vue";
+export type {
+  FlareCommandPaletteCommand,
+  FlareCommandPaletteGroup,
+} from "../shared/contracts/command-palette";
 
-export { default as FlareTransferQueue } from './media/FlareTransferQueue.vue';
+export { default as FlareTransferQueue } from "./media/FlareTransferQueue.vue";
 
-export { default as FlareMemberPanel } from './scenes/FlareMemberPanel.vue';
+export { default as FlareMemberPanel } from "./scenes/FlareMemberPanel.vue";
 
-export { default as FlareDeviceSessions } from './scenes/FlareDeviceSessions.vue';
+export { default as FlareDeviceSessions } from "./scenes/FlareDeviceSessions.vue";
 
-export { default as FlareMediaCenter } from './scenes/FlareMediaCenter.vue';
+export { default as FlareMediaCenter } from "./scenes/FlareMediaCenter.vue";
 
-export { default as FlareCapabilityBoundary } from './scenes/FlareCapabilityBoundary.vue';
+export { default as FlareCapabilityBoundary } from "./scenes/FlareCapabilityBoundary.vue";
 
-export { default as FlareNotificationPreferences } from './scenes/FlareNotificationPreferences.vue';
+export { default as FlareNotificationPreferences } from "./scenes/FlareNotificationPreferences.vue";
 
-export { default as FlareDangerConfirm } from './scenes/FlareDangerConfirm.vue';
+export { default as FlareDangerConfirm } from "./scenes/FlareDangerConfirm.vue";
 
 export { default as FlareCallDevicePicker } from "./call/FlareCallDevicePicker.vue";
 
@@ -267,13 +295,13 @@ export { default as FlareConversationBatchToolbar } from "./conversation/FlareCo
 
 export { default as FlareUnknownMessage } from "./messages/FlareUnknownMessage.vue";
 
-export { default as FlareSearchDateRangeFilter } from './general/FlareSearchDateRangeFilter.vue';
+export { default as FlareSearchDateRangeFilter } from "./general/FlareSearchDateRangeFilter.vue";
 export { default as FlareUnknownUserPlaceholder } from "./contacts/FlareUnknownUserPlaceholder.vue";
 export { default as FlareRelationActionBar } from "./contacts/FlareRelationActionBar.vue";
 export { default as FlareGroupPermissionMatrix } from "./contacts/FlareGroupPermissionMatrix.vue";
 export { default as FlareMemberRoleSheet } from "./contacts/FlareMemberRoleSheet.vue";
 
-export { default as FlareScreenShare } from './call/FlareScreenShare.vue';
+export { default as FlareScreenShare } from "./call/FlareScreenShare.vue";
 export { default as FlareStorageUsage } from "./profile/FlareStorageUsage.vue";
 
 export { default as FlareConversationWorkspace } from "./layout/FlareConversationWorkspace.vue";
@@ -295,6 +323,7 @@ export { default as FlareComposerMediaPreview } from "./composer/FlareComposerMe
 export type { FlareComposerMediaPreviewItem } from "./composer/FlareComposerMediaPreview.vue";
 
 export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
+export { default as FlarePluginAdminList } from "./messages/FlarePluginAdminList.vue";
 export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";

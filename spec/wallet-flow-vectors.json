@@ -1,0 +1,6421 @@
+{
+  "description": "Consumer wallet views resolved by the Rust wallet contract; display values are fixtures, never calculated by the UI.",
+  "cases": [
+    {
+      "id": "home",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.home",
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "充值",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "提现",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "收款方式",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "充值记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "支付密码",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transactionHistory",
+            "input": {},
+            "label": "交易记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "openings",
+            "input": {},
+            "label": "开户进度",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.openings"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "form": [
+              "definitionId",
+              "instanceKey"
+            ],
+            "id": "create",
+            "input": {
+              "action": "/actions/open"
+            },
+            "label": "开户",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.wallets.open"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "items": [],
+            "kind": "entries",
+            "more": false,
+            "numbered": true,
+            "total": 0
+          },
+          {
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "/walletId"
+                },
+                "label": "查看明细",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "余额"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金类型与币种"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "余额钱包"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "正常"
+                  }
+                ],
+                "key": "wallet-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.home"
+          }
+        ],
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "1000.00"
+          },
+          {
+            "label": "资金类型与币种",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "当前钱包",
+            "value": "primary"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "余额钱包",
+                "value": "definition-fixture"
+              }
+            ],
+            "id": "definitionId",
+            "kind": "select",
+            "label": "模板",
+            "required": true
+          },
+          {
+            "id": "instanceKey",
+            "kind": "text",
+            "label": "实例名称",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "shortcutPrimary": "transactionHistory",
+            "shortcutSecondary": "rechargeHistory",
+            "shortcutTertiary": "withdrawalHistory",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "余额、充值与提现统一管理。",
+            "emptyDescription": "开通钱包后可管理资金与账单。",
+            "emptyTitle": "尚未开通钱包",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "rowEntryAction": "wallet",
+            "sectionTitle": "我的钱包",
+            "servicesTitle": "账户与安全",
+            "shortcutsTitle": "账单与记录",
+            "summaryTitle": "余额钱包"
+          },
+          "renderer": "account"
+        },
+        "title": "钱包"
+      }
+    },
+    {
+      "id": "home",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.home",
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "Recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "Withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "Payout methods",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "Recharge history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "Withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "Payment password",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transactionHistory",
+            "input": {},
+            "label": "Transactions",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "openings",
+            "input": {},
+            "label": "Opening requests",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.openings"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "form": [
+              "definitionId",
+              "instanceKey"
+            ],
+            "id": "create",
+            "input": {
+              "action": "/actions/open"
+            },
+            "label": "Open wallet",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.wallets.open"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "items": [],
+            "kind": "entries",
+            "more": false,
+            "numbered": true,
+            "total": 0
+          },
+          {
+            "actions": [
+              {
+                "id": "wallet",
+                "input": {
+                  "walletId": "/walletId"
+                },
+                "label": "View details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Balance"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Fund type and currency"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "wallet",
+                    "input": {
+                      "walletId": "wallet-fixture"
+                    }
+                  }
+                ],
+                "cells": [
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "Wallet balance"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "Active"
+                  }
+                ],
+                "key": "wallet-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.home"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Available balance",
+            "value": "1000.00"
+          },
+          {
+            "label": "Fund type and currency",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "Current wallet",
+            "value": "primary"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Wallet balance",
+                "value": "definition-fixture"
+              }
+            ],
+            "id": "definitionId",
+            "kind": "select",
+            "label": "Template",
+            "required": true
+          },
+          {
+            "id": "instanceKey",
+            "kind": "text",
+            "label": "Instance name",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "shortcutPrimary": "transactionHistory",
+            "shortcutSecondary": "rechargeHistory",
+            "shortcutTertiary": "withdrawalHistory",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "Manage your balance, recharges and withdrawals in one place.",
+            "emptyDescription": "Open a wallet to manage your funds and transactions.",
+            "emptyTitle": "No wallets yet",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "rowEntryAction": "wallet",
+            "sectionTitle": "My wallets",
+            "servicesTitle": "Account and security",
+            "shortcutsTitle": "Statements and records",
+            "summaryTitle": "Wallet balance"
+          },
+          "renderer": "account"
+        },
+        "title": "Wallets"
+      }
+    },
+    {
+      "id": "openings",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.openings",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "实例名称"
+              },
+              {
+                "format": "text",
+                "label": "模板"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "工资钱包"
+                  },
+                  {
+                    "text": "definition-fixture"
+                  },
+                  {
+                    "text": "pending"
+                  },
+                  {
+                    "text": "等待审核"
+                  }
+                ],
+                "key": "opening-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.openings"
+          }
+        ],
+        "fields": [],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "查看钱包开户申请的审核进度与结果。",
+            "emptyDescription": "提交开户申请后，可在这里查看审核进度。",
+            "emptyTitle": "暂无开户申请",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "开户申请",
+            "servicesTitle": "更多操作",
+            "stepLabel": "查看审核进度"
+          },
+          "renderer": "account"
+        },
+        "title": "开户进度"
+      }
+    },
+    {
+      "id": "openings",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.openings",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Instance name"
+              },
+              {
+                "format": "text",
+                "label": "Template"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "工资钱包"
+                  },
+                  {
+                    "text": "definition-fixture"
+                  },
+                  {
+                    "text": "pending"
+                  },
+                  {
+                    "text": "等待审核"
+                  }
+                ],
+                "key": "opening-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.openings"
+          }
+        ],
+        "fields": [],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Track the review and outcome of wallet opening requests.",
+            "emptyDescription": "After submitting an opening request, track its review here.",
+            "emptyTitle": "No opening requests",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Opening requests",
+            "servicesTitle": "More actions",
+            "stepLabel": "Track review progress"
+          },
+          "renderer": "account"
+        },
+        "title": "Opening requests"
+      }
+    },
+    {
+      "id": "wallet",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.wallet",
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "充值",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "提现",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "收款方式",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "cashflowHistory",
+            "input": {},
+            "label": "充值与提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "充值记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "支付密码",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transfer",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "转账",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.transfer"
+            }
+          },
+          {
+            "id": "exchange",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "兑换",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.exchange"
+            }
+          },
+          {
+            "id": "hold",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "冻结",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.hold"
+            }
+          },
+          {
+            "id": "history",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "账单",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "lots",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "资金限制",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.lots"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "default",
+            "input": {
+              "action": "/actions/setDefault",
+              "expectedRevision": "/wallet/version",
+              "walletId": "/walletId"
+            },
+            "label": "设为默认",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.manage"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "confirm": "确认关闭空钱包？",
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "close",
+            "input": {
+              "action": "/actions/close",
+              "expectedRevision": "/wallet/version",
+              "walletId": "/walletId"
+            },
+            "label": "关闭钱包",
+            "style": "danger",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.manage"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "可用金额"
+              },
+              {
+                "format": "text",
+                "label": "资金类型与币种"
+              },
+              {
+                "format": "text",
+                "label": "冻结中"
+              },
+              {
+                "format": "text",
+                "label": "账面余额"
+              },
+              {
+                "format": "text",
+                "label": "可提现"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "0.00"
+                  },
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "1000.00"
+                  }
+                ],
+                "key": "account-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.wallet"
+          }
+        ],
+        "fields": [
+          {
+            "label": "可用余额",
+            "value": "1000.00"
+          },
+          {
+            "label": "资金类型与币种",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "冻结中",
+            "value": "0.00"
+          },
+          {
+            "label": "可提现金额",
+            "value": "1000.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "查看可用余额，管理当前钱包的资金。",
+            "emptyDescription": "资金到账后会显示在这里。",
+            "emptyTitle": "暂无资金账户",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "sectionTitle": "资金账户",
+            "servicesTitle": "钱包操作",
+            "summaryTitle": "余额钱包"
+          },
+          "renderer": "account"
+        },
+        "title": "钱包"
+      }
+    },
+    {
+      "id": "wallet",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.wallet",
+      "view": {
+        "actions": [
+          {
+            "id": "recharge",
+            "input": {},
+            "label": "Recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge"
+            }
+          },
+          {
+            "id": "withdrawal",
+            "input": {},
+            "label": "Withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal"
+            }
+          },
+          {
+            "id": "payoutProfiles",
+            "input": {},
+            "label": "Payout methods",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.payout_profiles"
+            }
+          },
+          {
+            "id": "cashflowHistory",
+            "input": {},
+            "label": "Recharge and withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          },
+          {
+            "id": "rechargeHistory",
+            "input": {},
+            "label": "Recharge history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recharge_history"
+            }
+          },
+          {
+            "id": "withdrawalHistory",
+            "input": {},
+            "label": "Withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.withdrawal_history"
+            }
+          },
+          {
+            "id": "paymentSecurity",
+            "input": {},
+            "label": "Payment password",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.security"
+            }
+          },
+          {
+            "id": "transfer",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Transfer",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.transfer"
+            }
+          },
+          {
+            "id": "exchange",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Exchange",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.exchange"
+            }
+          },
+          {
+            "id": "hold",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Hold",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.hold"
+            }
+          },
+          {
+            "id": "history",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Transactions",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.history"
+            }
+          },
+          {
+            "id": "lots",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Fund restrictions",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.lots"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "default",
+            "input": {
+              "action": "/actions/setDefault",
+              "expectedRevision": "/wallet/version",
+              "walletId": "/walletId"
+            },
+            "label": "Set default",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.manage"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "confirm": "Close this empty wallet?",
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "close",
+            "input": {
+              "action": "/actions/close",
+              "expectedRevision": "/wallet/version",
+              "walletId": "/walletId"
+            },
+            "label": "Close wallet",
+            "style": "danger",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.manage"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Available amount"
+              },
+              {
+                "format": "text",
+                "label": "Fund type and currency"
+              },
+              {
+                "format": "text",
+                "label": "Frozen"
+              },
+              {
+                "format": "text",
+                "label": "Book balance"
+              },
+              {
+                "format": "text",
+                "label": "Withdrawable"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "CNY · cash"
+                  },
+                  {
+                    "text": "0.00"
+                  },
+                  {
+                    "text": "1000.00"
+                  },
+                  {
+                    "text": "1000.00"
+                  }
+                ],
+                "key": "account-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.wallet"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Available balance",
+            "value": "1000.00"
+          },
+          {
+            "label": "Fund type and currency",
+            "value": "CNY · cash"
+          },
+          {
+            "label": "Frozen",
+            "value": "0.00"
+          },
+          {
+            "label": "Withdrawable amount",
+            "value": "1000.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "primary": "recharge",
+            "secondary": "withdrawal",
+            "tertiary": "payoutProfiles"
+          },
+          "props": {
+            "description": "View the available balance and manage funds in this wallet.",
+            "emptyDescription": "Funds will appear here when received.",
+            "emptyTitle": "No fund accounts yet",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "wallet",
+            "maskRowAmounts": true,
+            "sectionTitle": "Fund account",
+            "servicesTitle": "Wallet actions",
+            "summaryTitle": "Wallet balance"
+          },
+          "renderer": "account"
+        },
+        "title": "Wallet"
+      }
+    },
+    {
+      "id": "transfer",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.transfer",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "policyId",
+              "targetWalletId",
+              "decimalAmount"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/transfer",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "预览",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.transfers.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "扣款钱包",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "policyId",
+            "kind": "select",
+            "label": "转账规则",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "收款钱包",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "选择规则并填写收款钱包与金额，下一步核对费用。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "转账信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写信息"
+          },
+          "renderer": "account"
+        },
+        "title": "转账"
+      }
+    },
+    {
+      "id": "transfer",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.transfer",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "policyId",
+              "targetWalletId",
+              "decimalAmount"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/transfer",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "Preview",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.transfers.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Source wallet",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "policyId",
+            "kind": "select",
+            "label": "Transfer policy",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "Recipient wallet",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "Choose a policy and enter the recipient wallet and amount. Review fees next.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Transfer details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details"
+          },
+          "renderer": "account"
+        },
+        "title": "Transfer"
+      }
+    },
+    {
+      "id": "exchange",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.exchange",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "pairId",
+              "targetWalletId",
+              "decimalAmount"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/exchange",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "预览",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.exchanges.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "扣款钱包",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "pairId",
+            "kind": "select",
+            "label": "兑换规则",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "目标钱包",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "选择兑换规则并填写目标钱包与金额，下一步核对到账金额。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "兑换信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写信息"
+          },
+          "renderer": "account"
+        },
+        "title": "兑换"
+      }
+    },
+    {
+      "id": "exchange",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.exchange",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "pairId",
+              "targetWalletId",
+              "decimalAmount"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/exchange",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "Preview",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.exchanges.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Source wallet",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "pairId",
+            "kind": "select",
+            "label": "Exchange pair",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "Target wallet",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "Choose an exchange pair and enter the target wallet and amount. Review the amount received next.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Exchange details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details"
+          },
+          "renderer": "account"
+        },
+        "title": "Exchange"
+      }
+    },
+    {
+      "id": "hold",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.hold",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "policyId",
+              "targetWalletId",
+              "decimalAmount",
+              "lifetimeSeconds"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/hold",
+              "createdAtMs": "/createdAtMs",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "预览",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.holds.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "扣款钱包",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "policyId",
+            "kind": "select",
+            "label": "转账规则",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "收款钱包",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "default": 3600,
+            "id": "lifetimeSeconds",
+            "kind": "number",
+            "label": "冻结时长（秒）",
+            "max": 604800,
+            "min": 1,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "填写收款钱包、金额与冻结时长，下一步核对冻结详情。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "冻结信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写信息"
+          },
+          "renderer": "account"
+        },
+        "title": "冻结"
+      }
+    },
+    {
+      "id": "hold",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.hold",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.intent"
+            },
+            "form": [
+              "policyId",
+              "targetWalletId",
+              "decimalAmount",
+              "lifetimeSeconds"
+            ],
+            "id": "preview",
+            "input": {
+              "action": "/actions/hold",
+              "createdAtMs": "/createdAtMs",
+              "sourceWalletId": "/walletId"
+            },
+            "label": "Preview",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.holds.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Source wallet",
+            "value": "wallet-fixture"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "可用规则",
+                "value": "rule-fixture"
+              }
+            ],
+            "id": "policyId",
+            "kind": "select",
+            "label": "Transfer policy",
+            "required": true
+          },
+          {
+            "id": "targetWalletId",
+            "kind": "text",
+            "label": "Recipient wallet",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "default": 3600,
+            "id": "lifetimeSeconds",
+            "kind": "number",
+            "label": "Hold duration (seconds)",
+            "max": 604800,
+            "min": 1,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "preview"
+          },
+          "props": {
+            "description": "Enter the recipient wallet, amount and hold duration. Review the hold next.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Hold details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details"
+          },
+          "renderer": "account"
+        },
+        "title": "Hold"
+      }
+    },
+    {
+      "id": "intent",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.intent",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.confirm"
+            },
+            "id": "prepare",
+            "input": {
+              "action": "/actions/prepareAuthorization",
+              "intentId": "/intentId"
+            },
+            "label": "继续验证",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "有效期"
+          }
+        ],
+        "fields": [
+          {
+            "label": "扣款钱包",
+            "value": "wallet-fixture"
+          },
+          {
+            "label": "资产",
+            "value": "CNY"
+          },
+          {
+            "label": "目标",
+            "value": "收款钱包"
+          },
+          {
+            "label": "扣款",
+            "value": "100.00"
+          },
+          {
+            "label": "手续费",
+            "value": "1.00"
+          },
+          {
+            "label": "到账",
+            "value": "99.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "prepare"
+          },
+          "props": {
+            "description": "核对收款钱包、扣款、费用与有效期后，继续验证。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "资金明细",
+            "servicesTitle": "更多操作",
+            "stepLabel": "核对信息"
+          },
+          "renderer": "account"
+        },
+        "title": "核对资金明细"
+      }
+    },
+    {
+      "id": "intent",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.intent",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.confirm"
+            },
+            "id": "prepare",
+            "input": {
+              "action": "/actions/prepareAuthorization",
+              "intentId": "/intentId"
+            },
+            "label": "Continue",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Valid until"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Source wallet",
+            "value": "wallet-fixture"
+          },
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Recipient",
+            "value": "收款钱包"
+          },
+          {
+            "label": "Debit",
+            "value": "100.00"
+          },
+          {
+            "label": "Fee",
+            "value": "1.00"
+          },
+          {
+            "label": "Credit",
+            "value": "99.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "prepare"
+          },
+          "props": {
+            "description": "Review the recipient wallet, debit, fees and expiry, then continue verification.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Fund details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Review details"
+          },
+          "renderer": "account"
+        },
+        "title": "Review payment"
+      }
+    },
+    {
+      "id": "confirm",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.confirm",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "confirm": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "pay",
+            "input": {
+              "action": "/actions/confirm",
+              "authorizationId": "/authorizationId",
+              "expectedRevision": "/revision"
+            },
+            "label": "确认并支付",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "cancel",
+            "input": {
+              "action": "/actions/cancel",
+              "authorizationId": "/authorizationId",
+              "expectedRevision": "/revision"
+            },
+            "label": "取消确认",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "有效期"
+          },
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "验证有效期"
+          },
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "付款批准有效期"
+          },
+          {
+            "kind": "note",
+            "text": "当前为沙箱资金，确认不代表真实支付渠道。",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "扣款钱包",
+            "value": "wallet-fixture"
+          },
+          {
+            "label": "资产",
+            "value": "CNY"
+          },
+          {
+            "label": "目标",
+            "value": "收款钱包"
+          },
+          {
+            "label": "扣款",
+            "value": "100.00"
+          },
+          {
+            "label": "手续费",
+            "value": "1.00"
+          },
+          {
+            "label": "到账",
+            "value": "99.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "confirm": "pay"
+          },
+          "props": {
+            "amount": "100.00",
+            "description": "核对付款信息并完成验证后确认支付。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "methodLabel": "CNY",
+            "sectionTitle": "付款明细",
+            "servicesTitle": "更多操作",
+            "stepLabel": "验证并确认"
+          },
+          "renderer": "payment.confirm"
+        },
+        "title": "确认支付"
+      }
+    },
+    {
+      "id": "confirm",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.confirm",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "confirm": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "pay",
+            "input": {
+              "action": "/actions/confirm",
+              "authorizationId": "/authorizationId",
+              "expectedRevision": "/revision"
+            },
+            "label": "Confirm and pay",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "IDENTITY_UNAVAILABLE",
+                "ACCESS_DENIED",
+                "NOT_FOUND",
+                "COMMAND_CONFLICT",
+                "RULE_VIOLATION",
+                "VERSION_CONFLICT",
+                "AUTHORIZATION_EXPIRED",
+                "AUTHORIZATION_REQUIRED",
+                "QUOTE_EXPIRED",
+                "INSUFFICIENT_FUNDS",
+                "INVENTORY_INSUFFICIENT",
+                "HOLD_CLOSED",
+                "BUSINESS_CONFLICT",
+                "WALLET_NOT_ACTIVE",
+                "WALLET_LIMIT",
+                "MODE_DENIED",
+                "ALREADY_DECIDED",
+                "ACCOUNT_UNAVAILABLE",
+                "BALANCE_LIMIT_EXCEEDED",
+                "BINDING_DENIED",
+                "ESCROW_CLOSED",
+                "ALREADY_PAID"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/arguments/authorizationId",
+                "commandId": "/arguments/commandId",
+                "holdId": "/arguments/holdId",
+                "intentId": "/arguments/intentId",
+                "walletId": "/arguments/walletId"
+              },
+              "page": "flare.wallet.page.result"
+            },
+            "id": "cancel",
+            "input": {
+              "action": "/actions/cancel",
+              "authorizationId": "/authorizationId",
+              "expectedRevision": "/revision"
+            },
+            "label": "Cancel authorization",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Valid until"
+          },
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Verification valid until"
+          },
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Payment approval valid until"
+          },
+          {
+            "kind": "note",
+            "text": "Sandbox funds; this does not use a real payment provider.",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Source wallet",
+            "value": "wallet-fixture"
+          },
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Recipient",
+            "value": "收款钱包"
+          },
+          {
+            "label": "Debit",
+            "value": "100.00"
+          },
+          {
+            "label": "Fee",
+            "value": "1.00"
+          },
+          {
+            "label": "Credit",
+            "value": "99.00"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "confirm": "pay"
+          },
+          "props": {
+            "amount": "100.00",
+            "description": "Review payment details and complete verification before confirming payment.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "methodLabel": "CNY",
+            "sectionTitle": "Payment details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Verify and confirm"
+          },
+          "renderer": "payment.confirm"
+        },
+        "title": "Confirm payment"
+      }
+    },
+    {
+      "id": "result",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.result",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "fields": [
+          {
+            "label": "状态",
+            "value": "prepared"
+          },
+          {
+            "label": "资产",
+            "value": "CNY"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "以当前处理状态为准；结果待确认时请先查看原操作。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "处理详情",
+            "servicesTitle": "更多操作",
+            "stepLabel": "查看结果"
+          },
+          "renderer": "account"
+        },
+        "title": "资金操作结果"
+      }
+    },
+    {
+      "id": "result",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.result",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "fields": [
+          {
+            "label": "Status",
+            "value": "prepared"
+          },
+          {
+            "label": "Asset",
+            "value": "CNY"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Check the current operation status. If the outcome is unconfirmed, review the original request first.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Operation details",
+            "servicesTitle": "More actions",
+            "stepLabel": "View outcome"
+          },
+          "renderer": "account"
+        },
+        "title": "Payment result"
+      }
+    },
+    {
+      "id": "lots",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.lots",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "金额"
+              },
+              {
+                "format": "text",
+                "label": "资产"
+              },
+              {
+                "format": "text",
+                "label": "可提现"
+              },
+              {
+                "format": "text",
+                "label": "允许用途"
+              },
+              {
+                "format": "text",
+                "label": "来源"
+              },
+              {
+                "format": "time",
+                "label": "到期"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "200.00"
+                  },
+                  {
+                    "text": "CNY"
+                  },
+                  {
+                    "text": "可提现"
+                  },
+                  {
+                    "text": "transfer"
+                  },
+                  {
+                    "text": "origin-fixture"
+                  },
+                  {
+                    "text": "1999999999999",
+                    "timeMs": 1999999999999
+                  }
+                ],
+                "key": "lot-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.lots"
+          },
+          {
+            "kind": "note",
+            "text": "所有资金限制和有效期由服务端执行。",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "查看各笔资金的可用用途与有效期。",
+            "emptyDescription": "收到资金后，可在这里查看使用规则。",
+            "emptyTitle": "暂无资金记录",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "maskRowAmounts": false,
+            "sectionTitle": "资金使用规则",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "资金限制"
+      }
+    },
+    {
+      "id": "lots",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.lots",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Amount"
+              },
+              {
+                "format": "text",
+                "label": "Asset"
+              },
+              {
+                "format": "text",
+                "label": "Withdrawable"
+              },
+              {
+                "format": "text",
+                "label": "Allowed purposes"
+              },
+              {
+                "format": "text",
+                "label": "Origin"
+              },
+              {
+                "format": "time",
+                "label": "到期"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "cells": [
+                  {
+                    "text": "200.00"
+                  },
+                  {
+                    "text": "CNY"
+                  },
+                  {
+                    "text": "Withdrawable"
+                  },
+                  {
+                    "text": "transfer"
+                  },
+                  {
+                    "text": "origin-fixture"
+                  },
+                  {
+                    "text": "1999999999999",
+                    "timeMs": 1999999999999
+                  }
+                ],
+                "key": "lot-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.lots"
+          },
+          {
+            "kind": "note",
+            "text": "The server enforces all fund restrictions and expiry.",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Review the allowed uses and expiry of each fund.",
+            "emptyDescription": "After receiving funds, review their usage rules here.",
+            "emptyTitle": "No fund records",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "maskRowAmounts": false,
+            "sectionTitle": "Fund usage rules",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Fund restrictions"
+      }
+    },
+    {
+      "id": "history",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.history",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "钱包管理",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "交易详情",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "变动金额"
+              },
+              {
+                "format": "text",
+                "label": "业务"
+              },
+              {
+                "format": "text",
+                "label": "钱包与资产"
+              },
+              {
+                "format": "time",
+                "label": "时间"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金单"
+              },
+              {
+                "format": "text",
+                "label": "原业务单"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "order-fixture",
+                      "walletId": "wallet-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "支出",
+                  "tone": "neutral"
+                },
+                "cells": [
+                  {
+                    "text": "-100.00"
+                  },
+                  {
+                    "text": "资金变动"
+                  },
+                  {
+                    "text": "primary · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "order-fixture"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "transaction-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "收入",
+                "value": "income"
+              },
+              {
+                "label": "支出",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "收支方向"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "primary · CNY · cash",
+            "description": "查看资金变动与处理结果。",
+            "emptyDescription": "资金操作完成后会显示在这里。",
+            "emptyTitle": "暂无账单",
+            "groupByDate": true,
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "maskRowAmounts": false,
+            "rowBadgeLabel": "收支方向",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "账单明细",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "交易记录"
+      }
+    },
+    {
+      "id": "history",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.history",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Manage wallet",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "Transaction details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Net change"
+              },
+              {
+                "format": "text",
+                "label": "Activity"
+              },
+              {
+                "format": "text",
+                "label": "Wallet and asset"
+              },
+              {
+                "format": "time",
+                "label": "Time"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Funds order reference"
+              },
+              {
+                "format": "text",
+                "label": "Original business reference"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "order-fixture",
+                      "walletId": "wallet-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Expense",
+                  "tone": "neutral"
+                },
+                "cells": [
+                  {
+                    "text": "-100.00"
+                  },
+                  {
+                    "text": "Fund movement"
+                  },
+                  {
+                    "text": "primary · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "order-fixture"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "transaction-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Income",
+                "value": "income"
+              },
+              {
+                "label": "Expense",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "Direction"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "primary · CNY · cash",
+            "description": "Review fund movements and their outcomes.",
+            "emptyDescription": "Completed fund operations will appear here.",
+            "emptyTitle": "No transactions yet",
+            "groupByDate": true,
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "maskRowAmounts": false,
+            "rowBadgeLabel": "Direction",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "Transaction details",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Transactions"
+      }
+    },
+    {
+      "id": "recovery",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.recovery",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "retry",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": []
+            },
+            "id": "retry",
+            "input": {},
+            "label": "处理原操作",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "原资金操作已保存，查询或重试只处理原请求。",
+            "tone": "info"
+          },
+          {
+            "kind": "note",
+            "text": "有资金操作等待确认。请先查看原单，勿重新付款。",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "命令",
+            "value": "command-fixture"
+          },
+          {
+            "label": "结果已知",
+            "value": "false"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "retry"
+          },
+          "props": {
+            "description": "查询或重试仅处理原请求，请勿重复发起资金操作。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "原操作详情",
+            "servicesTitle": "更多操作",
+            "stepLabel": "确认原操作"
+          },
+          "renderer": "account"
+        },
+        "title": "待确认操作"
+      }
+    },
+    {
+      "id": "recovery",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.recovery",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "retry",
+              "slot": "flare.wallet.workflow",
+              "terminalErrorCodes": []
+            },
+            "id": "retry",
+            "input": {},
+            "label": "Recover original operation",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.submit"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "The original operation is retained. Retry always uses that request.",
+            "tone": "info"
+          },
+          {
+            "kind": "note",
+            "text": "An operation needs confirmation. Recover the original request before making another payment.",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Operation",
+            "value": "command-fixture"
+          },
+          {
+            "label": "Result known",
+            "value": "false"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "retry"
+          },
+          "props": {
+            "description": "Queries and retries use the original request. Do not submit another fund operation.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Original operation details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Review original operation"
+          },
+          "renderer": "account"
+        },
+        "title": "Recover operation"
+      }
+    },
+    {
+      "id": "recharge",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.recharge",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.cashflow_history"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "decimalAmount",
+              "paymentReference",
+              "proofReference"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/recharge"
+            },
+            "label": "提交充值申请",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "充值与提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "请按渠道说明转账，填写真实付款单号和付款凭证链接或上传引用。审核确认收到款项后入账。",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "渠道名称"
+              },
+              {
+                "format": "text",
+                "label": "渠道说明"
+              }
+            ],
+            "emptyText": "暂无可用渠道",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.recharge"
+          }
+        ],
+        "fields": [
+          {
+            "label": "币种",
+            "value": "CNY"
+          },
+          {
+            "label": "可用金额",
+            "value": "1000.00"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "到账钱包",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人民币",
+                "value": "CNY"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "币种",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "充值渠道",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "paymentReference",
+            "kind": "text",
+            "label": "转账附言或付款单号",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "proofReference",
+            "kind": "textarea",
+            "label": "付款凭证链接或上传引用",
+            "maxLength": 2048,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "选择到账钱包与充值渠道，再填写金额和付款凭证。",
+            "emptyDescription": "当前没有可用充值渠道，已有记录仍可查看。",
+            "emptyTitle": "暂无可用渠道",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "充值信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写并提交审核"
+          },
+          "renderer": "account"
+        },
+        "title": "充值"
+      }
+    },
+    {
+      "id": "recharge",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.recharge",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.cashflow_history"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "decimalAmount",
+              "paymentReference",
+              "proofReference"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/recharge"
+            },
+            "label": "Submit recharge",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "Recharge and withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Transfer using the channel instructions and provide the real payment reference and proof link or upload reference. Funds are credited after receipt verification.",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Channel name"
+              },
+              {
+                "format": "text",
+                "label": "Channel instructions"
+              }
+            ],
+            "emptyText": "No channels available",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.recharge"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Available amount",
+            "value": "1000.00"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "No options available",
+                "value": "unavailable"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "Receiving wallet",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人民币",
+                "value": "CNY"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "Asset",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "No options available",
+                "value": "unavailable"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "Recharge channel",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "paymentReference",
+            "kind": "text",
+            "label": "Payment reference",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "proofReference",
+            "kind": "textarea",
+            "label": "Payment proof link or upload reference",
+            "maxLength": 2048,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "Choose the receiving wallet and recharge channel, then enter the amount and payment proof.",
+            "emptyDescription": "No recharge channels are available. Existing records remain available.",
+            "emptyTitle": "No channels available",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Recharge details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details and submit for review"
+          },
+          "renderer": "account"
+        },
+        "title": "Recharge"
+      }
+    },
+    {
+      "id": "withdrawal",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.withdrawal",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/data/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "profileId",
+              "decimalAmount"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/prepareWithdrawal"
+            },
+            "label": "核对提现",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "充值与提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "请核对固定收款账户、金额与费用。审核通过后由工作人员处理付款。",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "渠道名称"
+              },
+              {
+                "format": "text",
+                "label": "渠道说明"
+              }
+            ],
+            "emptyText": "暂无可用渠道",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.withdrawal"
+          }
+        ],
+        "fields": [
+          {
+            "label": "币种",
+            "value": "CNY"
+          },
+          {
+            "label": "可用金额",
+            "value": "1000.00"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "付款钱包",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人民币",
+                "value": "CNY"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "币种",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "提现渠道",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "金额",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "暂无可用选项",
+                "value": "unavailable"
+              }
+            ],
+            "id": "profileId",
+            "kind": "select",
+            "label": "收款账户",
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "选择付款钱包、渠道与收款账户，下一步核对金额和费用。",
+            "emptyDescription": "当前没有可用提现渠道，已有记录仍可查看。",
+            "emptyTitle": "暂无可用渠道",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "提现信息",
+            "servicesTitle": "更多操作",
+            "stepLabel": "填写信息"
+          },
+          "renderer": "account"
+        },
+        "title": "提现"
+      }
+    },
+    {
+      "id": "withdrawal",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.withdrawal",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {
+                "authorizationId": "/data/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "walletId",
+              "assetId",
+              "channelId",
+              "profileId",
+              "decimalAmount"
+            ],
+            "id": "submit",
+            "input": {
+              "action": "/actions/prepareWithdrawal"
+            },
+            "label": "Review withdrawal",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "Recharge and withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Check the fixed payout account, amount and fee. Staff process payment after review.",
+            "tone": "info"
+          },
+          {
+            "actions": [],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Channel name"
+              },
+              {
+                "format": "text",
+                "label": "Channel instructions"
+              }
+            ],
+            "emptyText": "No channels available",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.withdrawal"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Available amount",
+            "value": "1000.00"
+          }
+        ],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "No options available",
+                "value": "unavailable"
+              }
+            ],
+            "id": "walletId",
+            "kind": "select",
+            "label": "Wallet",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "人民币",
+                "value": "CNY"
+              }
+            ],
+            "id": "assetId",
+            "kind": "select",
+            "label": "Asset",
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "No options available",
+                "value": "unavailable"
+              }
+            ],
+            "id": "channelId",
+            "kind": "select",
+            "label": "Withdrawal channel",
+            "required": true
+          },
+          {
+            "id": "decimalAmount",
+            "kind": "text",
+            "label": "Amount",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "No options available",
+                "value": "unavailable"
+              }
+            ],
+            "id": "profileId",
+            "kind": "select",
+            "label": "Payout account",
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "Choose the source wallet, channel and payout account. Review the amount and fees next.",
+            "emptyDescription": "No withdrawal channels are available. Existing records remain available.",
+            "emptyTitle": "No channels available",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Withdrawal details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Enter details"
+          },
+          "renderer": "account"
+        },
+        "title": "Withdraw"
+      }
+    },
+    {
+      "id": "withdrawal_authorization",
+      "variant": "prepared",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.withdrawal_authorization",
+      "view": {
+        "actions": [
+          {
+            "continuation": {
+              "input": {
+                "authorizationId": "/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "password"
+            ],
+            "id": "authorize",
+            "input": {
+              "authorizationId": "/authorizationId"
+            },
+            "label": "验证支付密码",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.withdrawals.authorize"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "充值与提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "有效期"
+          }
+        ],
+        "fields": [
+          {
+            "label": "付款钱包",
+            "value": "余额钱包"
+          },
+          {
+            "label": "收款账户",
+            "value": "收款账户 · 1234"
+          },
+          {
+            "label": "金额",
+            "value": "100.00"
+          },
+          {
+            "label": "手续费",
+            "value": "1.00"
+          },
+          {
+            "label": "到账金额",
+            "value": "99.00"
+          },
+          {
+            "label": "币种",
+            "value": "CNY"
+          },
+          {
+            "label": "状态",
+            "value": "待验证"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "输入支付密码",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "authorize"
+          },
+          "props": {
+            "description": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "提现明细",
+            "servicesTitle": "更多操作",
+            "stepLabel": "核对并验证"
+          },
+          "renderer": "account"
+        },
+        "title": "核对提现"
+      }
+    },
+    {
+      "id": "withdrawal_authorization",
+      "variant": "authorized",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.withdrawal_authorization",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "confirm": "请核对固定收款账户、金额与费用。审核通过后由工作人员处理付款。",
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.cashflow_history"
+            },
+            "id": "create",
+            "input": {
+              "authorizationId": "/authorizationId"
+            },
+            "label": "确认申请提现",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.withdrawals.create"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "充值与提现记录",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "有效期"
+          }
+        ],
+        "fields": [
+          {
+            "label": "付款钱包",
+            "value": "余额钱包"
+          },
+          {
+            "label": "收款账户",
+            "value": "收款账户 · 1234"
+          },
+          {
+            "label": "金额",
+            "value": "100.00"
+          },
+          {
+            "label": "手续费",
+            "value": "1.00"
+          },
+          {
+            "label": "到账金额",
+            "value": "99.00"
+          },
+          {
+            "label": "币种",
+            "value": "CNY"
+          },
+          {
+            "label": "状态",
+            "value": "已验证，待提交"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "输入支付密码",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "提现明细",
+            "servicesTitle": "更多操作",
+            "stepLabel": "核对并验证"
+          },
+          "renderer": "account"
+        },
+        "title": "核对提现"
+      }
+    },
+    {
+      "id": "withdrawal_authorization",
+      "variant": "prepared",
+      "locale": "en-US",
+      "page": "flare.wallet.page.withdrawal_authorization",
+      "view": {
+        "actions": [
+          {
+            "continuation": {
+              "input": {
+                "authorizationId": "/authorizationId"
+              },
+              "page": "flare.wallet.page.withdrawal_authorization"
+            },
+            "form": [
+              "password"
+            ],
+            "id": "authorize",
+            "input": {
+              "authorizationId": "/authorizationId"
+            },
+            "label": "Verify password",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.withdrawals.authorize"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "Recharge and withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Valid until"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Wallet",
+            "value": "余额钱包"
+          },
+          {
+            "label": "Payout account",
+            "value": "收款账户 · 1234"
+          },
+          {
+            "label": "Amount",
+            "value": "100.00"
+          },
+          {
+            "label": "Fee",
+            "value": "1.00"
+          },
+          {
+            "label": "Amount received",
+            "value": "99.00"
+          },
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Status",
+            "value": "Awaiting verification"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "Payment password",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "authorize"
+          },
+          "props": {
+            "description": "Review the payout account and amount received, then verify your payment password and submit the request.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Withdrawal details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Review and verify"
+          },
+          "renderer": "account"
+        },
+        "title": "Review withdrawal"
+      }
+    },
+    {
+      "id": "withdrawal_authorization",
+      "variant": "authorized",
+      "locale": "en-US",
+      "page": "flare.wallet.page.withdrawal_authorization",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "confirm": "Check the fixed payout account, amount and fee. Staff process payment after review.",
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.cashflow_history"
+            },
+            "id": "create",
+            "input": {
+              "authorizationId": "/authorizationId"
+            },
+            "label": "Submit withdrawal",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.withdrawals.create"
+            }
+          },
+          {
+            "id": "history",
+            "input": {},
+            "label": "Recharge and withdrawal history",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_history"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "atMs": 1999999999999,
+            "countdown": true,
+            "kind": "time",
+            "label": "Valid until"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Wallet",
+            "value": "余额钱包"
+          },
+          {
+            "label": "Payout account",
+            "value": "收款账户 · 1234"
+          },
+          {
+            "label": "Amount",
+            "value": "100.00"
+          },
+          {
+            "label": "Fee",
+            "value": "1.00"
+          },
+          {
+            "label": "Amount received",
+            "value": "99.00"
+          },
+          {
+            "label": "Asset",
+            "value": "CNY"
+          },
+          {
+            "label": "Status",
+            "value": "Verified, ready to submit"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "Payment password",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Review the payout account and amount received, then verify your payment password and submit the request.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Withdrawal details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Review and verify"
+          },
+          "renderer": "account"
+        },
+        "title": "Review withdrawal"
+      }
+    },
+    {
+      "id": "payout_profiles",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.payout_profiles",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "保存收款资料",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "设为默认",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "删除",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "类型"
+              },
+              {
+                "format": "text",
+                "label": "户名"
+              },
+              {
+                "format": "text",
+                "label": "账号"
+              },
+              {
+                "format": "text",
+                "label": "状态"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "银行卡",
+                "value": "bankCard"
+              },
+              {
+                "label": "支付宝",
+                "value": "alipay"
+              },
+              {
+                "label": "微信",
+                "value": "wechat"
+              },
+              {
+                "label": "收款地址",
+                "value": "address"
+              }
+            ],
+            "default": "bankCard",
+            "id": "kind",
+            "kind": "select",
+            "label": "类型",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "户名",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "账号",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "银行名称",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "收款地址",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "添加并管理提现收款账户，审核通过后可用于提现。",
+            "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
+            "emptyTitle": "暂无收款账户",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "收款账户",
+            "servicesTitle": "更多操作",
+            "stepLabel": "管理收款方式"
+          },
+          "renderer": "account"
+        },
+        "title": "收款资料"
+      }
+    },
+    {
+      "id": "payout_profiles",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.payout_profiles",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "submit",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": [
+                "INVALID_REQUEST",
+                "ACCESS_DENIED",
+                "COMMAND_CONFLICT",
+                "VERSION_CONFLICT",
+                "FEATURE_DISABLED",
+                "CHANNEL_UNAVAILABLE",
+                "PAYOUT_PROFILE_REQUIRED",
+                "PAYOUT_PROFILE_UNAVAILABLE",
+                "CASHFLOW_LIMIT",
+                "KYC_REQUIRED",
+                "PAYOUT_PAUSED",
+                "INSUFFICIENT_FUNDS",
+                "AUTHORIZATION_EXPIRED",
+                "INVALID_TRANSITION",
+                "RULE_VIOLATION"
+              ]
+            },
+            "continuation": {
+              "input": {},
+              "page": "flare.wallet.page.payout_profiles"
+            },
+            "form": [
+              "kind",
+              "accountName",
+              "accountNumber",
+              "bankName",
+              "address"
+            ],
+            "id": "save",
+            "input": {},
+            "label": "Save payout details",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payout_profiles.save"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "default",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Set default",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.payout_profiles.set_default"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "id": "remove",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id"
+                },
+                "label": "Remove",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.payout_profiles.remove"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Type"
+              },
+              {
+                "format": "text",
+                "label": "Account holder"
+              },
+              {
+                "format": "text",
+                "label": "Account number"
+              },
+              {
+                "format": "text",
+                "label": "Status"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [],
+            "kind": "rows",
+            "rows": [],
+            "source": "flare.wallet.ui.payout_profiles"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Bank card",
+                "value": "bankCard"
+              },
+              {
+                "label": "Alipay",
+                "value": "alipay"
+              },
+              {
+                "label": "WeChat",
+                "value": "wechat"
+              },
+              {
+                "label": "Payout address",
+                "value": "address"
+              }
+            ],
+            "default": "bankCard",
+            "id": "kind",
+            "kind": "select",
+            "label": "Type",
+            "required": true
+          },
+          {
+            "id": "accountName",
+            "kind": "text",
+            "label": "Account holder",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "accountNumber",
+            "kind": "text",
+            "label": "Account number",
+            "maxLength": 128,
+            "required": true
+          },
+          {
+            "id": "bankName",
+            "kind": "text",
+            "label": "Bank name",
+            "maxLength": 128
+          },
+          {
+            "id": "address",
+            "kind": "text",
+            "label": "Payout address",
+            "maxLength": 128
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "save"
+          },
+          "props": {
+            "description": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+            "emptyDescription": "Add payout details for review. After approval, select the account for withdrawals.",
+            "emptyTitle": "No payout accounts",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Payout account",
+            "servicesTitle": "More actions",
+            "stepLabel": "Manage payout methods"
+          },
+          "renderer": "account"
+        },
+        "title": "Payout details"
+      }
+    },
+    {
+      "id": "cashflow_history",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.cashflow_history",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "recordId": "/id",
+                  "walletId": "/walletId"
+                },
+                "label": "记录详情",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.cashflow_detail"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "continuation": {
+                  "input": {},
+                  "page": "flare.wallet.page.cashflow_history"
+                },
+                "form": [
+                  "proofUrl"
+                ],
+                "id": "proof",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id",
+                  "paymentReference": "/paymentReference"
+                },
+                "label": "补交或修改付款凭证",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.recharges.proof"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "申请金额"
+              },
+              {
+                "format": "text",
+                "label": "业务"
+              },
+              {
+                "format": "text",
+                "label": "币种"
+              },
+              {
+                "format": "time",
+                "label": "时间"
+              },
+              {
+                "format": "text",
+                "label": "手续费"
+              },
+              {
+                "format": "text",
+                "label": "到账金额"
+              },
+              {
+                "format": "text",
+                "label": "钱包编号"
+              },
+              {
+                "format": "text",
+                "label": "渠道编号"
+              },
+              {
+                "format": "text",
+                "label": "付款单号"
+              },
+              {
+                "format": "text",
+                "label": "付款凭证"
+              },
+              {
+                "format": "text",
+                "label": "外部付款单号"
+              },
+              {
+                "format": "text",
+                "label": "原因"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [
+              "direction",
+              "status"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "badge": {
+                  "text": "待审核",
+                  "tone": "warning"
+                },
+                "cells": [
+                  {
+                    "text": "100.00"
+                  },
+                  {
+                    "text": "提现"
+                  },
+                  {
+                    "text": "CNY"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "1.00"
+                  },
+                  {
+                    "text": "99.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "payment-fixture"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "等待审核"
+                  }
+                ],
+                "key": "cashflow-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.cashflow_history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "proofUrl",
+            "kind": "textarea",
+            "label": "付款凭证链接或上传引用",
+            "maxLength": 2048,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "待审核",
+                "value": "pending"
+              },
+              {
+                "label": "已批准",
+                "value": "approved"
+              },
+              {
+                "label": "已拒绝",
+                "value": "rejected"
+              },
+              {
+                "label": "出款中",
+                "value": "processing"
+              },
+              {
+                "label": "已完成",
+                "value": "succeeded"
+              },
+              {
+                "label": "失败",
+                "value": "failed"
+              },
+              {
+                "label": "结果待查",
+                "value": "unknown"
+              }
+            ],
+            "id": "status",
+            "kind": "select",
+            "label": "状态"
+          },
+          {
+            "choices": [
+              {
+                "label": "充值",
+                "value": "recharge"
+              },
+              {
+                "label": "提现",
+                "value": "withdrawal"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "类型"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "查看申请进度、到账金额与审核结果。",
+            "emptyDescription": "提交充值或提现申请后，可在这里查看进度。",
+            "emptyTitle": "暂无充值或提现记录",
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "rowBadgeLabel": "状态",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "充值与提现明细",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "充值与提现记录"
+      }
+    },
+    {
+      "id": "cashflow_history",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.cashflow_history",
+      "view": {
+        "actions": [
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.cashflow_recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "recordId": "/id",
+                  "walletId": "/walletId"
+                },
+                "label": "Record details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.cashflow_detail"
+                }
+              },
+              {
+                "command": {
+                  "mode": "submit",
+                  "slot": "flare.wallet.cashflows",
+                  "terminalErrorCodes": [
+                    "INVALID_REQUEST",
+                    "ACCESS_DENIED",
+                    "COMMAND_CONFLICT",
+                    "VERSION_CONFLICT",
+                    "FEATURE_DISABLED",
+                    "CHANNEL_UNAVAILABLE",
+                    "PAYOUT_PROFILE_REQUIRED",
+                    "PAYOUT_PROFILE_UNAVAILABLE",
+                    "CASHFLOW_LIMIT",
+                    "KYC_REQUIRED",
+                    "PAYOUT_PAUSED",
+                    "INSUFFICIENT_FUNDS",
+                    "AUTHORIZATION_EXPIRED",
+                    "INVALID_TRANSITION",
+                    "RULE_VIOLATION"
+                  ]
+                },
+                "continuation": {
+                  "input": {},
+                  "page": "flare.wallet.page.cashflow_history"
+                },
+                "form": [
+                  "proofUrl"
+                ],
+                "id": "proof",
+                "input": {
+                  "expectedRevision": "/revision",
+                  "id": "/id",
+                  "paymentReference": "/paymentReference"
+                },
+                "label": "Add or update payment proof",
+                "target": {
+                  "kind": "operation",
+                  "operation": "flare.wallet.ui.recharges.proof"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Requested amount"
+              },
+              {
+                "format": "text",
+                "label": "Activity"
+              },
+              {
+                "format": "text",
+                "label": "Asset"
+              },
+              {
+                "format": "time",
+                "label": "Time"
+              },
+              {
+                "format": "text",
+                "label": "Fee"
+              },
+              {
+                "format": "text",
+                "label": "Amount received"
+              },
+              {
+                "format": "text",
+                "label": "Wallet ID"
+              },
+              {
+                "format": "text",
+                "label": "Channel ID"
+              },
+              {
+                "format": "text",
+                "label": "Payment reference"
+              },
+              {
+                "format": "text",
+                "label": "Payment proof"
+              },
+              {
+                "format": "text",
+                "label": "External payment reference"
+              },
+              {
+                "format": "text",
+                "label": "Reason"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [
+              "direction",
+              "status"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [],
+                "badge": {
+                  "text": "Pending review",
+                  "tone": "warning"
+                },
+                "cells": [
+                  {
+                    "text": "100.00"
+                  },
+                  {
+                    "text": "Withdraw"
+                  },
+                  {
+                    "text": "CNY"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": "1.00"
+                  },
+                  {
+                    "text": "99.00"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "payment-fixture"
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "等待审核"
+                  }
+                ],
+                "key": "cashflow-fixture"
+              }
+            ],
+            "source": "flare.wallet.ui.cashflow_history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "proofUrl",
+            "kind": "textarea",
+            "label": "Payment proof link or upload reference",
+            "maxLength": 2048,
+            "required": true
+          },
+          {
+            "choices": [
+              {
+                "label": "Pending review",
+                "value": "pending"
+              },
+              {
+                "label": "Approved",
+                "value": "approved"
+              },
+              {
+                "label": "Rejected",
+                "value": "rejected"
+              },
+              {
+                "label": "Processing",
+                "value": "processing"
+              },
+              {
+                "label": "Completed",
+                "value": "succeeded"
+              },
+              {
+                "label": "Failed",
+                "value": "failed"
+              },
+              {
+                "label": "Result unknown",
+                "value": "unknown"
+              }
+            ],
+            "id": "status",
+            "kind": "select",
+            "label": "Status"
+          },
+          {
+            "choices": [
+              {
+                "label": "Recharge",
+                "value": "recharge"
+              },
+              {
+                "label": "Withdraw",
+                "value": "withdrawal"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "Type"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Review request progress, amounts received and review outcomes.",
+            "emptyDescription": "After submitting a recharge or withdrawal request, track its progress here.",
+            "emptyTitle": "No recharge or withdrawal records",
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "rowBadgeLabel": "Status",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "Recharge and withdrawal details",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Recharge and withdrawal history"
+      }
+    },
+    {
+      "id": "cashflow_recovery",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.cashflow_recovery",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "retry",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": []
+            },
+            "id": "submit",
+            "input": {},
+            "label": "处理原操作",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "未确认的资金操作请先查询原单，避免重复提交。",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "状态",
+            "value": "结果待查"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "查询或重试仅处理原请求，请勿重复发起资金操作。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "sectionTitle": "原操作详情",
+            "servicesTitle": "更多操作",
+            "stepLabel": "确认原操作"
+          },
+          "renderer": "account"
+        },
+        "title": "待确认操作"
+      }
+    },
+    {
+      "id": "cashflow_recovery",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.cashflow_recovery",
+      "view": {
+        "actions": [
+          {
+            "command": {
+              "mode": "retry",
+              "slot": "flare.wallet.cashflows",
+              "terminalErrorCodes": []
+            },
+            "id": "submit",
+            "input": {},
+            "label": "Recover original operation",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.ui.cashflows.submit"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Check the original operation before submitting again.",
+            "tone": "warning"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Status",
+            "value": "Result unknown"
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "submit"
+          },
+          "props": {
+            "description": "Queries and retries use the original request. Do not submit another fund operation.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "sectionTitle": "Original operation details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Review original operation"
+          },
+          "renderer": "account"
+        },
+        "title": "Recover operation"
+      }
+    },
+    {
+      "id": "checkout",
+      "variant": "default",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.checkout",
+      "view": {
+        "actions": [
+          {
+            "confirm": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
+            "continuation": {
+              "actionId": "commit",
+              "input": {
+                "authorizationId": "/authorizationId",
+                "packetId": "/businessRef"
+              },
+              "page": "flare.redpacket.page.confirm",
+              "pluginId": "flare.redpacket"
+            },
+            "form": [
+              "password"
+            ],
+            "id": "authorize",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "确认并支付",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payments.authorize"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "支付密码连续输错五次将暂时锁定。",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "金额",
+            "value": "100.00"
+          },
+          {
+            "label": "付款方式",
+            "value": "余额钱包"
+          },
+          {
+            "label": "手续费",
+            "value": "1.00"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "六位支付密码",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "confirm": "authorize"
+          },
+          "props": {
+            "amount": "100.00",
+            "description": "核对付款信息并完成验证后确认支付。",
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "methodLabel": "余额钱包",
+            "sectionTitle": "付款明细",
+            "servicesTitle": "更多操作",
+            "stepLabel": "验证并确认"
+          },
+          "renderer": "payment.confirm"
+        },
+        "title": "确认支付"
+      }
+    },
+    {
+      "id": "checkout",
+      "variant": "default",
+      "locale": "en-US",
+      "page": "flare.wallet.page.checkout",
+      "view": {
+        "actions": [
+          {
+            "confirm": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
+            "continuation": {
+              "actionId": "commit",
+              "input": {
+                "authorizationId": "/authorizationId",
+                "packetId": "/businessRef"
+              },
+              "page": "flare.redpacket.page.confirm",
+              "pluginId": "flare.redpacket"
+            },
+            "form": [
+              "password"
+            ],
+            "id": "authorize",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "Confirm and pay",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payments.authorize"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Five incorrect attempts temporarily lock payment verification.",
+            "tone": "info"
+          }
+        ],
+        "fields": [
+          {
+            "label": "Amount",
+            "value": "100.00"
+          },
+          {
+            "label": "Payment method",
+            "value": "余额钱包"
+          },
+          {
+            "label": "Fee",
+            "value": "1.00"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "Six-digit payment password",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "confirm": "authorize"
+          },
+          "props": {
+            "amount": "100.00",
+            "description": "Review payment details and complete verification before confirming payment.",
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "methodLabel": "余额钱包",
+            "sectionTitle": "Payment details",
+            "servicesTitle": "More actions",
+            "stepLabel": "Verify and confirm"
+          },
+          "renderer": "payment.confirm"
+        },
+        "title": "Confirm payment"
+      }
+    },
+    {
+      "id": "security",
+      "variant": "set",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.security",
+      "view": {
+        "actions": [
+          {
+            "continuation": {
+              "input": {
+                "intentId": "/arguments/intentId"
+              },
+              "page": "flare.wallet.page.checkout",
+              "when": {
+                "exists": true,
+                "path": "/arguments/intentId"
+              }
+            },
+            "form": [
+              "password",
+              "confirmation"
+            ],
+            "id": "set",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "设置支付密码",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payment_password.set"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "currentPassword",
+            "kind": "password",
+            "label": "原支付密码",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "六位支付密码",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "confirmation",
+            "kind": "password",
+            "label": "再次输入支付密码",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "set"
+          },
+          "props": {
+            "description": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "支付安全",
+            "servicesTitle": "更多操作",
+            "stepLabel": "设置与验证"
+          },
+          "renderer": "account"
+        },
+        "title": "支付密码"
+      }
+    },
+    {
+      "id": "security",
+      "variant": "change",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.security",
+      "view": {
+        "actions": [
+          {
+            "form": [
+              "currentPassword",
+              "password",
+              "confirmation"
+            ],
+            "id": "change",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "修改支付密码",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payment_password.set"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "currentPassword",
+            "kind": "password",
+            "label": "原支付密码",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "六位支付密码",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "confirmation",
+            "kind": "password",
+            "label": "再次输入支付密码",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
+            "groupByDate": false,
+            "informationTitle": "账户信息",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "支付安全",
+            "servicesTitle": "更多操作",
+            "stepLabel": "设置与验证"
+          },
+          "renderer": "account"
+        },
+        "title": "支付密码"
+      }
+    },
+    {
+      "id": "security",
+      "variant": "set",
+      "locale": "en-US",
+      "page": "flare.wallet.page.security",
+      "view": {
+        "actions": [
+          {
+            "continuation": {
+              "input": {
+                "intentId": "/arguments/intentId"
+              },
+              "page": "flare.wallet.page.checkout",
+              "when": {
+                "exists": true,
+                "path": "/arguments/intentId"
+              }
+            },
+            "form": [
+              "password",
+              "confirmation"
+            ],
+            "id": "set",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "Set payment password",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payment_password.set"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "currentPassword",
+            "kind": "password",
+            "label": "Current payment password",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "Six-digit payment password",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "confirmation",
+            "kind": "password",
+            "label": "Confirm payment password",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {
+            "submit": "set"
+          },
+          "props": {
+            "description": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Payment security",
+            "servicesTitle": "More actions",
+            "stepLabel": "Set up and verify"
+          },
+          "renderer": "account"
+        },
+        "title": "Payment password"
+      }
+    },
+    {
+      "id": "security",
+      "variant": "change",
+      "locale": "en-US",
+      "page": "flare.wallet.page.security",
+      "view": {
+        "actions": [
+          {
+            "form": [
+              "currentPassword",
+              "password",
+              "confirmation"
+            ],
+            "id": "change",
+            "input": {
+              "intentId": "/intentId"
+            },
+            "label": "Change payment password",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.payment_password.set"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
+            "tone": "info"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "id": "currentPassword",
+            "kind": "password",
+            "label": "Current payment password",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "password",
+            "kind": "password",
+            "label": "Six-digit payment password",
+            "maxLength": 6,
+            "required": true
+          },
+          {
+            "id": "confirmation",
+            "kind": "password",
+            "label": "Confirm payment password",
+            "maxLength": 6,
+            "required": true
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "description": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
+            "groupByDate": false,
+            "informationTitle": "Account information",
+            "layout": "flow",
+            "maskRowAmounts": false,
+            "sectionTitle": "Payment security",
+            "servicesTitle": "More actions",
+            "stepLabel": "Set up and verify"
+          },
+          "renderer": "account"
+        },
+        "title": "Payment password"
+      }
+    }
+  ]
+}

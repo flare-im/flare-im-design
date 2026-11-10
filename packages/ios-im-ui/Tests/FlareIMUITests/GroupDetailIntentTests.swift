@@ -39,6 +39,24 @@ final class GroupDetailIntentTests: XCTestCase {
                        FlareStrings().groupDetailDiscoverable)
     }
 
+    @MainActor
+    func testFriendOnlyMemberOffersAWorkingIntentOnlyWithPermissionAndHandler() throws {
+        var m = model()
+        m.memberActions = [ann.id: FlareMemberActions(canRequestFriend: true), bob.id: .none]
+        var requested: [String] = []
+        let detail = FlareGroupDetail(model: m, onRequestFriend: { requested.append($0) })
+        XCTAssertTrue(FlareGroupDetail.memberCanRequestFriend(ann.id, in: m, hasHandler: true))
+        XCTAssertTrue(groupDetailMemberActions(model: m, memberId: ann.id).isEmpty, "friend-only does not need management rights")
+        let dialog = try AnyView(detail.memberActionButtons(for: ann)).inspect()
+        try dialog.find(button: FlareStrings().groupDetailRequestFriend).tap()
+        XCTAssertEqual(requested, [ann.id])
+        XCTAssertThrowsError(try AnyView(detail.memberActionButtons(for: bob)).inspect().find(button: FlareStrings().groupDetailRequestFriend))
+        XCTAssertThrowsError(try AnyView(FlareGroupDetail(model: m).memberActionButtons(for: ann)).inspect().find(button: FlareStrings().groupDetailRequestFriend))
+        XCTAssertFalse(FlareGroupDetail.memberCanRequestFriend(ann.id, in: m, hasHandler: false))
+        XCTAssertFalse(FlareGroupDetail.memberCanRequestFriend("missing", in: m, hasHandler: true))
+        XCTAssertFalse(FlareGroupDetail.memberCanRequestFriend(ann.id, in: nil, hasHandler: true))
+    }
+
     func testTransferConfirmationCopyNamesTheStepAndTheMember() {
         let copy = FlareGroupDetailLabels().resolve(FlareStrings())
         let transfer = FlareGroupDetail.transferOptions(ann, copy: copy, onTransferOwner: nil)

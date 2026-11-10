@@ -48,18 +48,27 @@ class FlarePluginPage extends StatefulWidget {
     required this.page,
     this.title,
     this.appearance = FlarePluginPageAppearance.document,
+    this.contentMaxWidth = FlareSizes.directoryContentMaxWidth,
     this.view,
     this.filters = const {},
     this.loading = false,
     this.error,
     this.refreshing = false,
     this.loadingMore = false,
+    this.pagingToken = 0,
     this.resolveUser,
     this.viewerId,
     this.busyActionId,
     this.actionError,
     this.formErrors = const [],
+    this.fileStates = const {},
+    this.onFileAction,
     this.members = const [],
+    this.membersLoading = false,
+    this.membersRevision = 0,
+    this.membersError,
+    this.onMemberSearch,
+    this.onMembersRetry,
     this.settleToken = 0,
     this.onBack,
     this.onRefresh,
@@ -76,6 +85,10 @@ class FlarePluginPage extends StatefulWidget {
   /// unavailable one); the view's title wins.
   final String? title;
   final FlarePluginPageAppearance appearance;
+
+  /// Shared header/body column, including page gutters. Null or a nonpositive
+  /// or nonfinite value leaves the page unconstrained.
+  final double? contentMaxWidth;
 
   /// The resolved page view (the core SDK's pluginPage result, with data);
   /// null while the first load runs. Pass the merged view after load more and
@@ -99,6 +112,9 @@ class FlarePluginPage extends StatefulWidget {
   /// The next page is loading: the load-more key spins and is disabled, and
   /// the filter tabs wait.
   final bool loadingMore;
+
+  /// Pagination completion/invalidation only; never settles a financial form.
+  final int pagingToken;
   final FlarePluginResolveUser? resolveUser;
 
   /// The viewer's user id (the "我" tag in entries).
@@ -110,7 +126,18 @@ class FlarePluginPage extends StatefulWidget {
   /// Failure text of an action run on the page (the view's error).
   final String? actionError;
   final List<FlarePluginFormError> formErrors;
+  final Map<String, FlarePluginFileState> fileStates;
+  final ValueChanged<FlarePluginFileAction>? onFileAction;
   final List<FlarePluginMember> members;
+
+  /// Server member-search state; without onMemberSearch the picker filters locally.
+  final bool membersLoading;
+
+  /// An authoritative roster/permission invalidation, never an ordinary search result.
+  final int membersRevision;
+  final String? membersError;
+  final ValueChanged<String>? onMemberSearch;
+  final VoidCallback? onMembersRetry;
 
   /// The host's settle signal for actions run on the page.
   final int settleToken;
@@ -168,6 +195,13 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
       oldError: old.actionError,
       error: widget.actionError,
     );
+    if (old.pagingToken != widget.pagingToken) _cursor.release();
+    // Query/pagination failures release only the cursor guard. They never
+    // settle a financial action or an open form.
+    // Fast retries can fail with identical copy before a loading frame paints.
+    if (!widget.loadingMore && (widget.error?.isNotEmpty ?? false)) {
+      _cursor.release();
+    }
     if (old.refreshing && !widget.refreshing) {
       _cursor.release();
       _endPull();
@@ -200,12 +234,14 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
   }
 
   void _loadMore(String cursor) {
+    if (_filtersBusy || widget.onLoadMore == null) return;
     if (!_cursor.ask(cursor, loadingMore: widget.loadingMore)) return;
     setState(() {});
     widget.onLoadMore?.call(cursor);
   }
 
-  bool get _filtersBusy => widget.refreshing || widget.loadingMore;
+  bool get _filtersBusy =>
+      widget.loading || widget.refreshing || widget.loadingMore;
 
   void _choose(FlarePluginPageFilter filter, String key) {
     if (_filtersBusy) return;
@@ -292,7 +328,12 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
     final scroll = SingleChildScrollView(
       // A short page still pulls.
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(FlareSizes.spacingLg),
+      padding: const EdgeInsets.fromLTRB(
+        FlareSizes.spacingLg,
+        FlareSizes.spacingMd,
+        FlareSizes.spacingLg,
+        FlareSizes.spacingXl,
+      ),
       child: body,
     );
     return Semantics(
@@ -304,6 +345,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
         onBack: widget.onBack,
         scroll: false,
         surface: FlareScreenSurface.surface,
+        contentMaxWidth: widget.contentMaxWidth,
         actions: [
           if (pointer && canRefresh)
             FlareIconButton(
@@ -336,6 +378,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
     final cursor = view.nextPageCursor;
     final busy =
         cursor != null && _cursor.busy(cursor, loadingMore: widget.loadingMore);
+    final pagingDisabled = busy || _filtersBusy || widget.onLoadMore == null;
     final error = widget.error;
     final filters = flarePluginPageFilters(
       view,
@@ -352,10 +395,24 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
             key: FlarePluginPage.bannerKey,
             text: error,
             tone: FlareStatusTone.danger,
+            actionText: widget.onRefresh != null && !widget.refreshing
+                ? strings.retry
+                : null,
+            onAction: widget.refreshing ? null : widget.onRefresh,
           ),
           const SizedBox(height: FlareSizes.spacingMd),
         ],
         for (final filter in filters) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: FlareSizes.spacingXs),
+            child: Text(
+              filter.input.label,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: FlareSizes.fontSizeSm,
+              ),
+            ),
+          ),
           Semantics(
             container: true,
             label: filter.input.label,
@@ -376,23 +433,44 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           const SizedBox(height: FlareSizes.spacingXs),
         ],
         if (filters.isNotEmpty) const SizedBox(height: FlareSizes.spacingSm),
-        if (widget.appearance == FlarePluginPageAppearance.account || view.presentation?['renderer'] == 'account')
-          FlareAccountView(view: view, busyActionId: widget.busyActionId,
-            error: widget.actionError, formErrors: widget.formErrors,
-            members: widget.members, settleToken: widget.settleToken,
-            onAction: widget.onAction == null ? null : _runAction)
-        else FlarePluginView(
-          view: view,
-          embedded: true,
-          resolveUser: widget.resolveUser,
-          viewerId: widget.viewerId,
-          busyActionId: widget.busyActionId,
-          error: widget.actionError,
-          formErrors: widget.formErrors,
-          members: widget.members,
-          settleToken: widget.settleToken,
-          onAction: widget.onAction == null ? null : _runAction,
-        ),
+        if (widget.appearance == FlarePluginPageAppearance.account ||
+            view.presentation?['renderer'] == 'account')
+          FlareAccountView(
+            fileStates: widget.fileStates,
+            onFileAction: widget.onFileAction,
+            view: view,
+            busyActionId: widget.busyActionId,
+            error: widget.actionError,
+            formErrors: widget.formErrors,
+            members: widget.members,
+            membersLoading: widget.membersLoading,
+            membersRevision: widget.membersRevision,
+            membersError: widget.membersError,
+            onMemberSearch: widget.onMemberSearch,
+            onMembersRetry: widget.onMembersRetry,
+            settleToken: widget.settleToken,
+            onAction: widget.onAction == null ? null : _runAction,
+          )
+        else
+          FlarePluginView(
+            fileStates: widget.fileStates,
+            onFileAction: widget.onFileAction,
+            view: view,
+            embedded: true,
+            resolveUser: widget.resolveUser,
+            viewerId: widget.viewerId,
+            busyActionId: widget.busyActionId,
+            error: widget.actionError,
+            formErrors: widget.formErrors,
+            members: widget.members,
+            membersLoading: widget.membersLoading,
+            membersRevision: widget.membersRevision,
+            membersError: widget.membersError,
+            onMemberSearch: widget.onMemberSearch,
+            onMembersRetry: widget.onMembersRetry,
+            settleToken: widget.settleToken,
+            onAction: widget.onAction == null ? null : _runAction,
+          ),
         if (cursor != null) ...[
           const SizedBox(height: FlareSizes.spacingMd),
           FlareButton(
@@ -402,8 +480,8 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
             size: FlareControlSize.sm,
             block: true,
             loading: busy,
-            disabled: busy,
-            onPressed: busy ? null : () => _loadMore(cursor),
+            disabled: pagingDisabled,
+            onPressed: pagingDisabled ? null : () => _loadMore(cursor),
           ),
         ],
       ],

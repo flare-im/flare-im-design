@@ -261,6 +261,142 @@ void main() {
     );
   });
 
+  testWidgets('call records fit a narrow timeline with enlarged English text', (
+    tester,
+  ) async {
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          home: FlareStringsScope(
+            strings: flareStringsEnglish,
+            child: Scaffold(
+              body: MediaQuery(
+                data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+                child: Center(
+                  child: SizedBox(
+                    width: 220,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FlareCallRecordCard(
+                        media: FlareCallMode.video,
+                        scope: FlareCallRecordScope.single,
+                        state: FlareCallRecordState.ended,
+                        durationSeconds: 3630,
+                        viewerIsInitiator: true,
+                        canJoin: false,
+                        canCallBack: true,
+                        onCallBack: () {},
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull, reason: brightness.name);
+      expect(find.text('Duration 1:00:30'), findsOneWidget);
+      expect(find.text('Call back'), findsNothing);
+      expect(
+        tester.getSize(find.byKey(FlareMessageCardShell.surfaceKey)).width,
+        lessThanOrEqualTo(220),
+        reason: brightness.name,
+      );
+    }
+  });
+
+  testWidgets('a pending callback cannot outlive its available capability', (
+    tester,
+  ) async {
+    for (final unavailable in ['busy', 'disabled', 'no-handler']) {
+      var changed = false;
+      var calls = 0;
+      late StateSetter update;
+      await tester.pumpWidget(
+        host(
+          StatefulBuilder(
+            builder: (context, setState) {
+              update = setState;
+              return FlareCallRecordCard(
+                media: FlareCallMode.video,
+                scope: FlareCallRecordScope.single,
+                state: FlareCallRecordState.ended,
+                durationSeconds: 30,
+                viewerIsInitiator: true,
+                canJoin: false,
+                canCallBack: true,
+                busy: changed && unavailable == 'busy',
+                disabled: changed && unavailable == 'disabled',
+                onCallBack: changed && unavailable == 'no-handler'
+                    ? null
+                    : () => calls++,
+              );
+            },
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(FlareCallRecordCard.actionKey));
+      await tester.pumpAndSettle();
+      update(() => changed = true);
+      await tester.pump();
+      await tester.tap(find.text(const FlareStrings().confirm));
+      await tester.pumpAndSettle();
+      expect(calls, 0, reason: unavailable);
+    }
+  });
+
+  testWidgets('an actionable call record announces its callback affordance', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host(
+        FlareCallRecordCard(
+          media: FlareCallMode.audio,
+          scope: FlareCallRecordScope.single,
+          state: FlareCallRecordState.ended,
+          durationSeconds: 30,
+          viewerIsInitiator: true,
+          canJoin: false,
+          canCallBack: true,
+          onCallBack: () {},
+        ),
+      ),
+    );
+    final node = tester.getSemantics(find.bySemanticsLabel('语音通话'));
+    expect(node.value, '通话时长 00:30');
+    expect(node.hint, const FlareStrings().callRecordCallBack);
+    semantics.dispose();
+  });
+
+  testWidgets('callback keeps a full touch target when text is scaled down', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(0.6)),
+          child: FlareCallRecordCard(
+            media: FlareCallMode.audio,
+            scope: FlareCallRecordScope.single,
+            state: FlareCallRecordState.ended,
+            endReason: FlareCallEndReason.missed,
+            viewerIsInitiator: false,
+            canJoin: false,
+            canCallBack: true,
+            onCallBack: () {},
+          ),
+        ),
+      ),
+    );
+    final target = tester.getSize(find.byKey(FlareCallRecordCard.actionKey));
+    expect(target.height, greaterThanOrEqualTo(FlareSizes.touchTarget));
+    expect(target.width, lessThan(FlareSizes.componentRichCardWidth));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the 1:1 call view minimizes only when the host can', (
     tester,
   ) async {

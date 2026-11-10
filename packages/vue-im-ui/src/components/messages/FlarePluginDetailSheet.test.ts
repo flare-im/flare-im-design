@@ -171,4 +171,25 @@ describe("FlarePluginDetailSheet paging (spec/plugin-view-vectors.json detailPag
     await flushPromises();
     expect(sheet.pages).toEqual(["page-2", "page-2"]);
   });
+  it("passes protected media and asset scales to the detail view and forwards its reads", async () => {
+    const read = { action: { id: "readMaterial", label: "查看" }, item: { id: "m1", label: "证件正面", input: {} }, reason: "核对", urlPath: "/readUrl", formValues: { materialId: "m1" } };
+    const reads: unknown[] = [];
+    const media = { m1: { loading: true } };
+    const scale = (assetId: string) => (assetId === "cny" ? 2 : undefined);
+    const wrapper = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("zh-CN");
+        return () => h(FlarePluginDetailSheet as never, {
+          open: true, view: detail, protectedMedia: media, assetScale: scale,
+          onProtectedMediaRead: (value: unknown) => reads.push(value),
+        });
+      },
+    }), { attachTo: document.body });
+    await flushPromises();
+    const view = wrapper.findComponent(FlarePluginView);
+    expect(view.props("protectedMedia")).toEqual(media);
+    expect(view.props("assetScale")).toBe(scale);
+    view.vm.$emit("protectedMediaRead", read);
+    expect(reads).toEqual([read]);
+  });
 });

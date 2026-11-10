@@ -11,7 +11,7 @@ import type {
 
 // The blocks without state of their own: fields (label/value rows), status (a kit Tag), progress (a bar
 // and value/total), divider and note (a tinted line in the *Text tone).
-defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlock | FlarePluginProgressBlock | FlarePluginDividerBlock | FlarePluginNoteBlock }>();
+defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlock | FlarePluginProgressBlock | FlarePluginDividerBlock | FlarePluginNoteBlock; notePresentation?: "tinted" | "plain" }>();
 const clamp = (n: number) => Math.min(100, Math.max(0, n));
 </script>
 
@@ -44,7 +44,7 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
     </div>
   </div>
   <hr v-else-if="block.kind === 'divider'" class="flare-plugin-divider" />
-  <p v-else-if="block.kind === 'note'" class="flare-plugin-note" :class="`is-${block.tone ?? 'neutral'}`" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
+  <p v-else-if="block.kind === 'note'" class="flare-plugin-note" :class="notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
 </template>
 
 <style scoped>
@@ -52,8 +52,12 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
 .flare-plugin-fields__row { display: grid; grid-template-columns: minmax(4em, 1fr) minmax(0, 2fr); gap: var(--flare-size-spacing-md); }
 .flare-plugin-fields dt { color: var(--flare-color-text-secondary); }
 .flare-plugin-fields dd { margin: 0; color: var(--flare-color-text-primary); overflow-wrap: anywhere; }
-.flare-plugin-status { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-size-font-size-md); }
+.flare-plugin-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-size-font-size-md); }
 .flare-plugin-status__label { color: var(--flare-color-text-secondary); }
+/* A status may explain why an action is unavailable. Keep its complete text;
+   row badges elsewhere retain the Tag's compact single-line layout. */
+.flare-plugin-status :deep(.flare-tag) { white-space: normal; }
+.flare-plugin-status :deep(.flare-tag__label) { overflow: visible; overflow-wrap: anywhere; }
 .flare-plugin-progress { display: grid; gap: var(--flare-size-spacing-xs); min-width: 0; font-size: var(--flare-size-font-size-md); }
 .flare-plugin-progress__head { display: flex; justify-content: space-between; gap: var(--flare-size-spacing-sm); }
 .flare-plugin-progress__label { color: var(--flare-color-text-secondary); }
@@ -75,6 +79,7 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
 .flare-plugin-note.is-success { --flare-plugin-note-ink: var(--flare-color-success-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-success) 6%, var(--flare-color-bg-primary)); }
 .flare-plugin-note.is-warning { --flare-plugin-note-ink: var(--flare-color-warning-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-warning) 6%, var(--flare-color-bg-primary)); }
 .flare-plugin-note.is-danger { --flare-plugin-note-ink: var(--flare-color-error-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-error) 6%, var(--flare-color-bg-primary)); }
+.flare-plugin-note.is-plain { padding: 0; border-radius: 0; color: var(--flare-color-text-secondary); background: none; }
 @media (prefers-reduced-motion: reduce) {
   .flare-plugin-progress__fill { transition: none; }
 }

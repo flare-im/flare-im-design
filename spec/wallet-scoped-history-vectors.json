@@ -1,0 +1,770 @@
+{
+  "cases": [
+    {
+      "arguments": {
+        "walletId": "wallet-cny-fixture"
+      },
+      "filters": {},
+      "id": "history",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.history",
+      "sourceData": {
+        "groupByDate": true,
+        "rows": [
+          {
+            "assetId": "cny",
+            "committedAtMs": "1794099600000",
+            "delta": "100000",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+1000.00",
+            "entryKey": "wallet-cny-fixture/scope-order/cash",
+            "orderId": "scope-order",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-cny-fixture"
+          }
+        ],
+        "walletContext": "零钱钱包 · CNY · cash",
+        "walletId": "wallet-cny-fixture",
+        "walletScoped": true
+      },
+      "synthetic": true,
+      "variant": "scoped_cny",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "钱包管理",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "交易详情",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "变动金额"
+              },
+              {
+                "format": "text",
+                "label": "业务"
+              },
+              {
+                "format": "text",
+                "label": "钱包与资产"
+              },
+              {
+                "format": "time",
+                "label": "时间"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金单"
+              },
+              {
+                "format": "text",
+                "label": "原业务单"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "scope-order",
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "收入",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+1000.00"
+                  },
+                  {
+                    "text": "结算"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "scope-order"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "wallet-cny-fixture/scope-order/cash"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "收入",
+                "value": "income"
+              },
+              {
+                "label": "支出",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "收支方向"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "零钱钱包 · CNY · cash",
+            "description": "查看资金变动与处理结果。",
+            "emptyDescription": "资金操作完成后会显示在这里。",
+            "emptyTitle": "暂无账单",
+            "groupByDate": true,
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "rowBadgeLabel": "收支方向",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "账单明细",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "交易记录"
+      }
+    },
+    {
+      "arguments": {
+        "walletId": "wallet-cny-fixture"
+      },
+      "filters": {},
+      "id": "history",
+      "locale": "en-US",
+      "page": "flare.wallet.page.history",
+      "sourceData": {
+        "groupByDate": true,
+        "rows": [
+          {
+            "assetId": "cny",
+            "committedAtMs": "1794099600000",
+            "delta": "100000",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+1000.00",
+            "entryKey": "wallet-cny-fixture/scope-order/cash",
+            "orderId": "scope-order",
+            "summaryLabel": "零钱钱包 · CNY · cash",
+            "walletId": "wallet-cny-fixture"
+          }
+        ],
+        "walletContext": "零钱钱包 · CNY · cash",
+        "walletId": "wallet-cny-fixture",
+        "walletScoped": true
+      },
+      "synthetic": true,
+      "variant": "scoped_cny",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Manage wallet",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "Transaction details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Net change"
+              },
+              {
+                "format": "text",
+                "label": "Activity"
+              },
+              {
+                "format": "text",
+                "label": "Wallet and asset"
+              },
+              {
+                "format": "time",
+                "label": "Time"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Funds order reference"
+              },
+              {
+                "format": "text",
+                "label": "Original business reference"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "cny",
+                      "orderId": "scope-order",
+                      "walletId": "wallet-cny-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Income",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+1000.00"
+                  },
+                  {
+                    "text": "Settlement"
+                  },
+                  {
+                    "text": "零钱钱包 · CNY · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "scope-order"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "wallet-cny-fixture/scope-order/cash"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Income",
+                "value": "income"
+              },
+              {
+                "label": "Expense",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "Direction"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "零钱钱包 · CNY · cash",
+            "description": "Review fund movements and their outcomes.",
+            "emptyDescription": "Completed fund operations will appear here.",
+            "emptyTitle": "No transactions yet",
+            "groupByDate": true,
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "rowBadgeLabel": "Direction",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "Transaction details",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Transactions"
+      }
+    },
+    {
+      "arguments": {
+        "walletId": "wallet-usd-fixture"
+      },
+      "filters": {},
+      "id": "history",
+      "locale": "zh-CN",
+      "page": "flare.wallet.page.history",
+      "sourceData": {
+        "groupByDate": true,
+        "rows": [
+          {
+            "assetId": "usd",
+            "committedAtMs": "1794099600000",
+            "delta": "8850",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+88.50",
+            "entryKey": "wallet-usd-fixture/scope-order/cash",
+            "orderId": "scope-order",
+            "summaryLabel": "旅行钱包 · USD · cash",
+            "walletId": "wallet-usd-fixture"
+          }
+        ],
+        "walletContext": "旅行钱包 · USD · cash",
+        "walletId": "wallet-usd-fixture",
+        "walletScoped": true
+      },
+      "synthetic": true,
+      "variant": "scoped_usd",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "钱包管理",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "查看待确认操作",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "交易详情",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "变动金额"
+              },
+              {
+                "format": "text",
+                "label": "业务"
+              },
+              {
+                "format": "text",
+                "label": "钱包与资产"
+              },
+              {
+                "format": "time",
+                "label": "时间"
+              },
+              {
+                "format": "text",
+                "label": "钱包"
+              },
+              {
+                "format": "text",
+                "label": "资金单"
+              },
+              {
+                "format": "text",
+                "label": "原业务单"
+              }
+            ],
+            "emptyText": "暂无记录",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "usd",
+                      "orderId": "scope-order",
+                      "walletId": "wallet-usd-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "收入",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+88.50"
+                  },
+                  {
+                    "text": "结算"
+                  },
+                  {
+                    "text": "旅行钱包 · USD · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "scope-order"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "wallet-usd-fixture/scope-order/cash"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "收入",
+                "value": "income"
+              },
+              {
+                "label": "支出",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "收支方向"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "旅行钱包 · USD · cash",
+            "description": "查看资金变动与处理结果。",
+            "emptyDescription": "资金操作完成后会显示在这里。",
+            "emptyTitle": "暂无账单",
+            "groupByDate": true,
+            "informationTitle": "账户信息",
+            "layout": "ledger",
+            "rowBadgeLabel": "收支方向",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "账单明细",
+            "servicesTitle": "更多操作"
+          },
+          "renderer": "account"
+        },
+        "title": "交易记录"
+      }
+    },
+    {
+      "arguments": {
+        "walletId": "wallet-usd-fixture"
+      },
+      "filters": {},
+      "id": "history",
+      "locale": "en-US",
+      "page": "flare.wallet.page.history",
+      "sourceData": {
+        "groupByDate": true,
+        "rows": [
+          {
+            "assetId": "usd",
+            "committedAtMs": "1794099600000",
+            "delta": "8850",
+            "description": "结算",
+            "direction": "income",
+            "displayAmount": "+88.50",
+            "entryKey": "wallet-usd-fixture/scope-order/cash",
+            "orderId": "scope-order",
+            "summaryLabel": "旅行钱包 · USD · cash",
+            "walletId": "wallet-usd-fixture"
+          }
+        ],
+        "walletContext": "旅行钱包 · USD · cash",
+        "walletId": "wallet-usd-fixture",
+        "walletScoped": true
+      },
+      "synthetic": true,
+      "variant": "scoped_usd",
+      "view": {
+        "actions": [
+          {
+            "id": "manageWallet",
+            "input": {
+              "walletId": "/walletId"
+            },
+            "label": "Manage wallet",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.wallet"
+            }
+          },
+          {
+            "id": "recovery",
+            "input": {},
+            "label": "Review pending operation",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.recovery"
+            }
+          }
+        ],
+        "available": true,
+        "blocks": [
+          {
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "assetId": "/assetId",
+                  "orderId": "/orderId",
+                  "walletId": "/walletId"
+                },
+                "label": "Transaction details",
+                "target": {
+                  "kind": "page",
+                  "page": "flare.wallet.page.history_detail"
+                }
+              }
+            ],
+            "columns": [
+              {
+                "format": "text",
+                "label": "Net change"
+              },
+              {
+                "format": "text",
+                "label": "Activity"
+              },
+              {
+                "format": "text",
+                "label": "Wallet and asset"
+              },
+              {
+                "format": "time",
+                "label": "Time"
+              },
+              {
+                "format": "text",
+                "label": "Wallet"
+              },
+              {
+                "format": "text",
+                "label": "Funds order reference"
+              },
+              {
+                "format": "text",
+                "label": "Original business reference"
+              }
+            ],
+            "emptyText": "No records",
+            "filters": [
+              "direction"
+            ],
+            "kind": "rows",
+            "rows": [
+              {
+                "actions": [
+                  {
+                    "id": "detail",
+                    "input": {
+                      "assetId": "usd",
+                      "orderId": "scope-order",
+                      "walletId": "wallet-usd-fixture"
+                    }
+                  }
+                ],
+                "badge": {
+                  "text": "Income",
+                  "tone": "success"
+                },
+                "cells": [
+                  {
+                    "text": "+88.50"
+                  },
+                  {
+                    "text": "Settlement"
+                  },
+                  {
+                    "text": "旅行钱包 · USD · cash"
+                  },
+                  {
+                    "text": "1794099600000",
+                    "timeMs": 1794099600000
+                  },
+                  {
+                    "text": ""
+                  },
+                  {
+                    "text": "scope-order"
+                  },
+                  {
+                    "text": ""
+                  }
+                ],
+                "key": "wallet-usd-fixture/scope-order/cash"
+              }
+            ],
+            "source": "flare.wallet.ui.history"
+          }
+        ],
+        "fields": [],
+        "inputs": [
+          {
+            "choices": [
+              {
+                "label": "Income",
+                "value": "income"
+              },
+              {
+                "label": "Expense",
+                "value": "expense"
+              }
+            ],
+            "id": "direction",
+            "kind": "select",
+            "label": "Direction"
+          }
+        ],
+        "presentation": {
+          "actions": {},
+          "props": {
+            "contextLabel": "旅行钱包 · USD · cash",
+            "description": "Review fund movements and their outcomes.",
+            "emptyDescription": "Completed fund operations will appear here.",
+            "emptyTitle": "No transactions yet",
+            "groupByDate": true,
+            "informationTitle": "Account information",
+            "layout": "ledger",
+            "rowBadgeLabel": "Direction",
+            "rowBadgePlacement": "separate",
+            "rowEntryAction": "detail",
+            "sectionTitle": "Transaction details",
+            "servicesTitle": "More actions"
+          },
+          "renderer": "account"
+        },
+        "title": "Transactions"
+      }
+    }
+  ],
+  "contractVersion": "0.2.4",
+  "description": "Synthetic scoped projection inputs resolved through current Rust UI documents; not database results or financial commands."
+}

@@ -230,6 +230,7 @@
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
     "UserIdentity": "general-ui",
-    "ImageUploadSlot": "im-ui"
+    "ImageUploadSlot": "general-ui",
+    "FileUpload": "general-ui"
   }
 }

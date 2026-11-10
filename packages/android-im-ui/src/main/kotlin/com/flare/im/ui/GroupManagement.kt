@@ -38,6 +38,8 @@ data class FlareMemberActions(
     val canChangeRole: Boolean = false,
     /** Hand ownership over to the member. */
     val canTransferOwner: Boolean = false,
+    /** Ask to add the member as a friend; the host excludes self and existing friends. */
+    val canRequestFriend: Boolean = false,
 )
 
 /**

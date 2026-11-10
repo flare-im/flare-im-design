@@ -113,11 +113,14 @@ class FlareCallRecordCard extends StatefulWidget {
     final accent = danger ? colors.error : colors.primary;
     final ink = danger ? colors.errorText : colors.primaryText;
 
-    return Semantics(
+    final card = Semantics(
       container: true,
       label: mediaText,
       value: text,
       button: activate != null,
+      hint: activate != null && action == FlareCallRecordAction.callBack
+          ? strings.callRecordCallBack
+          : null,
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -205,6 +208,14 @@ class FlareCallRecordCard extends StatefulWidget {
         ),
       ),
     );
+    return action == FlareCallRecordAction.callBack
+        ? ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: FlareSizes.touchTarget,
+            ),
+            child: card,
+          )
+        : card;
   }
 }
 

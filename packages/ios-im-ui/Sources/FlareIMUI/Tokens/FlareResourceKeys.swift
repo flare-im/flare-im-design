@@ -445,6 +445,7 @@ extension FlareStrings {
         case "groupDetailUnmute": return self.groupDetailUnmute
         case "groupDetailTransferOwner": return self.groupDetailTransferOwner
         case "groupDetailTransferConfirm": return self.groupDetailTransferConfirm
+        case "groupDetailRequestFriend": return self.groupDetailRequestFriend
         case "groupDetailRemoveMember": return self.groupDetailRemoveMember
         case "groupDetailNoRequests": return self.groupDetailNoRequests
         case "groupDetailRequestDefaultMessage": return self.groupDetailRequestDefaultMessage
@@ -770,6 +771,15 @@ extension FlareStrings {
         case "pluginFormTooManyItems": return self.pluginFormTooManyItems
         case "pluginFormDuplicateItem": return self.pluginFormDuplicateItem
         case "pluginFormInvalid": return self.pluginFormInvalid
+        case "pluginFileChoose": return self.pluginFileChoose
+        case "pluginFileSelected": return self.pluginFileSelected
+        case "pluginFileUploading": return self.pluginFileUploading
+        case "pluginFileUploaded": return self.pluginFileUploaded
+        case "pluginFileFailed": return self.pluginFileFailed
+        case "pluginFileRejected": return self.pluginFileRejected
+        case "pluginFileReplace": return self.pluginFileReplace
+        case "pluginFileRemove": return self.pluginFileRemove
+        case "pluginFilePreview": return self.pluginFilePreview
         case "locationOsmAttribution": return self.locationOsmAttribution
         case "loading": return self.loading
         case "messageReadSummaryUnread": return self.messageReadSummaryUnread
@@ -843,6 +853,7 @@ extension FlareStrings {
         case "callRecordFailed": return self.callRecordFailed
         case "callRecordJoin": return self.callRecordJoin
         case "callRecordCallBack": return self.callRecordCallBack
+        case "callRecordConfirmCallBack": return self.callRecordConfirmCallBack
         case "readReceiptRead": return self.readReceiptRead
         case "readReceiptUnread": return self.readReceiptUnread
         case "readReceiptLoadFailed": return self.readReceiptLoadFailed
@@ -1315,6 +1326,7 @@ extension FlareStrings {
         case "groupDetailUnmute": self.groupDetailUnmute = value
         case "groupDetailTransferOwner": self.groupDetailTransferOwner = value
         case "groupDetailTransferConfirm": self.groupDetailTransferConfirm = value
+        case "groupDetailRequestFriend": self.groupDetailRequestFriend = value
         case "groupDetailRemoveMember": self.groupDetailRemoveMember = value
         case "groupDetailNoRequests": self.groupDetailNoRequests = value
         case "groupDetailRequestDefaultMessage": self.groupDetailRequestDefaultMessage = value
@@ -1640,6 +1652,15 @@ extension FlareStrings {
         case "pluginFormTooManyItems": self.pluginFormTooManyItems = value
         case "pluginFormDuplicateItem": self.pluginFormDuplicateItem = value
         case "pluginFormInvalid": self.pluginFormInvalid = value
+        case "pluginFileChoose": self.pluginFileChoose = value
+        case "pluginFileSelected": self.pluginFileSelected = value
+        case "pluginFileUploading": self.pluginFileUploading = value
+        case "pluginFileUploaded": self.pluginFileUploaded = value
+        case "pluginFileFailed": self.pluginFileFailed = value
+        case "pluginFileRejected": self.pluginFileRejected = value
+        case "pluginFileReplace": self.pluginFileReplace = value
+        case "pluginFileRemove": self.pluginFileRemove = value
+        case "pluginFilePreview": self.pluginFilePreview = value
         case "locationOsmAttribution": self.locationOsmAttribution = value
         case "loading": self.loading = value
         case "messageReadSummaryUnread": self.messageReadSummaryUnread = value
@@ -1713,6 +1734,7 @@ extension FlareStrings {
         case "callRecordFailed": self.callRecordFailed = value
         case "callRecordJoin": self.callRecordJoin = value
         case "callRecordCallBack": self.callRecordCallBack = value
+        case "callRecordConfirmCallBack": self.callRecordConfirmCallBack = value
         case "readReceiptRead": self.readReceiptRead = value
         case "readReceiptUnread": self.readReceiptUnread = value
         case "readReceiptLoadFailed": self.readReceiptLoadFailed = value

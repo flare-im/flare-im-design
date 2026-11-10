@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +29,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.UUID
 
 /**
  * The inputs of a plugin action. Spec: Form/PluginForm (`PluginForm`). The host puts it in the kit [BottomSheet] (inside
@@ -50,11 +54,47 @@ fun PluginForm(
     busy: Boolean = false,
     error: String? = null,
     members: List<PluginMember> = emptyList(),
+    embedded: Boolean = false,
+    fileStates: Map<String, PluginFileState> = emptyMap(),
+    onFileAction: ((PluginFileAction) -> Unit)? = null,
     onSubmit: ((Map<String, Any?>) -> Unit)? = null,
+    membersLoading: Boolean = false,
+    membersError: String? = null,
+    onMemberSearch: ((String) -> Unit)? = null,
+    onMembersRetry: (() -> Unit)? = null,
+    membersRevision: Int = 0,
     onCancel: (() -> Unit)? = null,
 ) {
     val strings = flareStrings()
     var form by remember(inputs, values) { mutableStateOf(PluginFormState.initial(inputs, values)) }
+    val fileScope = remember(inputs, values) { UUID.randomUUID().toString() }
+    var fileGenerations by remember(fileScope) { mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { it.id to 0 }) }
+    var localFiles by remember(fileScope) {
+        mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { input ->
+            val value = pluginFileReference(form.draft[input.id])
+            input.id to PluginFileState(fileScope, 0, if (value == null) PluginFilePhase.Empty else PluginFilePhase.Uploaded, value)
+        })
+    }
+    val fileCallback by rememberUpdatedState(onFileAction)
+    val disposalFiles by rememberUpdatedState(fileGenerations)
+    val disposalDraft by rememberUpdatedState(form.draft)
+    DisposableEffect(fileScope) {
+        onDispose {
+            inputs.filter { it.kind == PluginInputKind.File }.forEach { input ->
+                fileCallback?.invoke(PluginFileAction(PluginFileActionKind.Invalidate, input.id, input, fileScope,
+                    (disposalFiles[input.id] ?: 0) + 1, PluginFormRules.values(inputs, disposalDraft) - input.id))
+            }
+        }
+    }
+    LaunchedEffect(fileScope, fileStates) {
+        inputs.filter { it.kind == PluginInputKind.File && it.visibleIn(form.draft) }.forEach { input ->
+            pluginFileCurrent(fileStates[input.id], fileScope, fileGenerations[input.id] ?: 0)?.let { state ->
+                localFiles = localFiles + (input.id to state)
+                val reference = if (state.phase == PluginFilePhase.Uploaded) pluginFileReference(state.value) else null
+                if (form.draft[input.id] != reference) form = form.set(input.id, reference)
+            }
+        }
+    }
     var numberText by remember(inputs, values) {
         mutableStateOf(inputs.filter { it.kind == PluginInputKind.Number }.associate { input ->
             input.id to ((form.draft[input.id] as? Number)?.let { PluginViewFormat.number(it.toDouble()) } ?: "")
@@ -66,16 +106,55 @@ fun PluginForm(
         })
     }
     var picking by remember { mutableStateOf<PluginInput?>(null) }
+    var pickingRevision by remember { mutableStateOf(membersRevision) }
+    var memberGeneration by remember { mutableStateOf(membersRevision) }
+    val latestMembers by rememberUpdatedState(members)
+    val latestMemberLoading by rememberUpdatedState(membersLoading)
+    val latestMemberError by rememberUpdatedState(membersError)
+    val latestMemberRevision by rememberUpdatedState(membersRevision)
+    var chosenMembers by remember(inputs, values) { mutableStateOf<Map<String, PluginMember>>(emptyMap()) }
+    LaunchedEffect(membersRevision) {
+        if (memberGeneration != membersRevision) {
+            memberGeneration = membersRevision
+            picking = null
+            chosenMembers = emptyMap()
+            for (input in inputs) if (input.kind == PluginInputKind.Members) form = form.set(input.id, emptyList<String>(), inputs)
+        }
+    }
     PluginOnChange(errors) { _, _ -> form = form.hostErrorsChanged() }
 
-    fun set(id: String, value: Any?) { form = form.set(id, value) }
+    fun fileAction(input: PluginInput, kind: PluginFileActionKind) {
+        val increments = kind in setOf(PluginFileActionKind.Choose, PluginFileActionKind.Replace, PluginFileActionKind.Cancel,
+            PluginFileActionKind.Remove, PluginFileActionKind.Invalidate)
+        val generation = (fileGenerations[input.id] ?: 0) + if (increments) 1 else 0
+        fileGenerations = fileGenerations + (input.id to generation)
+        if (kind != PluginFileActionKind.Preview) {
+            form = if (kind == PluginFileActionKind.Invalidate) form.copy(draft = form.draft - input.id) else form.set(input.id, null)
+            val selecting = kind in setOf(PluginFileActionKind.Choose, PluginFileActionKind.Replace, PluginFileActionKind.Retry)
+            localFiles = localFiles + (input.id to PluginFileState(fileScope, generation,
+                if (selecting) PluginFilePhase.Selected else PluginFilePhase.Empty))
+        }
+        fileCallback?.invoke(PluginFileAction(kind, input.id, input, fileScope, generation,
+            PluginFormRules.values(inputs, form.draft)))
+    }
+    fun set(id: String, value: Any?) {
+        val changed = form.draft[id] != value
+        form = form.set(id, value, inputs)
+        if (changed) inputs.filter { it.showWhen?.field == id && it.kind == PluginInputKind.File }
+            .forEach { fileAction(it, PluginFileActionKind.Invalidate) }
+        if (changed) {
+            val dependentIds = inputs.filter { it.showWhen?.field == id }.map { it.id }.toSet()
+            numberText = numberText - dependentIds
+            dateParts = dateParts - dependentIds
+        }
+    }
     fun errorText(input: PluginInput) = form.errorText(input, errors, strings)
 
     Column(
-        Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
+        Modifier.fillMaxWidth().padding(horizontal = if (embedded) 0.dp else FlareSizes.spacingLg, vertical = if (embedded) 0.dp else FlareSizes.spacingMd),
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
     ) {
-        inputs.forEach { input ->
+        inputs.filter { it.visibleIn(form.draft) }.forEach { input ->
             when (input.kind) {
                 PluginInputKind.Text, PluginInputKind.Password -> FormField(input.label, input.required, PluginFormRules.counter(input, form.draft[input.id]), errorText(input)) {
                     Input(value = form.draft[input.id] as? String ?: "", onValueChange = { set(input.id, it) },
@@ -136,22 +215,27 @@ fun PluginForm(
                     }
                 }
                 PluginInputKind.Members -> FormField(input.label, input.required, null, errorText(input)) {
-                    PluginMemberChips((form.draft[input.id] as? List<*>).orEmpty().filterIsInstance<String>(), members)
+                    PluginMemberChips((form.draft[input.id] as? List<*>).orEmpty().filterIsInstance<String>(), (members + chosenMembers.values).distinctBy { it.userId })
                     Button(label = strings.select, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm, icon = "person-add",
-                        disabled = busy || members.isEmpty(), onClick = { picking = input })
+                        disabled = busy || (onMemberSearch == null && members.isEmpty()), onClick = { pickingRevision = membersRevision; picking = input; onMemberSearch?.invoke("") })
+                }
+                PluginInputKind.File -> FormField(input.label, input.required, null, errorText(input)) {
+                    val state = localFiles[input.id] ?: PluginFileState(fileScope, fileGenerations[input.id] ?: 0, PluginFilePhase.Empty)
+                    PluginFileInput(input, state, busy || fileCallback == null) { kind -> fileAction(input, kind) }
                 }
             }
         }
         error?.takeIf { it.isNotEmpty() }?.let { StatusBanner(text = it, tone = FlareStatusTone.Danger) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-            Box(Modifier.weight(1f)) {
+            if (!embedded) Box(Modifier.weight(1f)) {
                 Button(label = strings.cancel, variant = FlareButtonVariant.Secondary, disabled = busy || onCancel == null, block = true,
                     onClick = { onCancel?.invoke() })
             }
             Box(Modifier.weight(1f)) {
-                Button(label = submitLabel ?: strings.pluginViewSubmit, loading = busy, disabled = onSubmit == null, block = true,
+                Button(label = submitLabel ?: strings.pluginViewSubmit, loading = busy,
+                    disabled = onSubmit == null || inputs.any { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }, block = true,
                     onClick = {
-                        if (!busy) {
+                        if (!busy && inputs.none { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }) {
                             val (next, submitted) = form.submit(inputs)
                             form = next
                             if (submitted != null) { inputs.filter { it.kind == PluginInputKind.Password }.forEach { set(it.id, "") }; onSubmit?.invoke(submitted) }
@@ -167,10 +251,15 @@ fun PluginForm(
                 groups = listOf(FlareContactPickerGroup(FlareContactPickerGroup.GROUP_MEMBERS, input.label,
                     members.map { FlareContactPickerEntry(it.userId, it.name, it.avatarUrl) })),
                 multiple = PluginFormRules.maxItems(input) != 1,
+                onSearch = onMemberSearch, loading = membersLoading, error = membersError, onRetry = onMembersRetry,
                 title = input.label,
                 onSelect = { entries ->
-                    picking = null
-                    set(input.id, entries.map { it.userId }.take(PluginFormRules.maxItems(input)))
+                    if (picking?.id == input.id && latestMemberRevision == pickingRevision && !latestMemberLoading && latestMemberError.isNullOrBlank()) {
+                        val selected = entries.mapNotNull { entry -> latestMembers.firstOrNull { it.userId == entry.userId } }.take(PluginFormRules.maxItems(input))
+                        chosenMembers = chosenMembers + selected.associateBy { it.userId }
+                        picking = null
+                        set(input.id, selected.map { it.userId })
+                    }
                 },
                 onCancel = { picking = null },
             )

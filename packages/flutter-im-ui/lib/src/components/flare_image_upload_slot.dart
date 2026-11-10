@@ -33,6 +33,8 @@ class FlareImageUploadSlot extends StatelessWidget {
     this.onAction,
     this.previewLabel,
     this.previewLoading = false,
+    this.progress,
+    this.previewHeight,
     this.previewDisabled = false,
     this.onPreview,
   });
@@ -52,6 +54,12 @@ class FlareImageUploadSlot extends StatelessWidget {
   /// does not disable viewing; hosts control that through [previewDisabled].
   final String? previewLabel;
   final bool previewLoading;
+
+  /// Host-reported percentage; null keeps indeterminate progress.
+  final double? progress;
+
+  /// Optional compact media-region height; null preserves the photo-slot aspect ratio.
+  final double? previewHeight;
   final bool previewDisabled;
   final VoidCallback? onPreview;
 
@@ -133,118 +141,128 @@ class FlareImageUploadSlot extends StatelessWidget {
                   onTap: regionAction,
                   focusColor: colors.primary.withValues(alpha: 0.12),
                   hoverColor: colors.primary.withValues(alpha: 0.05),
-                  child: AspectRatio(
-                    aspectRatio: 1.6,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (!previewLoading || preview != null)
-                          Padding(
-                            padding: const EdgeInsets.all(FlareSizes.spacingMd),
-                            child:
-                                preview ??
-                                Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      FlareIcon(
-                                        previewMode
-                                            ? 'image'
-                                            : state ==
+                  child: SizedBox(
+                    height: previewHeight,
+                    child: AspectRatio(
+                      aspectRatio: 1.6,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!previewLoading || preview != null)
+                            Padding(
+                              padding: const EdgeInsets.all(
+                                FlareSizes.spacingMd,
+                              ),
+                              child:
+                                  preview ??
+                                  Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        FlareIcon(
+                                          previewMode
+                                              ? 'image'
+                                              : state ==
+                                                    FlareImageUploadState
+                                                        .uploaded
+                                              ? 'check'
+                                              : icon,
+                                          size: FlareSizes.iconSizeXl,
+                                          color:
+                                              state ==
                                                   FlareImageUploadState.uploaded
-                                            ? 'check'
-                                            : icon,
-                                        size: FlareSizes.iconSizeXl,
-                                        color:
-                                            state ==
-                                                FlareImageUploadState.uploaded
-                                            ? colors.successText
-                                            : colors.textTertiary,
-                                      ),
-                                      if ((previewMode || canChoose) &&
-                                          choose != null &&
-                                          choose.isNotEmpty) ...[
-                                        const SizedBox(
-                                          height: FlareSizes.spacingSm,
+                                              ? colors.successText
+                                              : colors.textTertiary,
                                         ),
-                                        Text(
-                                          choose,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: colors.textSecondary,
-                                            fontSize: FlareSizes.fontSizeSm,
+                                        if ((previewMode || canChoose) &&
+                                            choose != null &&
+                                            choose.isNotEmpty) ...[
+                                          const SizedBox(
+                                            height: FlareSizes.spacingSm,
+                                          ),
+                                          Text(
+                                            choose,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: colors.textSecondary,
+                                              fontSize: FlareSizes.fontSizeSm,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                            ),
+                          if (preview != null &&
+                              (previewMode || canChoose) &&
+                              choose != null &&
+                              choose.isNotEmpty)
+                            Positioned(
+                              left: FlareSizes.spacingSm,
+                              right: FlareSizes.spacingSm,
+                              bottom: FlareSizes.spacingSm,
+                              child: Align(
+                                alignment: Alignment.bottomRight,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: colors.bgPrimary.withValues(
+                                      alpha: 0.94,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      FlareSizes.radiusMd,
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: FlareSizes.spacingSm,
+                                      vertical: FlareSizes.spacingXs,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        FlareIcon(
+                                          previewMode ? 'expand' : 'camera',
+                                          size: FlareSizes.iconSizeSm,
+                                        ),
+                                        const SizedBox(
+                                          width: FlareSizes.spacingXs,
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            choose,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: colors.textSecondary,
+                                              fontSize: FlareSizes.fontSizeSm,
+                                            ),
                                           ),
                                         ),
                                       ],
-                                    ],
-                                  ),
-                                ),
-                          ),
-                        if (preview != null &&
-                            (previewMode || canChoose) &&
-                            choose != null &&
-                            choose.isNotEmpty)
-                          Positioned(
-                            left: FlareSizes.spacingSm,
-                            right: FlareSizes.spacingSm,
-                            bottom: FlareSizes.spacingSm,
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: colors.bgPrimary.withValues(
-                                    alpha: 0.94,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    FlareSizes.radiusMd,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: FlareSizes.spacingSm,
-                                    vertical: FlareSizes.spacingXs,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      FlareIcon(
-                                        previewMode ? 'expand' : 'camera',
-                                        size: FlareSizes.iconSizeSm,
-                                      ),
-                                      const SizedBox(
-                                        width: FlareSizes.spacingXs,
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          choose,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: colors.textSecondary,
-                                            fontSize: FlareSizes.fontSizeSm,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        if (previewLoading)
-                          Center(
-                            child: CircularProgressIndicator(
-                              color: colors.primary,
-                              semanticsLabel: strings.loading,
+                          if (previewLoading)
+                            Center(
+                              child: CircularProgressIndicator(
+                                color: colors.primary,
+                                semanticsLabel: strings.loading,
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
               if (state == FlareImageUploadState.uploading || previewLoading)
                 LinearProgressIndicator(
+                  value:
+                      previewLoading || progress == null || !progress!.isFinite
+                      ? null
+                      : progress!.clamp(0, 100).toDouble() / 100,
                   minHeight: FlareSizes.spacing3xs,
                   backgroundColor: colors.bgTertiary,
                   color: colors.primary,

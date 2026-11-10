@@ -1,0 +1,190 @@
+{
+  "schema": "flare.plugin-file-input-vectors/v1",
+  "platforms": [
+    "vue",
+    "flutter",
+    "ios",
+    "android"
+  ],
+  "inputs": [
+    {
+      "id": "kind",
+      "kind": "select",
+      "label": "类型",
+      "default": "alipay",
+      "choices": [
+        {
+          "value": "alipay",
+          "label": "支付宝"
+        },
+        {
+          "value": "wechat",
+          "label": "微信"
+        },
+        {
+          "value": "bank",
+          "label": "银行卡"
+        },
+        {
+          "value": "address",
+          "label": "收款地址"
+        }
+      ]
+    },
+    {
+      "id": "name",
+      "kind": "text",
+      "label": "姓名",
+      "required": true,
+      "default": "初始姓名",
+      "showWhen": {
+        "field": "kind",
+        "anyOf": [
+          "alipay",
+          "wechat",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "account",
+      "kind": "text",
+      "label": "账号",
+      "required": true,
+      "showWhen": {
+        "field": "kind",
+        "anyOf": [
+          "alipay",
+          "wechat",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "bankName",
+      "kind": "text",
+      "label": "银行",
+      "required": true,
+      "showWhen": {
+        "field": "kind",
+        "anyOf": [
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "qr",
+      "kind": "file",
+      "label": "收款码",
+      "required": true,
+      "file": {
+        "accept": [
+          "image/png",
+          "image/jpeg"
+        ],
+        "maxBytes": 5242880,
+        "upload": {
+          "prepareOperation": "flare.wallet.material.prepare",
+          "completeOperation": "flare.wallet.material.complete",
+          "purpose": "payoutQr"
+        }
+      },
+      "showWhen": {
+        "field": "kind",
+        "anyOf": [
+          "alipay",
+          "wechat"
+        ]
+      }
+    },
+    {
+      "id": "address",
+      "kind": "text",
+      "label": "地址",
+      "required": true,
+      "showWhen": {
+        "field": "kind",
+        "anyOf": [
+          "address"
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "alipay-visible",
+      "values": {
+        "kind": "alipay",
+        "name": "测试",
+        "account": "qa",
+        "qr": {
+          "fileId": "material_1"
+        },
+        "bankName": "hidden",
+        "address": "hidden"
+      },
+      "expectedValues": {
+        "kind": "alipay",
+        "name": "测试",
+        "account": "qa",
+        "qr": {
+          "fileId": "material_1"
+        }
+      }
+    },
+    {
+      "id": "address-visible",
+      "values": {
+        "kind": "address",
+        "name": "hidden",
+        "account": "hidden",
+        "qr": {
+          "fileId": "hidden"
+        },
+        "address": "测试地址"
+      },
+      "expectedValues": {
+        "kind": "address",
+        "address": "测试地址"
+      }
+    }
+  ],
+  "validFileValues": [
+    {
+      "fileId": "material_1"
+    }
+  ],
+  "invalidFileValues": [
+    "https://example.invalid/file",
+    {
+      "fileId": " material_1 "
+    },
+    {
+      "fileId": "material_1",
+      "url": "https://example.invalid/file"
+    },
+    {
+      "fileId": ""
+    },
+    null,
+    {
+      "fileId": "a/b"
+    },
+    {
+      "fileId": "材料"
+    },
+    {
+      "fileId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "fileId": "material_1\n"
+    }
+  ],
+  "semantics": {
+    "controllerChange": "Clear every dependent draft, errors and file ticket even when the dependent stays visible. Defaults are seeded only once.",
+    "lateResult": "Ignore a state unless scope and generation both match.",
+    "submit": "Only visible values; any selected/uploading/failed file blocks submit, including an optional file.",
+    "privacy": "Opaque fileId only. Host picker, private upload and preview; no URL/read grant/bytes in form values.",
+    "hostRefresh": "For the exact same mounted scope/generation, a completed valid receipt and fileName survive removal of host transfer state; preview capability is false after removal. Selected/uploading/failed never become a completed receipt. Explicit remove/invalidate/controller change/reset clear the ticket and cannot resurrect it."
+  }
+}
