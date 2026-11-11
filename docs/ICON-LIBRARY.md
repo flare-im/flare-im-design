@@ -89,7 +89,7 @@ import { FlareIcon } from "@flare-im/vue-ui";
 { key: "theme", label: "深色模式", icon: "theme", kind: "toggle" }
 ```
 
-应用代码不导入任何字形库，也不导入 kit 的 `@flare-im/vue-ui/icon-glyphs`：参考应用门禁 `examples/apps/scripts/check-kit-reference.mjs` 的 `vendorGlyphImport` 计数，web 与 Tauri 基线为 0。
+应用代码不导入任何字形库，也不导入 kit 的 `@flare-im/vue-ui/icon-glyphs`：参考应用门禁 `flare-social-examples/apps/scripts/check-kit-reference.mjs` 的 `vendorGlyphImport` 计数，web 与 Tauri 基线为 0。
 
 ### Flutter
 

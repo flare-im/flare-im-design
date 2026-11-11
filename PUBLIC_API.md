@@ -27,7 +27,7 @@ An implementation file that is not reachable from a documented facade is interna
 
 Wildcard and implementation-directory imports are unsupported. Product apps, SDK adapters, diagnostics routes, and authentication flows are not package API.
 
-`./components` exports exactly the Vue symbols registered in `spec/components.json` plus the companion exports declared in `spec/public-api-exceptions.json` (the icon-name table of FlareIcon). Hooks live on `./composables` (`useFlareConfig`, `useFlarePlatform`, `useFlareOverlayContainer`, `useFlareMessageRenderers`, …), pure helpers on `./utils`. `node tooling/check-public-api.mjs --strict` (release-check `api-check`) fails on any export outside the catalog; exports awaiting a merge are tracked in `spec/public-api-exceptions.json#pendingMerge` and keep the gate red until cleared. The reference workbench shell, the authentication screen and the diagnostics console are product code and live in `flare-core-sdk/examples/shared/vue-reference`.
+`./components` exports exactly the Vue symbols registered in `spec/components.json` plus the companion exports declared in `spec/public-api-exceptions.json` (the icon-name table of FlareIcon). Hooks live on `./composables` (`useFlareConfig`, `useFlarePlatform`, `useFlareOverlayContainer`, `useFlareMessageRenderers`, …), pure helpers on `./utils`. `node tooling/check-public-api.mjs --strict` (release-check `api-check`) fails on any export outside the catalog; exports awaiting a merge are tracked in `spec/public-api-exceptions.json#pendingMerge` and keep the gate red until cleared. The reference workbench shell, the authentication screen and the diagnostics console are product code and live in `flare-core-examples/shared/vue-reference`.
 
 ## Native Packages
 

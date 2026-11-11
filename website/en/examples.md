@@ -12,14 +12,14 @@ Component Catalog previews use in-memory state and static fixtures to inspect on
 
 ## Real SDK Reference Applications
 
-These applications live in `flare-im-core-client-sdk`. They retain real SDK initialization, authentication, event subscriptions, synchronization, send/retry, media, lifecycle, and platform bridges while composing UI only through public design-package APIs.
+These applications are maintained together in `flare-core-examples/apps`. They retain real SDK initialization, authentication, event subscriptions, synchronization, send/retry, media, lifecycle, and platform bridges while composing UI only through public design-package APIs.
 
 These reference apps focus on conversations and messages. They do not expose contact-directory, group-directory, or relationship-graph entry points; group conversations may still appear as messaging targets.
 
-- [Web / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-web-app)
-- [Tauri / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-tauri-app)
-- [Flutter](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-flutter-app)
-- [Android / Jetpack Compose](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-android-app)
-- [iOS / SwiftUI](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-ios-app)
+- [Web / Vue](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-web-app)
+- [Tauri / Vue](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-tauri-app)
+- [Flutter](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-flutter-app)
+- [Android / Jetpack Compose](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-android-app)
+- [iOS / SwiftUI](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-ios-app)
 
 Use component examples for visual/API inspection. Use reference applications for real SDK assembly, state flow, and platform integration.

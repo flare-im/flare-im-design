@@ -1,6 +1,6 @@
 # UI 组件复用规则
 
-适用于 `flare-core-sdk/examples/**`、`flare-social-server/flare-social-sdk/examples/apps/**` 以及 `flare-im-design/**` 的 UI 工作。
+适用于 `flare-core-examples/apps/**`、`flare-core-examples/shared/**`、`flare-social-examples/apps/**` 以及 `flare-im-design/**` 的 UI 工作。SDK 仓库中的最小接入示例如包含 UI，也遵循本规则。
 
 - UI 的唯一设计来源是 `flare-im-design`。先查对应平台已有组件、组合组件和 tokens，再开始实现。
 - 已有组件可满足需求时直接复用，不在 app 内重新实现输入框、按钮、空态、状态条、弹窗、消息气泡等通用 UI；不要复制组件源码或用应用样式覆盖其内部结构。

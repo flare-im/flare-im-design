@@ -2,6 +2,8 @@
 
 Date: 2026-09-14, after Round 4 of the reference-app program. Scope: the 149 components in `spec/components.json` on four platforms, judged by who actually uses them.
 
+Current locations (2026-11-11): Social apps and their shared checks are in `flare-social-examples/apps`; Core apps are in `flare-core-examples/apps` and shared workbench code is in `flare-core-examples/shared`. The counts and source paths below remain the dated audit snapshot; the directory move does not recertify them.
+
 This page answers, for every public component: what it is for, who uses it today, and what happens to it. Component contracts, props and live previews stay on the website component pages; this page is the consumption record behind the brief "every public component has a real consumer".
 
 ## 1. How consumers were counted

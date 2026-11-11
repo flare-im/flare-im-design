@@ -12,14 +12,14 @@ Flare UI 提供两类示例，二者用途不同。
 
 ## 真实 SDK 参考应用
 
-以下应用位于 `flare-im-core-client-sdk`，保留真实 SDK 初始化、认证、事件订阅、同步、发送、重试、媒体、生命周期和平台桥，同时仅通过各设计包公共 API 组装 UI。
+以下应用统一维护在 `flare-core-examples/apps`，保留真实 SDK 初始化、认证、事件订阅、同步、发送、重试、媒体、生命周期和平台桥，同时仅通过各设计包公共 API 组装 UI。
 
 这些 Reference Apps 专注会话与消息，不提供联系人目录、群目录或关系链入口。群会话仍可作为消息目标出现在会话列表中。
 
-- [Web / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-web-app)
-- [Tauri / Vue](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-tauri-app)
-- [Flutter](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-flutter-app)
-- [Android / Jetpack Compose](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-android-app)
-- [iOS / SwiftUI](https://github.com/flare-im/flare-core-sdk/tree/main/examples/flare-core-ios-app)
+- [Web / Vue](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-web-app)
+- [Tauri / Vue](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-tauri-app)
+- [Flutter](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-flutter-app)
+- [Android / Jetpack Compose](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-android-app)
+- [iOS / SwiftUI](https://github.com/flare-im/flare-core-examples/tree/main/apps/flare-core-ios-app)
 
 需要验证组件视觉时使用组件示例；需要复制真实 SDK 装配、状态流或平台桥时使用参考应用。

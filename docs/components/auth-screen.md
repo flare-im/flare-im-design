@@ -1,7 +1,7 @@
 # Authentication screen
 
 Core authentication remains product code in
-`flare-core-sdk/examples/shared/vue-reference/workbench/app/components/AuthScreen.vue`.
+`flare-core-examples/shared/vue-reference/workbench/app/components/AuthScreen.vue`.
 It now composes the public `FlareAuthShell`, `FlareFormField`, `FlareInput`,
 `FlareButton` and `FlareIcon` instead of owning a second login layout.
 

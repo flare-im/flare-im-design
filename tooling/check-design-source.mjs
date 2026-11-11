@@ -5,7 +5,7 @@
 //   * no styling of another library's internals (`.n-…` and friends) in example CSS;
 //   * no example component that re-draws a catalog component (a local Button.vue,
 //     Toast.vue, Avatar.vue … is the design system being copied).
-// Example roots: this repo's examples plus the client-sdk examples when checked out
+// Example roots: this repo's examples plus the Core reference apps when checked out
 // next to it. Package manifests may still depend on a UI library the kit itself
 // pulls in (bundle chunking / dedupe) — this gate is about source, not manifests.
 // The entry-point rule only binds examples wired to *this* kit by path: an example
@@ -33,7 +33,8 @@ const catalogNames = new Set(spec.components.map((component) => component.name))
 
 const exampleRoots = [
   join(root, "examples"),
-  join(root, "../flare-core-sdk/examples"),
+  join(root, "../flare-core-examples/apps"),
+  join(root, "../flare-core-examples/shared"),
 ].filter(existsSync);
 
 /** The nearest package.json above a file, so an example is judged against the kit it actually consumes. */
