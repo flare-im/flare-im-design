@@ -52,8 +52,10 @@ import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
   flarePluginCounter,
+  flarePluginIsUpload,
   flarePluginMaxItems,
   flarePluginMinRows,
+  flarePluginMoneyScale,
 } from "../../shared/contracts/plugin-ui";
 const props = defineProps<{
   input: FlarePluginInput;
@@ -72,6 +74,21 @@ function setCustomValue(value: unknown): void {
 const { t } = useFlareI18nOptional();
 const removeIcon = flareIcons.close;
 const addIcon = flareIcons.add;
+/** The upload's title: an image or document input names what it takes (the side of a document). */
+function uploadTitle(input: FlarePluginInput): string {
+  const side = input.kind === "document" && input.side ? ` · ${t(`pluginForm.documentSide.${input.side}`)}` : "";
+  return `${input.label}${side}${input.required ? " *" : ""}`;
+}
+function uploadPickLabel(input: FlarePluginInput): string {
+  if (input.kind === "image") return t("pluginForm.chooseImage");
+  if (input.kind === "document") return t("pluginForm.captureDocument");
+  return t("pluginFileChoose");
+}
+/** "0.00" for a money input of scale 2: the shape of the amount it takes. */
+function moneyPlaceholder(input: FlarePluginInput): string {
+  const scale = flarePluginMoneyScale(input);
+  return input.placeholder || (scale ? `0.${"0".repeat(scale)}` : "0");
+}
 function filePolicyHint(input: FlarePluginInput): string {
   const policy = input.file;
   if (!policy) return t("pluginFileChoose");
@@ -102,20 +119,21 @@ function filePolicyHint(input: FlarePluginInput): string {
     </template>
   </FlareFormField>
   <FlareFormField
-    v-else-if="input.kind === 'file'"
+    v-else-if="flarePluginIsUpload(input.kind)"
     :error="state.errorText(input)"
     :data-input-id="input.id"
+    :data-input-kind="input.kind"
   >
     <FlareFileUpload
       host-picker
-      :title="`${input.label}${input.required ? ' *' : ''}`"
+      :title="uploadTitle(input)"
       :state="state.fileState(input).phase"
       :file-name="state.fileState(input).fileName"
-      :image="!!input.file?.accept.every((mime) => mime.startsWith('image/'))"
+      :image="input.kind !== 'file' || !!input.file?.accept.every((mime) => mime.startsWith('image/'))"
       :accept="input.file?.accept.join(',')"
       :progress="state.fileState(input).progress"
       :status-text="state.fileState(input).error || (state.fileState(input).phase === 'empty' ? filePolicyHint(input) : t(`pluginFile${state.fileState(input).phase[0].toUpperCase()}${state.fileState(input).phase.slice(1)}`))"
-      :pick-label="t('pluginFileChoose')"
+      :pick-label="uploadPickLabel(input)"
       :replace-label="t('pluginFileReplace')"
       :retry-label="t('common.retry')"
       :cancel-label="t('common.cancel')"
@@ -198,6 +216,27 @@ function filePolicyHint(input: FlarePluginInput): string {
       :disabled="state.busy"
       @update:model-value="(v: string) => state.set(input.id, v)"
     />
+  </FlareFormField>
+  <FlareFormField
+    :native="native"
+    v-else-if="input.kind === 'money'"
+    :label="input.label"
+    :label-placement="state.presentation === 'filters' ? 'left' : undefined"
+    :required="input.required"
+    :error="state.errorText(input)"
+    :data-input-id="input.id"
+  >
+    <div class="flare-plugin-form__money" data-money-input="true">
+      <FlareInput
+        :model-value="String(state.draft[input.id] ?? '')"
+        :placeholder="moneyPlaceholder(input)"
+        inputmode="decimal"
+        autocomplete="off"
+        :disabled="state.busy || !input.money?.currency"
+        @update:model-value="(v: string) => state.set(input.id, v)"
+      />
+      <span v-if="input.money?.currency" class="flare-plugin-form__currency" data-money-currency="true">{{ input.money.currency }}</span>
+    </div>
   </FlareFormField>
   <FlareFormField
     :native="native"
@@ -466,6 +505,22 @@ function filePolicyHint(input: FlarePluginInput): string {
 .flare-plugin-form__option > :first-child {
   flex: 1;
   min-width: 0;
+}
+.flare-plugin-form__money {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  width: 100%;
+  min-width: 0;
+}
+.flare-plugin-form__money > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.flare-plugin-form__currency {
+  flex: none;
+  color: var(--flare-color-text-secondary);
+  font-size: var(--flare-size-font-size-lg);
 }
 .flare-plugin-form__members {
   display: flex;

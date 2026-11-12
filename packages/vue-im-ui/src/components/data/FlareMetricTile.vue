@@ -25,6 +25,10 @@ const props = withDefaults(defineProps<{
   delta?: number | null;
   /** Unit after the change, e.g. % for a relative change. */
   deltaUnit?: string;
+  /** A change the host already wrote (a plugin's trend, "+12%"): drawn instead of `delta`, marked by `trendDirection`. */
+  trendText?: string;
+  /** Which way `trendText` went. */
+  trendDirection?: "up" | "down" | "flat";
   /** Which direction is good news: colours the change. `neutral` reports it without judging. */
   polarity?: "neutral" | "higher-is-better" | "lower-is-better";
   /** Abbreviate large numbers (1.2万 / 12K). */
@@ -40,6 +44,8 @@ const props = withDefaults(defineProps<{
   caption: undefined,
   delta: null,
   deltaUnit: undefined,
+  trendText: undefined,
+  trendDirection: "flat",
   polarity: "neutral",
   compact: false,
   loading: false,
@@ -58,8 +64,10 @@ const valueText = computed(() => {
   return props.value ?? "";
 });
 
-const hasDelta = computed(() => isReading(props.delta));
+const writtenTrend = computed(() => Boolean(props.trendText?.trim()));
+const hasDelta = computed(() => writtenTrend.value || isReading(props.delta));
 const trend = computed<"up" | "down" | "flat">(() => {
+  if (writtenTrend.value) return props.trendDirection;
   const delta = props.delta ?? 0;
   return delta > 0 ? "up" : delta < 0 ? "down" : "flat";
 });
@@ -68,12 +76,17 @@ const sentiment = computed<"positive" | "negative" | "neutral">(() => {
   const good = props.polarity === "higher-is-better" ? "up" : "down";
   return trend.value === good ? "positive" : "negative";
 });
-const deltaText = computed(() => (hasDelta.value
+const deltaText = computed(() => (writtenTrend.value
+  ? (props.trendText ?? "").trim()
+  : hasDelta.value
   ? withUnit(formatChartNumber(props.delta as number, locale.value, { signed: true, compact: props.compact }), props.deltaUnit)
   : ""));
 const deltaSpoken = computed(() => {
   if (!hasDelta.value) return "";
-  if (trend.value === "flat") return t("metricTile.unchanged");
+  if (trend.value === "flat") return writtenTrend.value ? deltaText.value : t("metricTile.unchanged");
+  if (writtenTrend.value) {
+    return t(trend.value === "up" ? "metricTile.increase" : "metricTile.decrease", { value: deltaText.value.replace(/^[+\-−]/, "") });
+  }
   const magnitude = withUnit(formatChartNumber(Math.abs(props.delta as number), locale.value, { compact: props.compact }), props.deltaUnit);
   return t(trend.value === "up" ? "metricTile.increase" : "metricTile.decrease", { value: magnitude });
 });

@@ -15,6 +15,7 @@ import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareScreen from "../layout/FlareScreen.vue";
 import FlareAccountView from "./account/FlareAccountView.vue";
 import FlarePluginView from "./FlarePluginView.vue";
+import FlarePluginUpgradeNotice from "./FlarePluginUpgradeNotice.vue";
 import { usePluginPaging } from "./plugin/pluginPaging";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
@@ -37,6 +38,9 @@ import {
   type FlarePluginPageViewModel,
   type FlarePluginPageAppearance,
   type FlarePluginResolveUser,
+  type FlarePluginImageSource,
+  type FlarePluginQrRefresh,
+  type FlarePluginUpgradeStatus,
 } from "../../shared/contracts/plugin-ui";
 
 const props = withDefaults(
@@ -80,11 +84,18 @@ const props = withDefaults(
     onMembersRetry?: () => void;
     /** The host's settle signal for actions run on the page (PluginView settleToken). */
     settleToken?: number;
+    /** Image blocks: what the host fetched for an asset path or private file id (PluginView resolveImage). */
+    resolveImage?: (source: FlarePluginImageSource) => string | undefined | Promise<string | undefined>;
+    /** An upgrade_required page: update.plugin_upgrade_status for its minBuild. */
+    upgradeStatus?: FlarePluginUpgradeStatus | null;
+    /** An upgrade_required page: opens the update flow; without it the page has no update key. */
+    onUpdate?: () => void;
+    upgradeBusy?: boolean;
   }>(),
   {
     appearance: "document", contentMaxWidth: flareLayout.directoryContentMaxWidth, title: "", view: undefined, filters: () => ({}), loading: false, error: undefined, refreshing: false, loadingMore: false, pagingToken: 0, back: false,
     resolveUser: undefined, viewerId: undefined, busyActionId: undefined, actionError: undefined, formErrors: () => [],
-    members: () => [], settleToken: 0,
+    members: () => [], settleToken: 0, resolveImage: undefined, upgradeStatus: undefined, onUpdate: undefined, upgradeBusy: false,
   },
 );
 const emit = defineEmits<{
@@ -100,13 +111,18 @@ const emit = defineEmits<{
   filter: [values: Record<string, unknown>];
   /** An action run on the page, as the page action request (invokePageAction). */
   action: [actionId: string, payload: FlarePluginPageActionPayload];
+  /** An expired QR code on the page asks for a fresh one (PluginView qrRefresh). */
+  qrRefresh: [request: FlarePluginQrRefresh];
 }>();
 
 const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
 const platform = useFlarePlatformSafe();
 const heading = computed(() => props.view?.title || props.title);
-const isAccount = computed(() => props.appearance === "account" || props.view?.presentation?.renderer === "account");
+// The host picks the account layout; a view no longer selects it through a renderer (vocabulary 2 draws accounts
+// from hero, stats, section and rows blocks).
+const isAccount = computed(() => props.appearance === "account");
+const upgradeRequired = computed(() => props.view?.unavailableReason === "upgrade_required");
 const state = computed(() => flarePluginPageState(props.view, props.loading, props.error));
 // An unavailable page (spec rules.page) says why; only an unreachable catalog is worth asking again.
 const unavailableText = computed(() => {
@@ -181,6 +197,7 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   emit("filter", flarePluginPageFilterValues(props.filters, filter.input.id, value));
 }
 function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
+function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh", request); }
 </script>
 
 <template>
@@ -227,6 +244,14 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
         <p role="alert">{{ error }}</p>
         <FlareButton variant="secondary" :label="t('pluginView.retry')" data-page-retry="true" @click="emit('retry')" />
       </div>
+      <FlarePluginUpgradeNotice
+        v-else-if="state === 'unavailable' && upgradeRequired"
+        variant="page"
+        :title="view?.title"
+        :status="upgradeStatus"
+        :on-update="onUpdate"
+        :busy="upgradeBusy"
+      />
       <FlareEmptyState v-else-if="state === 'unavailable'" :title="unavailableText" icon="info" data-page-unavailable="true">
         <template v-if="unavailableRetry" #actions>
           <FlareButton variant="secondary" :label="t('pluginView.retry')" data-page-retry="true" @click="emit('retry')" />
@@ -273,7 +298,9 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
             :form-errors="formErrors"
             :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry"
             :settle-token="settleToken"
+            :resolve-image="resolveImage"
             :onAction="instance?.vnode.props?.onAction ? runAction : undefined"
+            :onQrRefresh="instance?.vnode.props?.onQrRefresh ? forwardQrRefresh : undefined"
           />
         </div>
         <div v-if="nextCursor" class="flare-plugin-page__more">

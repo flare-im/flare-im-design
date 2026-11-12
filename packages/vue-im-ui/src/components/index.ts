@@ -326,6 +326,7 @@ export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
 export { default as FlarePluginAdminList } from "./messages/FlarePluginAdminList.vue";
 export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
+export { default as FlarePluginUpgradeNotice } from "./messages/FlarePluginUpgradeNotice.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";
 

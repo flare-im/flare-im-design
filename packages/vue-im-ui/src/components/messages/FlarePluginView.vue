@@ -27,6 +27,16 @@ import PluginRowsBlock from "./plugin/PluginRowsBlock.vue";
 import PluginSimpleBlock from "./plugin/PluginSimpleBlock.vue";
 import PluginTextBlock from "./plugin/PluginTextBlock.vue";
 import PluginTimeBlock from "./plugin/PluginTimeBlock.vue";
+import PluginBannerBlock from "./plugin/blocks/PluginBannerBlock.vue";
+import PluginChartBlock from "./plugin/blocks/PluginChartBlock.vue";
+import PluginHeroBlock from "./plugin/blocks/PluginHeroBlock.vue";
+import PluginImageBlock from "./plugin/blocks/PluginImageBlock.vue";
+import PluginQrBlock from "./plugin/blocks/PluginQrBlock.vue";
+import PluginSectionBlock from "./plugin/blocks/PluginSectionBlock.vue";
+import PluginStatsBlock from "./plugin/blocks/PluginStatsBlock.vue";
+import PluginStepsBlock from "./plugin/blocks/PluginStepsBlock.vue";
+import PluginTimelineBlock from "./plugin/blocks/PluginTimelineBlock.vue";
+import FlarePluginUpgradeNotice from "./FlarePluginUpgradeNotice.vue";
 import { flareIcons, type FlareIconName } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
@@ -40,6 +50,7 @@ import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import {
   flarePluginChoiceCapped,
   flarePluginFallbackName,
+  flarePluginFlatBlocks,
   flarePluginFormatText,
   flarePluginInlineFormAction,
   flarePluginReasonLine,
@@ -54,6 +65,13 @@ import {
   type FlarePluginFieldsBlock,
   type FlarePluginFormat,
   type FlarePluginFormError,
+  type FlarePluginHeroBlock,
+  type FlarePluginImageSource,
+  type FlarePluginQrBlock,
+  type FlarePluginQrRefresh,
+  type FlarePluginSectionBlock,
+  type FlarePluginStatsBlock,
+  type FlarePluginUpgradeStatus,
   type FlarePluginFileState,
   type FlarePluginFileAction,
   type FlarePluginInput,
@@ -146,6 +164,14 @@ const props = withDefaults(
     assetScale?: (assetId: string) => number | undefined;
     /** What the host has for each protected media item, by item id. */
     protectedMedia?: Record<string, FlarePluginProtectedMediaState>;
+    /** Turns an image block's asset path or private file id into what the host fetched (blob:, https: or data:image). */
+    resolveImage?: (source: FlarePluginImageSource) => string | undefined | Promise<string | undefined>;
+    /** upgrade_required: update.plugin_upgrade_status for the view's minBuild (FlarePluginUpgradeNotice). */
+    upgradeStatus?: FlarePluginUpgradeStatus | null;
+    /** upgrade_required: opens the update flow; without it the notice has no update key. */
+    onUpdate?: () => void;
+    /** The update flow is opening. */
+    upgradeBusy?: boolean;
     /**
      * The host's settle signal: incremented once per finished action, after that result's `error` / `formErrors`
      * are set. Each change settles the optimistic choice and a submitted form (spec rules.settle).
@@ -172,6 +198,10 @@ const props = withDefaults(
     members: () => [],
     formErrors: () => [],
     settleToken: 0,
+    resolveImage: undefined,
+    upgradeStatus: undefined,
+    onUpdate: undefined,
+    upgradeBusy: false,
   },
 );
 const emit = defineEmits<{
@@ -188,6 +218,8 @@ const emit = defineEmits<{
   referenceLoad: [request: FlarePluginReferenceRequest];
   /** A protected media read with its stated reason: the host runs and audits it, then fills `protectedMedia`. */
   protectedMediaRead: [read: FlarePluginProtectedMediaRead];
+  /** An expired QR code's refresh: the host runs the query and passes back a view with the fresh code. */
+  qrRefresh: [request: FlarePluginQrRefresh];
 }>();
 const { t } = useFlareI18nOptional();
 
@@ -206,6 +238,8 @@ const strings = computed<FlarePluginStrings>(() => ({
   tooManyItems: t("pluginForm.tooManyItems"),
   duplicateItem: t("pluginForm.duplicateItem"),
   invalid: t("pluginForm.invalid"),
+  seconds: t("pluginView.seconds"),
+  countUnits: t("pluginView.countUnits"),
 }));
 
 const KNOWN = new Set<string>([
@@ -221,13 +255,44 @@ const KNOWN = new Set<string>([
   "note",
   "rows",
   "protected-media",
+  "section",
+  "stats",
+  "chart",
+  "image",
+  "qr",
+  "hero",
+  "steps",
+  "banner",
+  "timeline",
 ]);
-/** Blocks the kit knows, in order; a kind from a newer protocol is skipped. */
+const known = (block: FlarePluginBlock) => KNOWN.has((block as { kind: string }).kind);
+/** Blocks the kit knows, in order; a kind from a newer protocol is skipped (in sections too). */
 const blocks = computed<FlarePluginBlock[]>(() =>
-  (props.view.blocks ?? []).filter((block) =>
-    KNOWN.has((block as { kind: string }).kind),
+  (props.view.blocks ?? []).filter(known).map((block) =>
+    block.kind === "section"
+      ? { ...block, blocks: (block.blocks ?? []).filter(known) }
+      : block,
   ),
 );
+/**
+ * What the body draws, in reading order: every block, a section's heading followed by its children (spec
+ * blocks2.flatten). `index` keys the per-block state (choices drafts, the first rows block); `section` is the index
+ * of the heading a child belongs to.
+ */
+const items = computed(() =>
+  flarePluginFlatBlocks(blocks.value).map((item, index) => ({ ...item, index })),
+);
+// A section's fold: the reader's choice, else what the plugin declared. Kept across new views of the same card.
+const folded = reactive(new Map<number, boolean>());
+function sectionCollapsed(index: number): boolean {
+  const block = items.value[index]?.block as FlarePluginSectionBlock | undefined;
+  if (!block || block.kind !== "section" || !block.label) return false;
+  return folded.get(index) ?? Boolean(block.collapsed);
+}
+function toggleSection(index: number): void {
+  folded.set(index, !sectionCollapsed(index));
+}
+
 const titleIcon = computed(() =>
   props.icon && props.icon in flareIcons
     ? (props.icon as FlareIconName)
@@ -250,15 +315,9 @@ const quoteShown = computed(() =>
 const specialPresentation = computed(
   () =>
     props.view.available &&
-    [
-      "redPacket.card",
-      "redPacket.composer",
-      "redPacket.pay",
-      "payment.confirm",
-      "redPacket.detail",
-    ].includes(props.view.presentation?.renderer ?? "") &&
-    (props.view.presentation?.renderer !== "redPacket.detail" ||
-      Boolean(props.view.presentation.props.details)),
+    ["redPacket.card", "redPacket.pay", "payment.confirm"].includes(
+      props.view.presentation?.renderer ?? "",
+    ),
 );
 function presentationRequest(id: string): void {
   const action = props.view.actions.find((a) => a.id === id);
@@ -325,6 +384,23 @@ const detailKey = () =>
   flarePluginShowsDetailKey(props.view, props.embedded) &&
   Boolean(instance?.vnode.props?.onOpenDetail);
 
+// ── vocabulary 2 actions: hero and banner own theirs; a QR code asks the host to refresh ─────────────────
+function runOwned(action: FlarePluginAction): void {
+  run(action, {});
+}
+const canRefreshQr = () => Boolean(instance?.vnode.props?.onQrRefresh);
+function refreshQr(block: FlarePluginQrBlock): void {
+  if (locked.value || !block.refreshOperation) return;
+  emit("qrRefresh", {
+    operation: block.refreshOperation,
+    valuePath: block.valuePath,
+    ...(block.expiresAtPath ? { expiresAtPath: block.expiresAtPath } : {}),
+  });
+}
+const upgradeRequired = computed(
+  () => !props.view.available && props.view.unavailableReason === "upgrade_required",
+);
+
 // ── users ────────────────────────────────────────────────────────────────
 const users = shallowReactive(new Map<string, FlarePluginUser | null>());
 function request(userId: string): void {
@@ -346,7 +422,7 @@ function request(userId: string): void {
 }
 const userIds = computed(() => {
   const ids = new Set<string>();
-  for (const block of blocks.value) {
+  for (const { block } of items.value) {
     if (block.kind === "people")
       for (const group of block.groups)
         for (const id of group.userIds) ids.add(id);
@@ -420,6 +496,20 @@ function shownRows(block: FlarePluginRowsBlock): FlarePluginRowsBlock {
   };
 }
 function shownBlock<T extends { kind: string }>(block: T): T {
+  if (block.kind === "stats") {
+    const stats = block as unknown as FlarePluginStatsBlock;
+    return {
+      ...block,
+      items: stats.items.map((item) => ({
+        ...item,
+        value: flarePluginFormatText(item.value, item.format, formatContext.value),
+      })),
+    };
+  }
+  if (block.kind === "hero") {
+    const hero = block as unknown as FlarePluginHeroBlock;
+    return { ...block, value: flarePluginFormatText(hero.value, hero.format, formatContext.value) };
+  }
   if (block.kind !== "fields") return block;
   const fields = (block as unknown as FlarePluginFieldsBlock).fields;
   return { ...block, fields: fields.map(shownField) };
@@ -767,7 +857,7 @@ function rowAction(
   run(action, { row: { key: row.key, input } }, undefined, initialValues);
 }
 const firstRowsIndex = computed(
-  () => props.view.blocks?.findIndex((block) => block.kind === "rows") ?? -1,
+  () => items.value.find((item) => item.block.kind === "rows")?.index ?? -1,
 );
 const actionsInRows = computed(
   () => props.actionsPlacement === "rows" && firstRowsIndex.value >= 0,
@@ -874,8 +964,16 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
     >
       {{ view.title }}
     </p>
+    <!-- A contribution this build cannot draw: the line and, when a newer build is offered, the update key. -->
+    <FlarePluginUpgradeNotice
+      v-if="upgradeRequired"
+      variant="card"
+      :status="upgradeStatus"
+      :on-update="onUpdate"
+      :busy="upgradeBusy"
+    />
     <p
-      v-if="!view.available && reasonLine"
+      v-else-if="!view.available && reasonLine"
       class="flare-plugin-view__reason"
       data-unavailable-reason="true"
     >
@@ -918,7 +1016,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
           </dd>
         </div>
       </dl>
-      <template v-for="(block, index) in blocks" :key="index">
+      <template v-for="{ block, index, section } in items" :key="index">
+        <template v-if="section === undefined || !sectionCollapsed(section)">
         <PluginTextBlock
           v-if="block.kind === 'text'"
           :block="block"
@@ -1007,6 +1106,63 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
               readProtected(block, item, reason)
           "
         />
+        <PluginSectionBlock
+          v-else-if="block.kind === 'section'"
+          :block="block"
+          :collapsed="sectionCollapsed(index)"
+          data-block="section"
+          @toggle="toggleSection(index)"
+        />
+        <PluginStatsBlock
+          v-else-if="block.kind === 'stats'"
+          :block="shownBlock(block)"
+          data-block="stats"
+        />
+        <PluginChartBlock
+          v-else-if="block.kind === 'chart'"
+          :block="block"
+          data-block="chart"
+        />
+        <PluginImageBlock
+          v-else-if="block.kind === 'image'"
+          :block="block"
+          :resolve="resolveImage"
+          data-block="image"
+        />
+        <PluginQrBlock
+          v-else-if="block.kind === 'qr'"
+          :block="block"
+          :can-refresh="canRefreshQr()"
+          :busy="locked"
+          data-block="qr"
+          @refresh="refreshQr(block)"
+        />
+        <PluginHeroBlock
+          v-else-if="block.kind === 'hero'"
+          :block="shownBlock(block)"
+          :busy="locked"
+          :busy-action-id="busyActionId"
+          data-block="hero"
+          @action="runOwned"
+        />
+        <PluginStepsBlock
+          v-else-if="block.kind === 'steps'"
+          :block="block"
+          data-block="steps"
+        />
+        <PluginBannerBlock
+          v-else-if="block.kind === 'banner'"
+          :block="block"
+          :busy="locked"
+          data-block="banner"
+          @action="runOwned"
+        />
+        <PluginTimelineBlock
+          v-else-if="block.kind === 'timeline'"
+          :block="block"
+          :strings="strings"
+          data-block="timeline"
+        />
         <PluginSimpleBlock
           v-else-if="
             block.kind === 'fields' ||
@@ -1019,6 +1175,7 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
           :note-presentation="notePresentation"
           :data-block="block.kind"
         />
+        </template>
       </template>
       <section
         v-if="inlineFormAction"

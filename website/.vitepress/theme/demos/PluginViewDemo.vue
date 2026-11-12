@@ -88,6 +88,47 @@ samples["徽标"] = {
 };
 samples["已停用"] = { available: false, unavailableReason: "disabled", title: "周五团建去哪儿？", fields: [], actions: [] };
 samples["副本"] = { ...poll(true), actions: [], unavailableReason: "unbound_copy", blocks: poll(true).blocks.map((block) => (block.kind === "choices" ? { ...block, action: undefined } : block)) };
+// Vocabulary 2 blocks: a dashboard (section, stats, chart), an account head (hero, banner, timeline), a review in
+// steps, a payment code, and a card this build cannot draw (upgrade_required with the update key).
+samples["看板"] = {
+  available: true, title: "本周任务", fields: [], actions: [],
+  blocks: [
+    { kind: "stats", items: [
+      { label: "进行中", value: "12", trend: { text: "+3", direction: "up" } },
+      { label: "已完成", value: "28", format: { kind: "count", count: 28 }, tone: "success" },
+      { label: "逾期", value: "2", trend: { text: "-1", direction: "down" }, tone: "warning" },
+    ] },
+    { kind: "section", label: "每日完成", collapsed: false, blocks: [
+      { kind: "chart", chartKind: "bar", series: [{ points: ["一", "二", "三", "四", "五"].map((label, i) => ({ label: `周${label}`, value: [3, 5, 2, 8, 6][i], text: String([3, 5, 2, 8, 6][i]) })) }] },
+    ] },
+    { kind: "section", label: "按负责人", collapsed: true, blocks: [
+      { kind: "chart", chartKind: "donut", series: [{ points: [{ label: "Ivy", value: 12, text: "12" }, { label: "周屿", value: 9, text: "9" }, { label: "Leo", value: 7, text: "7" }] }] },
+    ] },
+  ],
+};
+samples["账户"] = {
+  available: true, title: "钱包", fields: [], actions: [],
+  blocks: [
+    { kind: "hero", label: "可用余额", value: "¥128.60", amount: true, subtitle: "托管中 ¥6.00", tone: "brand", actions: [op("recharge", "充值", { style: "primary" }), op("withdraw", "提现")] },
+    { kind: "banner", tone: "warning", text: "为保障资金安全，请先完成实名认证。", action: op("verify", "去认证") },
+    { kind: "timeline", items: [
+      { atMs: now - 3_600_000, title: "收到红包 +¥2.30", detail: "Ivy Chen", status: { text: "已入账", tone: "success" } },
+      { atMs: now - 86_400_000, title: "发出红包 -¥10.00", detail: "产品设计组" },
+    ] },
+  ],
+};
+samples["进度"] = {
+  available: true, title: "实名认证", fields: [], actions: [],
+  blocks: [
+    { kind: "steps", items: [{ label: "提交资料", state: "done" }, { label: "人工审核", state: "current" }, { label: "完成", state: "pending" }] },
+    { kind: "banner", tone: "info", text: "审核通常在 1 个工作日内完成。" },
+  ],
+};
+samples["收款码"] = {
+  available: true, title: "向我付款", fields: [], actions: [],
+  blocks: [{ kind: "qr", value: "flare://pay/u2/abc123", label: "扫码向周屿付款", caption: "二维码 5 分钟后失效", valuePath: "/code", refreshOperation: "code.refresh", expiresAtMs: now + 5 * 60_000 }],
+};
+samples["需更新"] = { available: false, unavailableReason: "upgrade_required", minBuild: 41020, title: "任务看板", fields: [], actions: [] };
 const names = Object.keys(samples);
 const pick = ref(0);
 const voted = ref(false);
@@ -113,6 +154,9 @@ function onAction(id, payload) {
       viewer-id="u2"
       :busy-action-id="busyActionId"
       :resolve-user="(id) => users[id]"
+      :upgrade-status="{ available: true, build: 41020 }"
+      :on-update="() => (log = 'update.open_flow()')"
+      @qr-refresh="(request) => (log = `qrRefresh(${JSON.stringify(request)})`)"
       @action="onAction"
       @open-detail="log = 'openDetail()'"
     />

@@ -1078,4 +1078,22 @@ await confirm({
 />`,
     },
   ],
+  PluginUpgradeNotice: [
+    {
+      title: { en: "A card this build cannot draw", zh: "当前版本画不了的卡片" },
+      description: { en: "The host asks the engine whether a build at least minBuild is offered to this device and opens the update flow from the key. PluginView and PluginPage draw the card and page variants themselves; a \"+\" or Me entry shows the entry mark.", zh: "宿主向引擎查询本设备是否有不低于 minBuild 的版本，并从按钮打开更新流程。卡片与整页形态由 PluginView、PluginPage 自己画；「+」菜单与「我」页入口显示入口标记。" },
+      vue: `<FlarePluginUpgradeNotice
+  variant="page"
+  :title="placeholder.title"
+  :status="await sdk.invoke('update.plugin_upgrade_status', { minBuild: placeholder.minBuild })"
+  :on-update="() => sdk.invoke('update.open_flow', {})"
+/>`,
+      flutter: `FlarePluginUpgradeNotice(
+  variant: FlarePluginUpgradeVariant.page,
+  title: placeholder.title,
+  status: status, // update.plugin_upgrade_status({minBuild})
+  onUpdate: () => sdk.invoke('update.open_flow', {}),
+)`,
+    },
+  ],
 };

@@ -17071,6 +17071,43 @@
             "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
           },
           "default": "0"
+        },
+        {
+          "name": "resolveImage",
+          "type": "(source: FlarePluginImageSource) => string | undefined | Promise<string | undefined>",
+          "required": false,
+          "description": {
+            "en": "Image blocks: turns the block's package asset path or private file id ({asset} or {fileId}) into what the host fetched; only blob:, https: and data:image addresses are drawn. Without it an image block keeps its frame and says the image is unavailable. Flutter, SwiftUI and Compose take the same resolver returning their image source.",
+            "zh": "图片块：把块里的包内资源路径或私有文件 id（{asset} 或 {fileId}）换成宿主取到的地址；只画 blob:、https: 和 data:image。不传时图片块保留占位框并提示图片无法显示。Flutter、SwiftUI、Compose 用同样的解析回调返回各自的图片来源。"
+          }
+        },
+        {
+          "name": "upgradeStatus",
+          "type": "FlarePluginUpgradeStatus | null",
+          "required": false,
+          "description": {
+            "en": "For a view whose unavailableReason is upgrade_required: the engine's update.plugin_upgrade_status for the view's minBuild ({available, build?}). Drives PluginUpgradeNotice: absent shows the generic copy, available with onUpdate shows the update key, not available shows that no version supports it yet.",
+            "zh": "unavailableReason 为 upgrade_required 的视图：引擎 update.plugin_upgrade_status 对视图 minBuild 的答复（{available, build?}）。交给 PluginUpgradeNotice：不传显示通用文案，有可用版本且传了 onUpdate 显示「去更新」，没有可用版本显示「当前版本暂不支持」。"
+          }
+        },
+        {
+          "name": "onUpdate",
+          "type": "() => void",
+          "required": false,
+          "description": {
+            "en": "Opens the update flow (update.open_flow or the platform update UI) from the upgrade notice. Without it the notice never shows the update key.",
+            "zh": "从升级提示打开更新流程（update.open_flow 或各端更新界面）。不传时升级提示不显示「去更新」。"
+          }
+        },
+        {
+          "name": "upgradeBusy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The update flow is opening: the update key spins.",
+            "zh": "更新流程正在打开：「去更新」转圈。"
+          }
         }
       ],
       "states": [
@@ -17093,7 +17130,8 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "eventPlatforms": {
         "loadMore": [
@@ -17151,8 +17189,8 @@
         "screenReaderSemantics": "A group named by the title. Options are buttons (single) or checkboxes (multiple) that read their label, selected state, percentage and votes; progress reads value of total; the countdown is not a live region (it is read on focus); the error is an alert."
       },
       "notes": {
-        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape: view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections). The ⋯ key of menuActions sits at the trailing edge of the title row, which spans the card's inner width. A choices block never draws its total (only the shares' denominator): its footer is the maxSelections hint and Ended. Vue administrative referenceLoad(request: FlarePluginReferenceRequest) asks the host to load or hydrate form choices through formSelections. protectedMediaRead(read: FlarePluginProtectedMediaRead) carries the chosen item and stated reason to the host for audited retrieval; the host supplies protectedMedia state. These administrative callbacks are Vue-only. Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
-        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。menuActions 的 ⋯ 键贴在标题行尾，标题行占满卡片内宽。choices 块不画 total（它只是百分比的分母）：页脚只有多选上限提示与「已结束」。 Vue 管理页面的 referenceLoad(request: FlarePluginReferenceRequest) 请求宿主加载或补全表单目录选项，宿主通过 formSelections 返回状态。protectedMediaRead(read: FlarePluginProtectedMediaRead) 将选中资料和查看原因交给宿主执行审计读取，宿主通过 protectedMedia 返回状态。这两项管理台回调仅用于 Vue。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。"
+        "en": "Render facts follow spec/plugin-view-vectors.json (views, optimistic, time, countdown). Shell: the business card of the kit — width sizes.component.richCardWidth (constrained by the parent), radius lg, a hairline border and the card shadow; the title row carries the icon. Actions: style danger → danger key, primary → primary key, otherwise secondary; confirm → the kit DangerConfirm first; form → the kit bottom sheet with PluginForm, whose submit emits action(id, {formValues}). Choices: single submits on tap; multiple toggles a draft and submits from a key labelled with the block's action. The kit marks the submitted options at once and reverts when error becomes non-empty (or busyActionId clears with an error); a new view settles it. Payload: {selection?, formValues?} (Vue rows add row: {key, input}). openDetail comes from \"see all\" (Vue rows: from a row, with {key, input}) or from the card's view details key, and the host opens PluginDetailSheet. View details: when view.detail is true and no entries block shows its see all, an available card that is not embedded and has no rows block draws a full-width quiet text key (size sm, pluginViewDetail / Vue pluginView.detail) under the action keys; it emits openDetail with no row, waits while busy or busyActionId is set, and needs a host that handles openDetail (spec/plugin-view-vectors.json rules.detailKey, detailKey). Time is formatted in the device zone with pluginViewDateTimeFormat; countdown refreshes every second under an hour and every minute otherwise. Rows: on a plugin page a list on every kit (rowsLayout list, rules.pageRows); in the Vue console (rowsLayout table) FlareDataTable with row actions, a row click for the detail, load more (loadMore(cursor, source)) and the empty text. Settling: the explicit signal is settleToken (the host increments it once per finished action, after setting that result's error / formErrors); busyActionId leaving the action is the fallback, and a host that sets and clears busyActionId within one frame settles only through the token (spec/plugin-view-vectors.json optimistic, rules.settle). Inset: sheet pads the view with spacing md / lg / xl (top / sides / bottom) like PluginForm, for a view placed straight into the kit BottomSheet; sheetTop pads md / lg / 0 for a view with more of the sheet under it (a preface above PluginForm), so the two meet at the form's own md and not at xl + md. Both pad every state — the embedded body, available or not (an unavailable embedded view shows its title as one secondary line), and a card shell a host keeps in a sheet (spec/plugin-view-vectors.json rules.inset, insets). Admin filters (Vue): a rows block's filters names the view inputs the page shows as its filter bar, every input when absent; the other inputs are only collected by row actions' forms. flarePluginFilterInputs(view) returns them in document order (spec/plugin-view-vectors.json filterInputs). Protocol v2 shape: view.menuActions open from a kit ⋯ key at the end of the title row (embedded: keys after view.actions) and run like buttons; grouped entries draw a header row \"label · N votes · P%\" before the first item of each group, number within the group and tag the viewer's row \"me\"; view.unavailableReason (disabled, not_installed, no_permission, unsupported_platform, incompatible_version, catalog_unreachable, unbound_copy) adds its localized line after the title, led by displayName; unbound_copy stays readable and read-only. The card shell is the message's card surface: the timeline draws no bubble around it, and a quoted reply goes in the shell's quote slot. Facts in spec/plugin-view-vectors.json (menuActions, entriesGrouped, unavailableReason, shell). Badges: an entry or a row with badge {text, tone} draws it as the kit tag in the tone (entries: after the name and me tag, before the text; list rows: before the first cell; table rows: in the first cell); an unknown tone is neutral (rules.badge). Choices limit: a multiple choice with maxSelections disables every option outside the draft once the draft holds that many (ticked ones still untick), submits only a draft within the cap and leads the footer with \"Choose up to {n}\" while it can be chosen (rules.maxSelections, maxSelections). The ⋯ key of menuActions sits at the trailing edge of the title row, which spans the card's inner width. A choices block never draws its total (only the shares' denominator): its footer is the maxSelections hint and Ended. Vue administrative referenceLoad(request: FlarePluginReferenceRequest) asks the host to load or hydrate form choices through formSelections. protectedMediaRead(read: FlarePluginProtectedMediaRead) carries the chosen item and stated reason to the host for audited retrieval; the host supplies protectedMedia state. These administrative callbacks are Vue-only. Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md. Vocabulary 2 blocks (docs/plugin-components.md): section (a heading that folds the blocks after it), stats (MetricTile figures with the plugin's trend), chart (bar, line or donut from kit tokens, no chart library), image (asset or private file through resolveImage), qr (the kit QR matrix; an expired code with a refresh query emits qrRefresh({operation, valuePath, expiresAtPath?}) for the host to re-read), hero (the lead figure with up to three owned actions), steps, banner (StatusBanner with an owned action) and timeline. Formats count and duration are written in the viewer's language (flarePluginCompactCount, flarePluginDurationText); percent and bytes keep their text. Inputs money ({amount, currency}, decimal check as the core SDK), image and document (uploads like file; document names its side). A view whose unavailableReason is upgrade_required draws PluginUpgradeNotice in its card. The red packet composer and detail renderers are gone: their names fall back to the plain document. Facts in spec/plugin-view-vectors.json (formats2, blocks2, moneyInput, upgradeNotice).",
+        "zh": "渲染事实以 spec/plugin-view-vectors.json 为准（views、optimistic、time、countdown）。外壳与 Kit 业务卡片一致：宽度 sizes.component.richCardWidth（服从父约束）、圆角 lg、细边框和卡片阴影，标题行带图标位。动作：style 为 danger 用危险键，primary 用主键，其余为次要键；有 confirm 先弹 Kit 的 DangerConfirm；有 form 打开 Kit 底部面板里的 PluginForm，提交时发出 action(id, {formValues})。choices：单选点一项立即提交；多选勾选后点提交键，键名取块持有的动作 label。Kit 先乐观标记提交的选项，error 变为非空（或 busyActionId 清空时带着 error）时撤回，新视图到达即结算。payload 为 {selection?, formValues?}（Vue 的 rows 另有 row: {key, input}）。「查看全部」或卡片的「查看详情」发出 openDetail（Vue 的 rows 点行时带 {key, input}），宿主打开 PluginDetailSheet。查看详情：view.detail 为真且没有 entries 块在显示「查看全部」时，可用、非 embedded、没有 rows 块的卡片在动作区下方画一个整宽的 quiet 文字按钮（size sm，pluginViewDetail / Vue 的 pluginView.detail），点击发出不带 row 的 openDetail；busy 或 busyActionId 时禁用；宿主要处理 openDetail 才显示（spec/plugin-view-vectors.json 的 rules.detailKey 与 detailKey）。时间按设备时区用 pluginViewDateTimeFormat 格式化；倒计时剩余不到 1 小时每秒刷新，否则每分钟刷新。rows（管理页）只在 Vue：FlareDataTable 加行动作、点行打开详情、加载更多（loadMore(cursor, source)）和空态。结算：显式信号是 settleToken（宿主每完成一次动作加 1，并且先设好这次结果的 error / formErrors）；busyActionId 离开该动作是兜底；宿主在同一帧里设上又清掉 busyActionId 时，只能靠令牌结算（spec/plugin-view-vectors.json 的 optimistic 与 rules.settle）。内边距：inset 为 sheet 时按 PluginForm 的 md / lg / xl（上 / 左右 / 下）留白，供直接放进 Kit BottomSheet 的视图使用；sheetTop 留 md / lg / 0，供下面还有面板内容的视图（PluginForm 上方的前言），两者之间只剩表单自己的 md，不再是 xl + md。两者作用于所有状态 —— embedded 的内容，可用或不可用（不可用的 embedded 视图把标题显示为一行次要文字），以及宿主留在面板里的卡片外壳（spec/plugin-view-vectors.json 的 rules.inset 与 insets）。管理页筛选（Vue）：rows 块的 filters 列出页面筛选栏要显示的视图输入，不带时为全部输入；其余输入只由行动作的表单收集。flarePluginFilterInputs(view) 按文档顺序返回它们（spec/plugin-view-vectors.json 的 filterInputs）。协议 v2 形状：view.menuActions 由标题行末尾的 Kit ⋯ 键打开（内嵌时排在 view.actions 之后作为按钮），执行方式与按钮相同；分组 entries 在每组第一条前插组头行「选项 · N 票 · P%」，组内编号，当前用户那行带「我」；view.unavailableReason（disabled、not_installed、no_permission、unsupported_platform、incompatible_version、catalog_unreachable、unbound_copy）在标题后加一行本地化原因，前面是 displayName；unbound_copy 照常显示但只读。卡片外壳就是消息的 card 表面：时间线不在外面再套气泡，引用回复画在外壳的 quote 插槽里。事实见 spec/plugin-view-vectors.json（menuActions、entriesGrouped、unavailableReason、shell）。 徽标：带 badge {text, tone} 的条目或行，用对应语义色的 Kit 标签画出（entries 在名字与「我」之后、正文之前；列表形式的行在第一格之前；表格形式在第一格内）；未知 tone 按 neutral（rules.badge）。多选上限：带 maxSelections 的多选在草稿达到上限后禁用草稿以外的选项（已选的仍可取消），只提交不超过上限的草稿，可选时页脚以「最多选 {n} 项」开头（rules.maxSelections、maxSelections）。menuActions 的 ⋯ 键贴在标题行尾，标题行占满卡片内宽。choices 块不画 total（它只是百分比的分母）：页脚只有多选上限提示与「已结束」。 Vue 管理页面的 referenceLoad(request: FlarePluginReferenceRequest) 请求宿主加载或补全表单目录选项，宿主通过 formSelections 返回状态。protectedMediaRead(read: FlarePluginProtectedMediaRead) 将选中资料和查看原因交给宿主执行审计读取，宿主通过 protectedMedia 返回状态。这两项管理台回调仅用于 Vue。 成员搜索：memberSearch(query)／membersRetry 在 Flutter、SwiftUI、Compose 对应 onMemberSearch／onMembersRetry。打开选择器只请求一次空查询；宿主查询已授权成员目录、去抖并丢弃旧路由／账号／查询结果。服务端搜索时 members 只是当前结果页：不二次本地筛选，也不因换查询未包含已选成员就删除选择。姓名保留到显式清除或 membersRevision 失效，服务端提交时再校验成员。见 docs/design/plugin-member-search.md。 第 2 版词汇的块（docs/plugin-components.md）：section（标题，可折叠其后的块）、stats（MetricTile 指标与插件给的趋势）、chart（柱、线、环，取 Kit 色，不用图表库）、image（包内资源或私有文件，经 resolveImage）、qr（Kit 二维码；过期且声明了刷新查询时发出 qrRefresh({operation, valuePath, expiresAtPath?})，由宿主重读）、hero（主数字与至多三个自有动作）、steps、banner（StatusBanner 与自有动作）、timeline。count、duration 格式按读者语言写（flarePluginCompactCount、flarePluginDurationText）；percent、bytes 保持原文本。输入 money（{amount, currency}，十进制校验与核心 SDK 一致）、image、document（与 file 一样上传；document 标明证件面）。unavailableReason 为 upgrade_required 的视图在卡片里画 PluginUpgradeNotice。红包发送面板与详情渲染器已删除：这两个名字退回普通文档。事实见 spec/plugin-view-vectors.json（formats2、blocks2、moneyInput、upgradeNotice）。"
       },
       "slots": [
         "quote"
@@ -17578,8 +17616,8 @@
           "required": false,
           "default": "'document'",
           "description": {
-            "en": "document is the default document host; a resolved presentation.renderer=account still automatically selects AccountView. account explicitly selects AccountView. Neither choice changes data, commands or contentMaxWidth.",
-            "zh": "document 是默认文档宿主；解析后的 presentation.renderer=account 仍自动选择 AccountView。account 显式选择账户呈现。两者均不改变数据、命令或 contentMaxWidth。"
+            "en": "document is the default document host; account explicitly selects AccountView. A view no longer selects AccountView through presentation.renderer (vocabulary 2 draws accounts from hero, stats, section and rows blocks). Neither choice changes data, commands or contentMaxWidth.",
+            "zh": "document 是默认文档宿主；account 显式选择账户呈现。视图不再通过 presentation.renderer 选择 AccountView（第 2 版词汇用 hero、stats、section、rows 块画账户页）。两者均不改变数据、命令或 contentMaxWidth。"
           }
         },
         {
@@ -17773,6 +17811,43 @@
             "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
           },
           "default": "0"
+        },
+        {
+          "name": "resolveImage",
+          "type": "(source: FlarePluginImageSource) => string | undefined | Promise<string | undefined>",
+          "required": false,
+          "description": {
+            "en": "Image blocks: turns the block's package asset path or private file id ({asset} or {fileId}) into what the host fetched; only blob:, https: and data:image addresses are drawn. Without it an image block keeps its frame and says the image is unavailable. Flutter, SwiftUI and Compose take the same resolver returning their image source.",
+            "zh": "图片块：把块里的包内资源路径或私有文件 id（{asset} 或 {fileId}）换成宿主取到的地址；只画 blob:、https: 和 data:image。不传时图片块保留占位框并提示图片无法显示。Flutter、SwiftUI、Compose 用同样的解析回调返回各自的图片来源。"
+          }
+        },
+        {
+          "name": "upgradeStatus",
+          "type": "FlarePluginUpgradeStatus | null",
+          "required": false,
+          "description": {
+            "en": "For a view whose unavailableReason is upgrade_required: the engine's update.plugin_upgrade_status for the view's minBuild ({available, build?}). Drives PluginUpgradeNotice: absent shows the generic copy, available with onUpdate shows the update key, not available shows that no version supports it yet.",
+            "zh": "unavailableReason 为 upgrade_required 的视图：引擎 update.plugin_upgrade_status 对视图 minBuild 的答复（{available, build?}）。交给 PluginUpgradeNotice：不传显示通用文案，有可用版本且传了 onUpdate 显示「去更新」，没有可用版本显示「当前版本暂不支持」。"
+          }
+        },
+        {
+          "name": "onUpdate",
+          "type": "() => void",
+          "required": false,
+          "description": {
+            "en": "Opens the update flow (update.open_flow or the platform update UI) from the upgrade notice. Without it the notice never shows the update key.",
+            "zh": "从升级提示打开更新流程（update.open_flow 或各端更新界面）。不传时升级提示不显示「去更新」。"
+          }
+        },
+        {
+          "name": "upgradeBusy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The update flow is opening: the update key spins.",
+            "zh": "更新流程正在打开：「去更新」转圈。"
+          }
         }
       ],
       "states": [
@@ -17791,7 +17866,8 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "notes": {
         "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters). Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
@@ -17832,6 +17908,114 @@
         },
         "reducedMotionBehavior": "The pull indicator follows the finger without easing; the spinner is static under reduced motion.",
         "screenReaderSemantics": "Region named by the heading; each filter row is a tab list named by its input's label; the refresh indicator is a status that announces refreshing; an unavailable page reads its reason; load more is a button named by its label."
+      }
+    },
+    {
+      "name": "PluginUpgradeNotice",
+      "category": "Message",
+      "summary": {
+        "en": "Plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or Me entry, or a whole page.",
+        "zh": "插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
+      },
+      "dataSource": {
+        "en": "a view or entry whose unavailableReason is upgrade_required (minBuild), and the engine's update.plugin_upgrade_status for that minBuild",
+        "zh": "unavailableReason 为 upgrade_required 的视图或入口（minBuild），以及引擎 update.plugin_upgrade_status 对该 minBuild 的答复"
+      },
+      "props": [
+        {
+          "name": "variant",
+          "type": "'card' | 'entry' | 'page'",
+          "required": false,
+          "default": "'card'",
+          "description": {
+            "en": "card: the line and update key inside a message card (PluginView draws it itself); entry: the mark beside a \"+\" or Me entry (tapping the entry is the host's: it opens a sheet with the page variant); page: the whole page (PluginPage draws it itself).",
+            "zh": "card：消息卡片里的一行文案与「去更新」（PluginView 自己画）；entry：「+」菜单或「我」页入口旁的标记（点入口由宿主处理：弹出带 page 形态的弹层）；page：整页（PluginPage 自己画）。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The page variant's heading: what the page was (the placeholder's title); the kit's \"Update required\" when absent.",
+            "zh": "page 形态的标题：原页面的标题（占位贡献的标题）；不传时为 Kit 的「需要更新应用」。"
+          }
+        },
+        {
+          "name": "status",
+          "type": "FlarePluginUpgradeStatus | null",
+          "required": false,
+          "description": {
+            "en": "update.plugin_upgrade_status for the placeholder's minBuild: {available, build?}. Absent while the host has not asked: the generic copy, no key.",
+            "zh": "update.plugin_upgrade_status 对占位 minBuild 的答复：{available, build?}。宿主还没问到时不传：显示通用文案，不画按钮。"
+          }
+        },
+        {
+          "name": "onUpdate",
+          "type": "() => void",
+          "required": false,
+          "description": {
+            "en": "Opens the update flow. The update key shows only when status.available and this is passed; a version still rolling out to other devices counts as not available, so no rollout detail shows.",
+            "zh": "打开更新流程。只有 status.available 且传了它才画「去更新」；仍在灰度、本设备未命中的版本算作没有，不暴露灰度信息。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The update flow is opening: the key spins and is disabled.",
+            "zh": "更新流程正在打开：按钮转圈并禁用。"
+          }
+        }
+      ],
+      "states": [
+        "description",
+        "update",
+        "notAvailable"
+      ],
+      "events": [
+        "update"
+      ],
+      "notes": {
+        "en": "Design 6.4 of docs/design/plugin-client-hot-delivery.md. The kit asks nothing: the host reads update.plugin_upgrade_status({minBuild}) and passes the answer; the mode is flarePluginUpgradeMode(status, onUpdate passed) — update (status.available and a handler), notAvailable (status says no build for this device: \"Not supported in this version yet…\", no key) or description (no status yet, or no handler: \"Update the app to view this\"). Message actions and conversation menus never list placeholders (the host filters them). Facts in spec/plugin-view-vectors.json (upgradeNotice). The update event is the onUpdate callback in every kit.",
+        "zh": "见 docs/design/plugin-client-hot-delivery.md 6.4。Kit 不发请求：宿主调用 update.plugin_upgrade_status({minBuild}) 并把答复传入；形态由 flarePluginUpgradeMode(status, 是否传了 onUpdate) 决定 —— update（有可用版本且有回调）、notAvailable（答复说本设备没有可用版本：「当前版本暂不支持，新版本发布后可用」，不画按钮）、description（还没有答复或没有回调：「更新应用后查看」）。消息动作与会话菜单不列占位（宿主过滤）。事实见 spec/plugin-view-vectors.json（upgradeNotice）。update 事件在各端都是 onUpdate 回调。"
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginUpgradeNotice"
+        }
+      },
+      "accessibility": {
+        "role": "status",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the update key",
+          "Enter or Space activates it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Nothing moves; the key's spinner is static under reduced motion.",
+        "screenReaderSemantics": "The card line is a status read with its text; the entry mark is read as part of its entry; the page is a region with its heading and description; the update key is a button named by its label."
       }
     },
     {

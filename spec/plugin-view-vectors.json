@@ -33,7 +33,11 @@
     "page": "PluginPage draws one plugin page (a page contribution, such as a wallet): the core SDK's pluginPage result is the view, a detail-shaped view plus `data` (what the page was resolved against). The host also passes the page reference {pluginId, page}. Heading: view.title, else the host's title (an unavailable page has an empty title, so the host's title stays). States: loading (no view, and loading or no error) → the spinner; error (no view, error, not loading) → the host's text and the retry key (retry); unavailable (view.available false) → the kit empty state titled with the reason's copy (`unavailableReasons`; pluginViewEmpty when the view names no reason), plus the retry key (retry) only for catalog_unreachable, and no refresh, filters, load more or actions; loaded → filters (rules.pageFilters), then the view drawn by PluginView embedded (fields, blocks, actions and menu actions as keys, rows as a list), then load more; a refresh that failed (error while a view shows) is a danger banner above it. Every action run on the page — a view action, a menu action, a choices submit or a row action, after its confirm and form — emits action(id, payload) with payload {page: the host's page reference, data: view.data when the view has it, row: {key, input} for a row action, selection for a choices submit, formValues when a form was collected}: the request invokePageAction takes, so the host passes it through and handles the outcome (a page target opens the next page with the outcome's payload as its arguments). busyActionId, actionError, formErrors, members and settleToken work as on PluginDetailSheet. Facts in pageViews and pageActions.",
     "pageRows": "A rows block on a page draws as a list on every kit (no table, no column labels): one item per row in order and at most once per key — a key already drawn is skipped and the first stays (the core SDK appends pages without repeating keys; the kit guarantees it because list identity needs unique keys). An item: the first line is the badge (rules.badge) then the first cell; the second line is the other cells in column order, time columns formatted as in `time` (device zone; facts hold at utcOffsetMinutes), blank cells skipped, joined with \" · \", and absent when nothing is left; the row's actions are compact keys at the item's end (the block action's label; style, confirm and form apply) and emit the page action with row {key, input}. While busyActionId names a row action only the key of the row that ran it spins; the same action's keys on the other rows (and every other key) are disabled without spinning. The kit remembers that row from the action it sent; an action the kit did not send spins no row key. No rows: emptyText, else pluginViewEmpty. A page's rows have no load more of their own (rows.nextCursor is absent: rows page with the page). Facts in pageViews.",
     "pagePaging": "A non-blank view.nextCursor shows the page's full-width load-more key under the view (Vue pluginView.loadMore, natives myInviteLoadMore) with the asked-once rule of rules.detail (`detailPaging`): loadMore(cursor), spinning and disabled while loadingMore or while the asked cursor is still view.nextCursor. Besides loadingMore ending, settleToken changing and actionError becoming non-empty, the end of a refresh (refreshing true → false) also forgets the asked cursor: a refresh reads the first page again and may bring the same cursor back, which would otherwise spin for good. The host asks the core SDK for the next page with previous = the shown view and passes back the merged view: the new rows and entries follow the shown ones (a row whose key is shown is dropped), and data stays the first page's. The kit merges nothing and keeps nothing between views except the asked cursor. Steps in `pagePaging`.",
-    "pageFilters": "A page whose view has a rows block shows its select filters above the view: the inputs flarePluginFilterInputs(view) returns (the rows block's filters, every input when absent) whose kind is select, in input order; other kinds are not page filters. Each is a kit FilterTabs row named by the input's label: pluginViewAll first, then the input's choices in order. The selected tab is the host's filters[input.id] when it is one of the choices, else all; the host owns it (props filters). Choosing another tab emits filter(values): the host's filters with that input set to the choice's value, or without it for all; choosing the selected tab emits nothing. The host then reads the first page with those filters (a refresh: it sets refreshing until the view arrives) and passes back the view and the filters. The tabs are disabled while refreshing or loadingMore. No rows block, or no select filter: no filter row. Steps in `pageFilters`."
+    "pageFilters": "A page whose view has a rows block shows its select filters above the view: the inputs flarePluginFilterInputs(view) returns (the rows block's filters, every input when absent) whose kind is select, in input order; other kinds are not page filters. Each is a kit FilterTabs row named by the input's label: pluginViewAll first, then the input's choices in order. The selected tab is the host's filters[input.id] when it is one of the choices, else all; the host owns it (props filters). Choosing another tab emits filter(values): the host's filters with that input set to the choice's value, or without it for all; choosing the selected tab emits nothing. The host then reads the first page with those filters (a refresh: it sets refreshing until the view arrives) and passes back the view and the filters. The tabs are disabled while refreshing or loadingMore. No rows block, or no select filter: no filter row. Steps in `pageFilters`.",
+    "formats2": "Vocabulary 2 formats. count: the text is written compact with the copy's units (pluginFormatCountUnits, `exponent:suffix` pairs): the largest unit the count reaches, one decimal cut (never rounded up), a trailing .0 dropped; below every unit, the count. duration: whole seconds; under a minute the seconds alone, else the largest non-zero unit and the next one when it is not zero (myInviteUnitDays/Hours/Minutes, pluginFormatSeconds). percent and bytes keep the text the core SDK wrote; an unknown format keeps the text.",
+    "blocks2": "Vocabulary 2 blocks. section: a heading (label, a fold key) followed by its children; a section without a label is never folded; children of a folded section are not drawn; a child kind the kit does not know is skipped like a top-level one. stats: MetricTile figures, the value through its format, the trend as text with its direction (anything else flat). chart: bar, line or donut from kit colours; nothing to draw → emptyText or pluginViewEmpty; a donut's slices are the positive values' shares in point order. image: the declared aspect (unknown → square); the host resolves the asset or file id. qr: expired once expiresAtMs ≤ now; an expired code with refreshOperation offers pluginViewQrRefresh (the host re-reads). hero: one lead figure; its actions run like the view's. steps: the state as sent when it is one of pending, current, done, failed, else pending. banner: tone info, success, warning or danger (anything else info) with an owned action. timeline: time as the time block writes it, title, detail, status tag; no item → emptyText or pluginViewEmpty.",
+    "moneyInput": "A money input's draft is the amount as typed. Before the check and submit it is normalized (spaces gone, leading zeros of the whole part dropped, a leading . gets a 0, a trailing . goes). Empty: required when required, else absent. Not a decimal of at most `scale` fraction digits (2 by default) or no currency: invalidType. Below min or above max (decimal order): outOfRange. Submitted as {amount, currency} with the input's currency.",
+    "upgradeNotice": "unavailableReason upgrade_required draws the upgrade notice instead of the reason line: update when update.plugin_upgrade_status says available and the host passes onUpdate (the key pluginUpgradeAction); notAvailable when it says not available (pluginUpgradeNotAvailable, no key); description otherwise (pluginViewUnavailableUpgradeRequired, no key). The entry mark is pluginUpgradeBadge; the page variant's heading is the view's title, else pluginUpgradeTitle, and its text pluginUpgradeDescription or pluginUpgradeNotAvailable."
   },
   "users": {
     "u_alice01": {
@@ -3882,6 +3886,12 @@
       "key": "pluginViewUnavailableUnboundCopy",
       "zh": "副本，仅供查看",
       "en": "Copy, view only"
+    },
+    {
+      "reason": "upgrade_required",
+      "key": "pluginViewUnavailableUpgradeRequired",
+      "zh": "更新应用后查看",
+      "en": "Update the app to view this"
     }
   ],
   "entryGroupHeaders": [
@@ -6365,6 +6375,722 @@
           "tabs": {}
         }
       ]
+    }
+  ],
+  "formats2": {
+    "strings": {
+      "zh": {
+        "days": "{n} 天",
+        "hours": "{n} 小时",
+        "minutes": "{n} 分钟",
+        "seconds": "{n} 秒",
+        "countUnits": "4:万|8:亿"
+      },
+      "en": {
+        "days": "{n} d",
+        "hours": "{n} h",
+        "minutes": "{n} min",
+        "seconds": "{n} s",
+        "countUnits": "3:K|6:M|9:B"
+      }
+    },
+    "cases": [
+      {
+        "format": {
+          "kind": "count",
+          "count": 0
+        },
+        "text": "0",
+        "zh": "0",
+        "en": "0"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 999
+        },
+        "text": "999",
+        "zh": "999",
+        "en": "999"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 1000
+        },
+        "text": "1000",
+        "zh": "1000",
+        "en": "1K"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 9999
+        },
+        "text": "9999",
+        "zh": "9999",
+        "en": "9.9K"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 10000
+        },
+        "text": "10000",
+        "zh": "1万",
+        "en": "10K"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 12345
+        },
+        "text": "12345",
+        "zh": "1.2万",
+        "en": "12.3K"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 99999999
+        },
+        "text": "99999999",
+        "zh": "9999.9万",
+        "en": "99.9M"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 100000000
+        },
+        "text": "100000000",
+        "zh": "1亿",
+        "en": "100M"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 250000000
+        },
+        "text": "250000000",
+        "zh": "2.5亿",
+        "en": "250M"
+      },
+      {
+        "format": {
+          "kind": "count",
+          "count": 3000000000
+        },
+        "text": "3000000000",
+        "zh": "30亿",
+        "en": "3B"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 0
+        },
+        "text": "0 ms",
+        "zh": "0 秒",
+        "en": "0 s"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 999
+        },
+        "text": "999 ms",
+        "zh": "0 秒",
+        "en": "0 s"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 45000
+        },
+        "text": "45000 ms",
+        "zh": "45 秒",
+        "en": "45 s"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 60000
+        },
+        "text": "60000 ms",
+        "zh": "1 分钟",
+        "en": "1 min"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 125000
+        },
+        "text": "125000 ms",
+        "zh": "2 分钟 5 秒",
+        "en": "2 min 5 s"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 7200000
+        },
+        "text": "7200000 ms",
+        "zh": "2 小时",
+        "en": "2 h"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 7500000
+        },
+        "text": "7500000 ms",
+        "zh": "2 小时 5 分钟",
+        "en": "2 h 5 min"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 90000000
+        },
+        "text": "90000000 ms",
+        "zh": "1 天 1 小时",
+        "en": "1 d 1 h"
+      },
+      {
+        "format": {
+          "kind": "duration",
+          "ms": 86460000
+        },
+        "text": "86460000 ms",
+        "zh": "1 天",
+        "en": "1 d"
+      },
+      {
+        "format": {
+          "kind": "percent",
+          "percent": 12.5,
+          "decimals": 1
+        },
+        "text": "12.5%",
+        "zh": "12.5%",
+        "en": "12.5%"
+      },
+      {
+        "format": {
+          "kind": "bytes",
+          "bytes": 1572864
+        },
+        "text": "1.5 MB",
+        "zh": "1.5 MB",
+        "en": "1.5 MB"
+      },
+      {
+        "format": {
+          "kind": "newer",
+          "value": 1
+        },
+        "text": "as sent",
+        "zh": "as sent",
+        "en": "as sent"
+      }
+    ]
+  },
+  "blocks2": {
+    "steps": [
+      {
+        "state": "pending",
+        "expect": "pending"
+      },
+      {
+        "state": "current",
+        "expect": "current"
+      },
+      {
+        "state": "done",
+        "expect": "done"
+      },
+      {
+        "state": "failed",
+        "expect": "failed"
+      },
+      {
+        "state": "skipped",
+        "expect": "pending"
+      }
+    ],
+    "trend": [
+      {
+        "direction": "up",
+        "expect": "up"
+      },
+      {
+        "direction": "down",
+        "expect": "down"
+      },
+      {
+        "direction": "flat",
+        "expect": "flat"
+      },
+      {
+        "direction": "sideways",
+        "expect": "flat"
+      }
+    ],
+    "bannerTone": [
+      {
+        "tone": "info",
+        "expect": "info"
+      },
+      {
+        "tone": "success",
+        "expect": "success"
+      },
+      {
+        "tone": "warning",
+        "expect": "warning"
+      },
+      {
+        "tone": "danger",
+        "expect": "danger"
+      },
+      {
+        "tone": "brand",
+        "expect": "info"
+      }
+    ],
+    "heroTone": [
+      {
+        "tone": "neutral",
+        "expect": "neutral"
+      },
+      {
+        "tone": "positive",
+        "expect": "positive"
+      },
+      {
+        "tone": "warning",
+        "expect": "warning"
+      },
+      {
+        "tone": "brand",
+        "expect": "brand"
+      },
+      {
+        "tone": "danger",
+        "expect": "neutral"
+      }
+    ],
+    "imageRatio": [
+      {
+        "aspect": "1:1",
+        "expect": 1
+      },
+      {
+        "aspect": "4:3",
+        "expect": 1.3333333333333333
+      },
+      {
+        "aspect": "16:9",
+        "expect": 1.7777777777777777
+      },
+      {
+        "aspect": "3:4",
+        "expect": 0.75
+      },
+      {
+        "aspect": "2:1",
+        "expect": 1
+      }
+    ],
+    "qr": [
+      {
+        "expiresAtMs": null,
+        "nowMs": 1000,
+        "expired": false,
+        "refreshMs": null
+      },
+      {
+        "expiresAtMs": 5000,
+        "nowMs": 1000,
+        "expired": false,
+        "refreshMs": 4000
+      },
+      {
+        "expiresAtMs": 5000,
+        "nowMs": 5000,
+        "expired": true,
+        "refreshMs": null
+      },
+      {
+        "expiresAtMs": 5000,
+        "nowMs": 6000,
+        "expired": true,
+        "refreshMs": null
+      }
+    ],
+    "donut": [
+      {
+        "values": [
+          1,
+          1,
+          2
+        ],
+        "expect": [
+          {
+            "index": 0,
+            "start": 0,
+            "sweep": 0.25
+          },
+          {
+            "index": 1,
+            "start": 0.25,
+            "sweep": 0.25
+          },
+          {
+            "index": 2,
+            "start": 0.5,
+            "sweep": 0.5
+          }
+        ]
+      },
+      {
+        "values": [
+          3,
+          0,
+          -1,
+          1
+        ],
+        "expect": [
+          {
+            "index": 0,
+            "start": 0,
+            "sweep": 0.75
+          },
+          {
+            "index": 3,
+            "start": 0.75,
+            "sweep": 0.25
+          }
+        ]
+      },
+      {
+        "values": [
+          0,
+          0
+        ],
+        "expect": []
+      }
+    ],
+    "flatten": {
+      "blocks": [
+        {
+          "kind": "text",
+          "text": "Lead",
+          "style": "body"
+        },
+        {
+          "kind": "section",
+          "label": "Group",
+          "collapsed": false,
+          "blocks": [
+            {
+              "kind": "stats",
+              "items": [
+                {
+                  "label": "A",
+                  "value": "1"
+                },
+                {
+                  "label": "B",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "kind": "chart",
+              "chartKind": "bar",
+              "series": [
+                {
+                  "points": [
+                    {
+                      "label": "Mon",
+                      "value": 1,
+                      "text": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "rows",
+          "source": "list",
+          "columns": [],
+          "rows": [],
+          "actions": []
+        }
+      ],
+      "expect": [
+        {
+          "kind": "text"
+        },
+        {
+          "kind": "section"
+        },
+        {
+          "kind": "stats",
+          "section": 1
+        },
+        {
+          "kind": "chart",
+          "section": 1
+        },
+        {
+          "kind": "rows"
+        }
+      ]
+    },
+    "chartHasPoints": [
+      {
+        "series": [],
+        "expect": false
+      },
+      {
+        "series": [
+          {
+            "points": []
+          }
+        ],
+        "expect": false
+      },
+      {
+        "series": [
+          {
+            "points": []
+          },
+          {
+            "points": [
+              {
+                "label": "Mon",
+                "value": 0,
+                "text": "0"
+              }
+            ]
+          }
+        ],
+        "expect": true
+      }
+    ]
+  },
+  "moneyInput": {
+    "input": {
+      "id": "amount",
+      "kind": "money",
+      "label": "金额",
+      "required": true,
+      "money": {
+        "currency": "CNY",
+        "scale": 2,
+        "min": "0.01",
+        "max": "200"
+      }
+    },
+    "normalize": [
+      {
+        "typed": " 12.50 ",
+        "expect": "12.50"
+      },
+      {
+        "typed": "007",
+        "expect": "7"
+      },
+      {
+        "typed": ".5",
+        "expect": "0.5"
+      },
+      {
+        "typed": "12.",
+        "expect": "12"
+      },
+      {
+        "typed": "0",
+        "expect": "0"
+      },
+      {
+        "typed": "00.10",
+        "expect": "0.10"
+      },
+      {
+        "typed": "1,000",
+        "expect": "1,000"
+      }
+    ],
+    "check": [
+      {
+        "draft": "",
+        "expect": "required"
+      },
+      {
+        "draft": "abc",
+        "expect": "invalidType"
+      },
+      {
+        "draft": "1.234",
+        "expect": "invalidType"
+      },
+      {
+        "draft": "-1",
+        "expect": "invalidType"
+      },
+      {
+        "draft": "1e3",
+        "expect": "invalidType"
+      },
+      {
+        "draft": "0",
+        "expect": "outOfRange"
+      },
+      {
+        "draft": "0.01",
+        "expect": null
+      },
+      {
+        "draft": "12.5",
+        "expect": null
+      },
+      {
+        "draft": "200.00",
+        "expect": null
+      },
+      {
+        "draft": "200.01",
+        "expect": "outOfRange"
+      },
+      {
+        "draft": " 007.50 ",
+        "expect": null
+      },
+      {
+        "input": {
+          "id": "tip",
+          "kind": "money",
+          "label": "小费",
+          "money": {
+            "currency": "CNY"
+          }
+        },
+        "draft": "",
+        "expect": null
+      },
+      {
+        "input": {
+          "id": "tip",
+          "kind": "money",
+          "label": "小费",
+          "money": {}
+        },
+        "draft": "5",
+        "expect": "invalidType"
+      },
+      {
+        "input": {
+          "id": "pts",
+          "kind": "money",
+          "label": "积分",
+          "money": {
+            "currency": "PTS",
+            "scale": 0
+          }
+        },
+        "draft": "5.5",
+        "expect": "invalidType"
+      }
+    ],
+    "values": [
+      {
+        "draft": "12.5",
+        "expect": {
+          "amount": "12.5",
+          "currency": "CNY"
+        }
+      },
+      {
+        "draft": " 007.50 ",
+        "expect": {
+          "amount": "7.50",
+          "currency": "CNY"
+        }
+      },
+      {
+        "draft": "",
+        "expect": null
+      }
+    ],
+    "drafts": [
+      {
+        "value": {
+          "amount": "3.20",
+          "currency": "CNY"
+        },
+        "expect": "3.20"
+      },
+      {
+        "value": "4",
+        "expect": "4"
+      },
+      {
+        "value": null,
+        "expect": ""
+      }
+    ],
+    "compare": [
+      {
+        "a": "2",
+        "b": "10",
+        "expect": -1
+      },
+      {
+        "a": "10.50",
+        "b": "10.5",
+        "expect": 0
+      },
+      {
+        "a": "0.1",
+        "b": "0.09",
+        "expect": 1
+      }
+    ]
+  },
+  "upgradeNotice": [
+    {
+      "status": null,
+      "canUpdate": true,
+      "expect": "description"
+    },
+    {
+      "status": {
+        "available": true,
+        "build": 41020
+      },
+      "canUpdate": true,
+      "expect": "update"
+    },
+    {
+      "status": {
+        "available": true,
+        "build": 41020
+      },
+      "canUpdate": false,
+      "expect": "description"
+    },
+    {
+      "status": {
+        "available": false
+      },
+      "canUpdate": true,
+      "expect": "notAvailable"
     }
   ]
 }

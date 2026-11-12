@@ -21,6 +21,7 @@ import {
   flarePluginMinRows,
   flarePluginReferenceParents,
   flarePluginFileValue,
+  flarePluginIsUpload,
   flarePluginNewFileScope,
   flarePluginVisibleInputs,
   type FlarePluginFileAction,
@@ -143,12 +144,12 @@ function fileState(input: FlarePluginInput): FlarePluginFileState {
     ...(flarePluginFileValue(value) ? { value } : {}) };
 }
 const filesPending = computed(() => visibleInputs.value.some((input) => {
-  if (input.kind !== "file") return false;
+  if (!flarePluginIsUpload(input.kind)) return false;
   const state = fileState(input);
   return state.phase !== "empty" && (state.phase !== "uploaded" || !flarePluginFileValue(state.value ?? draft[input.id]));
 }));
 function fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind): void {
-  if (input.kind !== "file" || (action !== "invalidate" && (props.busy || !visibleInputs.value.includes(input)))) return;
+  if (!flarePluginIsUpload(input.kind) || (action !== "invalidate" && (props.busy || !visibleInputs.value.includes(input)))) return;
   if (action !== "preview") {
     fileGenerations[input.id] = (fileGenerations[input.id] ?? 0) + 1;
     draft[input.id] = null;
@@ -163,7 +164,7 @@ const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
 /** A new form (other inputs or initial values, compared by content): start over from them. */
 function reset(): void {
-  if (fileScope.value) for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate");
+  if (fileScope.value) for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate");
   fileScope.value = flarePluginNewFileScope();
   for (const id of Object.keys(fileGenerations)) delete fileGenerations[id];
   for (const id of Object.keys(localFiles)) delete localFiles[id];
@@ -215,7 +216,7 @@ watch(
 );
 watch(() => props.fileStates, () => {
   for (const input of visibleInputs.value) {
-    if (input.kind !== "file") continue;
+    if (!flarePluginIsUpload(input.kind)) continue;
     const state = props.fileStates?.[input.id];
     if (state?.scope !== fileScope.value || state.generation !== (fileGenerations[input.id] ?? 0)) continue;
     const value = state.phase === "uploaded" && flarePluginFileValue(state.value) ? { fileId: state.value.fileId } : undefined;
@@ -227,7 +228,7 @@ watch(() => props.fileStates, () => {
       ...(value ? { value } : {}), fileName: state.fileName, error: state.error, preview: false };
   }
 }, { deep: true });
-onBeforeUnmount(() => { for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate"); });
+onBeforeUnmount(() => { for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate"); });
 watch(
   () => JSON.stringify(props.errors),
   () => editedSinceErrors.clear(),
@@ -291,7 +292,7 @@ function set(id: string, value: unknown): void {
     edited.delete(dependent.id);
     editedSinceErrors.add(dependent.id);
   }
-  for (const dependent of dependents) if (dependent.kind === "file") fileAction(dependent, "invalidate");
+  for (const dependent of dependents) if (flarePluginIsUpload(dependent.kind)) fileAction(dependent, "invalidate");
 }
 
 /** The text under an input: the host's first error for it, else the client's issue once it may show. */

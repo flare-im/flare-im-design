@@ -221,6 +221,14 @@
       "钱包",
       "插件页面",
       "钱包页"
+    ],
+    "PluginUpgradeNotice": [
+      "plugin upgrade",
+      "update required",
+      "upgrade notice",
+      "需更新",
+      "升级提示",
+      "去更新"
     ]
   },
   "overrides": {
@@ -283,6 +291,7 @@
       "DescriptionList",
       "Screen",
       "PluginPage",
+      "PluginUpgradeNotice",
       "AccountView"
     ],
     "workspace": [

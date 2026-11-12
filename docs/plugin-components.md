@@ -14,6 +14,7 @@
 | 通用插件卡片（v1 字段与动作，v2 展示块） | `FlarePluginView` | `PluginView` | `PluginView` | `FlarePluginView` |
 | 插件表单 | `FlarePluginForm` | `PluginFormView` | `PluginForm` | `FlarePluginForm` |
 | 插件详情（查看全部） | `FlarePluginDetailSheet` | `PluginDetailSheetView` | `PluginDetailSheet` | `FlarePluginDetailSheet` |
+| 插件升级提示（卡片行、入口标记、整页） | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` |
 | 加载/错误/权限说明 | `FlareStatusBanner` | `StatusBannerView` | `StatusBanner` | `FlareStatusBanner` |
 | 页面与表单 | `FlareScreen`、`FlareSchemaForm` | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 |
 
@@ -138,6 +139,51 @@
     - 规则与样例见向量的 `detailPaging`。
 - **管理页筛选（Vue）**：rows 块的 `filters` 列出筛选栏要显示的输入，不带时为全部输入；其余输入归行动作的表单。控制台用 `flarePluginFilterInputs(view)` 取筛选输入，也可以从 `@flare-im/vue-ui/admin` 导入。
 
+## 第 2 版词汇：新块、新输入、新格式与升级提示
+
+设计见工作区 `docs/design/plugin-client-hot-delivery.md` 6.3 到 6.6。协议真源是 `flare-plugin-protocol`（`ui/blocks.rs`、`ui/inputs.rs`、`ui/formats.rs`）；Kit 只画核心 SDK 解析好的视图，不读路径。纯规则与事实在 `spec/plugin-view-vectors.json` 的 `rules.formats2`、`rules.blocks2`、`rules.moneyInput`、`rules.upgradeNotice` 与同名四段，四端测试读同一份。
+
+### 词汇常量 `PLUGIN_UI_VOCABULARY`
+
+每个 Kit 导出自己能画的词汇，形状就是协议的 `UiVocabulary`（`{version, blocks, inputs, formats, actions, native, renderers, kinds}`）。宿主初始化时把它作为 `kitVocabulary` 交给引擎（`plugin.set_host_profile`），引擎与自身词汇、宿主允许名单取交集后报给 Core，Core 据此选变体。
+
+- 真源：`spec/plugin-ui-vocabulary.json`。`vocabulary` 是四端共同能画的名字；`kits.<kit>.omit` 是某端暂时画不了、因而不能上报的名字（目前三个原生端不画 `protected-media`）。
+- 生成：`node spec/build-plugin-ui-vocabulary.mjs [--kits vue,flutter,android,ios]`；`--check` 进 `check:generated`。生成物：Vue `src/shared/contracts/plugin-ui-vocabulary.ts`（`PLUGIN_UI_VOCABULARY`，从包入口导出）、Flutter `lib/src/models/plugin_ui_vocabulary.dart`（`PLUGIN_UI_VOCABULARY`，`Map<String, Object>`）、Compose `PluginUiVocabulary.kt`（JSON 字符串 `PLUGIN_UI_VOCABULARY` 与 `PluginUiVocabulary` 集合）、SwiftUI `PluginUIVocabulary.swift`（同上）。
+- 只有当一个名字在所有未省略它的 Kit 里都画出来了，才能加进 `vocabulary`。报了画不了的名字，Core 就会把用到它的变体发给这台设备（Review Focus 3）。
+- `native` 只列第 1 版的五个能力；`paymentConfirmation`、`documentCapture`、`locationOnce` 由宿主能力（任务 10）落地后再加。`renderers` 只剩 `redPacket.card`、`redPacket.pay`、`payment.confirm`。
+
+### 新块
+
+| 块 | 四端画法 |
+|---|---|
+| `section` | 标题（label）与折叠键，其后是子块；子块与顶层块同一套渲染与动作管线。没有 label 的分组不画标题、也不折叠。折叠时子块不画。子块里不认识的 kind 和顶层一样跳过。 |
+| `stats` | 2 到 6 个指标并排（Vue 复用 `FlareMetricTile` 的 plain 外观）；值经格式化（见下），趋势是插件给的文本加方向（up / down，其余按 flat），只报告不评判；tone 给数值着色。 |
+| `chart` | 柱、线、环。取 Kit 颜色（系列依次 primary、info、success；环的扇区循环 primary、info、success、warning、important、pinned），不引第三方图表库：Web 端 SVG 复用 `data/chart-geometry.ts`，原生端 Canvas / Path。读屏有逐点表格。没有任何点时显示 `emptyText`，没有时「暂无数据」。环只画正值，扇区为各正值占和的比例。 |
+| `image` | 按声明比例（1:1、4:3、16:9、3:4，未知按 1:1）留框。视图里没有地址：`asset`（包内资源路径）或 `fileId`（插件私有上传的文件）由宿主的 `resolveImage` 换成取到的地址，只画 blob:、https:、data:image。取不到时保留框并提示「图片无法显示」。 |
+| `qr` | Kit 二维码（Vue `FlareQrMatrix`，Flutter `FlareQrCodeFrame` 的编码器），label 在上、caption 在下。`expiresAtMs` 到期（服务器时钟）后覆盖「二维码已失效」；声明了 `refreshOperation` 且宿主监听时给「刷新二维码」，发出 `qrRefresh({operation, valuePath, expiresAtPath?})`，宿主执行查询后传回新视图。取代 `flare.qr` 渲染器。 |
+| `hero` | 每文档一个主数字：label、格式化后的值、subtitle，tone 为 neutral / positive / warning / brand（未知按 neutral），至多三个自有动作，与视图动作同一条确认 / 表单 / 宿主管线。 |
+| `steps` | 2 到 6 步，状态 done（勾）、failed（叉）、current（品牌色环）、pending（序号）；未知状态按 pending；状态也以文字告诉读屏。 |
+| `banner` | Kit `StatusBanner`，tone 为 info / success / warning / danger（未知按 info），可带一个自有动作。 |
+| `timeline` | 至多 50 项：时间（同 time 块的写法）、标题、说明、状态标签，沿竖线排列；没有项时显示 `emptyText` 或「暂无数据」。 |
+
+### 新格式与新输入
+
+- 格式：`count` 按读者语言紧凑书写（`pluginFormatCountUnits`：中文「1.2万」「2.5亿」，英文「12.3K」「3B」；只截不进位）；`duration` 写成最大的非零单位加下一个非零单位（「2 小时 5 分钟」「45 秒」）；`percent`、`bytes` 保持核心 SDK 写好的文本。不认识的格式保持文本。
+- `money`：草稿是输入的金额文本，币种来自输入（核心 SDK 已把 `currencyPath` 等读成值）。提交前规范化（去空格、去整数部分前导零、补「0.」、去尾「.」），校验与协议一致：不是不超过 `scale`（默认 2）位小数的十进制数或没有币种为 `invalidType`，越过 min / max 为 `outOfRange`。提交 `{amount, currency}`。
+- `image`、`document`：与 `file` 一样是上传输入，值是 `{fileId}`，走同一套宿主上传状态（`fileStates` / `fileAction`）。按钮文案为「选择图片」「拍摄证件」；`document` 在标题后标明证件面（正面、反面、手持）。
+
+### 升级提示 `FlarePluginUpgradeNotice`
+
+当前构建画不了的贡献由引擎解析成 `unavailableReason: "upgrade_required"`（可带 `minBuild`）。
+
+- **形态**：`card`（消息卡片里一行文案与「去更新」，`PluginView` 自己画，代替原因行）、`entry`（「+」菜单、「我」页入口旁的「需更新」标记，点入口由宿主弹出带 `page` 形态的弹层）、`page`（整页，`PluginPage` 自己画，代替不可用空态）。消息动作与会话菜单不列占位，由宿主过滤。
+- **数据**：Kit 不发请求。宿主调用 `update.plugin_upgrade_status({minBuild})`，把 `{available, build?}` 作为 `upgradeStatus`（独立组件为 `status`）传入，并传 `onUpdate`（调用 `update.open_flow` 或各端更新界面）。
+- **规则**（`flarePluginUpgradeMode`）：有可用版本且传了 `onUpdate` 时显示「去更新」；答复说没有可用版本（含仍在灰度、本设备未命中）时只显示「当前版本暂不支持，新版本发布后可用」；还没有答复或没有回调时显示「更新应用后查看」。
+
+### 删除的专用渲染器
+
+`redPacket.composer`（改为 `money` 输入加现有输入）、`redPacket.detail`（改为 `hero` + `entries` + `banner`）、`account`（改为 `hero` + `stats` + `section` + `rows`）、`flare.qr`（改为 `qr` 块）在 Kit 里不再识别，这些名字的视图按普通文档画。合同迁移在插件仓完成。`FlareRedPacketComposer`、`FlareRedPacketDetail` 组件本身保留给宿主直接组合。`PluginPage.appearance="account"` 仍可由宿主显式选择，但视图不再通过 renderer 选它。
+
 ## 自定义内容渲染器
 
 插件卡片通过 Kit 的内容渲染器注册进消息列表，四端同一套语义：
@@ -177,7 +223,7 @@
 
 ### 钱包与资金流程的 account 布局
 
-钱包沿用插件页面宿主，由合同声明 `presentation.renderer = "account"`。四端 Kit 根据解析后的 `presentation.props.layout` 组合共享组件，不在示例 App 写钱包样式或资金动作分支：
+钱包沿用插件页面宿主，由宿主显式传 `appearance="account"`（第 2 版词汇起视图的 `presentation.renderer = "account"` 不再自动选择这一布局，合同改用 hero、stats、section、rows 块）。四端 Kit 根据解析后的 `presentation.props.layout` 组合共享组件，不在示例 App 写钱包样式或资金动作分支：
 
 - `wallet`：顶部按实际钱包／资金账户行展示卡片，不再把 overview 和「我的钱包」重复画成两份余额。卡片使用服务端原始金额及首列标签、原名称和其他列的标签／值；声明 `rowEntryAction` 时整卡经过原守卫直接派发原行绑定，并显示动作标签作为入口提示，否则打开原本地详情。标题区仅一组充值／提现／收款方式入口及可见性按钮。全部 overview 字段（包括默认钱包可用余额）放进账户信息，位于钱包服务上方；不把账面余额改称可用余额或自行求和。手机单列，桌面多卡自适应分列；没有行时保留原概览和空态。 钱包首页不显示 description；流程与账单页的说明保持原样，真实 warning／danger 提示仍按原规则可见。
 - `flow`：步骤与说明、资金明细卡、主操作及辅助服务。所有字段按明细展示，不把手续费或状态误画成大余额；没有交易列表时不制造空账单。渠道、收款账户等 rows 仍由通用列表渲染，启用 `PluginView.labelRows`，首格显示原列标签及标题值，其余非空值与列标签成对展示。
