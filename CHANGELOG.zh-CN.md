@@ -6,6 +6,9 @@
 
 ### 设计系统与跨端组件
 
+- **输入框：只剩发送键时它留在行尾**（四端 Kit）。
+  - 没有提供任何工具键时（输入框菜单失败关闭，或宿主关掉了全部工具），手机形态的工具行把发送键单独摆在中间（SwiftUI、Flutter、Compose）或行首（Vue）。现在它和有工具时一样留在行尾。
+
 - **SwiftUI：真机主线程栈不再溢出**（iOS Kit）。
   - `FlareStrings`（976 个字段，约 16 KB）与 `FlareBrandTheme`（约 1.3 KB）被每个组件经 `@Environment` 读取，而 `@Environment` 按值内联存放：一屏嵌套的组件超过了真机 1 MB 的主线程栈（模拟器是 8 MB），Debug 构建在登录页和打开会话时闪退。
   - 两者改为引用存储、写时复制。`FlareStrings` 只占一个指针：字段在 `FlareStringsTable` 里，经动态成员读写，`strings.send`、`strings.send = "Send"` 与初始化写法都不变；在 `extension FlareStrings` 里引用字段要写 `self.send`。`FlareBrandTheme` 仍有 `name`、`light`、`dark`，两套色板放在引用后面。

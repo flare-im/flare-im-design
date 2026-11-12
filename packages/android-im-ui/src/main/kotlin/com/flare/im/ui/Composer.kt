@@ -310,25 +310,27 @@ fun Composer(
     // One row, two homes: inside the card on a tablet, on the app ground below
     // the band on a phone. Writing it twice is how the two drift apart.
     @Composable fun tools(m: ComposerMetrics) {
+        // Spread across the band when there are keys; the send key alone sits at the end, not at the start.
+        val keys = composerToolKeys(
+            strings,
+            disabled = disabled,
+            // The composer opens its own panel when no host handles the key, so the key is always there.
+            canEmoji = true,
+            canVoice = enableVoice && onVoiceSend != null,
+            canImage = onImage != null || onAttach != null,
+            canMore = hasActionPanel || onAttach != null,
+            richMode = richOn,
+            panelOpen = if (hasActionPanel) shownPanel == ComposerPanel.More else null,
+            emojiOpen = if (onEmoji == null) shownPanel == ComposerPanel.Emoji else null,
+            capabilities = capabilities,
+            mentionOpen = if (hasMentions) shownPanel is ComposerPanel.Mention else null,
+        )
         Row(
             Modifier.fillMaxWidth().padding(horizontal = m.toolInset),
-            horizontalArrangement = if (m.band) Arrangement.SpaceBetween else Arrangement.End,
+            horizontalArrangement = if (m.band && keys.isNotEmpty()) Arrangement.SpaceBetween else Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            composerToolKeys(
-                strings,
-                disabled = disabled,
-                // The composer opens its own panel when no host handles the key, so the key is always there.
-                canEmoji = true,
-                canVoice = enableVoice && onVoiceSend != null,
-                canImage = onImage != null || onAttach != null,
-                canMore = hasActionPanel || onAttach != null,
-                richMode = richOn,
-                panelOpen = if (hasActionPanel) shownPanel == ComposerPanel.More else null,
-                emojiOpen = if (onEmoji == null) shownPanel == ComposerPanel.Emoji else null,
-                capabilities = capabilities,
-                mentionOpen = if (hasMentions) shownPanel is ComposerPanel.Mention else null,
-            ).forEach { key ->
+            keys.forEach { key ->
                 when (key.id) {
                     // A host that handles the key keeps its own panel; otherwise the composer opens its own.
                     "emoji" -> tool(key, active = shownPanel == ComposerPanel.Emoji) {

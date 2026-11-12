@@ -1044,7 +1044,9 @@ class FlareComposerState extends State<FlareComposer> {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: m.toolInset),
         child: Row(
-          mainAxisAlignment: m.wide
+          // Spread across the band when there are keys; the send key alone
+          // sits at the end, not at the start.
+          mainAxisAlignment: m.wide || keys.length == 1
               ? MainAxisAlignment.end
               : MainAxisAlignment.spaceBetween,
           children: keys,

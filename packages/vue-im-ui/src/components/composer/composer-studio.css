@@ -238,6 +238,11 @@
   cursor: not-allowed;
 }
 
+/* The send key alone (no tool offered) sits at the end, not at the start. */
+.composer-studio.composer .composer-toolbar > .composer-toolbar__send:only-child {
+  margin-inline-start: auto;
+}
+
 .composer-studio.composer .composer-toolbar {
   position: relative;
   display: flex;

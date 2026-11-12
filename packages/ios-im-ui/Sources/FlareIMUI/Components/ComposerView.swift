@@ -423,6 +423,8 @@ public struct ComposerView: View {
             }
             FlareComposerSendButton(active: canSend, onSend: send)
         }
+        // With no key offered (a closed menu) the send key alone keeps the end of the row instead of the middle.
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     /// The format keys in strip order: format id, SF Symbol (a kit icon where the registry has the

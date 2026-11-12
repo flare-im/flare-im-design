@@ -6,6 +6,9 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **Composer: the send key alone keeps the end of the row** (all four kits).
+  - With no tool key offered (the composer menu failed closed, or a host turned every tool off), the phone band put the send key alone in the middle of the tool row (SwiftUI, Flutter, Compose) or at its start (Vue). It now stays at the trailing end, where it is beside the tools.
+
 - **SwiftUI: a device's main thread stack no longer overflows** (iOS kit).
   - `FlareStrings` (976 fields, about 16 KB) and `FlareBrandTheme` (about 1.3 KB) were read by every component through `@Environment`, which stores the value inline: a screen of nested components went past the 1 MB main thread stack of a device (not the 8 MB of the simulator), and a Debug build crashed on the sign-in screen and on opening a conversation.
   - Both are now held by reference and copied on write. `FlareStrings` is one pointer: its fields live in `FlareStringsTable` and are read and written through dynamic member lookup, so `strings.send`, `strings.send = "Send"` and the initializer are unchanged; code inside an `extension FlareStrings` names a field as `self.send`. `FlareBrandTheme` keeps `name`, `light` and `dark`; the palettes sit behind a reference.
