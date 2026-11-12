@@ -35,7 +35,7 @@ const refreshable = computed(() => Boolean(props.block.refreshOperation) && prop
   <div class="flare-plugin-qr" :class="{ 'is-expired': expired }" :data-qr-expired="expired || undefined">
     <p v-if="block.label" class="flare-plugin-qr__label">{{ block.label }}</p>
     <div class="flare-plugin-qr__code">
-      <FlareQrMatrix :payload="block.value" :label="block.label || block.caption || t('pluginView.qrRefresh')" :aria-hidden="expired || undefined" />
+      <FlareQrMatrix :payload="block.value" :label="block.label || block.caption || t('pluginView.qrCode')" :aria-hidden="expired || undefined" />
       <div v-if="expired" class="flare-plugin-qr__cover" role="status">
         <span>{{ t("pluginView.qrExpired") }}</span>
         <FlareButton

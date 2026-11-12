@@ -379,11 +379,11 @@ public struct PluginTimeBlock: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         label = c.lenient(String.self, .label)
-        guard let at = c.lenient(Double.self, .atMs) else {
+        guard let at = flarePluginInstant(c.lenient(Double.self, .atMs)) else {
             throw DecodingError.keyNotFound(CodingKeys.atMs, .init(codingPath: c.codingPath, debugDescription: "atMs"))
         }
-        atMs = Int64(at)
-        endMs = c.lenient(Double.self, .endMs).map { Int64($0) }
+        atMs = at
+        endMs = flarePluginInstant(c.lenient(Double.self, .endMs))
         countdown = c.lenient(Bool.self, .countdown) ?? false
     }
 }
@@ -433,7 +433,7 @@ public struct PluginRowCell: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         text = c.lenient(String.self, .text) ?? ""
-        timeMs = c.lenient(Double.self, .timeMs).map { Int64($0) }
+        timeMs = flarePluginInstant(c.lenient(Double.self, .timeMs))
         format = c.lenient(PluginValueFormat.self, .format)
     }
 }
@@ -907,7 +907,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         }
         menuActions = (c.lenient([PluginLossy<PluginViewAction>].self, .menuActions) ?? []).compactMap(\.value)
         unavailableReason = c.lenient(PluginUnavailableReason.self, .unavailableReason)
-        minBuild = c.lenient(Double.self, .minBuild).map { Int64($0) }
+        minBuild = flarePluginWhole(c.lenient(Double.self, .minBuild))
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -942,6 +942,33 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
 struct PluginLossy<T: Decodable>: Decodable {
     let value: T?
     init(from decoder: Decoder) throws { value = try? T(from: decoder) }
+}
+
+/// The widest instant every kit can draw (ECMAScript `Date` range, spec rules.instant): later or earlier plugin data is
+/// treated as absent instead of trapping the host.
+let flarePluginInstantLimitMs: Double = 8_640_000_000_000_000
+
+/// A plugin instant (ms since the epoch) as an exact `Int64`, or nil when it is not finite or outside
+/// ±``flarePluginInstantLimitMs``.
+func flarePluginInstant(_ value: Double?) -> Int64? {
+    guard let value, value.isFinite, abs(value) <= flarePluginInstantLimitMs else { return nil }
+    return Int64(exactly: value.rounded(.towardZero))
+}
+
+/// A non-negative whole number (a build) as an exact `Int64`, or nil when it is negative, not finite or too large.
+func flarePluginWhole(_ value: Double?) -> Int64? {
+    guard let value, value.isFinite, value >= 0 else { return nil }
+    return Int64(exactly: value.rounded(.towardZero))
+}
+
+/// The longest single sleep of a ticking view (a day); it wakes, re-reads the clock and sleeps again, so a far-future
+/// instant never overflows the nanosecond count.
+let flarePluginMaxSleepMs: Int64 = 86_400_000
+
+/// Sleeps `ms` milliseconds, at most ``flarePluginMaxSleepMs``.
+func flarePluginSleep(ms: Int64) async {
+    let bounded = UInt64(max(0, min(ms, flarePluginMaxSleepMs)))
+    try? await Task.sleep(nanoseconds: bounded * 1_000_000)
 }
 
 extension KeyedDecodingContainer {

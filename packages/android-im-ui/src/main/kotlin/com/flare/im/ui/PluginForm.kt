@@ -223,9 +223,12 @@ fun PluginForm(
                         disabled = busy || (onMemberSearch == null && members.isEmpty()), onClick = { pickingRevision = membersRevision; picking = input; onMemberSearch?.invoke("") })
                 }
                 PluginInputKind.Money -> FormField(input.label, input.required, input.money?.currency, errorText(input)) {
-                    // A money amount is digits and one point: the decimal keyboard, or digits only at scale 0.
-                    Input(value = form.draft[input.id] as? String ?: "", onValueChange = { set(input.id, it) },
-                        placeholder = input.placeholder, disabled = busy,
+                    // A money amount is digits and one point: the decimal keyboard, or digits only at scale 0. The
+                    // locale's decimal separator is kept as "." (spec moneyInput.typed).
+                    Input(value = form.draft[input.id] as? String ?: "", onValueChange = {
+                        set(input.id, PluginMoneyInputRules.typed(it, java.text.DecimalFormatSymbols.getInstance().decimalSeparator.toString()))
+                    },
+                        placeholder = input.placeholder, disabled = busy || input.money?.currency == null,
                         inputMode = if (input.money?.effectiveScale == 0) FlareInputMode.Numeric else FlareInputMode.Decimal)
                 }
                 PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> FormField(input.label, input.required, null, errorText(input)) {

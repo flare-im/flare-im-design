@@ -56,6 +56,8 @@ import {
   flarePluginMaxItems,
   flarePluginMinRows,
   flarePluginMoneyScale,
+  flarePluginMoneyTyped,
+  flarePluginDecimalSeparator,
 } from "../../shared/contracts/plugin-ui";
 const props = defineProps<{
   input: FlarePluginInput;
@@ -72,6 +74,8 @@ function setCustomValue(value: unknown): void {
   if (!customDisabled.value) props.state.set(props.input.id, value);
 }
 const { t } = useFlareI18nOptional();
+/** The keyboard's decimal separator follows the device language, not the kit's (spec moneyInput.typed). */
+const decimalSeparator = flarePluginDecimalSeparator(typeof navigator === "undefined" ? undefined : navigator.language);
 const removeIcon = flareIcons.close;
 const addIcon = flareIcons.add;
 /** The upload's title: an image or document input names what it takes (the side of a document). */
@@ -233,7 +237,7 @@ function filePolicyHint(input: FlarePluginInput): string {
         inputmode="decimal"
         autocomplete="off"
         :disabled="state.busy || !input.money?.currency"
-        @update:model-value="(v: string) => state.set(input.id, v)"
+        @update:model-value="(v: string) => state.set(input.id, flarePluginMoneyTyped(v, decimalSeparator))"
       />
       <span v-if="input.money?.currency" class="flare-plugin-form__currency" data-money-currency="true">{{ input.money.currency }}</span>
     </div>

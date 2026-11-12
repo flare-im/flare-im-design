@@ -501,7 +501,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 PluginEntryGroup(key, g.string("label") ?: "", g.int("count"), g.int("total"), g.int("percent"))
             }
             PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group, e.badge(),
-                (e["timeMs"] as? Number)?.toLong())
+                pluginInstant(e["timeMs"]))
         }
         PluginEntriesBlock(items, bool("numbered") ?: true, int("total") ?: items.size, bool("more") ?: false, string("emptyText"),
             bool("grouped") ?: false)
@@ -517,7 +517,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
         val total = double("total") ?: 0.0
         PluginProgressBlock(string("label"), value, total, int("percent") ?: if (total > 0) Math.round(value / total * 100).toInt() else 0)
     }
-    "time" -> double("atMs")?.let { PluginTimeBlock(string("label"), it.toLong(), double("endMs")?.toLong(), bool("countdown") ?: false) }
+    "time" -> pluginInstant(get("atMs"))?.let { PluginTimeBlock(string("label"), it, pluginInstant(get("endMs")), bool("countdown") ?: false) }
     "divider" -> PluginDividerBlock
     "note" -> string("text")?.let { PluginNoteBlock(it, PluginTone.fromWire(string("tone"))) }
     "rows" -> PluginRowsBlock(
@@ -533,7 +533,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 key = key,
                 cells = r.list("cells").map { cell ->
                     val c = cell as? Map<*, *>
-                    PluginRowCell(c?.string("text") ?: "", (c?.get("timeMs") as? Number)?.toLong(), pluginValueFormat(c?.get("format")))
+                    PluginRowCell(c?.string("text") ?: "", pluginInstant(c?.get("timeMs")), pluginValueFormat(c?.get("format")))
                 },
                 actions = r.list("actions").mapNotNull { a -> (a as? Map<*, *>)?.let { m -> m.string("id")?.let { PluginRowAction(it, m["input"]) } } },
                 badge = r.badge(),
@@ -569,8 +569,8 @@ private fun Map<*, *>.input(): PluginInput? {
         ))
     }
     if (kind.isUpload && file == null) return null
+    // A money input without rules stays, without a currency: the form shows it and accepts nothing (as every kit).
     val money = pluginMoneyRules(this["money"])
-    if (kind == PluginInputKind.Money && money == null) return null
     val side = this["side"]?.let { PluginDocumentSide.fromWire(it as? String) ?: return null }
     val showWhen = (this["showWhen"] as? Map<*, *>)?.let { condition ->
         val field = condition.string("field")?.takeIf { it.isNotBlank() } ?: return null

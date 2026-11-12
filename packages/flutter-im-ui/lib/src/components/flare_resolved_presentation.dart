@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/plugin_view.dart';
 import '../models/red_packet.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_plugin_blocks_extra.dart';
 import 'flare_plugin_view.dart';
 import 'flare_input.dart';
 import 'flare_button.dart';
@@ -48,6 +49,8 @@ class FlareResolvedPresentation extends StatefulWidget {
     this.resolveUser,
     this.onAction,
     this.onRequest,
+    this.resolveImage,
+    this.onQrRefresh,
   });
   final FlarePluginViewModel view;
   final bool busy;
@@ -69,6 +72,11 @@ class FlareResolvedPresentation extends StatefulWidget {
   final FlarePluginResolveUser? resolveUser;
   final FlarePluginActionCallback? onAction;
   final ValueChanged<String>? onRequest;
+
+  /// The blocks under a pay sheet draw images and refresh QR codes as any
+  /// view does.
+  final FlarePluginImageResolver? resolveImage;
+  final ValueChanged<FlarePluginQrRefresh>? onQrRefresh;
   @override
   State<FlareResolvedPresentation> createState() =>
       _FlareResolvedPresentationState();
@@ -398,6 +406,8 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
         onMembersRetry: widget.onMembersRetry,
         resolveUser: widget.resolveUser,
         onAction: widget.onAction,
+        resolveImage: widget.resolveImage,
+        onQrRefresh: widget.onQrRefresh,
       ),
     );
     return Column(

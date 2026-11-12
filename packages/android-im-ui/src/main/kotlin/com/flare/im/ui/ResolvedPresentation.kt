@@ -22,6 +22,8 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
 ) {
  val p=view.presentation?.get("props").props()
  val renderer=view.presentation?.get("renderer")
@@ -48,6 +50,8 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
       onConfirm={if(passwordValid&&!busy&&!paymentBlocked){paying=false;if(passwordInput!=null){val value=paymentPassword;paymentPassword="";onAction?.invoke(a.id,PluginActionPayload(formValues=mapOf(passwordInput.id to value)))}else request("confirm")}})
    }
   }
-  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, settleToken=settleToken,resolveUser=resolveUser,onAction=onAction)
+  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, settleToken=settleToken,resolveUser=resolveUser,onAction=onAction,
+   // The blocks under a pay sheet draw images and refresh QR codes as any view does.
+   resolveImage=resolveImage,onQrRefresh=onQrRefresh)
  }
 }

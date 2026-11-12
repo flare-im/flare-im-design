@@ -159,7 +159,8 @@
                 "label": "可用余额",
                 "value": "1000.00",
                 "amount": true,
-                "tone": "brand"
+                "tone": "brand",
+                "maskable": true
               },
               {
                 "kind": "stats",
@@ -443,7 +444,8 @@
                 "label": "Available balance",
                 "value": "1000.00",
                 "amount": true,
-                "tone": "brand"
+                "tone": "brand",
+                "maskable": true
               },
               {
                 "kind": "stats",
@@ -996,7 +998,8 @@
                 "label": "可用余额",
                 "value": "1000.00",
                 "amount": true,
-                "tone": "brand"
+                "tone": "brand",
+                "maskable": true
               },
               {
                 "kind": "stats",
@@ -1354,7 +1357,8 @@
                 "label": "Available balance",
                 "value": "1000.00",
                 "amount": true,
-                "tone": "brand"
+                "tone": "brand",
+                "maskable": true
               },
               {
                 "kind": "stats",
@@ -3413,7 +3417,8 @@
                 "key": "transaction-fixture"
               }
             ],
-            "source": "flare.wallet.ui.history"
+            "source": "flare.wallet.ui.history",
+            "groupByDay": true
           }
         ],
         "fields": [],
@@ -3577,7 +3582,8 @@
                 "key": "transaction-fixture"
               }
             ],
-            "source": "flare.wallet.ui.history"
+            "source": "flare.wallet.ui.history",
+            "groupByDay": true
           }
         ],
         "fields": [],

@@ -662,6 +662,8 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         onMembersRetry: widget.onMembersRetry,
         resolveUser: widget.resolveUser,
         onAction: _locked ? null : widget.onAction,
+        resolveImage: widget.resolveImage,
+        onQrRefresh: _locked ? null : widget.onQrRefresh,
         onRequest: (id) {
           final action = widget.view.actions
               .where((a) => a.id == id)

@@ -669,6 +669,20 @@ const MONTHS = [
 ];
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
+/** The widest instant a kit draws, in ms either side of the epoch: the `Date` range (spec blocks2.instants). */
+export const FLARE_PLUGIN_MAX_INSTANT_MS = 8_640_000_000_000_000;
+
+/** `ms` when it is a finite instant within the `Date` range, else undefined: plugin data never throws in a view. */
+export function flarePluginInstant(ms: unknown): number | undefined {
+  return typeof ms === "number" && Number.isFinite(ms) && Math.abs(ms) <= FLARE_PLUGIN_MAX_INSTANT_MS ? ms : undefined;
+}
+
+/** The `datetime` attribute of an instant, or undefined outside the `Date` range. */
+export function flarePluginIsoTime(ms: unknown): string | undefined {
+  const at = flarePluginInstant(ms);
+  return at === undefined ? undefined : new Date(at).toISOString();
+}
+
 interface WallClock {
   year: number;
   month: number;
@@ -1163,6 +1177,23 @@ export function flarePluginUpgradeMode(
 export function flarePluginMoneyScale(input: Pick<FlarePluginInput, "money">): number {
   const scale = input.money?.scale;
   return typeof scale === "number" && Number.isInteger(scale) && scale >= 0 && scale <= 18 ? scale : 2;
+}
+
+/**
+ * What a money field holds once typed (spec moneyInput.typed): the locale's decimal separator, when it is not ".",
+ * becomes "." so a comma-decimal keypad (de-DE, fr-FR) enters fractions; the protocol only reads ".".
+ */
+export function flarePluginMoneyTyped(text: string, decimalSeparator: string): string {
+  return !decimalSeparator || decimalSeparator === "." ? text : text.split(decimalSeparator).join(".");
+}
+
+/** The decimal separator of `locale` (the runtime's when absent; "." when it cannot be read). */
+export function flarePluginDecimalSeparator(locale?: string): string {
+  try {
+    return new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".";
+  } catch {
+    return ".";
+  }
 }
 
 /**

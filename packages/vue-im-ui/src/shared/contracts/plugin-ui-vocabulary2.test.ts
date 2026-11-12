@@ -16,6 +16,9 @@ import {
   flarePluginImageRatio,
   flarePluginIsUpload,
   flarePluginMoneyAmount,
+  flarePluginMoneyTyped,
+  flarePluginInstant,
+  flarePluginIsoTime,
   flarePluginQrExpired,
   flarePluginQrRefreshMs,
   flarePluginStepState,
@@ -30,6 +33,7 @@ import {
   type FlarePluginUpgradeStatus,
 } from "./plugin-ui";
 import { PLUGIN_UI_VOCABULARY } from "./plugin-ui-vocabulary";
+import { chartDomain } from "../../components/data/chart-geometry";
 
 type Units = { days: string; hours: string; minutes: string; seconds: string; countUnits: string };
 type Vectors = {
@@ -48,10 +52,13 @@ type Vectors = {
     donut: Array<{ values: number[]; expect: Array<{ index: number; start: number; sweep: number }> }>;
     flatten: { blocks: FlarePluginBlock[]; expect: Array<{ kind: string; section?: number }> };
     chartHasPoints: Array<{ series: FlarePluginChartSeries[]; expect: boolean }>;
+    instants: Array<{ atMs: number; kept: boolean }>;
+    chartDomain: Array<{ values: number[]; min: number; max: number }>;
   };
   moneyInput: {
     input: FlarePluginInput;
     normalize: Array<{ typed: string; expect: string }>;
+    typed: Array<{ typed: string; separator: string; expect: string }>;
     check: Array<{ input?: FlarePluginInput; draft: string; expect: string | null }>;
     values: Array<{ draft: string; expect: Record<string, string> | null }>;
     drafts: Array<{ value: unknown; expect: string }>;
@@ -104,6 +111,15 @@ describe("plugin vocabulary 2 blocks (spec blocks2)", () => {
   it.each(vectors.blocks2.bannerTone)("draws banner tone $tone as $expect", (c) => expect(flarePluginBannerTone(c.tone)).toBe(c.expect));
   it.each(vectors.blocks2.heroTone)("draws hero tone $tone as $expect", (c) => expect(flarePluginHeroTone(c.tone)).toBe(c.expect));
   it.each(vectors.blocks2.imageRatio)("frames aspect $aspect", (c) => expect(flarePluginImageRatio(c.aspect)).toBeCloseTo(c.expect, 12));
+  it.each(vectors.blocks2.instants)("draws the instant $atMs only within the Date range", (c) => {
+    expect(flarePluginInstant(c.atMs) !== undefined).toBe(c.kept);
+    // Never throws, whatever the instant.
+    expect(flarePluginIsoTime(c.atMs) !== undefined).toBe(c.kept);
+  });
+  it.each(vectors.blocks2.chartDomain)("scales $values from $min to $max", (c) => {
+    const domain = chartDomain(c.values);
+    expect([domain.min, domain.max]).toEqual([c.min, c.max]);
+  });
   it.each(vectors.blocks2.qr)("expires a code at $expiresAtMs seen at $nowMs", (c) => {
     const block = c.expiresAtMs === null ? {} : { expiresAtMs: c.expiresAtMs };
     expect(flarePluginQrExpired(block, c.nowMs)).toBe(c.expired);
@@ -131,6 +147,8 @@ describe("plugin vocabulary 2 blocks (spec blocks2)", () => {
 describe("plugin money, image and document inputs (spec moneyInput)", () => {
   const money = vectors.moneyInput.input;
   it.each(vectors.moneyInput.normalize)("normalizes '$typed'", (c) => expect(flarePluginMoneyAmount(c.typed)).toBe(c.expect));
+  it.each(vectors.moneyInput.typed)("keeps '$typed' typed with '$separator' as a point decimal", (c) =>
+    expect(flarePluginMoneyTyped(c.typed, c.separator)).toBe(c.expect));
   it.each(vectors.moneyInput.check)("checks '$draft'", (c) => expect(flarePluginCheckInput(c.input ?? money, c.draft)).toBe(c.expect));
   it.each(vectors.moneyInput.values)("submits '$draft'", (c) => {
     const values = flarePluginFormValues([money], { [money.id]: c.draft });

@@ -326,7 +326,7 @@ struct PluginImageBlockView: View {
             .task(id: block.source) {
                 guard let resolveImage else { return }
                 failed = false
-                url = await resolveImage(block.source)
+                url = PluginImageAddress.allowed(await resolveImage(block.source))
                 if url == nil { failed = true }
             }
     }
@@ -388,8 +388,9 @@ struct PluginQrBlockView: View {
                 Text(caption).font(.system(size: FlareSizes.fontSizeSm * textScale))
                     .foregroundColor(colors.textTertiary).multilineTextAlignment(.center)
             }
-            if let refresh = block.refresh, let onRefresh {
-                ButtonView(label: strings.pluginViewQrRefresh, variant: expired ? .primary : .secondary, size: .sm,
+            // Refresh is offered once the code has expired, as in every kit.
+            if expired, let refresh = block.refresh, let onRefresh {
+                ButtonView(label: strings.pluginViewQrRefresh, variant: .primary, size: .sm,
                            disabled: disabled, icon: "refresh") { onRefresh(refresh) }
             }
         }
@@ -397,13 +398,15 @@ struct PluginQrBlockView: View {
         .task(id: block) { await tick() }
     }
 
-    /// Redraws when the code expires; a fixed test clock never ticks.
+    /// Redraws when the code expires (waking at least daily, so a far-future expiry never overflows the sleep); a fixed
+    /// test clock never ticks.
     private func tick() async {
         guard clock.nowMs == nil else { return }
-        nowMs = clock.now()
-        guard let delay = block.refreshDelay(nowMs: nowMs) else { return }
-        try? await Task.sleep(nanoseconds: UInt64(delay) * 1_000_000)
-        if !Task.isCancelled { nowMs = clock.now() }
+        while !Task.isCancelled {
+            nowMs = clock.now()
+            guard let delay = block.refreshDelay(nowMs: nowMs) else { return }
+            await flarePluginSleep(ms: delay)
+        }
     }
 }
 

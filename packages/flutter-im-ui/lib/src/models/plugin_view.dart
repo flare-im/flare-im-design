@@ -148,6 +148,18 @@ Map<String, Object?>? _optMap(Object? value) =>
 String? _optString(Object? value) => value is String ? value : null;
 int _int(Object? value) => value is num ? value.toInt() : 0;
 int? _optInt(Object? value) => value is num ? value.toInt() : null;
+
+/// The widest instant a kit draws, in ms either side of the epoch (the
+/// ECMAScript `Date` range, spec blocks2.instants).
+const flarePluginMaxInstantMs = 8640000000000000;
+
+/// An instant in plugin data, or null when it is absent or outside
+/// ±[flarePluginMaxInstantMs]: a view never asks `DateTime` for one it cannot
+/// hold.
+int? flarePluginInstant(Object? value) =>
+    value is num && value.isFinite && value.abs() <= flarePluginMaxInstantMs
+    ? value.toInt()
+    : null;
 bool _bool(Object? value) => value == true;
 List<Map<String, Object?>> _maps(Object? value) => value is List
     ? [
@@ -297,7 +309,7 @@ sealed class FlarePluginBlock {
                       )
                     : null,
                 badge: FlarePluginBadge.fromJson(e['badge']),
-                timeMs: _optInt(e['timeMs']),
+                timeMs: flarePluginInstant(e['timeMs']),
               ),
           ],
           numbered: json['numbered'] != false,
@@ -340,10 +352,13 @@ sealed class FlarePluginBlock {
           percent: _int(json['percent']),
         );
       case 'time':
+        // No instant a kit can draw: the block is left out, as in every kit.
+        final at = flarePluginInstant(json['atMs']);
+        if (at == null) return null;
         return FlarePluginTimeBlock(
           label: _optString(json['label']),
-          atMs: _int(json['atMs']),
-          endMs: _optInt(json['endMs']),
+          atMs: at,
+          endMs: flarePluginInstant(json['endMs']),
           countdown: _bool(json['countdown']),
         );
       case 'divider':
@@ -374,7 +389,7 @@ sealed class FlarePluginBlock {
                   for (final cell in _maps(r['cells']))
                     FlarePluginRowCell(
                       text: _string(cell['text']),
-                      timeMs: _optInt(cell['timeMs']),
+                      timeMs: flarePluginInstant(cell['timeMs']),
                     ),
                 ],
                 actions: [
@@ -466,7 +481,7 @@ sealed class FlarePluginBlock {
           refreshOperation: _optString(json['refreshOperation']),
           valuePath: _string(json['valuePath']),
           expiresAtPath: _optString(json['expiresAtPath']),
-          expiresAtMs: _optInt(json['expiresAtMs']),
+          expiresAtMs: flarePluginInstant(json['expiresAtMs']),
         );
       case 'hero':
         return FlarePluginHeroBlock(
@@ -505,12 +520,14 @@ sealed class FlarePluginBlock {
         return FlarePluginTimelineBlock(
           items: [
             for (final i in _maps(json['items']))
-              FlarePluginTimelineItem(
-                atMs: _int(i['atMs']),
-                title: _string(i['title']),
-                detail: _optString(i['detail']),
-                status: FlarePluginBadge.fromJson(i['status']),
-              ),
+              // An item without an instant a kit can draw is left out.
+              if (flarePluginInstant(i['atMs']) case final at?)
+                FlarePluginTimelineItem(
+                  atMs: at,
+                  title: _string(i['title']),
+                  detail: _optString(i['detail']),
+                  status: FlarePluginBadge.fromJson(i['status']),
+                ),
           ],
           emptyText: _optString(json['emptyText']),
         );
@@ -1601,12 +1618,18 @@ const List<String> _months = [
 String _pad2(int n) => n.toString().padLeft(2, '0');
 
 /// The wall clock of an instant: the device zone, or a fixed offset (tests).
-DateTime _wall(int ms, int? utcOffsetMinutes) => utcOffsetMinutes == null
-    ? DateTime.fromMillisecondsSinceEpoch(ms)
-    : DateTime.fromMillisecondsSinceEpoch(
-        ms + utcOffsetMinutes * 60000,
-        isUtc: true,
-      );
+/// An instant outside what `DateTime` holds is drawn at the nearest one it
+/// does, never thrown on.
+DateTime _wall(int ms, int? utcOffsetMinutes) {
+  const limit = flarePluginMaxInstantMs - 86400000;
+  final at = ms.clamp(-limit, limit);
+  return utcOffsetMinutes == null
+      ? DateTime.fromMillisecondsSinceEpoch(at)
+      : DateTime.fromMillisecondsSinceEpoch(
+          at + utcOffsetMinutes * 60000,
+          isUtc: true,
+        );
+}
 
 /// Renders a date-time pattern: y year, M month, MMM Jan..Dec, d day, HH
 /// hour, mm minute; anything else is literal.
@@ -2548,6 +2571,32 @@ FlarePluginUpgradeMode flarePluginUpgradeMode(
 int flarePluginMoneyScale(FlarePluginInput input) {
   final scale = input.money?.scale;
   return scale != null && scale >= 0 && scale <= 18 ? scale : 2;
+}
+
+/// What a money field holds once typed (spec moneyInput.typed): the locale's
+/// decimal separator, when it is not ".", becomes "." so a comma-decimal
+/// keypad (de_DE, fr_FR) enters fractions; the protocol only reads ".".
+String flarePluginMoneyTyped(String text, String decimalSeparator) =>
+    decimalSeparator.isEmpty || decimalSeparator == '.'
+    ? text
+    : text.replaceAll(decimalSeparator, '.');
+
+/// Languages that write a decimal comma (CLDR), Switzerland aside.
+const _decimalCommaLanguages = {
+  'af', 'az', 'be', 'bg', 'bs', 'ca', 'cs', 'da', 'de', 'el', 'es', 'et', //
+  'eu', 'fi', 'fo', 'fr', 'gl', 'hr', 'hu', 'hy', 'id', 'is', 'it', 'ka', //
+  'kk', 'ky', 'lt', 'lv', 'mk', 'mn', 'nb', 'nl', 'nn', 'no', 'pl', 'pt', //
+  'ro', 'ru', 'sk', 'sl', 'sq', 'sr', 'sv', 'tr', 'uk', 'uz', 'vi',
+};
+
+/// The decimal separator of a locale ("." when unknown): what a money field
+/// maps to "." ([flarePluginMoneyTyped]).
+String flarePluginDecimalSeparator(
+  String? languageCode, [
+  String? countryCode,
+]) {
+  if (languageCode == null || countryCode == 'CH') return '.';
+  return _decimalCommaLanguages.contains(languageCode) ? ',' : '.';
 }
 
 /// The amount typed, as the protocol writes decimals: spaces gone, leading

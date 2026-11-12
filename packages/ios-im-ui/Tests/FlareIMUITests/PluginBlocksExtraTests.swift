@@ -130,6 +130,47 @@ final class PluginBlocksExtraTests: XCTestCase {
                        (flatten["expect"]?.arrayValue ?? []).compactMap { $0["kind"]?.stringValue })
     }
 
+    func testInstantsOutsideTheDateRangeAreLeftOutAndChartsScaleToRoundSteps() throws {
+        let table = try XCTUnwrap(try PluginVectors.table()["blocks2"])
+        for item in table["instants"]?.arrayValue ?? [] {
+            let at = try XCTUnwrap(item["atMs"])
+            let view = try PluginVectors.decode(PluginViewModel.self, .object([
+                "available": .bool(true), "title": .string("x"),
+                "blocks": .array([
+                    .object(["kind": .string("timeline"), "items": .array([.object(["atMs": at, "title": .string("x")])])]),
+                    .object(["kind": .string("time"), "atMs": at]),
+                ]),
+            ]))
+            let kept = item["kept"]?.boolValue == true
+            guard case .timeline(let timeline) = view.blocks.first else { return XCTFail("timeline") }
+            XCTAssertEqual(timeline.items.count, kept ? 1 : 0, "\(item)")
+            XCTAssertEqual(view.blocks.count, kept ? 2 : 1, "\(item)")
+        }
+        // A far-future expiry never overflows the redraw sleep.
+        let far = try PluginVectors.decode(PluginQrBlock.self, .object([
+            "value": .string("x"), "expiresAtMs": .number(9e15),
+        ]))
+        XCTAssertNil(far.expiresAtMs)
+        XCTAssertEqual(PluginQrBlock(value: "x", expiresAtMs: .max).refreshDelay(nowMs: -1), .max)
+        for item in table["chartDomain"]?.arrayValue ?? [] {
+            let points = (item["values"]?.arrayValue ?? []).enumerated().map {
+                PluginChartPoint(label: "\($0.offset)", value: $0.element.numberValue ?? 0, text: "")
+            }
+            let range = PluginChartRules.range([PluginChartSeries(points: points)])
+            XCTAssertEqual(range.min, item["min"]?.numberValue ?? .nan, accuracy: 1e-12, "\(item)")
+            XCTAssertEqual(range.max, item["max"]?.numberValue ?? .nan, accuracy: 1e-12, "\(item)")
+        }
+    }
+
+    func testAResolvedImageIsDrawnOnlyFromAFetchedOrLocalAddress() {
+        for url in ["https://cdn.example/a.png", "file:///tmp/a.png", "data:image/png;base64,AA"] {
+            XCTAssertNotNil(PluginImageAddress.allowed(URL(string: url)), url)
+        }
+        for url in ["http://cdn.example/a.png", "javascript:alert(1)", "data:text/html,x"] {
+            XCTAssertNil(PluginImageAddress.allowed(URL(string: url)), url)
+        }
+    }
+
     func testSectionChildrenNameTheirUsersAndKeepTheirOwnChoicesState() throws {
         let view = try PluginVectors.decode(PluginViewModel.self, try json(#"""
         {"available":true,"title":"x","blocks":[{"kind":"section","blocks":[
@@ -148,6 +189,11 @@ final class PluginBlocksExtraTests: XCTestCase {
         XCTAssertEqual(input.money, PluginMoneyRules(currency: "CNY", scale: 2, min: "0.01", max: "200"))
         for item in table["normalize"]?.arrayValue ?? [] {
             XCTAssertEqual(PluginMoneyRulesCheck.amount(item["typed"]?.stringValue ?? ""), item["expect"]?.stringValue)
+        }
+        for item in table["typed"]?.arrayValue ?? [] {
+            XCTAssertEqual(PluginMoneyRulesCheck.typed(item["typed"]?.stringValue ?? "",
+                                                       decimalSeparator: item["separator"]?.stringValue ?? ""),
+                           item["expect"]?.stringValue, "\(item)")
         }
         for item in table["check"]?.arrayValue ?? [] {
             let subject = item["input"].map { try? PluginVectors.decode(PluginInput.self, $0) } ?? input

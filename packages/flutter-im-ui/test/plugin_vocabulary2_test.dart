@@ -147,6 +147,55 @@ void main() {
         expect(flarePluginChartHasPoints(block.series), c['expect']);
       }
     });
+    test('instants outside the Date range are left out', () {
+      for (final c in list(blocks['instants'])) {
+        final timeline =
+            FlarePluginBlock.fromJson({
+                  'kind': 'timeline',
+                  'items': [
+                    {'atMs': c['atMs'], 'title': 'x'},
+                  ],
+                })
+                as FlarePluginTimelineBlock;
+        expect(
+          timeline.items.length,
+          c['kept'] == true ? 1 : 0,
+          reason: '${c['atMs']}',
+        );
+        final time = FlarePluginBlock.fromJson({
+          'kind': 'time',
+          'atMs': c['atMs'],
+        });
+        expect(time != null, c['kept'], reason: '${c['atMs']}');
+      }
+      // A timeline item without an instant is left out, not drawn in 1970.
+      final missing =
+          FlarePluginBlock.fromJson({
+                'kind': 'timeline',
+                'items': [
+                  {'title': 'x'},
+                ],
+              })
+              as FlarePluginTimelineBlock;
+      expect(missing.items, isEmpty);
+      // Drawing never throws, whatever the instant.
+      expect(
+        flarePluginDateTime(flarePluginMaxInstantMs, 0, zh).isNotEmpty,
+        isTrue,
+      );
+    });
+    test('chart domain', () {
+      for (final c in list(blocks['chartDomain'])) {
+        final domain = flarePluginChartDomain([
+          for (final v in c['values'] as List) (v as num).toDouble(),
+        ]);
+        expect(
+          [domain.min, domain.max],
+          [(c['min'] as num).toDouble(), (c['max'] as num).toDouble()],
+          reason: '${c['values']}',
+        );
+      }
+    });
   });
 
   group('moneyInput', () {
@@ -158,6 +207,18 @@ void main() {
       for (final c in list(money['normalize'])) {
         expect(flarePluginMoneyAmount(c['typed'] as String), c['expect']);
       }
+    });
+    test('typed with the locale decimal separator', () {
+      for (final c in list(money['typed'])) {
+        expect(
+          flarePluginMoneyTyped(c['typed'] as String, c['separator'] as String),
+          c['expect'],
+        );
+      }
+      expect(flarePluginDecimalSeparator('de', 'DE'), ',');
+      expect(flarePluginDecimalSeparator('de', 'CH'), '.');
+      expect(flarePluginDecimalSeparator('zh', 'CN'), '.');
+      expect(flarePluginDecimalSeparator(null), '.');
     });
     test('check', () {
       for (final c in list(money['check'])) {

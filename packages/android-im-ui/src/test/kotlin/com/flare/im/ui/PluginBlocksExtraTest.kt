@@ -124,6 +124,21 @@ class PluginBlocksExtraTest {
                 "blocks" to listOf(mapOf("kind" to "chart", "chartKind" to "bar", "series" to item["series"]))))
             assertEquals(item["expect"], (view.blocks.single() as PluginChartBlock).hasPoints)
         }
+        for (item in blocks2.list("instants")) {
+            val view = PluginViewModel.fromMap(mapOf("available" to true, "title" to "x", "blocks" to listOf(
+                mapOf("kind" to "timeline", "items" to listOf(mapOf("atMs" to item["atMs"], "title" to "x"))),
+                mapOf("kind" to "time", "atMs" to item["atMs"]),
+            )))
+            val kept = item["kept"] == true
+            assertEquals(if (kept) 1 else 0, (view.blocks.first() as PluginTimelineBlock).items.size, "$item")
+            assertEquals(kept, view.blocks.any { it is PluginTimeBlock }, "$item")
+        }
+        for (item in blocks2.list("chartDomain")) {
+            val points = (item["values"] as List<*>).mapIndexed { i, v -> PluginChartPoint("$i", (v as Number).toDouble(), "") }
+            val (low, high) = PluginChartRules.range(listOf(PluginChartSeries(null, points)))
+            assertEquals((item["min"] as Number).toDouble(), low, 1e-12, "$item")
+            assertEquals((item["max"] as Number).toDouble(), high, 1e-12, "$item")
+        }
         val flatten = blocks2.map("flatten")
         val view = PluginViewModel.fromMap(mapOf("available" to true, "title" to "x", "blocks" to flatten["blocks"]))
         assertEquals(flatten.list("expect").map { it["kind"] }, pluginFlatBlocks(view.blocks).map { it.kind })
@@ -175,7 +190,9 @@ class PluginBlocksExtraTest {
               {"id":"cash","kind":"money","label":"No rules"},
               {"id":"odd","kind":"document","label":"Odd","side":"left",$file}]}""",
         )
-        assertEquals(listOf("cover", "front"), view.inputs.map { it.id }, "an upload needs its policy, money its rules, a document a known side")
+        assertEquals(listOf("cover", "front", "cash"), view.inputs.map { it.id }, "an upload needs its policy, a document a known side")
+        // A money input without rules stays without a currency, as in every kit: it accepts nothing.
+        assertNull(view.inputs.last().money)
         val (image, document) = view.inputs
         assertTrue(image.kind.isUpload)
         assertEquals(PluginDocumentSide.Front, document.side)
@@ -224,6 +241,23 @@ class PluginBlocksExtraTest {
         }
         for (renderer in listOf("redPacket.composer", "redPacket.detail", "account", "flare.qr")) {
             assertFalse(hasResolvedPresentation(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to renderer))), renderer)
+        }
+    }
+
+    @Test
+    fun aMoneyFieldKeepsTheLocaleDecimalSeparatorAsAPoint() {
+        for (item in table().map("moneyInput").list("typed")) {
+            assertEquals(item["expect"], PluginMoneyInputRules.typed(item["typed"] as String, item["separator"] as String), "$item")
+        }
+    }
+
+    @Test
+    fun aResolvedImageIsDrawnOnlyFromAFetchedOrLocalAddress() {
+        for (url in listOf("https://cdn.example/a.png", "file:///data/a.png", "content://media/1", "/data/a.png", "data:image/png;base64,AA")) {
+            assertEquals(url, pluginImageAddress(url), url)
+        }
+        for (url in listOf("http://cdn.example/a.png", "javascript:alert(1)", "//cdn.example/a.png", "data:text/html,x", "intent://x")) {
+            assertNull(pluginImageAddress(url), url)
         }
     }
 }

@@ -60,7 +60,11 @@ public enum PluginValueFormat: Codable, Equatable, Sendable {
         case "person": self = .person(userId: try need(String.self, .userId))
         case "reference":
             self = .reference(id: try need(String.self, .id), labelled: c.lenient(Bool.self, .labelled) ?? false)
-        case "time": self = .time(atMs: Int64(try need(Double.self, .atMs)))
+        case "time":
+            guard let at = flarePluginInstant(try need(Double.self, .atMs)) else {
+                throw DecodingError.dataCorruptedError(forKey: .atMs, in: c, debugDescription: "atMs out of range")
+            }
+            self = .time(atMs: at)
         case "percent":
             self = .percent(percent: try need(Double.self, .percent), decimals: c.lenient(Int.self, .decimals) ?? 0)
         case "duration": self = .duration(ms: try need(Double.self, .ms))
@@ -138,7 +142,8 @@ enum PluginFormatRules {
     /// A duration in the viewer's words (spec formats2.duration): whole seconds; under a minute the seconds alone, else
     /// the largest unit that is not zero and, when it is not zero, the next one ("2 小时 5 分钟", "1 天").
     static func durationText(_ ms: Double, _ strings: FlareStrings) -> String {
-        let total = Int64((max(0, ms) / 1000).rounded(.down))
+        let seconds = ms.isFinite ? (max(0, ms) / 1000).rounded(.down) : 0
+        let total = Int64(exactly: min(seconds, 9_000_000_000_000_000)) ?? 0
         func unit(_ template: String, _ n: Int64) -> String { template.replacingOccurrences(of: "{n}", with: String(n)) }
         if total < 60 { return unit(strings.pluginFormatSeconds, total) }
         let parts: [(Int64, String)] = [
@@ -358,7 +363,7 @@ public struct PluginQrBlock: Codable, Equatable, Sendable {
         refreshOperation = c.lenient(String.self, .refreshOperation)
         valuePath = c.lenient(String.self, .valuePath) ?? ""
         expiresAtPath = c.lenient(String.self, .expiresAtPath)
-        expiresAtMs = c.lenient(Double.self, .expiresAtMs).map { Int64($0) }
+        expiresAtMs = flarePluginInstant(c.lenient(Double.self, .expiresAtMs))
     }
 
     /// The code names an expiry and that instant has come (spec blocks2.qr).
@@ -367,7 +372,8 @@ public struct PluginQrBlock: Codable, Equatable, Sendable {
     /// How long until the code expires, to draw it again then; nil without an expiry or once expired.
     public func refreshDelay(nowMs: Int64) -> Int64? {
         guard let expiresAtMs, expiresAtMs > nowMs else { return nil }
-        return expiresAtMs - nowMs
+        let (delay, overflow) = expiresAtMs.subtractingReportingOverflow(nowMs)
+        return overflow ? .max : delay
     }
 
     /// What the refresh key hands the host, nil when the block has no refresh.
@@ -504,10 +510,10 @@ public struct PluginTimelineItem: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey { case atMs, title, detail, status }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        guard let at = c.lenient(Double.self, .atMs) else {
+        guard let at = flarePluginInstant(c.lenient(Double.self, .atMs)) else {
             throw DecodingError.keyNotFound(CodingKeys.atMs, .init(codingPath: c.codingPath, debugDescription: "atMs"))
         }
-        atMs = Int64(at)
+        atMs = at
         title = c.lenient(String.self, .title) ?? ""
         detail = c.lenient(String.self, .detail)
         status = c.lenient(PluginBadge.self, .status).flatMap { $0.text.isEmpty ? nil : $0 }
@@ -551,13 +557,25 @@ enum PluginChartRules {
         }
     }
 
-    /// The value range a bar or line chart scales to: from 0 (or the smallest value when it is negative) to the largest
-    /// value (or 0 when every value is negative); a flat range is widened to 1.
+    /// The value range a bar or line chart scales to (spec blocks2.chartDomain, the kits' chart geometry): from 0, or
+    /// below it to the next round step past the smallest negative value, up to the next round step (1, 2, 2.5, 5 or 10
+    /// times a power of ten) past the largest value; nothing but zeros scales to 0...1.
     static func range(_ series: [PluginChartSeries]) -> (min: Double, max: Double) {
         let values = series.flatMap { $0.points.map(\.value) }.filter(\.isFinite)
-        let low = min(0, values.min() ?? 0)
-        let high = max(0, values.max() ?? 0)
-        return high > low ? (low, high) : (low, low + 1)
+        let high = niceCeil(max(0, values.max() ?? 0))
+        let lowest = min(0, values.min() ?? 0)
+        let low = lowest < 0 ? -niceCeil(-lowest) : 0
+        return high > low ? (low, high) : (0, 1)
+    }
+
+    /// The round step at or above `value` (0 for none).
+    static func niceCeil(_ value: Double) -> Double {
+        guard value > 0, value.isFinite else { return 0 }
+        let magnitude = pow(10, log10(value).rounded(.down))
+        // Rounded so floating-point noise never moves a value across a step.
+        let fraction = ((value / magnitude) * 1e9).rounded() / 1e9
+        let step: Double = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10
+        return step * magnitude
     }
 
     /// The labels along the x axis: the longest series' point labels.
@@ -617,7 +635,27 @@ public struct PluginMoneyValue: Codable, Equatable, Sendable {
 /// Which side of an identity document a document input captures.
 public enum PluginDocumentSide: String, Codable, Sendable, CaseIterable { case front, back, holding }
 
+enum PluginImageAddress {
+    /// The address of a resolved image the kit draws: what the host fetched or keeps on the device (https:, file:,
+    /// data:image), never a page, a script or plain http; anything else reads as unavailable.
+    static func allowed(_ url: URL?) -> URL? {
+        guard let url, let scheme = url.scheme?.lowercased() else { return nil }
+        switch scheme {
+        case "https", "file": return url
+        case "data": return url.absoluteString.lowercased().hasPrefix("data:image/") ? url : nil
+        default: return nil
+        }
+    }
+}
+
 enum PluginMoneyRulesCheck {
+    /// What a money field holds once typed (spec moneyInput.typed): the locale's decimal separator, when it is not
+    /// ".", becomes "." so a comma-decimal keypad (de_DE, fr_FR) enters fractions; the protocol only reads ".".
+    static func typed(_ text: String, decimalSeparator: String) -> String {
+        guard !decimalSeparator.isEmpty, decimalSeparator != "." else { return text }
+        return text.replacingOccurrences(of: decimalSeparator, with: ".")
+    }
+
     /// The amount typed, as the protocol writes decimals (spec moneyInput.normalize): spaces gone, leading zeros of the
     /// whole part dropped (one kept), a leading "." gets a "0", a trailing "." goes. Anything else stays for the check.
     static func amount(_ typed: String) -> String {
@@ -703,7 +741,7 @@ public struct PluginUpgradeStatus: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         available = c.lenient(Bool.self, .available) ?? false
-        build = c.lenient(Double.self, .build).map { Int64($0) }
+        build = flarePluginWhole(c.lenient(Double.self, .build))
     }
 }
 

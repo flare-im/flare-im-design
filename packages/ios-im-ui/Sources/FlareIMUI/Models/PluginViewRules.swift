@@ -298,7 +298,9 @@ enum PluginViewFormat {
     /// How long until the countdown's text changes: the next whole second (under an hour) or minute, so the text
     /// turns over on the boundary; nil once it has passed.
     static func countdownDelay(atMs: Int64, nowMs: Int64) -> Int64? {
-        let r = atMs - nowMs
+        let (r, overflow) = atMs.subtractingReportingOverflow(nowMs)
+        guard !overflow || atMs > nowMs else { return nil }
+        if overflow { return 60_000 }
         guard r > 0 else { return nil }
         let step: Int64 = r < 3_600_000 ? 1000 : 60_000
         return r % step + 1

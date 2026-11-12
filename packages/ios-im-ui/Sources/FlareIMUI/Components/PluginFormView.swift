@@ -195,7 +195,7 @@ public struct PluginFormView: View {
         case .money:
             FormFieldView(label: input.label, required: input.required, hint: input.money?.currency,
                           error: errorText(input)) {
-                InputView(text: text(input), placeholder: input.placeholder ?? "", disabled: busy)
+                InputView(text: money(input), placeholder: input.placeholder ?? "", disabled: busy)
                     .accessibilityLabel([input.label, input.money?.currency].compactMap { $0 }.joined(separator: ", "))
                     .accessibilityIdentifier("plugin.form.\(input.id)")
                     #if os(iOS)
@@ -231,6 +231,13 @@ public struct PluginFormView: View {
 
     private func text(_ input: PluginInput) -> Binding<String> {
         Binding(get: { form.draft[input.id]?.stringValue ?? "" }, set: { set(input.id, .string($0)) })
+    }
+
+    /// A money field: the locale's decimal separator is kept as "." (spec moneyInput.typed).
+    private func money(_ input: PluginInput) -> Binding<String> {
+        Binding(get: { form.draft[input.id]?.stringValue ?? "" }, set: {
+            set(input.id, .string(PluginMoneyRulesCheck.typed($0, decimalSeparator: Locale.current.decimalSeparator ?? ".")))
+        })
     }
 
     private func number(_ input: PluginInput) -> Binding<String> {

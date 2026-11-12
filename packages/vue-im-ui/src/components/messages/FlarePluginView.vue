@@ -266,7 +266,11 @@ const KNOWN = new Set<string>([
   "banner",
   "timeline",
 ]);
-const known = (block: FlarePluginBlock) => KNOWN.has((block as { kind: string }).kind);
+const CHART_KINDS = new Set(["bar", "line", "donut"]);
+/** A known kind; a chart of a kind the kit does not draw is skipped too, as in every kit. */
+const known = (block: FlarePluginBlock) =>
+  KNOWN.has((block as { kind: string }).kind)
+  && (block.kind !== "chart" || CHART_KINDS.has((block as { chartKind?: string }).chartKind ?? ""));
 /** Blocks the kit knows, in order; a kind from a newer protocol is skipped (in sections too). */
 const blocks = computed<FlarePluginBlock[]>(() =>
   (props.view.blocks ?? []).filter(known).map((block) =>
@@ -990,6 +994,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
       :form-errors="formErrors"
       :settle-token="settleToken"
       :resolve-user="resolveUser"
+      :resolve-image="resolveImage"
+      :onQrRefresh="canRefreshQr() ? (request: FlarePluginQrRefresh) => emit('qrRefresh', request) : undefined"
       :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry"
       @request="presentationRequest"
       @action="send"

@@ -9,11 +9,11 @@ import FlareRedPacketPayConfirm from "../FlareRedPacketPayConfirm.vue";
 import FlarePluginView from "../FlarePluginView.vue";
 import FlareInput from "../../general/FlareInput.vue";
 import FlareButton from "../../general/FlareButton.vue";
-import type { FlarePluginFileState, FlarePluginFileAction, FlarePluginViewModel, FlarePluginActionPayload, FlarePluginFormError, FlarePluginResolveUser, FlarePluginMember } from "../../../shared/contracts/plugin-ui";
+import type { FlarePluginFileState, FlarePluginFileAction, FlarePluginViewModel, FlarePluginActionPayload, FlarePluginFormError, FlarePluginResolveUser, FlarePluginMember, FlarePluginImageSource, FlarePluginQrRefresh } from "../../../shared/contracts/plugin-ui";
 import { flareRedPacketCardState, type FlareRedPacketKind, type FlareRedPacketStatus } from "../../../shared/contracts/red-packet";
-const props=defineProps<{view:FlarePluginViewModel;busy?:boolean;error?:string;formErrors?:ReadonlyArray<FlarePluginFormError>;settleToken?:number;resolveUser?:FlarePluginResolveUser;members?:FlarePluginMember[];membersLoading?:boolean;membersRevision?:number;membersError?:string;onMemberSearch?:(query:string)=>void;onMembersRetry?:()=>void;fileStates?:Record<string,FlarePluginFileState>}>();
+const props=defineProps<{view:FlarePluginViewModel;busy?:boolean;error?:string;formErrors?:ReadonlyArray<FlarePluginFormError>;settleToken?:number;resolveUser?:FlarePluginResolveUser;members?:FlarePluginMember[];membersLoading?:boolean;membersRevision?:number;membersError?:string;onMemberSearch?:(query:string)=>void;onMembersRetry?:()=>void;fileStates?:Record<string,FlarePluginFileState>;resolveImage?:(source:FlarePluginImageSource)=>string|undefined|Promise<string|undefined>}>();
 const instance = getCurrentInstance();
-const emit=defineEmits<{action:[id:string,payload:FlarePluginActionPayload];request:[id:string];fileAction:[event:FlarePluginFileAction]}>();
+const emit=defineEmits<{action:[id:string,payload:FlarePluginActionPayload];request:[id:string];fileAction:[event:FlarePluginFileAction];qrRefresh:[request:FlarePluginQrRefresh]}>();
 const p=computed(()=>props.view.presentation!.props);
 const renderer=computed(()=>props.view.presentation!.renderer);
 const bound=(key:string)=>{const id=props.view.presentation?.actions[key] ?? (key==='confirm'?props.view.presentation?.actions.authorize:undefined);return props.view.actions.find(a=>a.id===id);};
@@ -41,6 +41,8 @@ function confirmPay(){
 }
 function cancelPay(){paymentPassword.value='';payOpen.value=false;}
 function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
+// The blocks under a pay sheet draw images and refresh QR codes as any view does (the host's resolver and listener).
+function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh", request); }
 </script>
 <template>
   <FlareRedPacketCard v-if="renderer==='redPacket.card'" :blessing="text(p.blessing)" :brand-name="text(p.brandName)" :kind="(text(p.kind)||'normal') as FlareRedPacketKind" :state="cardState" :busy="busy" :disabled="!bound('open')" @open="requestOpen">
@@ -52,5 +54,5 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
       <template v-if="passwordInput" #credential><FlareInput v-model="paymentPassword" :placeholder="passwordInput.placeholder ?? passwordInput.label" :aria-label="passwordInput.label" :secure="true" inputmode="numeric" autocomplete="off" :max-length="6" :disabled="busy" @submit="confirmPay" /></template>
     </FlareRedPacketPayConfirm>
   </template>
-  <FlarePluginView v-if="renderer!=='redPacket.card'" :view="remainder" :file-states="fileStates" :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined" embedded :busy="busy" :form-errors="[...(formErrors??[])]" :settle-token="settleToken" :resolve-user="resolveUser" :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry" @action="(id,payload)=>emit('action',id,payload)" />
+  <FlarePluginView v-if="renderer!=='redPacket.card'" :view="remainder" :file-states="fileStates" :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined" embedded :busy="busy" :form-errors="[...(formErrors??[])]" :settle-token="settleToken" :resolve-user="resolveUser" :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry" :resolve-image="resolveImage" :onQrRefresh="instance?.vnode.props?.onQrRefresh ? forwardQrRefresh : undefined" @action="(id,payload)=>emit('action',id,payload)" />
 </template>

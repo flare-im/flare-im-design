@@ -692,8 +692,11 @@ class _FlarePluginQrViewState extends State<FlarePluginQrView> {
       flarePluginNowMs(),
     );
     if (wait != null) {
-      _timer = Timer(Duration(milliseconds: wait), () {
-        if (mounted) setState(() {});
+      // Wake at least daily: a far-future expiry must not overflow the timer.
+      _timer = Timer(Duration(milliseconds: wait.clamp(0, 86400000)), () {
+        if (!mounted) return;
+        setState(() {});
+        _schedule();
       });
     }
   }

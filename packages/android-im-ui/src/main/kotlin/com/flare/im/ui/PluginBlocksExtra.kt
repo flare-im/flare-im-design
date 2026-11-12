@@ -97,6 +97,13 @@ sealed interface PluginValueFormat {
 }
 
 private fun Map<*, *>.str(key: String): String? = this[key] as? String
+/** The widest instant a kit draws, in ms either side of the epoch (the ECMAScript `Date` range, spec blocks2.instants). */
+const val PLUGIN_MAX_INSTANT_MS: Long = 8_640_000_000_000_000L
+
+/** An instant in plugin data, or null when it is not a number within ±[PLUGIN_MAX_INSTANT_MS]: left out, never saturated. */
+internal fun pluginInstant(value: Any?): Long? =
+    (value as? Number)?.toDouble()?.takeIf { it.isFinite() && kotlin.math.abs(it) <= PLUGIN_MAX_INSTANT_MS }?.toLong()
+
 private fun Map<*, *>.num(key: String): Double? = (this[key] as? Number)?.toDouble()?.takeIf { it.isFinite() }
 private fun Map<*, *>.flag(key: String): Boolean? = this[key] as? Boolean
 private fun Map<*, *>.items(key: String): List<*> = this[key] as? List<*> ?: emptyList<Any?>()
@@ -109,7 +116,7 @@ internal fun pluginValueFormat(raw: Any?): PluginValueFormat? {
         "enum" -> map.str("raw")?.let { PluginValueFormat.Enumeration(it) }
         "person" -> map.str("userId")?.let { PluginValueFormat.Person(it) }
         "reference" -> map.str("id")?.let { PluginValueFormat.Reference(it, map.flag("labelled") ?: false) }
-        "time" -> map.num("atMs")?.let { PluginValueFormat.Time(it.toLong()) }
+        "time" -> pluginInstant(map["atMs"])?.let { PluginValueFormat.Time(it) }
         "percent" -> map.num("percent")?.let { PluginValueFormat.Percent(it, map.num("decimals")?.toInt() ?: 0) }
         "duration" -> map.num("ms")?.let { PluginValueFormat.Duration(it) }
         "count" -> map.num("count")?.let { PluginValueFormat.Count(it) }
@@ -385,7 +392,7 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
     "image" -> PluginImageBlock(map.str("asset"), map.str("fileId"), PluginImageAspect.fromWire(map.str("aspect")), map.str("alt") ?: "")
     "qr" -> map.str("value")?.let {
         PluginQrBlock(it, map.str("label"), map.str("caption"), map.str("refreshOperation"), map.str("valuePath") ?: "",
-            map.str("expiresAtPath"), map.num("expiresAtMs")?.toLong())
+            map.str("expiresAtPath"), pluginInstant(map["expiresAtMs"]))
     }
     "hero" -> PluginHeroBlock(
         label = map.str("label"),
@@ -407,8 +414,8 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
     "timeline" -> PluginTimelineBlock(
         items = map.items("items").mapNotNull { raw ->
             val item = raw as? Map<*, *> ?: return@mapNotNull null
-            val at = item.num("atMs") ?: return@mapNotNull null
-            PluginTimelineItem(at.toLong(), item.str("title") ?: "", item.str("detail"), pluginBadgeValue(item["status"]))
+            val at = pluginInstant(item["atMs"]) ?: return@mapNotNull null
+            PluginTimelineItem(at, item.str("title") ?: "", item.str("detail"), pluginBadgeValue(item["status"]))
         },
         emptyText = map.str("emptyText"),
     )
@@ -441,14 +448,32 @@ internal object PluginChartRules {
     }
 
     /**
-     * The value range a bar or line chart scales to: from 0 (or the smallest value when it is negative) to the largest
-     * value (or 0 when every value is negative); a flat range is widened to 1.
+     * The value range a bar or line chart scales to (spec blocks2.chartDomain, the kits' chart geometry): from 0, or
+     * below it to the next round step past the smallest negative value, up to the next round step (1, 2, 2.5, 5 or 10
+     * times a power of ten) past the largest value; nothing but zeros scales to 0..1.
      */
     fun range(series: List<PluginChartSeries>): Pair<Double, Double> {
         val values = series.flatMap { s -> s.points.map { it.value } }.filter { it.isFinite() }
-        val low = min(0.0, values.minOrNull() ?: 0.0)
-        val high = max(0.0, values.maxOrNull() ?: 0.0)
-        return if (high > low) low to high else low to low + 1
+        val high = niceCeil(max(0.0, values.maxOrNull() ?: 0.0))
+        val lowest = min(0.0, values.minOrNull() ?: 0.0)
+        val low = if (lowest < 0) -niceCeil(-lowest) else 0.0
+        return if (high > low) low to high else 0.0 to 1.0
+    }
+
+    /** The round step at or above [value] (0 for none). */
+    fun niceCeil(value: Double): Double {
+        if (!(value > 0) || !value.isFinite()) return 0.0
+        val magnitude = Math.pow(10.0, kotlin.math.floor(kotlin.math.log10(value)))
+        // Rounded so floating-point noise never moves a value across a step.
+        val fraction = Math.round(value / magnitude * 1e9) / 1e9
+        val step = when {
+            fraction <= 1 -> 1.0
+            fraction <= 2 -> 2.0
+            fraction <= 2.5 -> 2.5
+            fraction <= 5 -> 5.0
+            else -> 10.0
+        }
+        return step * magnitude
     }
 
     /** The labels along the x axis: the longest series' point labels. */
@@ -484,6 +509,13 @@ internal fun pluginMoneyRules(raw: Any?): PluginMoneyRules? {
 }
 
 internal object PluginMoneyInputRules {
+    /**
+     * What a money field holds once typed (spec moneyInput.typed): the locale's decimal separator, when it is not ".",
+     * becomes "." so a comma-decimal keyboard (de_DE, fr_FR) enters fractions; the protocol only reads ".".
+     */
+    fun typed(text: String, decimalSeparator: String): String =
+        if (decimalSeparator.isEmpty() || decimalSeparator == ".") text else text.replace(decimalSeparator, ".")
+
     /**
      * The amount typed, as the protocol writes decimals (spec moneyInput.normalize): spaces gone, leading zeros of the
      * whole part dropped (one kept), a leading "." gets a "0", a trailing "." goes. Anything else stays for the check.
@@ -774,6 +806,17 @@ internal fun PluginChartBlockView(block: PluginChartBlock) {
  * A picture in its fixed frame, asked of the host ([resolveImage]); while it loads or when it cannot be shown the frame
  * keeps its ratio and says so. [PluginImageBlock.alt] is what a screen reader says.
  */
+/**
+ * The address of a resolved image the kit draws: what the host fetched or keeps on the device (https:, file:, content:,
+ * an absolute path, data:image), never a page, a script or plain http; anything else reads as unavailable.
+ */
+internal fun pluginImageAddress(url: String): String? {
+    val lower = url.trim().lowercase()
+    val allowed = listOf("https://", "file://", "content://", "data:image/").any { lower.startsWith(it) } ||
+        (lower.startsWith("/") && !lower.startsWith("//"))
+    return url.trim().takeIf { allowed }
+}
+
 @Composable
 internal fun PluginImageBlockView(block: PluginImageBlock, resolveImage: (suspend (PluginImageSource) -> String?)?) {
     val colors = flareColors()
@@ -782,7 +825,7 @@ internal fun PluginImageBlockView(block: PluginImageBlock, resolveImage: (suspen
     var failed by remember(block.source) { mutableStateOf(false) }
     LaunchedEffect(block.source, resolveImage) {
         val resolve = resolveImage ?: return@LaunchedEffect
-        url = runCatching { resolve(block.source) }.getOrNull()
+        url = runCatching { resolve(block.source) }.getOrNull()?.let(::pluginImageAddress)
         failed = url == null
     }
     val shape = RoundedCornerShape(FlareSizes.radiusMd)
@@ -814,8 +857,8 @@ internal fun PluginImageBlockView(block: PluginImageBlock, resolveImage: (suspen
 
 /**
  * A QR code in the kit frame (dark on light whatever the theme), its label above and caption below. Once its expiry has
- * come the code is covered and says so; a block with a refresh offers the refresh key, which hands the host the query to
- * run ([onRefresh]). It redraws at the expiry.
+ * come the code is covered and says so, and a block with a refresh then offers the refresh key, which hands the host the
+ * query to run ([onRefresh]). It redraws at the expiry.
  */
 @Composable
 internal fun PluginQrBlockView(block: PluginQrBlock, onRefresh: ((PluginQrRefresh) -> Unit)?, disabled: Boolean) {
@@ -844,9 +887,10 @@ internal fun PluginQrBlockView(block: PluginQrBlock, onRefresh: ((PluginQrRefres
             }
         }
         block.caption?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, textAlign = TextAlign.Center) }
+        // Refresh is offered once the code has expired, as in every kit.
         val refresh = block.refresh
-        if (refresh != null && onRefresh != null) {
-            Button(label = strings.pluginViewQrRefresh, variant = if (expired) FlareButtonVariant.Primary else FlareButtonVariant.Secondary,
+        if (expired && refresh != null && onRefresh != null) {
+            Button(label = strings.pluginViewQrRefresh, variant = FlareButtonVariant.Primary,
                 size = FlareControlSize.Sm, disabled = disabled, icon = "refresh", onClick = { onRefresh(refresh) })
         }
     }

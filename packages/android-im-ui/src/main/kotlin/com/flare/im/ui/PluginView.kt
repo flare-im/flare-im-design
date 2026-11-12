@@ -482,7 +482,8 @@ internal fun PluginViewContent(
             quote?.invoke()
             ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
                 onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
-                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision)
+                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
+                resolveImage = resolveImage, onQrRefresh = onQrRefresh.takeUnless { locked })
             if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
         }
         if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }

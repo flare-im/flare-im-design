@@ -272,7 +272,8 @@ public struct PluginView: View {
             if special {
                 ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                     settleToken: settleToken, resolveUser: resolveUser, onAction: locked ? nil : onAction,
-                    onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
+                    onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } },
+                    resolveImage: resolveImage, onQrRefresh: locked ? nil : onQrRefresh)
                 if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
             } else if view.available {
                 if !view.fields.isEmpty { PluginFieldRows(fields: view.fields) }
@@ -1168,7 +1169,7 @@ struct PluginTimeBlockView: View {
             let now = clock.now()
             if now != nowMs { nowMs = now }
             guard let delay = PluginViewFormat.countdownDelay(atMs: block.atMs, nowMs: now) else { return }
-            try? await Task.sleep(nanoseconds: UInt64(delay) * 1_000_000)
+            await flarePluginSleep(ms: delay)
         }
     }
 }

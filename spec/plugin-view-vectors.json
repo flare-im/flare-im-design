@@ -6730,6 +6730,12 @@
         "nowMs": 6000,
         "expired": true,
         "refreshMs": null
+      },
+      {
+        "expiresAtMs": 253402300800000,
+        "nowMs": 1000,
+        "expired": false,
+        "refreshMs": 253402300799000
       }
     ],
     "donut": [
@@ -6884,6 +6890,96 @@
           }
         ],
         "expect": true
+      }
+    ],
+    "instants": [
+      {
+        "atMs": 1000,
+        "kept": true
+      },
+      {
+        "atMs": 253402300800000,
+        "kept": true
+      },
+      {
+        "atMs": 8640000000000000,
+        "kept": true
+      },
+      {
+        "atMs": -8640000000000000,
+        "kept": true
+      },
+      {
+        "atMs": 9000000000000000,
+        "kept": false
+      },
+      {
+        "atMs": -9000000000000000,
+        "kept": false
+      },
+      {
+        "atMs": 1e+300,
+        "kept": false
+      }
+    ],
+    "chartDomain": [
+      {
+        "values": [],
+        "min": 0,
+        "max": 1
+      },
+      {
+        "values": [
+          0,
+          0
+        ],
+        "min": 0,
+        "max": 1
+      },
+      {
+        "values": [
+          3,
+          7
+        ],
+        "min": 0,
+        "max": 10
+      },
+      {
+        "values": [
+          1.2
+        ],
+        "min": 0,
+        "max": 2
+      },
+      {
+        "values": [
+          0.3
+        ],
+        "min": 0,
+        "max": 0.5
+      },
+      {
+        "values": [
+          120,
+          240
+        ],
+        "min": 0,
+        "max": 250
+      },
+      {
+        "values": [
+          -3,
+          4
+        ],
+        "min": -5,
+        "max": 5
+      },
+      {
+        "values": [
+          -12
+        ],
+        "min": -20,
+        "max": 0
       }
     ]
   },
@@ -7063,6 +7159,33 @@
         "a": "0.1",
         "b": "0.09",
         "expect": 1
+      }
+    ],
+    "typed": [
+      {
+        "typed": "12,50",
+        "separator": ",",
+        "expect": "12.50"
+      },
+      {
+        "typed": ",5",
+        "separator": ",",
+        "expect": ".5"
+      },
+      {
+        "typed": "12.50",
+        "separator": ",",
+        "expect": "12.50"
+      },
+      {
+        "typed": "1,000",
+        "separator": ".",
+        "expect": "1,000"
+      },
+      {
+        "typed": "12,50",
+        "separator": "",
+        "expect": "12,50"
       }
     ]
   },

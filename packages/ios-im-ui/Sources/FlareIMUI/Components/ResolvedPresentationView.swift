@@ -72,11 +72,17 @@ struct ResolvedPresentationView: View {
     let resolveUser: ((String) async -> PluginUser?)?
     let onAction: ((String, PluginActionPayload) -> Void)?
     let onRequest: (String) -> Void
+    /// The blocks under a pay sheet draw images and refresh QR codes as any view does.
+    private let resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
+    private let onQrRefresh: ((PluginQrRefresh) -> Void)?
     init(view: PluginViewModel, busy: Bool, error: String?, formErrors: [PluginFormError], members: [PluginMember],
          membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
          onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
          settleToken: Int, resolveUser: ((String) async -> PluginUser?)?,
-         onAction: ((String, PluginActionPayload) -> Void)?, onRequest: @escaping (String) -> Void) {
+         onAction: ((String, PluginActionPayload) -> Void)?, onRequest: @escaping (String) -> Void,
+         resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+         onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
+        self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
         self.view = view; self.busy = busy; self.error = error; self.formErrors = formErrors; self.members = members
         self.membersLoading = membersLoading; self.membersRevision = membersRevision; self.membersError = membersError
         self.onMemberSearch = onMemberSearch; self.onMembersRetry = onMembersRetry
@@ -143,7 +149,8 @@ struct ResolvedPresentationView: View {
             }
             if renderer != "redPacket.card" {
                 AnyView(PluginView(view: remainder, busy: busy, error: error, embedded: true, resolveUser: resolveUser,
-                    members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors, settleToken: settleToken, onAction: onAction))
+                    members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors, settleToken: settleToken, onAction: onAction,
+                    resolveImage: resolveImage, onQrRefresh: onQrRefresh))
             }
         }
         .onDisappear { payment.refreshed() }

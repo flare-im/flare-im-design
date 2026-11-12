@@ -668,7 +668,18 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
                     decimal: scale > 0,
                   ),
                   disabled: disabled || currency == null,
-                  onChanged: (v) => _set(input.id, v),
+                  // The locale's decimal separator is kept as "." (spec
+                  // moneyInput.typed).
+                  onChanged: (v) => _set(
+                    input.id,
+                    flarePluginMoneyTyped(
+                      v,
+                      flarePluginDecimalSeparator(
+                        Localizations.maybeLocaleOf(context)?.languageCode,
+                        Localizations.maybeLocaleOf(context)?.countryCode,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               if (currency != null) ...[

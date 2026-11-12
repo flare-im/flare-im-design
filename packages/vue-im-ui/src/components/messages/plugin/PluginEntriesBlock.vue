@@ -5,6 +5,8 @@ import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import {
   flarePluginBadgeTone,
   flarePluginEntryGroupHeader,
+  flarePluginInstant,
+  flarePluginIsoTime,
   type FlarePluginEntriesBlock,
   type FlarePluginEntry,
   type FlarePluginUser,
@@ -66,11 +68,11 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
           <span class="flare-plugin-entries__text" data-entry-text="true">{{ entry.text }}</span>
         </span>
         <time
-          v-if="entry.timeMs !== undefined && timeText"
+          v-if="flarePluginInstant(entry.timeMs) !== undefined && timeText"
           class="flare-plugin-entries__time"
-          :datetime="new Date(entry.timeMs).toISOString()"
+          :datetime="flarePluginIsoTime(entry.timeMs)"
           data-entry-time="true"
-        >{{ timeText(entry.timeMs) }}</time>
+        >{{ timeText(entry.timeMs!) }}</time>
       </li>
       </template>
     </ol>

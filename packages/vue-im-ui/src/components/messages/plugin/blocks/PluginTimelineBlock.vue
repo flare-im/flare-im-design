@@ -6,6 +6,8 @@ import { flareServerNowMs } from "../../../../shared/server-clock";
 import {
   flarePluginBadgeTone,
   flarePluginDateTime,
+  flarePluginInstant,
+  flarePluginIsoTime,
   type FlarePluginStrings,
   type FlarePluginTimelineBlock,
 } from "../../../../shared/contracts/plugin-ui";
@@ -16,7 +18,10 @@ const props = defineProps<{ block: FlarePluginTimelineBlock; strings: Pick<Flare
 const { t } = useFlareI18nOptional();
 const items = computed(() => {
   const now = flareServerNowMs();
-  return props.block.items.map((item) => ({ ...item, time: flarePluginDateTime(item.atMs, now, props.strings) }));
+  // An item whose instant no kit can draw is left out, as in every kit.
+  return props.block.items
+    .filter((item) => flarePluginInstant(item.atMs) !== undefined)
+    .map((item) => ({ ...item, time: flarePluginDateTime(item.atMs, now, props.strings) }));
 });
 </script>
 
@@ -31,7 +36,7 @@ const items = computed(() => {
           <FlareTag v-if="item.status" :label="item.status.text" :tone="flarePluginBadgeTone(item.status.tone)" />
         </div>
         <p v-if="item.detail" class="flare-plugin-timeline__detail">{{ item.detail }}</p>
-        <time class="flare-plugin-timeline__time" :datetime="new Date(item.atMs).toISOString()">{{ item.time }}</time>
+        <time class="flare-plugin-timeline__time" :datetime="flarePluginIsoTime(item.atMs)">{{ item.time }}</time>
       </div>
     </li>
   </ol>
