@@ -130,6 +130,8 @@ data class PluginEntry(
     val userId: String? = null,
     val group: PluginEntryGroup? = null,
     val badge: PluginBadge? = null,
+    /** When it happened (epoch ms), drawn after the text in the device zone. */
+    val timeMs: Long? = null,
 )
 
 /**
@@ -215,6 +217,8 @@ data class PluginRowsBlock(
     val actions: List<PluginViewAction> = emptyList(),
     val emptyText: String? = null,
     val filters: List<String>? = null,
+    /** Day headings over the rows by the first time column ([pluginRowDayHeadings]). */
+    val groupByDay: Boolean = false,
 ) : PluginBlock {
     override val kind: String get() = "rows"
 }
@@ -496,7 +500,8 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 val key = g.string("key") ?: return@let null
                 PluginEntryGroup(key, g.string("label") ?: "", g.int("count"), g.int("total"), g.int("percent"))
             }
-            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group, e.badge())
+            PluginEntry(e.int("index") ?: 0, e.string("text") ?: "", e.string("name"), e.string("userId"), group, e.badge(),
+                (e["timeMs"] as? Number)?.toLong())
         }
         PluginEntriesBlock(items, bool("numbered") ?: true, int("total") ?: items.size, bool("more") ?: false, string("emptyText"),
             bool("grouped") ?: false)
@@ -537,6 +542,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
         actions = list("actions").mapNotNull { (it as? Map<*, *>)?.action() },
         emptyText = string("emptyText"),
         filters = (this["filters"] as? List<*>)?.filterIsInstance<String>(),
+        groupByDay = bool("groupByDay") ?: false,
     )
     else -> pluginExtraBlock(this)
 }
@@ -885,6 +891,43 @@ internal object PluginViewFormat {
         val at = wallClock(ms, utcOffsetMinutes)
         val now = wallClock(nowMs, utcOffsetMinutes)
         return render(if (at.year == now.year) strings.pluginViewDateTimeFormat else strings.pluginViewDateTimeYearFormat, at)
+    }
+
+    /** What a hidden value reads as (a maskable hero). */
+    const val MASKED_VALUE = "••••"
+
+    /** The date part of a date-time pattern ("M月d日 HH:mm" → "M月d日"). */
+    fun datePattern(pattern: String): String =
+        pattern.replaceFirst(Regex("""[\s,]*HH:mm[\s,]*"""), " ").replaceFirst(Regex("""[\s,]+$"""), "").trim()
+
+    /**
+     * The day headings of a page list grouped by day (spec rules.rowsGroupByDay): one per row, present on the first
+     * row of each day — today, yesterday, else the date — by the row's first time column; a row without a time starts
+     * no group.
+     */
+    fun rowDayHeadings(block: PluginRowsBlock, nowMs: Long, strings: FlareStrings, utcOffsetMinutes: Int?): List<String?> {
+        val column = block.columns.indexOfFirst { it.format == PluginRowsFormat.Time }
+        if (!block.groupByDay || column < 0) return block.rows.map { null }
+        fun key(c: PluginWallClock) = "${c.year}-${c.month}-${c.day}"
+        val now = wallClock(nowMs, utcOffsetMinutes)
+        val today = key(now)
+        val yesterday = key(wallClock(nowMs - 86_400_000L, utcOffsetMinutes))
+        var previous: String? = null
+        return block.rows.map { row ->
+            val ms = row.cells.getOrNull(column)?.timeMs ?: return@map null
+            val at = wallClock(ms, utcOffsetMinutes)
+            val day = key(at)
+            if (day == previous) return@map null
+            previous = day
+            when (day) {
+                today -> strings.accountToday
+                yesterday -> strings.accountYesterday
+                else -> render(
+                    datePattern(if (at.year == now.year) strings.pluginViewDateTimeFormat else strings.pluginViewDateTimeYearFormat),
+                    at,
+                )
+            }
+        }
     }
 
     /** A time block's text: an instant, a range on one day ("…14:00–15:00") or across days ("… – …"). */

@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -297,6 +298,8 @@ data class PluginHeroBlock(
     val subtitle: String? = null,
     val tone: PluginHeroTone = PluginHeroTone.Neutral,
     val actions: List<PluginViewAction> = emptyList(),
+    /** The viewer may hide [value] behind an eye toggle. */
+    val maskable: Boolean = false,
 ) : PluginBlock {
     override val kind: String get() = "hero"
 }
@@ -392,6 +395,7 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
         subtitle = map.str("subtitle"),
         tone = PluginHeroTone.fromWire(map.str("tone")),
         actions = map.items("actions").mapNotNull { (it as? Map<*, *>)?.let(::pluginActionOf) },
+        maskable = map.flag("maskable") ?: false,
     )
     "steps" -> PluginStepsBlock(map.items("items").mapNotNull { raw ->
         val step = raw as? Map<*, *> ?: return@mapNotNull null
@@ -860,15 +864,35 @@ internal fun pluginHeroColor(tone: PluginHeroTone): Color {
     }
 }
 
+/** The test tag of a maskable hero's eye toggle (rules.heroMask). */
+internal const val PLUGIN_HERO_MASK_TAG = "flare-plugin-hero-mask"
+
 /** The lead figure of a page: the label, the value large, the subtitle and up to 3 keys it owns, the first primary. */
 @Composable
 internal fun PluginHeroBlockView(block: PluginHeroBlock, busyActionId: String?, disabled: Boolean, onAction: ((PluginViewAction) -> Unit)?) {
     val colors = flareColors()
     val strings = flareStrings()
+    // A maskable hero starts shown; the eye hides it for this view only.
+    var hidden by remember(block) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
-        block.label?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd) }
+        if (!block.label.isNullOrEmpty() || block.maskable) Row(verticalAlignment = Alignment.CenterVertically) {
+            block.label?.takeIf { it.isNotEmpty() }?.let {
+                Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.weight(1f, fill = false))
+            }
+            if (block.maskable) {
+                Box(Modifier.testTag(PLUGIN_HERO_MASK_TAG)) {
+                    IconButton(
+                        if (hidden) "eye-off" else "eye",
+                        if (hidden) strings.accountShowBalance else strings.accountHideBalance,
+                        size = FlareControlSize.Sm,
+                        onClick = { hidden = !hidden },
+                    )
+                }
+            }
+        }
         Text(
-            PluginFormatRules.text(block.value, block.format, strings), color = pluginHeroColor(block.tone),
+            if (block.maskable && hidden) PluginViewFormat.MASKED_VALUE else PluginFormatRules.text(block.value, block.format, strings),
+            color = pluginHeroColor(block.tone),
             fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
             style = if (block.amount) androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum") else androidx.compose.ui.text.TextStyle.Default,
         )

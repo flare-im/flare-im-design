@@ -298,6 +298,7 @@ class PluginViewVectorsTest {
                 assertEquals(fact.str("tone"), (block.tone ?: PluginTone.Neutral).wire, id)
             }
             is PluginRowsBlock -> error("$id: rows facts are a page's (pageViews)")
+            else -> error("$id: vocabulary 2 blocks have their facts in blocks2, not in a v1 view")
         }
     }
 

@@ -884,7 +884,7 @@ struct PluginEntriesBlockView: View {
                 .foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let timeMs = entry.timeMs {
-                Text(PluginViewFormat.dateTime(timeMs, nowMs: Int64(Date().timeIntervalSince1970 * 1000), strings,
+                Text(PluginViewFormat.dateTime(timeMs, nowMs: PluginViewClock.system.now(), strings,
                                                utcOffsetMinutes: nil))
                     .font(.system(size: FlareSizes.fontSizeSm * textScale).monospacedDigit())
                     .foregroundColor(colors.textTertiary)

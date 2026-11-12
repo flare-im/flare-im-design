@@ -297,7 +297,7 @@ internal fun PluginViewContent(
 
     val keys = PluginViewFormat.keys(view, embedded).filter { it.id != inlineAction?.id }
     val detailKey = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
-    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure.takeIf { showError && inlineAction == null }, strings).toMutableList().apply {
+    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure.takeIf { showError && inlineAction == null }, strings, nowMs).toMutableList().apply {
         if (inlineAction != null) {
             val footer = indexOfFirst { it is PluginViewPart.Keys || it is PluginViewPart.Error }
             add(if (footer < 0) size else footer, PluginViewPart.InlineForm)
@@ -439,6 +439,10 @@ internal fun PluginViewContent(
                 onRun = { action, bound -> run(action, PluginActionPayload(row = PluginActionRow(part.row.key, bound.input))) },
             )
             is PluginViewPart.RowsEmpty -> Text(part.text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+            is PluginViewPart.RowDay -> Text(
+                part.text, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth().semantics { heading() },
+            )
             is PluginViewPart.Keys -> Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                 if (!embedded) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
                 val keys: @Composable () -> Unit = {
@@ -607,6 +611,11 @@ internal sealed interface PluginViewPart {
 
     data class RowsEmpty(val index: Int, val text: String) : PluginViewPart { override val key: String get() = "e$index" }
 
+    /** The day heading before the row at [position] of the rows block at [index] (rules.rowsGroupByDay). */
+    data class RowDay(val index: Int, val position: Int, val text: String) : PluginViewPart {
+        override val key: String get() = "d$index:$position"
+    }
+
     data class Keys(val actions: List<PluginViewAction>) : PluginViewPart { override val key: String get() = "keys" }
 
     data class DetailKey(val enabled: Boolean) : PluginViewPart { override val key: String get() = "detail" }
@@ -634,6 +643,7 @@ internal fun pluginViewParts(
     detailKey: Boolean?,
     failure: String?,
     strings: FlareStrings,
+    nowMs: Long = FlareServerClock.nowMs(),
 ): List<PluginViewPart> = buildList {
     if (!embedded && quote) add(PluginViewPart.Quote)
     if (!embedded) add(PluginViewPart.TitleRow)
@@ -648,7 +658,12 @@ internal fun pluginViewParts(
             if (block is PluginRowsBlock) {
                 val rows = PluginViewFormat.rowsOnce(block.rows)
                 if (rows.isEmpty()) PluginViewFormat.rowsEmpty(block, strings)?.let { add(PluginViewPart.RowsEmpty(index, it)) }
-                rows.forEachIndexed { position, row -> add(PluginViewPart.Row(index, block, row, first = position == 0)) }
+                val days = PluginViewFormat.rowDayHeadings(block.copy(rows = rows), nowMs, strings, null)
+                rows.forEachIndexed { position, row ->
+                    val day = days[position]
+                    if (day != null) add(PluginViewPart.RowDay(index, position, day))
+                    add(PluginViewPart.Row(index, block, row, first = position == 0 || day != null))
+                }
             } else {
                 add(PluginViewPart.Block(index, block))
             }
@@ -694,6 +709,7 @@ private fun PluginActionFooter(trailingDetail: Boolean, compact: Boolean = false
 /** The space above a part: none for the first, none between the rows of one block (a hairline divides them), md otherwise. */
 internal fun pluginPartGap(previous: PluginViewPart?, part: PluginViewPart): Dp = when {
     previous == null -> 0.dp
+    previous is PluginViewPart.RowDay -> FlareSizes.spacingXs
     part is PluginViewPart.Row && !part.first -> 0.dp
     else -> FlareSizes.spacingMd
 }
@@ -964,6 +980,12 @@ private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String,
                     )
                     PluginEntryPart.Badge -> entry.badge?.let { PluginBadgeTag(it) }
                     PluginEntryPart.Text -> Text(entry.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
+                }
+                entry.timeMs?.let { timeMs ->
+                    Text(
+                        PluginViewFormat.dateTime(timeMs, FlareServerClock.nowMs(), strings, null),
+                        color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 1,
+                    )
                 }
             }
         }
