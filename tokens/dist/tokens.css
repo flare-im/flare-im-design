@@ -78,6 +78,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
   --flare-size-font-size-2xs: 10px;
   --flare-size-font-size-xs: 11px;
   --flare-size-font-size-sm: 12px;
@@ -317,6 +323,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
   --flare-shadow-card: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.32);
   --flare-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.32);
@@ -404,6 +416,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="ocean"] {
@@ -485,6 +503,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="forest"] {
@@ -566,6 +590,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="sunset"] {
@@ -647,6 +677,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="rose"] {
@@ -728,6 +764,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="graphite"] {
@@ -809,6 +851,12 @@
   --flare-color-red-packet-faded-ink: #5C140E;
   --flare-color-red-packet-faded-mix-target: #FFFFFF;
   --flare-color-red-packet-accent: #C8291F;
+  --flare-color-chart-series1: #2A78D6;
+  --flare-color-chart-series2: #EB6834;
+  --flare-color-chart-series3: #1BAF7A;
+  --flare-color-chart-series4: #EDA100;
+  --flare-color-chart-series5: #E87BA4;
+  --flare-color-chart-series6: #6250D6;
 }
 
 [data-flare-brand="violet"][data-flare-theme="dark"] {
@@ -890,6 +938,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }
 
 [data-flare-brand="ocean"][data-flare-theme="dark"] {
@@ -971,6 +1025,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }
 
 [data-flare-brand="forest"][data-flare-theme="dark"] {
@@ -1052,6 +1112,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }
 
 [data-flare-brand="sunset"][data-flare-theme="dark"] {
@@ -1133,6 +1199,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }
 
 [data-flare-brand="rose"][data-flare-theme="dark"] {
@@ -1214,6 +1286,12 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }
 
 [data-flare-brand="graphite"][data-flare-theme="dark"] {
@@ -1295,4 +1373,10 @@
   --flare-color-red-packet-faded-ink: #FBE3DE;
   --flare-color-red-packet-faded-mix-target: #2A1513;
   --flare-color-red-packet-accent: #FF7B6B;
+  --flare-color-chart-series1: #3987E5;
+  --flare-color-chart-series2: #D95926;
+  --flare-color-chart-series3: #199E70;
+  --flare-color-chart-series4: #C98500;
+  --flare-color-chart-series5: #D55181;
+  --flare-color-chart-series6: #9085E9;
 }

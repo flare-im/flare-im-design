@@ -89,6 +89,12 @@ class FlareColors {
     required this.redPacketFadedInk,
     required this.redPacketFadedMixTarget,
     required this.redPacketAccent,
+    required this.chartSeries1,
+    required this.chartSeries2,
+    required this.chartSeries3,
+    required this.chartSeries4,
+    required this.chartSeries5,
+    required this.chartSeries6,
   });
 
   final Color bgDisabled;
@@ -169,6 +175,12 @@ class FlareColors {
   final Color redPacketFadedInk;
   final Color redPacketFadedMixTarget;
   final Color redPacketAccent;
+  final Color chartSeries1;
+  final Color chartSeries2;
+  final Color chartSeries3;
+  final Color chartSeries4;
+  final Color chartSeries5;
+  final Color chartSeries6;
 
   FlareColors copyWith({
     Color? bgDisabled,
@@ -249,6 +261,12 @@ class FlareColors {
     Color? redPacketFadedInk,
     Color? redPacketFadedMixTarget,
     Color? redPacketAccent,
+    Color? chartSeries1,
+    Color? chartSeries2,
+    Color? chartSeries3,
+    Color? chartSeries4,
+    Color? chartSeries5,
+    Color? chartSeries6,
   }) => FlareColors(
     bgDisabled: bgDisabled ?? this.bgDisabled,
     bgElevated: bgElevated ?? this.bgElevated,
@@ -328,6 +346,12 @@ class FlareColors {
     redPacketFadedInk: redPacketFadedInk ?? this.redPacketFadedInk,
     redPacketFadedMixTarget: redPacketFadedMixTarget ?? this.redPacketFadedMixTarget,
     redPacketAccent: redPacketAccent ?? this.redPacketAccent,
+    chartSeries1: chartSeries1 ?? this.chartSeries1,
+    chartSeries2: chartSeries2 ?? this.chartSeries2,
+    chartSeries3: chartSeries3 ?? this.chartSeries3,
+    chartSeries4: chartSeries4 ?? this.chartSeries4,
+    chartSeries5: chartSeries5 ?? this.chartSeries5,
+    chartSeries6: chartSeries6 ?? this.chartSeries6,
   );
 
   static const FlareColors violetLight = FlareColors(
@@ -409,6 +433,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors violetDark = FlareColors(
@@ -490,6 +520,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors oceanLight = FlareColors(
@@ -571,6 +607,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors oceanDark = FlareColors(
@@ -652,6 +694,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors forestLight = FlareColors(
@@ -733,6 +781,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors forestDark = FlareColors(
@@ -814,6 +868,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors sunsetLight = FlareColors(
@@ -895,6 +955,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors sunsetDark = FlareColors(
@@ -976,6 +1042,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors roseLight = FlareColors(
@@ -1057,6 +1129,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors roseDark = FlareColors(
@@ -1138,6 +1216,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors graphiteLight = FlareColors(
@@ -1219,6 +1303,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    chartSeries1: Color(0xFF2A78D6),
+    chartSeries2: Color(0xFFEB6834),
+    chartSeries3: Color(0xFF1BAF7A),
+    chartSeries4: Color(0xFFEDA100),
+    chartSeries5: Color(0xFFE87BA4),
+    chartSeries6: Color(0xFF6250D6),
   );
 
   static const FlareColors graphiteDark = FlareColors(
@@ -1300,6 +1390,12 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    chartSeries1: Color(0xFF3987E5),
+    chartSeries2: Color(0xFFD95926),
+    chartSeries3: Color(0xFF199E70),
+    chartSeries4: Color(0xFFC98500),
+    chartSeries5: Color(0xFFD55181),
+    chartSeries6: Color(0xFF9085E9),
   );
 
   static const FlareColors light = violetLight;
@@ -1662,6 +1758,18 @@ abstract final class FlarePalette {
   static const Color darkRedPacketFadedMixTarget = Color(0xFF2A1513);
   static const Color lightRedPacketAccent = Color(0xFFC8291F);
   static const Color darkRedPacketAccent = Color(0xFFFF7B6B);
+  static const Color lightChartSeries1 = Color(0xFF2A78D6);
+  static const Color darkChartSeries1 = Color(0xFF3987E5);
+  static const Color lightChartSeries2 = Color(0xFFEB6834);
+  static const Color darkChartSeries2 = Color(0xFFD95926);
+  static const Color lightChartSeries3 = Color(0xFF1BAF7A);
+  static const Color darkChartSeries3 = Color(0xFF199E70);
+  static const Color lightChartSeries4 = Color(0xFFEDA100);
+  static const Color darkChartSeries4 = Color(0xFFC98500);
+  static const Color lightChartSeries5 = Color(0xFFE87BA4);
+  static const Color darkChartSeries5 = Color(0xFFD55181);
+  static const Color lightChartSeries6 = Color(0xFF6250D6);
+  static const Color darkChartSeries6 = Color(0xFF9085E9);
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).

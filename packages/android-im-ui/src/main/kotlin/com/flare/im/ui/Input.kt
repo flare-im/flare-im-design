@@ -40,6 +40,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
+/** On-screen keyboard an [Input] asks for (spec Input `inputmode`). Masked fields always use the password keyboard. */
+enum class FlareInputMode { Text, Numeric, Decimal, Tel, Email, Url, Search }
+
+internal fun FlareInputMode.keyboardType(): KeyboardType = when (this) {
+    FlareInputMode.Text, FlareInputMode.Search -> KeyboardType.Text
+    FlareInputMode.Numeric -> KeyboardType.Number
+    FlareInputMode.Decimal -> KeyboardType.Decimal
+    FlareInputMode.Tel -> KeyboardType.Phone
+    FlareInputMode.Email -> KeyboardType.Email
+    FlareInputMode.Url -> KeyboardType.Uri
+}
+
 /**
  * General text input — single/multi-line, char limit, clearable, disabled.
  * Spec: General/Input (`Input`). Token-padded raised field (bgSecondary track, radiusLg corners,
@@ -61,6 +73,8 @@ fun Input(
     /** Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change. */
     monospace: Boolean = false,
     size: FlareControlSize = FlareControlSize.Md,
+    /** On-screen keyboard (spec `inputmode`); ignored on a secure field. */
+    inputMode: FlareInputMode = FlareInputMode.Text,
     onSubmit: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
@@ -98,10 +112,14 @@ fun Input(
                     cursorBrush = SolidColor(colors.primary),
                     visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = if (secure) KeyboardType.Password else KeyboardType.Text,
-                        imeAction = if (multiline && !secure) ImeAction.Default else ImeAction.Done,
+                        keyboardType = if (secure) KeyboardType.Password else inputMode.keyboardType(),
+                        imeAction = when {
+                            multiline && !secure -> ImeAction.Default
+                            inputMode == FlareInputMode.Search -> ImeAction.Search
+                            else -> ImeAction.Done
+                        },
                     ),
-                    keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }),
+                    keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }, onSearch = { onSubmit?.invoke() }),
                     modifier = Modifier.fillMaxWidth(),
                     decorationBox = { inner ->
                         if (value.isEmpty() && placeholder != null) {

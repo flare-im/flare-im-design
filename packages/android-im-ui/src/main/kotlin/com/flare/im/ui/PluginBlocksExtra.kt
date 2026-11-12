@@ -670,11 +670,11 @@ internal fun PluginTrendView(trend: PluginTrend) {
     }
 }
 
-/** The colours of a chart's series (and a donut's slices, in turn): the primary, then the info, success, warning and error fills. */
+/** The colours of a chart's series (and a donut's slices, in turn): the chart tokens `colors.chart.series1..6`, in order, never the status colours. */
 @Composable
 internal fun pluginChartPalette(): List<Color> {
     val colors = flareColors()
-    return listOf(colors.primary, colors.info, colors.success, colors.warning, colors.error)
+    return listOf(colors.chartSeries1, colors.chartSeries2, colors.chartSeries3, colors.chartSeries4, colors.chartSeries5, colors.chartSeries6)
 }
 
 /**

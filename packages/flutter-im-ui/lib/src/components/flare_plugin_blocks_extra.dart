@@ -217,19 +217,20 @@ class FlarePluginStatsView extends StatelessWidget {
   }
 }
 
-/// The series colours in order, and a donut's slice colours.
+/// The series colours in order, and a donut's slice colours: the chart tokens
+/// (`colors.chart.series1..6`), never the status colours.
 List<Color> _seriesColours(FlareColors colors) => [
-  colors.primary,
-  colors.info,
-  colors.success,
+  colors.chartSeries1,
+  colors.chartSeries2,
+  colors.chartSeries3,
 ];
 List<Color> _sliceColours(FlareColors colors) => [
-  colors.primary,
-  colors.info,
-  colors.success,
-  colors.warning,
-  colors.important,
-  colors.pinned,
+  colors.chartSeries1,
+  colors.chartSeries2,
+  colors.chartSeries3,
+  colors.chartSeries4,
+  colors.chartSeries5,
+  colors.chartSeries6,
 ];
 
 /// Bars, lines or a donut, painted with Canvas from kit colours (no chart

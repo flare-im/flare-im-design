@@ -18,13 +18,13 @@ import {
 } from "../../../../shared/contracts/plugin-ui";
 
 // A chart (vocabulary 2): bars, lines or a donut drawn as plain SVG from kit tokens, on the kit's chart geometry
-// (data/chart-geometry.ts, shared with ChartCard), no chart library. Up to 3 series take the brand, info and
-// success colours in order; a donut's slices cycle through the kit's status colours. The plot is an image named by
+// (data/chart-geometry.ts, shared with ChartCard), no chart library. Up to 3 series take the chart tokens
+// (colors.chart.series1..3) in order; a donut's slices take series1..6 in order. The plot is an image named by
 // the series; every point is also in a table only assistive technology reads. No point at all: the empty text.
 const props = defineProps<{ block: FlarePluginChartBlock }>();
 const { t } = useFlareI18nOptional();
-const SERIES = ["primary", "info", "success"] as const;
-const SLICES = ["primary", "info", "success", "warning", "important", "pinned"] as const;
+const SERIES = ["series1", "series2", "series3"] as const;
+const SLICES = ["series1", "series2", "series3", "series4", "series5", "series6"] as const;
 /** A bar takes this share of its slot, split between the series. */
 const BAR_FILL = 0.64;
 
@@ -189,12 +189,12 @@ const summary = computed(() =>
   min-width: 0;
   margin: 0;
 }
-.flare-plugin-chart [data-colour="primary"] { --flare-plugin-chart-colour: var(--flare-color-primary); }
-.flare-plugin-chart [data-colour="info"] { --flare-plugin-chart-colour: var(--flare-color-info); }
-.flare-plugin-chart [data-colour="success"] { --flare-plugin-chart-colour: var(--flare-color-success); }
-.flare-plugin-chart [data-colour="warning"] { --flare-plugin-chart-colour: var(--flare-color-warning); }
-.flare-plugin-chart [data-colour="important"] { --flare-plugin-chart-colour: var(--flare-color-important); }
-.flare-plugin-chart [data-colour="pinned"] { --flare-plugin-chart-colour: var(--flare-color-pinned); }
+.flare-plugin-chart [data-colour="series1"] { --flare-plugin-chart-colour: var(--flare-color-chart-series1); }
+.flare-plugin-chart [data-colour="series2"] { --flare-plugin-chart-colour: var(--flare-color-chart-series2); }
+.flare-plugin-chart [data-colour="series3"] { --flare-plugin-chart-colour: var(--flare-color-chart-series3); }
+.flare-plugin-chart [data-colour="series4"] { --flare-plugin-chart-colour: var(--flare-color-chart-series4); }
+.flare-plugin-chart [data-colour="series5"] { --flare-plugin-chart-colour: var(--flare-color-chart-series5); }
+.flare-plugin-chart [data-colour="series6"] { --flare-plugin-chart-colour: var(--flare-color-chart-series6); }
 .flare-plugin-chart__figure { display: grid; gap: var(--flare-size-spacing-2xs); min-width: 0; }
 .flare-plugin-chart__plot {
   display: block;

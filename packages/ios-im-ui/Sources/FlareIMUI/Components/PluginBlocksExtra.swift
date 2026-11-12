@@ -131,10 +131,11 @@ struct PluginTrendView: View {
     }
 }
 
-/// The colours of a chart's series (and a donut's slices, in turn): the primary, then the info, success, warning and
-/// error fills.
+/// The colours of a chart's series (and a donut's slices, in turn): the chart tokens `colors.chart.series1...6`, in
+/// order, never the status colours.
 func pluginChartPalette(_ colors: FlareColors) -> [Color] {
-    [colors.primary, colors.info, colors.success, colors.warning, colors.error]
+    [colors.chartSeries1, colors.chartSeries2, colors.chartSeries3,
+     colors.chartSeries4, colors.chartSeries5, colors.chartSeries6]
 }
 
 /// A bar, line or donut chart over resolved points, drawn with `Canvas` and kit tokens; the empty text when no series

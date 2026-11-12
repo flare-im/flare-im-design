@@ -97,6 +97,12 @@ data class FlareColors(
     val redPacketFadedInk: Color,
     val redPacketFadedMixTarget: Color,
     val redPacketAccent: Color,
+    val chartSeries1: Color,
+    val chartSeries2: Color,
+    val chartSeries3: Color,
+    val chartSeries4: Color,
+    val chartSeries5: Color,
+    val chartSeries6: Color,
 ) {
     companion object {
         val VioletLight = FlareColors(
@@ -178,6 +184,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val VioletDark = FlareColors(
@@ -259,6 +271,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val OceanLight = FlareColors(
@@ -340,6 +358,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val OceanDark = FlareColors(
@@ -421,6 +445,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val ForestLight = FlareColors(
@@ -502,6 +532,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val ForestDark = FlareColors(
@@ -583,6 +619,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val SunsetLight = FlareColors(
@@ -664,6 +706,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val SunsetDark = FlareColors(
@@ -745,6 +793,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val RoseLight = FlareColors(
@@ -826,6 +880,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val RoseDark = FlareColors(
@@ -907,6 +967,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val GraphiteLight = FlareColors(
@@ -988,6 +1054,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            chartSeries1 = Color(0xFF2A78D6),
+            chartSeries2 = Color(0xFFEB6834),
+            chartSeries3 = Color(0xFF1BAF7A),
+            chartSeries4 = Color(0xFFEDA100),
+            chartSeries5 = Color(0xFFE87BA4),
+            chartSeries6 = Color(0xFF6250D6),
         )
 
         val GraphiteDark = FlareColors(
@@ -1069,6 +1141,12 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            chartSeries1 = Color(0xFF3987E5),
+            chartSeries2 = Color(0xFFD95926),
+            chartSeries3 = Color(0xFF199E70),
+            chartSeries4 = Color(0xFFC98500),
+            chartSeries5 = Color(0xFFD55181),
+            chartSeries6 = Color(0xFF9085E9),
         )
 
         val Light = VioletLight

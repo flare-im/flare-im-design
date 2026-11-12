@@ -199,7 +199,8 @@ public struct PluginFormView: View {
                     .accessibilityLabel([input.label, input.money?.currency].compactMap { $0 }.joined(separator: ", "))
                     .accessibilityIdentifier("plugin.form.\(input.id)")
                     #if os(iOS)
-                    .keyboardType(.decimalPad)
+                    // Digits and one point; digits only when the amount has no fraction.
+                    .keyboardType(input.money?.effectiveScale == 0 ? .numberPad : .decimalPad)
                     #endif
             }
         case .members:

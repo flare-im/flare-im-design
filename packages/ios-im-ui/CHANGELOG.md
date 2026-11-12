@@ -1,5 +1,6 @@
 ## 未发布
 
+- 插件 `chart` 块改用图表 token `chartSeries1`–`chartSeries6`，不再借用语义状态色；`money` 输入小数位为 0 时用数字键盘，否则 `.decimalPad`。
 - `FlareResourceOverlay.stringValues(locale:builtIn:)` 公开：宿主自己的词表按同一套规则（键已存在、占位符一致）取资源包词条。
 - 新增 `FlareResourceOverlay`、`FlareResourcePack`（`spec/resource-overlay-vectors.json`，四端同一张表）：`strings(_:locale:)`、`colors(_:dark:)`、`brandTheme(_:)` 把资源包折进词表和主题，经 `.flareStrings`、`.flareTheme` 注入，`registerEmoji()` 把表情加进目录。`brandTheme` 给新品牌取新名字：品牌按名字比较，同名换色不会刷新。
 - 更新提示新增 `reason`（`UpdateStatus.blockReason`，`UpdatePromptView` 的参数在 `notes` 之后）：强制提示的 offer 阶段用它代替固定文案（`FlareUpdatePromptMessage.reason`），为空时保留固定文案。

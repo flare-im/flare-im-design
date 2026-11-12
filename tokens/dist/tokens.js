@@ -119,6 +119,14 @@ export const flareDesignTokens = {
       "fadedInk": "#5C140E",
       "fadedMixTarget": "#FFFFFF",
       "accent": "#C8291F"
+    },
+    "chart": {
+      "series1": "#2A78D6",
+      "series2": "#EB6834",
+      "series3": "#1BAF7A",
+      "series4": "#EDA100",
+      "series5": "#E87BA4",
+      "series6": "#6250D6"
     }
   },
   "dark": {
@@ -234,6 +242,14 @@ export const flareDesignTokens = {
         "fadedInk": "#FBE3DE",
         "fadedMixTarget": "#2A1513",
         "accent": "#FF7B6B"
+      },
+      "chart": {
+        "series1": "#3987E5",
+        "series2": "#D95926",
+        "series3": "#199E70",
+        "series4": "#C98500",
+        "series5": "#D55181",
+        "series6": "#9085E9"
       }
     },
     "shadows": {
@@ -579,6 +595,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -701,6 +725,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -826,6 +858,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -948,6 +988,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1073,6 +1121,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1195,6 +1251,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1320,6 +1384,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1442,6 +1514,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1567,6 +1647,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1689,6 +1777,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1814,6 +1910,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1936,6 +2040,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }

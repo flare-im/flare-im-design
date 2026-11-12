@@ -158,7 +158,7 @@
 |---|---|
 | `section` | 标题（label）与折叠键，其后是子块；子块与顶层块同一套渲染与动作管线。没有 label 的分组不画标题、也不折叠。折叠时子块不画。子块里不认识的 kind 和顶层一样跳过。 |
 | `stats` | 2 到 6 个指标并排（Vue 复用 `FlareMetricTile` 的 plain 外观）；值经格式化（见下），趋势是插件给的文本加方向（up / down，其余按 flat），只报告不评判；tone 给数值着色。 |
-| `chart` | 柱、线、环。取 Kit 颜色（系列依次 primary、info、success；环的扇区循环 primary、info、success、warning、important、pinned），不引第三方图表库：Web 端 SVG 复用 `data/chart-geometry.ts`，原生端 Canvas / Path。读屏有逐点表格。没有任何点时显示 `emptyText`，没有时「暂无数据」。环只画正值，扇区为各正值占和的比例。 |
+| `chart` | 柱、线、环。取图表 token `colors.chart.series1` 到 `series6`（系列依次 series1–3；环的扇区依次 series1–6，超过 6 个循环），不借语义状态色；图例与读屏表格始终存在，浅色下低对比的系列靠它们辨认，不引第三方图表库：Web 端 SVG 复用 `data/chart-geometry.ts`，原生端 Canvas / Path。读屏有逐点表格。没有任何点时显示 `emptyText`，没有时「暂无数据」。环只画正值，扇区为各正值占和的比例。 |
 | `image` | 按声明比例（1:1、4:3、16:9、3:4，未知按 1:1）留框。视图里没有地址：`asset`（包内资源路径）或 `fileId`（插件私有上传的文件）由宿主的 `resolveImage` 换成取到的地址，只画 blob:、https:、data:image。取不到时保留框并提示「图片无法显示」。 |
 | `qr` | Kit 二维码（Vue `FlareQrMatrix`，Flutter `FlareQrCodeFrame` 的编码器），label 在上、caption 在下。`expiresAtMs` 到期（服务器时钟）后覆盖「二维码已失效」；声明了 `refreshOperation` 且宿主监听时给「刷新二维码」，发出 `qrRefresh({operation, valuePath, expiresAtPath?})`，宿主执行查询后传回新视图。取代 `flare.qr` 渲染器。 |
 | `hero` | 每文档一个主数字：label、格式化后的值、subtitle，tone 为 neutral / positive / warning / brand（未知按 neutral），至多三个自有动作，与视图动作同一条确认 / 表单 / 宿主管线。 |

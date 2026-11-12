@@ -223,8 +223,10 @@ fun PluginForm(
                         disabled = busy || (onMemberSearch == null && members.isEmpty()), onClick = { pickingRevision = membersRevision; picking = input; onMemberSearch?.invoke("") })
                 }
                 PluginInputKind.Money -> FormField(input.label, input.required, input.money?.currency, errorText(input)) {
+                    // A money amount is digits and one point: the decimal keyboard, or digits only at scale 0.
                     Input(value = form.draft[input.id] as? String ?: "", onValueChange = { set(input.id, it) },
-                        placeholder = input.placeholder, disabled = busy)
+                        placeholder = input.placeholder, disabled = busy,
+                        inputMode = if (input.money?.effectiveScale == 0) FlareInputMode.Numeric else FlareInputMode.Decimal)
                 }
                 PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> FormField(input.label, input.required, null, errorText(input)) {
                     val state = localFiles[input.id] ?: PluginFileState(fileScope, fileGenerations[input.id] ?: 0, PluginFilePhase.Empty)

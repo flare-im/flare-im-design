@@ -11356,11 +11356,12 @@
           "name": "inputmode",
           "type": "\"text\" | \"none\" | \"search\" | \"url\" | \"numeric\" | \"tel\" | \"email\" | \"decimal\"",
           "platforms": [
-            "vue"
+            "vue",
+            "compose"
           ],
           "description": {
-            "en": "On-screen-keyboard hint.",
-            "zh": "软键盘类型提示。"
+            "en": "On-screen-keyboard hint. Compose takes `inputMode: FlareInputMode` (Text, Numeric, Decimal, Tel, Email, Url, Search); a plugin money input opens the decimal keyboard.",
+            "zh": "软键盘类型提示。Compose 端为 `inputMode: FlareInputMode`（Text、Numeric、Decimal、Tel、Email、Url、Search）；插件金额输入打开小数键盘。"
           }
         },
         {
@@ -11528,6 +11529,13 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      },
+      "platformAliases": {
+        "compose": {
+          "props": {
+            "inputmode": "inputMode"
+          }
+        }
       }
     },
     {

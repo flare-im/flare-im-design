@@ -1,5 +1,7 @@
 ## 未发布
 
+- `Input` 新增 `inputMode: FlareInputMode`（Text、Numeric、Decimal、Tel、Email、Url、Search），对应契约 `inputmode`；插件 `money` 输入打开小数键盘，小数位为 0 时只给数字键盘。
+- 插件 `chart` 块改用图表 token `chartSeries1`–`chartSeries6`，不再借用语义状态色。
 - `FlareResourceOverlay.stringValues(locale, builtIn)` 公开：宿主自己的词表按同一套规则（键已存在、占位符一致）取资源包词条。
 - 新增 `FlareResourceOverlay`、`FlareResourcePack`（`spec/resource-overlay-vectors.json`，四端同一张表）：`strings(base, locale)`、`colors(base, dark)` 把资源包折进词表和主题，经 `LocalFlareStrings`、`FlareThemeProvider(colors =)` 注入，`registerEmoji(context)` 把表情加进目录。
 - `FlareEmojiAssetRegistration`、`FlareStickerAssetRegistration` 的 `staticPreviewBytes` 改为可选，和 SwiftUI 一致：没有预览字节时，选择器和消息读原图的第一帧。空字节仍然拒绝。
