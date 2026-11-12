@@ -62,7 +62,7 @@ function activate() {
     <template v-else>
       <span v-if="flareCountBadgeDrawn(count, item.badgeMore)" class="flare-settings__badge">{{ flareCountBadgeText(count, item.badgeMore) }}</span>
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
-      <FlareTag v-if="item.tag?.trim() && item.kind !== 'toggle'" class="flare-settings__tag" :label="item.tag.trim()" tone="warning" data-settings-tag="true" />
+      <FlareTag v-if="item.tag?.trim()" class="flare-settings__tag" :label="item.tag.trim()" tone="warning" data-settings-tag="true" />
       <span v-if="dot" class="flare-settings__dot" role="img" :aria-label="t('settingsRow.badge')" />
       <span v-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" /></span>
     </template>
