@@ -1,6 +1,6 @@
 /**
  * Red packet presentation contracts (spec RedPacketCard / RedPacketOpenSheet / RedPacketDetail /
- * RedPacketComposer / RedPacketPayConfirm, docs/design/red-packet-v5-roles-and-wallet.md). The kit only draws:
+ * RedPacketComposer, docs/design/red-packet-v5-roles-and-wallet.md; paying is FlarePaymentConfirmation). The kit only draws:
  * claiming, balances, eligibility and who may see which amount stay with the plugin server, which returns
  * nothing a viewer may not see. The rules here are pure and tested against spec/red-packet-vectors.json.
  */
