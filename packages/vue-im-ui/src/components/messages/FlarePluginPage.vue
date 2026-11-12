@@ -31,6 +31,8 @@ import {
   type FlarePluginFormError,
   type FlarePluginFileState,
   type FlarePluginFileAction,
+  type FlarePluginLocationAction,
+  type FlarePluginLocationState,
   type FlarePluginMember,
   type FlarePluginPageActionPayload,
   type FlarePluginPageFilter,
@@ -76,6 +78,8 @@ const props = withDefaults(
     actionError?: string;
     formErrors?: FlarePluginFormError[];
     fileStates?: Record<string, FlarePluginFileState>;
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates?: Record<string, FlarePluginLocationState>;
     members?: FlarePluginMember[];
     membersLoading?: boolean;
     membersRevision?: number;
@@ -101,6 +105,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   back: [];
   fileAction: [event: FlarePluginFileAction];
+  /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+  locationAction: [event: FlarePluginLocationAction];
   /** Pull to refresh or the refresh key: the host fetches the page again and passes back the view. */
   refresh: [];
   /** The first load failed and the reader asked again. */
@@ -197,6 +203,7 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
   emit("filter", flarePluginPageFilterValues(props.filters, filter.input.id, value));
 }
 function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
+function forwardLocationAction(event: FlarePluginLocationAction): void { emit("locationAction", event); }
 function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh", request); }
 </script>
 
@@ -287,6 +294,8 @@ function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh
           <FlarePluginView
             :file-states="fileStates"
             :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
+            :location-states="locationStates"
+            :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
             v-else
             :view="view"
             embedded

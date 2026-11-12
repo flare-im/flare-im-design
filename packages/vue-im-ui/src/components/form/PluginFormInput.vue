@@ -3,7 +3,7 @@ import type {
   SchemaSelection,
   SchemaSelectionLabels,
 } from "./schema-selections";
-import type { FlarePluginInput, FlarePluginFileActionKind, FlarePluginFileState } from "../../shared/contracts/plugin-ui";
+import type { FlarePluginInput, FlarePluginFileActionKind, FlarePluginFileState, FlarePluginLocationState } from "../../shared/contracts/plugin-ui";
 export interface PluginFormInputState {
   presentation: "form" | "filters";
   selectPresentation: "radio" | "dropdown";
@@ -11,6 +11,10 @@ export interface PluginFormInputState {
   fileEnabled: boolean;
   fileState(input: FlarePluginInput): FlarePluginFileState;
   fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind): void;
+  /** Whether the host listens for location keys (`locationAction`). */
+  locationEnabled: boolean;
+  locationState(input: FlarePluginInput): FlarePluginLocationState;
+  locationAction(input: FlarePluginInput, action: "locate" | "clear"): void;
   selectionLabels?: SchemaSelectionLabels;
   draft: Record<string, unknown>;
   numberText: Record<string, string>;
@@ -39,6 +43,7 @@ import { NDatePicker, NSelect } from "naive-ui";
 import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
+import FlareIcon from "../general/FlareIcon.vue";
 import FlareInput from "../general/FlareInput.vue";
 import FlareFormField from "./FlareFormField.vue";
 import FlareTextarea from "./FlareTextarea.vue";
@@ -58,6 +63,8 @@ import {
   flarePluginMoneyScale,
   flarePluginMoneyTyped,
   flarePluginDecimalSeparator,
+  flarePluginLocationText,
+  flarePluginLocationValue,
 } from "../../shared/contracts/plugin-ui";
 const props = defineProps<{
   input: FlarePluginInput;
@@ -87,6 +94,15 @@ function uploadPickLabel(input: FlarePluginInput): string {
   if (input.kind === "image") return t("pluginForm.chooseImage");
   if (input.kind === "document") return t("pluginForm.captureDocument");
   return t("pluginFileChoose");
+}
+/** A location input's fix as drawn: the place, then the precision and accuracy (null: none yet). */
+function locationLines(input: FlarePluginInput): { place: string; detail: string } | null {
+  const fix = flarePluginLocationValue(props.state.draft[input.id], input.precision);
+  if (!fix) return null;
+  return {
+    place: flarePluginLocationText(fix),
+    detail: `${t(`pluginForm.location.${fix.precision}`)} · ${t("pluginForm.location.accuracy", { m: fix.accuracyM })}`,
+  };
 }
 /** "0.00" for a money input of scale 2: the shape of the amount it takes. */
 function moneyPlaceholder(input: FlarePluginInput): string {
@@ -121,6 +137,47 @@ function filePolicyHint(input: FlarePluginInput): string {
         v-bind="field"
       />
     </template>
+  </FlareFormField>
+  <FlareFormField
+    v-else-if="input.kind === 'location'"
+    :native="native"
+    :label="input.label"
+    :required="input.required"
+    :error="state.locationState(input).error || state.errorText(input)"
+    :data-input-id="input.id"
+    data-input-kind="location"
+  >
+    <div class="flare-plugin-form__location" :aria-busy="state.locationState(input).locating || undefined">
+      <span class="flare-plugin-form__location-icon" aria-hidden="true"><FlareIcon name="location" /></span>
+      <div class="flare-plugin-form__location-text" role="status">
+        <template v-if="state.locationState(input).locating">{{ t("pluginForm.location.locating") }}</template>
+        <template v-else-if="locationLines(input)">
+          <span class="flare-plugin-form__location-place" data-location-place="true">{{ locationLines(input)!.place }}</span>
+          <span class="flare-plugin-form__location-detail">{{ locationLines(input)!.detail }}</span>
+        </template>
+        <span v-else class="flare-plugin-form__location-detail" data-location-empty="true">{{ t("pluginForm.location.empty") }}</span>
+      </div>
+      <div class="flare-plugin-form__location-keys">
+        <FlareButton
+          v-if="locationLines(input) && !state.locationState(input).locating"
+          size="sm"
+          variant="quiet"
+          :label="t('pluginForm.location.clear')"
+          :disabled="state.busy"
+          data-location-clear="true"
+          @click="state.locationAction(input, 'clear')"
+        />
+        <FlareButton
+          size="sm"
+          variant="secondary"
+          :label="locationLines(input) ? t('pluginForm.location.relocate') : t('pluginForm.location.locate')"
+          :loading="state.locationState(input).locating"
+          :disabled="state.busy || !state.locationEnabled"
+          data-location-locate="true"
+          @click="state.locationAction(input, 'locate')"
+        />
+      </div>
+    </div>
   </FlareFormField>
   <FlareFormField
     v-else-if="flarePluginIsUpload(input.kind)"
@@ -526,6 +583,19 @@ function filePolicyHint(input: FlarePluginInput): string {
   color: var(--flare-color-text-secondary);
   font-size: var(--flare-size-font-size-lg);
 }
+.flare-plugin-form__location {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--flare-size-layout-touch-target);
+}
+.flare-plugin-form__location-icon { display: inline-flex; flex: none; color: var(--flare-color-text-secondary); }
+.flare-plugin-form__location-text { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.flare-plugin-form__location-place { font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-primary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.flare-plugin-form__location-detail { font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.flare-plugin-form__location-keys { display: flex; flex: none; gap: var(--flare-size-spacing-xs); }
 .flare-plugin-form__members {
   display: flex;
   flex-wrap: wrap;

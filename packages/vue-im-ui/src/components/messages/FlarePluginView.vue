@@ -75,6 +75,8 @@ import {
   type FlarePluginUpgradeStatus,
   type FlarePluginFileState,
   type FlarePluginFileAction,
+  type FlarePluginLocationAction,
+  type FlarePluginLocationState,
   type FlarePluginInput,
   type FlarePluginMember,
   type FlarePluginProtectedItem,
@@ -153,6 +155,8 @@ const props = withDefaults(
     /** The host's validation errors for the open action form. */
     formErrors?: FlarePluginFormError[];
     fileStates?: Record<string, FlarePluginFileState>;
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates?: Record<string, FlarePluginLocationState>;
     /** Initial values for the action/row selected by the user; captured once when opening. */
     formInitialValues?: (
       actionId: string,
@@ -208,6 +212,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   action: [actionId: string, payload: FlarePluginActionPayload];
   fileAction: [event: FlarePluginFileAction];
+  /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+  locationAction: [event: FlarePluginLocationAction];
   /** "See all", the card's view details key (or a row of an admin table, with its key and the detail operation's input). */
   openDetail: [row?: { key: string; input: unknown }];
   /** Admin tables: the next page from `cursor` of operation `source`. */
@@ -320,9 +326,7 @@ const quoteShown = computed(() =>
 const specialPresentation = computed(
   () =>
     props.view.available &&
-    ["redPacket.card", "redPacket.pay", "payment.confirm"].includes(
-      props.view.presentation?.renderer ?? "",
-    ),
+    props.view.presentation?.renderer === "redPacket.card",
 );
 function presentationRequest(id: string): void {
   const action = props.view.actions.find((a) => a.id === id);
@@ -888,6 +892,7 @@ const variantOf = (action: FlarePluginAction) =>
       ? "primary"
       : "secondary";
 function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
+function forwardLocationAction(event: FlarePluginLocationAction): void { emit("locationAction", event); }
 </script>
 
 <template>
@@ -987,18 +992,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
     <FlareResolvedPresentation
       v-if="specialPresentation"
       :view="view"
-      :file-states="fileStates"
-      :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
       :busy="locked"
-      :error="error"
-      :form-errors="formErrors"
-      :settle-token="settleToken"
-      :resolve-user="resolveUser"
-      :resolve-image="resolveImage"
-      :onQrRefresh="canRefreshQr() ? (request: FlarePluginQrRefresh) => emit('qrRefresh', request) : undefined"
-      :members="members" :members-loading="membersLoading" :members-revision="membersRevision" :members-error="membersError" :on-member-search="onMemberSearch" :on-members-retry="onMembersRetry"
       @request="presentationRequest"
-      @action="send"
     >
       <template v-if="packetOwnsQuote && $slots.quote" #quote
         ><slot name="quote"
@@ -1203,6 +1198,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
         <FlarePluginForm
           :file-states="fileStates"
           :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
+          :location-states="locationStates"
+          :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
           :key="`${inlineFormAction.id}/${inlineRevision}`"
           class="flare-plugin-view__inline-form"
           data-inline-action-form="true"
@@ -1315,6 +1312,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
       <FlarePluginForm
           :file-states="fileStates"
           :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
+          :location-states="locationStates"
+          :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
         :inputs="formInputs"
         :select-presentation="actionsPlacement === 'rows' ? 'dropdown' : undefined"
         :values="formValues"

@@ -156,3 +156,37 @@ describe("protected media", () => {
     expect(wrapper.find("[data-media-error]").text()).toBe("Refused");
   });
 });
+
+describe("protected media on the owner's page", () => {
+  const own = {
+    kind: "protected-media" as const,
+    label: "My documents",
+    items: [{ id: "m1", label: "Front", mediaType: "image/jpeg", input: { applicationId: "a1" } }],
+    action: { id: "viewDocument", label: "View" },
+    inputName: "materialId",
+    urlPath: "/url",
+  };
+
+  it("reads with one tap when the block declares no reason input", async () => {
+    const reads: FlarePluginProtectedMediaRead[] = [];
+    const wrapper = render({ view: view({ blocks: [own] }), onProtectedMediaRead: (read: FlarePluginProtectedMediaRead) => reads.push(read) });
+    await wrapper.find("[data-media-read]").trigger("click");
+    await flushPromises();
+    expect(document.body.querySelector("textarea")).toBeNull();
+    expect(reads).toHaveLength(1);
+    expect(reads[0].formValues).toEqual({ materialId: "m1" });
+  });
+
+  it("draws the server's https grant address with no way to save it", () => {
+    const url = "https://im.example.com/private/realname/owner-materials/a1/m1?grant=abc.def";
+    const wrapper = render({ view: view({ blocks: [own] }), protectedMedia: { m1: { url } } });
+    const image = wrapper.find("[data-media-image]");
+    expect(image.attributes("src")).toBe(url);
+    expect(image.attributes("draggable")).toBe("false");
+    expect(image.attributes("referrerpolicy")).toBe("no-referrer");
+    const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    image.element.dispatchEvent(menu);
+    expect(menu.defaultPrevented).toBe(true);
+    expect(wrapper.text()).toContain("Only you can see this");
+  });
+});

@@ -114,7 +114,11 @@ export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue
 export { default as FlareRedPacketOpenSheet } from "./messages/FlareRedPacketOpenSheet.vue";
 export { default as FlareRedPacketDetail } from "./messages/FlareRedPacketDetail.vue";
 export { default as FlareRedPacketComposer } from "./messages/FlareRedPacketComposer.vue";
-export { default as FlareRedPacketPayConfirm } from "./messages/FlareRedPacketPayConfirm.vue";
+// Plugin host capabilities (design 7): the consent, the document capture and the payment confirmation the host shows
+// for the engine's capability requests.
+export { default as FlareCapabilityConsent } from "./messages/FlareCapabilityConsent.vue";
+export { default as FlareDocumentCapture } from "./messages/FlareDocumentCapture.vue";
+export { default as FlarePaymentConfirmation } from "./messages/FlarePaymentConfirmation.vue";
 export type {
   FlareRedPacketCardState,
   FlareRedPacketOpenState,

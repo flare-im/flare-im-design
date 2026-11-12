@@ -320,6 +320,7 @@ export type {
 } from "./plugin-ui";
 export type { FlarePluginUiVocabulary } from "./plugin-ui-vocabulary";
 export { PLUGIN_UI_VOCABULARY } from "./plugin-ui-vocabulary";
+export * from "./capability-ui";
 export {
   flarePluginBannerTone,
   flarePluginChartHasPoints,

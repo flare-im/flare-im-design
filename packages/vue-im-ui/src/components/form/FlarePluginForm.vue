@@ -27,6 +27,9 @@ import {
   type FlarePluginFileAction,
   type FlarePluginFileActionKind,
   type FlarePluginFileState,
+  type FlarePluginLocationAction,
+  type FlarePluginLocationState,
+  flarePluginLocationValue,
   type FlarePluginFormError,
   type FlarePluginInput,
   type FlarePluginMember,
@@ -72,6 +75,8 @@ const props = withDefaults(
     onMemberSearch?: (query: string) => void;
     onMembersRetry?: () => void;
     fileStates?: Record<string, FlarePluginFileState>;
+    /** Location inputs: what the host has for each (the engine's fix, a running locate, a failure), by input id. */
+    locationStates?: Record<string, FlarePluginLocationState>;
   }>(),
   {
     values: undefined,
@@ -94,6 +99,8 @@ const emit = defineEmits<{
   /** A reference request or selected-value update; hosts may retain the same directory's options. */
   (e: "reference-load", request: FlarePluginReferenceRequest): void;
   (e: "file-action", request: FlarePluginFileAction): void;
+  /** A location input's key: `locate` runs the page's locationOnce action into it; `clear` empties it. */
+  (e: "location-action", request: FlarePluginLocationAction): void;
 }>();
 const { t } = useFlareI18nOptional();
 const slots = useSlots();
@@ -160,6 +167,31 @@ function fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind):
   emit("file-action", { action, inputId: input.id, input, scope: fileScope.value,
     generation: fileGenerations[input.id] ?? 0, formValues: flarePluginFormValues(props.inputs, draft) });
 }
+function locationState(input: FlarePluginInput): FlarePluginLocationState {
+  return props.locationStates?.[input.id] ?? {};
+}
+function locationAction(input: FlarePluginInput, action: "locate" | "clear"): void {
+  if (input.kind !== "location" || props.busy || !visibleInputs.value.includes(input)) return;
+  if (action === "clear") {
+    draft[input.id] = null;
+    editedSinceErrors.add(input.id);
+  } else if (locationState(input).locating) return;
+  emit("location-action", { action, inputId: input.id, input, formValues: flarePluginFormValues(props.inputs, draft) });
+}
+// The host's fix, once it arrives, is the input's value; a fix of another precision is never taken. The host drops
+// its state on `clear`, so a fix it still holds is the input's value again after a reset.
+function applyLocationFixes(): void {
+  for (const input of visibleInputs.value) {
+    if (input.kind !== "location") continue;
+    const fix = flarePluginLocationValue(props.locationStates?.[input.id]?.value, input.precision);
+    if (!fix) continue;
+    const current = draft[input.id] as Record<string, unknown> | null | undefined;
+    if (current && JSON.stringify(current) === JSON.stringify(fix)) continue;
+    draft[input.id] = fix;
+    editedSinceErrors.add(input.id);
+  }
+}
+watch(() => props.locationStates, applyLocationFixes, { deep: true });
 const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
 /** A new form (other inputs or initial values, compared by content): start over from them. */
@@ -203,6 +235,7 @@ function reset(): void {
   edited.clear();
   editedSinceErrors.clear();
   attempted.value = false;
+  applyLocationFixes();
 }
 watch(
   () =>
@@ -480,6 +513,9 @@ const fieldState: PluginFormInputState = {
   get fileEnabled() { return !!instance?.vnode.props?.onFileAction; },
   fileState,
   fileAction,
+  get locationEnabled() { return !!instance?.vnode.props?.onLocationAction; },
+  locationState,
+  locationAction,
   get selectionLabels() {
     return props.selectionLabels;
   },

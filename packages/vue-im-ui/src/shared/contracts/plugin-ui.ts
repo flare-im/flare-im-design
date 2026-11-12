@@ -198,7 +198,10 @@ export interface FlarePluginProtectedItem {
   mediaType?: string;
   input: unknown;
 }
-/** Private material read one item at a time, with a stated reason, through `action`. Vue console only. */
+/**
+ * Private material read one item at a time through `action`: with a stated reason when `reasonInput` is declared (a
+ * console), with one tap on the owner's own page (no `reasonInput`; the operation is owner-scoped).
+ */
 export interface FlarePluginProtectedMediaBlock {
   kind: "protected-media";
   label?: string;
@@ -210,7 +213,10 @@ export interface FlarePluginProtectedMediaBlock {
   urlPath: string;
   emptyText?: string;
 }
-/** What the host has for an item. `url` is what the host fetched: a blob:, https: or data:image address. */
+/**
+ * What the host has for an item. `url` is the read's address: the server's short-lived https address (`?grant=`), or
+ * what the host fetched (blob:, data:image). The kit never caches it.
+ */
 export interface FlarePluginProtectedMediaState {
   url?: string;
   loading?: boolean;
@@ -377,7 +383,8 @@ export type FlarePluginInputKind =
   | "members"
   | "money"
   | "image"
-  | "document";
+  | "document"
+  | "location";
 /** The amount rules of a money input, read by the core SDK: no paths are left. */
 export interface FlarePluginMoneyRules {
   currency?: string;
@@ -413,6 +420,8 @@ export interface FlarePluginInput {
   money?: FlarePluginMoneyRules;
   /** document only: which side of the document. */
   side?: FlarePluginDocumentSide;
+  /** location only: how precise a fix the input takes (its locationOnce writes one of this precision). */
+  precision?: FlarePluginLocationPrecision;
   showWhen?: FlarePluginInputCondition;
 }
 /** Inputs whose value is an uploaded file's `{fileId}`: file, image and document. */
@@ -1490,6 +1499,67 @@ export function flarePluginMinRows(input: FlarePluginInput): number {
 }
 
 /** The editable draft of one input: `values[id]`, else its default. */
+export type FlarePluginLocationPrecision = "coarse" | "fine";
+/**
+ * A location input's value (flare-plugin-protocol UiLocationValue): what the engine writes into the input when the
+ * viewer's one-time location (locationOnce) completes, already truncated to the input's precision.
+ */
+export interface FlarePluginLocationValue {
+  latitude: number;
+  longitude: number;
+  accuracyM: number;
+  precision: FlarePluginLocationPrecision;
+}
+/** What a location input shows while the host locates: the host's state by input id. */
+export interface FlarePluginLocationState {
+  /** The fix the engine wrote (`{kind: "input", input, value}`). */
+  value?: FlarePluginLocationValue;
+  locating?: boolean;
+  error?: string;
+}
+/** A location input's key: `locate` asks the host to run the page's locationOnce action into this input. */
+export interface FlarePluginLocationAction {
+  action: "locate" | "clear";
+  inputId: string;
+  input: FlarePluginInput;
+  formValues: Record<string, unknown>;
+}
+
+const LOCATION_RULES: Record<FlarePluginLocationPrecision, { places: number; floorM: number }> = {
+  coarse: { places: 2, floorM: 1000 },
+  fine: { places: 5, floorM: 1 },
+};
+const placesOf = (n: number) => {
+  const text = String(Math.abs(n));
+  if (/e/i.test(text)) return 99;
+  const dot = text.indexOf(".");
+  return dot < 0 ? 0 : text.length - dot - 1;
+};
+/**
+ * `value` as a location of `precision` (UiLocationValue::fits): the same precision, a point on the globe, no more
+ * decimal places than the precision allows (2 coarse, 5 fine) and a whole accuracy of at least its floor (1000 m
+ * coarse, 1 m fine). Anything else is null.
+ */
+export function flarePluginLocationValue(value: unknown, precision: FlarePluginLocationPrecision | undefined): FlarePluginLocationValue | null {
+  if (!value || typeof value !== "object" || Array.isArray(value) || !precision) return null;
+  const v = value as Record<string, unknown>;
+  const { latitude, longitude, accuracyM } = v;
+  if (v.precision !== precision) return null;
+  if (typeof latitude !== "number" || typeof longitude !== "number" || typeof accuracyM !== "number") return null;
+  if (![latitude, longitude, accuracyM].every(Number.isFinite)) return null;
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+  const rules = LOCATION_RULES[precision];
+  if (placesOf(latitude) > rules.places || placesOf(longitude) > rules.places) return null;
+  if (!Number.isInteger(accuracyM) || accuracyM < rules.floorM) return null;
+  return { latitude, longitude, accuracyM, precision };
+}
+/** The fix as a location input shows it: "31.23°N, 121.47°E" with the hemisphere letters, the digits as given. */
+export function flarePluginLocationText(value: FlarePluginLocationValue): string {
+  const lat = `${Math.abs(value.latitude)}°${value.latitude < 0 ? "S" : "N"}`;
+  const lng = `${Math.abs(value.longitude)}°${value.longitude < 0 ? "W" : "E"}`;
+  return `${lat}, ${lng}`;
+}
+
 export function flarePluginDraftValue(
   input: FlarePluginInput,
   values: Record<string, unknown> | undefined,
@@ -1500,6 +1570,8 @@ export function flarePluginDraftValue(
     case "image":
     case "document":
       return flarePluginFileValue(raw) ? { fileId: raw.fileId } : null;
+    case "location":
+      return flarePluginLocationValue(raw, input.precision);
     case "money":
       // The draft is the amount as typed; the currency comes from the input.
       if (typeof raw === "string") return raw;
@@ -1559,6 +1631,8 @@ export function flarePluginCheckInput(
     case "image":
     case "document":
       return draft == null ? (input.required ? "required" : null) : flarePluginFileValue(draft) ? null : "invalidType";
+    case "location":
+      return draft == null ? (input.required ? "required" : null) : flarePluginLocationValue(draft, input.precision) ? null : "invalidType";
     case "money":
       return flarePluginCheckMoney(input, draft);
     case "password":
@@ -1618,6 +1692,11 @@ export function flarePluginFormValues(
       case "document":
         if (flarePluginFileValue(value)) out[input.id] = { fileId: value.fileId };
         break;
+      case "location": {
+        const fix = flarePluginLocationValue(value, input.precision);
+        if (fix) out[input.id] = fix;
+        break;
+      }
       case "money": {
         const amount = flarePluginMoneyAmount(typeof value === "string" ? value : "");
         const currency = input.money?.currency;
