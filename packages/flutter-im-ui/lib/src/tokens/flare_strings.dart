@@ -273,6 +273,29 @@ class FlareStrings {
     this.accountDayFormat = 'M月d日',
     this.accountDayYearFormat = 'y年M月d日',
     this.pluginViewEmpty = '暂无数据',
+    this.pluginViewUnavailableUpgradeRequired = '更新应用后查看',
+    this.pluginUpgradeAction = '去更新',
+    this.pluginUpgradeNotAvailable = '当前版本暂不支持，新版本发布后可用',
+    this.pluginUpgradeBadge = '需更新',
+    this.pluginUpgradeTitle = '需要更新应用',
+    this.pluginUpgradeDescription = '此内容需要更新到新版本后才能使用',
+    this.pluginViewQrExpired = '二维码已失效',
+    this.pluginViewQrRefresh = '刷新二维码',
+    this.pluginViewStepPending = '未开始',
+    this.pluginViewStepCurrent = '进行中',
+    this.pluginViewStepDone = '已完成',
+    this.pluginViewStepFailed = '未通过',
+    this.pluginViewTrendUp = '上升',
+    this.pluginViewTrendDown = '下降',
+    this.pluginViewTrendFlat = '持平',
+    this.pluginViewImageUnavailable = '图片无法显示',
+    this.pluginFormatSeconds = '{n} 秒',
+    this.pluginFormatCountUnits = '4:万|8:亿',
+    this.pluginFormChooseImage = '选择图片',
+    this.pluginFormCaptureDocument = '拍摄证件',
+    this.pluginFormDocumentFront = '证件正面',
+    this.pluginFormDocumentBack = '证件反面',
+    this.pluginFormDocumentHolding = '手持证件',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
     this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
@@ -1329,6 +1352,29 @@ class FlareStrings {
   final String accountDayFormat;
   final String accountDayYearFormat;
   final String pluginViewEmpty;
+  final String pluginViewUnavailableUpgradeRequired;
+  final String pluginUpgradeAction;
+  final String pluginUpgradeNotAvailable;
+  final String pluginUpgradeBadge;
+  final String pluginUpgradeTitle;
+  final String pluginUpgradeDescription;
+  final String pluginViewQrExpired;
+  final String pluginViewQrRefresh;
+  final String pluginViewStepPending;
+  final String pluginViewStepCurrent;
+  final String pluginViewStepDone;
+  final String pluginViewStepFailed;
+  final String pluginViewTrendUp;
+  final String pluginViewTrendDown;
+  final String pluginViewTrendFlat;
+  final String pluginViewImageUnavailable;
+  final String pluginFormatSeconds;
+  final String pluginFormatCountUnits;
+  final String pluginFormChooseImage;
+  final String pluginFormCaptureDocument;
+  final String pluginFormDocumentFront;
+  final String pluginFormDocumentBack;
+  final String pluginFormDocumentHolding;
   final String pluginViewVotes;
   final String pluginViewRemaining;
 
@@ -2372,6 +2418,29 @@ class FlareStrings {
     String? accountDayFormat,
     String? accountDayYearFormat,
     String? pluginViewEmpty,
+    String? pluginViewUnavailableUpgradeRequired,
+    String? pluginUpgradeAction,
+    String? pluginUpgradeNotAvailable,
+    String? pluginUpgradeBadge,
+    String? pluginUpgradeTitle,
+    String? pluginUpgradeDescription,
+    String? pluginViewQrExpired,
+    String? pluginViewQrRefresh,
+    String? pluginViewStepPending,
+    String? pluginViewStepCurrent,
+    String? pluginViewStepDone,
+    String? pluginViewStepFailed,
+    String? pluginViewTrendUp,
+    String? pluginViewTrendDown,
+    String? pluginViewTrendFlat,
+    String? pluginViewImageUnavailable,
+    String? pluginFormatSeconds,
+    String? pluginFormatCountUnits,
+    String? pluginFormChooseImage,
+    String? pluginFormCaptureDocument,
+    String? pluginFormDocumentFront,
+    String? pluginFormDocumentBack,
+    String? pluginFormDocumentHolding,
     String? pluginViewVotes,
     String? pluginViewRemaining,
     String? pluginViewDateTimeFormat,
@@ -3361,6 +3430,29 @@ class FlareStrings {
       accountDayFormat: accountDayFormat ?? this.accountDayFormat,
       accountDayYearFormat: accountDayYearFormat ?? this.accountDayYearFormat,
       pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
+      pluginViewUnavailableUpgradeRequired: pluginViewUnavailableUpgradeRequired ?? this.pluginViewUnavailableUpgradeRequired,
+      pluginUpgradeAction: pluginUpgradeAction ?? this.pluginUpgradeAction,
+      pluginUpgradeNotAvailable: pluginUpgradeNotAvailable ?? this.pluginUpgradeNotAvailable,
+      pluginUpgradeBadge: pluginUpgradeBadge ?? this.pluginUpgradeBadge,
+      pluginUpgradeTitle: pluginUpgradeTitle ?? this.pluginUpgradeTitle,
+      pluginUpgradeDescription: pluginUpgradeDescription ?? this.pluginUpgradeDescription,
+      pluginViewQrExpired: pluginViewQrExpired ?? this.pluginViewQrExpired,
+      pluginViewQrRefresh: pluginViewQrRefresh ?? this.pluginViewQrRefresh,
+      pluginViewStepPending: pluginViewStepPending ?? this.pluginViewStepPending,
+      pluginViewStepCurrent: pluginViewStepCurrent ?? this.pluginViewStepCurrent,
+      pluginViewStepDone: pluginViewStepDone ?? this.pluginViewStepDone,
+      pluginViewStepFailed: pluginViewStepFailed ?? this.pluginViewStepFailed,
+      pluginViewTrendUp: pluginViewTrendUp ?? this.pluginViewTrendUp,
+      pluginViewTrendDown: pluginViewTrendDown ?? this.pluginViewTrendDown,
+      pluginViewTrendFlat: pluginViewTrendFlat ?? this.pluginViewTrendFlat,
+      pluginViewImageUnavailable: pluginViewImageUnavailable ?? this.pluginViewImageUnavailable,
+      pluginFormatSeconds: pluginFormatSeconds ?? this.pluginFormatSeconds,
+      pluginFormatCountUnits: pluginFormatCountUnits ?? this.pluginFormatCountUnits,
+      pluginFormChooseImage: pluginFormChooseImage ?? this.pluginFormChooseImage,
+      pluginFormCaptureDocument: pluginFormCaptureDocument ?? this.pluginFormCaptureDocument,
+      pluginFormDocumentFront: pluginFormDocumentFront ?? this.pluginFormDocumentFront,
+      pluginFormDocumentBack: pluginFormDocumentBack ?? this.pluginFormDocumentBack,
+      pluginFormDocumentHolding: pluginFormDocumentHolding ?? this.pluginFormDocumentHolding,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat:

@@ -7388,6 +7388,213 @@
     ],
     "zh": "暂无数据"
   },
+  "pluginViewUnavailableUpgradeRequired": {
+    "en": "Update the app to view this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新应用后查看"
+  },
+  "pluginUpgradeAction": {
+    "en": "Update",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "去更新"
+  },
+  "pluginUpgradeNotAvailable": {
+    "en": "Not supported in this version yet. It will work once a newer version is released",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前版本暂不支持，新版本发布后可用"
+  },
+  "pluginUpgradeBadge": {
+    "en": "Update needed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需更新"
+  },
+  "pluginUpgradeTitle": {
+    "en": "Update required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需要更新应用"
+  },
+  "pluginUpgradeDescription": {
+    "en": "This needs a newer version of the app",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "此内容需要更新到新版本后才能使用"
+  },
+  "pluginViewQrExpired": {
+    "en": "QR code expired",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "二维码已失效"
+  },
+  "pluginViewQrRefresh": {
+    "en": "Refresh QR code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "刷新二维码"
+  },
+  "pluginViewStepPending": {
+    "en": "Not started",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未开始"
+  },
+  "pluginViewStepCurrent": {
+    "en": "In progress",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "进行中"
+  },
+  "pluginViewStepDone": {
+    "en": "Done",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已完成"
+  },
+  "pluginViewStepFailed": {
+    "en": "Failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未通过"
+  },
+  "pluginViewTrendUp": {
+    "en": "Up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "上升"
+  },
+  "pluginViewTrendDown": {
+    "en": "Down",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下降"
+  },
+  "pluginViewTrendFlat": {
+    "en": "Unchanged",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "持平"
+  },
+  "pluginViewImageUnavailable": {
+    "en": "Image unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "图片无法显示"
+  },
+  "pluginFormatSeconds": {
+    "en": "{n} s",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 秒"
+  },
+  "pluginFormatCountUnits": {
+    "en": "3:K|6:M|9:B",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "4:万|8:亿"
+  },
+  "pluginFormChooseImage": {
+    "en": "Choose image",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选择图片"
+  },
+  "pluginFormCaptureDocument": {
+    "en": "Capture document",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拍摄证件"
+  },
+  "pluginFormDocumentFront": {
+    "en": "Front",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "证件正面"
+  },
+  "pluginFormDocumentBack": {
+    "en": "Back",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "证件反面"
+  },
+  "pluginFormDocumentHolding": {
+    "en": "Holding the document",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "手持证件"
+  },
   "pluginPageRefresh": {
     "en": "Refresh",
     "kits": [

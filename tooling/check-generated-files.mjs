@@ -8,6 +8,7 @@ const checks = [
   ["icon shim", "packages/vue-im-ui/scripts/gen-icon-shim.mjs", "--check"],
   ["Flutter kit icon font", "packages/flutter-im-ui/scripts/build-icon-font.mjs", "--check"],
   ["tokens", "tokens/build.mjs", "--check"],
+  ["plugin UI vocabulary", "spec/build-plugin-ui-vocabulary.mjs", "--check"],
   ["pinyin initials", "tooling/build-pinyin-initials.mjs", "--check"],
   ["maturity model", "spec/build-maturity-model.mjs", "--check"],
   ["component layers", "spec/build-component-layers.mjs", "--check"],
