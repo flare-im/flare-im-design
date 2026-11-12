@@ -43,7 +43,10 @@ import java.util.UUID
  *
  * Controls: text and textarea with "n/max"; number; toggle ([Switch]); select as a single-choice list ([RadioGroup]);
  * datetime with the kit [DatePicker] and [TimePicker] in the device zone; options as rows with add and remove within
- * [max(min, 1), max]; members through [ContactPicker] over the host's [members] (one pick when max is 1).
+ * [max(min, 1), max]; members through [ContactPicker] over the host's [members] (one pick when max is 1); money as an
+ * amount field with its currency (submitted as `{amount, currency}`, the amount normalised and checked against the
+ * scale and bounds); file, image and document through the upload slot (the host picks, captures and uploads on
+ * [PluginFileAction]; image asks to choose a picture, document to capture its side).
  */
 @Composable
 fun PluginForm(
@@ -68,9 +71,9 @@ fun PluginForm(
     val strings = flareStrings()
     var form by remember(inputs, values) { mutableStateOf(PluginFormState.initial(inputs, values)) }
     val fileScope = remember(inputs, values) { UUID.randomUUID().toString() }
-    var fileGenerations by remember(fileScope) { mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { it.id to 0 }) }
+    var fileGenerations by remember(fileScope) { mutableStateOf(inputs.filter { it.kind.isUpload }.associate { it.id to 0 }) }
     var localFiles by remember(fileScope) {
-        mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { input ->
+        mutableStateOf(inputs.filter { it.kind.isUpload }.associate { input ->
             val value = pluginFileReference(form.draft[input.id])
             input.id to PluginFileState(fileScope, 0, if (value == null) PluginFilePhase.Empty else PluginFilePhase.Uploaded, value)
         })
@@ -80,14 +83,14 @@ fun PluginForm(
     val disposalDraft by rememberUpdatedState(form.draft)
     DisposableEffect(fileScope) {
         onDispose {
-            inputs.filter { it.kind == PluginInputKind.File }.forEach { input ->
+            inputs.filter { it.kind.isUpload }.forEach { input ->
                 fileCallback?.invoke(PluginFileAction(PluginFileActionKind.Invalidate, input.id, input, fileScope,
                     (disposalFiles[input.id] ?: 0) + 1, PluginFormRules.values(inputs, disposalDraft) - input.id))
             }
         }
     }
     LaunchedEffect(fileScope, fileStates) {
-        inputs.filter { it.kind == PluginInputKind.File && it.visibleIn(form.draft) }.forEach { input ->
+        inputs.filter { it.kind.isUpload && it.visibleIn(form.draft) }.forEach { input ->
             pluginFileCurrent(fileStates[input.id], fileScope, fileGenerations[input.id] ?: 0)?.let { state ->
                 localFiles = localFiles + (input.id to state)
                 val reference = if (state.phase == PluginFilePhase.Uploaded) pluginFileReference(state.value) else null
@@ -140,7 +143,7 @@ fun PluginForm(
     fun set(id: String, value: Any?) {
         val changed = form.draft[id] != value
         form = form.set(id, value, inputs)
-        if (changed) inputs.filter { it.showWhen?.field == id && it.kind == PluginInputKind.File }
+        if (changed) inputs.filter { it.showWhen?.field == id && it.kind.isUpload }
             .forEach { fileAction(it, PluginFileActionKind.Invalidate) }
         if (changed) {
             val dependentIds = inputs.filter { it.showWhen?.field == id }.map { it.id }.toSet()
@@ -219,7 +222,11 @@ fun PluginForm(
                     Button(label = strings.select, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm, icon = "person-add",
                         disabled = busy || (onMemberSearch == null && members.isEmpty()), onClick = { pickingRevision = membersRevision; picking = input; onMemberSearch?.invoke("") })
                 }
-                PluginInputKind.File -> FormField(input.label, input.required, null, errorText(input)) {
+                PluginInputKind.Money -> FormField(input.label, input.required, input.money?.currency, errorText(input)) {
+                    Input(value = form.draft[input.id] as? String ?: "", onValueChange = { set(input.id, it) },
+                        placeholder = input.placeholder, disabled = busy)
+                }
+                PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> FormField(input.label, input.required, null, errorText(input)) {
                     val state = localFiles[input.id] ?: PluginFileState(fileScope, fileGenerations[input.id] ?: 0, PluginFilePhase.Empty)
                     PluginFileInput(input, state, busy || fileCallback == null) { kind -> fileAction(input, kind) }
                 }
@@ -233,9 +240,9 @@ fun PluginForm(
             }
             Box(Modifier.weight(1f)) {
                 Button(label = submitLabel ?: strings.pluginViewSubmit, loading = busy,
-                    disabled = onSubmit == null || inputs.any { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }, block = true,
+                    disabled = onSubmit == null || inputs.any { it.visibleIn(form.draft) && it.kind.isUpload && pluginFilePending(localFiles[it.id]) }, block = true,
                     onClick = {
-                        if (!busy && inputs.none { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }) {
+                        if (!busy && inputs.none { it.visibleIn(form.draft) && it.kind.isUpload && pluginFilePending(localFiles[it.id]) }) {
                             val (next, submitted) = form.submit(inputs)
                             form = next
                             if (submitted != null) { inputs.filter { it.kind == PluginInputKind.Password }.forEach { set(it.id, "") }; onSubmit?.invoke(submitted) }

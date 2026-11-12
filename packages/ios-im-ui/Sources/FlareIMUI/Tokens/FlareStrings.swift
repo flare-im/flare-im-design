@@ -1165,6 +1165,30 @@ public struct FlareStrings: Sendable {
     public var pluginViewUnavailableIncompatibleVersion: String
     public var pluginViewUnavailableCatalogUnreachable: String
     public var pluginViewUnavailableUnboundCopy: String
+    /// Vocabulary 2: the upgrade notice, the new blocks' copy, the count and duration formats, image and document inputs.
+    public var pluginViewUnavailableUpgradeRequired: String
+    public var pluginUpgradeAction: String
+    public var pluginUpgradeNotAvailable: String
+    public var pluginUpgradeBadge: String
+    public var pluginUpgradeTitle: String
+    public var pluginUpgradeDescription: String
+    public var pluginViewQrExpired: String
+    public var pluginViewQrRefresh: String
+    public var pluginViewStepPending: String
+    public var pluginViewStepCurrent: String
+    public var pluginViewStepDone: String
+    public var pluginViewStepFailed: String
+    public var pluginViewTrendUp: String
+    public var pluginViewTrendDown: String
+    public var pluginViewTrendFlat: String
+    public var pluginViewImageUnavailable: String
+    public var pluginFormatSeconds: String
+    public var pluginFormatCountUnits: String
+    public var pluginFormChooseImage: String
+    public var pluginFormCaptureDocument: String
+    public var pluginFormDocumentFront: String
+    public var pluginFormDocumentBack: String
+    public var pluginFormDocumentHolding: String
     /// The refresh key in a plugin page's header on a pointer device.
     public var pluginPageRefresh: String
     /// A multiple choice's limit, leading its footer (`{n}`).
@@ -2133,6 +2157,29 @@ public struct FlareStrings: Sendable {
         pluginViewUnavailableIncompatibleVersion: String = "请更新应用后查看",
         pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试",
         pluginViewUnavailableUnboundCopy: String = "副本，仅供查看",
+        pluginViewUnavailableUpgradeRequired: String = "更新应用后查看",
+        pluginUpgradeAction: String = "去更新",
+        pluginUpgradeNotAvailable: String = "当前版本暂不支持，新版本发布后可用",
+        pluginUpgradeBadge: String = "需更新",
+        pluginUpgradeTitle: String = "需要更新应用",
+        pluginUpgradeDescription: String = "此内容需要更新到新版本后才能使用",
+        pluginViewQrExpired: String = "二维码已失效",
+        pluginViewQrRefresh: String = "刷新二维码",
+        pluginViewStepPending: String = "未开始",
+        pluginViewStepCurrent: String = "进行中",
+        pluginViewStepDone: String = "已完成",
+        pluginViewStepFailed: String = "未通过",
+        pluginViewTrendUp: String = "上升",
+        pluginViewTrendDown: String = "下降",
+        pluginViewTrendFlat: String = "持平",
+        pluginViewImageUnavailable: String = "图片无法显示",
+        pluginFormatSeconds: String = "{n} 秒",
+        pluginFormatCountUnits: String = "4:万|8:亿",
+        pluginFormChooseImage: String = "选择图片",
+        pluginFormCaptureDocument: String = "拍摄证件",
+        pluginFormDocumentFront: String = "证件正面",
+        pluginFormDocumentBack: String = "证件反面",
+        pluginFormDocumentHolding: String = "手持证件",
         pluginPageRefresh: String = "刷新",
         pluginViewMaxSelections: String = "最多选 {n} 项",
         pluginViewAll: String = "全部",
@@ -3050,6 +3097,29 @@ public struct FlareStrings: Sendable {
         self.pluginViewUnavailableIncompatibleVersion = pluginViewUnavailableIncompatibleVersion
         self.pluginViewUnavailableCatalogUnreachable = pluginViewUnavailableCatalogUnreachable
         self.pluginViewUnavailableUnboundCopy = pluginViewUnavailableUnboundCopy
+        self.pluginViewUnavailableUpgradeRequired = pluginViewUnavailableUpgradeRequired
+        self.pluginUpgradeAction = pluginUpgradeAction
+        self.pluginUpgradeNotAvailable = pluginUpgradeNotAvailable
+        self.pluginUpgradeBadge = pluginUpgradeBadge
+        self.pluginUpgradeTitle = pluginUpgradeTitle
+        self.pluginUpgradeDescription = pluginUpgradeDescription
+        self.pluginViewQrExpired = pluginViewQrExpired
+        self.pluginViewQrRefresh = pluginViewQrRefresh
+        self.pluginViewStepPending = pluginViewStepPending
+        self.pluginViewStepCurrent = pluginViewStepCurrent
+        self.pluginViewStepDone = pluginViewStepDone
+        self.pluginViewStepFailed = pluginViewStepFailed
+        self.pluginViewTrendUp = pluginViewTrendUp
+        self.pluginViewTrendDown = pluginViewTrendDown
+        self.pluginViewTrendFlat = pluginViewTrendFlat
+        self.pluginViewImageUnavailable = pluginViewImageUnavailable
+        self.pluginFormatSeconds = pluginFormatSeconds
+        self.pluginFormatCountUnits = pluginFormatCountUnits
+        self.pluginFormChooseImage = pluginFormChooseImage
+        self.pluginFormCaptureDocument = pluginFormCaptureDocument
+        self.pluginFormDocumentFront = pluginFormDocumentFront
+        self.pluginFormDocumentBack = pluginFormDocumentBack
+        self.pluginFormDocumentHolding = pluginFormDocumentHolding
         self.pluginPageRefresh = pluginPageRefresh
         self.pluginViewMaxSelections = pluginViewMaxSelections
         self.pluginViewAll = pluginViewAll

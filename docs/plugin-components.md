@@ -180,6 +180,14 @@
 - **数据**：Kit 不发请求。宿主调用 `update.plugin_upgrade_status({minBuild})`，把 `{available, build?}` 作为 `upgradeStatus`（独立组件为 `status`）传入，并传 `onUpdate`（调用 `update.open_flow` 或各端更新界面）。
 - **规则**（`flarePluginUpgradeMode`）：有可用版本且传了 `onUpdate` 时显示「去更新」；答复说没有可用版本（含仍在灰度、本设备未命中）时只显示「当前版本暂不支持，新版本发布后可用」；还没有答复或没有回调时显示「更新应用后查看」。
 
+### 原生端接线（SwiftUI、Compose）
+
+- `PluginView`、`FlarePluginPage` 新增参数：`upgradeStatus`（`PluginUpgradeStatus`，引擎 `update.plugin_upgrade_status` 的答复）、`upgradeBusy`、`onUpdate`、`resolveImage`、`onQrRefresh`。`resolveImage` 在 SwiftUI 是 `(PluginImageSource) async -> URL?`，在 Compose 是 `suspend (PluginImageSource) -> String?`；`onQrRefresh` 收到 `PluginQrRefresh(operation, valuePath, expiresAtPath)`。
+- 视图模型：`PluginViewModel.minBuild`、`upgradeRequired`；`PluginUnavailableReason.upgradeRequired`；`PluginInputKind` 增加 `money`、`image`、`document`（`isUpload`）；`PluginInput.money`（`PluginMoneyRules`）、`side`（`PluginDocumentSide`）；字段、单元格、指标、主数字带 `format`（`PluginValueFormat`）。
+- 上传输入（file、image、document）共用 `PluginFileAction`：宿主按 `input.kind` 与 `input.side` 决定打开相册、相机还是证件拍摄。
+- 词汇常量：SwiftUI `PLUGIN_UI_VOCABULARY`（JSON 字符串）与 `FlarePluginUIVocabulary`；Compose `PLUGIN_UI_VOCABULARY` 与 `PluginUiVocabulary`。宿主把 JSON 原样作为 `kitVocabulary` 交给 `plugin.set_host_profile`，`platform` 填 `ios` / `android`。
+- 视觉门禁：SwiftUI `VisualSnapshotTests.testPluginBlocks2Snapshot`（基线 `tests/visual/ios/baselines/swiftui-plugin-blocks2-{light,dark}.png`），Compose `RcScreenshotHarnessTest.pluginBlocksLight/Dark`（金样 `goldens/plugin-blocks2-{light,dark}.png`）。
+
 ### 删除的专用渲染器
 
 `redPacket.composer`（改为 `money` 输入加现有输入）、`redPacket.detail`（改为 `hero` + `entries` + `banner`）、`account`（改为 `hero` + `stats` + `section` + `rows`）、`flare.qr`（改为 `qr` 块）在 Kit 里不再识别，这些名字的视图按普通文档画。合同迁移在插件仓完成。`FlareRedPacketComposer`、`FlareRedPacketDetail` 组件本身保留给宿主直接组合。`PluginPage.appearance="account"` 仍可由宿主显式选择，但视图不再通过 renderer 选它。

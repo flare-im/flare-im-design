@@ -33,7 +33,7 @@ class AccountViewInteractionTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density / if (wide) 3f else 1f, 1f)) {
                 FlareThemeProvider(mode = if (wide) FlareThemeMode.Dark else FlareThemeMode.Light) {
                     Box(Modifier.width(if (wide) 1100.dp else 390.dp)) {
-                        FlarePluginPage(page = cases[selected.value].first, view = cases[selected.value].second,
+                        FlarePluginPage(page = cases[selected.value].first, view = cases[selected.value].second, appearance = FlarePluginPageAppearance.Account,
                             onFilter = {}, onRefresh = {}, onLoadMore = {}, onAction = { _, _ -> })
                     }
                 }
@@ -55,7 +55,7 @@ class AccountViewInteractionTest {
         val changed = mutableListOf<Map<String, Any?>>()
         val opened = mutableListOf<PluginPageActionPayload>()
         compose.setContent { FlareThemeProvider(mode = FlareThemeMode.Light) { Box(Modifier.width(320.dp)) {
-            FlarePluginPage(page = ref, view = recordPage(), filters = mapOf("status" to "pending"),
+            FlarePluginPage(page = ref, view = recordPage(), filters = mapOf("status" to "pending"), appearance = FlarePluginPageAppearance.Account,
                 onFilter = { changed += it }, onAction = { _, payload -> opened += payload })
         } } }
         compose.onNodeWithText("业务类型").assertIsDisplayed()
@@ -76,7 +76,7 @@ class AccountViewInteractionTest {
         val refreshing = mutableStateOf(false)
         var pages = 0
         var retries = 0
-        compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = recordPage(),
+        compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = recordPage(), appearance = FlarePluginPageAppearance.Account,
             pagingToken = token.value, refreshing = refreshing.value, error = "同一分页错误",
             busyActionId = "financial", actionError = "支付待确认", settleToken = 0,
             onLoadMore = { pages++; token.value++ }, onRefresh = { retries++ }) } }

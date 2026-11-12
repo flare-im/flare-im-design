@@ -3,62 +3,17 @@ import ViewInspector
 import XCTest
 @testable import FlareIMUI
 final class ResolvedPresentationTests: XCTestCase {
- func testOpenWaitsForHostResultAndBlocksASecondTap() {
-  var state = ResolvedRedPacketOpenState()
-  state.show(busy: false, unknown: false)
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(settleToken: 4)))
-  XCTAssertTrue(state.presented, "opening the envelope must not hide the pending claim")
-  XCTAssertTrue(state.pending)
-  XCTAssertFalse(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(settleToken: 4)))
-  state.hostChanged(to: PluginHostSignal(busy: true, settleToken: 4))
-  XCTAssertTrue(state.presented)
-  XCTAssertTrue(state.pending)
-  state.hostChanged(to: PluginHostSignal(settleToken: 5))
-  XCTAssertFalse(state.pending)
-  XCTAssertFalse(state.presented, "a clean host result closes the envelope")
- }
- func testOpenFailureRemainsVisibleAndNeedsAnExplicitRetry() {
-  var state = ResolvedRedPacketOpenState()
-  state.show(busy: false, unknown: false)
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal()))
-  state.hostChanged(to: PluginHostSignal(error: "Connection lost", settleToken: 1))
-  XCTAssertTrue(state.presented, "a failed claim keeps its error visible")
-  XCTAssertFalse(state.pending)
-  state.hostChanged(to: PluginHostSignal(error: "Connection lost", settleToken: 2))
-  XCTAssertTrue(state.presented, "host refreshes must never retry or close the failed claim")
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(error: "Connection lost", settleToken: 2)))
-  state.hostChanged(to: PluginHostSignal(formErrors: [PluginFormError(input: "request", issue: .required)], settleToken: 3))
-  XCTAssertTrue(state.presented)
-  XCTAssertFalse(state.pending)
- }
- func testOpenSameFrameCompletionAndUnknownResults() {
-  var state = ResolvedRedPacketOpenState()
-  state.show(busy: false, unknown: true)
-  XCTAssertFalse(state.presented)
-  state.show(busy: false, unknown: false)
-  XCTAssertFalse(state.begin(actionId: "claim", unknown: true, host: PluginHostSignal()))
-  XCTAssertFalse(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(busy: true)))
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(settleToken: 8)))
-  state.hostChanged(to: PluginHostSignal(settleToken: 9))
-  XCTAssertFalse(state.presented, "the token also settles a request that completed before a busy frame rendered")
-  state.show(busy: false, unknown: false)
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal(settleToken: 9)))
-  state.hostChanged(to: PluginHostSignal(settleToken: 10), unknown: true)
-  XCTAssertTrue(state.presented, "an unknown outcome is not a successful claim")
-  XCTAssertFalse(state.pending)
-  XCTAssertFalse(state.begin(actionId: "claim", unknown: true, host: PluginHostSignal(settleToken: 10)))
- }
- func testExplicitCloseDuringOpenDoesNotCancelOrReopenTheHostAction() {
-  var state = ResolvedRedPacketOpenState()
-  state.show(busy: false, unknown: false)
-  XCTAssertTrue(state.begin(actionId: "claim", unknown: false, host: PluginHostSignal()))
-  state.presented = false
-  state.show(busy: false, unknown: false)
-  XCTAssertFalse(state.presented, "an in-flight request cannot be started again by reopening")
-  XCTAssertTrue(state.pending)
-  state.hostChanged(to: PluginHostSignal(error: "Connection lost", settleToken: 1))
-  XCTAssertFalse(state.pending)
-  XCTAssertFalse(state.presented, "a late failure respects an explicit user dismissal")
+ func testOnlyTheCompiledRenderersStaySpecial() {
+  // The composer and the detail renderers moved to blocks (money input, hero, entries, banner): their views draw as
+  // plain plugin views now.
+  for renderer in ["redPacket.composer", "redPacket.detail", "account", "flare.qr"] {
+   let view = PluginViewModel(available: true, title: "x", presentation: PluginPresentation(renderer: renderer, props: [:], actions: [:]))
+   XCTAssertFalse(flareHasResolvedPresentation(view), renderer)
+  }
+  for renderer in ["redPacket.card", "redPacket.pay", "payment.confirm"] {
+   let view = PluginViewModel(available: true, title: "x", presentation: PluginPresentation(renderer: renderer, props: [:], actions: [:]))
+   XCTAssertTrue(flareHasResolvedPresentation(view), renderer)
+  }
  }
  func testPaymentCancelClosesClearsCredentialAndReopensWithoutReuse() {
   var state = ResolvedPaymentState()
@@ -138,51 +93,6 @@ final class ResolvedPresentationTests: XCTestCase {
   XCTAssertEqual(FlareRedPacketMoney.text(minor:"1",exponent:8),"0.00000001")
   XCTAssertNil(FlareRedPacketMoney.text(minor:"1",exponent:1000000))
  }
- @MainActor func testComposerStartsWithAmountWithoutFundingSetup()throws {
-  let view=try fixture("composer")
-  let body=ResolvedPresentationView(view:view,busy:false,error:nil,formErrors:[],members:[],settleToken:0,resolveUser:nil,onAction:nil,onRequest:{_ in})
-  XCTAssertNoThrow(try body.inspect().find(RedPacketComposerView<AnyView>.self))
-  XCTAssertThrowsError(try body.inspect().find(PluginFormView.self))
-  XCTAssertEqual(view.presentation?.props["funding"]?["currencyExponent"]?.numberValue,2)
- }
- private func composer(_ conversationType: String?) throws -> PluginViewModel {
-  let value = try fixture("composer")
-  var raw = try JSONSerialization.jsonObject(with: JSONEncoder().encode(value)) as! [String: Any]
-  var presentation = raw["presentation"] as! [String: Any]
-  var props = presentation["props"] as! [String: Any]
-  props["conversationType"] = conversationType
-  presentation["props"] = props; raw["presentation"] = presentation
-  return try JSONDecoder().decode(PluginViewModel.self, from: JSONSerialization.data(withJSONObject: raw))
- }
- @MainActor func testSingleComposerHasNoKindSwitchAndSubmitsOneShareWithoutAScalarRecipient() throws {
-  let view = try composer("single"); var payloads: [PluginActionPayload] = []
-  let body = ResolvedPresentationView(view: view, busy: false, error: nil, formErrors: [], members: [], settleToken: 0,
-    resolveUser: nil, onAction: { _, payload in payloads.append(payload) }, onRequest: { _ in })
-  let inspected = try body.inspect()
-  XCTAssertThrowsError(try inspected.find(SegmentedControlView.self))
-  XCTAssertThrowsError(try inspected.find(InputView.self), "recipient ids are never typed")
-  try inspected.find(ViewType.Button.self, where: { (try? $0.labelView().find(text: view.actions[0].label)) != nil }).tap()
-  XCTAssertEqual(payloads.count, 1)
-  XCTAssertEqual(payloads[0].formValues?["kind"], .string("normal"))
-  XCTAssertEqual(payloads[0].formValues?["shareCount"], .number(1))
-  XCTAssertEqual(payloads[0].formValues?["designatedUserIds"], .array([]))
-  XCTAssertNil(payloads[0].formValues?["designatedUserId"])
- }
- @MainActor func testGroupOffersTheKindSwitchAndUnknownConversationCannotSubmit() throws {
-  let group = try composer("group")
-  let groupBody = ResolvedPresentationView(view: group, busy: false, error: nil, formErrors: [], members: [], settleToken: 0,
-    resolveUser: nil, onAction: nil, onRequest: { _ in })
-  XCTAssertNoThrow(try groupBody.inspect().find(SegmentedControlView.self))
-  let unknown = try composer(nil)
-  var calls = 0
-  let body = ResolvedPresentationView(view: unknown, busy: false, error: nil, formErrors: [], members: [], settleToken: 0,
-    resolveUser: nil, onAction: { _, _ in calls += 1 }, onRequest: { _ in })
-  let button = try body.inspect().find(ViewType.Button.self, where: { (try? $0.labelView().find(text: unknown.actions[0].label)) != nil })
-  XCTAssertTrue(button.isDisabled())
-  XCTAssertThrowsError(try button.tap())
-  XCTAssertEqual(calls, 0)
- }
-
  func testConfirmedPaymentWaitsForDismissalAndItsCredentialSnapshotIsTakenOnce() throws {
   let source = try fixture("payment")
   var state = ResolvedPaymentState(); state.password = "839271"

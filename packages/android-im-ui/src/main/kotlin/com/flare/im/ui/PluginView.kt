@@ -70,6 +70,13 @@ internal fun pluginInlineFormHeading(value: String?): String? = value?.trim()?.t
  *
  * No plugin code, path or URL is executed: actions go out as opaque ids with the viewer's selection or form values
  * ([onAction] (id, payload)) and the host invokes them.
+ * - Upgrade required ([PluginUnavailableReason.UpgradeRequired]): the title and [FlarePluginUpgradeNotice] (card) instead
+ *   of the reason line — "更新应用后查看" and "去更新" when [upgradeStatus] says a build is offered and the host passes
+ *   [onUpdate], else only the copy.
+ * - Vocabulary 2 blocks (PluginBlocksExtra.kt): a section's blocks under its collapsible label; stats; a chart; an image
+ *   the host resolves ([resolveImage], never a URL in the view); a QR code whose refresh key hands the host the query
+ *   ([onQrRefresh]); a hero and a banner whose keys run like the footer keys; steps; a timeline. Fields, stats, heroes
+ *   and cells with a `count` or `duration` format draw compact counts and durations in the viewer's words.
  * - Shell: card width `componentRichCardWidth` (within the parent), radius lg, a hairline border and the card shadow; the
  *   title row carries [icon] (a kit icon name). [embedded] drops the shell and the title row (the detail sheet);
  *   [inset] [PluginViewInset.Sheet] pads the view like [PluginForm] (spacing md on top, lg at the sides, xl at the
@@ -148,11 +155,22 @@ fun PluginView(
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
     onOpenDetail: (() -> Unit)? = null,
+    /** `update.plugin_upgrade_status` for `view.minBuild`, on an upgrade-required view ([FlarePluginUpgradeNotice]). */
+    upgradeStatus: PluginUpgradeStatus? = null,
+    /** The update flow is opening. */
+    upgradeBusy: Boolean = false,
+    /** Opens the update flow; without it the notice shows only its copy. */
+    onUpdate: (() -> Unit)? = null,
+    /** The address of an image block's picture (a package asset or a private upload); null: none. Never in the view. */
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    /** A QR block's refresh key: the host runs the query and passes back a view with the fresh code. */
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
 ) = PluginViewContent(
     view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
     resolveUser = resolveUser, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = formErrors, settleToken = settleToken, displayName = displayName,
     viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null, actionLayout = actionLayout, showError = showError, labelRows = labelRows, inlineFormActionId = inlineFormActionId, inlineFormTitle = inlineFormTitle, inlineFormDescription = inlineFormDescription,
     fileStates = fileStates, onFileAction = onFileAction,
+    upgradeStatus = upgradeStatus, upgradeBusy = upgradeBusy, onUpdate = onUpdate, resolveImage = resolveImage, onQrRefresh = onQrRefresh,
 )
 
 /**
@@ -200,6 +218,11 @@ internal fun PluginViewContent(
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    upgradeStatus: PluginUpgradeStatus? = null,
+    upgradeBusy: Boolean = false,
+    onUpdate: (() -> Unit)? = null,
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -288,6 +311,60 @@ internal fun PluginViewContent(
     val formTitle = pluginInlineFormHeading(inlineFormTitle)
     val formDescription = pluginInlineFormHeading(inlineFormDescription)
 
+    /** One block: a top-level one at its position, or a section's child at [PluginView]'s child position. */
+    @Composable
+    fun drawBlock(index: Int, block: PluginBlock) {
+        when (block) {
+            is PluginTextBlock -> PluginTextBlockView(block)
+            is PluginFieldsBlock -> PluginFieldRows(block.fields)
+            is PluginChoicesBlock -> {
+                val interactive = onAction != null && interaction.isInteractive(block, index, locked)
+                PluginChoicesBlockView(
+                    block = block,
+                    shown = interaction.shown(block, index),
+                    interactive = interactive,
+                    held = if (interactive) block.options.filter { interaction.capped(block, index, it.index) }.map { it.index }.toSet() else emptySet(),
+                    submitEnabled = interaction.submitEnabled(block, index),
+                    submitLoading = block.action != null && block.action.id == busyActionId,
+                    onPick = { option ->
+                        val action = block.action
+                        if (action != null) {
+                            val (next, selection) = interaction.tap(block, index, option, locked)
+                            interaction = next
+                            if (selection != null) run(action, PluginActionPayload(selection = selection), index)
+                        }
+                    },
+                    onSubmit = {
+                        val action = block.action
+                        val selection = interaction.submission(block, index, locked)
+                        if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
+                    },
+                )
+            }
+            is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
+            is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
+            is PluginStatusBlock -> PluginStatusBlockView(block)
+            is PluginProgressBlock -> PluginProgressBlockView(block)
+            is PluginTimeBlock -> PluginTimeBlockView(block)
+            is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
+            is PluginNoteBlock -> PluginNoteBlockView(block)
+            is PluginSectionBlock -> PluginSectionBlockView(block) { child, item -> drawBlock(pluginSectionChildIndex(index, child), item) }
+            is PluginStatsBlock -> PluginStatsBlockView(block)
+            is PluginChartBlock -> PluginChartBlockView(block)
+            is PluginImageBlock -> PluginImageBlockView(block, resolveImage)
+            is PluginQrBlock -> PluginQrBlockView(block, onQrRefresh.takeUnless { PluginViewFormat.readOnly(view) }, locked)
+            is PluginHeroBlock -> PluginHeroBlockView(block, busyActionId, locked,
+                if (onAction == null) null else ({ action: PluginViewAction -> run(action, PluginActionPayload.Empty) }))
+            is PluginStepsBlock -> PluginStepsBlockView(block)
+            is PluginBannerBlock -> PluginBannerBlockView(block, locked,
+                if (onAction == null) null else ({ action: PluginViewAction -> run(action, PluginActionPayload.Empty) }))
+            is PluginTimelineBlock -> PluginTimelineBlockView(block)
+            // Rows are drawn row by row (PluginViewPart.Row).
+            is PluginRowsBlock -> Unit
+            else -> Unit
+        }
+    }
+
     val drawPart: @Composable (PluginViewPart) -> Unit = { part ->
         when (part) {
             PluginViewPart.InlineForm -> inlineAction?.let { action -> key(action.id, inlineForm.revision) {
@@ -349,44 +426,8 @@ internal fun PluginViewContent(
                 fontSize = if (part.quiet) FlareSizes.fontSizeSm else FlareSizes.fontSizeMd,
             )
             is PluginViewPart.Fields -> PluginFieldRows(part.fields)
-            is PluginViewPart.Block -> when (val block = part.block) {
-                is PluginTextBlock -> PluginTextBlockView(block)
-                is PluginFieldsBlock -> PluginFieldRows(block.fields)
-                is PluginChoicesBlock -> {
-                    val index = part.index
-                    val interactive = onAction != null && interaction.isInteractive(block, index, locked)
-                    PluginChoicesBlockView(
-                        block = block,
-                        shown = interaction.shown(block, index),
-                        interactive = interactive,
-                        held = if (interactive) block.options.filter { interaction.capped(block, index, it.index) }.map { it.index }.toSet() else emptySet(),
-                        submitEnabled = interaction.submitEnabled(block, index),
-                        submitLoading = block.action != null && block.action.id == busyActionId,
-                        onPick = { option ->
-                            val action = block.action
-                            if (action != null) {
-                                val (next, selection) = interaction.tap(block, index, option, locked)
-                                interaction = next
-                                if (selection != null) run(action, PluginActionPayload(selection = selection), index)
-                            }
-                        },
-                        onSubmit = {
-                            val action = block.action
-                            val selection = interaction.submission(block, index, locked)
-                            if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
-                        },
-                    )
-                }
-                is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
-                is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
-                is PluginStatusBlock -> PluginStatusBlockView(block)
-                is PluginProgressBlock -> PluginProgressBlockView(block)
-                is PluginTimeBlock -> PluginTimeBlockView(block)
-                is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
-                is PluginNoteBlock -> PluginNoteBlockView(block)
-                // Rows are drawn row by row (PluginViewPart.Row).
-                is PluginRowsBlock -> Unit
-            }
+            is PluginViewPart.Block -> drawBlock(part.index, part.block)
+            PluginViewPart.Upgrade -> FlarePluginUpgradeNotice(FlarePluginUpgradeVariant.Card, status = upgradeStatus, busy = upgradeBusy, onUpdate = onUpdate)
             is PluginViewPart.Row -> PluginRowItem(
                 block = part.rows,
                 row = part.row,
@@ -571,7 +612,13 @@ internal sealed interface PluginViewPart {
     data class DetailKey(val enabled: Boolean) : PluginViewPart { override val key: String get() = "detail" }
 
     data class Error(val text: String) : PluginViewPart { override val key: String get() = "error" }
+
+    /** The upgrade notice of a view this build cannot draw ([FlarePluginUpgradeNotice], card). */
+    data object Upgrade : PluginViewPart { override val key: String get() = "upgrade" }
 }
+
+/** The position a section's child keys its local state by: apart from every top-level position. */
+internal fun pluginSectionChildIndex(section: Int, child: Int): Int = 1000 + section * 10 + child
 
 /**
  * What a view draws, in order: on a card the quote and the title row; an unavailable view's title and reason; then the
@@ -592,8 +639,9 @@ internal fun pluginViewParts(
     if (!embedded) add(PluginViewPart.TitleRow)
     // No title row: an unavailable embedded view still says what it was.
     PluginViewFormat.unavailableLine(view, embedded)?.let { add(PluginViewPart.Line("unavailable", it, quiet = false)) }
-    // Why it is unavailable, under the title.
-    if (!view.available && reasonLine != null) add(PluginViewPart.Line("reason", reasonLine, quiet = false))
+    // Why it is unavailable, under the title; a view this build cannot draw says how to get one that can.
+    if (view.upgradeRequired) add(PluginViewPart.Upgrade)
+    else if (!view.available && reasonLine != null) add(PluginViewPart.Line("reason", reasonLine, quiet = false))
     if (view.available) {
         if (view.fields.isNotEmpty()) add(PluginViewPart.Fields(view.fields))
         view.blocks.forEachIndexed { index, block ->
@@ -750,14 +798,16 @@ internal fun PluginBadgeTag(badge: PluginBadge, modifier: Modifier = Modifier) {
     )
 }
 
+/** Label/value rows; a value with a `count` or `duration` format is written in the viewer's words. */
 @Composable
 private fun PluginFieldRows(fields: List<PluginViewField>) {
     val colors = flareColors()
+    val strings = flareStrings()
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
         fields.forEach { field ->
             Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 Text(field.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.widthIn(min = 56.dp))
-                Text(field.value, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
+                Text(PluginFormatRules.text(field.value, field.format, strings), color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
             }
         }
     }

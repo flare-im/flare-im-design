@@ -795,6 +795,29 @@ extension FlareStrings {
         case "pluginViewUnavailableIncompatibleVersion": return self.pluginViewUnavailableIncompatibleVersion
         case "pluginViewUnavailableCatalogUnreachable": return self.pluginViewUnavailableCatalogUnreachable
         case "pluginViewUnavailableUnboundCopy": return self.pluginViewUnavailableUnboundCopy
+        case "pluginViewUnavailableUpgradeRequired": return self.pluginViewUnavailableUpgradeRequired
+        case "pluginUpgradeAction": return self.pluginUpgradeAction
+        case "pluginUpgradeNotAvailable": return self.pluginUpgradeNotAvailable
+        case "pluginUpgradeBadge": return self.pluginUpgradeBadge
+        case "pluginUpgradeTitle": return self.pluginUpgradeTitle
+        case "pluginUpgradeDescription": return self.pluginUpgradeDescription
+        case "pluginViewQrExpired": return self.pluginViewQrExpired
+        case "pluginViewQrRefresh": return self.pluginViewQrRefresh
+        case "pluginViewStepPending": return self.pluginViewStepPending
+        case "pluginViewStepCurrent": return self.pluginViewStepCurrent
+        case "pluginViewStepDone": return self.pluginViewStepDone
+        case "pluginViewStepFailed": return self.pluginViewStepFailed
+        case "pluginViewTrendUp": return self.pluginViewTrendUp
+        case "pluginViewTrendDown": return self.pluginViewTrendDown
+        case "pluginViewTrendFlat": return self.pluginViewTrendFlat
+        case "pluginViewImageUnavailable": return self.pluginViewImageUnavailable
+        case "pluginFormatSeconds": return self.pluginFormatSeconds
+        case "pluginFormatCountUnits": return self.pluginFormatCountUnits
+        case "pluginFormChooseImage": return self.pluginFormChooseImage
+        case "pluginFormCaptureDocument": return self.pluginFormCaptureDocument
+        case "pluginFormDocumentFront": return self.pluginFormDocumentFront
+        case "pluginFormDocumentBack": return self.pluginFormDocumentBack
+        case "pluginFormDocumentHolding": return self.pluginFormDocumentHolding
         case "pluginPageRefresh": return self.pluginPageRefresh
         case "pluginViewMaxSelections": return self.pluginViewMaxSelections
         case "pluginViewAll": return self.pluginViewAll
@@ -1676,6 +1699,29 @@ extension FlareStrings {
         case "pluginViewUnavailableIncompatibleVersion": self.pluginViewUnavailableIncompatibleVersion = value
         case "pluginViewUnavailableCatalogUnreachable": self.pluginViewUnavailableCatalogUnreachable = value
         case "pluginViewUnavailableUnboundCopy": self.pluginViewUnavailableUnboundCopy = value
+        case "pluginViewUnavailableUpgradeRequired": self.pluginViewUnavailableUpgradeRequired = value
+        case "pluginUpgradeAction": self.pluginUpgradeAction = value
+        case "pluginUpgradeNotAvailable": self.pluginUpgradeNotAvailable = value
+        case "pluginUpgradeBadge": self.pluginUpgradeBadge = value
+        case "pluginUpgradeTitle": self.pluginUpgradeTitle = value
+        case "pluginUpgradeDescription": self.pluginUpgradeDescription = value
+        case "pluginViewQrExpired": self.pluginViewQrExpired = value
+        case "pluginViewQrRefresh": self.pluginViewQrRefresh = value
+        case "pluginViewStepPending": self.pluginViewStepPending = value
+        case "pluginViewStepCurrent": self.pluginViewStepCurrent = value
+        case "pluginViewStepDone": self.pluginViewStepDone = value
+        case "pluginViewStepFailed": self.pluginViewStepFailed = value
+        case "pluginViewTrendUp": self.pluginViewTrendUp = value
+        case "pluginViewTrendDown": self.pluginViewTrendDown = value
+        case "pluginViewTrendFlat": self.pluginViewTrendFlat = value
+        case "pluginViewImageUnavailable": self.pluginViewImageUnavailable = value
+        case "pluginFormatSeconds": self.pluginFormatSeconds = value
+        case "pluginFormatCountUnits": self.pluginFormatCountUnits = value
+        case "pluginFormChooseImage": self.pluginFormChooseImage = value
+        case "pluginFormCaptureDocument": self.pluginFormCaptureDocument = value
+        case "pluginFormDocumentFront": self.pluginFormDocumentFront = value
+        case "pluginFormDocumentBack": self.pluginFormDocumentBack = value
+        case "pluginFormDocumentHolding": self.pluginFormDocumentHolding = value
         case "pluginPageRefresh": self.pluginPageRefresh = value
         case "pluginViewMaxSelections": self.pluginViewMaxSelections = value
         case "pluginViewAll": self.pluginViewAll = value

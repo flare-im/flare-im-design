@@ -1961,6 +1961,53 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["pluginViewUnavailableCatalogUnreachable"] as? String) ?: "暂时无法加载，请稍后再试"
     val pluginViewUnavailableUnboundCopy: String
         get() = (overrides["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
+    // Vocabulary 2: the upgrade notice, the new blocks' copy, the count and duration formats, image and document inputs.
+    val pluginViewUnavailableUpgradeRequired: String
+        get() = (overrides["pluginViewUnavailableUpgradeRequired"] as? String) ?: "更新应用后查看"
+    val pluginUpgradeAction: String
+        get() = (overrides["pluginUpgradeAction"] as? String) ?: "去更新"
+    val pluginUpgradeNotAvailable: String
+        get() = (overrides["pluginUpgradeNotAvailable"] as? String) ?: "当前版本暂不支持，新版本发布后可用"
+    val pluginUpgradeBadge: String
+        get() = (overrides["pluginUpgradeBadge"] as? String) ?: "需更新"
+    val pluginUpgradeTitle: String
+        get() = (overrides["pluginUpgradeTitle"] as? String) ?: "需要更新应用"
+    val pluginUpgradeDescription: String
+        get() = (overrides["pluginUpgradeDescription"] as? String) ?: "此内容需要更新到新版本后才能使用"
+    val pluginViewQrExpired: String
+        get() = (overrides["pluginViewQrExpired"] as? String) ?: "二维码已失效"
+    val pluginViewQrRefresh: String
+        get() = (overrides["pluginViewQrRefresh"] as? String) ?: "刷新二维码"
+    val pluginViewStepPending: String
+        get() = (overrides["pluginViewStepPending"] as? String) ?: "未开始"
+    val pluginViewStepCurrent: String
+        get() = (overrides["pluginViewStepCurrent"] as? String) ?: "进行中"
+    val pluginViewStepDone: String
+        get() = (overrides["pluginViewStepDone"] as? String) ?: "已完成"
+    val pluginViewStepFailed: String
+        get() = (overrides["pluginViewStepFailed"] as? String) ?: "未通过"
+    val pluginViewTrendUp: String
+        get() = (overrides["pluginViewTrendUp"] as? String) ?: "上升"
+    val pluginViewTrendDown: String
+        get() = (overrides["pluginViewTrendDown"] as? String) ?: "下降"
+    val pluginViewTrendFlat: String
+        get() = (overrides["pluginViewTrendFlat"] as? String) ?: "持平"
+    val pluginViewImageUnavailable: String
+        get() = (overrides["pluginViewImageUnavailable"] as? String) ?: "图片无法显示"
+    val pluginFormatSeconds: String
+        get() = (overrides["pluginFormatSeconds"] as? String) ?: "{n} 秒"
+    val pluginFormatCountUnits: String
+        get() = (overrides["pluginFormatCountUnits"] as? String) ?: "4:万|8:亿"
+    val pluginFormChooseImage: String
+        get() = (overrides["pluginFormChooseImage"] as? String) ?: "选择图片"
+    val pluginFormCaptureDocument: String
+        get() = (overrides["pluginFormCaptureDocument"] as? String) ?: "拍摄证件"
+    val pluginFormDocumentFront: String
+        get() = (overrides["pluginFormDocumentFront"] as? String) ?: "证件正面"
+    val pluginFormDocumentBack: String
+        get() = (overrides["pluginFormDocumentBack"] as? String) ?: "证件反面"
+    val pluginFormDocumentHolding: String
+        get() = (overrides["pluginFormDocumentHolding"] as? String) ?: "手持证件"
     // 红包第五版卡片与详情（spec/red-packet-vectors.json）
     val packetView: String
         get() = (overrides["packetView"] as? String) ?: "查看红包"
@@ -5403,6 +5450,75 @@ class FlareStringsBuilder internal constructor() {
     var pluginViewUnavailableUnboundCopy: String
         get() = (values["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
         set(value) { values["pluginViewUnavailableUnboundCopy"] = value }
+    var pluginViewUnavailableUpgradeRequired: String
+        get() = (values["pluginViewUnavailableUpgradeRequired"] as? String) ?: "更新应用后查看"
+        set(value) { values["pluginViewUnavailableUpgradeRequired"] = value }
+    var pluginUpgradeAction: String
+        get() = (values["pluginUpgradeAction"] as? String) ?: "去更新"
+        set(value) { values["pluginUpgradeAction"] = value }
+    var pluginUpgradeNotAvailable: String
+        get() = (values["pluginUpgradeNotAvailable"] as? String) ?: "当前版本暂不支持，新版本发布后可用"
+        set(value) { values["pluginUpgradeNotAvailable"] = value }
+    var pluginUpgradeBadge: String
+        get() = (values["pluginUpgradeBadge"] as? String) ?: "需更新"
+        set(value) { values["pluginUpgradeBadge"] = value }
+    var pluginUpgradeTitle: String
+        get() = (values["pluginUpgradeTitle"] as? String) ?: "需要更新应用"
+        set(value) { values["pluginUpgradeTitle"] = value }
+    var pluginUpgradeDescription: String
+        get() = (values["pluginUpgradeDescription"] as? String) ?: "此内容需要更新到新版本后才能使用"
+        set(value) { values["pluginUpgradeDescription"] = value }
+    var pluginViewQrExpired: String
+        get() = (values["pluginViewQrExpired"] as? String) ?: "二维码已失效"
+        set(value) { values["pluginViewQrExpired"] = value }
+    var pluginViewQrRefresh: String
+        get() = (values["pluginViewQrRefresh"] as? String) ?: "刷新二维码"
+        set(value) { values["pluginViewQrRefresh"] = value }
+    var pluginViewStepPending: String
+        get() = (values["pluginViewStepPending"] as? String) ?: "未开始"
+        set(value) { values["pluginViewStepPending"] = value }
+    var pluginViewStepCurrent: String
+        get() = (values["pluginViewStepCurrent"] as? String) ?: "进行中"
+        set(value) { values["pluginViewStepCurrent"] = value }
+    var pluginViewStepDone: String
+        get() = (values["pluginViewStepDone"] as? String) ?: "已完成"
+        set(value) { values["pluginViewStepDone"] = value }
+    var pluginViewStepFailed: String
+        get() = (values["pluginViewStepFailed"] as? String) ?: "未通过"
+        set(value) { values["pluginViewStepFailed"] = value }
+    var pluginViewTrendUp: String
+        get() = (values["pluginViewTrendUp"] as? String) ?: "上升"
+        set(value) { values["pluginViewTrendUp"] = value }
+    var pluginViewTrendDown: String
+        get() = (values["pluginViewTrendDown"] as? String) ?: "下降"
+        set(value) { values["pluginViewTrendDown"] = value }
+    var pluginViewTrendFlat: String
+        get() = (values["pluginViewTrendFlat"] as? String) ?: "持平"
+        set(value) { values["pluginViewTrendFlat"] = value }
+    var pluginViewImageUnavailable: String
+        get() = (values["pluginViewImageUnavailable"] as? String) ?: "图片无法显示"
+        set(value) { values["pluginViewImageUnavailable"] = value }
+    var pluginFormatSeconds: String
+        get() = (values["pluginFormatSeconds"] as? String) ?: "{n} 秒"
+        set(value) { values["pluginFormatSeconds"] = value }
+    var pluginFormatCountUnits: String
+        get() = (values["pluginFormatCountUnits"] as? String) ?: "4:万|8:亿"
+        set(value) { values["pluginFormatCountUnits"] = value }
+    var pluginFormChooseImage: String
+        get() = (values["pluginFormChooseImage"] as? String) ?: "选择图片"
+        set(value) { values["pluginFormChooseImage"] = value }
+    var pluginFormCaptureDocument: String
+        get() = (values["pluginFormCaptureDocument"] as? String) ?: "拍摄证件"
+        set(value) { values["pluginFormCaptureDocument"] = value }
+    var pluginFormDocumentFront: String
+        get() = (values["pluginFormDocumentFront"] as? String) ?: "证件正面"
+        set(value) { values["pluginFormDocumentFront"] = value }
+    var pluginFormDocumentBack: String
+        get() = (values["pluginFormDocumentBack"] as? String) ?: "证件反面"
+        set(value) { values["pluginFormDocumentBack"] = value }
+    var pluginFormDocumentHolding: String
+        get() = (values["pluginFormDocumentHolding"] as? String) ?: "手持证件"
+        set(value) { values["pluginFormDocumentHolding"] = value }
     // 红包第五版卡片与详情（spec/red-packet-vectors.json）
     var packetView: String
         get() = (values["packetView"] as? String) ?: "查看红包"

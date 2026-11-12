@@ -50,7 +50,7 @@ enum PluginViewFormat {
     /// The user ids a view names whose names come from the host.
     static func userIds(in view: PluginViewModel) -> [String] {
         var ids: [String] = []
-        for block in view.blocks {
+        for block in PluginBlockWalk.flat(view.blocks) {
             switch block {
             case .people(let people):
                 for group in people.groups { for id in group.userIds where !ids.contains(id) { ids.append(id) } }
@@ -119,6 +119,7 @@ enum PluginViewFormat {
         case .incompatibleVersion: return strings.pluginViewUnavailableIncompatibleVersion
         case .catalogUnreachable: return strings.pluginViewUnavailableCatalogUnreachable
         case .unboundCopy: return strings.pluginViewUnavailableUnboundCopy
+        case .upgradeRequired: return strings.pluginViewUnavailableUpgradeRequired
         }
     }
 
@@ -285,7 +286,7 @@ enum PluginViewFormat {
             if block.columns[index].format == .time, let at = cell.timeMs {
                 return dateTime(at, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes)
             }
-            return cell.text
+            return PluginFormatRules.text(cell.text, cell.format, strings)
         }
         let rest = texts.dropFirst().filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         return PluginRowLines(primary: texts.first ?? "", secondary: rest.isEmpty ? nil : rest.joined(separator: " · "))
@@ -298,7 +299,8 @@ enum PluginViewFormat {
             guard row.cells.indices.contains(index) else { return nil }
             let cell = row.cells[index]
             let value = column.format == .time && cell.timeMs != nil
-                ? dateTime(cell.timeMs!, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes) : cell.text
+                ? dateTime(cell.timeMs!, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes)
+                : PluginFormatRules.text(cell.text, cell.format, strings)
             return value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : PluginViewField(label: column.label, value: value)
         }
     }
@@ -636,7 +638,8 @@ enum PluginFormRules {
             return .array(Array(repeating: .string(""), count: minRows(input)))
         case .members:
             return .array((raw?.arrayValue ?? []).compactMap { $0.stringValue.map(PluginJSONValue.string) })
-        case .file: return PluginFileValue.read(raw)?.json ?? .null
+        case .file, .image, .document: return PluginFileValue.read(raw)?.json ?? .null
+        case .money: return PluginMoneyRulesCheck.draft(raw)
         case .password: return .string("")
         case .text, .textarea, .select:
             return .string(raw?.stringValue ?? "")
@@ -678,9 +681,11 @@ enum PluginFormRules {
             return nil
         case .members:
             return input.required && (draft?.arrayValue ?? []).isEmpty ? .required : nil
-        case .file:
+        case .file, .image, .document:
             if draft == nil || draft == .null { return input.required ? .required : nil }
             return PluginFileValue.read(draft) == nil ? .invalidType : nil
+        case .money:
+            return PluginMoneyRulesCheck.check(input, draft)
         case .toggle:
             return nil
         }
@@ -713,8 +718,10 @@ enum PluginFormRules {
                 if !rows.isEmpty { out[input.id] = .array(rows.map(PluginJSONValue.string)) }
             case .members:
                 if let ids = value?.arrayValue, !ids.isEmpty { out[input.id] = .array(ids) }
-            case .file:
+            case .file, .image, .document:
                 if let file = PluginFileValue.read(value) { out[input.id] = file.json }
+            case .money:
+                if let money = PluginMoneyRulesCheck.value(input, value) { out[input.id] = money.json }
             }
         }
         return out
@@ -756,7 +763,7 @@ struct PluginFormState: Equatable, Sendable {
     init(inputs: [PluginInput], values: [String: PluginJSONValue]?, scope: String = UUID().uuidString) {
         self.inputs = inputs; self.scope = scope
         draft = PluginFormRules.draft(inputs, values: values)
-        for input in inputs where input.kind == .file {
+        for input in inputs where input.kind.isUpload {
             let value = PluginFileValue.read(draft[input.id])
             files[input.id] = PluginFileState(scope: scope, generation: 0, phase: value == nil ? .empty : .uploaded, value: value)
         }
@@ -768,7 +775,7 @@ struct PluginFormState: Equatable, Sendable {
         for dependent in inputs where dependent.showWhen?.field == id {
             draft[dependent.id] = nil
             edited.remove(dependent.id); editedSinceErrors.insert(dependent.id)
-            if dependent.kind == .file { invalidations.append(fileAction(.invalidate, input: dependent)) }
+            if dependent.kind.isUpload { invalidations.append(fileAction(.invalidate, input: dependent)) }
         }
         draft[id] = value
         edited.insert(id)
@@ -790,7 +797,7 @@ struct PluginFormState: Equatable, Sendable {
     }
 
     mutating func acceptFiles(_ updates: [String: PluginFileState]) {
-        for input in PluginFormRules.visibleInputs(inputs, draft) where input.kind == .file {
+        for input in PluginFormRules.visibleInputs(inputs, draft) where input.kind.isUpload {
             guard let next = updates[input.id], let own = files[input.id],
                   next.scope == scope, next.generation == own.generation else { continue }
             files[input.id] = next
@@ -800,7 +807,7 @@ struct PluginFormState: Equatable, Sendable {
 
     var filePending: Bool {
         PluginFormRules.visibleInputs(inputs, draft).contains {
-            $0.kind == .file && [.selected, .uploading, .failed].contains(files[$0.id]?.phase ?? .empty)
+            $0.kind.isUpload && [.selected, .uploading, .failed].contains(files[$0.id]?.phase ?? .empty)
         }
     }
 

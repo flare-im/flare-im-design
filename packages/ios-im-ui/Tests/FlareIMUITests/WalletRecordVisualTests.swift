@@ -25,7 +25,7 @@ final class WalletRecordVisualTests: XCTestCase {
             let model = try PluginVectors.decode(PluginViewModel.self, fixture["view"])
             let page = PluginPageRef(pluginId: "flare.wallet", page: try XCTUnwrap(fixture["page"]?.stringValue))
             let content = FlarePluginPage(page: page, view: .init(view: model), filters: fixture["filters"]?.objectValue ?? [:],
-                                         onBack: {}, onRefresh: {}, onLoadMore: { _ in }, onFilter: { _ in }, onAction: { _, _ in })
+                                         onBack: {}, onRefresh: {}, onLoadMore: { _ in }, onFilter: { _ in }, onAction: { _, _ in }, appearance: .account)
                 .environment(\.colorScheme, scheme).environment(\.locale, Locale(identifier: locale))
                 .environment(\.flareStrings, locale == "en-US" ? .english : FlareStrings())
             _ = NSApplication.shared

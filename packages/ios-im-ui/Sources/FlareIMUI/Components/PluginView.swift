@@ -46,6 +46,13 @@ import SwiftUI
 ///   that acts, and closes with "副本，仅供查看".
 /// - The shell is the message's card surface: the timeline draws no bubble around it. A quoting card's quote sits
 ///   inside the shell, above the title row (``FlareMessageCardQuoteSlot``).
+/// - Upgrade required (``PluginUnavailableReason/upgradeRequired``): the title and ``FlarePluginUpgradeNotice`` (card)
+///   instead of the reason line — "更新应用后查看" and "去更新" when `upgradeStatus` says a build is offered and the host
+///   passes `onUpdate`, else only the copy.
+/// - Vocabulary 2 blocks (``PluginBlocksExtra``): a section's blocks under its collapsible label; stats; a chart; an
+///   image the host resolves (`resolveImage`, never a URL in the view); a QR code whose refresh key hands the host the
+///   query (`onQrRefresh`); a hero and a banner whose keys run like the footer keys; steps; a timeline. Fields, stats,
+///   heroes and cells with a `count` or `duration` format draw compact counts and durations in the viewer's words.
 /// Where a ``PluginView`` sits: the padding it gives itself, in every state.
 public enum PluginViewInset: String, Sendable, CaseIterable {
     /// None: the host's surface pads it.
@@ -89,6 +96,11 @@ public struct PluginView: View {
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginActionPayload) -> Void)?
     private let onOpenDetail: (() -> Void)?
+    private let upgradeStatus: PluginUpgradeStatus?
+    private let upgradeBusy: Bool
+    private let onUpdate: (() -> Void)?
+    private let resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
+    private let onQrRefresh: ((PluginQrRefresh) -> Void)?
     private let clock: PluginViewClock
     @State private var interaction = PluginChoicesInteraction()
     @State private var users: [String: PluginUser]
@@ -111,6 +123,10 @@ public struct PluginView: View {
     ///   - showError: Hide only the outer banner; the original error still settles and validates an active form.
     ///   - inlineFormTitle: Optional heading immediately before an eligible inline form; also bounds it to the primary pane width.
     ///   - inlineFormDescription: Optional supporting text under that heading. Blank metadata keeps the existing form layout.
+    ///   - upgradeStatus: `update.plugin_upgrade_status` for `view.minBuild`, on an upgrade-required view.
+    ///   - onUpdate: Opens the update flow (``FlarePluginUpgradeNotice``).
+    ///   - resolveImage: The address of an image block's picture (a package asset or a private upload); nil: none.
+    ///   - onQrRefresh: A QR block's refresh key: the host runs the query and passes back a view with the fresh code.
     public init(view: PluginViewModel, icon: String? = nil, displayName: String? = nil, viewerId: String? = nil,
                 busy: Bool = false, busyActionId: String? = nil,
                 error: String? = nil, embedded: Bool = false, inset: PluginViewInset = .none,
@@ -124,11 +140,16 @@ public struct PluginView: View {
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
                 formErrors: [PluginFormError] = [], settleToken: Int = 0,
                 fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
-                onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil) {
+                onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil,
+                upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
+                resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
         self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
                   busyActionId: busyActionId, error: error, embedded: embedded,
                   inset: inset, actionLayout: actionLayout, showError: showError, labelRows: labelRows, inlineFormActionId: inlineFormActionId, inlineFormTitle: inlineFormTitle, inlineFormDescription: inlineFormDescription, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors,
-                  settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:])
+                  settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:],
+                  upgradeStatus: upgradeStatus, upgradeBusy: upgradeBusy, onUpdate: onUpdate, resolveImage: resolveImage,
+                  onQrRefresh: onQrRefresh)
     }
 
     /// The card at a fixed clock and with users already resolved — how the tests pin `now`, the zone and names.
@@ -145,7 +166,11 @@ public struct PluginView: View {
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, formErrors: [PluginFormError], settleToken: Int = 0,
          fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
          onAction: ((String, PluginActionPayload) -> Void)?, onOpenDetail: (() -> Void)?, clock: PluginViewClock,
-         users: [String: PluginUser]) {
+         users: [String: PluginUser], upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false,
+         onUpdate: (() -> Void)? = nil, resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+         onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
+        self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
+        self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
         self.view = view; self.icon = icon; self.displayName = displayName; self.viewerId = viewerId
         self.busy = busy; self.busyActionId = busyActionId; self.error = error
         self.embedded = embedded; self.inset = inset; self.resolveUser = resolveUser; self.members = members
@@ -236,7 +261,9 @@ public struct PluginView: View {
                     .foregroundColor(colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if !view.available, let reason {
+            if view.upgradeRequired {
+                FlarePluginUpgradeNotice(variant: .card, status: upgradeStatus, busy: upgradeBusy, onUpdate: onUpdate)
+            } else if !view.available, let reason {
                 Text(reason)
                     .font(.system(size: FlareSizes.fontSizeMd * textScale))
                     .foregroundColor(colors.textSecondary)
@@ -426,8 +453,29 @@ public struct PluginView: View {
                                 enabled: onAction != nil && !view.readOnly && !locked, labelRows: labelRows) { key, row in
                 run(key.action, PluginActionPayload(row: PluginRowRef(key: row.key, input: key.input)))
             }
+        case .section(let section):
+            // A child's position keys its choices state apart from the top-level blocks'.
+            PluginSectionBlockView(block: section) { child, block in
+                AnyView(blockView(block, at: Self.sectionChildIndex(section: index, child: child)))
+            }
+        case .stats(let stats): PluginStatsBlockView(block: stats)
+        case .chart(let chart): PluginChartBlockView(block: chart)
+        case .image(let image): PluginImageBlockView(block: image, resolveImage: resolveImage)
+        case .qr(let qr):
+            PluginQrBlockView(block: qr, clock: clock, onRefresh: view.readOnly ? nil : onQrRefresh, disabled: locked)
+        case .hero(let hero):
+            PluginHeroBlockView(block: hero, busyActionId: busyActionId, disabled: locked,
+                                onAction: onAction == nil || view.readOnly ? nil : { run($0, .empty) })
+        case .steps(let steps): PluginStepsBlockView(block: steps)
+        case .banner(let banner):
+            PluginBannerBlockView(block: banner, disabled: locked,
+                                  onAction: onAction == nil || view.readOnly ? nil : { run($0, .empty) })
+        case .timeline(let timeline): PluginTimelineBlockView(block: timeline, clock: clock)
         }
     }
+
+    /// The position a section's child keys its local state by: apart from every top-level position.
+    static func sectionChildIndex(section: Int, child: Int) -> Int { 1000 + section * 10 + child }
 
     private func detailKey(_ open: @escaping () -> Void) -> some View {
         ButtonView(label: strings.pluginViewDetail, variant: .quiet, size: .sm, disabled: locked,
@@ -560,12 +608,13 @@ func pluginToneGround(_ tone: PluginTone?, _ colors: FlareColors) -> Color {
     }
 }
 
-/// Label/value rows.
+/// Label/value rows; a value with a `count` or `duration` format is written in the viewer's words.
 struct PluginFieldRows: View {
     let fields: [PluginViewField]
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -574,7 +623,7 @@ struct PluginFieldRows: View {
                 HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingMd) {
                     Text(field.label).foregroundColor(colors.textSecondary)
                         .frame(minWidth: 56, alignment: .leading)
-                    Text(field.value).foregroundColor(colors.textPrimary)
+                    Text(PluginFormatRules.text(field.value, field.format, strings)).foregroundColor(colors.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .font(.system(size: FlareSizes.fontSizeLg * textScale))

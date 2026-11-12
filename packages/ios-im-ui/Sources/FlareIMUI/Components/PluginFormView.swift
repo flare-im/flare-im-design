@@ -11,7 +11,10 @@ import SwiftUI
 ///
 /// Controls: text and textarea with "n/max"; number; toggle (``SwitchView``); select as a single-choice list
 /// (``RadioGroupView``); datetime with the platform's date and time picker; options as rows with add and remove within
-/// [max(min, 1), max]; members through ``ContactPickerView`` over the host's `members` (one pick when max is 1).
+/// [max(min, 1), max]; members through ``ContactPickerView`` over the host's `members` (one pick when max is 1); money
+/// as an amount field with its currency (decimal keypad; submitted as `{amount, currency}`, the amount normalised and
+/// checked against the scale and bounds); file, image and document through the upload slot (the host picks, captures
+/// and uploads on ``PluginFileAction``; image asks to choose a picture, document to capture its side).
 public struct PluginFormView: View {
     private let embedded: Bool
     private let inputs: [PluginInput]
@@ -183,11 +186,21 @@ public struct PluginFormView: View {
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 optionRows(input, colors)
             }
-        case .file:
+        case .file, .image, .document:
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 PluginFileUploadField(input: input, state: form.files[input.id], disabled: busy || onFileAction == nil) {
                     sendFile($0, input: input)
                 }
+            }
+        case .money:
+            FormFieldView(label: input.label, required: input.required, hint: input.money?.currency,
+                          error: errorText(input)) {
+                InputView(text: text(input), placeholder: input.placeholder ?? "", disabled: busy)
+                    .accessibilityLabel([input.label, input.money?.currency].compactMap { $0 }.joined(separator: ", "))
+                    .accessibilityIdentifier("plugin.form.\(input.id)")
+                    #if os(iOS)
+                    .keyboardType(.decimalPad)
+                    #endif
             }
         case .members:
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
@@ -212,7 +225,7 @@ public struct PluginFormView: View {
     }
 
     private func invalidateFiles() {
-        for input in inputs where input.kind == .file { onFileAction?(form.fileAction(.invalidate, input: input)) }
+        for input in inputs where input.kind.isUpload { onFileAction?(form.fileAction(.invalidate, input: input)) }
     }
 
     private func text(_ input: PluginInput) -> Binding<String> {

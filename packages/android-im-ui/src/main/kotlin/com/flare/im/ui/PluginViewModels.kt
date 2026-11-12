@@ -9,8 +9,11 @@ import java.time.ZoneOffset
 // is and skips what a newer protocol adds (unknown block kinds, input kinds and keys). `spec/plugin-view-vectors.json`
 // holds the shapes and the render facts the four kits share.
 
-/** A label/value row (v1 `fields`, and the `fields` block). */
-data class PluginViewField(val label: String, val value: String)
+/**
+ * A label/value row (v1 `fields`, and the `fields` block). [value] is the plain text; [format] is what the kit may write
+ * instead ([PluginFormatRules]: a compact count, a duration in the viewer's words).
+ */
+data class PluginViewField(val label: String, val value: String, val format: PluginValueFormat? = null)
 
 /** How an action key is drawn; none is the secondary key. */
 enum class PluginActionStyle(val wire: String) {
@@ -186,8 +189,8 @@ enum class PluginRowsFormat(val wire: String) {
 
 data class PluginRowsColumn(val label: String, val format: PluginRowsFormat = PluginRowsFormat.Text)
 
-/** One cell of a row; a time column's cell carries [timeMs]. */
-data class PluginRowCell(val text: String, val timeMs: Long? = null)
+/** One cell of a row; a time column's cell carries [timeMs]; [format] is what the column's `valueFormat` adds to the text. */
+data class PluginRowCell(val text: String, val timeMs: Long? = null, val format: PluginValueFormat? = null)
 
 /** A row's action: the id of one of the block's actions and the input the view bound for it, handed back as is. */
 data class PluginRowAction(val id: String, val input: Any? = null)
@@ -219,7 +222,10 @@ data class PluginRowsBlock(
 /** Form input kinds (UiInput). */
 enum class PluginInputKind(val wire: String) {
     Text("text"), Password("password"), Textarea("textarea"), Number("number"), Toggle("toggle"), Select("select"), Datetime("datetime"),
-    Options("options"), Members("members"), File("file");
+    Options("options"), Members("members"), File("file"), Money("money"), Image("image"), Document("document");
+
+    /** Inputs whose value is an uploaded file's `{fileId}`, uploaded through `file`: file, image and document. */
+    val isUpload: Boolean get() = this == File || this == Image || this == Document
 
     companion object {
         fun fromWire(value: String?): PluginInputKind? = entries.firstOrNull { it.wire == value }
@@ -245,8 +251,13 @@ data class PluginInput(
     val max: Double? = null,
     val default: Any? = null,
     val choices: List<PluginInputChoice>? = null,
+    /** file, image and document: what may be uploaded and how. */
     val file: PluginFileConfiguration? = null,
     val showWhen: PluginInputShowWhen? = null,
+    /** money only: the currency, scale and bounds the core SDK read. */
+    val money: PluginMoneyRules? = null,
+    /** document only: which side of the document it captures. */
+    val side: PluginDocumentSide? = null,
 )
 
 /** What is wrong with a submitted value (UiFormIssue). */
@@ -367,7 +378,9 @@ enum class PluginUnavailableReason(val wire: String) {
     UnsupportedPlatform("unsupported_platform"),
     IncompatibleVersion("incompatible_version"),
     CatalogUnreachable("catalog_unreachable"),
-    UnboundCopy("unbound_copy");
+    UnboundCopy("unbound_copy"),
+    /** This build cannot draw it; the view's `minBuild` names the first one that can ([FlarePluginUpgradeNotice]). */
+    UpgradeRequired("upgrade_required");
 
     companion object {
         fun fromWire(value: String?): PluginUnavailableReason? = entries.firstOrNull { it.wire == value }
@@ -398,7 +411,15 @@ data class PluginViewModel(
     /** Why the view is unavailable, or read-only ([PluginUnavailableReason.UnboundCopy]); null otherwise. */
     val unavailableReason: PluginUnavailableReason? = null,
     val presentation: Map<String, Any?>? = null,
+    /**
+     * [PluginUnavailableReason.UpgradeRequired]: the first build that draws it, when the plugin declared one; the host
+     * asks `update.plugin_upgrade_status` with it.
+     */
+    val minBuild: Long? = null,
 ) {
+    /** This build cannot draw it: the kit shows [FlarePluginUpgradeNotice] instead. */
+    val upgradeRequired: Boolean get() = !available && unavailableReason == PluginUnavailableReason.UpgradeRequired
+
     /** The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped. */
     fun formInputs(action: PluginViewAction): List<PluginInput> =
         action.form.orEmpty().mapNotNull { id -> inputs.firstOrNull { it.id == id } }
@@ -424,6 +445,7 @@ data class PluginViewModel(
             menuActions = map.list("menuActions").mapNotNull { (it as? Map<*, *>)?.action() },
             unavailableReason = PluginUnavailableReason.fromWire(map["unavailableReason"] as? String),
             presentation = (map["presentation"] as? Map<*, *>)?.entries?.filter { it.key is String }?.associate { it.key as String to it.value },
+            minBuild = (map["minBuild"] as? Number)?.toLong(),
         )
     }
 }
@@ -438,8 +460,14 @@ private fun Map<*, *>.bool(key: String): Boolean? = this[key] as? Boolean
 
 private fun Map<*, *>.field(): PluginViewField? {
     val label = string("label") ?: return null
-    return PluginViewField(label, string("value") ?: "")
+    return PluginViewField(label, string("value") ?: "", pluginValueFormat(this["format"]))
 }
+
+/** A block as the core writes it (a section's children read the same way); null for a kind the kit does not know. */
+internal fun pluginBlockOf(map: Map<*, *>): PluginBlock? = map.block()
+
+/** An action as the core writes it; null without an id and a label. */
+internal fun pluginActionOf(map: Map<*, *>): PluginViewAction? = map.action()
 
 private fun Map<*, *>.action(): PluginViewAction? {
     val id = string("id") ?: return null
@@ -500,7 +528,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 key = key,
                 cells = r.list("cells").map { cell ->
                     val c = cell as? Map<*, *>
-                    PluginRowCell(c?.string("text") ?: "", (c?.get("timeMs") as? Number)?.toLong())
+                    PluginRowCell(c?.string("text") ?: "", (c?.get("timeMs") as? Number)?.toLong(), pluginValueFormat(c?.get("format")))
                 },
                 actions = r.list("actions").mapNotNull { a -> (a as? Map<*, *>)?.let { m -> m.string("id")?.let { PluginRowAction(it, m["input"]) } } },
                 badge = r.badge(),
@@ -510,7 +538,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
         emptyText = string("emptyText"),
         filters = (this["filters"] as? List<*>)?.filterIsInstance<String>(),
     )
-    else -> null
+    else -> pluginExtraBlock(this)
 }
 
 /** An entry's or a row's `badge`; none without words. A tone the kit does not know draws neutral. */
@@ -534,7 +562,10 @@ private fun Map<*, *>.input(): PluginInput? {
             upload.string("purpose")?.takeIf { it.isNotBlank() } ?: return null,
         ))
     }
-    if (kind == PluginInputKind.File && file == null) return null
+    if (kind.isUpload && file == null) return null
+    val money = pluginMoneyRules(this["money"])
+    if (kind == PluginInputKind.Money && money == null) return null
+    val side = this["side"]?.let { PluginDocumentSide.fromWire(it as? String) ?: return null }
     val showWhen = (this["showWhen"] as? Map<*, *>)?.let { condition ->
         val field = condition.string("field")?.takeIf { it.isNotBlank() } ?: return null
         val anyOf = (condition["anyOf"] as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() } ?: return null
@@ -548,7 +579,7 @@ private fun Map<*, *>.input(): PluginInput? {
             val c = raw as? Map<*, *> ?: return@mapNotNull null
             PluginInputChoice(c.string("value") ?: return@mapNotNull null, c.string("label") ?: "")
         },
-        file = file, showWhen = showWhen,
+        file = file, showWhen = showWhen, money = money, side = side,
     )
 }
 
@@ -626,7 +657,7 @@ internal object PluginViewFormat {
     /** The user ids a view names whose names come from the host. */
     fun userIds(view: PluginViewModel): List<String> {
         val ids = LinkedHashSet<String>()
-        for (block in view.blocks) when (block) {
+        for (block in pluginFlatBlocks(view.blocks)) when (block) {
             is PluginPeopleBlock -> block.groups.forEach { ids.addAll(it.userIds) }
             is PluginEntriesBlock -> block.items.forEach { e ->
                 val id = e.userId
@@ -693,7 +724,8 @@ internal object PluginViewFormat {
         val texts = block.columns.mapIndexed { index, column ->
             val cell = row.cells.getOrNull(index)
             val at = cell?.timeMs
-            if (column.format == PluginRowsFormat.Time && at != null) dateTime(at, nowMs, strings, utcOffsetMinutes) else cell?.text.orEmpty()
+            if (column.format == PluginRowsFormat.Time && at != null) dateTime(at, nowMs, strings, utcOffsetMinutes)
+            else cell?.let { PluginFormatRules.text(it.text, it.format, strings) }.orEmpty()
         }
         val rest = texts.drop(1).filter { it.isNotBlank() }
         return PluginRowLines(texts.firstOrNull().orEmpty(), rest.takeIf { it.isNotEmpty() }?.joinToString(" · "))
@@ -704,7 +736,8 @@ internal object PluginViewFormat {
         block.columns.mapIndexedNotNull { index, column ->
             if (index == 0) return@mapIndexedNotNull null
             val cell = row.cells.getOrNull(index) ?: return@mapIndexedNotNull null
-            val value = if (column.format == PluginRowsFormat.Time && cell.timeMs != null) dateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes) else cell.text
+            val value = if (column.format == PluginRowsFormat.Time && cell.timeMs != null) dateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes)
+                else PluginFormatRules.text(cell.text, cell.format, strings)
             value.takeIf { it.isNotBlank() }?.let { PluginViewField(column.label, it) }
         }
 
@@ -738,6 +771,7 @@ internal object PluginViewFormat {
         PluginUnavailableReason.IncompatibleVersion -> strings.pluginViewUnavailableIncompatibleVersion
         PluginUnavailableReason.CatalogUnreachable -> strings.pluginViewUnavailableCatalogUnreachable
         PluginUnavailableReason.UnboundCopy -> strings.pluginViewUnavailableUnboundCopy
+        PluginUnavailableReason.UpgradeRequired -> strings.pluginViewUnavailableUpgradeRequired
     }
 
     /**
@@ -1108,7 +1142,8 @@ internal object PluginFormRules {
             PluginInputKind.Password -> ""
             PluginInputKind.Text, PluginInputKind.Textarea, PluginInputKind.Select -> raw as? String ?: ""
             PluginInputKind.Number, PluginInputKind.Datetime -> (raw as? Number)?.toDouble()?.takeIf { it.isFinite() }
-            PluginInputKind.File -> pluginFileReference(raw)
+            PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> pluginFileReference(raw)
+            PluginInputKind.Money -> PluginMoneyInputRules.draft(raw)
         }
     }
 
@@ -1143,11 +1178,12 @@ internal object PluginFormRules {
             }
             PluginInputKind.Members -> if (input.required && (draft as? List<*>).isNullOrEmpty()) PluginFormIssue.Required else null
             PluginInputKind.Toggle -> null
-            PluginInputKind.File -> when {
+            PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> when {
                 draft == null -> if (input.required) PluginFormIssue.Required else null
                 pluginFileReference(draft) == null -> PluginFormIssue.InvalidType
                 else -> null
             }
+            PluginInputKind.Money -> PluginMoneyInputRules.check(input, draft)
         }
     }
 
@@ -1168,7 +1204,8 @@ internal object PluginFormRules {
                 PluginInputKind.Select -> (value as? String)?.takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Options -> items(value).takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Members -> (value as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
-                PluginInputKind.File -> pluginFileReference(value)?.let { out[input.id] = it }
+                PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> pluginFileReference(value)?.let { out[input.id] = it }
+                PluginInputKind.Money -> PluginMoneyInputRules.value(input, value)?.let { out[input.id] = it }
             }
         }
         return out

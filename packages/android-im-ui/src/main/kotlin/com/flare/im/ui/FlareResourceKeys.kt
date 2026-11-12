@@ -814,6 +814,29 @@ internal val flareStringKeys: Set<String> = setOf(
     "pluginViewUnavailableIncompatibleVersion",
     "pluginViewUnavailableCatalogUnreachable",
     "pluginViewUnavailableUnboundCopy",
+    "pluginViewUnavailableUpgradeRequired",
+    "pluginUpgradeAction",
+    "pluginUpgradeNotAvailable",
+    "pluginUpgradeBadge",
+    "pluginUpgradeTitle",
+    "pluginUpgradeDescription",
+    "pluginViewQrExpired",
+    "pluginViewQrRefresh",
+    "pluginViewStepPending",
+    "pluginViewStepCurrent",
+    "pluginViewStepDone",
+    "pluginViewStepFailed",
+    "pluginViewTrendUp",
+    "pluginViewTrendDown",
+    "pluginViewTrendFlat",
+    "pluginViewImageUnavailable",
+    "pluginFormatSeconds",
+    "pluginFormatCountUnits",
+    "pluginFormChooseImage",
+    "pluginFormCaptureDocument",
+    "pluginFormDocumentFront",
+    "pluginFormDocumentBack",
+    "pluginFormDocumentHolding",
     "packetView",
     "packetRefunded",
     "packetBadgeLucky",
@@ -1691,6 +1714,29 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "pluginViewUnavailableIncompatibleVersion" -> this.pluginViewUnavailableIncompatibleVersion
     "pluginViewUnavailableCatalogUnreachable" -> this.pluginViewUnavailableCatalogUnreachable
     "pluginViewUnavailableUnboundCopy" -> this.pluginViewUnavailableUnboundCopy
+    "pluginViewUnavailableUpgradeRequired" -> this.pluginViewUnavailableUpgradeRequired
+    "pluginUpgradeAction" -> this.pluginUpgradeAction
+    "pluginUpgradeNotAvailable" -> this.pluginUpgradeNotAvailable
+    "pluginUpgradeBadge" -> this.pluginUpgradeBadge
+    "pluginUpgradeTitle" -> this.pluginUpgradeTitle
+    "pluginUpgradeDescription" -> this.pluginUpgradeDescription
+    "pluginViewQrExpired" -> this.pluginViewQrExpired
+    "pluginViewQrRefresh" -> this.pluginViewQrRefresh
+    "pluginViewStepPending" -> this.pluginViewStepPending
+    "pluginViewStepCurrent" -> this.pluginViewStepCurrent
+    "pluginViewStepDone" -> this.pluginViewStepDone
+    "pluginViewStepFailed" -> this.pluginViewStepFailed
+    "pluginViewTrendUp" -> this.pluginViewTrendUp
+    "pluginViewTrendDown" -> this.pluginViewTrendDown
+    "pluginViewTrendFlat" -> this.pluginViewTrendFlat
+    "pluginViewImageUnavailable" -> this.pluginViewImageUnavailable
+    "pluginFormatSeconds" -> this.pluginFormatSeconds
+    "pluginFormatCountUnits" -> this.pluginFormatCountUnits
+    "pluginFormChooseImage" -> this.pluginFormChooseImage
+    "pluginFormCaptureDocument" -> this.pluginFormCaptureDocument
+    "pluginFormDocumentFront" -> this.pluginFormDocumentFront
+    "pluginFormDocumentBack" -> this.pluginFormDocumentBack
+    "pluginFormDocumentHolding" -> this.pluginFormDocumentHolding
     "packetView" -> this.packetView
     "packetRefunded" -> this.packetRefunded
     "packetBadgeLucky" -> this.packetBadgeLucky

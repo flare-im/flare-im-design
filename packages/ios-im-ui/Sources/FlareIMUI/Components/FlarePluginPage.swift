@@ -22,6 +22,9 @@ import SwiftUI
 ///   confirmation and form — calls `onAction(id, payload)` with the page, the view's `data`, and the row, selection
 ///   or form values it carries: the core SDK's page action request, which the host passes on as it is (a page target
 ///   opens the next page with the outcome's payload as its arguments).
+/// - Upgrade required (``PluginUnavailableReason/upgradeRequired``): the whole page is ``FlarePluginUpgradeNotice``
+///   (page) with the page's title, the update key when `upgradeStatus` says a build is offered and `onUpdate` is set.
+/// - Image and QR blocks: `resolveImage` and `onQrRefresh` go to the view (``PluginView``).
 /// - Paging: `onLoadMore(cursor)` asks for the next page; the host passes back the merged view from the core SDK
 ///   (the new rows and entries after the shown ones, data kept). The kit merges nothing.
 ///
@@ -58,6 +61,11 @@ public struct FlarePluginPage: View {
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginPageActionPayload) -> Void)?
     private var appearance: FlarePluginPageAppearance = .document
+    private var upgradeStatus: PluginUpgradeStatus?
+    private var upgradeBusy = false
+    private var onUpdate: (() -> Void)?
+    private var resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
+    private var onQrRefresh: ((PluginQrRefresh) -> Void)?
     private let contentMaxWidth: CGFloat?
     private let clock: PluginViewClock
     /// The cursor asked for and not answered yet.
@@ -86,13 +94,18 @@ public struct FlarePluginPage: View {
                 fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
                 onAction: ((String, PluginPageActionPayload) -> Void)? = nil,
                 appearance: FlarePluginPageAppearance = .document,
-                contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth) {
+                contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth,
+                upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
+                resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                   settleToken: settleToken, onBack: onBack, onRefresh: onRefresh, onRetry: onRetry,
                   onLoadMore: onLoadMore, onFilter: onFilter, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, clock: .system, contentMaxWidth: contentMaxWidth)
         self.appearance = appearance
+        self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
+        self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -215,7 +228,11 @@ public struct FlarePluginPage: View {
             }
             .frame(maxWidth: .infinity)
         case .unavailable:
-            if let view {
+            if let view, view.view.upgradeRequired {
+                FlarePluginUpgradeNotice(variant: .page, title: Self.heading(view: view, title: title),
+                                         status: upgradeStatus, busy: upgradeBusy, onUpdate: onUpdate)
+                    .frame(maxWidth: .infinity)
+            } else if let view {
                 EmptyStateView(title: PluginPageRules.unavailableText(view.view, strings), icon: "info",
                                actions: PluginPageRules.unavailableRetry(view.view) ? AnyView(retryKey) : nil)
                     .frame(maxWidth: .infinity)
@@ -229,7 +246,7 @@ public struct FlarePluginPage: View {
                                          onAction: !refreshing ? onRefresh : nil)
                     }
                     filterRows(view.view)
-                    if appearance == .account || view.view.presentation?.renderer == "account" {
+                    if appearance == .account {
                         FlareAccountView(view: view.view, busyActionId: busyActionId, error: actionError,
                                          formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  settleToken: settleToken,
                                          fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view))
@@ -238,7 +255,8 @@ public struct FlarePluginPage: View {
                     PluginView(view: view.view, icon: nil, viewerId: viewerId, busy: false, busyActionId: busyActionId,
                                error: actionError, embedded: true, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                                formErrors: formErrors, settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view),
-                               onOpenDetail: nil, clock: clock, users: [:])
+                               onOpenDetail: nil, clock: clock, users: [:], resolveImage: resolveImage,
+                               onQrRefresh: onQrRefresh)
                     }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
                 }

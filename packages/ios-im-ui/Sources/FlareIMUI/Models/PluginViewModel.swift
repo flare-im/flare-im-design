@@ -66,10 +66,21 @@ extension PluginJSONValue: ExpressibleByNilLiteral, ExpressibleByBooleanLiteral,
     }
 }
 
-/// A label/value row (v1 `fields`, and the `fields` block).
+/// A label/value row (v1 `fields`, and the `fields` block). `value` is the plain text; `format` is what the kit may
+/// write instead (``PluginFormatRules``: a compact count, a duration in the viewer's words).
 public struct PluginViewField: Codable, Equatable, Sendable {
     public let label: String; public let value: String
-    public init(label: String, value: String) { self.label = label; self.value = value }
+    public let format: PluginValueFormat?
+    public init(label: String, value: String, format: PluginValueFormat? = nil) {
+        self.label = label; self.value = value; self.format = format
+    }
+    private enum CodingKeys: String, CodingKey { case label, value, format }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = try c.decode(String.self, forKey: .label)
+        value = c.lenient(String.self, .value) ?? ""
+        format = c.lenient(PluginValueFormat.self, .format)
+    }
 }
 
 /// How an action key is drawn; none is the secondary key.
@@ -407,16 +418,20 @@ public struct PluginRowsColumn: Codable, Equatable, Sendable {
     }
 }
 
-/// One cell: its text, and the instant of a time column.
+/// One cell: its text, the instant of a time column, and what the column's `valueFormat` adds to the text.
 public struct PluginRowCell: Codable, Equatable, Sendable {
     public let text: String
     public let timeMs: Int64?
-    public init(text: String, timeMs: Int64? = nil) { self.text = text; self.timeMs = timeMs }
-    private enum CodingKeys: String, CodingKey { case text, timeMs }
+    public let format: PluginValueFormat?
+    public init(text: String, timeMs: Int64? = nil, format: PluginValueFormat? = nil) {
+        self.text = text; self.timeMs = timeMs; self.format = format
+    }
+    private enum CodingKeys: String, CodingKey { case text, timeMs, format }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         text = c.lenient(String.self, .text) ?? ""
         timeMs = c.lenient(Double.self, .timeMs).map { Int64($0) }
+        format = c.lenient(PluginValueFormat.self, .format)
     }
 }
 
@@ -490,6 +505,15 @@ public enum PluginBlock: Codable, Equatable, Sendable {
     case divider
     case note(PluginNoteBlock)
     case rows(PluginRowsBlock)
+    case section(PluginSectionBlock)
+    case stats(PluginStatsBlock)
+    case chart(PluginChartBlock)
+    case image(PluginImageBlock)
+    case qr(PluginQrBlock)
+    case hero(PluginHeroBlock)
+    case steps(PluginStepsBlock)
+    case banner(PluginBannerBlock)
+    case timeline(PluginTimelineBlock)
 
     public var kind: String {
         switch self {
@@ -504,6 +528,15 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .divider: return "divider"
         case .note: return "note"
         case .rows: return "rows"
+        case .section: return "section"
+        case .stats: return "stats"
+        case .chart: return "chart"
+        case .image: return "image"
+        case .qr: return "qr"
+        case .hero: return "hero"
+        case .steps: return "steps"
+        case .banner: return "banner"
+        case .timeline: return "timeline"
         }
     }
 
@@ -523,6 +556,15 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case "divider": self = .divider
         case "note": self = .note(try PluginNoteBlock(from: decoder))
         case "rows": self = .rows(try PluginRowsBlock(from: decoder))
+        case "section": self = .section(try PluginSectionBlock(from: decoder))
+        case "stats": self = .stats(try PluginStatsBlock(from: decoder))
+        case "chart": self = .chart(try PluginChartBlock(from: decoder))
+        case "image": self = .image(try PluginImageBlock(from: decoder))
+        case "qr": self = .qr(try PluginQrBlock(from: decoder))
+        case "hero": self = .hero(try PluginHeroBlock(from: decoder))
+        case "steps": self = .steps(try PluginStepsBlock(from: decoder))
+        case "banner": self = .banner(try PluginBannerBlock(from: decoder))
+        case "timeline": self = .timeline(try PluginTimelineBlock(from: decoder))
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "block kind \(kind)"))
         }
@@ -543,13 +585,25 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .divider: break
         case .note(let block): try block.encode(to: encoder)
         case .rows(let block): try block.encode(to: encoder)
+        case .section(let block): try block.encode(to: encoder)
+        case .stats(let block): try block.encode(to: encoder)
+        case .chart(let block): try block.encode(to: encoder)
+        case .image(let block): try block.encode(to: encoder)
+        case .qr(let block): try block.encode(to: encoder)
+        case .hero(let block): try block.encode(to: encoder)
+        case .steps(let block): try block.encode(to: encoder)
+        case .banner(let block): try block.encode(to: encoder)
+        case .timeline(let block): try block.encode(to: encoder)
         }
     }
 }
 
 /// Form input kinds (UiInput).
 public enum PluginInputKind: String, Codable, Sendable, CaseIterable {
-    case text, password, textarea, number, toggle, select, datetime, options, members, file
+    case text, password, textarea, number, toggle, select, datetime, options, members, file, money, image, document
+
+    /// Inputs whose value is an uploaded file's `{fileId}`, uploaded through `file`: file, image and document.
+    public var isUpload: Bool { self == .file || self == .image || self == .document }
 }
 
 public struct PluginInputCondition: Codable, Equatable, Sendable {
@@ -605,19 +659,25 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
     public let defaultValue: PluginJSONValue?
     /// select only.
     public let choices: [PluginInputChoice]?
+    /// file, image and document: what may be uploaded and how.
     public let file: PluginFileInput?
+    /// money only: the currency, scale and bounds the core SDK read.
+    public let money: PluginMoneyRules?
+    /// document only: which side of the document it captures.
+    public let side: PluginDocumentSide?
     public let showWhen: PluginInputCondition?
 
     public init(id: String, kind: PluginInputKind, label: String, required: Bool = false, placeholder: String? = nil,
                 maxLength: Int? = nil, min: Double? = nil, max: Double? = nil, defaultValue: PluginJSONValue? = nil,
-                choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, showWhen: PluginInputCondition? = nil) {
+                choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, money: PluginMoneyRules? = nil,
+                side: PluginDocumentSide? = nil, showWhen: PluginInputCondition? = nil) {
         self.id = id; self.kind = kind; self.label = label; self.required = required; self.placeholder = placeholder
         self.maxLength = maxLength; self.min = min; self.max = max; self.defaultValue = defaultValue; self.choices = choices
-        self.file = file; self.showWhen = showWhen
+        self.file = file; self.money = money; self.side = side; self.showWhen = showWhen
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, showWhen
+        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, money, side, showWhen
         case defaultValue = "default"
     }
 
@@ -634,9 +694,14 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
         defaultValue = c.lenient(PluginJSONValue.self, .defaultValue)
         choices = c.lenient([PluginInputChoice].self, .choices)
         file = try c.decodeIfPresent(PluginFileInput.self, forKey: .file)
+        money = try c.decodeIfPresent(PluginMoneyRules.self, forKey: .money)
+        side = try c.decodeIfPresent(PluginDocumentSide.self, forKey: .side)
         showWhen = try c.decodeIfPresent(PluginInputCondition.self, forKey: .showWhen)
-        if kind == .file && file?.valid != true {
+        if kind.isUpload && file?.valid != true {
             throw DecodingError.dataCorruptedError(forKey: .file, in: c, debugDescription: "Invalid file policy")
+        }
+        if kind == .money && money == nil {
+            throw DecodingError.dataCorruptedError(forKey: .money, in: c, debugDescription: "Missing money rules")
         }
     }
 }
@@ -761,6 +826,9 @@ public enum PluginUnavailableReason: String, Codable, Sendable, CaseIterable {
     case catalogUnreachable = "catalog_unreachable"
     /// A forged or forwarded copy of a card: drawn read-only (the core SDK has already stripped its actions).
     case unboundCopy = "unbound_copy"
+    /// This build cannot draw it; the view's `minBuild` names the first one that can, when the plugin declared one
+    /// (``FlarePluginUpgradeNotice``).
+    case upgradeRequired = "upgrade_required"
 }
 
 /// A resolved plugin view (core SDK `ResolvedPluginView`). v1 cards (title, fields, actions) decode unchanged.
@@ -791,11 +859,16 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     public let menuActions: [PluginViewAction]
     /// Why the view is unavailable (`available` false) or a read-only copy (``PluginUnavailableReason/unboundCopy``).
     public let unavailableReason: PluginUnavailableReason?
+    /// ``PluginUnavailableReason/upgradeRequired``: the first build that draws it, when the plugin declared one; the
+    /// host asks `update.plugin_upgrade_status` with it.
+    public let minBuild: Int64?
 
     public init(available: Bool, title: String, fields: [PluginViewField] = [], actions: [PluginViewAction] = [],
                 blocks: [PluginBlock] = [], inputs: [PluginInput] = [], detail: Bool = false, nextCursor: String? = nil,
-                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil, presentation: PluginPresentation? = nil) {
+                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil, presentation: PluginPresentation? = nil,
+                minBuild: Int64? = nil) {
         self.presentation = presentation
+        self.minBuild = minBuild
         self.available = available; self.title = title; self.fields = fields; self.actions = actions
         self.blocks = blocks; self.inputs = inputs; self.detail = detail; self.nextCursor = nextCursor
         self.menuActions = menuActions; self.unavailableReason = unavailableReason
@@ -804,8 +877,12 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     /// A forwarded or forged copy: its content draws, nothing on it acts.
     public var readOnly: Bool { unavailableReason == .unboundCopy }
 
+    /// This build cannot draw it: the kit shows ``FlarePluginUpgradeNotice`` instead.
+    public var upgradeRequired: Bool { !available && unavailableReason == .upgradeRequired }
+
     private enum CodingKeys: String, CodingKey {
         case available, title, fields, actions, blocks, inputs, detail, nextCursor, menuActions, unavailableReason, presentation
+        case minBuild
     }
 
     public init(from decoder: Decoder) throws {
@@ -824,6 +901,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         }
         menuActions = (c.lenient([PluginLossy<PluginViewAction>].self, .menuActions) ?? []).compactMap(\.value)
         unavailableReason = c.lenient(PluginUnavailableReason.self, .unavailableReason)
+        minBuild = c.lenient(Double.self, .minBuild).map { Int64($0) }
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -839,6 +917,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         if !menuActions.isEmpty { try c.encode(menuActions, forKey: .menuActions) }
         try c.encodeIfPresent(presentation, forKey: .presentation)
         try c.encodeIfPresent(unavailableReason, forKey: .unavailableReason)
+        try c.encodeIfPresent(minBuild, forKey: .minBuild)
     }
 
     /// The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped.

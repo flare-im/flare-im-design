@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -48,11 +50,22 @@ class RcScreenshotHarnessTest {
 
     @Test fun largeTextComponents() = capture("rc-components-large-text", dark = false, fontScale = 2f)
 
-    private fun capture(name: String, dark: Boolean, fontScale: Float) {
-        compose.setContent { RcComponentsFixture(dark, fontScale) }
+    /** The vocabulary 2 plugin blocks and the upgrade notice (spec/plugin-view-vectors.json → blocks2, upgradeNotice). */
+    @Test fun pluginBlocksLight() = capture("plugin-blocks2-light", listOf("Open tasks", "Update the app to view this")) {
+        PluginBlocksFixture(dark = false)
+    }
+
+    @Test fun pluginBlocksDark() = capture("plugin-blocks2-dark", listOf("Open tasks", "Update the app to view this")) {
+        PluginBlocksFixture(dark = true)
+    }
+
+    private fun capture(name: String, dark: Boolean, fontScale: Float) =
+        capture(name, listOf("Continue", "A stable outgoing message with a readable delivery state.")) { RcComponentsFixture(dark, fontScale) }
+
+    private fun capture(name: String, shown: List<String>, content: @Composable () -> Unit) {
+        compose.setContent { content() }
         compose.waitForIdle()
-        compose.onNodeWithText("Continue").assertIsDisplayed()
-        compose.onNodeWithText("A stable outgoing message with a readable delivery state.").assertIsDisplayed()
+        shown.forEach { compose.onNodeWithText(it).assertIsDisplayed() }
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val screen = instrumentation.uiAutomation.takeScreenshot()
         val visibleFrame = Rect()
@@ -163,6 +176,45 @@ private fun RcComponentsFixture(dark: Boolean, fontScale: Float) {
                 Spacer(Modifier.padding(top = 2.dp))
                 Composer(placeholder = "Write a message", onSend = {})
               }
+            }
+        }
+    }
+}
+
+/** Every vocabulary 2 block an embedded plugin view draws, then the upgrade notice as a card line and as a page. */
+internal const val PLUGIN_BLOCKS_FIXTURE = """{"available":true,"title":"Task board","blocks":[
+  {"kind":"hero","label":"Balance","value":"1,250.00","amount":true,"tone":"brand","subtitle":"Updated just now",
+   "actions":[{"id":"top-up","label":"Top up"},{"id":"withdraw","label":"Withdraw"}]},
+  {"kind":"stats","items":[{"label":"Open tasks","value":"12","trend":{"text":"+3","direction":"up"}},
+   {"label":"Members","value":"12345","format":{"kind":"count","count":12345}},
+   {"label":"Avg. time","value":"7500000","format":{"kind":"duration","ms":7500000},"tone":"warning"}]},
+  {"kind":"chart","chartKind":"bar","series":[{"label":"Done","points":[{"label":"Mon","value":3,"text":"3"},{"label":"Tue","value":5,"text":"5"},{"label":"Wed","value":2,"text":"2"}]},
+   {"label":"Open","points":[{"label":"Mon","value":1,"text":"1"},{"label":"Tue","value":2,"text":"2"},{"label":"Wed","value":4,"text":"4"}]}]},
+  {"kind":"chart","chartKind":"donut","series":[{"points":[{"label":"Done","value":6,"text":"6"},{"label":"Open","value":3,"text":"3"},{"label":"Late","value":1,"text":"1"}]}]},
+  {"kind":"steps","items":[{"label":"Submitted","state":"done"},{"label":"Review","state":"current"},{"label":"Approved","state":"pending"}]},
+  {"kind":"banner","tone":"warning","text":"Two tasks are overdue","action":{"id":"view","label":"View"}},
+  {"kind":"section","label":"Details","collapsed":false,"blocks":[{"kind":"fields","fields":[{"label":"Owner","value":"Ann"}]}]},
+  {"kind":"qr","value":"flare://task/42","label":"Share board","caption":"Scan to open"}
+]}"""
+
+@Composable
+private fun PluginBlocksFixture(dark: Boolean) {
+    CompositionLocalProvider(LocalFlareStrings provides flareStringsEnglish()) {
+        FlareThemeProvider(if (dark) FlareThemeMode.Dark else FlareThemeMode.Light) {
+            val colors = flareColors()
+            Box(
+                Modifier.testTag("plugin-blocks2").fillMaxSize().background(colors.bgPrimary).statusBarsPadding()
+                    .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                Column(Modifier.width(360.dp).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    PluginView(view = PluginViewModel.fromJson(PLUGIN_BLOCKS_FIXTURE), embedded = true, onAction = { _, _ -> })
+                    PluginView(
+                        view = PluginViewModel.fromJson("""{"available":false,"title":"Task board","unavailableReason":"upgrade_required","minBuild":41020}"""),
+                        upgradeStatus = PluginUpgradeStatus(available = true, build = 41020), onUpdate = {},
+                    )
+                    FlarePluginUpgradeNotice(FlarePluginUpgradeVariant.Page, title = "Task board", status = PluginUpgradeStatus(available = false))
+                }
             }
         }
     }
