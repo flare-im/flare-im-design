@@ -198,6 +198,8 @@
     "CapabilityBoundary": "general-ui",
     "DangerConfirm": "general-ui",
     "PermissionPrompt": "general-ui",
+    "InAppNotificationBanner": "general-ui",
+    "InAppNotificationHost": "general-ui",
     "SearchDateRangeFilter": "general-ui",
     "MemberPanel": "im-ui",
     "UnknownUserPlaceholder": "im-ui",
@@ -206,6 +208,8 @@
     "MemberRoleSheet": "im-ui",
     "DeviceSessions": "im-ui",
     "NotificationPreferences": "im-ui",
+    "NotificationDeliverySettings": "im-ui",
+    "NotificationAlertSettings": "im-ui",
     "StorageUsage": "im-ui",
     "MediaCenter": "im-ui",
     "CallDevicePicker": "im-ui",
@@ -230,7 +234,7 @@
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
     "UserIdentity": "general-ui",
-    "ImageUploadSlot": "general-ui",
-    "FileUpload": "general-ui"
+    "ImageUploadSlot": "im-ui",
+    "FileUpload": "im-ui"
   }
 }

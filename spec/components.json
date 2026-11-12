@@ -913,6 +913,15 @@
             "en": "`true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither.",
             "zh": "`true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。"
           }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Compose only: a line under the label that says what the row does (a switch's consequence), in the secondary text colour on up to three lines; read with the row.",
+            "zh": "仅 Compose：标签下方说明这一行做什么的一行字（开关的后果），次要文字色，最多三行；与这一行一起朗读。"
+          }
         }
       ]
     },
@@ -941,6 +950,15 @@
           "description": {
             "en": "Rows in this section.",
             "zh": "分组内的行。"
+          }
+        },
+        {
+          "name": "footer",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A note under the section's card: what the rows do, or where else to change them.",
+            "zh": "分组卡片下方的说明：这些行做什么，或还能在哪里修改。"
           }
         }
       ]
@@ -1263,6 +1281,348 @@
         "toggle",
         "value",
         "action"
+      ]
+    },
+    {
+      "name": "NotificationStatus",
+      "symbol": "FlareNotificationStatus",
+      "kind": "enum",
+      "summary": {
+        "en": "The system notification permission, as a settings row says it.",
+        "zh": "系统通知权限在设置行上的说法。"
+      },
+      "values": [
+        "on",
+        "off",
+        "notTurnedOn"
+      ]
+    },
+    {
+      "name": "BackgroundDelivery",
+      "symbol": "FlareBackgroundDelivery",
+      "kind": "enum",
+      "summary": {
+        "en": "What the system lets the app do in the background, in the words of the platform's battery settings.",
+        "zh": "系统允许应用在后台做什么，用平台电池设置里的说法。"
+      },
+      "values": [
+        "unrestricted",
+        "optimized",
+        "restricted"
+      ]
+    },
+    {
+      "name": "NotificationGuideAction",
+      "symbol": "FlareNotificationGuideAction",
+      "kind": "interface",
+      "summary": {
+        "en": "One extra way to keep background delivery working, offered by the host (a phone maker's auto-start page).",
+        "zh": "宿主提供的保持后台送达的额外入口（手机厂商的自启动页）。"
+      },
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Row label; defaults to the kit's \"自启动管理\" / \"Auto-start settings\" (strings `backgroundDeliveryAutoStart`, Vue `notificationDeliverySettings.autoStart`).",
+            "zh": "行标题；默认用 Kit 的「自启动管理」/「Auto-start settings」（文案 `backgroundDeliveryAutoStart`，Vue 为 `notificationDeliverySettings.autoStart`）。"
+          }
+        },
+        {
+          "name": "onSelect",
+          "type": "() => void",
+          "required": true,
+          "description": {
+            "en": "Opens the page.",
+            "zh": "打开该页面。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "InAppNotificationChannel",
+      "symbol": "FlareInAppNotificationChannel",
+      "kind": "enum",
+      "summary": {
+        "en": "How strongly a new message asks for attention: the engine's notification channel.",
+        "zh": "新消息要求关注的程度：引擎的通知频道。"
+      },
+      "values": [
+        "messages",
+        "quiet",
+        "mentions",
+        "urgent"
+      ]
+    },
+    {
+      "name": "InAppNotification",
+      "symbol": "FlareInAppNotification",
+      "kind": "interface",
+      "summary": {
+        "en": "A message that arrived while the app is open on another screen, as the host maps it from the engine's `notification.present` (surface `inApp`).",
+        "zh": "应用开着、停在别的页面时到达的消息，由宿主从引擎的 `notification.present`（surface 为 `inApp`）映射而来。"
+      },
+      "fields": [
+        {
+          "name": "collapseId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "One banner per collapse id: a newer item with the same id replaces the shown or waiting one in place.",
+            "zh": "同一合并键只有一条横幅：合并键相同的新条目原位替换正在显示或排队的那条。"
+          }
+        },
+        {
+          "name": "conversationId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The conversation the banner opens; also seeds the avatar colour.",
+            "zh": "横幅打开的会话；也用来决定头像底色。"
+          }
+        },
+        {
+          "name": "messageId",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "The newest message the banner stands for, handed back on open.",
+            "zh": "横幅代表的最新一条消息，打开时原样交回。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Conversation or sender name; its initials stand in for a missing avatar.",
+            "zh": "会话或发送者名称；没有头像时取其首字。"
+          }
+        },
+        {
+          "name": "body",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The preview, drawn on one line and ellipsised.",
+            "zh": "预览文本，单行显示，超出省略。"
+          }
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Unread messages the banner stands for (default 1); above 1 the kit's \"[3条]\" / \"[3 messages]\" goes before the body.",
+            "zh": "横幅代表的未读条数（默认 1）；大于 1 时正文前加 Kit 的「[3条]」/「[3 messages]」。"
+          }
+        },
+        {
+          "name": "channel",
+          "type": "InAppNotificationChannel",
+          "required": false,
+          "description": {
+            "en": "messages (default) and quiet look the same; mentions and urgent carry a tag before the body and an accent.",
+            "zh": "messages（默认）与 quiet 外观相同；mentions 与 urgent 在正文前加标签并带强调色。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Conversation avatar the host resolved; the initials of `title` without it.",
+            "zh": "宿主解析出的会话头像；不传时用 `title` 的首字。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "InAppNotifications",
+      "symbol": "FlareInAppNotifications",
+      "kind": "interface",
+      "summary": {
+        "en": "The presenter the app feeds and InAppNotificationHost draws: the visible banner and the ones waiting (spec/in-app-notification-vectors.json).",
+        "zh": "应用往里送、InAppNotificationHost 负责绘制的呈现器：正在显示的横幅与排队的横幅（spec/in-app-notification-vectors.json）。"
+      },
+      "fields": [
+        {
+          "name": "current",
+          "type": "InAppNotification | null",
+          "required": true,
+          "description": {
+            "en": "The visible banner.",
+            "zh": "正在显示的横幅。"
+          }
+        },
+        {
+          "name": "pending",
+          "type": "InAppNotification[]",
+          "required": true,
+          "description": {
+            "en": "Banners waiting, oldest first, at most three.",
+            "zh": "排队的横幅，最早的在前，最多三条。"
+          }
+        },
+        {
+          "name": "present",
+          "type": "(notification: InAppNotification) => void",
+          "required": true,
+          "description": {
+            "en": "Shows, replaces or queues an item.",
+            "zh": "显示、替换或排队一条。"
+          }
+        },
+        {
+          "name": "dismiss",
+          "type": "() => void",
+          "required": true,
+          "description": {
+            "en": "The visible banner goes; the next waiting one shows.",
+            "zh": "移走正在显示的横幅，显示下一条。"
+          }
+        },
+        {
+          "name": "clear",
+          "type": "(collapseIds: string[]) => void",
+          "required": true,
+          "description": {
+            "en": "Takes away the banners of these collapse ids (the engine's notification.clear).",
+            "zh": "移走这些合并键的横幅（引擎的 notification.clear）。"
+          }
+        },
+        {
+          "name": "clearAll",
+          "type": "() => void",
+          "required": true,
+          "description": {
+            "en": "Takes every banner away (notification.clear with all).",
+            "zh": "移走全部横幅（notification.clear 的 all）。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "NotificationPreview",
+      "symbol": "FlareNotificationPreview",
+      "kind": "enum",
+      "summary": {
+        "en": "What a notification shows: the sender and the message, the sender only, or neither.",
+        "zh": "通知显示什么：发送者和内容、只有发送者，或都不显示。"
+      },
+      "values": [
+        "full",
+        "senderOnly",
+        "hidden"
+      ]
+    },
+    {
+      "name": "MultiDeviceAlert",
+      "symbol": "FlareMultiDeviceAlert",
+      "kind": "enum",
+      "summary": {
+        "en": "How the phone alerts while the person is using another device: after a delay, at once, or only on the badge.",
+        "zh": "在其他设备上使用时手机怎样提醒：稍后、立即，或只更新角标。"
+      },
+      "values": [
+        "delay",
+        "immediate",
+        "badgeOnly"
+      ]
+    },
+    {
+      "name": "QuietHours",
+      "symbol": "FlareQuietHours",
+      "kind": "interface",
+      "summary": {
+        "en": "When new messages arrive silently, in device local time.",
+        "zh": "新消息静默送达的时段，按设备本地时间。"
+      },
+      "fields": [
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Whether quiet hours apply; the times are kept while they are off.",
+            "zh": "是否启用；关闭时仍保留时间。"
+          }
+        },
+        {
+          "name": "startMinute",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Minutes after midnight, 0 to 1439.",
+            "zh": "零点后的分钟数，0 到 1439。"
+          }
+        },
+        {
+          "name": "endMinute",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Minutes after midnight; not after the start means the next day (equal is the whole day).",
+            "zh": "零点后的分钟数；不晚于开始时间表示次日（相等为全天）。"
+          }
+        },
+        {
+          "name": "weekdays",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Bits, bit 0 Monday … bit 6 Sunday; 0 is every day.",
+            "zh": "按位表示，bit 0 为周一 … bit 6 为周日；0 为每天。"
+          }
+        },
+        {
+          "name": "allowMentions",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Messages that mention the person still alert.",
+            "zh": "@我的消息仍然提醒。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "NotificationAlertPreferences",
+      "symbol": "FlareNotificationAlertPreferences",
+      "kind": "interface",
+      "summary": {
+        "en": "A person's notification preferences as NotificationAlertSettings edits them; the shape of the protocol's user notification settings.",
+        "zh": "NotificationAlertSettings 编辑的个人通知偏好；与协议的用户级通知设置同形。"
+      },
+      "fields": [
+        {
+          "name": "quietHours",
+          "type": "QuietHours",
+          "required": true,
+          "description": {
+            "en": "Quiet hours.",
+            "zh": "勿扰时段。"
+          }
+        },
+        {
+          "name": "preview",
+          "type": "NotificationPreview",
+          "required": true,
+          "description": {
+            "en": "What notifications show.",
+            "zh": "通知显示的内容。"
+          }
+        },
+        {
+          "name": "multiDevice",
+          "type": "MultiDeviceAlert",
+          "required": true,
+          "description": {
+            "en": "How the phone alerts while another device is in use.",
+            "zh": "其他设备在使用时手机的提醒方式。"
+          }
+        }
       ]
     },
     {
@@ -21848,6 +22208,10 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose localized name, role, value/state, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Flutter `FlareTimePicker.show(context, value:, title:, minuteStep:)` presents the hour and minute sheet without the field and resolves to the picked HH:mm, or null when it was cancelled; NotificationAlertSettings opens its times through it. The other kits share the sheet internally the same way.",
+        "zh": "Flutter 的 `FlareTimePicker.show(context, value:, title:, minuteStep:)` 不带输入框直接呈现时、分面板，返回选中的 HH:mm，取消时为 null；NotificationAlertSettings 的时间行经它打开。其他三端在内部以同样方式共用这个面板。"
       }
     },
     {
@@ -23506,8 +23870,8 @@
       "name": "PermissionPrompt",
       "category": "Feedback",
       "summary": {
-        "en": "Unified explanation panel for a missing / denied system permission; request and openSettings are delegated to the host.",
-        "zh": "系统权限缺失 / 被拒时的统一说明面板；申请权限与打开设置交给宿主。"
+        "en": "Unified explanation panel for a missing / denied system permission, and the soft-ask a host shows at a moment it picks; request and openSettings are delegated to the host.",
+        "zh": "系统权限缺失 / 被拒时的统一说明面板，以及宿主在自选时机展示的轻询问；申请权限与打开设置交给宿主。"
       },
       "dataSource": {
         "en": "Host-reported permission kind + state; no platform queries, no side effects.",
@@ -23525,11 +23889,11 @@
         },
         {
           "name": "state",
-          "type": "\"undetermined\" | \"denied\" | \"restricted\" | \"unavailable\"",
+          "type": "\"undetermined\" | \"denied\" | \"restricted\" | \"unavailable\" | \"granted\"",
           "required": true,
           "description": {
-            "en": "Host-reported state. request only while undetermined; openSettings only while denied; restricted / unavailable show explanation only.",
-            "zh": "宿主上报的状态。undetermined 才显示 request；denied 才显示 openSettings；restricted / unavailable 只有说明。"
+            "en": "Host-reported state. request only while undetermined; openSettings only while denied; restricted / unavailable show explanation only; granted renders nothing, so the platform status binds as it is.",
+            "zh": "宿主上报的状态。undetermined 才显示 request；denied 才显示 openSettings；restricted / unavailable 只有说明；granted 什么都不画，平台状态可原样绑定。"
           }
         },
         {
@@ -23565,6 +23929,40 @@
           }
         },
         {
+          "name": "softAsk",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The non-blocking invitation: no state chip, a \"Not now\" dismiss, shown only while undetermined or denied. The notifications kind has copy of its own: \"Turn on notifications\" while the system can ask, \"Open Settings\" with where to turn it on once it was turned off.",
+            "zh": "非阻断的轻询问：不画状态标签，关闭键为「以后再说」，只在 undetermined 或 denied 时出现。通知类有自己的文案：系统还能询问时为「开启通知」，被关闭后为「前往设置」并说明在哪里打开。"
+          }
+        },
+        {
+          "name": "presentation",
+          "type": "\"inline\" | \"sheet\"",
+          "default": "\"inline\"",
+          "description": {
+            "en": "inline sits in the page (a card, or the compact strip); sheet hosts the prompt in BottomSheet auto, where closing it by the scrim, Escape or back is a dismiss. On Compose a key closes the sheet itself and its callback runs once the sheet is gone. SwiftUI presents the sheet with `.flarePermissionPrompt(isPresented:…)`, Flutter with `FlarePermissionPrompt.show(context, …)`.",
+            "zh": "inline 嵌在页面里（卡片或紧凑条）；sheet 把提示放进 BottomSheet auto，遮罩、Escape 或返回关闭即 dismiss。Compose 上按键由面板自己关闭，面板消失后才调用回调。SwiftUI 用 `.flarePermissionPrompt(isPresented:…)` 呈现，Flutter 用 `FlarePermissionPrompt.show(context, …)`。"
+          },
+          "platforms": [
+            "vue",
+            "compose"
+          ]
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": "true",
+          "description": {
+            "en": "Sheet presentation only: whether the sheet is open. Compose shows the sheet once it is composed and closes it on any answer; it stays closed while it stays composed.",
+            "zh": "仅 sheet 呈现：面板是否打开。Compose 组合即显示，作答后自行关闭，仍在组合中也不再出现。"
+          },
+          "platforms": [
+            "vue"
+          ]
+        },
+        {
           "name": "title",
           "type": "string",
           "description": {
@@ -23592,8 +23990,8 @@
           "name": "requestText",
           "type": "string",
           "description": {
-            "en": "Request action label (default \"允许\").",
-            "zh": "申请按钮文案（默认“允许”）。"
+            "en": "Request action label (default \"允许\"; \"开启通知\" on the notifications soft-ask).",
+            "zh": "申请按钮文案（默认“允许”；通知类轻询问为“开启通知”）。"
           }
         },
         {
@@ -23608,8 +24006,8 @@
           "name": "dismissText",
           "type": "string",
           "description": {
-            "en": "Dismiss action label (default \"知道了\").",
-            "zh": "关闭按钮文案（默认“知道了”）。"
+            "en": "Dismiss action label (default \"知道了\"; \"以后再说\" on a soft-ask).",
+            "zh": "关闭按钮文案（默认“知道了”；轻询问为“以后再说”）。"
           }
         }
       ],
@@ -23618,6 +24016,8 @@
         "denied",
         "restricted",
         "unavailable",
+        "granted",
+        "softAsk",
         "busy"
       ],
       "events": [
@@ -23659,6 +24059,157 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Pure helpers on every kit: permissionActions, permissionPromptShows(state, softAsk) (nothing for granted; a soft-ask only while undetermined or denied), defaultPermissionCopy and, on the native kits, defaultPermissionSoftAskCopy. The sheet form: Vue and Compose `presentation=\"sheet\"` (Vue `open`), SwiftUI `.flarePermissionPrompt(isPresented:kind:state:softAsk:…)`, Flutter `FlarePermissionPrompt.show(context, kind:, state:, softAsk:)` resolving to request / openSettings / dismiss (null when nothing was shown). On SwiftUI, Flutter and Compose a choice closes the sheet and the host acts once it is gone, so the system permission dialog has the screen to itself; Compose calls onRequest / onOpenSettings / onDismiss after the sheet has left, and an answered prompt stays closed while the host keeps it composed. The component never requests a permission or opens settings.",
+        "zh": "各端纯函数：permissionActions、permissionPromptShows(state, softAsk)（granted 不画；轻询问只在 undetermined 或 denied 时出现）、defaultPermissionCopy，原生端另有 defaultPermissionSoftAskCopy。面板形态：Vue 与 Compose 用 `presentation=\"sheet\"`（Vue 另有 `open`），SwiftUI 用 `.flarePermissionPrompt(isPresented:kind:state:softAsk:…)`，Flutter 用 `FlarePermissionPrompt.show(context, kind:, state:, softAsk:)`，结果为 request / openSettings / dismiss（什么都没显示时为 null）。SwiftUI、Flutter 与 Compose 上选择后面板先关闭、宿主再执行，系统权限弹窗独占屏幕；Compose 在面板离开后才调用 onRequest / onOpenSettings / onDismiss，作答后宿主仍在组合它也不再出现。组件从不申请权限或打开设置。"
+      }
+    },
+    {
+      "name": "InAppNotificationBanner",
+      "category": "Feedback",
+      "summary": {
+        "en": "The top banner for a message that arrived while the app is open on another screen: avatar, title, one line of preview, the count, and a tag for mentions and urgent messages.",
+        "zh": "应用开着、停在别的页面时到达新消息的顶部横幅：头像、标题、单行预览、条数，以及 @我 与加急的标签。"
+      },
+      "dataSource": {
+        "en": "One InAppNotification the host mapped from the engine; InAppNotificationHost places it and runs its time on screen.",
+        "zh": "宿主从引擎映射来的一条 InAppNotification；由 InAppNotificationHost 摆放并计时。"
+      },
+      "props": [
+        {
+          "name": "notification",
+          "type": "InAppNotification",
+          "required": true,
+          "description": {
+            "en": "What the banner shows.",
+            "zh": "横幅显示的内容。"
+          }
+        }
+      ],
+      "states": [
+        "messages",
+        "quiet",
+        "mentions",
+        "urgent",
+        "count",
+        "swiping"
+      ],
+      "events": [
+        "open",
+        "dismiss"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationBanner"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationBanner"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationBannerView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationBanner"
+        }
+      },
+      "accessibility": {
+        "role": "button",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab focuses the banner, then its close key",
+          "Enter or Space opens the conversation",
+          "Escape dismisses the banner"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The banner does not slide in, out or after a swipe; it appears, changes and goes in place.",
+        "screenReaderSemantics": "A button named New message, the title, the mention or urgent tag, the count and the body; activating it opens the conversation, and a Close action dismisses it. The close key is named Close. The avatar is decorative."
+      },
+      "notes": {
+        "en": "Tap opens: `open(conversationId, messageId)` with the item's own ids. Swipe up past a short distance, the close key or Escape dismiss (`dismiss`). The title and the body take one line each and ellipsise; `count` above 1 puts the kit's \"[3条]\" / \"[3 messages]\" before the body (strings `inAppNotificationCount`, Vue `inAppNotification.count`); mentions puts \"[有人@我]\" / \"[Mention]\" and urgent \"[加急]\" / \"[Urgent]\" before it, mentions in the brand colour and urgent in the danger colour with a matching edge. The avatar is the kit Avatar (the host's `avatarUrl`, otherwise the initials of the title seeded by the conversation). Hosts normally do not place the banner: InAppNotificationHost does, with the queue and the timing.",
+        "zh": "轻点打开：`open(conversationId, messageId)`，取条目自身的 id。向上轻扫超过一小段距离、关闭键或 Escape 关闭（`dismiss`）。标题与正文各占一行，超出省略；`count` 大于 1 时正文前加 Kit 的「[3条]」/「[3 messages]」（文案 `inAppNotificationCount`，Vue 为 `inAppNotification.count`）；mentions 在正文前加「[有人@我]」/「[Mention]」，urgent 加「[加急]」/「[Urgent]」，mentions 用品牌色，urgent 用危险色并带同色边。头像是 Kit 的 Avatar（宿主给的 `avatarUrl`，没有时用以会话 id 定色的标题首字）。宿主通常不直接摆放横幅，由 InAppNotificationHost 负责摆放、排队与计时。"
+      }
+    },
+    {
+      "name": "InAppNotificationHost",
+      "category": "Feedback",
+      "summary": {
+        "en": "Puts the in-app new-message banner on screen: the app feeds items into a presenter, and the host draws the visible one at the top, queues the rest and dismisses each after the kit's time.",
+        "zh": "把应用内新消息横幅放到屏幕上：应用把条目送进呈现器，宿主在顶部画出当前一条、其余排队，并按 Kit 的时长自动收起。"
+      },
+      "dataSource": {
+        "en": "An InAppNotifications presenter the app owns and feeds from the engine's notification.present (surface inApp) and notification.clear events; the kit never subscribes to the SDK.",
+        "zh": "应用持有的 InAppNotifications 呈现器，由应用用引擎的 notification.present（surface 为 inApp）与 notification.clear 事件喂入；Kit 从不订阅 SDK。"
+      },
+      "props": [
+        {
+          "name": "notifications",
+          "type": "InAppNotifications",
+          "required": true,
+          "description": {
+            "en": "The presenter: Vue `createFlareInAppNotifications()`, Flutter, SwiftUI and Compose `FlareInAppNotifications`, one per app.",
+            "zh": "呈现器：Vue 为 `createFlareInAppNotifications()`，Flutter、SwiftUI、Compose 为 `FlareInAppNotifications`，每个应用一份。"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "showing",
+        "held",
+        "queued"
+      ],
+      "events": [
+        "open"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationHost"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationHost"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationHost"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationHost"
+        }
+      },
+      "accessibility": {
+        "role": "status",
+        "labelRequired": false,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab reaches the banner while it shows",
+          "Focus on the banner keeps it on screen",
+          "Escape on the banner dismisses it"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Banners appear and give way without sliding; a replaced banner changes in place.",
+        "screenReaderSemantics": "A polite live region (an announcement on the natives): each banner that shows is announced once as New message, the title, the tag, the count and the body; a banner replaced in place is announced again. The timer stops while the banner has focus, so a reader can reach it."
+      },
+      "notes": {
+        "en": "The queue (spec/in-app-notification-vectors.json): nothing showing, an item shows at once; the same collapse id replaces the visible banner in place, or a waiting one where it waits; other conversations wait, at most three, and beyond that the oldest waiting one is dropped so the newest win. Each banner stays 4 s (IN_APP_NOTIFICATION_DURATION_MS / inAppNotificationDuration) after it shows or is replaced; touching, hovering or focusing it stops the time, which starts over when that ends. Open dismisses the banner and reports `open(conversationId, messageId)`; the app routes. The banner sits at the top centre under the safe area, at most the kit's auth form width wide, above the page. Placement: Vue renders a fixed region and is placed once anywhere (`<FlareInAppNotificationHost :notifications @open />`); Flutter wraps the app (`child`, e.g. in MaterialApp.builder), SwiftUI and Compose wrap the app content (`content`). The host never decides whether a message alerts or which surface it uses: the engine's NotifyCenter did. Reduced motion: no slide.",
+        "zh": "排队规则（spec/in-app-notification-vectors.json）：没有横幅时立即显示；合并键相同的条目原位替换正在显示的横幅，或在原位置替换排队中的那条；其他会话排队，最多三条，超出时丢掉最早排队的一条，最新的保留。每条横幅显示或被替换后停留 4 秒（IN_APP_NOTIFICATION_DURATION_MS / inAppNotificationDuration）；按住、悬停或聚焦时停止计时，结束后重新计时。打开会先收起横幅再上报 `open(conversationId, messageId)`，由应用跳转。横幅位于顶部居中、安全区下方，最宽为 Kit 的认证表单宽度，盖在页面之上。摆放：Vue 渲染一个 fixed 区域，任意位置放一次即可（`<FlareInAppNotificationHost :notifications @open />`）；Flutter 包住应用（`child`，例如放在 MaterialApp.builder 里），SwiftUI 与 Compose 包住应用内容（`content`）。宿主不决定一条消息是否提醒、走哪个展示面：这由引擎的 NotifyCenter 决定。减少动态效果时不做滑动。"
       }
     },
     {
@@ -24898,6 +25449,256 @@
         },
         "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
         "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      }
+    },
+    {
+      "name": "NotificationDeliverySettings",
+      "category": "Profile",
+      "summary": {
+        "en": "Whether new messages reach the person when the app is not in front, as one settings section: the notification permission, and on Android-style platforms the background-delivery row with its guide.",
+        "zh": "应用不在前台时新消息能否送达，作为一个设置分组：通知权限，以及 Android 类平台上的后台接收行与引导。"
+      },
+      "dataSource": {
+        "en": "The host reads the notification permission and the battery settings from the platform and runs every action; the component shows the state and dispatches.",
+        "zh": "宿主从平台读取通知权限与电池设置并执行所有动作；组件只展示状态并分发。"
+      },
+      "props": [
+        {
+          "name": "status",
+          "type": "NotificationStatus | null",
+          "required": true,
+          "description": {
+            "en": "The system notification permission: on, off or notTurnedOn; null until it has been read (the row shows no value).",
+            "zh": "系统通知权限：on、off 或 notTurnedOn；读到之前为 null（行上不写状态）。"
+          }
+        },
+        {
+          "name": "background",
+          "type": "BackgroundDelivery | null",
+          "description": {
+            "en": "What the battery settings let the app do: unrestricted, optimized or restricted. Leave it out where the platform has no such setting (iOS, the web, desktop): the row is not drawn.",
+            "zh": "电池设置允许应用做什么：unrestricted、optimized 或 restricted。平台没有这项设置（iOS、Web、桌面）时不传，不画这一行。"
+          }
+        },
+        {
+          "name": "vendorActions",
+          "type": "NotificationGuideAction[]",
+          "default": "[]",
+          "description": {
+            "en": "Auto-start pages of the phone maker, each a callback and an optional label (default \"自启动管理\" / \"Auto-start settings\"), offered in the background guide under the battery settings.",
+            "zh": "手机厂商的自启动管理页，每项为回调与可选文案（默认「自启动管理」/「Auto-start settings」），列在后台引导里的电池设置之后。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "Section header (default \"通知\"); an empty string draws none.",
+            "zh": "分组标题（默认“通知”）；空字符串不画。"
+          }
+        },
+        {
+          "name": "footer",
+          "type": "string",
+          "description": {
+            "en": "A note under the section.",
+            "zh": "分组下方的说明。"
+          }
+        },
+        {
+          "name": "residentMode",
+          "type": "boolean | null",
+          "platforms": [
+            "compose"
+          ],
+          "description": {
+            "en": "Android only: the resident connection switch (\"Stay connected in the background\", with its explanation under the title). Pass it only where the build offers the mode, that is where it has no push provider; null draws no switch. While it is on and `background` is not unrestricted, a battery optimization row follows that runs openBatterySettings. The other kits have no such mode.",
+            "zh": "仅 Android：常驻连接开关（「后台保持连接」，说明在标题下方）。只在构建提供这种模式时传，也就是没有配置推送通道时；null 不画开关。开关打开且 `background` 不是不受限制时，后面跟一行关闭电池优化，执行 openBatterySettings。其他端的 Kit 没有这种模式。"
+          }
+        }
+      ],
+      "states": [
+        "on",
+        "off",
+        "notTurnedOn",
+        "unknown",
+        "unrestricted",
+        "optimized",
+        "restricted",
+        "guideOpen",
+        "residentOff",
+        "residentOn"
+      ],
+      "events": [
+        "statusAction",
+        "openBatterySettings",
+        "residentModeChange"
+      ],
+      "eventPlatforms": {
+        "residentModeChange": [
+          "compose"
+        ]
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationDeliverySettings"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationDeliverySettings"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NotificationDeliverySettingsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationDeliverySettings"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "slots": [
+        "section"
+      ],
+      "platformAliases": {
+        "flutter": {
+          "slots": {
+            "section": "sectionBuilder"
+          }
+        },
+        "ios": {
+          "slots": {
+            "section": "sectionContent"
+          }
+        },
+        "compose": {
+          "slots": {
+            "section": "sectionContent"
+          }
+        }
+      },
+      "notes": {
+        "en": "Rows: \"New message notifications\" with the status (statusAction: the host asks for the permission while it can, otherwise opens the system settings; without the callback the row is information only) and, with `background`, \"Receive messages in the background\", which opens a guide in BottomSheet: why background running matters, \"Battery usage\" with the same value (openBatterySettings) and the host's vendorActions after a hint to allow auto-start. The section draws through SettingsList, whose sections take a `footer`. Without the section slot the component draws the group as a list of its own. A settings page that is already one SettingsList takes the section form instead (Vue `#section`, Flutter `sectionBuilder`, SwiftUI and Compose `sectionContent`): it receives the group as one SettingsSection and `select(item)`, which runs a row of the group (the status action, or the guide, which the component still presents) and returns whether the row was one; the page lists the section among its own and hands its rows to `select` first. The group's rows are keyed `notifications` and `backgroundDelivery`, so the page's own rows keep other keys. Pair it with PermissionPrompt(softAsk) for the first ask and NotificationPreferences for in-app switches. Label helpers on the native kits: notificationStatusLabel, backgroundDeliveryLabel. Android only (Compose): `residentMode` adds the resident connection switch, keyed `residentConnection`, and while it is on the battery optimization row `residentBattery` (residentModeChange gets the new value; the battery row runs openBatterySettings). The switch is a toggle row: a page using the section form hands it to `select` from its `onToggle` too, and `select` flips it. The row's explanation is the SettingsItem `description`, a Compose field. The other kits need neither the row nor the field: only Android has a resident connection mode.",
+        "zh": "行：「新消息通知」及其状态（statusAction：能申请时由宿主申请权限，否则打开系统设置；不传回调时该行只是信息），传了 `background` 时还有「后台接收消息」，点开为 BottomSheet 引导：为什么要后台运行、同值的「电池使用」（openBatterySettings），以及提示允许自启动后宿主给的 vendorActions。分组经 SettingsList 绘制，其分组支持 `footer`。不用 section 插槽时组件自己画成一份只有这一组的列表。设置页本身已是一个 SettingsList 时改用分组形态（Vue `#section`，Flutter `sectionBuilder`，SwiftUI 与 Compose `sectionContent`）：拿到作为一个 SettingsSection 的这一组和 `select(item)`，后者执行这一组的行（状态动作，或仍由组件呈现的引导）并返回该行是否属于这一组；设置页把这一组排进自己的分组，行先交给 `select`。这一组的行 key 为 `notifications` 与 `backgroundDelivery`，设置页自己的行用别的 key。首次询问配合 PermissionPrompt(softAsk)，应用内开关用 NotificationPreferences。原生端文案函数：notificationStatusLabel、backgroundDeliveryLabel。 仅 Android（Compose）：`residentMode` 加上常驻连接开关，key 为 `residentConnection`，开着时还有关闭电池优化行 `residentBattery`（residentModeChange 收到新值；电池那一行执行 openBatterySettings）。开关是 toggle 行：用分组形态的设置页在自己的 `onToggle` 里也先交给 `select`，由 `select` 翻转它。这一行的说明来自 SettingsItem 的 `description`，是 Compose 的字段。其他端的 Kit 不需要这一行，也不需要这个字段：只有 Android 有常驻连接模式。"
+      }
+    },
+    {
+      "name": "NotificationAlertSettings",
+      "category": "Profile",
+      "summary": {
+        "en": "A person's notification preferences as settings sections: quiet hours, what notifications show, and how the phone alerts while another device is in use.",
+        "zh": "以设置分组呈现的个人通知偏好：勿扰时段、通知显示的内容，以及在其他设备上使用时手机的提醒方式。"
+      },
+      "dataSource": {
+        "en": "The host reads the user notification settings from the core SDK and writes back what `change` reports; the component holds no copy and never saves.",
+        "zh": "宿主从核心 SDK 读取用户级通知设置，并把 `change` 报来的值写回；组件不另存副本，也从不保存。"
+      },
+      "props": [
+        {
+          "name": "value",
+          "type": "NotificationAlertPreferences",
+          "required": true,
+          "description": {
+            "en": "The preferences shown; `change` reports the whole next value.",
+            "zh": "显示的偏好；`change` 报出完整的新值。"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "The rows show the value but take no input (while the host saves or cannot write). A picker already open stays open and its pick still goes through `change`.",
+            "zh": "各行显示当前值但不接受操作（宿主保存中或无法写入时）。已经打开的选择面板保持打开，选中的结果照常经 `change` 报出。"
+          }
+        }
+      ],
+      "states": [
+        "quietHoursOff",
+        "quietHoursOn",
+        "crossesMidnight",
+        "disabled",
+        "pickerOpen"
+      ],
+      "events": [
+        "change"
+      ],
+      "slots": [
+        "sections"
+      ],
+      "platformAliases": {
+        "flutter": {
+          "slots": {
+            "sections": "sectionsBuilder"
+          }
+        },
+        "ios": {
+          "slots": {
+            "sections": "sectionContent"
+          }
+        },
+        "compose": {
+          "slots": {
+            "sections": "sectionContent"
+          }
+        }
+      },
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationAlertSettings"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationAlertSettings"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NotificationAlertSettingsView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationAlertSettings"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits the rows in visual order",
+          "Enter or Space toggles a switch or opens a picker",
+          "Escape closes the open picker"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; rows appear and pickers open without sliding.",
+        "screenReaderSemantics": "Each section is named by its title; switches read their label and state, picker rows their label and value, and each footer is read after its rows. A picker is a named sheet whose choices are radio buttons or switches."
+      },
+      "notes": {
+        "en": "Sections (spec/notification-alert-vectors.json), each with its footer: Do not disturb — the Quiet hours switch and, while it is on, Starts, Ends (\"次日 08:00\" / \"08:00 next day\" when it is not after the start), Repeat (Every day, Weekdays, Weekends or the days) and Alert me when mentioned; Notification content — Preview (Name and message, Name only, Hidden); Multiple devices — While active elsewhere (After a delay, Immediately, Badge only). Starts and Ends open the kit TimePicker's sheet (5-minute steps), Repeat a sheet of seven day switches that never empties, Preview and While active elsewhere a sheet with a vertical RadioGroup that applies the pick and closes. Every row writes the whole value through `change`; the weekday mask follows the protocol (0 every day). It draws through SettingsList. Without the section slot it is a list of its own; a settings page that is already one SettingsList takes the section form (Vue `#sections`, Flutter `sectionsBuilder`, SwiftUI and Compose `sectionContent`) and gets the three sections with `select(item)` and `toggle(item, on)`, which run a row of the group and return whether it was one. Row keys: quietHours, quietHoursStart, quietHoursEnd, quietHoursRepeat, quietHoursAllowMentions, notificationPreview, multiDevice. It is a new component next to NotificationDeliverySettings rather than part of NotificationPreferences, whose contract stays a host-defined list of switches with the permission line. Helpers on every kit: the default value (22:00 to 08:00, every day, mentions allowed, off; full preview; delay), the HH:mm reading, whether the end is the next day, the weekday toggle and summary.",
+        "zh": "分组（spec/notification-alert-vectors.json），每组带说明：勿扰 —— 「勿扰时段」开关，打开后还有「开始时间」、「结束时间」（不晚于开始时显示「次日 08:00」/「08:00 next day」）、「重复」（每天、工作日、周末或具体星期）和「@我的消息照常提醒」；通知内容 —— 「通知预览」（发送者和内容、仅发送者、不显示）；多设备 —— 「其他设备活跃时」（稍后提醒、立即提醒、只更新角标）。开始与结束时间打开 Kit TimePicker 的面板（5 分钟步进），重复打开七个星期开关的面板（至少保留一天），通知预览与其他设备活跃时打开竖排 RadioGroup 的面板，选中即生效并关闭。每一行都经 `change` 写出完整的值；星期掩码沿用协议（0 为每天）。经 SettingsList 绘制。不用分组插槽时自己画成一份列表；本身就是一个 SettingsList 的设置页改用分组形态（Vue `#sections`，Flutter `sectionsBuilder`，SwiftUI 与 Compose `sectionContent`），拿到这三组以及 `select(item)` 与 `toggle(item, on)`，二者执行这一组的行并返回该行是否属于这一组。行 key：quietHours、quietHoursStart、quietHoursEnd、quietHoursRepeat、quietHoursAllowMentions、notificationPreview、multiDevice。它是与 NotificationDeliverySettings 并列的新组件，没有并进 NotificationPreferences：后者的契约仍是宿主定义的开关列表加权限说明。各端辅助函数：默认值（22:00 到 08:00、每天、放行 @我、关闭；完整预览；稍后提醒）、HH:mm 读法、结束时间是否为次日、星期开关与星期摘要。"
       }
     },
     {

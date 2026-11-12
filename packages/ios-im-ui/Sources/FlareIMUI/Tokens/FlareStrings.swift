@@ -277,6 +277,12 @@ public struct FlareStrings: Sendable {
     public var permissionOpenSettings: String
     public var permissionStateLabel: @Sendable (FlarePermissionState) -> String
     public var permissionDismiss: String
+    // The soft-ask of a permission prompt (`PermissionPromptView(softAsk:)`)
+    public var permissionNotNow: String
+    public var permissionSoftAskNotificationsTitle: String
+    public var permissionSoftAskNotificationsBody: String
+    public var permissionSoftAskNotificationsDeniedBody: String
+    public var permissionSoftAskNotificationsAction: String
     // Scene panels / pickers
     public var groupMembers: String
     public var groupOwner: String
@@ -286,6 +292,56 @@ public struct FlareStrings: Sendable {
     public var currentDevice: String
     public var filesAndMedia: String
     public var notificationSettings: String
+    // Notification delivery settings (`NotificationDeliverySettingsView`)
+    public var notificationDeliveryTitle: String
+    public var notificationDeliveryNewMessages: String
+    public var notificationStatusOn: String
+    public var notificationStatusOff: String
+    public var notificationStatusNotTurnedOn: String
+    public var backgroundDeliveryLabel: String
+    public var backgroundDeliveryUnrestricted: String
+    public var backgroundDeliveryOptimized: String
+    public var backgroundDeliveryRestricted: String
+    public var backgroundDeliveryExplanation: String
+    public var backgroundDeliveryAutoStartHint: String
+    public var backgroundDeliveryBattery: String
+    public var backgroundDeliveryAutoStart: String
+    // In-app new-message banner and personal notification preferences (`InAppNotificationBannerView`, `NotificationAlertSettingsView`)
+    public var inAppNotificationLabel: String
+    public var inAppNotificationOpenHint: String
+    public var inAppNotificationMention: String
+    public var inAppNotificationUrgent: String
+    public var quietHoursTitle: String
+    public var quietHoursLabel: String
+    public var quietHoursStart: String
+    public var quietHoursEnd: String
+    public var quietHoursRepeat: String
+    public var quietHoursAllowMentions: String
+    public var quietHoursFooter: String
+    public var weekdayEveryDay: String
+    public var weekdayWeekdays: String
+    public var weekdayWeekends: String
+    public var weekdayMonday: String
+    public var weekdayTuesday: String
+    public var weekdayWednesday: String
+    public var weekdayThursday: String
+    public var weekdayFriday: String
+    public var weekdaySaturday: String
+    public var weekdaySunday: String
+    public var notificationPreviewTitle: String
+    public var notificationPreviewLabel: String
+    public var notificationPreviewFull: String
+    public var notificationPreviewSenderOnly: String
+    public var notificationPreviewHidden: String
+    public var notificationPreviewFooter: String
+    public var multiDeviceTitle: String
+    public var multiDeviceLabel: String
+    public var multiDeviceDelay: String
+    public var multiDeviceImmediate: String
+    public var multiDeviceBadgeOnly: String
+    public var multiDeviceFooter: String
+    public var inAppNotificationCount: @Sendable (Int) -> String
+    public var quietHoursNextDay: @Sendable (String) -> String
     public var confirmAction: String
     public var selectDevice: String
     public var transferQueue: String
@@ -1510,9 +1566,15 @@ public struct FlareStrings: Sendable {
             case .denied: return "已拒绝"
             case .restricted: return "受限制"
             case .unavailable: return "不可用"
+            case .granted: return "已允许"
             }
         },
         permissionDismiss: String = "知道了",
+        permissionNotNow: String = "以后再说",
+        permissionSoftAskNotificationsTitle: String = "及时收到新消息",
+        permissionSoftAskNotificationsBody: String = "开启通知后，应用不在前台时也能收到新消息提醒。",
+        permissionSoftAskNotificationsDeniedBody: String = "通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。",
+        permissionSoftAskNotificationsAction: String = "开启通知",
         groupMembers: String = "群成员",
         groupOwner: String = "群主",
         groupAdmin: String = "管理员",
@@ -1521,6 +1583,54 @@ public struct FlareStrings: Sendable {
         currentDevice: String = "当前设备",
         filesAndMedia: String = "文件与媒体",
         notificationSettings: String = "通知设置",
+        notificationDeliveryTitle: String = "通知",
+        notificationDeliveryNewMessages: String = "新消息通知",
+        notificationStatusOn: String = "已开启",
+        notificationStatusOff: String = "已关闭",
+        notificationStatusNotTurnedOn: String = "未开启",
+        backgroundDeliveryLabel: String = "后台接收消息",
+        backgroundDeliveryUnrestricted: String = "不受限制",
+        backgroundDeliveryOptimized: String = "已优化",
+        backgroundDeliveryRestricted: String = "受限制",
+        backgroundDeliveryExplanation: String = "新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。",
+        backgroundDeliveryAutoStartHint: String = "这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。",
+        backgroundDeliveryBattery: String = "电池使用",
+        backgroundDeliveryAutoStart: String = "自启动管理",
+        inAppNotificationLabel: String = "新消息",
+        inAppNotificationOpenHint: String = "打开会话",
+        inAppNotificationMention: String = "[有人@我]",
+        inAppNotificationUrgent: String = "[加急]",
+        quietHoursTitle: String = "勿扰",
+        quietHoursLabel: String = "勿扰时段",
+        quietHoursStart: String = "开始时间",
+        quietHoursEnd: String = "结束时间",
+        quietHoursRepeat: String = "重复",
+        quietHoursAllowMentions: String = "@我的消息照常提醒",
+        quietHoursFooter: String = "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。",
+        weekdayEveryDay: String = "每天",
+        weekdayWeekdays: String = "工作日",
+        weekdayWeekends: String = "周末",
+        weekdayMonday: String = "周一",
+        weekdayTuesday: String = "周二",
+        weekdayWednesday: String = "周三",
+        weekdayThursday: String = "周四",
+        weekdayFriday: String = "周五",
+        weekdaySaturday: String = "周六",
+        weekdaySunday: String = "周日",
+        notificationPreviewTitle: String = "通知内容",
+        notificationPreviewLabel: String = "通知预览",
+        notificationPreviewFull: String = "发送者和内容",
+        notificationPreviewSenderOnly: String = "仅发送者",
+        notificationPreviewHidden: String = "不显示",
+        notificationPreviewFooter: String = "锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。",
+        multiDeviceTitle: String = "多设备",
+        multiDeviceLabel: String = "其他设备活跃时",
+        multiDeviceDelay: String = "稍后提醒",
+        multiDeviceImmediate: String = "立即提醒",
+        multiDeviceBadgeOnly: String = "只更新角标",
+        multiDeviceFooter: String = "你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。",
+        inAppNotificationCount: @escaping @Sendable (Int) -> String = { "[\($0)条]" },
+        quietHoursNextDay: @escaping @Sendable (String) -> String = { "次日 \($0)" },
         confirmAction: String = "确认",
         selectDevice: String = "选择设备",
         transferQueue: String = "传输队列",
@@ -2432,6 +2542,11 @@ public struct FlareStrings: Sendable {
         self.permissionOpenSettings = permissionOpenSettings
         self.permissionStateLabel = permissionStateLabel
         self.permissionDismiss = permissionDismiss
+        self.permissionNotNow = permissionNotNow
+        self.permissionSoftAskNotificationsTitle = permissionSoftAskNotificationsTitle
+        self.permissionSoftAskNotificationsBody = permissionSoftAskNotificationsBody
+        self.permissionSoftAskNotificationsDeniedBody = permissionSoftAskNotificationsDeniedBody
+        self.permissionSoftAskNotificationsAction = permissionSoftAskNotificationsAction
         self.groupMembers = groupMembers
         self.groupOwner = groupOwner
         self.groupAdmin = groupAdmin
@@ -2440,6 +2555,54 @@ public struct FlareStrings: Sendable {
         self.currentDevice = currentDevice
         self.filesAndMedia = filesAndMedia
         self.notificationSettings = notificationSettings
+        self.notificationDeliveryTitle = notificationDeliveryTitle
+        self.notificationDeliveryNewMessages = notificationDeliveryNewMessages
+        self.notificationStatusOn = notificationStatusOn
+        self.notificationStatusOff = notificationStatusOff
+        self.notificationStatusNotTurnedOn = notificationStatusNotTurnedOn
+        self.backgroundDeliveryLabel = backgroundDeliveryLabel
+        self.backgroundDeliveryUnrestricted = backgroundDeliveryUnrestricted
+        self.backgroundDeliveryOptimized = backgroundDeliveryOptimized
+        self.backgroundDeliveryRestricted = backgroundDeliveryRestricted
+        self.backgroundDeliveryExplanation = backgroundDeliveryExplanation
+        self.backgroundDeliveryAutoStartHint = backgroundDeliveryAutoStartHint
+        self.backgroundDeliveryBattery = backgroundDeliveryBattery
+        self.backgroundDeliveryAutoStart = backgroundDeliveryAutoStart
+        self.inAppNotificationLabel = inAppNotificationLabel
+        self.inAppNotificationOpenHint = inAppNotificationOpenHint
+        self.inAppNotificationMention = inAppNotificationMention
+        self.inAppNotificationUrgent = inAppNotificationUrgent
+        self.quietHoursTitle = quietHoursTitle
+        self.quietHoursLabel = quietHoursLabel
+        self.quietHoursStart = quietHoursStart
+        self.quietHoursEnd = quietHoursEnd
+        self.quietHoursRepeat = quietHoursRepeat
+        self.quietHoursAllowMentions = quietHoursAllowMentions
+        self.quietHoursFooter = quietHoursFooter
+        self.weekdayEveryDay = weekdayEveryDay
+        self.weekdayWeekdays = weekdayWeekdays
+        self.weekdayWeekends = weekdayWeekends
+        self.weekdayMonday = weekdayMonday
+        self.weekdayTuesday = weekdayTuesday
+        self.weekdayWednesday = weekdayWednesday
+        self.weekdayThursday = weekdayThursday
+        self.weekdayFriday = weekdayFriday
+        self.weekdaySaturday = weekdaySaturday
+        self.weekdaySunday = weekdaySunday
+        self.notificationPreviewTitle = notificationPreviewTitle
+        self.notificationPreviewLabel = notificationPreviewLabel
+        self.notificationPreviewFull = notificationPreviewFull
+        self.notificationPreviewSenderOnly = notificationPreviewSenderOnly
+        self.notificationPreviewHidden = notificationPreviewHidden
+        self.notificationPreviewFooter = notificationPreviewFooter
+        self.multiDeviceTitle = multiDeviceTitle
+        self.multiDeviceLabel = multiDeviceLabel
+        self.multiDeviceDelay = multiDeviceDelay
+        self.multiDeviceImmediate = multiDeviceImmediate
+        self.multiDeviceBadgeOnly = multiDeviceBadgeOnly
+        self.multiDeviceFooter = multiDeviceFooter
+        self.inAppNotificationCount = inAppNotificationCount
+        self.quietHoursNextDay = quietHoursNextDay
         self.confirmAction = confirmAction
         self.selectDevice = selectDevice
         self.transferQueue = transferQueue

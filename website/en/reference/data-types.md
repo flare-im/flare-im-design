@@ -216,6 +216,7 @@ title: Data Types
 | `value` | `boolean` |  | Toggle state (for `kind: "toggle"`). |
 | `detail` | `string` |  | Trailing detail text: the current value of a navigation row, or the information of a value row. Long text stacks under the label. |
 | `badge` | `boolean \| number` |  | `true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither. |
+| `description` | `string` |  | Compose only: a line under the label that says what the row does (a switch's consequence), in the secondary text colour on up to three lines; read with the row. |
 
 ### SettingsSection {#settings-section}
 
@@ -229,6 +230,7 @@ title: Data Types
 |---|---|:---:|---|
 | `title` | `string` |  | Optional section header. |
 | `items` | [`FlareSettingsItem[]`](/en/reference/data-types#settings-item) | ✓ | Rows in this section. |
+| `footer` | `string` |  | A note under the section's card: what the rows do, or where else to change them. |
 
 ### ConversationRowModel {#conversation-row-model}
 
@@ -300,6 +302,83 @@ title: Data Types
 | `localPath` | `string` |  | Local cached path, if any. |
 | `mimeType` | `string` |  | MIME type hint. |
 | `fileName` | `string` |  | Original file name. |
+
+### NotificationGuideAction {#notification-guide-action}
+
+`FlareNotificationGuideAction`
+
+> One extra way to keep background delivery working, offered by the host (a phone maker's auto-start page).
+
+**Used by: **[NotificationDeliverySettings](/en/components/notification-delivery-settings)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `label` | `string` |  | Row label; defaults to the kit's "自启动管理" / "Auto-start settings" (strings `backgroundDeliveryAutoStart`, Vue `notificationDeliverySettings.autoStart`). |
+| `onSelect` | `() => void` | ✓ | Opens the page. |
+
+### InAppNotification {#in-app-notification}
+
+`FlareInAppNotification`
+
+> A message that arrived while the app is open on another screen, as the host maps it from the engine's `notification.present` (surface `inApp`).
+
+**Used by: **[InAppNotificationBanner](/en/components/in-app-notification-banner)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `collapseId` | `string` | ✓ | One banner per collapse id: a newer item with the same id replaces the shown or waiting one in place. |
+| `conversationId` | `string` | ✓ | The conversation the banner opens; also seeds the avatar colour. |
+| `messageId` | `string` |  | The newest message the banner stands for, handed back on open. |
+| `title` | `string` | ✓ | Conversation or sender name; its initials stand in for a missing avatar. |
+| `body` | `string` | ✓ | The preview, drawn on one line and ellipsised. |
+| `count` | `number` |  | Unread messages the banner stands for (default 1); above 1 the kit's "[3条]" / "[3 messages]" goes before the body. |
+| `channel` | [`InAppNotificationChannel`](/en/reference/data-types#in-app-notification-channel) |  | messages (default) and quiet look the same; mentions and urgent carry a tag before the body and an accent. |
+| `avatarUrl` | `string` |  | Conversation avatar the host resolved; the initials of `title` without it. |
+
+### InAppNotifications {#in-app-notifications}
+
+`FlareInAppNotifications`
+
+> The presenter the app feeds and InAppNotificationHost draws: the visible banner and the ones waiting (spec/in-app-notification-vectors.json).
+
+**Used by: **[InAppNotificationHost](/en/components/in-app-notification-host)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `current` | `InAppNotification \| null` | ✓ | The visible banner. |
+| `pending` | [`InAppNotification[]`](/en/reference/data-types#in-app-notification) | ✓ | Banners waiting, oldest first, at most three. |
+| `present` | `(notification: InAppNotification) => void` | ✓ | Shows, replaces or queues an item. |
+| `dismiss` | `() => void` | ✓ | The visible banner goes; the next waiting one shows. |
+| `clear` | `(collapseIds: string[]) => void` | ✓ | Takes away the banners of these collapse ids (the engine's notification.clear). |
+| `clearAll` | `() => void` | ✓ | Takes every banner away (notification.clear with all). |
+
+### QuietHours {#quiet-hours}
+
+`FlareQuietHours`
+
+> When new messages arrive silently, in device local time.
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `enabled` | `boolean` | ✓ | Whether quiet hours apply; the times are kept while they are off. |
+| `startMinute` | `number` | ✓ | Minutes after midnight, 0 to 1439. |
+| `endMinute` | `number` | ✓ | Minutes after midnight; not after the start means the next day (equal is the whole day). |
+| `weekdays` | `number` | ✓ | Bits, bit 0 Monday … bit 6 Sunday; 0 is every day. |
+| `allowMentions` | `boolean` | ✓ | Messages that mention the person still alert. |
+
+### NotificationAlertPreferences {#notification-alert-preferences}
+
+`FlareNotificationAlertPreferences`
+
+> A person's notification preferences as NotificationAlertSettings edits them; the shape of the protocol's user notification settings.
+
+**Used by: **[NotificationAlertSettings](/en/components/notification-alert-settings)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `quietHours` | [`QuietHours`](/en/reference/data-types#quiet-hours) | ✓ | Quiet hours. |
+| `preview` | [`NotificationPreview`](/en/reference/data-types#notification-preview) | ✓ | What notifications show. |
+| `multiDevice` | [`MultiDeviceAlert`](/en/reference/data-types#multi-device-alert) | ✓ | How the phone alerts while another device is in use. |
 
 ### ComposerCapabilities {#composer-capabilities}
 
@@ -1074,6 +1153,46 @@ title: Data Types
 > How a settings row renders and behaves.
 
 `navigation` · `toggle` · `value` · `action`
+
+### NotificationStatus {#notification-status}
+
+`FlareNotificationStatus`
+
+> The system notification permission, as a settings row says it.
+
+`on` · `off` · `notTurnedOn`
+
+### BackgroundDelivery {#background-delivery}
+
+`FlareBackgroundDelivery`
+
+> What the system lets the app do in the background, in the words of the platform's battery settings.
+
+`unrestricted` · `optimized` · `restricted`
+
+### InAppNotificationChannel {#in-app-notification-channel}
+
+`FlareInAppNotificationChannel`
+
+> How strongly a new message asks for attention: the engine's notification channel.
+
+`messages` · `quiet` · `mentions` · `urgent`
+
+### NotificationPreview {#notification-preview}
+
+`FlareNotificationPreview`
+
+> What a notification shows: the sender and the message, the sender only, or neither.
+
+`full` · `senderOnly` · `hidden`
+
+### MultiDeviceAlert {#multi-device-alert}
+
+`FlareMultiDeviceAlert`
+
+> How the phone alerts while the person is using another device: after a delay, at once, or only on the badge.
+
+`delay` · `immediate` · `badgeOnly`
 
 ### ConversationAction {#conversation-action}
 

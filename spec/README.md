@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**186 components / 17 categories** (source in [`components.json`](./components.json);
+**190 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -59,14 +59,14 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `Composer` · `ComposerActionPanel` · `ComposerMediaPreview` · `ComposerReplyStrip` · `ComposerSendButton` · `ContactPicker` · `EmojiPicker` · `EmojiStickerPicker` · `LocationPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
 - **Form** — 16
   `Checkbox` · `DatePicker` · `FilterBar` · `FormField` · `Input` · `InviteCodeField` · `RadioGroup` · `Rating` · `SchemaForm` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
+- **Feedback** — 14
+  `AccessDiagnostics` · `AnnouncementReadBar` · `CapabilityBoundary` · `ConnectionNotice` · `EmptyState` · `InAppNotificationBanner` · `InAppNotificationHost` · `PermissionPrompt` · `ProgressBar` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast` · `UpdatePrompt`
 - **General** — 14
   `Avatar` · `BrandLogo` · `Button` · `ChartCard` · `CodeBlock` · `ConfigProvider` · `DataTable` · `DescriptionList` · `Icon` · `IconButton` · `MetricTile` · `PermissionTree` · `Tag` · `UserIdentity`
 - **Contacts** — 13
   `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
-- **Feedback** — 12
-  `AccessDiagnostics` · `AnnouncementReadBar` · `CapabilityBoundary` · `ConnectionNotice` · `EmptyState` · `PermissionPrompt` · `ProgressBar` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast` · `UpdatePrompt`
-- **Profile** — 11
-  `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage` · `VersionPanel`
+- **Profile** — 13
+  `DeviceSessions` · `MyInvitePanel` · `NotificationAlertSettings` · `NotificationDeliverySettings` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage` · `VersionPanel`
 - **Layout** — 9
   `AppLayout` · `AuthShell` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
 - **Call** — 8

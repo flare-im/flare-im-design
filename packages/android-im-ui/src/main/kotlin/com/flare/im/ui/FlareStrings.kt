@@ -575,6 +575,113 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["filesAndMedia"] as? (String)) ?: "文件与媒体"
     val notificationSettings: String
         get() = (overrides["notificationSettings"] as? (String)) ?: "通知设置"
+    // 通知送达设置（NotificationDeliverySettings）
+    val notificationDeliveryTitle: String
+        get() = (overrides["notificationDeliveryTitle"] as? (String)) ?: "通知"
+    val notificationDeliveryNewMessages: String
+        get() = (overrides["notificationDeliveryNewMessages"] as? (String)) ?: "新消息通知"
+    val notificationStatusOn: String
+        get() = (overrides["notificationStatusOn"] as? (String)) ?: "已开启"
+    val notificationStatusOff: String
+        get() = (overrides["notificationStatusOff"] as? (String)) ?: "已关闭"
+    val notificationStatusNotTurnedOn: String
+        get() = (overrides["notificationStatusNotTurnedOn"] as? (String)) ?: "未开启"
+    val backgroundDeliveryLabel: String
+        get() = (overrides["backgroundDeliveryLabel"] as? (String)) ?: "后台接收消息"
+    val backgroundDeliveryUnrestricted: String
+        get() = (overrides["backgroundDeliveryUnrestricted"] as? (String)) ?: "不受限制"
+    val backgroundDeliveryOptimized: String
+        get() = (overrides["backgroundDeliveryOptimized"] as? (String)) ?: "已优化"
+    val backgroundDeliveryRestricted: String
+        get() = (overrides["backgroundDeliveryRestricted"] as? (String)) ?: "受限制"
+    val backgroundDeliveryExplanation: String
+        get() = (overrides["backgroundDeliveryExplanation"] as? (String)) ?: "新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。"
+    val backgroundDeliveryAutoStartHint: String
+        get() = (overrides["backgroundDeliveryAutoStartHint"] as? (String)) ?: "这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。"
+    val backgroundDeliveryBattery: String
+        get() = (overrides["backgroundDeliveryBattery"] as? (String)) ?: "电池使用"
+    val backgroundDeliveryAutoStart: String
+        get() = (overrides["backgroundDeliveryAutoStart"] as? (String)) ?: "自启动管理"
+    // 常驻连接（NotificationDeliverySettings 的 Android 行）
+    val residentConnectionLabel: String
+        get() = (overrides["residentConnectionLabel"] as? (String)) ?: "后台保持连接"
+    val residentConnectionDescription: String
+        get() = (overrides["residentConnectionDescription"] as? (String)) ?: "没有推送服务时，用一条常驻通知让应用在后台保持连接，新消息及时送达。会多耗一些电。"
+    val residentConnectionBattery: String
+        get() = (overrides["residentConnectionBattery"] as? (String)) ?: "关闭电池优化"
+    val residentConnectionBatteryDescription: String
+        get() = (overrides["residentConnectionBatteryDescription"] as? (String)) ?: "电池优化开着时，系统可能断开后台连接。"
+    // 应用内新消息横幅与个人通知偏好（InAppNotificationBanner / NotificationAlertSettings）
+    val inAppNotificationLabel: String
+        get() = (overrides["inAppNotificationLabel"] as? (String)) ?: "新消息"
+    val inAppNotificationOpenHint: String
+        get() = (overrides["inAppNotificationOpenHint"] as? (String)) ?: "打开会话"
+    val inAppNotificationMention: String
+        get() = (overrides["inAppNotificationMention"] as? (String)) ?: "[有人@我]"
+    val inAppNotificationUrgent: String
+        get() = (overrides["inAppNotificationUrgent"] as? (String)) ?: "[加急]"
+    val quietHoursTitle: String
+        get() = (overrides["quietHoursTitle"] as? (String)) ?: "勿扰"
+    val quietHoursLabel: String
+        get() = (overrides["quietHoursLabel"] as? (String)) ?: "勿扰时段"
+    val quietHoursStart: String
+        get() = (overrides["quietHoursStart"] as? (String)) ?: "开始时间"
+    val quietHoursEnd: String
+        get() = (overrides["quietHoursEnd"] as? (String)) ?: "结束时间"
+    val quietHoursRepeat: String
+        get() = (overrides["quietHoursRepeat"] as? (String)) ?: "重复"
+    val quietHoursAllowMentions: String
+        get() = (overrides["quietHoursAllowMentions"] as? (String)) ?: "@我的消息照常提醒"
+    val quietHoursFooter: String
+        get() = (overrides["quietHoursFooter"] as? (String)) ?: "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。"
+    val weekdayEveryDay: String
+        get() = (overrides["weekdayEveryDay"] as? (String)) ?: "每天"
+    val weekdayWeekdays: String
+        get() = (overrides["weekdayWeekdays"] as? (String)) ?: "工作日"
+    val weekdayWeekends: String
+        get() = (overrides["weekdayWeekends"] as? (String)) ?: "周末"
+    val weekdayMonday: String
+        get() = (overrides["weekdayMonday"] as? (String)) ?: "周一"
+    val weekdayTuesday: String
+        get() = (overrides["weekdayTuesday"] as? (String)) ?: "周二"
+    val weekdayWednesday: String
+        get() = (overrides["weekdayWednesday"] as? (String)) ?: "周三"
+    val weekdayThursday: String
+        get() = (overrides["weekdayThursday"] as? (String)) ?: "周四"
+    val weekdayFriday: String
+        get() = (overrides["weekdayFriday"] as? (String)) ?: "周五"
+    val weekdaySaturday: String
+        get() = (overrides["weekdaySaturday"] as? (String)) ?: "周六"
+    val weekdaySunday: String
+        get() = (overrides["weekdaySunday"] as? (String)) ?: "周日"
+    val notificationPreviewTitle: String
+        get() = (overrides["notificationPreviewTitle"] as? (String)) ?: "通知内容"
+    val notificationPreviewLabel: String
+        get() = (overrides["notificationPreviewLabel"] as? (String)) ?: "通知预览"
+    val notificationPreviewFull: String
+        get() = (overrides["notificationPreviewFull"] as? (String)) ?: "发送者和内容"
+    val notificationPreviewSenderOnly: String
+        get() = (overrides["notificationPreviewSenderOnly"] as? (String)) ?: "仅发送者"
+    val notificationPreviewHidden: String
+        get() = (overrides["notificationPreviewHidden"] as? (String)) ?: "不显示"
+    val notificationPreviewFooter: String
+        get() = (overrides["notificationPreviewFooter"] as? (String)) ?: "锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。"
+    val multiDeviceTitle: String
+        get() = (overrides["multiDeviceTitle"] as? (String)) ?: "多设备"
+    val multiDeviceLabel: String
+        get() = (overrides["multiDeviceLabel"] as? (String)) ?: "其他设备活跃时"
+    val multiDeviceDelay: String
+        get() = (overrides["multiDeviceDelay"] as? (String)) ?: "稍后提醒"
+    val multiDeviceImmediate: String
+        get() = (overrides["multiDeviceImmediate"] as? (String)) ?: "立即提醒"
+    val multiDeviceBadgeOnly: String
+        get() = (overrides["multiDeviceBadgeOnly"] as? (String)) ?: "只更新角标"
+    val multiDeviceFooter: String
+        get() = (overrides["multiDeviceFooter"] as? (String)) ?: "你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。"
+    val inAppNotificationCount: (Int) -> String
+        get() = (overrides["inAppNotificationCount"] as? ((Int) -> String)) ?: { "[${it}条]" }
+    val quietHoursNextDay: (String) -> String
+        get() = (overrides["quietHoursNextDay"] as? ((String) -> String)) ?: { "次日 $it" }
     val transferQueue: String
         get() = (overrides["transferQueue"] as? (String)) ?: "传输队列"
     val noTransfers: String
@@ -632,10 +739,22 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
             FlarePermissionState.Denied -> "已拒绝"
             FlarePermissionState.Restricted -> "受限制"
             FlarePermissionState.Unavailable -> "不可用"
+            FlarePermissionState.Granted -> "已允许"
             }
             }
     val permissionDismiss: String
         get() = (overrides["permissionDismiss"] as? (String)) ?: "知道了"
+    // 权限提示的轻询问（PermissionPrompt(softAsk = true)）
+    val permissionNotNow: String
+        get() = (overrides["permissionNotNow"] as? (String)) ?: "以后再说"
+    val permissionSoftAskNotificationsTitle: String
+        get() = (overrides["permissionSoftAskNotificationsTitle"] as? (String)) ?: "及时收到新消息"
+    val permissionSoftAskNotificationsBody: String
+        get() = (overrides["permissionSoftAskNotificationsBody"] as? (String)) ?: "开启通知后，应用不在前台时也能收到新消息提醒。"
+    val permissionSoftAskNotificationsDeniedBody: String
+        get() = (overrides["permissionSoftAskNotificationsDeniedBody"] as? (String)) ?: "通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。"
+    val permissionSoftAskNotificationsAction: String
+        get() = (overrides["permissionSoftAskNotificationsAction"] as? (String)) ?: "开启通知"
 
     // 输入区（Composer / VoiceHoldButton / ComposerReplyStrip / InlineVoiceComposer）
     val composerPlaceholder: String
@@ -2986,6 +3105,214 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["notificationSettings"] as? (String)) ?: "通知设置"
         set(value) { values["notificationSettings"] = value }
 
+    var notificationDeliveryTitle: String
+        get() = (values["notificationDeliveryTitle"] as? (String)) ?: "通知"
+        set(value) { values["notificationDeliveryTitle"] = value }
+
+    var notificationDeliveryNewMessages: String
+        get() = (values["notificationDeliveryNewMessages"] as? (String)) ?: "新消息通知"
+        set(value) { values["notificationDeliveryNewMessages"] = value }
+
+    var notificationStatusOn: String
+        get() = (values["notificationStatusOn"] as? (String)) ?: "已开启"
+        set(value) { values["notificationStatusOn"] = value }
+
+    var notificationStatusOff: String
+        get() = (values["notificationStatusOff"] as? (String)) ?: "已关闭"
+        set(value) { values["notificationStatusOff"] = value }
+
+    var notificationStatusNotTurnedOn: String
+        get() = (values["notificationStatusNotTurnedOn"] as? (String)) ?: "未开启"
+        set(value) { values["notificationStatusNotTurnedOn"] = value }
+
+    var backgroundDeliveryLabel: String
+        get() = (values["backgroundDeliveryLabel"] as? (String)) ?: "后台接收消息"
+        set(value) { values["backgroundDeliveryLabel"] = value }
+
+    var backgroundDeliveryUnrestricted: String
+        get() = (values["backgroundDeliveryUnrestricted"] as? (String)) ?: "不受限制"
+        set(value) { values["backgroundDeliveryUnrestricted"] = value }
+
+    var backgroundDeliveryOptimized: String
+        get() = (values["backgroundDeliveryOptimized"] as? (String)) ?: "已优化"
+        set(value) { values["backgroundDeliveryOptimized"] = value }
+
+    var backgroundDeliveryRestricted: String
+        get() = (values["backgroundDeliveryRestricted"] as? (String)) ?: "受限制"
+        set(value) { values["backgroundDeliveryRestricted"] = value }
+
+    var backgroundDeliveryExplanation: String
+        get() = (values["backgroundDeliveryExplanation"] as? (String)) ?: "新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。"
+        set(value) { values["backgroundDeliveryExplanation"] = value }
+
+    var backgroundDeliveryAutoStartHint: String
+        get() = (values["backgroundDeliveryAutoStartHint"] as? (String)) ?: "这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。"
+        set(value) { values["backgroundDeliveryAutoStartHint"] = value }
+
+    var backgroundDeliveryBattery: String
+        get() = (values["backgroundDeliveryBattery"] as? (String)) ?: "电池使用"
+        set(value) { values["backgroundDeliveryBattery"] = value }
+
+    var backgroundDeliveryAutoStart: String
+        get() = (values["backgroundDeliveryAutoStart"] as? (String)) ?: "自启动管理"
+        set(value) { values["backgroundDeliveryAutoStart"] = value }
+
+    var residentConnectionLabel: String
+        get() = (values["residentConnectionLabel"] as? (String)) ?: "后台保持连接"
+        set(value) { values["residentConnectionLabel"] = value }
+
+    var residentConnectionDescription: String
+        get() = (values["residentConnectionDescription"] as? (String)) ?: "没有推送服务时，用一条常驻通知让应用在后台保持连接，新消息及时送达。会多耗一些电。"
+        set(value) { values["residentConnectionDescription"] = value }
+
+    var residentConnectionBattery: String
+        get() = (values["residentConnectionBattery"] as? (String)) ?: "关闭电池优化"
+        set(value) { values["residentConnectionBattery"] = value }
+
+    var residentConnectionBatteryDescription: String
+        get() = (values["residentConnectionBatteryDescription"] as? (String)) ?: "电池优化开着时，系统可能断开后台连接。"
+        set(value) { values["residentConnectionBatteryDescription"] = value }
+
+    var inAppNotificationLabel: String
+        get() = (values["inAppNotificationLabel"] as? (String)) ?: "新消息"
+        set(value) { values["inAppNotificationLabel"] = value }
+
+    var inAppNotificationOpenHint: String
+        get() = (values["inAppNotificationOpenHint"] as? (String)) ?: "打开会话"
+        set(value) { values["inAppNotificationOpenHint"] = value }
+
+    var inAppNotificationMention: String
+        get() = (values["inAppNotificationMention"] as? (String)) ?: "[有人@我]"
+        set(value) { values["inAppNotificationMention"] = value }
+
+    var inAppNotificationUrgent: String
+        get() = (values["inAppNotificationUrgent"] as? (String)) ?: "[加急]"
+        set(value) { values["inAppNotificationUrgent"] = value }
+
+    var quietHoursTitle: String
+        get() = (values["quietHoursTitle"] as? (String)) ?: "勿扰"
+        set(value) { values["quietHoursTitle"] = value }
+
+    var quietHoursLabel: String
+        get() = (values["quietHoursLabel"] as? (String)) ?: "勿扰时段"
+        set(value) { values["quietHoursLabel"] = value }
+
+    var quietHoursStart: String
+        get() = (values["quietHoursStart"] as? (String)) ?: "开始时间"
+        set(value) { values["quietHoursStart"] = value }
+
+    var quietHoursEnd: String
+        get() = (values["quietHoursEnd"] as? (String)) ?: "结束时间"
+        set(value) { values["quietHoursEnd"] = value }
+
+    var quietHoursRepeat: String
+        get() = (values["quietHoursRepeat"] as? (String)) ?: "重复"
+        set(value) { values["quietHoursRepeat"] = value }
+
+    var quietHoursAllowMentions: String
+        get() = (values["quietHoursAllowMentions"] as? (String)) ?: "@我的消息照常提醒"
+        set(value) { values["quietHoursAllowMentions"] = value }
+
+    var quietHoursFooter: String
+        get() = (values["quietHoursFooter"] as? (String)) ?: "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。"
+        set(value) { values["quietHoursFooter"] = value }
+
+    var weekdayEveryDay: String
+        get() = (values["weekdayEveryDay"] as? (String)) ?: "每天"
+        set(value) { values["weekdayEveryDay"] = value }
+
+    var weekdayWeekdays: String
+        get() = (values["weekdayWeekdays"] as? (String)) ?: "工作日"
+        set(value) { values["weekdayWeekdays"] = value }
+
+    var weekdayWeekends: String
+        get() = (values["weekdayWeekends"] as? (String)) ?: "周末"
+        set(value) { values["weekdayWeekends"] = value }
+
+    var weekdayMonday: String
+        get() = (values["weekdayMonday"] as? (String)) ?: "周一"
+        set(value) { values["weekdayMonday"] = value }
+
+    var weekdayTuesday: String
+        get() = (values["weekdayTuesday"] as? (String)) ?: "周二"
+        set(value) { values["weekdayTuesday"] = value }
+
+    var weekdayWednesday: String
+        get() = (values["weekdayWednesday"] as? (String)) ?: "周三"
+        set(value) { values["weekdayWednesday"] = value }
+
+    var weekdayThursday: String
+        get() = (values["weekdayThursday"] as? (String)) ?: "周四"
+        set(value) { values["weekdayThursday"] = value }
+
+    var weekdayFriday: String
+        get() = (values["weekdayFriday"] as? (String)) ?: "周五"
+        set(value) { values["weekdayFriday"] = value }
+
+    var weekdaySaturday: String
+        get() = (values["weekdaySaturday"] as? (String)) ?: "周六"
+        set(value) { values["weekdaySaturday"] = value }
+
+    var weekdaySunday: String
+        get() = (values["weekdaySunday"] as? (String)) ?: "周日"
+        set(value) { values["weekdaySunday"] = value }
+
+    var notificationPreviewTitle: String
+        get() = (values["notificationPreviewTitle"] as? (String)) ?: "通知内容"
+        set(value) { values["notificationPreviewTitle"] = value }
+
+    var notificationPreviewLabel: String
+        get() = (values["notificationPreviewLabel"] as? (String)) ?: "通知预览"
+        set(value) { values["notificationPreviewLabel"] = value }
+
+    var notificationPreviewFull: String
+        get() = (values["notificationPreviewFull"] as? (String)) ?: "发送者和内容"
+        set(value) { values["notificationPreviewFull"] = value }
+
+    var notificationPreviewSenderOnly: String
+        get() = (values["notificationPreviewSenderOnly"] as? (String)) ?: "仅发送者"
+        set(value) { values["notificationPreviewSenderOnly"] = value }
+
+    var notificationPreviewHidden: String
+        get() = (values["notificationPreviewHidden"] as? (String)) ?: "不显示"
+        set(value) { values["notificationPreviewHidden"] = value }
+
+    var notificationPreviewFooter: String
+        get() = (values["notificationPreviewFooter"] as? (String)) ?: "锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。"
+        set(value) { values["notificationPreviewFooter"] = value }
+
+    var multiDeviceTitle: String
+        get() = (values["multiDeviceTitle"] as? (String)) ?: "多设备"
+        set(value) { values["multiDeviceTitle"] = value }
+
+    var multiDeviceLabel: String
+        get() = (values["multiDeviceLabel"] as? (String)) ?: "其他设备活跃时"
+        set(value) { values["multiDeviceLabel"] = value }
+
+    var multiDeviceDelay: String
+        get() = (values["multiDeviceDelay"] as? (String)) ?: "稍后提醒"
+        set(value) { values["multiDeviceDelay"] = value }
+
+    var multiDeviceImmediate: String
+        get() = (values["multiDeviceImmediate"] as? (String)) ?: "立即提醒"
+        set(value) { values["multiDeviceImmediate"] = value }
+
+    var multiDeviceBadgeOnly: String
+        get() = (values["multiDeviceBadgeOnly"] as? (String)) ?: "只更新角标"
+        set(value) { values["multiDeviceBadgeOnly"] = value }
+
+    var multiDeviceFooter: String
+        get() = (values["multiDeviceFooter"] as? (String)) ?: "你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。"
+        set(value) { values["multiDeviceFooter"] = value }
+
+    var inAppNotificationCount: (Int) -> String
+        get() = (values["inAppNotificationCount"] as? ((Int) -> String)) ?: { "[${it}条]" }
+        set(value) { values["inAppNotificationCount"] = value }
+
+    var quietHoursNextDay: (String) -> String
+        get() = (values["quietHoursNextDay"] as? ((String) -> String)) ?: { "次日 $it" }
+        set(value) { values["quietHoursNextDay"] = value }
+
     var transferQueue: String
         get() = (values["transferQueue"] as? (String)) ?: "传输队列"
         set(value) { values["transferQueue"] = value }
@@ -3067,6 +3394,7 @@ class FlareStringsBuilder internal constructor() {
             FlarePermissionState.Denied -> "已拒绝"
             FlarePermissionState.Restricted -> "受限制"
             FlarePermissionState.Unavailable -> "不可用"
+            FlarePermissionState.Granted -> "已允许"
             }
             }
         set(value) { values["permissionStateLabel"] = value }
@@ -3074,6 +3402,26 @@ class FlareStringsBuilder internal constructor() {
     var permissionDismiss: String
         get() = (values["permissionDismiss"] as? (String)) ?: "知道了"
         set(value) { values["permissionDismiss"] = value }
+
+    var permissionNotNow: String
+        get() = (values["permissionNotNow"] as? (String)) ?: "以后再说"
+        set(value) { values["permissionNotNow"] = value }
+
+    var permissionSoftAskNotificationsTitle: String
+        get() = (values["permissionSoftAskNotificationsTitle"] as? (String)) ?: "及时收到新消息"
+        set(value) { values["permissionSoftAskNotificationsTitle"] = value }
+
+    var permissionSoftAskNotificationsBody: String
+        get() = (values["permissionSoftAskNotificationsBody"] as? (String)) ?: "开启通知后，应用不在前台时也能收到新消息提醒。"
+        set(value) { values["permissionSoftAskNotificationsBody"] = value }
+
+    var permissionSoftAskNotificationsDeniedBody: String
+        get() = (values["permissionSoftAskNotificationsDeniedBody"] as? (String)) ?: "通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。"
+        set(value) { values["permissionSoftAskNotificationsDeniedBody"] = value }
+
+    var permissionSoftAskNotificationsAction: String
+        get() = (values["permissionSoftAskNotificationsAction"] as? (String)) ?: "开启通知"
+        set(value) { values["permissionSoftAskNotificationsAction"] = value }
 
     var composerPlaceholder: String
         get() = (values["composerPlaceholder"] as? (String)) ?: "消息"

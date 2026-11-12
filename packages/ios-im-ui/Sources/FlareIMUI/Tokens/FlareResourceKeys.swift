@@ -202,6 +202,11 @@ extension FlareStrings {
         case "permissionAllow": return self.permissionAllow
         case "permissionOpenSettings": return self.permissionOpenSettings
         case "permissionDismiss": return self.permissionDismiss
+        case "permissionNotNow": return self.permissionNotNow
+        case "permissionSoftAskNotificationsTitle": return self.permissionSoftAskNotificationsTitle
+        case "permissionSoftAskNotificationsBody": return self.permissionSoftAskNotificationsBody
+        case "permissionSoftAskNotificationsDeniedBody": return self.permissionSoftAskNotificationsDeniedBody
+        case "permissionSoftAskNotificationsAction": return self.permissionSoftAskNotificationsAction
         case "groupMembers": return self.groupMembers
         case "groupOwner": return self.groupOwner
         case "groupAdmin": return self.groupAdmin
@@ -210,6 +215,52 @@ extension FlareStrings {
         case "currentDevice": return self.currentDevice
         case "filesAndMedia": return self.filesAndMedia
         case "notificationSettings": return self.notificationSettings
+        case "notificationDeliveryTitle": return self.notificationDeliveryTitle
+        case "notificationDeliveryNewMessages": return self.notificationDeliveryNewMessages
+        case "notificationStatusOn": return self.notificationStatusOn
+        case "notificationStatusOff": return self.notificationStatusOff
+        case "notificationStatusNotTurnedOn": return self.notificationStatusNotTurnedOn
+        case "backgroundDeliveryLabel": return self.backgroundDeliveryLabel
+        case "backgroundDeliveryUnrestricted": return self.backgroundDeliveryUnrestricted
+        case "backgroundDeliveryOptimized": return self.backgroundDeliveryOptimized
+        case "backgroundDeliveryRestricted": return self.backgroundDeliveryRestricted
+        case "backgroundDeliveryExplanation": return self.backgroundDeliveryExplanation
+        case "backgroundDeliveryAutoStartHint": return self.backgroundDeliveryAutoStartHint
+        case "backgroundDeliveryBattery": return self.backgroundDeliveryBattery
+        case "backgroundDeliveryAutoStart": return self.backgroundDeliveryAutoStart
+        case "inAppNotificationLabel": return self.inAppNotificationLabel
+        case "inAppNotificationOpenHint": return self.inAppNotificationOpenHint
+        case "inAppNotificationMention": return self.inAppNotificationMention
+        case "inAppNotificationUrgent": return self.inAppNotificationUrgent
+        case "quietHoursTitle": return self.quietHoursTitle
+        case "quietHoursLabel": return self.quietHoursLabel
+        case "quietHoursStart": return self.quietHoursStart
+        case "quietHoursEnd": return self.quietHoursEnd
+        case "quietHoursRepeat": return self.quietHoursRepeat
+        case "quietHoursAllowMentions": return self.quietHoursAllowMentions
+        case "quietHoursFooter": return self.quietHoursFooter
+        case "weekdayEveryDay": return self.weekdayEveryDay
+        case "weekdayWeekdays": return self.weekdayWeekdays
+        case "weekdayWeekends": return self.weekdayWeekends
+        case "weekdayMonday": return self.weekdayMonday
+        case "weekdayTuesday": return self.weekdayTuesday
+        case "weekdayWednesday": return self.weekdayWednesday
+        case "weekdayThursday": return self.weekdayThursday
+        case "weekdayFriday": return self.weekdayFriday
+        case "weekdaySaturday": return self.weekdaySaturday
+        case "weekdaySunday": return self.weekdaySunday
+        case "notificationPreviewTitle": return self.notificationPreviewTitle
+        case "notificationPreviewLabel": return self.notificationPreviewLabel
+        case "notificationPreviewFull": return self.notificationPreviewFull
+        case "notificationPreviewSenderOnly": return self.notificationPreviewSenderOnly
+        case "notificationPreviewHidden": return self.notificationPreviewHidden
+        case "notificationPreviewFooter": return self.notificationPreviewFooter
+        case "multiDeviceTitle": return self.multiDeviceTitle
+        case "multiDeviceLabel": return self.multiDeviceLabel
+        case "multiDeviceDelay": return self.multiDeviceDelay
+        case "multiDeviceImmediate": return self.multiDeviceImmediate
+        case "multiDeviceBadgeOnly": return self.multiDeviceBadgeOnly
+        case "multiDeviceFooter": return self.multiDeviceFooter
         case "confirmAction": return self.confirmAction
         case "selectDevice": return self.selectDevice
         case "transferQueue": return self.transferQueue
@@ -1083,6 +1134,11 @@ extension FlareStrings {
         case "permissionAllow": self.permissionAllow = value
         case "permissionOpenSettings": self.permissionOpenSettings = value
         case "permissionDismiss": self.permissionDismiss = value
+        case "permissionNotNow": self.permissionNotNow = value
+        case "permissionSoftAskNotificationsTitle": self.permissionSoftAskNotificationsTitle = value
+        case "permissionSoftAskNotificationsBody": self.permissionSoftAskNotificationsBody = value
+        case "permissionSoftAskNotificationsDeniedBody": self.permissionSoftAskNotificationsDeniedBody = value
+        case "permissionSoftAskNotificationsAction": self.permissionSoftAskNotificationsAction = value
         case "groupMembers": self.groupMembers = value
         case "groupOwner": self.groupOwner = value
         case "groupAdmin": self.groupAdmin = value
@@ -1091,6 +1147,52 @@ extension FlareStrings {
         case "currentDevice": self.currentDevice = value
         case "filesAndMedia": self.filesAndMedia = value
         case "notificationSettings": self.notificationSettings = value
+        case "notificationDeliveryTitle": self.notificationDeliveryTitle = value
+        case "notificationDeliveryNewMessages": self.notificationDeliveryNewMessages = value
+        case "notificationStatusOn": self.notificationStatusOn = value
+        case "notificationStatusOff": self.notificationStatusOff = value
+        case "notificationStatusNotTurnedOn": self.notificationStatusNotTurnedOn = value
+        case "backgroundDeliveryLabel": self.backgroundDeliveryLabel = value
+        case "backgroundDeliveryUnrestricted": self.backgroundDeliveryUnrestricted = value
+        case "backgroundDeliveryOptimized": self.backgroundDeliveryOptimized = value
+        case "backgroundDeliveryRestricted": self.backgroundDeliveryRestricted = value
+        case "backgroundDeliveryExplanation": self.backgroundDeliveryExplanation = value
+        case "backgroundDeliveryAutoStartHint": self.backgroundDeliveryAutoStartHint = value
+        case "backgroundDeliveryBattery": self.backgroundDeliveryBattery = value
+        case "backgroundDeliveryAutoStart": self.backgroundDeliveryAutoStart = value
+        case "inAppNotificationLabel": self.inAppNotificationLabel = value
+        case "inAppNotificationOpenHint": self.inAppNotificationOpenHint = value
+        case "inAppNotificationMention": self.inAppNotificationMention = value
+        case "inAppNotificationUrgent": self.inAppNotificationUrgent = value
+        case "quietHoursTitle": self.quietHoursTitle = value
+        case "quietHoursLabel": self.quietHoursLabel = value
+        case "quietHoursStart": self.quietHoursStart = value
+        case "quietHoursEnd": self.quietHoursEnd = value
+        case "quietHoursRepeat": self.quietHoursRepeat = value
+        case "quietHoursAllowMentions": self.quietHoursAllowMentions = value
+        case "quietHoursFooter": self.quietHoursFooter = value
+        case "weekdayEveryDay": self.weekdayEveryDay = value
+        case "weekdayWeekdays": self.weekdayWeekdays = value
+        case "weekdayWeekends": self.weekdayWeekends = value
+        case "weekdayMonday": self.weekdayMonday = value
+        case "weekdayTuesday": self.weekdayTuesday = value
+        case "weekdayWednesday": self.weekdayWednesday = value
+        case "weekdayThursday": self.weekdayThursday = value
+        case "weekdayFriday": self.weekdayFriday = value
+        case "weekdaySaturday": self.weekdaySaturday = value
+        case "weekdaySunday": self.weekdaySunday = value
+        case "notificationPreviewTitle": self.notificationPreviewTitle = value
+        case "notificationPreviewLabel": self.notificationPreviewLabel = value
+        case "notificationPreviewFull": self.notificationPreviewFull = value
+        case "notificationPreviewSenderOnly": self.notificationPreviewSenderOnly = value
+        case "notificationPreviewHidden": self.notificationPreviewHidden = value
+        case "notificationPreviewFooter": self.notificationPreviewFooter = value
+        case "multiDeviceTitle": self.multiDeviceTitle = value
+        case "multiDeviceLabel": self.multiDeviceLabel = value
+        case "multiDeviceDelay": self.multiDeviceDelay = value
+        case "multiDeviceImmediate": self.multiDeviceImmediate = value
+        case "multiDeviceBadgeOnly": self.multiDeviceBadgeOnly = value
+        case "multiDeviceFooter": self.multiDeviceFooter = value
         case "confirmAction": self.confirmAction = value
         case "selectDevice": self.selectDevice = value
         case "transferQueue": self.transferQueue = value

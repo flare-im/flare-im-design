@@ -3911,6 +3911,58 @@
       }
     },
     {
+      "name": "InAppNotificationBanner",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationBanner",
+          "sourcePath": "packages/vue-im-ui/src/components/shell/FlareInAppNotificationBanner.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationBanner",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_in_app_notification_banner.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationBanner",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InAppNotification.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationBannerView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/InAppNotificationBannerView.swift"
+        }
+      }
+    },
+    {
+      "name": "InAppNotificationHost",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationHost",
+          "sourcePath": "packages/vue-im-ui/src/components/shell/FlareInAppNotificationHost.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationHost",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_in_app_notification_host.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationHost",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InAppNotification.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationHost",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/InAppNotificationBannerView.swift"
+        }
+      }
+    },
+    {
       "name": "SearchDateRangeFilter",
       "status": "stable",
       "platforms": {
@@ -4115,6 +4167,58 @@
           "package": "FlareIMUI",
           "symbol": "NotificationPreferencesView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ScenePanels.swift"
+        }
+      }
+    },
+    {
+      "name": "NotificationDeliverySettings",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationDeliverySettings",
+          "sourcePath": "packages/vue-im-ui/src/components/profile/FlareNotificationDeliverySettings.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationDeliverySettings",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_notification_delivery_settings.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationDeliverySettings",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/NotificationDeliverySettings.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NotificationDeliverySettingsView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/NotificationDeliverySettingsView.swift"
+        }
+      }
+    },
+    {
+      "name": "NotificationAlertSettings",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationAlertSettings",
+          "sourcePath": "packages/vue-im-ui/src/components/profile/FlareNotificationAlertSettings.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationAlertSettings",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_notification_alert_settings.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationAlertSettings",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/NotificationAlertSettings.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "NotificationAlertSettingsView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/NotificationAlertSettingsView.swift"
         }
       }
     },

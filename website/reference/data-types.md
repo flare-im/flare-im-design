@@ -216,6 +216,7 @@ title: 数据类型
 | `value` | `boolean` |  | 开关状态（`kind: "toggle"` 时）。 |
 | `detail` | `string` |  | 尾部详情文本：navigation 行的当前值，或 value 行的信息。过长时换到标签下方。 |
 | `badge` | `boolean \| number` |  | `true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。 |
+| `description` | `string` |  | 仅 Compose：标签下方说明这一行做什么的一行字（开关的后果），次要文字色，最多三行；与这一行一起朗读。 |
 
 ### SettingsSection {#settings-section}
 
@@ -229,6 +230,7 @@ title: 数据类型
 |---|---|:---:|---|
 | `title` | `string` |  | 分组标题（可选）。 |
 | `items` | [`FlareSettingsItem[]`](/reference/data-types#settings-item) | ✓ | 分组内的行。 |
+| `footer` | `string` |  | 分组卡片下方的说明：这些行做什么，或还能在哪里修改。 |
 
 ### ConversationRowModel {#conversation-row-model}
 
@@ -300,6 +302,83 @@ title: 数据类型
 | `localPath` | `string` |  | 本地缓存路径（若有）。 |
 | `mimeType` | `string` |  | MIME 类型提示。 |
 | `fileName` | `string` |  | 原始文件名。 |
+
+### NotificationGuideAction {#notification-guide-action}
+
+`FlareNotificationGuideAction`
+
+> 宿主提供的保持后台送达的额外入口（手机厂商的自启动页）。
+
+**被使用于：**[NotificationDeliverySettings](/components/notification-delivery-settings)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `label` | `string` |  | 行标题；默认用 Kit 的「自启动管理」/「Auto-start settings」（文案 `backgroundDeliveryAutoStart`，Vue 为 `notificationDeliverySettings.autoStart`）。 |
+| `onSelect` | `() => void` | ✓ | 打开该页面。 |
+
+### InAppNotification {#in-app-notification}
+
+`FlareInAppNotification`
+
+> 应用开着、停在别的页面时到达的消息，由宿主从引擎的 `notification.present`（surface 为 `inApp`）映射而来。
+
+**被使用于：**[InAppNotificationBanner](/components/in-app-notification-banner)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `collapseId` | `string` | ✓ | 同一合并键只有一条横幅：合并键相同的新条目原位替换正在显示或排队的那条。 |
+| `conversationId` | `string` | ✓ | 横幅打开的会话；也用来决定头像底色。 |
+| `messageId` | `string` |  | 横幅代表的最新一条消息，打开时原样交回。 |
+| `title` | `string` | ✓ | 会话或发送者名称；没有头像时取其首字。 |
+| `body` | `string` | ✓ | 预览文本，单行显示，超出省略。 |
+| `count` | `number` |  | 横幅代表的未读条数（默认 1）；大于 1 时正文前加 Kit 的「[3条]」/「[3 messages]」。 |
+| `channel` | [`InAppNotificationChannel`](/reference/data-types#in-app-notification-channel) |  | messages（默认）与 quiet 外观相同；mentions 与 urgent 在正文前加标签并带强调色。 |
+| `avatarUrl` | `string` |  | 宿主解析出的会话头像；不传时用 `title` 的首字。 |
+
+### InAppNotifications {#in-app-notifications}
+
+`FlareInAppNotifications`
+
+> 应用往里送、InAppNotificationHost 负责绘制的呈现器：正在显示的横幅与排队的横幅（spec/in-app-notification-vectors.json）。
+
+**被使用于：**[InAppNotificationHost](/components/in-app-notification-host)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `current` | `InAppNotification \| null` | ✓ | 正在显示的横幅。 |
+| `pending` | [`InAppNotification[]`](/reference/data-types#in-app-notification) | ✓ | 排队的横幅，最早的在前，最多三条。 |
+| `present` | `(notification: InAppNotification) => void` | ✓ | 显示、替换或排队一条。 |
+| `dismiss` | `() => void` | ✓ | 移走正在显示的横幅，显示下一条。 |
+| `clear` | `(collapseIds: string[]) => void` | ✓ | 移走这些合并键的横幅（引擎的 notification.clear）。 |
+| `clearAll` | `() => void` | ✓ | 移走全部横幅（notification.clear 的 all）。 |
+
+### QuietHours {#quiet-hours}
+
+`FlareQuietHours`
+
+> 新消息静默送达的时段，按设备本地时间。
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `enabled` | `boolean` | ✓ | 是否启用；关闭时仍保留时间。 |
+| `startMinute` | `number` | ✓ | 零点后的分钟数，0 到 1439。 |
+| `endMinute` | `number` | ✓ | 零点后的分钟数；不晚于开始时间表示次日（相等为全天）。 |
+| `weekdays` | `number` | ✓ | 按位表示，bit 0 为周一 … bit 6 为周日；0 为每天。 |
+| `allowMentions` | `boolean` | ✓ | @我的消息仍然提醒。 |
+
+### NotificationAlertPreferences {#notification-alert-preferences}
+
+`FlareNotificationAlertPreferences`
+
+> NotificationAlertSettings 编辑的个人通知偏好；与协议的用户级通知设置同形。
+
+**被使用于：**[NotificationAlertSettings](/components/notification-alert-settings)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `quietHours` | [`QuietHours`](/reference/data-types#quiet-hours) | ✓ | 勿扰时段。 |
+| `preview` | [`NotificationPreview`](/reference/data-types#notification-preview) | ✓ | 通知显示的内容。 |
+| `multiDevice` | [`MultiDeviceAlert`](/reference/data-types#multi-device-alert) | ✓ | 其他设备在使用时手机的提醒方式。 |
 
 ### ComposerCapabilities {#composer-capabilities}
 
@@ -1074,6 +1153,46 @@ title: 数据类型
 > 设置行的渲染与行为方式。
 
 `navigation` · `toggle` · `value` · `action`
+
+### NotificationStatus {#notification-status}
+
+`FlareNotificationStatus`
+
+> 系统通知权限在设置行上的说法。
+
+`on` · `off` · `notTurnedOn`
+
+### BackgroundDelivery {#background-delivery}
+
+`FlareBackgroundDelivery`
+
+> 系统允许应用在后台做什么，用平台电池设置里的说法。
+
+`unrestricted` · `optimized` · `restricted`
+
+### InAppNotificationChannel {#in-app-notification-channel}
+
+`FlareInAppNotificationChannel`
+
+> 新消息要求关注的程度：引擎的通知频道。
+
+`messages` · `quiet` · `mentions` · `urgent`
+
+### NotificationPreview {#notification-preview}
+
+`FlareNotificationPreview`
+
+> 通知显示什么：发送者和内容、只有发送者，或都不显示。
+
+`full` · `senderOnly` · `hidden`
+
+### MultiDeviceAlert {#multi-device-alert}
+
+`FlareMultiDeviceAlert`
+
+> 在其他设备上使用时手机怎样提醒：稍后、立即，或只更新角标。
+
+`delay` · `immediate` · `badgeOnly`
 
 ### ConversationAction {#conversation-action}
 

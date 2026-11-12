@@ -6,6 +6,23 @@
 
 ### 设计系统与跨端组件
 
+- **通知送达：轻询问与送达设置**（契约与四端 Kit）。
+  - `PermissionPrompt` 新增 `softAsk`：宿主在自选时机展示的非阻断询问。不画状态标签，关闭键为「以后再说」；通知类有自己的文案：系统还能询问时为「开启通知」，被关闭后为「前往设置」并说明在哪里打开。只在 undetermined 或 denied 时出现。
+  - 权限状态新增 `granted`，提示什么都不画，宿主可原样绑定平台状态。`permissionActions` 对它不给关闭键；`permissionPromptShows(state, softAsk)` 判断是否绘制，原生三端另有 `defaultPermissionSoftAskCopy`。
+  - 提示的面板形态：Vue 与 Compose 用 `presentation="sheet"`（Vue 另有 `open`），SwiftUI 用 `.flarePermissionPrompt(isPresented:kind:state:softAsk:…)`，Flutter 用 `FlarePermissionPrompt.show(context, …)`，结果为 `FlarePermissionChoice`。SwiftUI、Flutter 与 Compose 上按键后面板先关闭，面板消失后宿主才收到选择，系统权限弹窗独占屏幕；Compose 的面板提示自行关闭，仍在组合中也不再出现。Flutter 的 `dismissText` 改为可选，缺省取词表。
+  - 新组件 `NotificationDeliverySettings`（Vue、Flutter `FlareNotificationDeliverySettings`，SwiftUI `NotificationDeliverySettingsView`，Compose `NotificationDeliverySettings`）：「新消息通知」行（已开启、已关闭、未开启；`statusAction`），传了 `background` 时还有「后台接收消息」行（不受限制、已优化、受限制），其引导在 kit 底部弹层里给出电池设置（`openBatterySettings`）和宿主提供的自启动入口（`vendorActions`，宿主不给文案时显示「自启动管理」）。
+  - 分组形态把这一组放进本身就是一个列表的设置页（Vue `#section`，Flutter `sectionBuilder`，SwiftUI 与 Compose `sectionContent`）：设置页拿到作为一个设置分组的这一组和 `select`，后者执行这一组的行，设置页自己的行仍归它处理。
+  - 设置分组新增 `footer`，四端都画在卡片下方。
+  - 仅 Compose：`NotificationDeliverySettings` 新增常驻连接开关（`residentMode`、`onResidentModeChange`；行 `residentConnection`「后台保持连接」，说明在标题下方），开关打开且电池使用不是不受限制时还有「关闭电池优化」行（`residentBattery`，执行 `onOpenBatterySettings`）。宿主只在没有配置推送通道的构建里传 `residentMode`。分组形态的 `select` 会翻转这个开关，所以设置页的开关事件也先交给 `select`。Compose 的 `SettingsItem` 新增 `description`，画在标签下方。其他端都不需要：只有 Android 有常驻连接模式。
+  - 文案进统一词表，中英都有。
+
+- **应用内新消息横幅与个人通知偏好**（契约与四端 Kit）。
+  - 新组件 `InAppNotificationBanner`（Vue、Flutter `FlareInAppNotificationBanner`，SwiftUI `InAppNotificationBannerView`，Compose `InAppNotificationBanner`）：应用开着、停在别的页面时到达新消息的顶部横幅。头像或首字、标题与单行省略的正文，多于一条时显示 Kit 的「[3条]」/「[3 messages]」，mentions（「[有人@我]」）与 urgent（「[加急]」）频道带标签和强调色。轻点上报 `open(conversationId, messageId)`；向上轻扫、关闭键或 Escape 上报 `dismiss`。辅助技术把它读作一个带关闭操作的按钮。
+  - 新组件 `InAppNotificationHost`（Vue、Flutter `FlareInAppNotificationHost`，SwiftUI 与 Compose `InAppNotificationHost`）及其呈现器（Vue 为 `./composables` 的 `createFlareInAppNotifications()`，Flutter、SwiftUI、Compose 为 `FlareInAppNotifications`）。应用把引擎的 `notification.present`（surface 为 `inApp`）与 `notification.clear` 送进呈现器；宿主在顶部居中一次显示一条，合并键相同的原位替换，其他最多排三条（超出时先丢最早排队的），每条 4 秒后收起，按住（Web 上还有悬停与聚焦）时停止计时。每条横幅播报一次；减少动态效果时淡入淡出而不滑动。原生端读屏运行时横幅一直保留到被关闭（Compose 遵循系统推荐的无障碍超时）。
+  - 新组件 `NotificationAlertSettings`（Vue、Flutter `FlareNotificationAlertSettings`，SwiftUI `NotificationAlertSettingsView`，Compose `NotificationAlertSettings`）：勿扰时段（开关、开始时间、不晚于开始时显示为次日的结束时间、重复、@我照常提醒）、通知预览（发送者和内容、仅发送者、不显示）与其他设备活跃时的提醒方式（稍后提醒、立即提醒、只更新角标），每组带说明。接收与协议同形的值（`FlareNotificationAlertPreferences`），经 `change` 报出完整的新值；`disabled` 让宿主保存时各行不接受操作，已经打开的选择面板照常完成。与 NotificationDeliverySettings 一样有分组形态（Vue `#sections`，Flutter `sectionsBuilder`，SwiftUI 与 Compose `sectionContent`），其 `select` 与 `toggle` 执行这一组的行。它是独立组件：NotificationPreferences 仍是宿主定义的开关列表。
+  - 选择器取自 Kit：时间打开 TimePicker 的面板（Flutter 新增 `FlareTimePicker.show(context, value:, title:, minuteStep:)`；Vue、SwiftUI、Compose 在内部共用该面板），星期打开至少保留一天的开关面板，两个选项打开竖排 RadioGroup 的面板。
+  - 规则在 `spec/in-app-notification-vectors.json` 与 `spec/notification-alert-vectors.json`，四端共跑。文案进统一词表，中英都有（`inAppNotificationCount` 与 `quietHoursNextDay` 为新增的函数字段）。
+
 - **资源包折进四端 Kit**（更新中心的 L2 层）。
   - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。
   - 规则在 `spec/resource-overlay-vectors.json`，四端共跑：文案和颜色必须已存在，占位符必须一致，只开放 `colors`、`dark`，表情只新增，图片地址必须 https。

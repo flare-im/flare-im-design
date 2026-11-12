@@ -284,12 +284,20 @@ export { default as FlareMediaCenter } from "./scenes/FlareMediaCenter.vue";
 export { default as FlareCapabilityBoundary } from "./scenes/FlareCapabilityBoundary.vue";
 
 export { default as FlareNotificationPreferences } from "./scenes/FlareNotificationPreferences.vue";
+export { default as FlareNotificationDeliverySettings } from "./profile/FlareNotificationDeliverySettings.vue";
+export type { NotificationStatus, BackgroundDelivery, NotificationGuideAction } from "../shared/contracts/notification-delivery";
+export { default as FlareNotificationAlertSettings } from "./profile/FlareNotificationAlertSettings.vue";
+export type { FlareNotificationAlertPreferences, FlareQuietHours, FlareNotificationPreview, FlareMultiDeviceAlert } from "../shared/contracts/notification-alert";
 
 export { default as FlareDangerConfirm } from "./scenes/FlareDangerConfirm.vue";
 
 export { default as FlareCallDevicePicker } from "./call/FlareCallDevicePicker.vue";
 
 export { default as FlarePermissionPrompt } from "./general/FlarePermissionPrompt.vue";
+export type { PermissionKind, PermissionState, PermissionPresentation } from "../shared/contracts/permission-prompt";
+export { default as FlareInAppNotificationBanner } from "./shell/FlareInAppNotificationBanner.vue";
+export { default as FlareInAppNotificationHost } from "./shell/FlareInAppNotificationHost.vue";
+export type { FlareInAppNotification, FlareInAppNotificationChannel } from "../shared/contracts/in-app-notification";
 export { default as FlareConversationActionSheet } from "./conversation/FlareConversationActionSheet.vue";
 export { default as FlareConversationBatchToolbar } from "./conversation/FlareConversationBatchToolbar.vue";
 

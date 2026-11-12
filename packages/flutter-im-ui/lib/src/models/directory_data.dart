@@ -272,9 +272,13 @@ class FlareSettingsItem {
 }
 
 class FlareSettingsSection {
-  const FlareSettingsSection({this.title, required this.items});
+  const FlareSettingsSection({this.title, required this.items, this.footer});
   final String? title;
   final List<FlareSettingsItem> items;
+
+  /// A note under the section's card: what the rows do, or where else to
+  /// change them.
+  final String? footer;
 }
 
 /// A grouped emoji reaction on a message.

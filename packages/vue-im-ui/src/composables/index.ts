@@ -71,6 +71,10 @@ export {
   type FlareShowToast,
   type FlareToastOptions,
 } from "./useFlareFeedback";
+export {
+  createFlareInAppNotifications,
+  type FlareInAppNotifications,
+} from "./useFlareInAppNotifications";
 export { useFlareSheetOwnHeader } from "../shared/sheetHeader";
 export {
   provideFlareOverlayContainer,

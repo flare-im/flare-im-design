@@ -423,6 +423,7 @@ class FlareStrings {
     this.permissionStateDenied = '已拒绝',
     this.permissionStateRestricted = '受限制',
     this.permissionStateUnavailable = '不可用',
+    this.permissionStateGranted = '已允许',
     // iOS 同名通用字段（Flutter 此前缺失）
     this.search = '搜索',
     this.noGroups = '暂无群聊',
@@ -435,6 +436,57 @@ class FlareStrings {
     this.currentDevice = '当前设备',
     this.filesAndMedia = '文件与媒体',
     this.notificationSettings = '通知设置',
+    // 通知送达设置（FlareNotificationDeliverySettings）
+    this.notificationDeliveryTitle = '通知',
+    this.notificationDeliveryNewMessages = '新消息通知',
+    this.notificationStatusOn = '已开启',
+    this.notificationStatusOff = '已关闭',
+    this.notificationStatusNotTurnedOn = '未开启',
+    this.backgroundDeliveryLabel = '后台接收消息',
+    this.backgroundDeliveryUnrestricted = '不受限制',
+    this.backgroundDeliveryOptimized = '已优化',
+    this.backgroundDeliveryRestricted = '受限制',
+    this.backgroundDeliveryExplanation =
+        '新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。',
+    this.backgroundDeliveryAutoStartHint = '这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。',
+    this.backgroundDeliveryBattery = '电池使用',
+    this.backgroundDeliveryAutoStart = '自启动管理',
+    // 应用内新消息横幅与个人通知偏好（FlareInAppNotificationBanner / FlareNotificationAlertSettings）
+    this.inAppNotificationLabel = '新消息',
+    this.inAppNotificationOpenHint = '打开会话',
+    this.inAppNotificationMention = '[有人@我]',
+    this.inAppNotificationUrgent = '[加急]',
+    this.quietHoursTitle = '勿扰',
+    this.quietHoursLabel = '勿扰时段',
+    this.quietHoursStart = '开始时间',
+    this.quietHoursEnd = '结束时间',
+    this.quietHoursRepeat = '重复',
+    this.quietHoursAllowMentions = '@我的消息照常提醒',
+    this.quietHoursFooter = '勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。',
+    this.weekdayEveryDay = '每天',
+    this.weekdayWeekdays = '工作日',
+    this.weekdayWeekends = '周末',
+    this.weekdayMonday = '周一',
+    this.weekdayTuesday = '周二',
+    this.weekdayWednesday = '周三',
+    this.weekdayThursday = '周四',
+    this.weekdayFriday = '周五',
+    this.weekdaySaturday = '周六',
+    this.weekdaySunday = '周日',
+    this.notificationPreviewTitle = '通知内容',
+    this.notificationPreviewLabel = '通知预览',
+    this.notificationPreviewFull = '发送者和内容',
+    this.notificationPreviewSenderOnly = '仅发送者',
+    this.notificationPreviewHidden = '不显示',
+    this.notificationPreviewFooter = '锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。',
+    this.multiDeviceTitle = '多设备',
+    this.multiDeviceLabel = '其他设备活跃时',
+    this.multiDeviceDelay = '稍后提醒',
+    this.multiDeviceImmediate = '立即提醒',
+    this.multiDeviceBadgeOnly = '只更新角标',
+    this.multiDeviceFooter = '你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。',
+    this.inAppNotificationCount = _inAppNotificationCount,
+    this.quietHoursNextDay = _quietHoursNextDay,
     this.confirmAction = '确认',
     this.transferQueue = '传输队列',
     this.noTransfers = '暂无传输任务',
@@ -445,6 +497,13 @@ class FlareStrings {
     this.timeRange = '时间范围',
     this.searchIdleHint = '输入关键词或选择类型',
     this.permissionDismiss = '知道了',
+    // 权限提示的轻询问（FlarePermissionPrompt(softAsk: true)）
+    this.permissionNotNow = '以后再说',
+    this.permissionSoftAskNotificationsTitle = '及时收到新消息',
+    this.permissionSoftAskNotificationsBody = '开启通知后，应用不在前台时也能收到新消息提醒。',
+    this.permissionSoftAskNotificationsDeniedBody =
+        '通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。',
+    this.permissionSoftAskNotificationsAction = '开启通知',
     // Composer（输入区工具 / 富文本工具条 / 按住说话）
     this.composerPlaceholder = '发送消息',
     this.composerReply = '回复',
@@ -1505,6 +1564,7 @@ class FlareStrings {
   final String permissionStateDenied;
   final String permissionStateRestricted;
   final String permissionStateUnavailable;
+  final String permissionStateGranted;
   // iOS 同名通用字段（Flutter 此前缺失）
   final String search;
   final String noGroups;
@@ -1517,6 +1577,55 @@ class FlareStrings {
   final String currentDevice;
   final String filesAndMedia;
   final String notificationSettings;
+  // 通知送达设置（FlareNotificationDeliverySettings）
+  final String notificationDeliveryTitle;
+  final String notificationDeliveryNewMessages;
+  final String notificationStatusOn;
+  final String notificationStatusOff;
+  final String notificationStatusNotTurnedOn;
+  final String backgroundDeliveryLabel;
+  final String backgroundDeliveryUnrestricted;
+  final String backgroundDeliveryOptimized;
+  final String backgroundDeliveryRestricted;
+  final String backgroundDeliveryExplanation;
+  final String backgroundDeliveryAutoStartHint;
+  final String backgroundDeliveryBattery;
+  final String backgroundDeliveryAutoStart;
+  final String inAppNotificationLabel;
+  final String inAppNotificationOpenHint;
+  final String inAppNotificationMention;
+  final String inAppNotificationUrgent;
+  final String quietHoursTitle;
+  final String quietHoursLabel;
+  final String quietHoursStart;
+  final String quietHoursEnd;
+  final String quietHoursRepeat;
+  final String quietHoursAllowMentions;
+  final String quietHoursFooter;
+  final String weekdayEveryDay;
+  final String weekdayWeekdays;
+  final String weekdayWeekends;
+  final String weekdayMonday;
+  final String weekdayTuesday;
+  final String weekdayWednesday;
+  final String weekdayThursday;
+  final String weekdayFriday;
+  final String weekdaySaturday;
+  final String weekdaySunday;
+  final String notificationPreviewTitle;
+  final String notificationPreviewLabel;
+  final String notificationPreviewFull;
+  final String notificationPreviewSenderOnly;
+  final String notificationPreviewHidden;
+  final String notificationPreviewFooter;
+  final String multiDeviceTitle;
+  final String multiDeviceLabel;
+  final String multiDeviceDelay;
+  final String multiDeviceImmediate;
+  final String multiDeviceBadgeOnly;
+  final String multiDeviceFooter;
+  final String Function(int count) inAppNotificationCount;
+  final String Function(String time) quietHoursNextDay;
   final String confirmAction;
   final String transferQueue;
   final String noTransfers;
@@ -1527,6 +1636,12 @@ class FlareStrings {
   final String timeRange;
   final String searchIdleHint;
   final String permissionDismiss;
+  // 权限提示的轻询问（FlarePermissionPrompt(softAsk: true)）
+  final String permissionNotNow;
+  final String permissionSoftAskNotificationsTitle;
+  final String permissionSoftAskNotificationsBody;
+  final String permissionSoftAskNotificationsDeniedBody;
+  final String permissionSoftAskNotificationsAction;
   // Composer（输入区工具 / 富文本工具条 / 按住说话）
   final String composerPlaceholder;
   final String composerReply;
@@ -2513,6 +2628,7 @@ class FlareStrings {
     String? permissionStateDenied,
     String? permissionStateRestricted,
     String? permissionStateUnavailable,
+    String? permissionStateGranted,
     String? search,
     String? noGroups,
     String? noConversations,
@@ -2524,6 +2640,54 @@ class FlareStrings {
     String? currentDevice,
     String? filesAndMedia,
     String? notificationSettings,
+    String? notificationDeliveryTitle,
+    String? notificationDeliveryNewMessages,
+    String? notificationStatusOn,
+    String? notificationStatusOff,
+    String? notificationStatusNotTurnedOn,
+    String? backgroundDeliveryLabel,
+    String? backgroundDeliveryUnrestricted,
+    String? backgroundDeliveryOptimized,
+    String? backgroundDeliveryRestricted,
+    String? backgroundDeliveryExplanation,
+    String? backgroundDeliveryAutoStartHint,
+    String? backgroundDeliveryBattery,
+    String? backgroundDeliveryAutoStart,
+    String? inAppNotificationLabel,
+    String? inAppNotificationOpenHint,
+    String? inAppNotificationMention,
+    String? inAppNotificationUrgent,
+    String? quietHoursTitle,
+    String? quietHoursLabel,
+    String? quietHoursStart,
+    String? quietHoursEnd,
+    String? quietHoursRepeat,
+    String? quietHoursAllowMentions,
+    String? quietHoursFooter,
+    String? weekdayEveryDay,
+    String? weekdayWeekdays,
+    String? weekdayWeekends,
+    String? weekdayMonday,
+    String? weekdayTuesday,
+    String? weekdayWednesday,
+    String? weekdayThursday,
+    String? weekdayFriday,
+    String? weekdaySaturday,
+    String? weekdaySunday,
+    String? notificationPreviewTitle,
+    String? notificationPreviewLabel,
+    String? notificationPreviewFull,
+    String? notificationPreviewSenderOnly,
+    String? notificationPreviewHidden,
+    String? notificationPreviewFooter,
+    String? multiDeviceTitle,
+    String? multiDeviceLabel,
+    String? multiDeviceDelay,
+    String? multiDeviceImmediate,
+    String? multiDeviceBadgeOnly,
+    String? multiDeviceFooter,
+    String Function(int count)? inAppNotificationCount,
+    String Function(String time)? quietHoursNextDay,
     String? confirmAction,
     String? transferQueue,
     String? noTransfers,
@@ -2534,6 +2698,11 @@ class FlareStrings {
     String? timeRange,
     String? searchIdleHint,
     String? permissionDismiss,
+    String? permissionNotNow,
+    String? permissionSoftAskNotificationsTitle,
+    String? permissionSoftAskNotificationsBody,
+    String? permissionSoftAskNotificationsDeniedBody,
+    String? permissionSoftAskNotificationsAction,
     String? composerPlaceholder,
     String? composerReply,
     String? composerVoice,
@@ -3529,6 +3698,8 @@ class FlareStrings {
           permissionStateRestricted ?? this.permissionStateRestricted,
       permissionStateUnavailable:
           permissionStateUnavailable ?? this.permissionStateUnavailable,
+      permissionStateGranted:
+          permissionStateGranted ?? this.permissionStateGranted,
       search: search ?? this.search,
       noGroups: noGroups ?? this.noGroups,
       noConversations: noConversations ?? this.noConversations,
@@ -3540,6 +3711,81 @@ class FlareStrings {
       currentDevice: currentDevice ?? this.currentDevice,
       filesAndMedia: filesAndMedia ?? this.filesAndMedia,
       notificationSettings: notificationSettings ?? this.notificationSettings,
+      notificationDeliveryTitle:
+          notificationDeliveryTitle ?? this.notificationDeliveryTitle,
+      notificationDeliveryNewMessages:
+          notificationDeliveryNewMessages ??
+          this.notificationDeliveryNewMessages,
+      notificationStatusOn: notificationStatusOn ?? this.notificationStatusOn,
+      notificationStatusOff:
+          notificationStatusOff ?? this.notificationStatusOff,
+      notificationStatusNotTurnedOn:
+          notificationStatusNotTurnedOn ?? this.notificationStatusNotTurnedOn,
+      backgroundDeliveryLabel:
+          backgroundDeliveryLabel ?? this.backgroundDeliveryLabel,
+      backgroundDeliveryUnrestricted:
+          backgroundDeliveryUnrestricted ??
+          this.backgroundDeliveryUnrestricted,
+      backgroundDeliveryOptimized:
+          backgroundDeliveryOptimized ?? this.backgroundDeliveryOptimized,
+      backgroundDeliveryRestricted:
+          backgroundDeliveryRestricted ?? this.backgroundDeliveryRestricted,
+      backgroundDeliveryExplanation:
+          backgroundDeliveryExplanation ?? this.backgroundDeliveryExplanation,
+      backgroundDeliveryAutoStartHint:
+          backgroundDeliveryAutoStartHint ??
+          this.backgroundDeliveryAutoStartHint,
+      backgroundDeliveryBattery:
+          backgroundDeliveryBattery ?? this.backgroundDeliveryBattery,
+      backgroundDeliveryAutoStart:
+          backgroundDeliveryAutoStart ?? this.backgroundDeliveryAutoStart,
+      inAppNotificationLabel:
+          inAppNotificationLabel ?? this.inAppNotificationLabel,
+      inAppNotificationOpenHint:
+          inAppNotificationOpenHint ?? this.inAppNotificationOpenHint,
+      inAppNotificationMention:
+          inAppNotificationMention ?? this.inAppNotificationMention,
+      inAppNotificationUrgent:
+          inAppNotificationUrgent ?? this.inAppNotificationUrgent,
+      quietHoursTitle: quietHoursTitle ?? this.quietHoursTitle,
+      quietHoursLabel: quietHoursLabel ?? this.quietHoursLabel,
+      quietHoursStart: quietHoursStart ?? this.quietHoursStart,
+      quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
+      quietHoursRepeat: quietHoursRepeat ?? this.quietHoursRepeat,
+      quietHoursAllowMentions:
+          quietHoursAllowMentions ?? this.quietHoursAllowMentions,
+      quietHoursFooter: quietHoursFooter ?? this.quietHoursFooter,
+      weekdayEveryDay: weekdayEveryDay ?? this.weekdayEveryDay,
+      weekdayWeekdays: weekdayWeekdays ?? this.weekdayWeekdays,
+      weekdayWeekends: weekdayWeekends ?? this.weekdayWeekends,
+      weekdayMonday: weekdayMonday ?? this.weekdayMonday,
+      weekdayTuesday: weekdayTuesday ?? this.weekdayTuesday,
+      weekdayWednesday: weekdayWednesday ?? this.weekdayWednesday,
+      weekdayThursday: weekdayThursday ?? this.weekdayThursday,
+      weekdayFriday: weekdayFriday ?? this.weekdayFriday,
+      weekdaySaturday: weekdaySaturday ?? this.weekdaySaturday,
+      weekdaySunday: weekdaySunday ?? this.weekdaySunday,
+      notificationPreviewTitle:
+          notificationPreviewTitle ?? this.notificationPreviewTitle,
+      notificationPreviewLabel:
+          notificationPreviewLabel ?? this.notificationPreviewLabel,
+      notificationPreviewFull:
+          notificationPreviewFull ?? this.notificationPreviewFull,
+      notificationPreviewSenderOnly:
+          notificationPreviewSenderOnly ?? this.notificationPreviewSenderOnly,
+      notificationPreviewHidden:
+          notificationPreviewHidden ?? this.notificationPreviewHidden,
+      notificationPreviewFooter:
+          notificationPreviewFooter ?? this.notificationPreviewFooter,
+      multiDeviceTitle: multiDeviceTitle ?? this.multiDeviceTitle,
+      multiDeviceLabel: multiDeviceLabel ?? this.multiDeviceLabel,
+      multiDeviceDelay: multiDeviceDelay ?? this.multiDeviceDelay,
+      multiDeviceImmediate: multiDeviceImmediate ?? this.multiDeviceImmediate,
+      multiDeviceBadgeOnly: multiDeviceBadgeOnly ?? this.multiDeviceBadgeOnly,
+      multiDeviceFooter: multiDeviceFooter ?? this.multiDeviceFooter,
+      inAppNotificationCount:
+          inAppNotificationCount ?? this.inAppNotificationCount,
+      quietHoursNextDay: quietHoursNextDay ?? this.quietHoursNextDay,
       confirmAction: confirmAction ?? this.confirmAction,
       transferQueue: transferQueue ?? this.transferQueue,
       noTransfers: noTransfers ?? this.noTransfers,
@@ -3550,6 +3796,19 @@ class FlareStrings {
       timeRange: timeRange ?? this.timeRange,
       searchIdleHint: searchIdleHint ?? this.searchIdleHint,
       permissionDismiss: permissionDismiss ?? this.permissionDismiss,
+      permissionNotNow: permissionNotNow ?? this.permissionNotNow,
+      permissionSoftAskNotificationsTitle:
+          permissionSoftAskNotificationsTitle ??
+          this.permissionSoftAskNotificationsTitle,
+      permissionSoftAskNotificationsBody:
+          permissionSoftAskNotificationsBody ??
+          this.permissionSoftAskNotificationsBody,
+      permissionSoftAskNotificationsDeniedBody:
+          permissionSoftAskNotificationsDeniedBody ??
+          this.permissionSoftAskNotificationsDeniedBody,
+      permissionSoftAskNotificationsAction:
+          permissionSoftAskNotificationsAction ??
+          this.permissionSoftAskNotificationsAction,
       composerPlaceholder: composerPlaceholder ?? this.composerPlaceholder,
       composerReply: composerReply ?? this.composerReply,
       composerVoice: composerVoice ?? this.composerVoice,
@@ -4510,6 +4769,8 @@ class FlareStrings {
   static String _previewCardNamed(String label) => '[名片] $label';
   static String _previewForwardCount(int count) => '[转发] $count 条消息';
   static String _previewImageGroupCount(int count) => '[多图] $count 张';
+  static String _inAppNotificationCount(int count) => '[$count条]';
+  static String _quietHoursNextDay(String time) => '次日 $time';
   static String _systemEventGroupProfileUpdatedNamed(String name) =>
       '群名称已改为「$name」';
   static String _displayNameUser(String idTail) => '用户 $idTail';

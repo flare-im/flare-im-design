@@ -1022,6 +1022,291 @@ await confirm({
     },
   ],
 
+  PermissionPrompt: [
+    {
+      title: { en: "Asking for notifications at a moment the app picks", zh: "在应用自选的时机询问通知权限" },
+      description: { en: "`softAsk` is the non-blocking invitation: notification copy of its own, no state chip, and Not now. Bind the push module's status as it is: `granted` draws nothing, `undetermined` offers Turn on notifications, `denied` offers Open Settings. The app remembers Not now per account; the kit never asks the system itself.", zh: "`softAsk` 是非阻断的轻询问：通知类有自己的文案，不画状态标签，关闭键为「以后再说」。推送模块的状态原样绑定：`granted` 不画，`undetermined` 给「开启通知」，`denied` 给「前往设置」。「以后再说」由应用按账号记住；Kit 从不自己向系统申请。" },
+      vue: `<FlarePermissionPrompt
+  kind="notifications"
+  :state="push.permission"
+  soft-ask
+  compact
+  @request="push.requestPermission()"
+  @open-settings="push.openNotificationSettings()"
+  @dismiss="rememberNotNow(account)"
+/>`,
+      flutter: `final choice = await FlarePermissionPrompt.show(
+  context,
+  kind: FlarePermissionKind.notifications,
+  state: permissionState,
+  softAsk: true,
+);
+switch (choice) {
+  case FlarePermissionChoice.request:
+    await push.requestPermission();
+  case FlarePermissionChoice.openSettings:
+    await push.openNotificationSettings();
+  case FlarePermissionChoice.dismiss:
+    await rememberNotNow(account);
+  case null:
+    break;
+}`,
+      compose: `PermissionPrompt(
+  kind = FlarePermissionKind.Notifications,
+  state = permissionState,
+  softAsk = true,
+  compact = true,
+  onRequest = { notifications.request() },
+  onOpenSettings = { notifications.openSettings() },
+  onDismiss = { rememberNotNow(account) },
+)`,
+      ios: `PermissionPromptView(
+  kind: .notifications,
+  state: notifications.promptState,
+  softAsk: true,
+  compact: true,
+  onRequest: { Task { await notifications.requestPermission() } },
+  onOpenSettings: { notifications.openSettings() },
+  onDismiss: { notifications.rememberNotNow() }
+)`,
+    },
+  ],
+
+  NotificationDeliverySettings: [
+    {
+      title: { en: "The notification section of a settings page", zh: "设置页里的通知分组" },
+      description: { en: "Feed the push module's status and, on Android, the battery setting. The status row's action is the app's call: ask while the system can, otherwise open the system settings. The background row opens the kit's guide with the battery settings and any auto-start pages the app knows for this phone; a page without a label reads the kit's \"Auto-start settings\".", zh: "传入推送模块的状态，Android 上再传电池设置。状态行的动作由应用决定：系统还能询问就申请，否则打开系统设置。后台行打开 Kit 的引导，内有电池设置以及应用为这台手机准备的自启动入口；不传文案时显示 Kit 的「自启动管理」。" },
+      vue: `<FlareNotificationDeliverySettings
+  :status="push.status"
+  @status-action="push.enableOrOpenSettings()"
+/>`,
+      flutter: `FlareNotificationDeliverySettings(
+  status: notificationStatus,
+  background: Platform.isAndroid ? backgroundDelivery : null,
+  vendorActions: [
+    if (hasAutoStart) FlareNotificationGuideAction(onSelect: push.openAutoStart),
+  ],
+  onStatusAction: push.enableOrOpenSettings,
+  onOpenBatterySettings: push.openBatterySettings,
+)`,
+      compose: `NotificationDeliverySettings(
+  status = access.status,
+  background = access.background,
+  vendorActions = if (access.vendorAutoStart) listOf(FlareNotificationGuideAction { notifications.openAutoStartSettings() }) else emptyList(),
+  onStatusAction = { notifications.enable() },
+  onOpenBatterySettings = { notifications.openBatterySettings() },
+)`,
+      ios: `NotificationDeliverySettingsView(
+  status: notifications.status,
+  onStatusAction: { Task { await notifications.openFromSettings() } }
+)`,
+    },
+    {
+      title: { en: "One settings list with the notification group inside", zh: "通知分组放进同一个设置列表" },
+      description: { en: "A settings page drawn as one list takes the section form: the group arrives as one settings section with `select`, which runs the group's rows (the status action, or the background guide the component still presents) and returns false for every other row, so the page handles only its own.", zh: "整页是一个设置列表时用分组形态：这一组作为一个设置分组连同 `select` 交给页面，`select` 执行这一组的行（状态动作，或仍由组件呈现的后台引导），其它行返回 false，页面只处理自己的行。" },
+      vue: `<FlareNotificationDeliverySettings :status="push.status" @status-action="push.enableOrOpenSettings()">
+  <template #section="{ section, select }">
+    <FlareSettingsList
+      :sections="[general, section, about]"
+      @select="(item) => select(item) || openPage(item)"
+    />
+  </template>
+</FlareNotificationDeliverySettings>`,
+      flutter: `FlareNotificationDeliverySettings(
+  status: notificationStatus,
+  background: Platform.isAndroid ? backgroundDelivery : null,
+  onStatusAction: push.enableOrOpenSettings,
+  onOpenBatterySettings: push.openBatterySettings,
+  sectionBuilder: (context, notifications, select) => FlareSettingsList(
+    sections: [general, notifications, about],
+    onSelect: (item) {
+      if (!select(item)) openPage(item);
+    },
+  ),
+)`,
+      compose: `NotificationDeliverySettings(
+  status = access.status,
+  background = access.background,
+  onStatusAction = { notifications.enable() },
+  onOpenBatterySettings = { notifications.openBatterySettings() },
+) { section, select ->
+  SettingsList(
+    sections = listOf(general, section, about),
+    onSelect = { if (!select(it)) openPage(it) },
+  )
+}`,
+      ios: `NotificationDeliverySettingsView(
+  status: notifications.status,
+  onStatusAction: { Task { await notifications.openFromSettings() } }
+) { section, select in
+  SettingsListView(sections: [general, section, about], onSelect: { if !select($0) { openPage($0) } })
+}`,
+    },
+  ],
+
+  InAppNotificationHost: [
+    {
+      title: { en: "Banners for messages that arrive on another screen", zh: "停在别的页面时到达的消息横幅" },
+      description: { en: "The app owns one presenter and feeds it from the engine: `notification.present` events whose surface is `inApp` become banners, `notification.clear` takes them away. The host shows one at a time at the top, replaces a banner of the same conversation in place, queues up to three others and dismisses each after 4 s (paused while it is pressed). The engine already decided whether the message alerts; the app only routes `open`.", zh: "应用持有一个呈现器，用引擎事件喂入：surface 为 `inApp` 的 `notification.present` 变成横幅，`notification.clear` 把它移走。宿主在顶部一次显示一条，同一会话的新横幅原位替换，其他会话最多排三条，每条 4 秒后收起（按住时暂停）。是否提醒已由引擎决定，应用只负责 `open` 的跳转。" },
+      vue: `<script setup lang="ts">
+const inApp = createFlareInAppNotifications();
+sdk.on("notification.present", (n) => {
+  if (n.surface === "inApp") inApp.present({ ...n, avatarUrl: avatars.of(n.conversationId) });
+});
+sdk.on("notification.clear", (c) => (c.all ? inApp.clearAll() : inApp.clear(c.collapseIds)));
+</script>
+
+<template>
+  <FlareInAppNotificationHost :notifications="inApp" @open="(conversationId, messageId) => router.openChat(conversationId, messageId)" />
+  <RouterView />
+</template>`,
+      flutter: `final inApp = FlareInAppNotifications();
+sdk.notificationPresents
+    .where((n) => n.surface == 'inApp')
+    .listen((n) => inApp.present(FlareInAppNotification(
+          collapseId: n.collapseId,
+          conversationId: n.conversationId,
+          messageId: n.messageId,
+          title: n.title,
+          body: n.body,
+          count: n.count,
+          channel: FlareInAppNotificationChannel.values.byName(n.channel),
+        )));
+
+MaterialApp(
+  builder: (context, child) => FlareInAppNotificationHost(
+    notifications: inApp,
+    onOpen: (conversationId, messageId) => router.openChat(conversationId, messageId),
+    child: child!,
+  ),
+)`,
+      compose: `val inApp = remember { FlareInAppNotifications() }
+LaunchedEffect(Unit) {
+  sdk.notificationPresents.filter { it.surface == "inApp" }.collect { inApp.present(it.toBanner()) }
+}
+InAppNotificationHost(inApp, onOpen = { conversationId, messageId -> nav.openChat(conversationId, messageId) }) {
+  AppNavHost()
+}`,
+      ios: `@StateObject private var inApp = FlareInAppNotifications()
+
+var body: some View {
+  InAppNotificationHost(notifications: inApp, onOpen: { conversationId, messageId in
+    router.openChat(conversationId, messageId: messageId)
+  }) {
+    RootView()
+  }
+  .task { for await n in sdk.inAppPresentations { inApp.present(n.banner) } }
+}`,
+    },
+  ],
+
+  InAppNotificationBanner: [
+    {
+      title: { en: "One banner on its own", zh: "单独绘制一条横幅" },
+      description: { en: "Hosts normally let InAppNotificationHost place the banner. Drawing it directly suits a preview or a custom container: `count` above one shows the kit's [3条], the mentions and urgent channels add their tag.", zh: "宿主通常交给 InAppNotificationHost 摆放横幅。预览或自定义容器里可以直接绘制：`count` 大于一时显示 Kit 的「[3条]」，mentions 与 urgent 频道带上自己的标签。" },
+      vue: `<FlareInAppNotificationBanner
+  :notification="{ collapseId: 'c:design', conversationId: 'design', title: '设计评审群', body: '李四：@你 确认一下配色', count: 3, channel: 'mentions' }"
+  @open="(conversationId, messageId) => openChat(conversationId, messageId)"
+  @dismiss="hide()"
+/>`,
+      flutter: `FlareInAppNotificationBanner(
+  notification: const FlareInAppNotification(
+    collapseId: 'c:design',
+    conversationId: 'design',
+    title: '设计评审群',
+    body: '李四：@你 确认一下配色',
+    count: 3,
+    channel: FlareInAppNotificationChannel.mentions,
+  ),
+  onOpen: (conversationId, messageId) => openChat(conversationId),
+  onDismiss: hide,
+)`,
+      compose: `InAppNotificationBanner(
+  notification = FlareInAppNotification(
+    collapseId = "c:design", conversationId = "design", title = "设计评审群",
+    body = "李四：@你 确认一下配色", count = 3, channel = FlareInAppNotificationChannel.Mentions,
+  ),
+  onOpen = { conversationId, _ -> openChat(conversationId) },
+  onDismiss = { hide() },
+)`,
+      ios: `InAppNotificationBannerView(
+  notification: FlareInAppNotification(collapseId: "c:design", conversationId: "design", title: "设计评审群",
+                                       body: "李四：@你 确认一下配色", count: 3, channel: .mentions),
+  onOpen: { conversationId, _ in openChat(conversationId) },
+  onDismiss: { hide() }
+)`,
+    },
+  ],
+
+  NotificationAlertSettings: [
+    {
+      title: { en: "Quiet hours, preview and other devices", zh: "勿扰时段、通知预览与多设备" },
+      description: { en: "Bind the user notification settings the core SDK returns and write back what `change` reports. The value is the protocol's shape: minutes after midnight and weekday bits (0 every day). While the write is in flight, `disabled` keeps the rows still.", zh: "绑定核心 SDK 返回的用户级通知设置，把 `change` 报出的值写回。值与协议同形：零点后的分钟数与星期位（0 为每天）。写入进行中时用 `disabled` 让各行不接受操作。" },
+      vue: `<FlareNotificationAlertSettings
+  :value="prefs"
+  :disabled="saving"
+  @change="(next) => notifications.updateSettings(next)"
+/>`,
+      flutter: `FlareNotificationAlertSettings(
+  value: prefs,
+  disabled: saving,
+  onChange: notifications.updateSettings,
+)`,
+      compose: `NotificationAlertSettings(
+  value = prefs,
+  disabled = saving,
+  onChange = { notifications.updateSettings(it) },
+)`,
+      ios: `NotificationAlertSettingsView(
+  value: prefs,
+  disabled: saving,
+  onChange: { next in Task { await notifications.updateSettings(next) } }
+)`,
+    },
+    {
+      title: { en: "In the same settings list as the delivery group", zh: "与送达分组放进同一个设置列表" },
+      description: { en: "A settings page drawn as one list takes the section form: the three sections arrive with `select` and `toggle`, which run the group's rows and return false for every other row. It composes with NotificationDeliverySettings' section form, so one list holds both groups.", zh: "整页是一个设置列表时用分组形态：三个分组连同 `select` 与 `toggle` 交给页面，二者执行这一组的行，其它行返回 false。它与 NotificationDeliverySettings 的分组形态组合，一个列表放下两组。" },
+      vue: `<FlareNotificationDeliverySettings :status="push.status" @status-action="push.enableOrOpenSettings()">
+  <template #section="{ section: delivery, select: selectDelivery }">
+    <FlareNotificationAlertSettings :value="prefs" @change="save">
+      <template #sections="{ sections, select, toggle }">
+        <FlareSettingsList
+          :sections="[delivery, ...sections, about]"
+          @select="(item) => selectDelivery(item) || select(item) || openPage(item)"
+          @toggle="(item, on) => toggle(item, on) || setOwn(item, on)"
+        />
+      </template>
+    </FlareNotificationAlertSettings>
+  </template>
+</FlareNotificationDeliverySettings>`,
+      flutter: `FlareNotificationAlertSettings(
+  value: prefs,
+  onChange: save,
+  sectionsBuilder: (context, alerts, select, toggle) => FlareSettingsList(
+    sections: [general, ...alerts, about],
+    onSelect: (item) {
+      if (!select(item)) openPage(item);
+    },
+    onToggle: (item, on) {
+      if (!toggle(item, on)) setOwn(item, on);
+    },
+  ),
+)`,
+      compose: `NotificationAlertSettings(value = prefs, onChange = { save(it) }) { alerts, select, toggle ->
+  SettingsList(
+    sections = listOf(general) + alerts + listOf(about),
+    onSelect = { if (!select(it)) openPage(it) },
+    onToggle = { item, on -> if (!toggle(item, on)) setOwn(item, on) },
+  )
+}`,
+      ios: `NotificationAlertSettingsView(value: prefs, onChange: { save($0) }) { alerts, select, toggle in
+  SettingsListView(sections: [general] + alerts + [about],
+                   onToggle: { if !toggle($0, $1) { setOwn($0, $1) } },
+                   onSelect: { if !select($0) { openPage($0) } })
+}`,
+    },
+  ],
+
   PermissionTree: [
     {
       title: { en: "Editing a role's permissions", zh: "编辑一个角色的权限" },

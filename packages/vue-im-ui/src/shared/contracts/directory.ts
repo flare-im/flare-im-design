@@ -98,6 +98,8 @@ export interface FlareSettingsItem {
 export interface FlareSettingsSection {
   title?: string;
   items: FlareSettingsItem[];
+  /** A note under the section's card: what the rows do, or where else to change them. */
+  footer?: string;
 }
 
 /** A candidate person (or "@all") in the mention picker. */

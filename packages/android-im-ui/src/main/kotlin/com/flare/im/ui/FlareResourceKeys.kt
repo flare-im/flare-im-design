@@ -220,6 +220,56 @@ internal val flareStringKeys: Set<String> = setOf(
     "currentDevice",
     "filesAndMedia",
     "notificationSettings",
+    "notificationDeliveryTitle",
+    "notificationDeliveryNewMessages",
+    "notificationStatusOn",
+    "notificationStatusOff",
+    "notificationStatusNotTurnedOn",
+    "backgroundDeliveryLabel",
+    "backgroundDeliveryUnrestricted",
+    "backgroundDeliveryOptimized",
+    "backgroundDeliveryRestricted",
+    "backgroundDeliveryExplanation",
+    "backgroundDeliveryAutoStartHint",
+    "backgroundDeliveryBattery",
+    "backgroundDeliveryAutoStart",
+    "residentConnectionLabel",
+    "residentConnectionDescription",
+    "residentConnectionBattery",
+    "residentConnectionBatteryDescription",
+    "inAppNotificationLabel",
+    "inAppNotificationOpenHint",
+    "inAppNotificationMention",
+    "inAppNotificationUrgent",
+    "quietHoursTitle",
+    "quietHoursLabel",
+    "quietHoursStart",
+    "quietHoursEnd",
+    "quietHoursRepeat",
+    "quietHoursAllowMentions",
+    "quietHoursFooter",
+    "weekdayEveryDay",
+    "weekdayWeekdays",
+    "weekdayWeekends",
+    "weekdayMonday",
+    "weekdayTuesday",
+    "weekdayWednesday",
+    "weekdayThursday",
+    "weekdayFriday",
+    "weekdaySaturday",
+    "weekdaySunday",
+    "notificationPreviewTitle",
+    "notificationPreviewLabel",
+    "notificationPreviewFull",
+    "notificationPreviewSenderOnly",
+    "notificationPreviewHidden",
+    "notificationPreviewFooter",
+    "multiDeviceTitle",
+    "multiDeviceLabel",
+    "multiDeviceDelay",
+    "multiDeviceImmediate",
+    "multiDeviceBadgeOnly",
+    "multiDeviceFooter",
     "transferQueue",
     "noTransfers",
     "retryFailedTransfers",
@@ -227,6 +277,11 @@ internal val flareStringKeys: Set<String> = setOf(
     "permissionAllow",
     "permissionOpenSettings",
     "permissionDismiss",
+    "permissionNotNow",
+    "permissionSoftAskNotificationsTitle",
+    "permissionSoftAskNotificationsBody",
+    "permissionSoftAskNotificationsDeniedBody",
+    "permissionSoftAskNotificationsAction",
     "composerPlaceholder",
     "composerReply",
     "composerEmoji",
@@ -1097,6 +1152,56 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "currentDevice" -> this.currentDevice
     "filesAndMedia" -> this.filesAndMedia
     "notificationSettings" -> this.notificationSettings
+    "notificationDeliveryTitle" -> this.notificationDeliveryTitle
+    "notificationDeliveryNewMessages" -> this.notificationDeliveryNewMessages
+    "notificationStatusOn" -> this.notificationStatusOn
+    "notificationStatusOff" -> this.notificationStatusOff
+    "notificationStatusNotTurnedOn" -> this.notificationStatusNotTurnedOn
+    "backgroundDeliveryLabel" -> this.backgroundDeliveryLabel
+    "backgroundDeliveryUnrestricted" -> this.backgroundDeliveryUnrestricted
+    "backgroundDeliveryOptimized" -> this.backgroundDeliveryOptimized
+    "backgroundDeliveryRestricted" -> this.backgroundDeliveryRestricted
+    "backgroundDeliveryExplanation" -> this.backgroundDeliveryExplanation
+    "backgroundDeliveryAutoStartHint" -> this.backgroundDeliveryAutoStartHint
+    "backgroundDeliveryBattery" -> this.backgroundDeliveryBattery
+    "backgroundDeliveryAutoStart" -> this.backgroundDeliveryAutoStart
+    "residentConnectionLabel" -> this.residentConnectionLabel
+    "residentConnectionDescription" -> this.residentConnectionDescription
+    "residentConnectionBattery" -> this.residentConnectionBattery
+    "residentConnectionBatteryDescription" -> this.residentConnectionBatteryDescription
+    "inAppNotificationLabel" -> this.inAppNotificationLabel
+    "inAppNotificationOpenHint" -> this.inAppNotificationOpenHint
+    "inAppNotificationMention" -> this.inAppNotificationMention
+    "inAppNotificationUrgent" -> this.inAppNotificationUrgent
+    "quietHoursTitle" -> this.quietHoursTitle
+    "quietHoursLabel" -> this.quietHoursLabel
+    "quietHoursStart" -> this.quietHoursStart
+    "quietHoursEnd" -> this.quietHoursEnd
+    "quietHoursRepeat" -> this.quietHoursRepeat
+    "quietHoursAllowMentions" -> this.quietHoursAllowMentions
+    "quietHoursFooter" -> this.quietHoursFooter
+    "weekdayEveryDay" -> this.weekdayEveryDay
+    "weekdayWeekdays" -> this.weekdayWeekdays
+    "weekdayWeekends" -> this.weekdayWeekends
+    "weekdayMonday" -> this.weekdayMonday
+    "weekdayTuesday" -> this.weekdayTuesday
+    "weekdayWednesday" -> this.weekdayWednesday
+    "weekdayThursday" -> this.weekdayThursday
+    "weekdayFriday" -> this.weekdayFriday
+    "weekdaySaturday" -> this.weekdaySaturday
+    "weekdaySunday" -> this.weekdaySunday
+    "notificationPreviewTitle" -> this.notificationPreviewTitle
+    "notificationPreviewLabel" -> this.notificationPreviewLabel
+    "notificationPreviewFull" -> this.notificationPreviewFull
+    "notificationPreviewSenderOnly" -> this.notificationPreviewSenderOnly
+    "notificationPreviewHidden" -> this.notificationPreviewHidden
+    "notificationPreviewFooter" -> this.notificationPreviewFooter
+    "multiDeviceTitle" -> this.multiDeviceTitle
+    "multiDeviceLabel" -> this.multiDeviceLabel
+    "multiDeviceDelay" -> this.multiDeviceDelay
+    "multiDeviceImmediate" -> this.multiDeviceImmediate
+    "multiDeviceBadgeOnly" -> this.multiDeviceBadgeOnly
+    "multiDeviceFooter" -> this.multiDeviceFooter
     "transferQueue" -> this.transferQueue
     "noTransfers" -> this.noTransfers
     "retryFailedTransfers" -> this.retryFailedTransfers
@@ -1104,6 +1209,11 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "permissionAllow" -> this.permissionAllow
     "permissionOpenSettings" -> this.permissionOpenSettings
     "permissionDismiss" -> this.permissionDismiss
+    "permissionNotNow" -> this.permissionNotNow
+    "permissionSoftAskNotificationsTitle" -> this.permissionSoftAskNotificationsTitle
+    "permissionSoftAskNotificationsBody" -> this.permissionSoftAskNotificationsBody
+    "permissionSoftAskNotificationsDeniedBody" -> this.permissionSoftAskNotificationsDeniedBody
+    "permissionSoftAskNotificationsAction" -> this.permissionSoftAskNotificationsAction
     "composerPlaceholder" -> this.composerPlaceholder
     "composerReply" -> this.composerReply
     "composerEmoji" -> this.composerEmoji

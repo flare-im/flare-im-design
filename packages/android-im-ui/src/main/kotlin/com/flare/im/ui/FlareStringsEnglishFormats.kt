@@ -65,6 +65,7 @@ internal fun FlareStringsBuilder.englishFormats() {
             FlarePermissionState.Denied -> "Denied"
             FlarePermissionState.Restricted -> "Restricted"
             FlarePermissionState.Unavailable -> "Unavailable"
+            FlarePermissionState.Granted -> "Allowed"
         }
     }
     messageImageGroupLabel = { count -> english(count, "{count} image", "{count} images") }
@@ -89,6 +90,8 @@ internal fun FlareStringsBuilder.englishFormats() {
     conversationHeaderMemberCount = { count -> english(count, "{count} member", "{count} members") }
     profilePanelEditProfile = { name -> "$name, edit profile" }
     momentReplyToComment = { name, text -> "Reply to $name: $text" }
+    inAppNotificationCount = { count -> english(count, "[{count} message]", "[{count} messages]") }
+    quietHoursNextDay = { time -> "$time next day" }
 }
 
 private val ENGLISH_MONTHS: Array<String> = DateFormatSymbols(Locale.ENGLISH).months

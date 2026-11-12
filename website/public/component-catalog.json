@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 186,
-    "stable": 185,
+    "total": 190,
+    "stable": 189,
     "general": 60,
-    "im": 121
+    "im": 125
   },
   "specializedMessageGroups": {
     "Text": [
@@ -16736,7 +16736,15 @@
               "undetermined",
               "denied",
               "restricted",
-              "unavailable"
+              "unavailable",
+              "granted"
+            ]
+          },
+          {
+            "name": "presentation",
+            "values": [
+              "inline",
+              "sheet"
             ]
           }
         ],
@@ -16745,12 +16753,14 @@
           "denied",
           "restricted",
           "unavailable",
+          "granted",
+          "softAsk",
           "busy"
         ]
       },
       "summary": {
-        "en": "Unified explanation panel for a missing / denied system permission; request and openSettings are delegated to the host.",
-        "zh": "系统权限缺失 / 被拒时的统一说明面板；申请权限与打开设置交给宿主。"
+        "en": "Unified explanation panel for a missing / denied system permission, and the soft-ask a host shows at a moment it picks; request and openSettings are delegated to the host.",
+        "zh": "系统权限缺失 / 被拒时的统一说明面板，以及宿主在自选时机展示的轻询问；申请权限与打开设置交给宿主。"
       },
       "aliases": [
         "Feedback",
@@ -16758,6 +16768,8 @@
         "denied",
         "restricted",
         "unavailable",
+        "granted",
+        "softAsk",
         "busy",
         "request",
         "openSettings",
@@ -16768,6 +16780,8 @@
         "denied",
         "restricted",
         "unavailable",
+        "granted",
+        "softAsk",
         "busy"
       ],
       "interactions": [
@@ -16815,7 +16829,225 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PermissionPrompt",
-      "searchText": "permissionprompt feedback general-ui stable feedback undetermined denied restricted unavailable busy request opensettings dismiss supportsconfiguration unified explanation panel for a missing / denied system permission; request and opensettings are delegated to the host. 系统权限缺失 / 被拒时的统一说明面板；申请权限与打开设置交给宿主。"
+      "searchText": "permissionprompt feedback general-ui stable feedback undetermined denied restricted unavailable granted softask busy request opensettings dismiss supportsconfiguration unified explanation panel for a missing / denied system permission, and the soft-ask a host shows at a moment it picks; request and opensettings are delegated to the host. 系统权限缺失 / 被拒时的统一说明面板，以及宿主在自选时机展示的轻询问；申请权限与打开设置交给宿主。"
+    },
+    {
+      "name": "InAppNotificationBanner",
+      "slug": "in-app-notification-banner",
+      "category": "Feedback",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "messages",
+          "quiet",
+          "mentions",
+          "urgent",
+          "count",
+          "swiping"
+        ]
+      },
+      "summary": {
+        "en": "The top banner for a message that arrived while the app is open on another screen: avatar, title, one line of preview, the count, and a tag for mentions and urgent messages.",
+        "zh": "应用开着、停在别的页面时到达新消息的顶部横幅：头像、标题、单行预览、条数，以及 @我 与加急的标签。"
+      },
+      "aliases": [
+        "Feedback",
+        "messages",
+        "quiet",
+        "mentions",
+        "urgent",
+        "count",
+        "swiping",
+        "open",
+        "dismiss"
+      ],
+      "states": [
+        "messages",
+        "quiet",
+        "mentions",
+        "urgent",
+        "count",
+        "swiping"
+      ],
+      "interactions": [
+        "open",
+        "dismiss"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationBanner"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationBanner"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationBanner"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationBannerView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/shell/FlareInAppNotificationBanner.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_in_app_notification_banner.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InAppNotification.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/InAppNotificationBannerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/in-app-notification-banner.md",
+        "en": "website/en/components/in-app-notification-banner.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#InAppNotificationBanner",
+      "searchText": "inappnotificationbanner feedback general-ui stable feedback messages quiet mentions urgent count swiping open dismiss supportsconfiguration the top banner for a message that arrived while the app is open on another screen: avatar, title, one line of preview, the count, and a tag for mentions and urgent messages. 应用开着、停在别的页面时到达新消息的顶部横幅：头像、标题、单行预览、条数，以及 @我 与加急的标签。"
+    },
+    {
+      "name": "InAppNotificationHost",
+      "slug": "in-app-notification-host",
+      "category": "Feedback",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "idle",
+          "showing",
+          "held",
+          "queued"
+        ]
+      },
+      "summary": {
+        "en": "Puts the in-app new-message banner on screen: the app feeds items into a presenter, and the host draws the visible one at the top, queues the rest and dismisses each after the kit's time.",
+        "zh": "把应用内新消息横幅放到屏幕上：应用把条目送进呈现器，宿主在顶部画出当前一条、其余排队，并按 Kit 的时长自动收起。"
+      },
+      "aliases": [
+        "Feedback",
+        "idle",
+        "showing",
+        "held",
+        "queued",
+        "open"
+      ],
+      "states": [
+        "idle",
+        "showing",
+        "held",
+        "queued"
+      ],
+      "interactions": [
+        "open"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareInAppNotificationHost"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareInAppNotificationHost"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "InAppNotificationHost"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "InAppNotificationHost"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/shell/FlareInAppNotificationHost.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_in_app_notification_host.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/InAppNotification.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/InAppNotificationBannerView.swift"
+      },
+      "docs": {
+        "zh": "website/components/in-app-notification-host.md",
+        "en": "website/en/components/in-app-notification-host.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#InAppNotificationHost",
+      "searchText": "inappnotificationhost feedback general-ui stable feedback idle showing held queued open supportsconfiguration puts the in-app new-message banner on screen: the app feeds items into a presenter, and the host draws the visible one at the top, queues the rest and dismisses each after the kit's time. 把应用内新消息横幅放到屏幕上：应用把条目送进呈现器，宿主在顶部画出当前一条、其余排队，并按 kit 的时长自动收起。"
     },
     {
       "name": "SearchDateRangeFilter",
@@ -17705,6 +17937,263 @@
       },
       "sourceOfTruth": "spec/components.json#NotificationPreferences",
       "searchText": "notificationpreferences profile im-ui stable profile available denied busy change permissionaction supportsconfiguration notificationpreferences scene composition with explicit host-owned state. 通知权限与受控偏好设置。"
+    },
+    {
+      "name": "NotificationDeliverySettings",
+      "slug": "notification-delivery-settings",
+      "category": "Profile",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "status",
+            "values": [
+              "NotificationStatus",
+              "null"
+            ]
+          },
+          {
+            "name": "background",
+            "values": [
+              "BackgroundDelivery",
+              "null"
+            ]
+          },
+          {
+            "name": "residentMode",
+            "values": [
+              "boolean",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "on",
+          "off",
+          "notTurnedOn",
+          "unknown",
+          "unrestricted",
+          "optimized",
+          "restricted",
+          "guideOpen",
+          "residentOff",
+          "residentOn"
+        ]
+      },
+      "summary": {
+        "en": "Whether new messages reach the person when the app is not in front, as one settings section: the notification permission, and on Android-style platforms the background-delivery row with its guide.",
+        "zh": "应用不在前台时新消息能否送达，作为一个设置分组：通知权限，以及 Android 类平台上的后台接收行与引导。"
+      },
+      "aliases": [
+        "Profile",
+        "on",
+        "off",
+        "notTurnedOn",
+        "unknown",
+        "unrestricted",
+        "optimized",
+        "restricted",
+        "guideOpen",
+        "residentOff",
+        "residentOn",
+        "statusAction",
+        "openBatterySettings",
+        "residentModeChange"
+      ],
+      "states": [
+        "on",
+        "off",
+        "notTurnedOn",
+        "unknown",
+        "unrestricted",
+        "optimized",
+        "restricted",
+        "guideOpen",
+        "residentOff",
+        "residentOn"
+      ],
+      "interactions": [
+        "statusAction",
+        "openBatterySettings",
+        "residentModeChange"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationDeliverySettings"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationDeliverySettings"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationDeliverySettings"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "NotificationDeliverySettingsView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/profile/FlareNotificationDeliverySettings.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_notification_delivery_settings.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/NotificationDeliverySettings.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/NotificationDeliverySettingsView.swift"
+      },
+      "docs": {
+        "zh": "website/components/notification-delivery-settings.md",
+        "en": "website/en/components/notification-delivery-settings.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#NotificationDeliverySettings",
+      "searchText": "notificationdeliverysettings profile im-ui stable profile on off notturnedon unknown unrestricted optimized restricted guideopen residentoff residenton statusaction openbatterysettings residentmodechange supportsconfiguration whether new messages reach the person when the app is not in front, as one settings section: the notification permission, and on android-style platforms the background-delivery row with its guide. 应用不在前台时新消息能否送达，作为一个设置分组：通知权限，以及 android 类平台上的后台接收行与引导。"
+    },
+    {
+      "name": "NotificationAlertSettings",
+      "slug": "notification-alert-settings",
+      "category": "Profile",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "quietHoursOff",
+          "quietHoursOn",
+          "crossesMidnight",
+          "disabled",
+          "pickerOpen"
+        ]
+      },
+      "summary": {
+        "en": "A person's notification preferences as settings sections: quiet hours, what notifications show, and how the phone alerts while another device is in use.",
+        "zh": "以设置分组呈现的个人通知偏好：勿扰时段、通知显示的内容，以及在其他设备上使用时手机的提醒方式。"
+      },
+      "aliases": [
+        "Profile",
+        "quietHoursOff",
+        "quietHoursOn",
+        "crossesMidnight",
+        "disabled",
+        "pickerOpen",
+        "change"
+      ],
+      "states": [
+        "quietHoursOff",
+        "quietHoursOn",
+        "crossesMidnight",
+        "disabled",
+        "pickerOpen"
+      ],
+      "interactions": [
+        "change"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareNotificationAlertSettings"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareNotificationAlertSettings"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "NotificationAlertSettings"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "NotificationAlertSettingsView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/profile/FlareNotificationAlertSettings.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_notification_alert_settings.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/NotificationAlertSettings.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/NotificationAlertSettingsView.swift"
+      },
+      "docs": {
+        "zh": "website/components/notification-alert-settings.md",
+        "en": "website/en/components/notification-alert-settings.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#NotificationAlertSettings",
+      "searchText": "notificationalertsettings profile im-ui stable profile quiethoursoff quiethourson crossesmidnight disabled pickeropen change supportsconfiguration a person's notification preferences as settings sections: quiet hours, what notifications show, and how the phone alerts while another device is in use. 以设置分组呈现的个人通知偏好：勿扰时段、通知显示的内容，以及在其他设备上使用时手机的提醒方式。"
     },
     {
       "name": "StorageUsage",
@@ -20464,7 +20953,7 @@
       "name": "ImageUploadSlot",
       "slug": "image-upload-slot",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "experimental",
       "since": "2.0.0-rc.1",
@@ -20578,13 +21067,13 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ImageUploadSlot",
-      "searchText": "imageuploadslot media general-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
+      "searchText": "imageuploadslot media im-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
     },
     {
       "name": "FileUpload",
       "slug": "file-upload",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "stable",
       "since": "2.0.0-rc.1",
@@ -20694,7 +21183,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#FileUpload",
-      "searchText": "fileupload media general-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
+      "searchText": "fileupload media im-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
     }
   ]
 }
