@@ -46,6 +46,7 @@ export const PLUGIN_UI_VOCABULARY: FlarePluginUiVocabulary = Object.freeze({
     "document",
     "file",
     "image",
+    "location",
     "members",
     "money",
     "number",
@@ -75,14 +76,15 @@ export const PLUGIN_UI_VOCABULARY: FlarePluginUiVocabulary = Object.freeze({
   native: Object.freeze([
     "camera",
     "clipboardWrite",
+    "documentCapture",
+    "locationOnce",
     "microphone",
+    "paymentConfirmation",
     "selectFile",
     "selectImage",
   ]),
   renderers: Object.freeze([
-    "payment.confirm",
     "redPacket.card",
-    "redPacket.pay",
   ]),
   kinds: Object.freeze([
     "account-entry",

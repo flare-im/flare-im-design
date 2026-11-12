@@ -19,6 +19,7 @@ const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
     'note',
     'people',
     'progress',
+    'protected-media',
     'qr',
     'rows',
     'section',
@@ -34,6 +35,7 @@ const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
     'document',
     'file',
     'image',
+    'location',
     'members',
     'money',
     'number',
@@ -63,14 +65,15 @@ const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
   'native': <String>[
     'camera',
     'clipboardWrite',
+    'documentCapture',
+    'locationOnce',
     'microphone',
+    'paymentConfirmation',
     'selectFile',
     'selectImage',
   ],
   'renderers': <String>[
-    'payment.confirm',
     'redPacket.card',
-    'redPacket.pay',
   ],
   'kinds': <String>[
     'account-entry',

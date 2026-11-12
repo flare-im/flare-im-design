@@ -1189,6 +1189,57 @@ public struct FlareStrings: Sendable {
     public var pluginFormDocumentFront: String
     public var pluginFormDocumentBack: String
     public var pluginFormDocumentHolding: String
+    public var capabilityConsentTitle: String
+    public var capabilityConsentPurpose: String
+    public var capabilityConsentAllowOnce: String
+    public var capabilityConsentAllowAlways: String
+    public var capabilityConsentDeny: String
+    public var capabilityConsentNote: String
+    public var capabilityDocumentCapture: String
+    public var capabilityPaymentConfirmation: String
+    public var capabilityLocationCoarse: String
+    public var capabilityLocationFine: String
+    public var capabilityCamera: String
+    public var capabilityMicrophone: String
+    public var capabilityRtcSession: String
+    public var capabilityGeneric: String
+    public var documentCaptureHintFront: String
+    public var documentCaptureHintBack: String
+    public var documentCaptureHintHolding: String
+    public var documentCaptureShoot: String
+    public var documentCaptureRetake: String
+    public var documentCaptureUse: String
+    public var documentCaptureFromAlbum: String
+    public var documentCaptureProcessing: String
+    public var documentCaptureCameraUnavailable: String
+    public var documentCaptureTooLarge: String
+    public var documentCaptureFailed: String
+    public var documentCaptureNotAccepted: String
+    public var paymentConfirmationTitle: String
+    public var paymentConfirmationPayee: String
+    public var paymentConfirmationItem: String
+    public var paymentConfirmationOrder: String
+    public var paymentConfirmationRequestedBy: String
+    public var paymentConfirmationExpiresIn: String
+    public var paymentConfirmationExpired: String
+    public var paymentConfirmationInvalid: String
+    public var paymentConfirmationConfirm: String
+    public var paymentConfirmationVerifying: String
+    public var pluginProtectedMediaReason: String
+    public var pluginProtectedMediaNotice: String
+    public var pluginProtectedMediaOwnNotice: String
+    public var pluginProtectedMediaView: String
+    public var pluginProtectedMediaHide: String
+    public var pluginProtectedMediaUnavailable: String
+    public var pluginProtectedMediaNotPreviewable: String
+    public var pluginLocationLocate: String
+    public var pluginLocationRelocate: String
+    public var pluginLocationClear: String
+    public var pluginLocationLocating: String
+    public var pluginLocationEmpty: String
+    public var pluginLocationCoarse: String
+    public var pluginLocationFine: String
+    public var pluginLocationAccuracy: String
     /// The refresh key in a plugin page's header on a pointer device.
     public var pluginPageRefresh: String
     /// A multiple choice's limit, leading its footer (`{n}`).
@@ -2180,6 +2231,57 @@ public struct FlareStrings: Sendable {
         pluginFormDocumentFront: String = "证件正面",
         pluginFormDocumentBack: String = "证件反面",
         pluginFormDocumentHolding: String = "手持证件",
+        capabilityConsentTitle: String = "「{plugin}」想要使用",
+        capabilityConsentPurpose: String = "用途",
+        capabilityConsentAllowOnce: String = "仅本次允许",
+        capabilityConsentAllowAlways: String = "始终允许",
+        capabilityConsentDeny: String = "不允许",
+        capabilityConsentNote: String = "可以随时在设置里撤销授权",
+        capabilityDocumentCapture: String = "相机，用于拍摄证件",
+        capabilityPaymentConfirmation: String = "付款，每次付款都需你确认",
+        capabilityLocationCoarse: String = "你的大致位置（仅本次）",
+        capabilityLocationFine: String = "你的精确位置（仅本次）",
+        capabilityCamera: String = "相机",
+        capabilityMicrophone: String = "麦克风",
+        capabilityRtcSession: String = "语音和视频通话",
+        capabilityGeneric: String = "设备上的一项能力",
+        documentCaptureHintFront: String = "将证件正面放入框内，保持清晰、避免反光",
+        documentCaptureHintBack: String = "将证件反面放入框内，保持清晰、避免反光",
+        documentCaptureHintHolding: String = "手持证件放在胸前，脸和证件都要清晰",
+        documentCaptureShoot: String = "拍摄",
+        documentCaptureRetake: String = "重拍",
+        documentCaptureUse: String = "使用照片",
+        documentCaptureFromAlbum: String = "从相册选择",
+        documentCaptureProcessing: String = "正在处理照片",
+        documentCaptureCameraUnavailable: String = "相机不可用，可从相册选择",
+        documentCaptureTooLarge: String = "照片太大，请重拍",
+        documentCaptureFailed: String = "照片无法处理，请重拍",
+        documentCaptureNotAccepted: String = "这里不接受照片，请联系服务提供方",
+        paymentConfirmationTitle: String = "确认付款",
+        paymentConfirmationPayee: String = "收款方",
+        paymentConfirmationItem: String = "付款说明",
+        paymentConfirmationOrder: String = "订单号",
+        paymentConfirmationRequestedBy: String = "由「{plugin}」发起",
+        paymentConfirmationExpiresIn: String = "{time} 后失效",
+        paymentConfirmationExpired: String = "订单已失效，请重新发起",
+        paymentConfirmationInvalid: String = "订单金额无法识别，不能付款",
+        paymentConfirmationConfirm: String = "确认付款",
+        paymentConfirmationVerifying: String = "正在验证身份",
+        pluginProtectedMediaReason: String = "查看原因",
+        pluginProtectedMediaNotice: String = "查看受保护材料需要说明原因，操作会留下审计记录。",
+        pluginProtectedMediaOwnNotice: String = "仅你本人可查看，图片不会保存到设备。",
+        pluginProtectedMediaView: String = "查看",
+        pluginProtectedMediaHide: String = "隐藏",
+        pluginProtectedMediaUnavailable: String = "无法显示，请重试",
+        pluginProtectedMediaNotPreviewable: String = "此类文件不能在这里预览",
+        pluginLocationLocate: String = "获取位置",
+        pluginLocationRelocate: String = "重新获取",
+        pluginLocationClear: String = "清除",
+        pluginLocationLocating: String = "正在获取位置",
+        pluginLocationEmpty: String = "尚未获取位置",
+        pluginLocationCoarse: String = "大致位置",
+        pluginLocationFine: String = "精确位置",
+        pluginLocationAccuracy: String = "精度约 {m} 米",
         pluginPageRefresh: String = "刷新",
         pluginViewMaxSelections: String = "最多选 {n} 项",
         pluginViewAll: String = "全部",
@@ -3120,6 +3222,57 @@ public struct FlareStrings: Sendable {
         self.pluginFormDocumentFront = pluginFormDocumentFront
         self.pluginFormDocumentBack = pluginFormDocumentBack
         self.pluginFormDocumentHolding = pluginFormDocumentHolding
+        self.capabilityConsentTitle = capabilityConsentTitle
+        self.capabilityConsentPurpose = capabilityConsentPurpose
+        self.capabilityConsentAllowOnce = capabilityConsentAllowOnce
+        self.capabilityConsentAllowAlways = capabilityConsentAllowAlways
+        self.capabilityConsentDeny = capabilityConsentDeny
+        self.capabilityConsentNote = capabilityConsentNote
+        self.capabilityDocumentCapture = capabilityDocumentCapture
+        self.capabilityPaymentConfirmation = capabilityPaymentConfirmation
+        self.capabilityLocationCoarse = capabilityLocationCoarse
+        self.capabilityLocationFine = capabilityLocationFine
+        self.capabilityCamera = capabilityCamera
+        self.capabilityMicrophone = capabilityMicrophone
+        self.capabilityRtcSession = capabilityRtcSession
+        self.capabilityGeneric = capabilityGeneric
+        self.documentCaptureHintFront = documentCaptureHintFront
+        self.documentCaptureHintBack = documentCaptureHintBack
+        self.documentCaptureHintHolding = documentCaptureHintHolding
+        self.documentCaptureShoot = documentCaptureShoot
+        self.documentCaptureRetake = documentCaptureRetake
+        self.documentCaptureUse = documentCaptureUse
+        self.documentCaptureFromAlbum = documentCaptureFromAlbum
+        self.documentCaptureProcessing = documentCaptureProcessing
+        self.documentCaptureCameraUnavailable = documentCaptureCameraUnavailable
+        self.documentCaptureTooLarge = documentCaptureTooLarge
+        self.documentCaptureFailed = documentCaptureFailed
+        self.documentCaptureNotAccepted = documentCaptureNotAccepted
+        self.paymentConfirmationTitle = paymentConfirmationTitle
+        self.paymentConfirmationPayee = paymentConfirmationPayee
+        self.paymentConfirmationItem = paymentConfirmationItem
+        self.paymentConfirmationOrder = paymentConfirmationOrder
+        self.paymentConfirmationRequestedBy = paymentConfirmationRequestedBy
+        self.paymentConfirmationExpiresIn = paymentConfirmationExpiresIn
+        self.paymentConfirmationExpired = paymentConfirmationExpired
+        self.paymentConfirmationInvalid = paymentConfirmationInvalid
+        self.paymentConfirmationConfirm = paymentConfirmationConfirm
+        self.paymentConfirmationVerifying = paymentConfirmationVerifying
+        self.pluginProtectedMediaReason = pluginProtectedMediaReason
+        self.pluginProtectedMediaNotice = pluginProtectedMediaNotice
+        self.pluginProtectedMediaOwnNotice = pluginProtectedMediaOwnNotice
+        self.pluginProtectedMediaView = pluginProtectedMediaView
+        self.pluginProtectedMediaHide = pluginProtectedMediaHide
+        self.pluginProtectedMediaUnavailable = pluginProtectedMediaUnavailable
+        self.pluginProtectedMediaNotPreviewable = pluginProtectedMediaNotPreviewable
+        self.pluginLocationLocate = pluginLocationLocate
+        self.pluginLocationRelocate = pluginLocationRelocate
+        self.pluginLocationClear = pluginLocationClear
+        self.pluginLocationLocating = pluginLocationLocating
+        self.pluginLocationEmpty = pluginLocationEmpty
+        self.pluginLocationCoarse = pluginLocationCoarse
+        self.pluginLocationFine = pluginLocationFine
+        self.pluginLocationAccuracy = pluginLocationAccuracy
         self.pluginPageRefresh = pluginPageRefresh
         self.pluginViewMaxSelections = pluginViewMaxSelections
         self.pluginViewAll = pluginViewAll

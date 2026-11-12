@@ -6,16 +6,16 @@ package com.flare.im.ui
  * What this kit renders, as the JSON of flare-plugin-protocol `UiVocabulary`. The host passes it as
  * `kitVocabulary` to the engine (`plugin.set_host_profile`).
  */
-const val PLUGIN_UI_VOCABULARY: String = "{\"version\":2,\"blocks\":[\"banner\",\"chart\",\"choices\",\"divider\",\"entries\",\"fields\",\"hero\",\"image\",\"note\",\"people\",\"progress\",\"qr\",\"rows\",\"section\",\"stats\",\"status\",\"steps\",\"text\",\"time\",\"timeline\"],\"inputs\":[\"datetime\",\"document\",\"file\",\"image\",\"members\",\"money\",\"number\",\"options\",\"password\",\"select\",\"text\",\"textarea\",\"toggle\"],\"formats\":[\"bytes\",\"count\",\"duration\",\"enum\",\"money\",\"percent\",\"person\",\"reference\",\"time\"],\"actions\":[\"native\",\"operation\",\"page\"],\"native\":[\"camera\",\"clipboardWrite\",\"microphone\",\"selectFile\",\"selectImage\"],\"renderers\":[\"payment.confirm\",\"redPacket.card\",\"redPacket.pay\"],\"kinds\":[\"account-entry\",\"composer-action\",\"conversation-menu\",\"message-action\",\"message-content\",\"page\"]}"
+const val PLUGIN_UI_VOCABULARY: String = "{\"version\":2,\"blocks\":[\"banner\",\"chart\",\"choices\",\"divider\",\"entries\",\"fields\",\"hero\",\"image\",\"note\",\"people\",\"progress\",\"protected-media\",\"qr\",\"rows\",\"section\",\"stats\",\"status\",\"steps\",\"text\",\"time\",\"timeline\"],\"inputs\":[\"datetime\",\"document\",\"file\",\"image\",\"location\",\"members\",\"money\",\"number\",\"options\",\"password\",\"select\",\"text\",\"textarea\",\"toggle\"],\"formats\":[\"bytes\",\"count\",\"duration\",\"enum\",\"money\",\"percent\",\"person\",\"reference\",\"time\"],\"actions\":[\"native\",\"operation\",\"page\"],\"native\":[\"camera\",\"clipboardWrite\",\"documentCapture\",\"locationOnce\",\"microphone\",\"paymentConfirmation\",\"selectFile\",\"selectImage\"],\"renderers\":[\"redPacket.card\"],\"kinds\":[\"account-entry\",\"composer-action\",\"conversation-menu\",\"message-action\",\"message-content\",\"page\"]}"
 
 /** The same vocabulary as sets. */
 object PluginUiVocabulary {
     const val VERSION: Int = 2
-    val blocks: Set<String> = setOf("banner", "chart", "choices", "divider", "entries", "fields", "hero", "image", "note", "people", "progress", "qr", "rows", "section", "stats", "status", "steps", "text", "time", "timeline")
-    val inputs: Set<String> = setOf("datetime", "document", "file", "image", "members", "money", "number", "options", "password", "select", "text", "textarea", "toggle")
+    val blocks: Set<String> = setOf("banner", "chart", "choices", "divider", "entries", "fields", "hero", "image", "note", "people", "progress", "protected-media", "qr", "rows", "section", "stats", "status", "steps", "text", "time", "timeline")
+    val inputs: Set<String> = setOf("datetime", "document", "file", "image", "location", "members", "money", "number", "options", "password", "select", "text", "textarea", "toggle")
     val formats: Set<String> = setOf("bytes", "count", "duration", "enum", "money", "percent", "person", "reference", "time")
     val actions: Set<String> = setOf("native", "operation", "page")
-    val native: Set<String> = setOf("camera", "clipboardWrite", "microphone", "selectFile", "selectImage")
-    val renderers: Set<String> = setOf("payment.confirm", "redPacket.card", "redPacket.pay")
+    val native: Set<String> = setOf("camera", "clipboardWrite", "documentCapture", "locationOnce", "microphone", "paymentConfirmation", "selectFile", "selectImage")
+    val renderers: Set<String> = setOf("redPacket.card")
     val kinds: Set<String> = setOf("account-entry", "composer-action", "conversation-menu", "message-action", "message-content", "page")
 }

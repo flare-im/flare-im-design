@@ -837,6 +837,57 @@ internal val flareStringKeys: Set<String> = setOf(
     "pluginFormDocumentFront",
     "pluginFormDocumentBack",
     "pluginFormDocumentHolding",
+    "capabilityConsentTitle",
+    "capabilityConsentPurpose",
+    "capabilityConsentAllowOnce",
+    "capabilityConsentAllowAlways",
+    "capabilityConsentDeny",
+    "capabilityConsentNote",
+    "capabilityDocumentCapture",
+    "capabilityPaymentConfirmation",
+    "capabilityLocationCoarse",
+    "capabilityLocationFine",
+    "capabilityCamera",
+    "capabilityMicrophone",
+    "capabilityRtcSession",
+    "capabilityGeneric",
+    "documentCaptureHintFront",
+    "documentCaptureHintBack",
+    "documentCaptureHintHolding",
+    "documentCaptureShoot",
+    "documentCaptureRetake",
+    "documentCaptureUse",
+    "documentCaptureFromAlbum",
+    "documentCaptureProcessing",
+    "documentCaptureCameraUnavailable",
+    "documentCaptureTooLarge",
+    "documentCaptureFailed",
+    "documentCaptureNotAccepted",
+    "paymentConfirmationTitle",
+    "paymentConfirmationPayee",
+    "paymentConfirmationItem",
+    "paymentConfirmationOrder",
+    "paymentConfirmationRequestedBy",
+    "paymentConfirmationExpiresIn",
+    "paymentConfirmationExpired",
+    "paymentConfirmationInvalid",
+    "paymentConfirmationConfirm",
+    "paymentConfirmationVerifying",
+    "pluginProtectedMediaReason",
+    "pluginProtectedMediaNotice",
+    "pluginProtectedMediaOwnNotice",
+    "pluginProtectedMediaView",
+    "pluginProtectedMediaHide",
+    "pluginProtectedMediaUnavailable",
+    "pluginProtectedMediaNotPreviewable",
+    "pluginLocationLocate",
+    "pluginLocationRelocate",
+    "pluginLocationClear",
+    "pluginLocationLocating",
+    "pluginLocationEmpty",
+    "pluginLocationCoarse",
+    "pluginLocationFine",
+    "pluginLocationAccuracy",
     "packetView",
     "packetRefunded",
     "packetBadgeLucky",
@@ -1737,6 +1788,57 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "pluginFormDocumentFront" -> this.pluginFormDocumentFront
     "pluginFormDocumentBack" -> this.pluginFormDocumentBack
     "pluginFormDocumentHolding" -> this.pluginFormDocumentHolding
+    "capabilityConsentTitle" -> this.capabilityConsentTitle
+    "capabilityConsentPurpose" -> this.capabilityConsentPurpose
+    "capabilityConsentAllowOnce" -> this.capabilityConsentAllowOnce
+    "capabilityConsentAllowAlways" -> this.capabilityConsentAllowAlways
+    "capabilityConsentDeny" -> this.capabilityConsentDeny
+    "capabilityConsentNote" -> this.capabilityConsentNote
+    "capabilityDocumentCapture" -> this.capabilityDocumentCapture
+    "capabilityPaymentConfirmation" -> this.capabilityPaymentConfirmation
+    "capabilityLocationCoarse" -> this.capabilityLocationCoarse
+    "capabilityLocationFine" -> this.capabilityLocationFine
+    "capabilityCamera" -> this.capabilityCamera
+    "capabilityMicrophone" -> this.capabilityMicrophone
+    "capabilityRtcSession" -> this.capabilityRtcSession
+    "capabilityGeneric" -> this.capabilityGeneric
+    "documentCaptureHintFront" -> this.documentCaptureHintFront
+    "documentCaptureHintBack" -> this.documentCaptureHintBack
+    "documentCaptureHintHolding" -> this.documentCaptureHintHolding
+    "documentCaptureShoot" -> this.documentCaptureShoot
+    "documentCaptureRetake" -> this.documentCaptureRetake
+    "documentCaptureUse" -> this.documentCaptureUse
+    "documentCaptureFromAlbum" -> this.documentCaptureFromAlbum
+    "documentCaptureProcessing" -> this.documentCaptureProcessing
+    "documentCaptureCameraUnavailable" -> this.documentCaptureCameraUnavailable
+    "documentCaptureTooLarge" -> this.documentCaptureTooLarge
+    "documentCaptureFailed" -> this.documentCaptureFailed
+    "documentCaptureNotAccepted" -> this.documentCaptureNotAccepted
+    "paymentConfirmationTitle" -> this.paymentConfirmationTitle
+    "paymentConfirmationPayee" -> this.paymentConfirmationPayee
+    "paymentConfirmationItem" -> this.paymentConfirmationItem
+    "paymentConfirmationOrder" -> this.paymentConfirmationOrder
+    "paymentConfirmationRequestedBy" -> this.paymentConfirmationRequestedBy
+    "paymentConfirmationExpiresIn" -> this.paymentConfirmationExpiresIn
+    "paymentConfirmationExpired" -> this.paymentConfirmationExpired
+    "paymentConfirmationInvalid" -> this.paymentConfirmationInvalid
+    "paymentConfirmationConfirm" -> this.paymentConfirmationConfirm
+    "paymentConfirmationVerifying" -> this.paymentConfirmationVerifying
+    "pluginProtectedMediaReason" -> this.pluginProtectedMediaReason
+    "pluginProtectedMediaNotice" -> this.pluginProtectedMediaNotice
+    "pluginProtectedMediaOwnNotice" -> this.pluginProtectedMediaOwnNotice
+    "pluginProtectedMediaView" -> this.pluginProtectedMediaView
+    "pluginProtectedMediaHide" -> this.pluginProtectedMediaHide
+    "pluginProtectedMediaUnavailable" -> this.pluginProtectedMediaUnavailable
+    "pluginProtectedMediaNotPreviewable" -> this.pluginProtectedMediaNotPreviewable
+    "pluginLocationLocate" -> this.pluginLocationLocate
+    "pluginLocationRelocate" -> this.pluginLocationRelocate
+    "pluginLocationClear" -> this.pluginLocationClear
+    "pluginLocationLocating" -> this.pluginLocationLocating
+    "pluginLocationEmpty" -> this.pluginLocationEmpty
+    "pluginLocationCoarse" -> this.pluginLocationCoarse
+    "pluginLocationFine" -> this.pluginLocationFine
+    "pluginLocationAccuracy" -> this.pluginLocationAccuracy
     "packetView" -> this.packetView
     "packetRefunded" -> this.packetRefunded
     "packetBadgeLucky" -> this.packetBadgeLucky

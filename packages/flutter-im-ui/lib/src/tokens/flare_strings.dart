@@ -296,6 +296,57 @@ class FlareStrings {
     this.pluginFormDocumentFront = '证件正面',
     this.pluginFormDocumentBack = '证件反面',
     this.pluginFormDocumentHolding = '手持证件',
+    this.capabilityConsentTitle = '「{plugin}」想要使用',
+    this.capabilityConsentPurpose = '用途',
+    this.capabilityConsentAllowOnce = '仅本次允许',
+    this.capabilityConsentAllowAlways = '始终允许',
+    this.capabilityConsentDeny = '不允许',
+    this.capabilityConsentNote = '可以随时在设置里撤销授权',
+    this.capabilityDocumentCapture = '相机，用于拍摄证件',
+    this.capabilityPaymentConfirmation = '付款，每次付款都需你确认',
+    this.capabilityLocationCoarse = '你的大致位置（仅本次）',
+    this.capabilityLocationFine = '你的精确位置（仅本次）',
+    this.capabilityCamera = '相机',
+    this.capabilityMicrophone = '麦克风',
+    this.capabilityRtcSession = '语音和视频通话',
+    this.capabilityGeneric = '设备上的一项能力',
+    this.documentCaptureHintFront = '将证件正面放入框内，保持清晰、避免反光',
+    this.documentCaptureHintBack = '将证件反面放入框内，保持清晰、避免反光',
+    this.documentCaptureHintHolding = '手持证件放在胸前，脸和证件都要清晰',
+    this.documentCaptureShoot = '拍摄',
+    this.documentCaptureRetake = '重拍',
+    this.documentCaptureUse = '使用照片',
+    this.documentCaptureFromAlbum = '从相册选择',
+    this.documentCaptureProcessing = '正在处理照片',
+    this.documentCaptureCameraUnavailable = '相机不可用，可从相册选择',
+    this.documentCaptureTooLarge = '照片太大，请重拍',
+    this.documentCaptureFailed = '照片无法处理，请重拍',
+    this.documentCaptureNotAccepted = '这里不接受照片，请联系服务提供方',
+    this.paymentConfirmationTitle = '确认付款',
+    this.paymentConfirmationPayee = '收款方',
+    this.paymentConfirmationItem = '付款说明',
+    this.paymentConfirmationOrder = '订单号',
+    this.paymentConfirmationRequestedBy = '由「{plugin}」发起',
+    this.paymentConfirmationExpiresIn = '{time} 后失效',
+    this.paymentConfirmationExpired = '订单已失效，请重新发起',
+    this.paymentConfirmationInvalid = '订单金额无法识别，不能付款',
+    this.paymentConfirmationConfirm = '确认付款',
+    this.paymentConfirmationVerifying = '正在验证身份',
+    this.pluginProtectedMediaReason = '查看原因',
+    this.pluginProtectedMediaNotice = '查看受保护材料需要说明原因，操作会留下审计记录。',
+    this.pluginProtectedMediaOwnNotice = '仅你本人可查看，图片不会保存到设备。',
+    this.pluginProtectedMediaView = '查看',
+    this.pluginProtectedMediaHide = '隐藏',
+    this.pluginProtectedMediaUnavailable = '无法显示，请重试',
+    this.pluginProtectedMediaNotPreviewable = '此类文件不能在这里预览',
+    this.pluginLocationLocate = '获取位置',
+    this.pluginLocationRelocate = '重新获取',
+    this.pluginLocationClear = '清除',
+    this.pluginLocationLocating = '正在获取位置',
+    this.pluginLocationEmpty = '尚未获取位置',
+    this.pluginLocationCoarse = '大致位置',
+    this.pluginLocationFine = '精确位置',
+    this.pluginLocationAccuracy = '精度约 {m} 米',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
     this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
@@ -1375,6 +1426,57 @@ class FlareStrings {
   final String pluginFormDocumentFront;
   final String pluginFormDocumentBack;
   final String pluginFormDocumentHolding;
+  final String capabilityConsentTitle;
+  final String capabilityConsentPurpose;
+  final String capabilityConsentAllowOnce;
+  final String capabilityConsentAllowAlways;
+  final String capabilityConsentDeny;
+  final String capabilityConsentNote;
+  final String capabilityDocumentCapture;
+  final String capabilityPaymentConfirmation;
+  final String capabilityLocationCoarse;
+  final String capabilityLocationFine;
+  final String capabilityCamera;
+  final String capabilityMicrophone;
+  final String capabilityRtcSession;
+  final String capabilityGeneric;
+  final String documentCaptureHintFront;
+  final String documentCaptureHintBack;
+  final String documentCaptureHintHolding;
+  final String documentCaptureShoot;
+  final String documentCaptureRetake;
+  final String documentCaptureUse;
+  final String documentCaptureFromAlbum;
+  final String documentCaptureProcessing;
+  final String documentCaptureCameraUnavailable;
+  final String documentCaptureTooLarge;
+  final String documentCaptureFailed;
+  final String documentCaptureNotAccepted;
+  final String paymentConfirmationTitle;
+  final String paymentConfirmationPayee;
+  final String paymentConfirmationItem;
+  final String paymentConfirmationOrder;
+  final String paymentConfirmationRequestedBy;
+  final String paymentConfirmationExpiresIn;
+  final String paymentConfirmationExpired;
+  final String paymentConfirmationInvalid;
+  final String paymentConfirmationConfirm;
+  final String paymentConfirmationVerifying;
+  final String pluginProtectedMediaReason;
+  final String pluginProtectedMediaNotice;
+  final String pluginProtectedMediaOwnNotice;
+  final String pluginProtectedMediaView;
+  final String pluginProtectedMediaHide;
+  final String pluginProtectedMediaUnavailable;
+  final String pluginProtectedMediaNotPreviewable;
+  final String pluginLocationLocate;
+  final String pluginLocationRelocate;
+  final String pluginLocationClear;
+  final String pluginLocationLocating;
+  final String pluginLocationEmpty;
+  final String pluginLocationCoarse;
+  final String pluginLocationFine;
+  final String pluginLocationAccuracy;
   final String pluginViewVotes;
   final String pluginViewRemaining;
 
@@ -2441,6 +2543,57 @@ class FlareStrings {
     String? pluginFormDocumentFront,
     String? pluginFormDocumentBack,
     String? pluginFormDocumentHolding,
+    String? capabilityConsentTitle,
+    String? capabilityConsentPurpose,
+    String? capabilityConsentAllowOnce,
+    String? capabilityConsentAllowAlways,
+    String? capabilityConsentDeny,
+    String? capabilityConsentNote,
+    String? capabilityDocumentCapture,
+    String? capabilityPaymentConfirmation,
+    String? capabilityLocationCoarse,
+    String? capabilityLocationFine,
+    String? capabilityCamera,
+    String? capabilityMicrophone,
+    String? capabilityRtcSession,
+    String? capabilityGeneric,
+    String? documentCaptureHintFront,
+    String? documentCaptureHintBack,
+    String? documentCaptureHintHolding,
+    String? documentCaptureShoot,
+    String? documentCaptureRetake,
+    String? documentCaptureUse,
+    String? documentCaptureFromAlbum,
+    String? documentCaptureProcessing,
+    String? documentCaptureCameraUnavailable,
+    String? documentCaptureTooLarge,
+    String? documentCaptureFailed,
+    String? documentCaptureNotAccepted,
+    String? paymentConfirmationTitle,
+    String? paymentConfirmationPayee,
+    String? paymentConfirmationItem,
+    String? paymentConfirmationOrder,
+    String? paymentConfirmationRequestedBy,
+    String? paymentConfirmationExpiresIn,
+    String? paymentConfirmationExpired,
+    String? paymentConfirmationInvalid,
+    String? paymentConfirmationConfirm,
+    String? paymentConfirmationVerifying,
+    String? pluginProtectedMediaReason,
+    String? pluginProtectedMediaNotice,
+    String? pluginProtectedMediaOwnNotice,
+    String? pluginProtectedMediaView,
+    String? pluginProtectedMediaHide,
+    String? pluginProtectedMediaUnavailable,
+    String? pluginProtectedMediaNotPreviewable,
+    String? pluginLocationLocate,
+    String? pluginLocationRelocate,
+    String? pluginLocationClear,
+    String? pluginLocationLocating,
+    String? pluginLocationEmpty,
+    String? pluginLocationCoarse,
+    String? pluginLocationFine,
+    String? pluginLocationAccuracy,
     String? pluginViewVotes,
     String? pluginViewRemaining,
     String? pluginViewDateTimeFormat,
@@ -3453,6 +3606,57 @@ class FlareStrings {
       pluginFormDocumentFront: pluginFormDocumentFront ?? this.pluginFormDocumentFront,
       pluginFormDocumentBack: pluginFormDocumentBack ?? this.pluginFormDocumentBack,
       pluginFormDocumentHolding: pluginFormDocumentHolding ?? this.pluginFormDocumentHolding,
+      capabilityConsentTitle: capabilityConsentTitle ?? this.capabilityConsentTitle,
+      capabilityConsentPurpose: capabilityConsentPurpose ?? this.capabilityConsentPurpose,
+      capabilityConsentAllowOnce: capabilityConsentAllowOnce ?? this.capabilityConsentAllowOnce,
+      capabilityConsentAllowAlways: capabilityConsentAllowAlways ?? this.capabilityConsentAllowAlways,
+      capabilityConsentDeny: capabilityConsentDeny ?? this.capabilityConsentDeny,
+      capabilityConsentNote: capabilityConsentNote ?? this.capabilityConsentNote,
+      capabilityDocumentCapture: capabilityDocumentCapture ?? this.capabilityDocumentCapture,
+      capabilityPaymentConfirmation: capabilityPaymentConfirmation ?? this.capabilityPaymentConfirmation,
+      capabilityLocationCoarse: capabilityLocationCoarse ?? this.capabilityLocationCoarse,
+      capabilityLocationFine: capabilityLocationFine ?? this.capabilityLocationFine,
+      capabilityCamera: capabilityCamera ?? this.capabilityCamera,
+      capabilityMicrophone: capabilityMicrophone ?? this.capabilityMicrophone,
+      capabilityRtcSession: capabilityRtcSession ?? this.capabilityRtcSession,
+      capabilityGeneric: capabilityGeneric ?? this.capabilityGeneric,
+      documentCaptureHintFront: documentCaptureHintFront ?? this.documentCaptureHintFront,
+      documentCaptureHintBack: documentCaptureHintBack ?? this.documentCaptureHintBack,
+      documentCaptureHintHolding: documentCaptureHintHolding ?? this.documentCaptureHintHolding,
+      documentCaptureShoot: documentCaptureShoot ?? this.documentCaptureShoot,
+      documentCaptureRetake: documentCaptureRetake ?? this.documentCaptureRetake,
+      documentCaptureUse: documentCaptureUse ?? this.documentCaptureUse,
+      documentCaptureFromAlbum: documentCaptureFromAlbum ?? this.documentCaptureFromAlbum,
+      documentCaptureProcessing: documentCaptureProcessing ?? this.documentCaptureProcessing,
+      documentCaptureCameraUnavailable: documentCaptureCameraUnavailable ?? this.documentCaptureCameraUnavailable,
+      documentCaptureTooLarge: documentCaptureTooLarge ?? this.documentCaptureTooLarge,
+      documentCaptureFailed: documentCaptureFailed ?? this.documentCaptureFailed,
+      documentCaptureNotAccepted: documentCaptureNotAccepted ?? this.documentCaptureNotAccepted,
+      paymentConfirmationTitle: paymentConfirmationTitle ?? this.paymentConfirmationTitle,
+      paymentConfirmationPayee: paymentConfirmationPayee ?? this.paymentConfirmationPayee,
+      paymentConfirmationItem: paymentConfirmationItem ?? this.paymentConfirmationItem,
+      paymentConfirmationOrder: paymentConfirmationOrder ?? this.paymentConfirmationOrder,
+      paymentConfirmationRequestedBy: paymentConfirmationRequestedBy ?? this.paymentConfirmationRequestedBy,
+      paymentConfirmationExpiresIn: paymentConfirmationExpiresIn ?? this.paymentConfirmationExpiresIn,
+      paymentConfirmationExpired: paymentConfirmationExpired ?? this.paymentConfirmationExpired,
+      paymentConfirmationInvalid: paymentConfirmationInvalid ?? this.paymentConfirmationInvalid,
+      paymentConfirmationConfirm: paymentConfirmationConfirm ?? this.paymentConfirmationConfirm,
+      paymentConfirmationVerifying: paymentConfirmationVerifying ?? this.paymentConfirmationVerifying,
+      pluginProtectedMediaReason: pluginProtectedMediaReason ?? this.pluginProtectedMediaReason,
+      pluginProtectedMediaNotice: pluginProtectedMediaNotice ?? this.pluginProtectedMediaNotice,
+      pluginProtectedMediaOwnNotice: pluginProtectedMediaOwnNotice ?? this.pluginProtectedMediaOwnNotice,
+      pluginProtectedMediaView: pluginProtectedMediaView ?? this.pluginProtectedMediaView,
+      pluginProtectedMediaHide: pluginProtectedMediaHide ?? this.pluginProtectedMediaHide,
+      pluginProtectedMediaUnavailable: pluginProtectedMediaUnavailable ?? this.pluginProtectedMediaUnavailable,
+      pluginProtectedMediaNotPreviewable: pluginProtectedMediaNotPreviewable ?? this.pluginProtectedMediaNotPreviewable,
+      pluginLocationLocate: pluginLocationLocate ?? this.pluginLocationLocate,
+      pluginLocationRelocate: pluginLocationRelocate ?? this.pluginLocationRelocate,
+      pluginLocationClear: pluginLocationClear ?? this.pluginLocationClear,
+      pluginLocationLocating: pluginLocationLocating ?? this.pluginLocationLocating,
+      pluginLocationEmpty: pluginLocationEmpty ?? this.pluginLocationEmpty,
+      pluginLocationCoarse: pluginLocationCoarse ?? this.pluginLocationCoarse,
+      pluginLocationFine: pluginLocationFine ?? this.pluginLocationFine,
+      pluginLocationAccuracy: pluginLocationAccuracy ?? this.pluginLocationAccuracy,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat:

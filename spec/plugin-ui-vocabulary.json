@@ -38,7 +38,8 @@
       "file",
       "money",
       "image",
-      "document"
+      "document",
+      "location"
     ],
     "formats": [
       "money",
@@ -52,8 +53,17 @@
       "bytes"
     ],
     "actions": ["operation", "page", "native"],
-    "native": ["selectImage", "selectFile", "camera", "microphone", "clipboardWrite"],
-    "renderers": ["redPacket.card", "redPacket.pay", "payment.confirm"],
+    "native": [
+      "selectImage",
+      "selectFile",
+      "camera",
+      "microphone",
+      "clipboardWrite",
+      "documentCapture",
+      "paymentConfirmation",
+      "locationOnce"
+    ],
+    "renderers": ["redPacket.card"],
     "kinds": [
       "message-content",
       "message-action",
@@ -65,8 +75,8 @@
   },
   "kits": {
     "vue": { "omit": {} },
-    "flutter": { "omit": { "blocks": ["protected-media"] } },
-    "android": { "omit": { "blocks": ["protected-media"] } },
-    "ios": { "omit": { "blocks": ["protected-media"] } }
+    "flutter": { "omit": {} },
+    "android": { "omit": {} },
+    "ios": { "omit": {} }
   }
 }
