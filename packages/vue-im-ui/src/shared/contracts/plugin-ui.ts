@@ -842,11 +842,32 @@ export function flarePluginReferenceParents(
   return parents;
 }
 
-/** The address of `url` the kit may draw: what the host fetched, never a page or a script. */
+/**
+ * A Tauri desktop host's local file address, as `convertFileSrc` writes it: `asset://localhost/<path>` (macOS, Linux)
+ * or `http://asset.localhost/<path>` (Windows). The webview serves these only inside the app's asset scope, so they
+ * read a file the host chose; any other host, a port or credentials is not one.
+ */
+export function flareIsTauriAssetAddress(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.username || parsed.password || parsed.port) return false;
+  return (parsed.protocol === "asset:" && parsed.hostname === "localhost")
+    || ((parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname === "asset.localhost");
+}
+
+/**
+ * The address of `url` the kit may draw: what the host fetched (blob:, https:, data:image) or a Tauri host's local
+ * file address ({@link flareIsTauriAssetAddress}), never a page or a script.
+ */
 export function flarePluginProtectedMediaSource(
   url: string | undefined,
 ): string | undefined {
-  return url && /^(blob:|https:|data:image\/)/.test(url) ? url : undefined;
+  if (!url) return undefined;
+  return /^(blob:|https:|data:image\/)/.test(url) || flareIsTauriAssetAddress(url) ? url : undefined;
 }
 
 /** The address at `urlPath` (a JSON pointer) of a protected media action's result. */

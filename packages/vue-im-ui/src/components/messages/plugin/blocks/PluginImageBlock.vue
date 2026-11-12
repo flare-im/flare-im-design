@@ -10,8 +10,8 @@ import {
 } from "../../../../shared/contracts/plugin-ui";
 
 // A picture (vocabulary 2) at its declared aspect. The view holds no address: a package asset path or the id of a
-// file the plugin uploaded privately, which the host's `resolve` turns into what it fetched (blob:, https: or
-// data:image only). Until then, or when the host has nothing, the frame keeps its size and says so.
+// file the plugin uploaded privately, which the host's `resolve` turns into what it fetched (blob:, https:,
+// data:image, or a Tauri host's asset:// / http://asset.localhost file address only). Until then, or when the host has nothing, the frame keeps its size and says so.
 const props = defineProps<{
   block: FlarePluginImageBlock;
   resolve?: (source: FlarePluginImageSource) => string | undefined | Promise<string | undefined>;
