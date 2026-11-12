@@ -57,6 +57,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -308,6 +311,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -395,6 +401,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -482,6 +491,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -569,6 +581,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -656,6 +671,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -743,6 +761,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -830,6 +851,9 @@
   --flare-color-warning: #B45309;
   --flare-color-warning-text: #B45309;
   --flare-color-scrim: rgba(21, 18, 32, 0.44);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #DBEAFE;
   --flare-color-avatar-tint-blue-fg: #1D4ED8;
   --flare-color-avatar-tint-purple-bg: #E9D5FF;
@@ -917,6 +941,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -1004,6 +1031,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -1091,6 +1121,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -1178,6 +1211,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -1265,6 +1301,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;
@@ -1352,6 +1391,9 @@
   --flare-color-warning: #A16207;
   --flare-color-warning-text: #FBBF24;
   --flare-color-scrim: rgba(8, 6, 16, 0.6);
+  --flare-color-media-stage: rgba(11, 9, 18, 0.94);
+  --flare-color-media-on-stage: rgba(255, 255, 255, 0.92);
+  --flare-color-media-stage-shade: rgba(11, 9, 18, 0.55);
   --flare-color-avatar-tint-blue-bg: #1F3266;
   --flare-color-avatar-tint-blue-fg: #BFDBFE;
   --flare-color-avatar-tint-purple-bg: #3A2566;

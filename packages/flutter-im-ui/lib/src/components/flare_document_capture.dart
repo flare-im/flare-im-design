@@ -159,9 +159,9 @@ class _FlareDocumentCaptureState extends State<FlareDocumentCapture> {
     };
     final camera = widget.capture != null && !widget.cameraUnavailable;
     final busy = _phase == _Phase.processing;
-    // A camera stage stays dark in both themes.
-    const stage = Color(0xF0000000);
-    const light = Color(0xEBFFFFFF);
+    // A camera stage stays dark in both themes (the media stage tokens).
+    final stage = colors.mediaStage;
+    final light = colors.mediaOnStage;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         FlareSizes.spacingLg,
@@ -216,7 +216,7 @@ class _FlareDocumentCaptureState extends State<FlareDocumentCapture> {
                               child: Text(
                                 strings.documentCaptureCameraUnavailable,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: light,
                                   fontSize: FlareSizes.fontSizeMd,
                                 ),

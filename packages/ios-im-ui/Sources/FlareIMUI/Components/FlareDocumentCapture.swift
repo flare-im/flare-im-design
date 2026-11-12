@@ -89,8 +89,8 @@ public struct FlareDocumentCapture: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        // A camera stage stays dark in both themes.
-        let stage = Color.black.opacity(0.94), light = Color.white.opacity(0.92)
+        // A camera stage stays dark in both themes (the media stage tokens).
+        let stage = colors.mediaStage, light = colors.mediaOnStage
         let camera = capture != nil && !cameraUnavailable
         VStack(spacing: FlareSizes.spacingMd) {
             ZStack {

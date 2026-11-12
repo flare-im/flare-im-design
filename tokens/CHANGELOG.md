@@ -1,5 +1,6 @@
 ## 未发布
 
+- 新增媒体舞台色 `colors.media.stage`、`onStage`、`stageShade`（浅色、深色同值，始终是暗底）。证件拍摄取景区四端改用它们，不再写死黑白。
 - 新增图表分类色 `colors.chart.series1`–`series6`（浅色、深色各一组，按固定顺序分配给系列）。插件 `chart` 块四端改用它们，不再借用 primary、info、success 等语义色。
 - **许可证由 MIT 变更为 Apache-2.0。** 已发布的 1.0.5 及更早版本仍按 MIT 授权，
   本次变更仅对之后的版本生效。Apache-2.0 含显式专利授权条款。

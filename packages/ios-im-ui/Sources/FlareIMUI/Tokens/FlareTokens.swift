@@ -132,6 +132,9 @@ public struct FlareColors: Sendable {
     public let warning: Color
     public let warningText: Color
     public let scrim: Color
+    public let mediaStage: Color
+    public let mediaOnStage: Color
+    public let mediaStageShade: Color
     public let avatarTintBlueBg: Color
     public let avatarTintBlueFg: Color
     public let avatarTintPurpleBg: Color
@@ -218,6 +221,9 @@ public struct FlareColors: Sendable {
         warning: Color,
         warningText: Color,
         scrim: Color,
+        mediaStage: Color,
+        mediaOnStage: Color,
+        mediaStageShade: Color,
         avatarTintBlueBg: Color,
         avatarTintBlueFg: Color,
         avatarTintPurpleBg: Color,
@@ -303,6 +309,9 @@ public struct FlareColors: Sendable {
         self.warning = warning
         self.warningText = warningText
         self.scrim = scrim
+        self.mediaStage = mediaStage
+        self.mediaOnStage = mediaOnStage
+        self.mediaStageShade = mediaStageShade
         self.avatarTintBlueBg = avatarTintBlueBg
         self.avatarTintBlueFg = avatarTintBlueFg
         self.avatarTintPurpleBg = avatarTintPurpleBg
@@ -390,6 +399,9 @@ public struct FlareColors: Sendable {
         warning: Color? = nil,
         warningText: Color? = nil,
         scrim: Color? = nil,
+        mediaStage: Color? = nil,
+        mediaOnStage: Color? = nil,
+        mediaStageShade: Color? = nil,
         avatarTintBlueBg: Color? = nil,
         avatarTintBlueFg: Color? = nil,
         avatarTintPurpleBg: Color? = nil,
@@ -476,6 +488,9 @@ public struct FlareColors: Sendable {
             warning: warning ?? self.warning,
             warningText: warningText ?? self.warningText,
             scrim: scrim ?? self.scrim,
+            mediaStage: mediaStage ?? self.mediaStage,
+            mediaOnStage: mediaOnStage ?? self.mediaOnStage,
+            mediaStageShade: mediaStageShade ?? self.mediaStageShade,
             avatarTintBlueBg: avatarTintBlueBg ?? self.avatarTintBlueBg,
             avatarTintBlueFg: avatarTintBlueFg ?? self.avatarTintBlueFg,
             avatarTintPurpleBg: avatarTintPurpleBg ?? self.avatarTintPurpleBg,
@@ -564,6 +579,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -651,6 +669,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -738,6 +759,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -825,6 +849,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -912,6 +939,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -999,6 +1029,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1086,6 +1119,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1173,6 +1209,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1260,6 +1299,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1347,6 +1389,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1434,6 +1479,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1521,6 +1569,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),

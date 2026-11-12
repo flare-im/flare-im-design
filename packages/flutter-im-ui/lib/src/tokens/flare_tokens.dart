@@ -68,6 +68,9 @@ class FlareColors {
     required this.warning,
     required this.warningText,
     required this.scrim,
+    required this.mediaStage,
+    required this.mediaOnStage,
+    required this.mediaStageShade,
     required this.avatarTintBlueBg,
     required this.avatarTintBlueFg,
     required this.avatarTintPurpleBg,
@@ -154,6 +157,9 @@ class FlareColors {
   final Color warning;
   final Color warningText;
   final Color scrim;
+  final Color mediaStage;
+  final Color mediaOnStage;
+  final Color mediaStageShade;
   final Color avatarTintBlueBg;
   final Color avatarTintBlueFg;
   final Color avatarTintPurpleBg;
@@ -240,6 +246,9 @@ class FlareColors {
     Color? warning,
     Color? warningText,
     Color? scrim,
+    Color? mediaStage,
+    Color? mediaOnStage,
+    Color? mediaStageShade,
     Color? avatarTintBlueBg,
     Color? avatarTintBlueFg,
     Color? avatarTintPurpleBg,
@@ -325,6 +334,9 @@ class FlareColors {
     warning: warning ?? this.warning,
     warningText: warningText ?? this.warningText,
     scrim: scrim ?? this.scrim,
+    mediaStage: mediaStage ?? this.mediaStage,
+    mediaOnStage: mediaOnStage ?? this.mediaOnStage,
+    mediaStageShade: mediaStageShade ?? this.mediaStageShade,
     avatarTintBlueBg: avatarTintBlueBg ?? this.avatarTintBlueBg,
     avatarTintBlueFg: avatarTintBlueFg ?? this.avatarTintBlueFg,
     avatarTintPurpleBg: avatarTintPurpleBg ?? this.avatarTintPurpleBg,
@@ -412,6 +424,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -499,6 +514,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -586,6 +604,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -673,6 +694,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -760,6 +784,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -847,6 +874,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -934,6 +964,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -1021,6 +1054,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -1108,6 +1144,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -1195,6 +1234,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -1282,6 +1324,9 @@ class FlareColors {
     warning: Color(0xFFB45309),
     warningText: Color(0xFFB45309),
     scrim: Color(0x70151220),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFFDBEAFE),
     avatarTintBlueFg: Color(0xFF1D4ED8),
     avatarTintPurpleBg: Color(0xFFE9D5FF),
@@ -1369,6 +1414,9 @@ class FlareColors {
     warning: Color(0xFFA16207),
     warningText: Color(0xFFFBBF24),
     scrim: Color(0x99080610),
+    mediaStage: Color(0xF00B0912),
+    mediaOnStage: Color(0xEBFFFFFF),
+    mediaStageShade: Color(0x8C0B0912),
     avatarTintBlueBg: Color(0xFF1F3266),
     avatarTintBlueFg: Color(0xFFBFDBFE),
     avatarTintPurpleBg: Color(0xFF3A2566),
@@ -1716,6 +1764,12 @@ abstract final class FlarePalette {
   static const Color darkWarningText = Color(0xFFFBBF24);
   static const Color lightScrim = Color(0x70151220);
   static const Color darkScrim = Color(0x99080610);
+  static const Color lightMediaStage = Color(0xF00B0912);
+  static const Color darkMediaStage = Color(0xF00B0912);
+  static const Color lightMediaOnStage = Color(0xEBFFFFFF);
+  static const Color darkMediaOnStage = Color(0xEBFFFFFF);
+  static const Color lightMediaStageShade = Color(0x8C0B0912);
+  static const Color darkMediaStageShade = Color(0x8C0B0912);
   static const Color lightAvatarTintBlueBg = Color(0xFFDBEAFE);
   static const Color darkAvatarTintBlueBg = Color(0xFF1F3266);
   static const Color lightAvatarTintBlueFg = Color(0xFF1D4ED8);

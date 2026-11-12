@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -92,9 +91,9 @@ internal fun FlareDocumentCaptureBody(
     var phase by remember(side) { mutableStateOf<CapturePhase>(CapturePhase.Viewfinder) }
     val camera = capture != null && !cameraUnavailable
     val processing = phase == CapturePhase.Processing
-    // A camera stage stays dark in both themes.
-    val stage = Color.Black.copy(alpha = 0.94f)
-    val light = Color.White.copy(alpha = 0.92f)
+    // A camera stage stays dark in both themes (the media stage tokens).
+    val stage = colors.mediaStage
+    val light = colors.mediaOnStage
     fun take(source: (suspend () -> ByteArray?)?) {
         if (source == null || processing) return
         scope.launch {

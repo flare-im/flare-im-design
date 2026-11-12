@@ -153,8 +153,8 @@ const sideLabel = computed(() => t(`pluginForm.documentSide.${props.side}`));
   min-height: 240px;
   overflow: hidden;
   border-radius: var(--flare-size-radius-lg);
-  /* A camera stage stays dark in both themes. */
-  background: color-mix(in srgb, #000 94%, transparent);
+  /* A camera stage stays dark in both themes (the media stage tokens). */
+  background: var(--flare-color-media-stage);
 }
 .flare-doc-capture__preview,
 .flare-doc-capture__preview :deep(video),
@@ -170,9 +170,9 @@ const sideLabel = computed(() => t(`pluginForm.documentSide.${props.side}`));
 .flare-doc-capture__frame {
   width: min(100%, 520px);
   max-height: 100%;
-  border: 2px solid color-mix(in srgb, #fff 92%, transparent);
+  border: 2px solid var(--flare-color-media-on-stage);
   border-radius: var(--flare-size-radius-md);
-  box-shadow: 0 0 0 9999px color-mix(in srgb, #000 55%, transparent);
+  box-shadow: 0 0 0 9999px var(--flare-color-media-stage-shade);
 }
 .flare-doc-capture__frame.is-portrait { width: auto; height: min(100%, 520px); }
 .flare-doc-capture__review { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; }
@@ -183,7 +183,7 @@ const sideLabel = computed(() => t(`pluginForm.documentSide.${props.side}`));
   margin: 0;
   text-align: center;
   font-size: var(--flare-size-font-size-md);
-  color: color-mix(in srgb, #fff 92%, transparent);
+  color: var(--flare-color-media-on-stage);
 }
 .flare-doc-capture__hint { margin: 0; text-align: center; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .flare-doc-capture__error { margin: 0; text-align: center; font-size: var(--flare-size-font-size-md); color: var(--flare-color-error-text); }
