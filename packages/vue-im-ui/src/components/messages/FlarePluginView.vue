@@ -51,6 +51,7 @@ import {
   flarePluginChoiceCapped,
   flarePluginFallbackName,
   flarePluginFlatBlocks,
+  flarePluginDateTime,
   flarePluginFormatText,
   flarePluginInlineFormAction,
   flarePluginReasonLine,
@@ -1042,6 +1043,7 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
           :block="block"
           :user-of="userOf"
           :viewer-id="viewerId"
+          :time-text="(ms: number) => flarePluginDateTime(ms, formatContext.nowMs, strings)"
           data-block="entries"
           @see-all="emit('openDetail')"
         />

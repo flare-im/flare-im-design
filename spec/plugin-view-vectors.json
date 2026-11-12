@@ -37,7 +37,10 @@
     "formats2": "Vocabulary 2 formats. count: the text is written compact with the copy's units (pluginFormatCountUnits, `exponent:suffix` pairs): the largest unit the count reaches, one decimal cut (never rounded up), a trailing .0 dropped; below every unit, the count. duration: whole seconds; under a minute the seconds alone, else the largest non-zero unit and the next one when it is not zero (myInviteUnitDays/Hours/Minutes, pluginFormatSeconds). percent and bytes keep the text the core SDK wrote; an unknown format keeps the text.",
     "blocks2": "Vocabulary 2 blocks. section: a heading (label, a fold key) followed by its children; a section without a label is never folded; children of a folded section are not drawn; a child kind the kit does not know is skipped like a top-level one. stats: MetricTile figures, the value through its format, the trend as text with its direction (anything else flat). chart: bar, line or donut from kit colours; nothing to draw → emptyText or pluginViewEmpty; a donut's slices are the positive values' shares in point order. image: the declared aspect (unknown → square); the host resolves the asset or file id. qr: expired once expiresAtMs ≤ now; an expired code with refreshOperation offers pluginViewQrRefresh (the host re-reads). hero: one lead figure; its actions run like the view's. steps: the state as sent when it is one of pending, current, done, failed, else pending. banner: tone info, success, warning or danger (anything else info) with an owned action. timeline: time as the time block writes it, title, detail, status tag; no item → emptyText or pluginViewEmpty.",
     "moneyInput": "A money input's draft is the amount as typed. Before the check and submit it is normalized (spaces gone, leading zeros of the whole part dropped, a leading . gets a 0, a trailing . goes). Empty: required when required, else absent. Not a decimal of at most `scale` fraction digits (2 by default) or no currency: invalidType. Below min or above max (decimal order): outOfRange. Submitted as {amount, currency} with the input's currency.",
-    "upgradeNotice": "unavailableReason upgrade_required draws the upgrade notice instead of the reason line: update when update.plugin_upgrade_status says available and the host passes onUpdate (the key pluginUpgradeAction); notAvailable when it says not available (pluginUpgradeNotAvailable, no key); description otherwise (pluginViewUnavailableUpgradeRequired, no key). The entry mark is pluginUpgradeBadge; the page variant's heading is the view's title, else pluginUpgradeTitle, and its text pluginUpgradeDescription or pluginUpgradeNotAvailable."
+    "upgradeNotice": "unavailableReason upgrade_required draws the upgrade notice instead of the reason line: update when update.plugin_upgrade_status says available and the host passes onUpdate (the key pluginUpgradeAction); notAvailable when it says not available (pluginUpgradeNotAvailable, no key); description otherwise (pluginViewUnavailableUpgradeRequired, no key). The entry mark is pluginUpgradeBadge; the page variant's heading is the view's title, else pluginUpgradeTitle, and its text pluginUpgradeDescription or pluginUpgradeNotAvailable.",
+    "rowsGroupByDay": "A page rows block with groupByDay true puts a day heading before the first row of each day, by the row's first time column (its cell timeMs) in the device zone (facts hold at utcOffsetMinutes): today's rows read accountToday (今天 / Today), yesterday's accountYesterday (昨天 / Yesterday), older ones the date — the kit's dateTime pattern without its time (the year only outside the current one, dateTimeYear). Consecutive rows of one day share a heading; a row without a time starts no heading and joins none. Without groupByDay, or without a time column, no headings. Facts in rowDays.",
+    "entryTime": "An entry with timeMs (entries.timePath) draws its time after the text, formatted as in `time` (device zone), in the tertiary text colour; an entry without it draws none.",
+    "heroMask": "A hero with maskable true draws an eye toggle beside its label (accountHideBalance / accountShowBalance as its accessible name, pressed while hidden). It starts shown; while hidden the value reads •••• and nothing else changes. A hero without maskable has no toggle."
   },
   "users": {
     "u_alice01": {
@@ -7092,5 +7095,35 @@
       "canUpdate": true,
       "expect": "notAvailable"
     }
-  ]
+  ],
+  "rowDays": {
+    "utcOffsetMinutes": 480,
+    "timesMs": [
+      1792630800000,
+      1792627200000,
+      1792555200000,
+      null,
+      1791000000000,
+      1790982000000,
+      1735790400000
+    ],
+    "zh": [
+      "今天",
+      null,
+      "昨天",
+      null,
+      "10月3日",
+      null,
+      "2025年1月2日"
+    ],
+    "en": [
+      "Today",
+      null,
+      "Yesterday",
+      null,
+      "Oct 3",
+      null,
+      "Jan 2, 2025"
+    ]
+  }
 }

@@ -3770,7 +3770,7 @@
               "channelId",
               "decimalAmount",
               "paymentReference",
-              "proofReference"
+              "proofFile"
             ],
             "id": "submit",
             "input": {
@@ -3786,7 +3786,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "充值与提现记录",
+            "label": "充值记录",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -3826,8 +3826,12 @@
           },
           {
             "kind": "note",
-            "text": "请按渠道说明转账，填写真实付款单号和付款凭证链接或上传引用。审核确认收到款项后入账。",
+            "text": "请按渠道说明转账，填写真实付款单号并上传付款凭证。审核确认收到款项后入账。",
             "tone": "info"
+          },
+          {
+            "kind": "note",
+            "text": "当前没有可用充值渠道，已有记录仍可查看。"
           },
           {
             "actions": [],
@@ -3846,10 +3850,6 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.recharge"
-          },
-          {
-            "kind": "note",
-            "text": "当前没有可用充值渠道，已有记录仍可查看。"
           }
         ],
         "fields": [
@@ -3914,10 +3914,22 @@
             "required": true
           },
           {
-            "id": "proofReference",
-            "kind": "textarea",
-            "label": "付款凭证链接或上传引用",
-            "maxLength": 2048,
+            "file": {
+              "accept": [
+                "image/png",
+                "image/jpeg",
+                "application/pdf"
+              ],
+              "maxBytes": 5242880,
+              "upload": {
+                "completeOperation": "flare.wallet.materials.complete",
+                "prepareOperation": "flare.wallet.materials.prepare",
+                "purpose": "rechargeProof"
+              }
+            },
+            "id": "proofFile",
+            "kind": "file",
+            "label": "上传付款凭证",
             "required": true
           }
         ],
@@ -3963,7 +3975,7 @@
               "channelId",
               "decimalAmount",
               "paymentReference",
-              "proofReference"
+              "proofFile"
             ],
             "id": "submit",
             "input": {
@@ -3979,7 +3991,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "Recharge and withdrawal history",
+            "label": "Recharge history",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4019,8 +4031,12 @@
           },
           {
             "kind": "note",
-            "text": "Transfer using the channel instructions and provide the real payment reference and proof link or upload reference. Funds are credited after receipt verification.",
+            "text": "Follow the channel instructions, enter the actual payment reference and upload payment evidence. Funds are credited after receipt verification.",
             "tone": "info"
+          },
+          {
+            "kind": "note",
+            "text": "No recharge channels are available. Existing records remain available."
           },
           {
             "actions": [],
@@ -4039,10 +4055,6 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.recharge"
-          },
-          {
-            "kind": "note",
-            "text": "No recharge channels are available. Existing records remain available."
           }
         ],
         "fields": [
@@ -4107,10 +4119,22 @@
             "required": true
           },
           {
-            "id": "proofReference",
-            "kind": "textarea",
-            "label": "Payment proof link or upload reference",
-            "maxLength": 2048,
+            "file": {
+              "accept": [
+                "image/png",
+                "image/jpeg",
+                "application/pdf"
+              ],
+              "maxBytes": 5242880,
+              "upload": {
+                "completeOperation": "flare.wallet.materials.complete",
+                "prepareOperation": "flare.wallet.materials.prepare",
+                "purpose": "rechargeProof"
+              }
+            },
+            "id": "proofFile",
+            "kind": "file",
+            "label": "Upload payment evidence",
             "required": true
           }
         ],
@@ -4173,7 +4197,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "充值与提现记录",
+            "label": "提现记录",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4217,6 +4241,10 @@
             "tone": "info"
           },
           {
+            "kind": "note",
+            "text": "当前没有可用提现渠道，已有记录仍可查看。"
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -4233,10 +4261,6 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.withdrawal"
-          },
-          {
-            "kind": "note",
-            "text": "当前没有可用提现渠道，已有记录仍可查看。"
           }
         ],
         "fields": [
@@ -4365,7 +4389,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "Recharge and withdrawal history",
+            "label": "Withdrawal history",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4409,6 +4433,10 @@
             "tone": "info"
           },
           {
+            "kind": "note",
+            "text": "No withdrawal channels are available. Existing records remain available."
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -4425,10 +4453,6 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.withdrawal"
-          },
-          {
-            "kind": "note",
-            "text": "No withdrawal channels are available. Existing records remain available."
           }
         ],
         "fields": [
@@ -4532,7 +4556,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "充值与提现记录",
+            "label": "提现记录",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4667,7 +4691,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "充值与提现记录",
+            "label": "提现记录",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4785,7 +4809,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "Recharge and withdrawal history",
+            "label": "Withdrawal history",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -4920,7 +4944,7 @@
           {
             "id": "history",
             "input": {},
-            "label": "Recharge and withdrawal history",
+            "label": "Withdrawal history",
             "target": {
               "kind": "page",
               "page": "flare.wallet.page.cashflow_history"
@@ -5049,7 +5073,7 @@
             ],
             "id": "save",
             "input": {},
-            "label": "保存收款资料",
+            "label": "保存收款方式",
             "style": "primary",
             "target": {
               "kind": "operation",
@@ -5066,7 +5090,7 @@
             "blocks": [
               {
                 "kind": "text",
-                "text": "收款账户",
+                "text": "已添加的收款方式",
                 "style": "title"
               },
               {
@@ -5172,6 +5196,10 @@
               },
               {
                 "format": "text",
+                "label": "收款地址"
+              },
+              {
+                "format": "text",
                 "label": "状态"
               },
               {
@@ -5220,14 +5248,14 @@
           {
             "id": "accountName",
             "kind": "text",
-            "label": "户名",
+            "label": "姓名或户名",
             "maxLength": 128,
             "required": true
           },
           {
             "id": "accountNumber",
             "kind": "text",
-            "label": "账号",
+            "label": "账号或卡号",
             "maxLength": 128,
             "required": true
           },
@@ -5244,7 +5272,7 @@
             "maxLength": 128
           }
         ],
-        "title": "收款资料"
+        "title": "收款方式"
       }
     },
     {
@@ -5289,7 +5317,7 @@
             ],
             "id": "save",
             "input": {},
-            "label": "Save payout details",
+            "label": "Save payout method",
             "style": "primary",
             "target": {
               "kind": "operation",
@@ -5306,7 +5334,7 @@
             "blocks": [
               {
                 "kind": "text",
-                "text": "Payout account",
+                "text": "Saved payout methods",
                 "style": "title"
               },
               {
@@ -5412,6 +5440,10 @@
               },
               {
                 "format": "text",
+                "label": "Payout address"
+              },
+              {
+                "format": "text",
                 "label": "Status"
               },
               {
@@ -5460,14 +5492,14 @@
           {
             "id": "accountName",
             "kind": "text",
-            "label": "Account holder",
+            "label": "Name or account holder",
             "maxLength": 128,
             "required": true
           },
           {
             "id": "accountNumber",
             "kind": "text",
-            "label": "Account number",
+            "label": "Account or card number",
             "maxLength": 128,
             "required": true
           },
@@ -5484,7 +5516,7 @@
             "maxLength": 128
           }
         ],
-        "title": "Payout details"
+        "title": "Payout methods"
       }
     },
     {
@@ -5613,7 +5645,7 @@
               },
               {
                 "format": "text",
-                "label": "付款凭证"
+                "label": "付款凭证文件"
               },
               {
                 "format": "text",
@@ -5684,13 +5716,6 @@
         ],
         "fields": [],
         "inputs": [
-          {
-            "id": "proofUrl",
-            "kind": "textarea",
-            "label": "付款凭证链接或上传引用",
-            "maxLength": 2048,
-            "required": true
-          },
           {
             "choices": [
               {
@@ -5871,7 +5896,7 @@
               },
               {
                 "format": "text",
-                "label": "Payment proof"
+                "label": "Payment evidence file"
               },
               {
                 "format": "text",
@@ -5942,13 +5967,6 @@
         ],
         "fields": [],
         "inputs": [
-          {
-            "id": "proofUrl",
-            "kind": "textarea",
-            "label": "Payment proof link or upload reference",
-            "maxLength": 2048,
-            "required": true
-          },
           {
             "choices": [
               {
@@ -6140,7 +6158,7 @@
             "input": {
               "intentId": "/intentId"
             },
-            "label": "确认并支付",
+            "label": "验证并发送红包",
             "style": "primary",
             "target": {
               "kind": "operation",
@@ -6178,7 +6196,7 @@
           },
           {
             "kind": "note",
-            "text": "支付密码连续输错五次将暂时锁定。",
+            "text": "核对金额后验证支付密码，验证成功后立即发送红包。支付密码连续输错五次将暂时锁定。",
             "tone": "info"
           }
         ],
@@ -6215,7 +6233,7 @@
             "confirm": "authorize"
           }
         },
-        "title": "确认支付"
+        "title": "支付验证"
       }
     },
     {
@@ -6243,7 +6261,7 @@
             "input": {
               "intentId": "/intentId"
             },
-            "label": "Confirm and pay",
+            "label": "Verify and send red packet",
             "style": "primary",
             "target": {
               "kind": "operation",
@@ -6281,7 +6299,7 @@
           },
           {
             "kind": "note",
-            "text": "Five incorrect attempts temporarily lock payment verification.",
+            "text": "Review the amount and verify your payment password. The red packet is sent immediately after successful verification. Five incorrect attempts temporarily lock payment verification.",
             "tone": "info"
           }
         ],
@@ -6318,7 +6336,7 @@
             "confirm": "authorize"
           }
         },
-        "title": "Confirm payment"
+        "title": "Payment verification"
       }
     },
     {
@@ -6385,7 +6403,7 @@
           },
           {
             "kind": "note",
-            "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
+            "text": "设置或修改六位支付密码。密码重置后，原支付授权将失效，请本人重新设置。",
             "tone": "info"
           }
         ],
@@ -6471,7 +6489,7 @@
           },
           {
             "kind": "note",
-            "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
+            "text": "设置或修改六位支付密码。密码重置后，原支付授权将失效，请本人重新设置。",
             "tone": "info"
           }
         ],
@@ -6566,7 +6584,7 @@
           },
           {
             "kind": "note",
-            "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
+            "text": "Set or change your six-digit payment password. Resetting invalidates previous payment approvals; only you can set the new password.",
             "tone": "info"
           }
         ],
@@ -6652,7 +6670,7 @@
           },
           {
             "kind": "note",
-            "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
+            "text": "Set or change your six-digit payment password. Resetting invalidates previous payment approvals; only you can set the new password.",
             "tone": "info"
           }
         ],

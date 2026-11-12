@@ -41,6 +41,37 @@ const EMPTY_STATE = new Set(["emptyTitle", "emptyDescription"]);
 /** Keys whose strings are machine values (ids, targets, paths), not information a person reads. */
 const MACHINE = new Set(["id", "kind", "format", "style", "tone", "target", "command", "continuation", "input", "key", "source", "page", "operation", "value_path", "valuePath", "renderer", "placement", "mode", "slot"]);
 
+/**
+ * Copy the wallet contract changed after the account samples were taken: the old string, then what the contract
+ * says now (spec/wallet-flow-vectors.json was cross-checked against the Rust contract's pages). The new view must
+ * carry one of the current strings in its place.
+ */
+const CONTRACT_COPY = new Map<string, string[]>([
+  ["proofReference", ["proofFile"]],
+  // The recharge form uploads the proof now; the history's proof link filter is gone.
+  ["付款凭证链接或上传引用", ["上传付款凭证", "付款凭证文件"]],
+  ["Payment proof link or upload reference", []],
+  ["付款凭证", ["付款凭证文件"]],
+  ["Payment proof", ["Payment evidence file"]],
+  ["收款账户", ["已添加的收款方式"]],
+  ["Payout account", []],
+  ["请按渠道说明转账，填写真实付款单号和付款凭证链接或上传引用。审核确认收到款项后入账。", ["请按渠道说明转账，填写真实付款单号并上传付款凭证。审核确认收到款项后入账。"]],
+  ["Transfer using the channel instructions and provide the real payment reference and proof link or upload reference. Funds are credited after receipt verification.", []],
+  ["充值与提现记录", ["充值记录", "提现记录"]],
+  ["Recharge and withdrawal history", ["Recharge history", "Withdrawal history"]],
+  ["保存收款资料", ["保存收款方式"]],
+  ["Save payout details", ["Save payout method"]],
+  ["收款资料", ["收款方式"]],
+  ["Payout details", ["Payout methods"]],
+  ["确认并支付", ["验证并发送红包"]],
+  ["Confirm and pay", ["Verify and send red packet"]],
+  ["确认支付", ["支付验证"]],
+  ["Confirm payment", ["Payment verification"]],
+  ["支付密码连续输错五次将暂时锁定。", []],
+  ["Five incorrect attempts temporarily lock payment verification.", []],
+  ["设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。", ["设置或修改六位支付密码。密码重置后，原支付授权将失效，请本人重新设置。"]],
+  ["Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.", []],
+]);
 /** Every string a person reads in a resolved view (labels, values, copy), presentation excluded. */
 function information(node: Json, parent = "", out = new Set<string>()): Set<string> {
   if (typeof node === "string") {
@@ -97,13 +128,18 @@ describe("wallet flow vectors with plain blocks", () => {
       ? rows(old.view).map(b => b.emptyText).filter((t): t is string => typeof t === "string" && t !== props.emptyTitle)
       : []);
     if (superseded.size) expect(rows(next.view).some(b => b.emptyText === props.emptyTitle)).toBe(true);
-    const missing = [...information(old.view)].filter(text => !have.has(text) && !superseded.has(text));
+    // Changed copy: the current string, or (with no fixed replacement) a different string where the old one was.
+    const replaced = (text: string) => {
+      const current = CONTRACT_COPY.get(text);
+      return current !== undefined && (current.length === 0 || current.some(next => have.has(next)));
+    };
+    const missing = [...information(old.view)].filter(text => !have.has(text) && !superseded.has(text) && !replaced(text));
     expect(missing, "strings of the old view missing from the new one").toEqual([]);
     const listEmpty = !rows(next.view).some(b => ((b.rows ?? []) as Json[]).length > 0);
     for (const [prop, value] of Object.entries(props)) {
       expect(LAYOUT_ONLY.has(prop) || CONTENT.has(prop) || EMPTY_STATE.has(prop), `unclassified account prop ${prop}`).toBe(true);
       if (typeof value !== "string" || !value.trim()) continue;
-      if (CONTENT.has(prop)) expect(have.has(value), `${prop}: ${value}`).toBe(true);
+      if (CONTENT.has(prop)) expect(have.has(value) || replaced(value), `${prop}: ${value}`).toBe(true);
       // Shown only in the empty state; a populated sample need not carry it.
       if (prop === "emptyDescription" && listEmpty) expect(have.has(value), `${prop}: ${value}`).toBe(true);
       if (prop === "emptyTitle" && listEmpty && rows(next.view).length) expect(have.has(value), `${prop}: ${value}`).toBe(true);

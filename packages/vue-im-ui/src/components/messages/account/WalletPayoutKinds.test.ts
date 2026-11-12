@@ -32,7 +32,8 @@ describe("0.3.2 resolved payout-kind choices", () => {
     const wrapper = mount(defineComponent({ setup() {
       useFlareI18nProvider(fixture.locale);
       return () => h(FlarePluginPage, {
-        page: { pluginId: "flare.wallet", page: fixture.page }, view,
+        // An account-renderer sample: the account appearance draws it (the kit no longer infers it from the view).
+        page: { pluginId: "flare.wallet", page: fixture.page }, view, appearance: "account",
         onAction: (...args) => actions.push(args),
       });
     } }), { attachTo: document.body });

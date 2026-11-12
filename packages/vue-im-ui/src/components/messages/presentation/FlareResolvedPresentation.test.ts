@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {mount} from '@vue/test-utils';
 import {describe,it,expect,afterEach} from 'vitest';
-import {nextTick,defineComponent,h,reactive} from 'vue';
+import {nextTick,defineComponent,h} from 'vue';
 import {useFlareI18nProvider} from '../../../shared/i18n/useFlareI18n';
 import FlarePluginView from '../FlarePluginView.vue';
 import FlareRedPacketCard from '../FlareRedPacketCard.vue';

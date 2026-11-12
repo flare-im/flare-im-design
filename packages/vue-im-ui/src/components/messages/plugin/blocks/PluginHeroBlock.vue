@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import FlareButton from "../../../general/FlareButton.vue";
+import FlareIconButton from "../../../general/FlareIconButton.vue";
+import { flareIcons } from "../../../../shared/icons";
+import { useFlareI18nOptional } from "../../../../shared/i18n/useFlareI18n";
 import {
+  FLARE_PLUGIN_MASKED_VALUE,
   flarePluginHeroTone,
   type FlarePluginAction,
   type FlarePluginHeroBlock,
@@ -11,6 +16,9 @@ import {
 // same pipeline as the view's actions. The tone tints the surface: neutral, positive, warning or the brand.
 const props = defineProps<{ block: FlarePluginHeroBlock; busy?: boolean; busyActionId?: string }>();
 const emit = defineEmits<{ action: [action: FlarePluginAction] }>();
+const { t } = useFlareI18nOptional();
+// A maskable hero (a balance) starts shown; the eye hides it for this view only.
+const hidden = ref(false);
 const variantOf = (action: FlarePluginAction, index: number) =>
   action.style === "danger" ? "danger" : action.style === "primary" || index === 0 ? "primary" : "secondary";
 function run(action: FlarePluginAction): void {
@@ -20,8 +28,19 @@ function run(action: FlarePluginAction): void {
 
 <template>
   <section class="flare-plugin-hero" :class="`is-${flarePluginHeroTone(block.tone)}`" :data-hero-tone="flarePluginHeroTone(block.tone)">
-    <p v-if="block.label" class="flare-plugin-hero__label">{{ block.label }}</p>
-    <p class="flare-plugin-hero__value" :class="{ 'is-amount': block.amount }" data-hero-value="true">{{ block.value }}</p>
+    <div v-if="block.label || block.maskable" class="flare-plugin-hero__head">
+      <p v-if="block.label" class="flare-plugin-hero__label">{{ block.label }}</p>
+      <FlareIconButton
+        v-if="block.maskable"
+        :icon="hidden ? flareIcons['eye-off'] : flareIcons.eye"
+        :ariaLabel="t(hidden ? 'account.showBalance' : 'account.hideBalance')"
+        :aria-pressed="hidden"
+        size="sm"
+        data-hero-mask="true"
+        @click="hidden = !hidden"
+      />
+    </div>
+    <p class="flare-plugin-hero__value" :class="{ 'is-amount': block.amount }" data-hero-value="true">{{ block.maskable && hidden ? FLARE_PLUGIN_MASKED_VALUE : block.value }}</p>
     <p v-if="block.subtitle" class="flare-plugin-hero__subtitle">{{ block.subtitle }}</p>
     <div v-if="block.actions?.length" class="flare-plugin-hero__actions">
       <FlareButton
@@ -54,6 +73,7 @@ function run(action: FlarePluginAction): void {
 .flare-plugin-hero.is-warning { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-warning) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-warning-text); }
 .flare-plugin-hero.is-brand { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-primary) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-primary-text); }
 .flare-plugin-hero p { margin: 0; overflow-wrap: anywhere; }
+.flare-plugin-hero__head { display: flex; align-items: center; gap: var(--flare-size-spacing-xs); min-width: 0; }
 .flare-plugin-hero__label { font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .flare-plugin-hero__value {
   font-size: var(--flare-size-font-size-5xl);

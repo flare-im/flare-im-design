@@ -20,6 +20,8 @@ const props = defineProps<{
   userOf: (userId: string) => FlarePluginUser;
   /** The viewer's user id. */
   viewerId?: string;
+  /** An entry's time as text (entries with `timeMs`). */
+  timeText?: (ms: number) => string;
 }>();
 const emit = defineEmits<{ (e: "seeAll"): void }>();
 const { t } = useFlareI18nOptional();
@@ -63,6 +65,12 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
           />
           <span class="flare-plugin-entries__text" data-entry-text="true">{{ entry.text }}</span>
         </span>
+        <time
+          v-if="entry.timeMs !== undefined && timeText"
+          class="flare-plugin-entries__time"
+          :datetime="new Date(entry.timeMs).toISOString()"
+          data-entry-time="true"
+        >{{ timeText(entry.timeMs) }}</time>
       </li>
       </template>
     </ol>
@@ -80,6 +88,7 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
 .flare-plugin-entries__number { flex: none; min-width: 2ch; color: var(--flare-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .flare-plugin-entries__avatar { flex: none; }
 .flare-plugin-entries__line { flex: 1; display: flex; align-items: baseline; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-plugin-entries__time { flex: none; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary); font-variant-numeric: tabular-nums; }
 .flare-plugin-entries__badge { flex: none; max-width: 40%; }
 .flare-plugin-entries__name { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--flare-size-font-weight-medium); color: var(--flare-color-text-primary); }
 .flare-plugin-entries__text { min-width: 0; overflow-wrap: anywhere; color: var(--flare-color-text-primary); }

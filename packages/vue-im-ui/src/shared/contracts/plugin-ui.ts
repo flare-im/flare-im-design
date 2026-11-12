@@ -106,6 +106,8 @@ export interface FlarePluginEntry {
   group?: FlarePluginEntryGroup;
   /** Drawn after the name and the me tag, before the text. */
   badge?: FlarePluginBadge;
+  /** When it happened (epoch ms), drawn after the text (flarePluginDateTime). */
+  timeMs?: number;
 }
 export interface FlarePluginEntriesBlock {
   kind: "entries";
@@ -186,6 +188,8 @@ export interface FlarePluginRowsBlock {
   filters?: ReadonlyArray<string>;
   /** `cards`: one card per row where the host draws the table layout; a plugin page's list ignores it. */
   presentation?: "table" | "cards";
+  /** A page list puts its rows under day headings by the first time column (flarePluginRowDayHeadings). */
+  groupByDay?: boolean;
 }
 /** One item of a protected media block; nothing about its content is in the view. */
 export interface FlarePluginProtectedItem {
@@ -309,6 +313,8 @@ export interface FlarePluginHeroBlock {
   subtitle?: string;
   tone: FlarePluginHeroTone;
   actions?: ReadonlyArray<FlarePluginAction>;
+  /** The viewer may hide the value: the hero offers an eye toggle and draws dots while hidden. */
+  maskable?: boolean;
 }
 export type FlarePluginStepState = "pending" | "current" | "done" | "failed";
 export interface FlarePluginStepsBlock {
@@ -741,6 +747,49 @@ export function flarePluginDateTime(
     at.year === now.year ? strings.dateTime : strings.dateTimeYear,
     at,
   );
+}
+
+/** What a hidden value reads as (a maskable hero). */
+export const FLARE_PLUGIN_MASKED_VALUE = "••••";
+
+/** The date part of a date-time pattern ("M月d日 HH:mm" → "M月d日"). */
+function datePattern(pattern: string): string {
+  return pattern.replace(/[\s,]*HH:mm[\s,]*/, " ").replace(/[\s,]+$/, "").trim();
+}
+
+/**
+ * The day headings of a page list grouped by day (spec rules.rowsGroupByDay): one per row, present on the first row
+ * of each day — "today", "yesterday", else the date (the year only outside the current one) — by the row's first
+ * time column; a row without a time starts no group.
+ */
+export function flarePluginRowDayHeadings(
+  block: Pick<FlarePluginRowsBlock, "columns" | "rows" | "groupByDay">,
+  nowMs: number,
+  strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
+  labels: { today: string; yesterday: string },
+  utcOffsetMinutes?: number,
+): ReadonlyArray<string | undefined> {
+  const column = block.columns.findIndex((c) => c.format === "time");
+  if (!block.groupByDay || column < 0) return block.rows.map(() => undefined);
+  const key = (c: WallClock) => `${c.year}-${c.month}-${c.day}`;
+  const now = wallClock(nowMs, utcOffsetMinutes);
+  const today = key(now);
+  const yesterday = key(wallClock(nowMs - 86_400_000, utcOffsetMinutes));
+  let previous: string | undefined;
+  return block.rows.map((row) => {
+    const ms = row.cells[column]?.timeMs;
+    if (typeof ms !== "number") return undefined;
+    const at = wallClock(ms, utcOffsetMinutes);
+    const day = key(at);
+    if (day === previous) return undefined;
+    previous = day;
+    if (day === today) return labels.today;
+    if (day === yesterday) return labels.yesterday;
+    return flarePluginRenderPattern(
+      datePattern(at.year === now.year ? strings.dateTime : strings.dateTimeYear),
+      at,
+    );
+  });
 }
 
 /** A time block's text: an instant, a range on one day ("…14:00–15:00") or across days ("… – …"). */
