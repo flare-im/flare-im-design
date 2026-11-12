@@ -2459,28 +2459,80 @@
       }
     },
     {
-      "name": "RedPacketPayConfirm",
+      "name": "PaymentConfirmation",
       "status": "stable",
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
-          "symbol": "FlareRedPacketPayConfirm",
-          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketPayConfirm.vue"
+          "symbol": "FlarePaymentConfirmation",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlarePaymentConfirmation.vue"
         },
         "flutter": {
           "package": "flare_im_ui",
-          "symbol": "FlareRedPacketPayConfirm",
-          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_pay_confirm.dart"
+          "symbol": "FlarePaymentConfirmation",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_payment_confirmation.dart"
         },
         "compose": {
           "package": "com.flare.im:im-ui-compose",
-          "symbol": "RedPacketPayConfirm",
-          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketPayConfirm.kt"
+          "symbol": "FlarePaymentConfirmation",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlarePaymentConfirmation.kt"
         },
         "ios": {
           "package": "FlareIMUI",
-          "symbol": "RedPacketPayConfirmView",
-          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketPayConfirmView.swift"
+          "symbol": "FlarePaymentConfirmation",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePaymentConfirmation.swift"
+        }
+      }
+    },
+    {
+      "name": "CapabilityConsent",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCapabilityConsent",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareCapabilityConsent.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCapabilityConsent",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_capability_consent.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareCapabilityConsent",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareCapabilityConsent.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareCapabilityConsent",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareCapabilityConsent.swift"
+        }
+      }
+    },
+    {
+      "name": "DocumentCapture",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDocumentCapture",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareDocumentCapture.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDocumentCapture",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_document_capture.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareDocumentCapture",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareDocumentCapture.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareDocumentCapture",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareDocumentCapture.swift"
         }
       }
     },

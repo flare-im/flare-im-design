@@ -141,7 +141,9 @@
     "RedPacketOpenSheet": "im-ui",
     "RedPacketDetail": "im-ui",
     "RedPacketComposer": "im-ui",
-    "RedPacketPayConfirm": "im-ui",
+    "PaymentConfirmation": "im-ui",
+    "CapabilityConsent": "im-ui",
+    "DocumentCapture": "im-ui",
     "PluginView": "im-ui",
     "PluginForm": "im-ui",
     "PluginDetailSheet": "im-ui",
@@ -231,7 +233,7 @@
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
     "UserIdentity": "general-ui",
-    "ImageUploadSlot": "general-ui",
-    "FileUpload": "general-ui"
+    "ImageUploadSlot": "im-ui",
+    "FileUpload": "im-ui"
   }
 }

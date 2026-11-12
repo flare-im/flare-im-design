@@ -1,5 +1,6 @@
 ## 未发布
 
+- 宿主能力组件（`docs/plugin-components.md`「宿主能力组件」，`spec/capability-ui-vectors.json`）：新增 `FlareCapabilityConsent`、`FlareDocumentCapture`（宿主传 `preview` 与 `capture`，`BitmapFactory` + `ExifInterface` 摆正，`Bitmap.compress` 写出不带元数据的 JPEG）、`FlarePaymentConfirmation`（`FlarePaymentOrder`，按 `FlareServerClock` 倒计时）与 `FlareCapabilityRules`、`FlarePaymentRules`、`FlareDocumentRules`。**删除** `RedPacketPayConfirm` 与 `redPacket.pay`、`payment.confirm` 渲染器（`ResolvedPresentation` 只画红包卡片）；`packetPay*` 文案字段保留。新增受保护媒体块（`PluginProtectedMediaBlock`，`PluginView`、`FlarePluginPage` 新参数 `protectedMedia`、`onProtectedMediaRead`；Coil 关闭磁盘缓存）。新输入 `location`（`PluginLocationValue`、`PluginInput.precision`，参数 `locationStates`、`onLocationAction`）。
 - `Input` 新增 `inputMode: FlareInputMode`（Text、Numeric、Decimal、Tel、Email、Url、Search），对应契约 `inputmode`；插件 `money` 输入打开小数键盘，小数位为 0 时只给数字键盘。
 - 插件 `chart` 块改用图表 token `chartSeries1`–`chartSeries6`，不再借用语义状态色。
 - `FlareResourceOverlay.stringValues(locale, builtIn)` 公开：宿主自己的词表按同一套规则（键已存在、占位符一致）取资源包词条。

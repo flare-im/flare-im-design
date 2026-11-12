@@ -1,15 +1,15 @@
 ---
-title: RedPacketPayConfirm
+title: CapabilityConsent
 outline: [2, 3]
 prev: false
 next: false
 ---
 
-# RedPacketPayConfirm
+# CapabilityConsent
 
 <!-- flare-component-reference:start -->
 
-<ComponentReference name="RedPacketPayConfirm" />
+<ComponentReference name="CapabilityConsent" />
 
 <!-- flare-component-reference:end -->
 

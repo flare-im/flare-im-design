@@ -10,7 +10,9 @@
 | 开红包浮层 | `FlareRedPacketOpenSheet` | `RedPacketOpenSheet` | `RedPacketOpenSheet` | `FlareRedPacketOpenSheet` |
 | 红包详情 | `FlareRedPacketDetail` | `RedPacketDetailView` | `RedPacketDetail` | `FlareRedPacketDetail` |
 | 发红包表单 | `FlareRedPacketComposer` | `RedPacketComposerView` | `RedPacketComposer` | `FlareRedPacketComposer` |
-| 支付确认 | `FlareRedPacketPayConfirm` | `RedPacketPayConfirmView` | `RedPacketPayConfirm` | `FlareRedPacketPayConfirm` |
+| 付款确认（宿主能力 paymentConfirmation） | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` |
+| 能力授权 | `FlareCapabilityConsent` | `FlareCapabilityConsent` | `FlareCapabilityConsent` | `FlareCapabilityConsent` |
+| 证件拍摄（宿主能力 documentCapture） | `FlareDocumentCapture` | `FlareDocumentCapture` | `FlareDocumentCapture` | `FlareDocumentCapture` |
 | 通用插件卡片（v1 字段与动作，v2 展示块） | `FlarePluginView` | `PluginView` | `PluginView` | `FlarePluginView` |
 | 插件表单 | `FlarePluginForm` | `PluginFormView` | `PluginForm` | `FlarePluginForm` |
 | 插件详情（查看全部） | `FlarePluginDetailSheet` | `PluginDetailSheetView` | `PluginDetailSheet` | `FlarePluginDetailSheet` |
@@ -64,17 +66,13 @@
 - `locked`：原命令结果未知、等待核对。所有输入和种类切换只读（读屏标为只读），提交按钮不可点，但不显示加载动画；宿主通常在表单上方用 StatusBanner 说明原因。
 - 种类切换的选中项用 `redPacket.accent`（浅色 #C8291F，深色 #FF7B6B，在深色分段底上 6.2:1），经 Kit 分段控件新增的可选参数 `accent` 传入，其他页面的分段控件不受影响。
 
-### 支付确认 `RedPacketPayConfirm`
+### 支付确认
 
-`amount`、`methodLabel`（如「钱包（余额 ¥12.00）」）、`insufficient`、`busy`；回调 `confirm`、`cancel`。Vue 另有可见性 `open`。
-
-- 复用 Kit BottomSheet：手机形态是底部面板，其余形态交给 Modal。Flutter 的内容组件配 `FlareRedPacketPayConfirm.show`，标题为「确认付款」。
-- 大字金额、支付方式行、确认（红色 Kit Button）和取消。`insufficient` 时确认不可用并显示「余额不足」；`busy` 时两个按钮和遮罩、Escape、返回键都锁定。沙箱钱包，不做支付密码。
+红包与钱包的付款不再是红包组件族的一部分：`RedPacketPayConfirm` 与 `payment.confirm`、`redPacket.pay` 渲染器已删除，改由宿主能力 `paymentConfirmation` 和 `FlarePaymentConfirmation` 承担，见下文「宿主能力组件」。
 
 ### SwiftUI 与 Compose
 
 - 开红包浮层：SwiftUI 的 `RedPacketOpenSheet` 是整层视图（遮罩、信封、下方关闭键），用 `flareRedPacketOpenSheet(isPresented:onDismiss:sheet:)` 呈现（iOS 16.4+ 为透明全屏覆盖，更早的 iOS 与 macOS 为系统 sheet），`onClose` 里由宿主把 `isPresented` 置回 false；也可以自己叠在页面上。Compose 的 `RedPacketOpenSheet` 组合即显示，独立对话窗口，`onClose` 在退出动画后调用（减少动态效果时立即调用）。减少动态效果读 iOS `accessibilityReduceMotion`、Android 动画时长缩放为 0。
-- 支付确认：SwiftUI 的 `RedPacketPayConfirmView` 是面板内容，用 `flareBottomSheet(isPresented:title:titleHidden:dismissible:)` 呈现，标题传 `packetPayTitle` 并隐藏（内容自绘标题），`dismissible` 传 `!busy`。Compose 的 `RedPacketPayConfirm` 组合即显示 Kit `BottomSheet`，`busy` 时锁定遮罩与返回键。
 - 红色金额按钮：Compose 用 Kit `Button`，在局部主题里把 primary 换成 `redPacket.end`；SwiftUI 的 `ButtonView` 没有改色入口，组件族内部用同尺寸（高 48、圆角 lg、白字）的红色按钮代替，不对外公开。
 - 发红包表单：原生 `count` 是整数，0 表示空；`onCountChange` 回传整数。`recipient` 在 SwiftUI 是 `@ViewBuilder` 参数（不需要时用不带它的初始化方法），在 Compose 是可空的 composable 参数。种类切换复用 Kit 分段控件，分段的命中区覆盖整条轨道高度（SwiftUI 44、Compose 48）。
 - 测试：iOS `RedPacketComponentsTests`（ViewInspector 状态矩阵，macOS 上另有宿主窗口真实点击），Android JVM `RedPacketComponentsTest` 与设备上的 `RedPacketComponentsInteractionTest`，两端都读 `spec/red-packet-vectors.json`。
@@ -190,7 +188,44 @@
 
 ### 删除的专用渲染器
 
-`redPacket.composer`（改为 `money` 输入加现有输入）、`redPacket.detail`（改为 `hero` + `entries` + `banner`）、`account`（改为 `hero` + `stats` + `section` + `rows`）、`flare.qr`（改为 `qr` 块）在 Kit 里不再识别，这些名字的视图按普通文档画。合同迁移在插件仓完成。`FlareRedPacketComposer`、`FlareRedPacketDetail` 组件本身保留给宿主直接组合。`PluginPage.appearance="account"` 仍可由宿主显式选择，但视图不再通过 renderer 选它。
+`redPacket.pay` 与 `payment.confirm`（改为宿主能力 `paymentConfirmation`，见「宿主能力组件」）、`redPacket.composer`（改为 `money` 输入加现有输入）、`redPacket.detail`（改为 `hero` + `entries` + `banner`）、`account`（改为 `hero` + `stats` + `section` + `rows`）、`flare.qr`（改为 `qr` 块）在 Kit 里不再识别，这些名字的视图按普通文档画。合同迁移在插件仓完成。`FlareRedPacketComposer`、`FlareRedPacketDetail` 组件本身保留给宿主直接组合。`PluginPage.appearance="account"` 仍可由宿主显式选择，但视图不再通过 renderer 选它。
+
+## 宿主能力组件（L2，设计 7）
+
+插件经引擎申请宿主能力时，引擎发出事件 `plugin.capability_request {requestId, method, request}`，宿主画 Kit 组件、拿到结果后用 `plugin.capability_complete {requestId, result}` 回答。Kit 只画，不发请求，不存同意记录，不申请系统权限；能力按「做什么」命名，组件里不出现任何插件 ID。四端共享事实表 `spec/capability-ui-vectors.json`，四端测试读同一份。
+
+`PLUGIN_UI_VOCABULARY.native` 现在包含 `documentCapture`、`paymentConfirmation`、`locationOnce`；`renderers` 只剩 `redPacket.card`；`inputs` 新增 `location`；四端都画 `protected-media`。宿主的 `nativeAllowlist` 也要列出它真正接好的能力（引擎取三者交集）。
+
+### 能力授权 `FlareCapabilityConsent`（method `consent`）
+
+- 输入：`pluginName`、`capability`、`params`、`purpose?`、`busy`；回调 `decide(once | always | deny)`。关闭即拒绝。
+- 文案「「〈插件〉」想要使用」+ 能力一行（`capability.label.*` / `capability*` 字段）；未知能力显示「设备上的一项能力」，不显示原名。`locationOnce` 每次确认，不给「始终允许」。
+- 宿主用 `flareCapabilityConsentAnswer`（原生为 `decision.answer` / `granted` 与 `remember`）回答 `{granted}`。引擎保存每次授权，所以「仅本次」由宿主在请求结束后调用 `revokePluginCapabilityConsent({pluginId, capability})`。
+
+### 证件拍摄 `FlareDocumentCapture`（method `captureDocument`）
+
+- 输入：`side`（front / back / holding）、`maxBytes`、`accept`、`preview`（宿主相机画面：Vue 插槽、Flutter Widget、SwiftUI `AnyView`、Compose composable）、`capture`（宿主取静帧）、`pickPhoto`（宿主相册）、`cameraUnavailable`；回调 `done(file)`、`cancel`。
+- Kit 画取景框（正反面 ID-1 比例 1.585，手持 3:4）、提示、处理中、确认与重拍。相机权限与相机本身归宿主（CameraX、AVFoundation、Flutter `camera`、`getUserMedia`）。
+- 压缩与去 EXIF 在 Kit：按 `documentCompression.plan`（最长边 2048→1024，质量 0.86→0.5）逐级编码成 `image/jpeg`，方向先烤进像素，再用与引擎一致的 `flareJpegHasExif` 复查。Vue 用画布，Flutter 在后台 isolate 用 `image` 包，SwiftUI 用 ImageIO 不带属性的缩略图，Compose 用 `BitmapFactory` + `ExifInterface` + `Bitmap.compress`。`done` 交出 `{fileName: document-<side>.jpg, contentType, bytes}`，即 `captureDocument` 的 `{file}`（字节转成 0–255 数组）。
+
+### 付款确认 `FlarePaymentConfirmation`（method `confirmPayment`）
+
+- 输入：`order {orderId, amount, currency, payee, title, expiresAtMs, operation}`、`pluginName?`、`busy`、`error?`、`confirmDisabled`、`credential`（宿主在面板内收密码时放输入框；Vue 为插槽）；回调 `confirm`、`cancel`、`expire`。Vue 另有 `open`。
+- 金额只取订单：`flarePaymentAmountText` 不经浮点，整数部分三位分组，小数原样，常见币种用符号；不是普通非负小数时不能确认。倒计时按 `FlareServerClock`（服务端时钟），过期后不能确认并提示重新发起。
+- 身份验证沿用宿主已有的 `reauthenticate` 流程（支付密码、生物识别）：`confirm` 只表示用户确认，宿主验证后把凭证作为 `{confirmation}` 回答引擎；`busy` 时所有按钮与关闭方式锁定。
+
+### 位置输入 `location`
+
+- 输入声明 `precision`（coarse / fine）。表单显示定位结果（「31.23°N, 121.47°E」、精度、约 N 米）或「尚未获取位置」，「获取位置 / 重新获取」与「清除」两个键。
+- 键交给宿主：Vue 事件 `locationAction`，原生 `onLocationAction`，载荷 `{action: locate | clear, inputId, input, formValues}`。宿主对该输入执行页面的 `locationOnce` 原生动作（`pluginCapabilityInvoke`，带 `into` 和页面表单），引擎回 `{kind: "input", input, value}` 后把 `value` 放进 `locationStates[inputId].value`；清除时宿主丢掉该输入的状态。
+- 值规则同 `UiLocationValue::fits`：精度一致、在地球上、粗 2 位小数且精度 ≥1000 米、细 5 位且 ≥1 米；不符的值不采用（`locationInput` 向量）。
+
+### 受保护媒体（四端）
+
+- 本人页面（实名「我的证件」）的读取操作是 owner-scoped 查询，块不声明 `reasonInput`：点「查看」即读，不问原因，提示「仅你本人可查看，图片不会保存到设备」。控制台声明 `reasonInput`，仍先问原因并提示审计。
+- 宿主执行读取并审计，用 `flarePluginProtectedMediaUrl`（原生 `FlarePluginProtectedMedia.url`）从结果取地址填回 `protectedMedia[itemId].url`。服务端给的是带 `?grant=` 的短时绝对 https 地址。
+- 地址规则（`protectedMediaSource` 向量）：原生只画 https 与 data:image；Vue 另接受 blob: 与 Tauri 资源地址。图片只在内存：SwiftUI 用无缓存、无 Cookie 的临时会话自己取，Compose 用 Coil 并关闭磁盘缓存，Flutter 用内存图片缓存并在离开时清掉；图片不可拖拽、无长按菜单、无保存或分享入口。
+- 原生新参数：`protectedMedia`、`onProtectedMediaRead`（SwiftUI、Compose、Flutter 的 `PluginView` 与 `FlarePluginPage`）；Vue `FlarePluginPage` 也转发 `protectedMedia` 与 `protectedMediaRead`。
 
 ## 自定义内容渲染器
 

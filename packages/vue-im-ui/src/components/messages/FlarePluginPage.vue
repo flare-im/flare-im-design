@@ -32,6 +32,8 @@ import {
   type FlarePluginFileState,
   type FlarePluginFileAction,
   type FlarePluginLocationAction,
+  type FlarePluginProtectedMediaRead,
+  type FlarePluginProtectedMediaState,
   type FlarePluginLocationState,
   type FlarePluginMember,
   type FlarePluginPageActionPayload,
@@ -80,6 +82,8 @@ const props = withDefaults(
     fileStates?: Record<string, FlarePluginFileState>;
     /** Location inputs: the host's fix, a running locate or a failure, by input id. */
     locationStates?: Record<string, FlarePluginLocationState>;
+    /** Protected media on the page (an owner's own documents): the host's read address, by item id. */
+    protectedMedia?: Record<string, FlarePluginProtectedMediaState>;
     members?: FlarePluginMember[];
     membersLoading?: boolean;
     membersRevision?: number;
@@ -107,6 +111,8 @@ const emit = defineEmits<{
   fileAction: [event: FlarePluginFileAction];
   /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
   locationAction: [event: FlarePluginLocationAction];
+  /** A protected media read: the host runs it (the owner-scoped query) and fills `protectedMedia`. */
+  protectedMediaRead: [read: FlarePluginProtectedMediaRead];
   /** Pull to refresh or the refresh key: the host fetches the page again and passes back the view. */
   refresh: [];
   /** The first load failed and the reader asked again. */
@@ -204,6 +210,7 @@ function choose(filter: FlarePluginPageFilter, key: string): void {
 }
 function forwardFileAction(event: FlarePluginFileAction): void { emit("fileAction", event); }
 function forwardLocationAction(event: FlarePluginLocationAction): void { emit("locationAction", event); }
+function forwardProtectedMediaRead(read: FlarePluginProtectedMediaRead): void { emit("protectedMediaRead", read); }
 function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh", request); }
 </script>
 
@@ -295,6 +302,8 @@ function forwardQrRefresh(request: FlarePluginQrRefresh): void { emit("qrRefresh
             :file-states="fileStates"
             :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
             :location-states="locationStates"
+            :protected-media="protectedMedia"
+            :onProtectedMediaRead="instance?.vnode.props?.onProtectedMediaRead ? forwardProtectedMediaRead : undefined"
             :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
             v-else
             :view="view"

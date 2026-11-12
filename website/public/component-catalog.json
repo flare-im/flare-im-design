@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 187,
-    "stable": 186,
-    "general": 60,
-    "im": 121
+    "total": 189,
+    "stable": 188,
+    "general": 58,
+    "im": 126
   },
   "specializedMessageGroups": {
     "Text": [
@@ -10792,8 +10792,8 @@
       "searchText": "redpacketcomposer message im-ui stable message lucky normal exclusive error busy locked submit update:kind update:amount update:count update:greeting supportsconfiguration send-a-packet form — kind switch, amount, quantity, exclusive recipient slot, greeting, the total drawn large and the submit button. 发红包表单 —— 种类分段、金额、个数、专属收款人插槽、祝福语、大字总额和「塞钱进红包」。"
     },
     {
-      "name": "RedPacketPayConfirm",
-      "slug": "red-packet-pay-confirm",
+      "name": "PaymentConfirmation",
+      "slug": "payment-confirmation",
       "category": "Message",
       "layer": "im-ui",
       "scope": "public-library",
@@ -10812,10 +10812,10 @@
         "desktop"
       ],
       "previewPresentation": "isolated",
-      "previewOpener": "余额充足",
+      "previewOpener": null,
       "docsSections": {
         "configuration": true,
-        "variants": false,
+        "variants": true,
         "states": true,
         "interaction": true,
         "responsive": false,
@@ -10825,32 +10825,305 @@
         "customization": false
       },
       "docExamples": {
-        "variants": [],
+        "variants": [
+          {
+            "name": "credential",
+            "values": [
+              "slot",
+              "Widget",
+              "AnyView",
+              "@Composable"
+            ]
+          }
+        ],
         "states": [
           "ready",
-          "insufficient",
+          "expired",
+          "invalid",
           "busy"
         ]
       },
       "summary": {
-        "zh": "支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。",
-        "en": "Payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance."
+        "en": "Payment confirmation — the panel a host shows for the engine's confirmPayment request: the order's amount drawn large, payee, what it is for, order number, a server-clock countdown, confirm and cancel. The viewer is verified by the host's own reauthenticate flow.",
+        "zh": "付款确认 —— 宿主收到引擎 confirmPayment 请求后弹出的面板：大字金额、收款方、付款说明、订单号、按服务端时钟的倒计时、确认与取消。身份验证走宿主已有的 reauthenticate 流程。"
       },
       "aliases": [
+        "payment confirmation",
+        "confirm payment",
+        "pay",
+        "确认付款",
+        "支付确认",
+        "付款",
         "Message",
         "ready",
-        "insufficient",
+        "expired",
+        "invalid",
         "busy",
         "confirm",
-        "cancel"
+        "cancel",
+        "expire"
       ],
       "states": [
         "ready",
-        "insufficient",
+        "expired",
+        "invalid",
         "busy"
       ],
       "interactions": [
         "confirm",
+        "cancel",
+        "expire"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePaymentConfirmation"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePaymentConfirmation"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePaymentConfirmation"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlarePaymentConfirmation"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlarePaymentConfirmation.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_payment_confirmation.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlarePaymentConfirmation.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePaymentConfirmation.swift"
+      },
+      "docs": {
+        "zh": "website/components/payment-confirmation.md",
+        "en": "website/en/components/payment-confirmation.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PaymentConfirmation",
+      "searchText": "paymentconfirmation message im-ui stable payment confirmation confirm payment pay 确认付款 支付确认 付款 message ready expired invalid busy confirm cancel expire supportsconfiguration payment confirmation — the panel a host shows for the engine's confirmpayment request: the order's amount drawn large, payee, what it is for, order number, a server-clock countdown, confirm and cancel. the viewer is verified by the host's own reauthenticate flow. 付款确认 —— 宿主收到引擎 confirmpayment 请求后弹出的面板：大字金额、收款方、付款说明、订单号、按服务端时钟的倒计时、确认与取消。身份验证走宿主已有的 reauthenticate 流程。"
+    },
+    {
+      "name": "CapabilityConsent",
+      "slug": "capability-consent",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": true,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": true
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ask",
+          "askOnce"
+        ]
+      },
+      "summary": {
+        "en": "Capability consent — the panel a host shows the first time a plugin uses a host capability: \"〈plugin〉 wants to use 〈capability〉\", the purpose, and allow once, always allow, don't allow.",
+        "zh": "能力授权 —— 插件第一次使用宿主能力时宿主弹出的面板：「〈插件〉想要使用〈能力〉」、用途，以及仅本次允许、始终允许、不允许。"
+      },
+      "aliases": [
+        "capability consent",
+        "permission",
+        "allow once",
+        "授权",
+        "能力授权",
+        "仅本次允许",
+        "Message",
+        "ask",
+        "askOnce",
+        "decide"
+      ],
+      "states": [
+        "ask",
+        "askOnce"
+      ],
+      "interactions": [
+        "decide"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlareCapabilityConsent"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlareCapabilityConsent.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_capability_consent.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareCapabilityConsent.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareCapabilityConsent.swift"
+      },
+      "docs": {
+        "zh": "website/components/capability-consent.md",
+        "en": "website/en/components/capability-consent.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#CapabilityConsent",
+      "searchText": "capabilityconsent message im-ui stable capability consent permission allow once 授权 能力授权 仅本次允许 message ask askonce decide supportsconfiguration supportscapabilities capability consent — the panel a host shows the first time a plugin uses a host capability: \"〈plugin〉 wants to use 〈capability〉\", the purpose, and allow once, always allow, don't allow. 能力授权 —— 插件第一次使用宿主能力时宿主弹出的面板：「〈插件〉想要使用〈能力〉」、用途，以及仅本次允许、始终允许、不允许。"
+    },
+    {
+      "name": "DocumentCapture",
+      "slug": "document-capture",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "side",
+            "values": [
+              "front",
+              "back",
+              "holding"
+            ]
+          },
+          {
+            "name": "preview",
+            "values": [
+              "slot",
+              "Widget",
+              "AnyView",
+              "@Composable"
+            ]
+          },
+          {
+            "name": "capture",
+            "values": [
+              "() => Promise<Blob",
+              "bytes",
+              "null>"
+            ]
+          },
+          {
+            "name": "pickPhoto",
+            "values": [
+              "() => Promise<Blob",
+              "bytes",
+              "null>"
+            ]
+          }
+        ],
+        "states": [
+          "viewfinder",
+          "processing",
+          "review",
+          "error"
+        ]
+      },
+      "summary": {
+        "en": "Document capture — the viewfinder a host shows for the engine's captureDocument request: the host's camera preview under a frame for the side (front, back, holding), a hint, shoot or choose a photo, review with use and retake. The kit compresses the photo and strips EXIF.",
+        "zh": "证件拍摄 —— 宿主收到引擎 captureDocument 请求后显示的取景面板：宿主的相机画面上叠按证件面（正面、反面、手持）画的取景框、提示、拍摄或从相册选、确认与重拍。压缩与去 EXIF 由 Kit 完成。"
+      },
+      "aliases": [
+        "document capture",
+        "id photo",
+        "camera frame",
+        "拍摄证件",
+        "证件照",
+        "取景框",
+        "Message",
+        "viewfinder",
+        "processing",
+        "review",
+        "error",
+        "done",
+        "cancel"
+      ],
+      "states": [
+        "viewfinder",
+        "processing",
+        "review",
+        "error"
+      ],
+      "interactions": [
+        "done",
         "cancel"
       ],
       "accessibility": "accessibility-contract",
@@ -10859,41 +11132,41 @@
         "vue": {
           "support": "supported",
           "package": "@flare-im/vue-ui",
-          "symbol": "FlareRedPacketPayConfirm"
+          "symbol": "FlareDocumentCapture"
         },
         "flutter": {
           "support": "supported",
           "package": "flare_im_ui",
-          "symbol": "FlareRedPacketPayConfirm"
+          "symbol": "FlareDocumentCapture"
         },
         "compose": {
           "support": "supported",
           "package": "com.flare.im:im-ui-compose",
-          "symbol": "RedPacketPayConfirm"
+          "symbol": "FlareDocumentCapture"
         },
         "ios": {
           "support": "supported",
           "package": "FlareIMUI",
-          "symbol": "RedPacketPayConfirmView"
+          "symbol": "FlareDocumentCapture"
         }
       },
       "sourcePaths": {
-        "vue": "packages/vue-im-ui/src/components/messages/FlareRedPacketPayConfirm.vue",
-        "flutter": "packages/flutter-im-ui/lib/src/components/flare_red_packet_pay_confirm.dart",
-        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketPayConfirm.kt",
-        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketPayConfirmView.swift"
+        "vue": "packages/vue-im-ui/src/components/messages/FlareDocumentCapture.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_document_capture.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareDocumentCapture.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareDocumentCapture.swift"
       },
       "docs": {
-        "zh": "website/components/red-packet-pay-confirm.md",
-        "en": "website/en/components/red-packet-pay-confirm.md"
+        "zh": "website/components/document-capture.md",
+        "en": "website/en/components/document-capture.md"
       },
       "examples": {
         "live": true,
         "code": true,
         "gallery": false
       },
-      "sourceOfTruth": "spec/components.json#RedPacketPayConfirm",
-      "searchText": "redpacketpayconfirm message im-ui stable message ready insufficient busy confirm cancel supportsconfiguration payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance. 支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。"
+      "sourceOfTruth": "spec/components.json#DocumentCapture",
+      "searchText": "documentcapture message im-ui stable document capture id photo camera frame 拍摄证件 证件照 取景框 message viewfinder processing review error done cancel supportsconfiguration document capture — the viewfinder a host shows for the engine's capturedocument request: the host's camera preview under a frame for the side (front, back, holding), a hint, shoot or choose a photo, review with use and retake. the kit compresses the photo and strips exif. 证件拍摄 —— 宿主收到引擎 capturedocument 请求后显示的取景面板：宿主的相机画面上叠按证件面（正面、反面、手持）画的取景框、提示、拍摄或从相册选、确认与重拍。压缩与去 exif 由 kit 完成。"
     },
     {
       "name": "PluginView",
@@ -10999,7 +11272,8 @@
         "protectedMediaRead",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction"
       ],
       "states": [
         "unavailable",
@@ -11022,7 +11296,8 @@
         "protectedMediaRead",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11064,7 +11339,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry qrrefresh supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry qrrefresh locationaction supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -11125,7 +11400,8 @@
         "selectionMore",
         "referenceLoad",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "locationAction"
       ],
       "states": [
         "editing",
@@ -11141,7 +11417,8 @@
         "selectionMore",
         "referenceLoad",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "locationAction"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11183,7 +11460,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginForm",
-      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore referenceload membersearch membersretry supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 kit 底部面板或嵌入页面。"
+      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore referenceload membersearch membersretry locationaction supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 kit 底部面板或嵌入页面。"
     },
     {
       "name": "PluginDetailSheet",
@@ -11416,7 +11693,9 @@
         "action",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction",
+        "protectedMediaRead"
       ],
       "states": [
         "loading",
@@ -11435,7 +11714,9 @@
         "action",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction",
+        "protectedMediaRead"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11477,12 +11758,13 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
-      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry qrrefresh supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry qrrefresh locationaction protectedmediaread supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
     },
     {
       "name": "PluginUpgradeNotice",
       "slug": "plugin-upgrade-notice",
       "category": "Message",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "stable",
       "since": "2.0.0-rc.1",
@@ -11600,7 +11882,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginUpgradeNotice",
-      "searchText": "pluginupgradenotice message  stable plugin upgrade update required upgrade notice 需更新 升级提示 去更新 message description update notavailable update supportsconfiguration plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or me entry, or a whole page. 插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
+      "searchText": "pluginupgradenotice message im-ui stable plugin upgrade update required upgrade notice 需更新 升级提示 去更新 message description update notavailable update supportsconfiguration plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or me entry, or a whole page. 插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
     },
     {
       "name": "AccountView",
@@ -20623,7 +20905,7 @@
       "name": "ImageUploadSlot",
       "slug": "image-upload-slot",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "experimental",
       "since": "2.0.0-rc.1",
@@ -20737,13 +21019,13 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ImageUploadSlot",
-      "searchText": "imageuploadslot media general-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
+      "searchText": "imageuploadslot media im-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
     },
     {
       "name": "FileUpload",
       "slug": "file-upload",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "stable",
       "since": "2.0.0-rc.1",
@@ -20853,7 +21135,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#FileUpload",
-      "searchText": "fileupload media general-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
+      "searchText": "fileupload media im-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
     }
   ]
 }

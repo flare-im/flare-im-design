@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { FlareRedPacketComposer, FlareRedPacketPayConfirm, FlareSegmentedControl, FlareStatusBanner } from "@flare-im/vue-ui/components";
+import { FlarePaymentConfirmation, FlareRedPacketComposer, FlareSegmentedControl, FlareStatusBanner } from "@flare-im/vue-ui/components";
 import { flareRedPacketAmountMinor, flareRedPacketMoney } from "@flare-im/vue-ui";
 import DemoStage from "./DemoStage.vue";
 // 群聊默认拼手气；单聊只给 normal，表单不显示种类和个数，金额标签为「金额」。
@@ -49,10 +49,10 @@ const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额�
         </template>
       </FlareRedPacketComposer>
     </div>
-    <FlareRedPacketPayConfirm
+    <FlarePaymentConfirmation
       :open="paying"
-      :amount="total"
-      method-label="钱包（余额 ¥12.00）"
+      :order="{ orderId: 'rp-demo', amount: total.replace(/[^0-9.]/g, '') || '0', currency: 'CNY', payee: '钱包', title: '红包', expiresAtMs: Date.now() + 600000 }"
+      plugin-name="红包"
       @confirm="paying = false"
       @cancel="paying = false"
     />

@@ -16745,102 +16745,118 @@
       }
     },
     {
-      "name": "RedPacketPayConfirm",
+      "name": "PaymentConfirmation",
       "category": "Message",
       "summary": {
-        "zh": "支付确认 —— 底部面板：大字金额、支付方式行、确认 / 取消；余额不足时不能确认。",
-        "en": "Payment confirmation — bottom panel with the amount drawn large, the method row, confirm and cancel; no confirm on an insufficient balance."
+        "en": "Payment confirmation — the panel a host shows for the engine's confirmPayment request: the order's amount drawn large, payee, what it is for, order number, a server-clock countdown, confirm and cancel. The viewer is verified by the host's own reauthenticate flow.",
+        "zh": "付款确认 —— 宿主收到引擎 confirmPayment 请求后弹出的面板：大字金额、收款方、付款说明、订单号、按服务端时钟的倒计时、确认与取消。身份验证走宿主已有的 reauthenticate 流程。"
       },
       "dataSource": {
-        "zh": "由你传入；金额、时间、名字由宿主格式化，组件不做资金计算也不请求网络",
-        "en": "passed in by you; amounts, times and names arrive formatted, the component never computes money or fetches"
+        "en": "the engine's confirmPayment request (plugin.capability_request): order {orderId, amount, currency, payee, title, expiresAtMs, operation}; the kit formats the amount itself (flarePaymentAmountText) and never parses it as a float",
+        "zh": "引擎 confirmPayment 请求（plugin.capability_request）的 order：{orderId, amount, currency, payee, title, expiresAtMs, operation}；金额由 Kit 自己格式化（flarePaymentAmountText），从不按浮点解析"
       },
       "props": [
         {
           "name": "open",
           "type": "boolean",
           "required": true,
-          "description": {
-            "zh": "是否显示（Vue；原生用 show 或宿主呈现）",
-            "en": "Whether the panel is shown (Vue; native uses show or host presentation)"
-          },
           "platforms": [
             "vue"
-          ]
-        },
-        {
-          "name": "amount",
-          "type": "string",
-          "required": true,
+          ],
           "description": {
-            "zh": "支付金额（大字），如「¥5.00」",
-            "en": "Amount to pay, drawn large, e.g. \"¥5.00\""
+            "en": "Whether the panel is shown (Vue; native kits present it on the kit sheet).",
+            "zh": "是否显示（Vue；原生端放在 Kit 底部面板里呈现）。"
           }
         },
         {
-          "name": "methodLabel",
-          "type": "string",
+          "name": "order",
+          "type": "FlarePaymentOrder",
           "required": true,
           "description": {
-            "zh": "支付方式，如「钱包（余额 ¥12.00）」",
-            "en": "Paying account, e.g. \"Wallet (balance ¥12.00)\""
+            "en": "The engine's order. Amount, payee, title and order id are drawn only from it, so a plugin cannot change the panel.",
+            "zh": "引擎给的订单。金额、收款方、说明、订单号只取订单字段，插件改不了面板。"
           }
         },
         {
-          "name": "insufficient",
-          "type": "boolean",
+          "name": "pluginName",
+          "type": "string",
           "required": false,
           "description": {
-            "zh": "余额不足：确认不可用并显示「余额不足」",
-            "en": "Insufficient balance: confirm is disabled and says why"
-          },
-          "default": "false"
+            "en": "The plugin's display name: \"Requested by …\".",
+            "zh": "插件显示名：「由〈插件〉发起」。"
+          }
         },
         {
           "name": "busy",
           "type": "boolean",
           "required": false,
+          "default": "false",
           "description": {
-            "zh": "支付进行中：两个按钮和所有关闭方式都锁定",
-            "en": "Payment in flight: both buttons and every way out are locked"
-          },
-          "default": "false"
+            "en": "The host is verifying the viewer (its reauthenticate flow): every key and way out is locked; confirm reads \"Verifying\".",
+            "zh": "宿主正在验证身份（reauthenticate 流程）：所有按钮和关闭方式锁定，确认键显示「正在验证身份」。"
+          }
         },
         {
-          "name": "confirmLabel",
+          "name": "error",
           "type": "string",
           "required": false,
           "description": {
-            "zh": "确认按钮文案；宿主区分付款和资金授权，默认沿用确认支付。",
-            "en": "Confirm label; lets the host distinguish payment from authorizing funds. Defaults to Confirm payment."
+            "en": "The host's last failure, such as a wrong password; the panel stays open.",
+            "zh": "宿主上一次的失败（如密码错误）；面板保持打开。"
           }
+        },
+        {
+          "name": "confirmDisabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The host's own gate on confirm, for example a password not complete in the credential slot.",
+            "zh": "宿主自己的确认门槛，例如凭证插槽里的密码还没输完。"
+          }
+        },
+        {
+          "name": "credential",
+          "type": "slot | Widget | AnyView | @Composable",
+          "required": false,
+          "description": {
+            "en": "Where a host that asks for the payment password inside the panel puts its field. Biometrics stay outside the kit. Vue: the credential slot.",
+            "zh": "宿主在面板内收支付密码时放输入框的位置。生物识别不进 Kit。Vue 为 credential 插槽。"
+          },
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ]
         }
       ],
       "states": [
         "ready",
-        "insufficient",
+        "expired",
+        "invalid",
         "busy"
       ],
       "events": [
         "confirm",
-        "cancel"
+        "cancel",
+        "expire"
       ],
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
-          "symbol": "FlareRedPacketPayConfirm"
+          "symbol": "FlarePaymentConfirmation"
         },
         "flutter": {
           "package": "flare_im_ui",
-          "symbol": "FlareRedPacketPayConfirm"
+          "symbol": "FlarePaymentConfirmation"
         },
         "ios": {
           "package": "FlareIMUI",
-          "symbol": "RedPacketPayConfirmView"
+          "symbol": "FlarePaymentConfirmation"
         },
         "compose": {
           "package": "com.flare.im:im-ui-compose",
-          "symbol": "RedPacketPayConfirm"
+          "symbol": "FlarePaymentConfirmation"
         }
       },
       "accessibility": {
@@ -16858,12 +16874,276 @@
           "unit": "logicalPx",
           "appliesTo": "interactiveTargets"
         },
-        "reducedMotionBehavior": "The panel appears without the slide; the scrim appears instantly.",
-        "screenReaderSemantics": "Dialog named \"Confirm payment\"; the method row reads as one line; the insufficient notice is an alert; confirm is busy while paying."
+        "reducedMotionBehavior": "The panel appears without the slide; the countdown changes text only.",
+        "screenReaderSemantics": "Dialog named \"Confirm payment\"; each order row reads as one line; the expiry and failures are polite live regions; confirm is busy while the host verifies."
       },
       "notes": {
-        "zh": "沙箱钱包，不做支付密码。手机形态是底部面板，其余形态交给 Modal（复用 Kit BottomSheet）。确认按钮复用 Kit Button，primary 改为 redPacket.end。",
-        "en": "Sandbox wallet, no payment password. A bottom sheet on the phone form factor, a centered modal elsewhere (the kit BottomSheet). Confirm is the kit Button with primary re-tinted to redPacket.end."
+        "en": "Design 7.3 of docs/design/plugin-client-hot-delivery.md. Converted from the retired payment.confirm and redPacket.pay renderers (and the RedPacketPayConfirm component): a payment is a host capability now, not a renderer. Confirm is off once the order expires (server clock) or when the amount is not a plain decimal. The host answers the engine with the proof its reauthenticate flow returns ({confirmation}); the kit never sees a password or biometric result unless the host puts its own field in the credential slot. Facts in spec/capability-ui-vectors.json (paymentAmount, paymentCountdown).",
+        "zh": "见 docs/design/plugin-client-hot-delivery.md 7.3。由已删除的 payment.confirm、redPacket.pay 渲染器（以及 RedPacketPayConfirm 组件）改造：付款现在是宿主能力，不再是渲染器。订单过期（服务端时钟）或金额不是普通小数时不能确认。宿主用 reauthenticate 流程返回的凭证回答引擎（{confirmation}）；除非宿主把自己的输入框放进 credential 插槽，Kit 看不到密码或生物识别结果。事实见 spec/capability-ui-vectors.json（paymentAmount、paymentCountdown）。"
+      }
+    },
+    {
+      "name": "CapabilityConsent",
+      "category": "Message",
+      "summary": {
+        "en": "Capability consent — the panel a host shows the first time a plugin uses a host capability: \"〈plugin〉 wants to use 〈capability〉\", the purpose, and allow once, always allow, don't allow.",
+        "zh": "能力授权 —— 插件第一次使用宿主能力时宿主弹出的面板：「〈插件〉想要使用〈能力〉」、用途，以及仅本次允许、始终允许、不允许。"
+      },
+      "dataSource": {
+        "en": "the engine's consent request (plugin.capability_request {method: consent}): pluginId, pluginVersion, capability, params; the host adds the plugin's name and declared purpose",
+        "zh": "引擎的 consent 请求（plugin.capability_request {method: consent}）：pluginId、pluginVersion、capability、params；插件名与声明的用途由宿主补上"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Whether the panel is shown (Vue; native kits present it on the kit sheet).",
+            "zh": "是否显示（Vue；原生端放在 Kit 底部面板里呈现）。"
+          }
+        },
+        {
+          "name": "pluginName",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The plugin's display name.",
+            "zh": "插件显示名。"
+          }
+        },
+        {
+          "name": "capability",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "What the plugin asks for (documentCapture, paymentConfirmation, locationOnce, camera, microphone, rtcSession). An unknown one reads as \"a capability of this device\", never its raw name.",
+            "zh": "插件申请的能力（documentCapture、paymentConfirmation、locationOnce、camera、microphone、rtcSession）。未知能力显示「设备上的一项能力」，不显示原名。"
+          }
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "required": false,
+          "description": {
+            "en": "The capability's params: a location's precision picks the approximate or precise line.",
+            "zh": "能力参数：定位精度决定显示大致位置还是精确位置。"
+          }
+        },
+        {
+          "name": "purpose",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Why the plugin wants it, in the plugin's words, when the host has it.",
+            "zh": "插件自己说明的用途（宿主有就传）。"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "Every key is locked.",
+            "zh": "所有按钮锁定。"
+          }
+        }
+      ],
+      "states": [
+        "ask",
+        "askOnce"
+      ],
+      "events": [
+        "decide"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareCapabilityConsent"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareCapabilityConsent"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab is trapped inside the panel",
+          "Enter or Space activates the focused choice",
+          "Escape and the platform back deny"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The panel appears without the slide.",
+        "screenReaderSemantics": "Dialog named \"〈plugin〉 wants to use\"; the capability line reads with its icon hidden; each choice is a button named by its label."
+      },
+      "notes": {
+        "en": "Design 7.4. The kit keeps no record: decide hands back once, always or deny; the host answers the engine's {granted} with flareCapabilityConsentAnswer and, for once, revokes the grant (revokePluginCapabilityConsent) when the request is done, because the engine keeps every grant it is given. A one-time location (locationOnce) is confirmed every time, so it offers no \"Always allow\". Dismissing is deny. No consent is asked for clipboardWrite, selectImage or selectFile (the engine skips them). Facts in spec/capability-ui-vectors.json (consentDecision, capabilityLabel, consentAllowsAlways).",
+        "zh": "见设计 7.4。Kit 不存同意记录：decide 交回 once、always 或 deny；宿主用 flareCapabilityConsentAnswer 换成引擎要的 {granted}，选「仅本次」时在请求结束后撤销授权（revokePluginCapabilityConsent），因为引擎会保存每次授权。一次性定位（locationOnce）每次都要确认，不给「始终允许」。关闭即拒绝。clipboardWrite、selectImage、selectFile 不弹同意（引擎跳过）。事实见 spec/capability-ui-vectors.json（consentDecision、capabilityLabel、consentAllowsAlways）。"
+      }
+    },
+    {
+      "name": "DocumentCapture",
+      "category": "Message",
+      "summary": {
+        "en": "Document capture — the viewfinder a host shows for the engine's captureDocument request: the host's camera preview under a frame for the side (front, back, holding), a hint, shoot or choose a photo, review with use and retake. The kit compresses the photo and strips EXIF.",
+        "zh": "证件拍摄 —— 宿主收到引擎 captureDocument 请求后显示的取景面板：宿主的相机画面上叠按证件面（正面、反面、手持）画的取景框、提示、拍摄或从相册选、确认与重拍。压缩与去 EXIF 由 Kit 完成。"
+      },
+      "dataSource": {
+        "en": "the engine's captureDocument request: side, accept, maxBytes; the camera preview and the still come from the host (CameraX, AVFoundation, camera plugin, getUserMedia)",
+        "zh": "引擎 captureDocument 请求：side、accept、maxBytes；相机画面与静帧由宿主提供（CameraX、AVFoundation、camera 插件、getUserMedia）"
+      },
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "platforms": [
+            "vue"
+          ],
+          "description": {
+            "en": "Whether the panel is shown (Vue; native kits present it on the kit sheet).",
+            "zh": "是否显示（Vue；原生端放在 Kit 底部面板里呈现）。"
+          }
+        },
+        {
+          "name": "side",
+          "type": "'front' | 'back' | 'holding'",
+          "required": true,
+          "description": {
+            "en": "Which side the plugin asked for: an ID-1 frame for front and back, 3:4 portrait for holding.",
+            "zh": "插件要求的面：正反面是身份证比例取景框，手持是 3:4 竖框。"
+          }
+        },
+        {
+          "name": "maxBytes",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "The input's size limit; the kit steps the size and quality down until the JPEG fits.",
+            "zh": "输入的大小上限；Kit 逐级降尺寸和质量直到 JPEG 放得下。"
+          }
+        },
+        {
+          "name": "accept",
+          "type": "string[]",
+          "required": false,
+          "description": {
+            "en": "The input's accept list; a list without image/jpeg is refused with a message.",
+            "zh": "输入的 accept 列表；不含 image/jpeg 时提示不接受。"
+          }
+        },
+        {
+          "name": "preview",
+          "type": "slot | Widget | AnyView | @Composable",
+          "required": false,
+          "description": {
+            "en": "The host's live camera preview, drawn under the frame. The kit never asks for camera permission. Vue: the preview slot.",
+            "zh": "宿主的实时相机画面，画在取景框下面。Kit 不申请相机权限。Vue 为 preview 插槽。"
+          },
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "capture",
+          "type": "() => Promise<Blob | bytes | null>",
+          "required": false,
+          "description": {
+            "en": "Takes a still from the host's camera; absent or cameraUnavailable: no shutter.",
+            "zh": "从宿主相机取一张静帧；不传或 cameraUnavailable 时不画拍摄键。"
+          }
+        },
+        {
+          "name": "pickPhoto",
+          "type": "() => Promise<Blob | bytes | null>",
+          "required": false,
+          "description": {
+            "en": "Lets the viewer choose a photo with the host's picker.",
+            "zh": "用宿主的选择器让用户选一张照片。"
+          }
+        },
+        {
+          "name": "cameraUnavailable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": {
+            "en": "The host could not open the camera: the stage says so and offers the album.",
+            "zh": "宿主打不开相机：取景区说明原因并提供相册。"
+          }
+        }
+      ],
+      "states": [
+        "viewfinder",
+        "processing",
+        "review",
+        "error"
+      ],
+      "events": [
+        "done",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDocumentCapture"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDocumentCapture"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareDocumentCapture"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareDocumentCapture"
+        }
+      },
+      "accessibility": {
+        "role": "dialog",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab is trapped inside the panel",
+          "Enter or Space activates shoot, album, use and retake",
+          "Escape and the platform back cancel unless processing"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The panel appears without the slide.",
+        "screenReaderSemantics": "Dialog named by the side; the frame is decorative; the hint, processing and errors are polite live regions; the review picture is labelled with the side."
+      },
+      "notes": {
+        "en": "Design 7.2 and 7.5. Processing is in each kit: the orientation is baked into the pixels and the picture re-encoded as image/jpeg with no metadata (Vue canvas, Flutter image package off the UI isolate, ImageIO thumbnail without properties on Apple, BitmapFactory + Bitmap.compress on Android), then checked with flareJpegHasExif, the engine's own rule. done hands over {fileName, contentType, bytes}, the captureDocument {file}. Facts in spec/capability-ui-vectors.json (documentFrame, documentCompression, documentAccept, jpegExif).",
+        "zh": "见设计 7.2、7.5。处理在各端 Kit 内完成：按方向把像素摆正，再重新编码成不带元数据的 image/jpeg（Vue 画布、Flutter 在后台 isolate 用 image 包、Apple 用 ImageIO 不带属性的缩略图、Android 用 BitmapFactory 加 Bitmap.compress），最后用与引擎相同的 flareJpegHasExif 复查。done 交出 {fileName, contentType, bytes}，即 captureDocument 的 {file}。事实见 spec/capability-ui-vectors.json（documentFrame、documentCompression、documentAccept、jpegExif）。"
       }
     },
     {
@@ -17134,6 +17414,52 @@
             "en": "The update flow is opening: the update key spins.",
             "zh": "更新流程正在打开：「去更新」转圈。"
           }
+        },
+        {
+          "name": "locationStates",
+          "type": "Record<string, FlarePluginLocationState>",
+          "required": false,
+          "description": {
+            "en": "Location inputs: the host's fix ({latitude, longitude, accuracyM, precision}, written by the engine when locationOnce completes), a running locate or a failure, by input id. A fix of another precision is never taken.",
+            "zh": "位置输入：宿主拿到的定位（引擎在 locationOnce 完成后写入的 {latitude, longitude, accuracyM, precision}）、定位中或失败，按输入 id。精度不符的定位不采用。"
+          }
+        },
+        {
+          "name": "onLocationAction",
+          "type": "(action: FlarePluginLocationAction) => void",
+          "required": false,
+          "description": {
+            "en": "A location input's locate or clear key: the host runs the page's locationOnce action into the input (pluginCapabilityInvoke with into and the page form) and on clear drops the input's state. Without it the locate key is disabled. Vue emits locationAction.",
+            "zh": "位置输入的「获取位置」或「清除」键：宿主对该输入执行页面的 locationOnce 动作（pluginCapabilityInvoke，带 into 和页面表单），清除时丢掉该输入的状态。不传时定位键禁用。Vue 为 locationAction 事件。"
+          },
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "protectedMedia",
+          "type": "Record<string, FlarePluginProtectedMediaState>",
+          "required": false,
+          "description": {
+            "en": "Protected media: what the host has for each item, by item id — the read's address (the server's short-lived https address with ?grant=), a running read or a failure. Native kits draw only https and data:image, fetch into memory only and offer no save or share.",
+            "zh": "受保护媒体：宿主对每一项的状态，按项 id —— 读取得到的地址（服务端带 ?grant= 的短时 https 地址）、读取中或失败。原生端只画 https 与 data:image，只读入内存，不提供保存或分享。"
+          }
+        },
+        {
+          "name": "onProtectedMediaRead",
+          "type": "(read: FlarePluginProtectedMediaRead) => void",
+          "required": false,
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "description": {
+            "en": "A protected media read: asked with a reason only when the block declares reasonInput; the owner's page reads with one tap. The host runs and audits it and fills protectedMedia with flarePluginProtectedMediaUrl of the result. Vue emits protectedMediaRead.",
+            "zh": "受保护媒体读取：块声明了 reasonInput 才先问原因；本人页面点一次即读。宿主执行并审计，用 flarePluginProtectedMediaUrl 取结果地址填回 protectedMedia。Vue 为 protectedMediaRead 事件。"
+          }
         }
       ],
       "states": [
@@ -17157,7 +17483,8 @@
         "protectedMediaRead",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction"
       ],
       "eventPlatforms": {
         "loadMore": [
@@ -17345,6 +17672,29 @@
             "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
           },
           "default": "0"
+        },
+        {
+          "name": "locationStates",
+          "type": "Record<string, FlarePluginLocationState>",
+          "required": false,
+          "description": {
+            "en": "Location inputs: the host's fix ({latitude, longitude, accuracyM, precision}, written by the engine when locationOnce completes), a running locate or a failure, by input id. A fix of another precision is never taken.",
+            "zh": "位置输入：宿主拿到的定位（引擎在 locationOnce 完成后写入的 {latitude, longitude, accuracyM, precision}）、定位中或失败，按输入 id。精度不符的定位不采用。"
+          }
+        },
+        {
+          "name": "onLocationAction",
+          "type": "(action: FlarePluginLocationAction) => void",
+          "required": false,
+          "description": {
+            "en": "A location input's locate or clear key: the host runs the page's locationOnce action into the input (pluginCapabilityInvoke with into and the page form) and on clear drops the input's state. Without it the locate key is disabled. Vue emits locationAction.",
+            "zh": "位置输入的「获取位置」或「清除」键：宿主对该输入执行页面的 locationOnce 动作（pluginCapabilityInvoke，带 into 和页面表单），清除时丢掉该输入的状态。不传时定位键禁用。Vue 为 locationAction 事件。"
+          },
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ]
         }
       ],
       "states": [
@@ -17361,7 +17711,8 @@
         "selectionMore",
         "referenceLoad",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "locationAction"
       ],
       "eventPlatforms": {
         "selectionSearch": [
@@ -17874,6 +18225,52 @@
             "en": "The update flow is opening: the update key spins.",
             "zh": "更新流程正在打开：「去更新」转圈。"
           }
+        },
+        {
+          "name": "locationStates",
+          "type": "Record<string, FlarePluginLocationState>",
+          "required": false,
+          "description": {
+            "en": "Location inputs: the host's fix ({latitude, longitude, accuracyM, precision}, written by the engine when locationOnce completes), a running locate or a failure, by input id. A fix of another precision is never taken.",
+            "zh": "位置输入：宿主拿到的定位（引擎在 locationOnce 完成后写入的 {latitude, longitude, accuracyM, precision}）、定位中或失败，按输入 id。精度不符的定位不采用。"
+          }
+        },
+        {
+          "name": "onLocationAction",
+          "type": "(action: FlarePluginLocationAction) => void",
+          "required": false,
+          "description": {
+            "en": "A location input's locate or clear key: the host runs the page's locationOnce action into the input (pluginCapabilityInvoke with into and the page form) and on clear drops the input's state. Without it the locate key is disabled. Vue emits locationAction.",
+            "zh": "位置输入的「获取位置」或「清除」键：宿主对该输入执行页面的 locationOnce 动作（pluginCapabilityInvoke，带 into 和页面表单），清除时丢掉该输入的状态。不传时定位键禁用。Vue 为 locationAction 事件。"
+          },
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ]
+        },
+        {
+          "name": "protectedMedia",
+          "type": "Record<string, FlarePluginProtectedMediaState>",
+          "required": false,
+          "description": {
+            "en": "Protected media: what the host has for each item, by item id — the read's address (the server's short-lived https address with ?grant=), a running read or a failure. Native kits draw only https and data:image, fetch into memory only and offer no save or share.",
+            "zh": "受保护媒体：宿主对每一项的状态，按项 id —— 读取得到的地址（服务端带 ?grant= 的短时 https 地址）、读取中或失败。原生端只画 https 与 data:image，只读入内存，不提供保存或分享。"
+          }
+        },
+        {
+          "name": "onProtectedMediaRead",
+          "type": "(read: FlarePluginProtectedMediaRead) => void",
+          "required": false,
+          "platforms": [
+            "flutter",
+            "ios",
+            "compose"
+          ],
+          "description": {
+            "en": "A protected media read: asked with a reason only when the block declares reasonInput; the owner's page reads with one tap. The host runs and audits it and fills protectedMedia with flarePluginProtectedMediaUrl of the result. Vue emits protectedMediaRead.",
+            "zh": "受保护媒体读取：块声明了 reasonInput 才先问原因；本人页面点一次即读。宿主执行并审计，用 flarePluginProtectedMediaUrl 取结果地址填回 protectedMedia。Vue 为 protectedMediaRead 事件。"
+          }
         }
       ],
       "states": [
@@ -17893,7 +18290,9 @@
         "action",
         "memberSearch",
         "membersRetry",
-        "qrRefresh"
+        "qrRefresh",
+        "locationAction",
+        "protectedMediaRead"
       ],
       "notes": {
         "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters). Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",

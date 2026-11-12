@@ -1,5 +1,6 @@
 ## 未发布
 
+- 宿主能力组件（`docs/plugin-components.md`「宿主能力组件」，`spec/capability-ui-vectors.json`）：新增 `FlareCapabilityConsent`、`FlareDocumentCapture`（宿主传 `preview` 与 `capture`，ImageIO 生成摆正的缩略图并写出不带任何属性的 JPEG）、`FlarePaymentConfirmation`（`FlarePaymentOrder`，`TimelineView` 按 `FlareServerClock` 倒计时）与 `FlareCapabilityRules`、`FlarePaymentRules`、`FlareDocumentRules`。**删除** `RedPacketPayConfirmView` 与 `redPacket.pay`、`payment.confirm` 渲染器（`ResolvedPresentationView` 只画红包卡片）；`packetPay*` 文案字段保留。新增受保护媒体块（`PluginBlock.protectedMedia`，`PluginView`、`FlarePluginPage` 新参数 `protectedMedia`、`onProtectedMediaRead`；临时会话、无 URL 缓存，图片不接受触摸）。新输入 `location`（`PluginLocationValue`、`PluginInput.precision`，参数 `locationStates`、`onLocationAction`）。
 - 插件 `chart` 块改用图表 token `chartSeries1`–`chartSeries6`，不再借用语义状态色；`money` 输入小数位为 0 时用数字键盘，否则 `.decimalPad`。
 - `FlareResourceOverlay.stringValues(locale:builtIn:)` 公开：宿主自己的词表按同一套规则（键已存在、占位符一致）取资源包词条。
 - 新增 `FlareResourceOverlay`、`FlareResourcePack`（`spec/resource-overlay-vectors.json`，四端同一张表）：`strings(_:locale:)`、`colors(_:dark:)`、`brandTheme(_:)` 把资源包折进词表和主题，经 `.flareStrings`、`.flareTheme` 注入，`registerEmoji()` 把表情加进目录。`brandTheme` 给新品牌取新名字：品牌按名字比较，同名换色不会刷新。
