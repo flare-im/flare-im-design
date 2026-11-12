@@ -60,6 +60,7 @@ import {
   FileText as LuFileText,
   Flag as LuFlag,
   Flame as LuFlame,
+  Flashlight as LuFlashlight,
   FlaskConical as LuFlaskConical,
   Folder as LuFolder,
   FolderOpen as LuFolderOpen,
@@ -119,6 +120,7 @@ import {
   RefreshCw as LuRefreshCw,
   Reply as LuReply,
   RotateCw as LuRotateCw,
+  ScanLine as LuScanLine,
   ScreenShare as LuScreenShare,
   Search as LuSearch,
   Send as LuSend,
@@ -207,6 +209,7 @@ const REGISTRY: Record<string, Component> = {
   FileText: LuFileText,
   Flag: LuFlag,
   Flame: LuFlame,
+  Flashlight: LuFlashlight,
   FlaskConical: LuFlaskConical,
   Folder: LuFolder,
   FolderOpen: LuFolderOpen,
@@ -266,6 +269,7 @@ const REGISTRY: Record<string, Component> = {
   RefreshCw: LuRefreshCw,
   Reply: LuReply,
   RotateCw: LuRotateCw,
+  ScanLine: LuScanLine,
   ScreenShare: LuScreenShare,
   Search: LuSearch,
   Send: LuSend,
@@ -466,4 +470,6 @@ export const ServerOutline = /*#__PURE__*/ glyph("HardDrive");
 export const ExtensionPuzzleOutline = /*#__PURE__*/ glyph("Puzzle");
 export const LocateOutline = /*#__PURE__*/ glyph("LocateFixed");
 export const WalletOutline = /*#__PURE__*/ glyph("Wallet");
+export const ScanOutline = /*#__PURE__*/ glyph("ScanLine");
+export const FlashlightOutline = /*#__PURE__*/ glyph("Flashlight");
 export const ReorderTwoOutline = /*#__PURE__*/ glyph("GripVertical");

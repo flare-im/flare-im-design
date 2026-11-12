@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { execSync } from "node:child_process";
 import { PLATFORMS, vueExportMap, loadSurface, compareComponent } from "./signatures.mjs";
+import { platformContractIssues } from "./platform-contracts.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
@@ -94,14 +95,9 @@ for (const c of spec.components) {
   //   ① 声明了但字段残缺 → **契约撒谎**，是错误
   //   ② 整个平台缺失     → 该端尚未实现，是已知状态，计入覆盖率而非报错
   // 混在一起会让校验器长期红着，红久了就没人看了 —— 那才是真正的失效。
-  for (const p of platforms) {
-    const b = c.platforms?.[p];
-    if (b === undefined) {
-      (coverage[p] ??= []).push(c.name); // 未实现，稍后汇总
-    } else if (!b.package || !b.symbol) {
-      errors.push(`${where}: platform ${p} 声明了却缺 package/symbol（契约不完整）`);
-    }
-  }
+  const bindings = platformContractIssues(c, platforms);
+  for (const issue of bindings.errors) errors.push(`${where}: ${issue}`);
+  for (const p of bindings.missing) (coverage[p] ??= []).push(c.name);
   for (const pr of c.props ?? []) {
     if (!pr.name || !pr.type) errors.push(`${where}: prop missing name/type: ${JSON.stringify(pr)}`);
     else if (!pr.description?.en || !pr.description?.zh)

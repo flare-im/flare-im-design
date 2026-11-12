@@ -14,3 +14,9 @@ bool flareHapticCrossed({required bool was, required bool now}) => was != now;
 void flareHapticTick() {
   HapticFeedback.selectionClick();
 }
+
+/// One short success cue when scan acquisition locks, independent of frame rate.
+/// The platform respects the user's system feedback settings.
+void flareHapticSuccess() {
+  HapticFeedback.mediumImpact();
+}

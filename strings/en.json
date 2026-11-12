@@ -8527,5 +8527,383 @@
       "flutter",
       "ios"
     ]
+  },
+  "scanTitle": {
+    "en": "Scan QR code",
+    "zh": "扫一扫",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanAlbum": {
+    "en": "Choose image",
+    "zh": "从图片识别",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanPaste": {
+    "en": "Paste",
+    "zh": "粘贴",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanTorchOn": {
+    "en": "Turn torch on",
+    "zh": "打开手电筒",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanTorchOff": {
+    "en": "Turn torch off",
+    "zh": "关闭手电筒",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanChooseCode": {
+    "en": "Choose QR code",
+    "zh": "选择二维码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanPreparing": {
+    "en": "Preparing camera…",
+    "zh": "正在准备相机…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanLive": {
+    "en": "Place a QR code in view",
+    "zh": "将二维码放入画面",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanLowLight": {
+    "en": "Low light. You can turn the torch on",
+    "zh": "光线较暗，可打开手电筒",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanLocked": {
+    "en": "Code detected",
+    "zh": "已识别",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanChoosing": {
+    "en": "Multiple codes detected. Choose one to continue",
+    "zh": "发现多个二维码，请点选要识别的码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanPaused": {
+    "en": "Scanning paused",
+    "zh": "扫描已暂停",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanImageDecoding": {
+    "en": "Reading image…",
+    "zh": "正在识别图片…",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanImageError": {
+    "en": "Could not read this image. Retry or choose another image",
+    "zh": "图片识别失败，请重试或选择其他图片",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanNoCodeInImage": {
+    "en": "No QR code found in this image",
+    "zh": "图片中没有二维码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanNoCamera": {
+    "en": "No camera is available",
+    "zh": "此设备没有可用相机",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanInsecureContext": {
+    "en": "Camera requires a secure connection. Choose an image instead",
+    "zh": "相机需要安全连接，请选择图片",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanCameraBusy": {
+    "en": "A video call is using the camera",
+    "zh": "视频通话正在使用相机",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanCameraError": {
+    "en": "Camera unavailable. Retry or choose an image",
+    "zh": "相机暂不可用，请重试或选择图片",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanResult": {
+    "en": "Scan result",
+    "zh": "识别结果",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanUpgradeRequired": {
+    "en": "Update the app to use this action",
+    "zh": "请更新应用后使用此操作",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanSaveCode": {
+    "en": "Save QR code",
+    "zh": "保存二维码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanShareCode": {
+    "en": "Share QR code",
+    "zh": "分享二维码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanCodeExpired": {
+    "en": "This QR code expired. Refresh to continue",
+    "zh": "二维码已过期，请刷新",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanLoginRequired": {
+    "en": "Sign in to continue with this scan",
+    "zh": "登录后继续处理扫码结果",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanForeignCode": {
+    "en": "This code belongs to another app or environment",
+    "zh": "这是其他应用或环境的二维码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanText": {
+    "en": "QR code content",
+    "zh": "二维码内容",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanExternalLink": {
+    "en": "External link",
+    "zh": "外部链接",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanPending": {
+    "en": "Request submitted",
+    "zh": "申请已提交",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanUnknown": {
+    "en": "The operation outcome is not yet confirmed",
+    "zh": "操作结果待确认",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanAllowAddByQr": {
+    "en": "Allow adding me by QR code",
+    "zh": "扫码添加我",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanOpenExternal": {
+    "en": "Open in browser",
+    "zh": "使用浏览器打开",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanRetryable": {
+    "en": "Scan information is temporarily unavailable. Please retry",
+    "zh": "暂时无法获取扫码信息，请重试",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanContinueLogin": {
+    "en": "Sign in to continue",
+    "zh": "登录后继续",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanProvidedBy": {
+    "en": "Provided by {name}",
+    "zh": "由 {name} 提供",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthTitle": {
+    "en": "Verify identity",
+    "zh": "验证身份",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthDestination": {
+    "en": "Verification method",
+    "zh": "验证方式",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthCode": {
+    "en": "Verification code",
+    "zh": "验证码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthSendCode": {
+    "en": "Send code",
+    "zh": "发送验证码",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthResendIn": {
+    "en": "Send again ({seconds}s)",
+    "zh": "重新发送（{seconds}秒）",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthUnavailable": {
+    "en": "No verification method is available",
+    "zh": "没有可用的验证方式",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "reauthFailed": {
+    "en": "Verification could not finish. Try again.",
+    "zh": "验证未完成，请重试",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
   }
 }

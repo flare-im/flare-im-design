@@ -59,7 +59,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The icon registry contract: the same 109 kebab-case names, in the same order, as the other three kits. */
+/** The icon registry contract: the same 111 kebab-case names, in the same order, as the other three kits. */
 class IconLibraryTest {
     private val canonical = listOf(
         "search", "send", "more", "back", "close", "check", "add", "remove", "edit", "delete",
@@ -73,11 +73,11 @@ class IconLibraryTest {
         "end-call", "switch-camera", "screen-share", "play", "pause", "expand", "collapse", "zoom-in", "zoom-out", "rotate",
         "group", "admin", "remove-member", "transfer-owner", "silence", "report", "chevron-up", "chevron-left", "keyboard", "mini-app",
         "pin-self", "diagnostics", "card", "id", "join-request", "storage",
-        "red-packet", "plugin", "locate", "wallet",
+        "red-packet", "plugin", "locate", "wallet", "scan", "flashlight",
     )
 
     @Test fun kebabCaseNamesInCanonicalOrder() {
-        assertEquals(109, flareIconNames.size)
+        assertEquals(111, flareIconNames.size)
         assertEquals(canonical, flareIconNames)
         assertEquals(flareIconNames.size, flareIconNames.toSet().size, "names are unique")
         for (name in flareIconNames) assertTrue(Regex("^[a-z]+(-[a-z]+)*$").matches(name), "$name is kebab-case")
@@ -126,20 +126,20 @@ class IconLibraryTest {
 
     /** `plugin` is the generic plugin glyph a plugin's "+" tile draws when its icon is not a registry name. */
     @Test fun pluginIsAPuzzlePiece() {
-        assertEquals("plugin", flareIconNames[flareIconNames.size - 3])
+        assertEquals("plugin", flareIconNames[106])
         assertEquals(Icons.Outlined.Extension, flareIconVector("plugin"))
     }
 
     /** `locate`: the location picker's "use current location" key, a crosshair unlike the `location` pin. */
     @Test fun locateIsACrosshair() {
-        assertEquals("locate", flareIconNames[flareIconNames.size - 2])
+        assertEquals("locate", flareIconNames[107])
         assertEquals(Icons.Outlined.MyLocation, flareIconVector("locate"))
         assertNotEquals(flareIconVector("location"), flareIconVector("locate"))
     }
 
-    /** `wallet` is the last name: the 我 page's wallet entry. */
-    @Test fun walletIsTheLastName() {
-        assertEquals("wallet", flareIconNames.last())
+    /** `wallet` keeps its original registry position: the 我 page's wallet entry. */
+    @Test fun walletKeepsItsCanonicalPosition() {
+        assertEquals("wallet", flareIconNames[108])
         assertEquals(Icons.Outlined.AccountBalanceWallet, flareIconVector("wallet"))
     }
 

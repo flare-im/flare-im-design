@@ -1263,7 +1263,92 @@ public struct FlareStrings: Sendable {
     /// The pointer menu's only item while the message's availability is still being read.
     public var messageMenuLoading: String
 
+    public var scanTitle: String
+    public var scanAlbum: String
+    public var scanPaste: String
+    public var scanTorchOn: String
+    public var scanTorchOff: String
+    public var scanChooseCode: String
+    public var scanPreparing: String
+    public var scanLive: String
+    public var scanLowLight: String
+    public var scanLocked: String
+    public var scanChoosing: String
+    public var scanPaused: String
+    public var scanImageDecoding: String
+    public var scanImageError: String
+    public var scanNoCodeInImage: String
+    public var scanNoCamera: String
+    public var scanInsecureContext: String
+    public var scanCameraBusy: String
+    public var scanCameraError: String
+    public var scanResult: String
+    public var scanUpgradeRequired: String
+    public var scanSaveCode: String
+    public var scanShareCode: String
+    public var scanCodeExpired: String
+
+    public var scanLoginRequired: String
+    public var scanForeignCode: String
+    public var scanText: String
+    public var scanExternalLink: String
+    public var scanPending: String
+    public var scanUnknown: String
+    public var scanAllowAddByQr: String
+    public var scanOpenExternal: String
+    public var scanRetryable: String
+    public var scanContinueLogin: String
+    public var reauthFailed: String
+    public var reauthTitle: String
+    public var reauthDestination: String
+    public var reauthCode: String
+    public var reauthSendCode: String
+    public var reauthResendIn: String
+    public var reauthUnavailable: String
+    public var scanProvidedBy: String
     public init(
+        reauthFailed: String = "验证未完成，请重试",
+        reauthTitle: String = "验证身份",
+        reauthDestination: String = "验证方式",
+        reauthCode: String = "验证码",
+        reauthSendCode: String = "发送验证码",
+        reauthResendIn: String = "重新发送（{seconds}秒）",
+        reauthUnavailable: String = "没有可用的验证方式",
+        scanAllowAddByQr: String = "扫码添加我",
+        scanOpenExternal: String = "使用浏览器打开",
+        scanRetryable: String = "暂时无法获取扫码信息，请重试",
+        scanContinueLogin: String = "登录后继续",
+        scanProvidedBy: String = "由 {name} 提供",
+        scanLoginRequired: String = "登录后继续处理扫码结果",
+        scanForeignCode: String = "这是其他应用或环境的二维码",
+        scanText: String = "二维码内容",
+        scanExternalLink: String = "外部链接",
+        scanPending: String = "申请已提交",
+        scanUnknown: String = "操作结果待确认",
+        scanTitle: String = "扫一扫",
+        scanAlbum: String = "从图片识别",
+        scanPaste: String = "粘贴",
+        scanTorchOn: String = "打开手电筒",
+        scanTorchOff: String = "关闭手电筒",
+        scanChooseCode: String = "选择二维码",
+        scanPreparing: String = "正在准备相机…",
+        scanLive: String = "将二维码放入画面",
+        scanLowLight: String = "光线较暗，可打开手电筒",
+        scanLocked: String = "已识别",
+        scanChoosing: String = "发现多个二维码，请点选要识别的码",
+        scanPaused: String = "扫描已暂停",
+        scanImageDecoding: String = "正在识别图片…",
+        scanImageError: String = "图片识别失败，请重试或选择其他图片",
+        scanNoCodeInImage: String = "图片中没有二维码",
+        scanNoCamera: String = "此设备没有可用相机",
+        scanInsecureContext: String = "相机需要安全连接，请选择图片",
+        scanCameraBusy: String = "视频通话正在使用相机",
+        scanCameraError: String = "相机暂不可用，请重试或选择图片",
+        scanResult: String = "识别结果",
+        scanUpgradeRequired: String = "请更新应用后使用此操作",
+        scanSaveCode: String = "保存二维码",
+        scanShareCode: String = "分享二维码",
+        scanCodeExpired: String = "二维码已过期，请刷新",
         microphone: String = "麦克风",
         camera: String = "摄像头",
         flipCamera: String = "翻转",
@@ -2219,6 +2304,48 @@ public struct FlareStrings: Sendable {
         storageUsageFileCountOne: String = "{count} 个文件",
         messageMenuLoading: String = "正在读取…"
     ) {
+        self.scanAllowAddByQr = scanAllowAddByQr
+        self.scanOpenExternal = scanOpenExternal
+        self.scanRetryable = scanRetryable
+        self.scanContinueLogin = scanContinueLogin
+        self.reauthFailed = reauthFailed
+        self.reauthTitle = reauthTitle
+        self.reauthDestination = reauthDestination
+        self.reauthCode = reauthCode
+        self.reauthSendCode = reauthSendCode
+        self.reauthResendIn = reauthResendIn
+        self.reauthUnavailable = reauthUnavailable
+        self.scanProvidedBy = scanProvidedBy
+        self.scanLoginRequired = scanLoginRequired
+        self.scanForeignCode = scanForeignCode
+        self.scanText = scanText
+        self.scanExternalLink = scanExternalLink
+        self.scanPending = scanPending
+        self.scanUnknown = scanUnknown
+        self.scanTitle = scanTitle
+        self.scanAlbum = scanAlbum
+        self.scanPaste = scanPaste
+        self.scanTorchOn = scanTorchOn
+        self.scanTorchOff = scanTorchOff
+        self.scanChooseCode = scanChooseCode
+        self.scanPreparing = scanPreparing
+        self.scanLive = scanLive
+        self.scanLowLight = scanLowLight
+        self.scanLocked = scanLocked
+        self.scanChoosing = scanChoosing
+        self.scanPaused = scanPaused
+        self.scanImageDecoding = scanImageDecoding
+        self.scanImageError = scanImageError
+        self.scanNoCodeInImage = scanNoCodeInImage
+        self.scanNoCamera = scanNoCamera
+        self.scanInsecureContext = scanInsecureContext
+        self.scanCameraBusy = scanCameraBusy
+        self.scanCameraError = scanCameraError
+        self.scanResult = scanResult
+        self.scanUpgradeRequired = scanUpgradeRequired
+        self.scanSaveCode = scanSaveCode
+        self.scanShareCode = scanShareCode
+        self.scanCodeExpired = scanCodeExpired
         self.microphone = microphone
         self.camera = camera
         self.flipCamera = flipCamera

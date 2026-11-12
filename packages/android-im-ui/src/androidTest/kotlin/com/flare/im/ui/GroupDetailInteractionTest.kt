@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -61,6 +65,56 @@ class GroupDetailInteractionTest {
             FlareMemberActions(canRemove = true, canMute = true, canChangeRole = true, canTransferOwner = true)
         },
     )
+
+    @Test fun theInviteSheetRendersTheHostUrlAfterLoadingAndCopiesThatSameUrl() {
+        val payload = "https://scan.flare.test/g/AAAAAAAAAAAAAAAAAAAAAA"
+        var code by mutableStateOf<String?>(null)
+        var loading by mutableStateOf(true)
+        var reads = 0
+        lateinit var clipboard: androidx.compose.ui.platform.ClipboardManager
+        compose.setContent { MaterialTheme {
+            clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+            FlareGroupDetail(model = model, inviteCode = code, loadingInviteLink = loading, onEnsureInviteLink = { reads++ })
+        } }
+        compose.onNode(hasText(labels.inviteLink) and androidx.compose.ui.test.hasClickAction()).performScrollTo().performClick()
+        compose.onNodeWithContentDescription(labels.inviteLink).assertDoesNotExist()
+        compose.onNodeWithText(labels.copyCode).assertIsNotEnabled()
+        compose.runOnIdle { code = payload; loading = false }
+        val frame = compose.onNodeWithContentDescription(labels.inviteLink).performScrollTo().assertIsDisplayed()
+            .assert(androidx.compose.ui.test.SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.Role, androidx.compose.ui.semantics.Role.Image))
+        // Actual shared-frame pixels bind to the supplied URL, including its quiet zone.
+        val pixels = frame.captureToImage().toPixelMap()
+        val symbol = QrEncoder.encodeText(payload)!!
+        val quiet = QrEncoder.QUIET_ZONE
+        val count = symbol.size + 2 * quiet
+        val inset = with(compose.density) { FlareSizes.radiusLg.toPx() } * (1 - kotlin.math.sqrt(0.5f))
+        val module = kotlin.math.floor((minOf(pixels.width, pixels.height) - 2 * inset) / count)
+        val left = kotlin.math.floor((pixels.width - module * count) / 2)
+        val top = kotlin.math.floor((pixels.height - module * count) / 2)
+        for (y in 0 until count) for (x in 0 until count) {
+            val inside = x in quiet until quiet + symbol.size && y in quiet until quiet + symbol.size
+            val dark = inside && symbol.isDark(x - quiet, y - quiet)
+            assertEquals(if (dark) FlareColors.Light.textPrimary else FlareColors.Light.bgPrimary,
+                pixels[(left + (x + 0.5f) * module).toInt(), (top + (y + 0.5f) * module).toInt()])
+        }
+        compose.onNodeWithText(payload).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(labels.copyCode).assertIsEnabled().performClick()
+        compose.onNode(isDialog()).assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, reads); assertEquals(payload, clipboard.getText()?.text) }
+    }
+
+    @Test fun anUnavailableInviteHasNoStaleQrAndCanBeClosed() {
+        var code by mutableStateOf<String?>("https://scan.flare.test/g/AAAAAAAAAAAAAAAAAAAAAA")
+        compose.setContent { MaterialTheme { FlareGroupDetail(model = model, inviteCode = code) } }
+        compose.onNode(hasText(labels.inviteLink) and androidx.compose.ui.test.hasClickAction()).performScrollTo().performClick()
+        compose.onNodeWithContentDescription(labels.inviteLink).performScrollTo().assertIsDisplayed()
+        compose.runOnIdle { code = null }
+        compose.onNodeWithContentDescription(labels.inviteLink).assertDoesNotExist()
+        compose.onNodeWithText(labels.cannotGenerate).assertIsDisplayed()
+        compose.onNodeWithText(labels.copyCode).assertIsNotEnabled()
+        compose.onNodeWithText(labels.close).performClick()
+        compose.onNode(isDialog()).assertDoesNotExist()
+    }
 
     @Test fun memberIntentsCarryTheStateTheirActionOffered() {
         val roles = mutableListOf<Pair<String, Boolean>>()

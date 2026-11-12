@@ -2098,11 +2098,291 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["storageUsageFileCountOne"] as? String) ?: "{count} 个文件"
     val myInviteCountOnlyOne: String
         get() = (overrides["myInviteCountOnlyOne"] as? String) ?: "{count} 人"
+    val scanTitle: String
+        get() = (overrides["scanTitle"] as? String) ?: "扫一扫"
+
+    val scanAlbum: String
+        get() = (overrides["scanAlbum"] as? String) ?: "从图片识别"
+
+    val scanPaste: String
+        get() = (overrides["scanPaste"] as? String) ?: "粘贴"
+
+    val scanTorchOn: String
+        get() = (overrides["scanTorchOn"] as? String) ?: "打开手电筒"
+
+    val scanTorchOff: String
+        get() = (overrides["scanTorchOff"] as? String) ?: "关闭手电筒"
+
+    val scanChooseCode: String
+        get() = (overrides["scanChooseCode"] as? String) ?: "选择二维码"
+
+    val scanPreparing: String
+        get() = (overrides["scanPreparing"] as? String) ?: "正在准备相机…"
+
+    val scanLive: String
+        get() = (overrides["scanLive"] as? String) ?: "将二维码放入画面"
+
+    val scanLowLight: String
+        get() = (overrides["scanLowLight"] as? String) ?: "光线较暗，可打开手电筒"
+
+    val scanLocked: String
+        get() = (overrides["scanLocked"] as? String) ?: "已识别"
+
+    val scanChoosing: String
+        get() = (overrides["scanChoosing"] as? String) ?: "发现多个二维码，请点选要识别的码"
+
+    val scanPaused: String
+        get() = (overrides["scanPaused"] as? String) ?: "扫描已暂停"
+
+    val scanImageDecoding: String
+        get() = (overrides["scanImageDecoding"] as? String) ?: "正在识别图片…"
+
+    val scanImageError: String
+        get() = (overrides["scanImageError"] as? String) ?: "图片识别失败，请重试或选择其他图片"
+
+    val scanNoCodeInImage: String
+        get() = (overrides["scanNoCodeInImage"] as? String) ?: "图片中没有二维码"
+
+    val scanNoCamera: String
+        get() = (overrides["scanNoCamera"] as? String) ?: "此设备没有可用相机"
+
+    val scanInsecureContext: String
+        get() = (overrides["scanInsecureContext"] as? String) ?: "相机需要安全连接，请选择图片"
+
+    val scanCameraBusy: String
+        get() = (overrides["scanCameraBusy"] as? String) ?: "视频通话正在使用相机"
+
+    val scanCameraError: String
+        get() = (overrides["scanCameraError"] as? String) ?: "相机暂不可用，请重试或选择图片"
+
+    val scanResult: String
+        get() = (overrides["scanResult"] as? String) ?: "识别结果"
+
+    val scanUpgradeRequired: String
+        get() = (overrides["scanUpgradeRequired"] as? String) ?: "请更新应用后使用此操作"
+
+    val scanSaveCode: String
+        get() = (overrides["scanSaveCode"] as? String) ?: "保存二维码"
+
+    val scanShareCode: String
+        get() = (overrides["scanShareCode"] as? String) ?: "分享二维码"
+
+    val scanCodeExpired: String
+        get() = (overrides["scanCodeExpired"] as? String) ?: "二维码已过期，请刷新"
+
+    val scanLoginRequired: String
+        get() = (overrides["scanLoginRequired"] as? String) ?: "登录后继续处理扫码结果"
+
+    val scanForeignCode: String
+        get() = (overrides["scanForeignCode"] as? String) ?: "这是其他应用或环境的二维码"
+
+    val scanText: String
+        get() = (overrides["scanText"] as? String) ?: "二维码内容"
+
+    val scanExternalLink: String
+        get() = (overrides["scanExternalLink"] as? String) ?: "外部链接"
+
+    val scanPending: String
+        get() = (overrides["scanPending"] as? String) ?: "申请已提交"
+
+    val scanUnknown: String
+        get() = (overrides["scanUnknown"] as? String) ?: "操作结果待确认"
+
+    val scanAllowAddByQr: String
+        get() = (overrides["scanAllowAddByQr"] as? String) ?: "扫码添加我"
+
+    val scanOpenExternal: String
+        get() = (overrides["scanOpenExternal"] as? String) ?: "使用浏览器打开"
+
+    val scanRetryable: String
+        get() = (overrides["scanRetryable"] as? String) ?: "暂时无法获取扫码信息，请重试"
+
+    val scanContinueLogin: String
+        get() = (overrides["scanContinueLogin"] as? String) ?: "登录后继续"
+
+    val reauthFailed: String
+        get() = (overrides["reauthFailed"] as? String) ?: "验证未完成，请重试"
+    val reauthTitle: String
+        get() = (overrides["reauthTitle"] as? String) ?: "验证身份"
+    val reauthDestination: String
+        get() = (overrides["reauthDestination"] as? String) ?: "验证方式"
+    val reauthCode: String
+        get() = (overrides["reauthCode"] as? String) ?: "验证码"
+    val reauthSendCode: String
+        get() = (overrides["reauthSendCode"] as? String) ?: "发送验证码"
+    val reauthResendIn: String
+        get() = (overrides["reauthResendIn"] as? String) ?: "重新发送（{seconds}秒）"
+    val reauthUnavailable: String
+        get() = (overrides["reauthUnavailable"] as? String) ?: "没有可用的验证方式"
+    val scanProvidedBy: String
+        get() = (overrides["scanProvidedBy"] as? String) ?: "由 {name} 提供"
+
 }
 
 @Suppress("UNCHECKED_CAST")
 class FlareStringsBuilder internal constructor() {
     internal val values = mutableMapOf<String, Any>()
+    var scanAllowAddByQr: String
+        get() = (values["scanAllowAddByQr"] as? String) ?: "扫码添加我"
+        set(value) { values["scanAllowAddByQr"] = value }
+
+    var scanOpenExternal: String
+        get() = (values["scanOpenExternal"] as? String) ?: "使用浏览器打开"
+        set(value) { values["scanOpenExternal"] = value }
+
+    var scanRetryable: String
+        get() = (values["scanRetryable"] as? String) ?: "暂时无法获取扫码信息，请重试"
+        set(value) { values["scanRetryable"] = value }
+
+    var scanContinueLogin: String
+        get() = (values["scanContinueLogin"] as? String) ?: "登录后继续"
+        set(value) { values["scanContinueLogin"] = value }
+
+    var reauthFailed: String
+        get() = (values["reauthFailed"] as? String) ?: "验证未完成，请重试"
+        set(value) { values["reauthFailed"] = value }
+    var reauthTitle: String
+        get() = (values["reauthTitle"] as? String) ?: "验证身份"
+        set(value) { values["reauthTitle"] = value }
+    var reauthDestination: String
+        get() = (values["reauthDestination"] as? String) ?: "验证方式"
+        set(value) { values["reauthDestination"] = value }
+    var reauthCode: String
+        get() = (values["reauthCode"] as? String) ?: "验证码"
+        set(value) { values["reauthCode"] = value }
+    var reauthSendCode: String
+        get() = (values["reauthSendCode"] as? String) ?: "发送验证码"
+        set(value) { values["reauthSendCode"] = value }
+    var reauthResendIn: String
+        get() = (values["reauthResendIn"] as? String) ?: "重新发送（{seconds}秒）"
+        set(value) { values["reauthResendIn"] = value }
+    var reauthUnavailable: String
+        get() = (values["reauthUnavailable"] as? String) ?: "没有可用的验证方式"
+        set(value) { values["reauthUnavailable"] = value }
+    var scanProvidedBy: String
+        get() = (values["scanProvidedBy"] as? String) ?: "由 {name} 提供"
+        set(value) { values["scanProvidedBy"] = value }
+
+    var scanLoginRequired: String
+        get() = (values["scanLoginRequired"] as? String) ?: "登录后继续处理扫码结果"
+        set(value) { values["scanLoginRequired"] = value }
+
+    var scanForeignCode: String
+        get() = (values["scanForeignCode"] as? String) ?: "这是其他应用或环境的二维码"
+        set(value) { values["scanForeignCode"] = value }
+
+    var scanText: String
+        get() = (values["scanText"] as? String) ?: "二维码内容"
+        set(value) { values["scanText"] = value }
+
+    var scanExternalLink: String
+        get() = (values["scanExternalLink"] as? String) ?: "外部链接"
+        set(value) { values["scanExternalLink"] = value }
+
+    var scanPending: String
+        get() = (values["scanPending"] as? String) ?: "申请已提交"
+        set(value) { values["scanPending"] = value }
+
+    var scanUnknown: String
+        get() = (values["scanUnknown"] as? String) ?: "操作结果待确认"
+        set(value) { values["scanUnknown"] = value }
+
+    var scanTitle: String
+        get() = (values["scanTitle"] as? String) ?: "扫一扫"
+        set(value) { values["scanTitle"] = value }
+
+    var scanAlbum: String
+        get() = (values["scanAlbum"] as? String) ?: "从图片识别"
+        set(value) { values["scanAlbum"] = value }
+
+    var scanPaste: String
+        get() = (values["scanPaste"] as? String) ?: "粘贴"
+        set(value) { values["scanPaste"] = value }
+
+    var scanTorchOn: String
+        get() = (values["scanTorchOn"] as? String) ?: "打开手电筒"
+        set(value) { values["scanTorchOn"] = value }
+
+    var scanTorchOff: String
+        get() = (values["scanTorchOff"] as? String) ?: "关闭手电筒"
+        set(value) { values["scanTorchOff"] = value }
+
+    var scanChooseCode: String
+        get() = (values["scanChooseCode"] as? String) ?: "选择二维码"
+        set(value) { values["scanChooseCode"] = value }
+
+    var scanPreparing: String
+        get() = (values["scanPreparing"] as? String) ?: "正在准备相机…"
+        set(value) { values["scanPreparing"] = value }
+
+    var scanLive: String
+        get() = (values["scanLive"] as? String) ?: "将二维码放入画面"
+        set(value) { values["scanLive"] = value }
+
+    var scanLowLight: String
+        get() = (values["scanLowLight"] as? String) ?: "光线较暗，可打开手电筒"
+        set(value) { values["scanLowLight"] = value }
+
+    var scanLocked: String
+        get() = (values["scanLocked"] as? String) ?: "已识别"
+        set(value) { values["scanLocked"] = value }
+
+    var scanChoosing: String
+        get() = (values["scanChoosing"] as? String) ?: "发现多个二维码，请点选要识别的码"
+        set(value) { values["scanChoosing"] = value }
+
+    var scanPaused: String
+        get() = (values["scanPaused"] as? String) ?: "扫描已暂停"
+        set(value) { values["scanPaused"] = value }
+
+    var scanImageDecoding: String
+        get() = (values["scanImageDecoding"] as? String) ?: "正在识别图片…"
+        set(value) { values["scanImageDecoding"] = value }
+
+    var scanImageError: String
+        get() = (values["scanImageError"] as? String) ?: "图片识别失败，请重试或选择其他图片"
+        set(value) { values["scanImageError"] = value }
+
+    var scanNoCodeInImage: String
+        get() = (values["scanNoCodeInImage"] as? String) ?: "图片中没有二维码"
+        set(value) { values["scanNoCodeInImage"] = value }
+
+    var scanNoCamera: String
+        get() = (values["scanNoCamera"] as? String) ?: "此设备没有可用相机"
+        set(value) { values["scanNoCamera"] = value }
+
+    var scanInsecureContext: String
+        get() = (values["scanInsecureContext"] as? String) ?: "相机需要安全连接，请选择图片"
+        set(value) { values["scanInsecureContext"] = value }
+
+    var scanCameraBusy: String
+        get() = (values["scanCameraBusy"] as? String) ?: "视频通话正在使用相机"
+        set(value) { values["scanCameraBusy"] = value }
+
+    var scanCameraError: String
+        get() = (values["scanCameraError"] as? String) ?: "相机暂不可用，请重试或选择图片"
+        set(value) { values["scanCameraError"] = value }
+
+    var scanResult: String
+        get() = (values["scanResult"] as? String) ?: "识别结果"
+        set(value) { values["scanResult"] = value }
+
+    var scanUpgradeRequired: String
+        get() = (values["scanUpgradeRequired"] as? String) ?: "请更新应用后使用此操作"
+        set(value) { values["scanUpgradeRequired"] = value }
+
+    var scanSaveCode: String
+        get() = (values["scanSaveCode"] as? String) ?: "保存二维码"
+        set(value) { values["scanSaveCode"] = value }
+
+    var scanShareCode: String
+        get() = (values["scanShareCode"] as? String) ?: "分享二维码"
+        set(value) { values["scanShareCode"] = value }
+
+    var scanCodeExpired: String
+        get() = (values["scanCodeExpired"] as? String) ?: "二维码已过期，请刷新"
+        set(value) { values["scanCodeExpired"] = value }
+
 
     var microphone: String
         get() = (values["microphone"] as? (String)) ?: "麦克风"

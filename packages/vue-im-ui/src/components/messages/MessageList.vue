@@ -118,6 +118,8 @@ const props = withDefaults(defineProps<{
 const { t, locale } = useFlareI18n();
 
 const emit = defineEmits<{
+  /** A deliberate link gesture. The host routes it through its scan pipeline. */
+  (event: "openLink", url: string): void;
   (event: "react", messageId: string, emoji: string): void;
   (event: "edit", messageId: string): void;
   (event: "delete", messageId: string): void;
@@ -162,6 +164,17 @@ const emit = defineEmits<{
 }>();
 
 const instance = getCurrentInstance();
+function onContentLink(event: MouseEvent): void {
+  if (!instance?.vnode.props?.onOpenLink || props.multiSelectMode || !(event.target instanceof Element)) return;
+  const anchor = event.target.closest<HTMLAnchorElement>("a[href]");
+  if (!anchor || anchor.hasAttribute("download")) return;
+  const raw = anchor.getAttribute("href");
+  if (!raw) return;
+  event.preventDefault();
+  event.stopPropagation();
+  emit("openLink", raw);
+}
+
 // Host policy first, then the handled-intent mask: an entry with no listener is never offered.
 const effectiveMenuConfig = computed(() =>
   mergeMessageMenuConfig(props.menuConfig, { actions: unhandledMessageMenuActions(instance?.vnode.props) }),
@@ -1259,7 +1272,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="message-list-root" role="log">
+  <div class="message-list-root" role="log" @click.capture="onContentLink">
     <div v-if="olderEdge.spinner" class="message-list-load-older" aria-live="polite">
       <span class="runtime-status-dot runtime-status-dot--busy" />
       {{ t("chat.loadOlder") }}

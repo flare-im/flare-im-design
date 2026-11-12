@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Ordered list of the 109 semantic icon names supported by `IconView`.
+/// Ordered list of the 111 semantic icon names supported by `IconView`.
 public let flareIconNames: [String] = [
     "search", "send", "more", "back", "close",
     "check", "add", "remove", "edit", "delete",
@@ -35,7 +35,7 @@ public let flareIconNames: [String] = [
     // The location picker's "use current location" key.
     "locate",
     // The wallet entry of the 我 page (a plugin's account entry).
-    "wallet",
+    "wallet", "scan", "flashlight",
 ]
 
 /// Maps each semantic icon name to the closest SF Symbol name. Every symbol is in the SF Symbols
@@ -92,6 +92,8 @@ public let flareIconMap: [String: String] = [
     "eye-off": "eye.slash",
     "lock": "lock",
     "qr": "qrcode",
+    "scan": "viewfinder",
+    "flashlight": "flashlight.on.fill",
     "chats": "bubble.left.and.bubble.right",
     "moments": "safari",
     "block": "nosign",

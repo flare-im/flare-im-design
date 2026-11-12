@@ -1089,6 +1089,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     super.unavailableReason,
     super.presentation,
     this.data,
+    this.refreshMs,
   });
 
   FlarePluginPageViewModel._json({
@@ -1103,6 +1104,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     required super.unavailableReason,
     required super.presentation,
     required this.data,
+    required this.refreshMs,
     required super.source,
   }) : super._json(detail: false);
 
@@ -1121,6 +1123,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
       unavailableReason: view.unavailableReason,
       presentation: view.presentation,
       data: data is Map ? data.cast<String, Object?>() : null,
+      refreshMs: (json['refreshMs'] as num?)?.toInt(),
       source: jsonEncode(json),
     );
   }
@@ -1129,6 +1132,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
   /// the arguments of a page without a source); only while available. Page
   /// actions carry it back unchanged.
   final Map<String, Object?>? data;
+  final int? refreshMs;
 }
 
 /// What `FlarePluginPage`'s onAction carries: the request invokePageAction

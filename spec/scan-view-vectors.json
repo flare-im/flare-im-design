@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "coordinates": "normalized preview space, clamped to 0..1",
+  "markerBounds": [
+    {
+      "name": "portrait marker",
+      "corners": [
+        {
+          "x": 0.2,
+          "y": 0.1
+        },
+        {
+          "x": 0.6,
+          "y": 0.1
+        },
+        {
+          "x": 0.6,
+          "y": 0.5
+        },
+        {
+          "x": 0.2,
+          "y": 0.5
+        }
+      ],
+      "expect": {
+        "left": 0.2,
+        "top": 0.1,
+        "width": 0.4,
+        "height": 0.4
+      }
+    },
+    {
+      "name": "clamp outside preview",
+      "corners": [
+        {
+          "x": -0.2,
+          "y": -0.4
+        },
+        {
+          "x": 1.5,
+          "y": 1.2
+        }
+      ],
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "name": "missing decoder corners has full keyboard-selectable region",
+      "corners": [],
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 1,
+        "height": 1
+      }
+    }
+  ],
+  "pluginRefresh": [
+    {
+      "name": "active quiet page",
+      "visible": true,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": false,
+      "expect": true
+    },
+    {
+      "name": "hidden page",
+      "visible": false,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": false,
+      "expect": false
+    },
+    {
+      "name": "open action form",
+      "visible": true,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": true,
+      "expect": false
+    }
+  ]
+}

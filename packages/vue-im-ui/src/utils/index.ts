@@ -146,3 +146,5 @@ export {
   type FlareMeMenuItem,
   type FlareMeMenuSummaries,
 } from "./meMenu";
+
+export * from "./scanHitGate";

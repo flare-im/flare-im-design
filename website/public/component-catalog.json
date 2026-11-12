@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 186,
-    "stable": 185,
-    "general": 60,
-    "im": 121
+    "total": 191,
+    "stable": 190,
+    "general": 61,
+    "im": 125
   },
   "specializedMessageGroups": {
     "Text": [
@@ -10982,7 +10982,9 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "fileAction",
+        "interactionChange"
       ],
       "states": [
         "unavailable",
@@ -11004,7 +11006,9 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "fileAction",
+        "interactionChange"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11046,7 +11050,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry fileaction interactionchange supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -11381,7 +11385,10 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "surfaceHints",
+        "fileAction",
+        "autoRefresh"
       ],
       "states": [
         "loading",
@@ -11399,7 +11406,10 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "surfaceHints",
+        "fileAction",
+        "autoRefresh"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11441,7 +11451,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
-      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry surfacehints fileaction autorefresh supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
     },
     {
       "name": "AccountView",
@@ -11753,6 +11763,103 @@
       "searchText": "translationview message im-ui stable message pending supportsconfiguration inline translation — text + attribution + show original. 内联翻译 —— 译文 + 署名 + 展开原文。"
     },
     {
+      "name": "QRMatrix",
+      "slug": "qrmatrix",
+      "category": "General",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": false,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ready"
+        ]
+      },
+      "summary": {
+        "en": "A host-supplied QR payload rendered with a four-module quiet zone and a named image role.",
+        "zh": "将宿主提供的内容绘制成带四模块静区、可访问图像名称的二维码。"
+      },
+      "aliases": [
+        "QR code",
+        "QR symbol",
+        "二维码矩阵",
+        "General",
+        "ready"
+      ],
+      "states": [
+        "ready"
+      ],
+      "interactions": [],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareQrMatrix"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareQrMatrix"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareQrMatrix"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlareQrMatrix"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/profile/FlareQrMatrix.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_qr_card.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/QRCard.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/QRCardView.swift"
+      },
+      "docs": {
+        "zh": "website/components/qrmatrix.md",
+        "en": "website/en/components/qrmatrix.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#QRMatrix",
+      "searchText": "qrmatrix general general-ui stable qr code qr symbol 二维码矩阵 general ready supportsconfiguration a host-supplied qr payload rendered with a four-module quiet zone and a named image role. 将宿主提供的内容绘制成带四模块静区、可访问图像名称的二维码。"
+    },
+    {
       "name": "QRCard",
       "slug": "qrcard",
       "category": "Profile",
@@ -11768,36 +11875,61 @@
       "supportsCapabilities": false,
       "supportsDensity": false,
       "supportsResponsive": false,
-      "previewMode": "single",
+      "previewMode": "responsive",
       "previewViewports": [
-        "desktop"
+        "desktop",
+        "mobile"
       ],
       "previewPresentation": "isolated",
       "previewOpener": null,
       "docsSections": {
         "configuration": true,
         "variants": false,
-        "states": false,
-        "interaction": false,
-        "responsive": false,
-        "keyboard": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
         "density": false,
         "slots": false,
         "customization": false
       },
       "docExamples": {
         "variants": [],
-        "states": []
+        "states": [
+          "loading",
+          "ready",
+          "offline",
+          "refreshing",
+          "failed"
+        ]
       },
       "summary": {
         "zh": "二维码名片 —— 头像 + 名字 + 二维码框。",
         "en": "QR name card — avatar + name + QR frame."
       },
       "aliases": [
-        "Profile"
+        "Profile",
+        "loading",
+        "ready",
+        "offline",
+        "refreshing",
+        "failed",
+        "refresh",
+        "save",
+        "share"
       ],
-      "states": [],
-      "interactions": [],
+      "states": [
+        "loading",
+        "ready",
+        "offline",
+        "refreshing",
+        "failed"
+      ],
+      "interactions": [
+        "refresh",
+        "save",
+        "share"
+      ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
       "platforms": {
@@ -11838,7 +11970,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#QRCard",
-      "searchText": "qrcard profile im-ui stable profile supportsconfiguration qr name card — avatar + name + qr frame. 二维码名片 —— 头像 + 名字 + 二维码框。"
+      "searchText": "qrcard profile im-ui stable profile loading ready offline refreshing failed refresh save share supportsconfiguration qr name card — avatar + name + qr frame. 二维码名片 —— 头像 + 名字 + 二维码框。"
     },
     {
       "name": "MyInvitePanel",
@@ -20464,7 +20596,7 @@
       "name": "ImageUploadSlot",
       "slug": "image-upload-slot",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "experimental",
       "since": "2.0.0-rc.1",
@@ -20578,13 +20710,13 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#ImageUploadSlot",
-      "searchText": "imageuploadslot media general-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
+      "searchText": "imageuploadslot media im-ui experimental media empty selected uploading uploaded failed choose action preview supportsconfiguration a fixed photo field with a transient preview, upload state and choose/retry intents. 固定照片表单槽：本次预览、上传状态与选择/重试操作。"
     },
     {
       "name": "FileUpload",
       "slug": "file-upload",
       "category": "Media",
-      "layer": "general-ui",
+      "layer": "im-ui",
       "scope": "public-library",
       "status": "stable",
       "since": "2.0.0-rc.1",
@@ -20694,7 +20826,511 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#FileUpload",
-      "searchText": "fileupload media general-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
+      "searchText": "fileupload media im-ui stable media empty selected uploading uploaded failed select upload retry cancel remove choose replace preview supportsconfiguration controlled single-file and image upload surface, composed from the shared photo slot. 受控的通用单文件与图片上传界面，复用共享照片槽。"
+    },
+    {
+      "name": "ScanViewfinder",
+      "slug": "scan-viewfinder",
+      "category": "Media",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": true,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": true
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "preparing",
+          "live",
+          "lowLight",
+          "locked",
+          "choosing",
+          "paused",
+          "imageDecoding",
+          "imageError",
+          "noCodeInImage",
+          "permissionUndetermined",
+          "denied",
+          "restricted",
+          "noCamera",
+          "insecureContext",
+          "cameraBusy",
+          "cameraError"
+        ]
+      },
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "aliases": [
+        "Media",
+        "preparing",
+        "live",
+        "lowLight",
+        "locked",
+        "choosing",
+        "paused",
+        "imageDecoding",
+        "imageError",
+        "noCodeInImage",
+        "permissionUndetermined",
+        "denied",
+        "restricted",
+        "noCamera",
+        "insecureContext",
+        "cameraBusy",
+        "cameraError",
+        "close",
+        "toggleTorch",
+        "pickImage",
+        "paste",
+        "openMyCode",
+        "selectMarker",
+        "retry",
+        "requestPermission",
+        "openSettings"
+      ],
+      "states": [
+        "preparing",
+        "live",
+        "lowLight",
+        "locked",
+        "choosing",
+        "paused",
+        "imageDecoding",
+        "imageError",
+        "noCodeInImage",
+        "permissionUndetermined",
+        "denied",
+        "restricted",
+        "noCamera",
+        "insecureContext",
+        "cameraBusy",
+        "cameraError"
+      ],
+      "interactions": [
+        "close",
+        "toggleTorch",
+        "pickImage",
+        "paste",
+        "openMyCode",
+        "selectMarker",
+        "retry",
+        "requestPermission",
+        "openSettings"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanViewfinder"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareScanViewfinder"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanViewfinder"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ScanViewfinderView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/scan/FlareScanViewfinder.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_scan.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ScanComponents.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ScanViews.swift"
+      },
+      "docs": {
+        "zh": "website/components/scan-viewfinder.md",
+        "en": "website/en/components/scan-viewfinder.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ScanViewfinder",
+      "searchText": "scanviewfinder media im-ui stable media preparing live lowlight locked choosing paused imagedecoding imageerror nocodeinimage permissionundetermined denied restricted nocamera insecurecontext camerabusy cameraerror close toggletorch pickimage paste openmycode selectmarker retry requestpermission opensettings supportsconfiguration supportscapabilities host-driven qr scan presentation; no camera or sdk dependency. 由宿主驱动的扫码展示，不依赖相机或 sdk。"
+    },
+    {
+      "name": "ScanResultSheet",
+      "slug": "scan-result-sheet",
+      "category": "Overlay",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": "Open scan result",
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "loading",
+          "slow",
+          "ready",
+          "acting",
+          "done",
+          "pending",
+          "failed",
+          "offlineWaiting",
+          "unknown"
+        ]
+      },
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "aliases": [
+        "Overlay",
+        "loading",
+        "slow",
+        "ready",
+        "acting",
+        "done",
+        "pending",
+        "failed",
+        "offlineWaiting",
+        "unknown",
+        "action",
+        "dismiss",
+        "retry"
+      ],
+      "states": [
+        "loading",
+        "slow",
+        "ready",
+        "acting",
+        "done",
+        "pending",
+        "failed",
+        "offlineWaiting",
+        "unknown"
+      ],
+      "interactions": [
+        "action",
+        "dismiss",
+        "retry"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanResultSheet"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareScanResultSheet"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanResultSheet"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ScanResultSheetView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/scan/FlareScanResultSheet.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_scan.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ScanComponents.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ScanViews.swift"
+      },
+      "docs": {
+        "zh": "website/components/scan-result-sheet.md",
+        "en": "website/en/components/scan-result-sheet.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ScanResultSheet",
+      "searchText": "scanresultsheet overlay general-ui stable overlay loading slow ready acting done pending failed offlinewaiting unknown action dismiss retry supportsconfiguration host-driven qr scan presentation; no camera or sdk dependency. 由宿主驱动的扫码展示，不依赖相机或 sdk。"
+    },
+    {
+      "name": "ScanDropZone",
+      "slug": "scan-drop-zone",
+      "category": "Media",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "idle",
+          "decoding",
+          "failed"
+        ]
+      },
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "aliases": [
+        "Media",
+        "idle",
+        "decoding",
+        "failed",
+        "pickImage",
+        "paste",
+        "drop"
+      ],
+      "states": [
+        "idle",
+        "decoding",
+        "failed"
+      ],
+      "interactions": [
+        "pickImage",
+        "paste",
+        "drop"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanDropZone"
+        },
+        "flutter": {
+          "support": "not-applicable",
+          "reason": "HTML image drop is a web host capability."
+        },
+        "compose": {
+          "support": "not-applicable",
+          "reason": "HTML image drop is a web host capability."
+        },
+        "ios": {
+          "support": "not-applicable",
+          "reason": "HTML image drop is a web host capability."
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/scan/FlareScanDropZone.vue"
+      },
+      "docs": {
+        "zh": "website/components/scan-drop-zone.md",
+        "en": "website/en/components/scan-drop-zone.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ScanDropZone",
+      "searchText": "scandropzone media im-ui stable media idle decoding failed pickimage paste drop supportsconfiguration host-driven qr scan presentation; no camera or sdk dependency. 由宿主驱动的扫码展示，不依赖相机或 sdk。"
+    },
+    {
+      "name": "ReauthSheet",
+      "slug": "reauth-sheet",
+      "category": "Form",
+      "layer": "general-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": "Open verification",
+      "docsSections": {
+        "configuration": true,
+        "variants": false,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [],
+        "states": [
+          "ready",
+          "sending",
+          "submitting",
+          "cooldown",
+          "unavailable",
+          "failed"
+        ]
+      },
+      "summary": {
+        "en": "Controlled identity-verification OTP form; no credential, proof, SDK or network dependency.",
+        "zh": "受控身份验证码表单，不依赖凭据、证明、SDK 或网络。"
+      },
+      "aliases": [
+        "Form",
+        "ready",
+        "sending",
+        "submitting",
+        "cooldown",
+        "unavailable",
+        "failed",
+        "selectDestination",
+        "changeCode",
+        "send",
+        "submit",
+        "cancel"
+      ],
+      "states": [
+        "ready",
+        "sending",
+        "submitting",
+        "cooldown",
+        "unavailable",
+        "failed"
+      ],
+      "interactions": [
+        "selectDestination",
+        "changeCode",
+        "send",
+        "submit",
+        "cancel"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareReauthSheet"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlareReauthSheet"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ReauthSheet"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "ReauthSheetView"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/form/FlareReauthSheet.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_reauth_sheet.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ReauthSheet.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/ReauthSheetView.swift"
+      },
+      "docs": {
+        "zh": "website/components/reauth-sheet.md",
+        "en": "website/en/components/reauth-sheet.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#ReauthSheet",
+      "searchText": "reauthsheet form general-ui stable form ready sending submitting cooldown unavailable failed selectdestination changecode send submit cancel supportsconfiguration controlled identity-verification otp form; no credential, proof, sdk or network dependency. 受控身份验证码表单，不依赖凭据、证明、sdk 或网络。"
     }
   ]
 }

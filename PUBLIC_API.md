@@ -81,6 +81,8 @@ The message list's two ends are one contract on four kits, checked against `spec
 
 `FlareThemeMode` (light / dark / system) and `flareThemeIsDark(mode, systemDark)` are public on all four kits, over `spec/theme-mode-vectors.json`; the host holds and stores the person's choice, and the three labels are in every strings table. `tokens.json` also carries the text roles (title / section / body / caption), public as `--flare-text-<role>-*` on the web and `FlareTextRole` / `FlareTextRoles` on the three native kits. There is no global density preset.
 
+SwiftUI roles expose `font(scaledBy:)` for Dynamic Type. A host can pass an `@ScaledMetric` ratio (for example, `bodySize / FlareTextRoles.body.fontSize`) to preserve its current scaled size and the role's semantic weight; a medium emphasis remains a `.fontWeight(.medium)` override. The ratio comes from accessibility sizing, never viewport width. Nonpositive or nonfinite ratios keep the unscaled role. This handwritten adapter leaves the generated typography tokens unchanged.
+
 The server clock is public on all four kits, over `spec/server-clock-vectors.json`: Vue `setFlareServerClockOffset` / `flareServerClockOffset` / `flareServerNowMs` / `flareServerNow` on `./utils`, and `FlareServerClock` (`setOffsetMs`, `offsetMs`, `nowMs()`, `now`) on the three native kits. The host hands in the core SDK's estimate; the kit never measures it.
 
 The six built-in brands and both appearance modes are public. Custom themes are supported through semantic color overrides on every platform. Components consume semantic/component tokens and do not expose raw palette dependencies as contract.

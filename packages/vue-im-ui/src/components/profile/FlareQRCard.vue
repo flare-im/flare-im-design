@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, getCurrentInstance, ref } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import FlareQrMatrix from "./FlareQrMatrix.vue";
+import FlareButton from "../general/FlareButton.vue";
+import type { FlareQrPhase } from "../../shared/contracts/scan";
 
 const props = defineProps<{
   name: string;
@@ -11,11 +13,17 @@ const props = defineProps<{
   /** Text to encode (profile link, add-friend token). Without it the card says the code is unavailable. */
   qrPayload?: string;
   hint?: string;
+  phase?: FlareQrPhase;
+  refreshInMs?: number;
 }>();
 
 const { t } = useFlareI18n();
 
-const payload = computed(() => props.qrPayload?.trim() || "");
+const instance = getCurrentInstance();
+const emit = defineEmits<{ refresh: []; save: []; share: [] }>();
+const payload = computed(() => (!props.phase || props.phase === "ready" || props.phase === "offline") && (props.refreshInMs === undefined || props.refreshInMs > 0) ? props.qrPayload?.trim() || "" : "");
+const matrix = ref<InstanceType<typeof FlareQrMatrix> | null>(null);
+defineExpose({ exportSvg: () => matrix.value?.exportSvg() ?? null, exportPng: async () => { if (!matrix.value) throw new Error("QR unavailable"); return matrix.value.exportPng(); } });
 </script>
 
 <template>
@@ -29,6 +37,7 @@ const payload = computed(() => props.qrPayload?.trim() || "");
     </div>
 
     <FlareQrMatrix
+      ref="matrix"
       v-if="payload"
       class="flare-qr-card__code"
       :label="t('qr.code', { name })"
@@ -37,10 +46,16 @@ const payload = computed(() => props.qrPayload?.trim() || "");
     <div v-else class="flare-qr-card__frame flare-qr-card__unavailable">{{ t("qr.unavailable") }}</div>
 
     <div v-if="payload" class="flare-qr-card__hint">{{ hint ?? t("qr.scanHint") }}</div>
+    <div class="flare-qr-card__actions">
+      <FlareButton v-if="instance?.vnode.props?.onRefresh && phase !== 'loading' && phase !== 'refreshing'" variant="quiet" :label="payload ? t('pluginView.refresh') : t('common.retry')" @click="emit('refresh')" />
+      <FlareButton v-if="payload && instance?.vnode.props?.onSave" variant="quiet" :label="t('scan.saveCode')" @click="emit('save')" />
+      <FlareButton v-if="payload && instance?.vnode.props?.onShare" variant="quiet" :label="t('scan.shareCode')" @click="emit('share')" />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.flare-qr-card__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--flare-size-spacing-sm); margin-top: var(--flare-size-spacing-sm); }
 .flare-qr-card {
   width: 240px;
   max-width: 100%;

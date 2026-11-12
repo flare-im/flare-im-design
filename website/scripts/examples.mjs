@@ -6,6 +6,18 @@
 
 export const curatedExamples = {
 
+  QRMatrix: [
+    {
+      title: { en: "A code image inside a host-sized panel", zh: "在宿主约束的区域内显示二维码" },
+      description: { en: "Use a nonempty SDK-generated URL and a purpose label; do not cover or stretch the four-module quiet zone. QRMatrix has no loading, expiry, buttons or SDK connection. Use QRCard for the complete lifecycle card. Vue exposes exportSvg/exportPng; native save/share uses existing QR export helpers and host system effects. Flutter's size is optional; SwiftUI and Vue use container constraints, Compose uses Modifier. This documents existing public symbols and changes no implementation.", zh: "传入 SDK 生成的非空 URL 与用途名称；不要遮挡或拉伸四模块静区。QRMatrix 不持有加载、过期、按钮或 SDK 连接，完整生命周期卡片请使用 QRCard。Vue 暴露 exportSvg/exportPng；原生保存/分享复用现有 QR 导出工具与宿主系统效果。Flutter 可选 size；SwiftUI 与 Vue 使用容器约束，Compose 使用 Modifier。此项只登记既有公共符号，不改变实现。" },
+      vue: `<FlareQrMatrix :payload="url" label="My contact code" />`,
+      flutter: `FlareQrMatrix(payload: url, label: 'My contact code', size: 240)`,
+      compose: `FlareQrMatrix(payload = url, label = "My contact code", modifier = Modifier.width(240.dp))`,
+      ios: `FlareQrMatrix(payload: url, label: "My contact code")
+    .frame(width: 240)`,
+    },
+  ],
+
   ConnectionNotice: [
     {
       title: { en: "App shell, fed by the SDK's connection status", zh: "应用外壳，接 SDK 的连接状态" },

@@ -15,6 +15,8 @@ const props = withDefaults(
     amount: string;
     /** The paying account, e.g. "钱包（余额 ¥12.00）". */
     methodLabel: string;
+    payee?: string;
+    notice?: string;
     confirmLabel?: string;
     insufficient?: boolean;
     busy?: boolean;
@@ -38,12 +40,14 @@ function requestCancel(): void {
 <template>
   <FlareBottomSheet :open="open" :title="t('redPacket.pay.title')" :dismissible="!busy" @close="requestCancel">
     <div class="flare-rp-pay" :aria-busy="busy || undefined">
+      <p v-if="payee" class="flare-rp-pay__payee">{{ payee }}</p>
       <p class="flare-rp-pay__amount">{{ amount }}</p>
       <div class="flare-rp-pay__method">
         <span class="flare-rp-pay__method-label">{{ t("redPacket.pay.method") }}</span>
         <span class="flare-rp-pay__method-value">{{ methodLabel }}</span>
       </div>
       <p v-if="insufficient" class="flare-rp-pay__insufficient" role="alert">{{ t("redPacket.pay.insufficient") }}</p>
+      <p v-if="notice" class="flare-rp-pay__notice">{{ notice }}</p>
       <slot name="credential" />
       <div class="flare-rp-pay__actions">
         <div class="flare-rp-pay__confirm">
@@ -63,6 +67,8 @@ function requestCancel(): void {
 </template>
 
 <style scoped>
+.flare-rp-pay__payee { margin: 0; text-align: center; color: var(--flare-color-text-primary); font-size: var(--flare-size-font-size-lg); overflow-wrap: anywhere; }
+.flare-rp-pay__notice { margin: 0; color: var(--flare-color-text-secondary); white-space: pre-wrap; overflow-wrap: anywhere; }
 .flare-rp-pay {
   display: flex;
   flex-direction: column;

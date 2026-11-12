@@ -445,6 +445,7 @@ export interface FlarePluginPageRef {
  * `{available: false, title: "", unavailableReason}`.
  */
 export interface FlarePluginPageViewModel extends FlarePluginViewModel {
+  refreshMs?: number;
   data?: Record<string, unknown>;
 }
 /** What PluginPage's action(id, payload) carries: the request invokePageAction takes, without platform and gesture. */

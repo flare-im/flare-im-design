@@ -2,29 +2,30 @@ import { describe, expect, it } from "vitest";
 import { flareIconNames, flareIcons, type FlareIconName } from "./icons";
 
 describe("semantic icon registry", () => {
-  it("holds the 109-name contract shared by the four kits", () => {
-    expect(flareIconNames).toHaveLength(109);
+  it("holds the 111-name contract shared by the four kits", () => {
+    expect(flareIconNames).toHaveLength(111);
     for (const name of ["recall", "unpin", "merge-forward", "multi-select", "read", "mark-unread", "clear-history", "end-call", "remove-member", "transfer-owner", "silence", "report", "mini-app"] as FlareIconName[]) {
       expect(flareIconNames).toContain(name);
     }
     expect(flareIconNames).not.toContain("heart-filled" as FlareIconName);
     expect(flareIconNames).not.toContain("bookmark" as FlareIconName);
-    expect(flareIconNames.slice(99)).toEqual(["pin-self", "diagnostics", "card", "id", "join-request", "storage", "red-packet", "plugin", "locate", "wallet"]);
+    expect(flareIconNames.slice(99)).toEqual(["pin-self", "diagnostics", "card", "id", "join-request", "storage", "red-packet", "plugin", "locate", "wallet", "scan", "flashlight"]);
   });
 
   it("has the generic plugin glyph, a line puzzle piece", () => {
-    expect(flareIconNames.at(-3)).toBe("plugin");
+    expect(flareIconNames[106]).toBe("plugin");
     expect((flareIcons.plugin as { displayName?: string }).displayName).toBe("Puzzle");
   });
 
   it("has the picker's locate key, a crosshair unlike the location pin", () => {
-    expect(flareIconNames.at(-2)).toBe("locate");
+    expect(flareIconNames[107]).toBe("locate");
     expect((flareIcons.locate as { displayName?: string }).displayName).toBe("LocateFixed");
     expect(flareIcons.locate).not.toBe(flareIcons.location);
   });
 
-  it("ends with the 我 page's wallet entry", () => {
-    expect(flareIconNames.at(-1)).toBe("wallet");
+  it("extends the stable wallet position with scanner controls", () => {
+    expect(flareIconNames[108]).toBe("wallet");
+    expect(flareIconNames.slice(-2)).toEqual(["scan", "flashlight"]);
     expect((flareIcons.wallet as { displayName?: string }).displayName).toBe("Wallet");
   });
 

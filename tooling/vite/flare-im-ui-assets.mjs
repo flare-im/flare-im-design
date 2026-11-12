@@ -4,8 +4,8 @@
 // Dev: answers `<vite base><path>/…` with the file. Build: copies the folder to `<outDir>/<path>`.
 // The kit resolves the same path through FlareUiProvider `assetBaseUrl`, so a host deployed
 // under `/app/` passes `import.meta.env.BASE_URL + "flare-im-ui-assets"`.
-import { cpSync, createReadStream, existsSync, statSync } from "node:fs";
-import { dirname, join, normalize, resolve, sep } from "node:path";
+import { cpSync, createReadStream, existsSync, lstatSync } from "node:fs";
+import { dirname, extname, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../assets/emoji-sticker");
@@ -17,9 +17,16 @@ function mimeFor(file) {
   return ext ? MIME[ext] : "application/octet-stream";
 }
 
+function runtimeAsset(root, file) {
+  const path = relative(root, file);
+  if (path.startsWith(`..${sep}`) || path.split(sep).some(part => part.startsWith("."))) return false;
+  const info = lstatSync(file);
+  return !info.isSymbolicLink() && (info.isDirectory() || Boolean(MIME[extname(file)]));
+}
+
 /** @param {{ root?: string, path?: string }} [options] */
 export function flareImUiAssets(options = {}) {
-  const root = options.root ?? DEFAULT_ROOT;
+  const root = resolve(options.root ?? DEFAULT_ROOT);
   const segment = (options.path ?? "flare-im-ui-assets").replace(/^\/+|\/+$/g, "");
   let base = "/";
   let outDir = "dist";
@@ -37,15 +44,16 @@ export function flareImUiAssets(options = {}) {
         const url = (req.url ?? "").split("?")[0] ?? "";
         const prefix = prefixes.find((candidate) => url.startsWith(candidate));
         if (!prefix) return next();
-        const file = normalize(join(root, decodeURIComponent(url.slice(prefix.length))));
-        if (!file.startsWith(root + sep) || !existsSync(file) || !statSync(file).isFile()) return next();
+        let file;
+        try { file = normalize(join(root, decodeURIComponent(url.slice(prefix.length)))); } catch { return next(); }
+        if (!file.startsWith(root + sep) || !existsSync(file) || !runtimeAsset(root, file) || !lstatSync(file).isFile()) return next();
         res.setHeader("Content-Type", mimeFor(file));
         createReadStream(file).pipe(res);
       });
     },
     writeBundle() {
       // A server-rendering pass (VitePress, SSR hosts) ships no static files.
-      if (!ssr && existsSync(root)) cpSync(root, join(outDir, segment), { recursive: true });
+      if (!ssr && existsSync(root)) cpSync(root, join(outDir, segment), { recursive: true, filter: source => runtimeAsset(root, source) });
     },
   };
 }

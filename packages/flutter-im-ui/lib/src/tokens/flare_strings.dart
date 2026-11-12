@@ -23,6 +23,48 @@ class FlareStrings {
   static const groupDetailDiscoverableDefault = '允许搜索到本群';
 
   const FlareStrings({
+    this.scanAllowAddByQr = "扫码添加我",
+    this.scanOpenExternal = "使用浏览器打开",
+    this.scanRetryable = "暂时无法获取扫码信息，请重试",
+    this.reauthFailed = "验证未完成，请重试",
+    this.reauthTitle = "验证身份",
+    this.reauthDestination = "验证方式",
+    this.reauthCode = "验证码",
+    this.reauthSendCode = "发送验证码",
+    this.reauthResendIn = "重新发送（{seconds}秒）",
+    this.reauthUnavailable = "没有可用的验证方式",
+    this.scanContinueLogin = "登录后继续",
+    this.scanProvidedBy = "由 {name} 提供",
+    this.scanLoginRequired = "登录后继续处理扫码结果",
+    this.scanForeignCode = "这是其他应用或环境的二维码",
+    this.scanText = "二维码内容",
+    this.scanExternalLink = "外部链接",
+    this.scanPending = "申请已提交",
+    this.scanUnknown = "操作结果待确认",
+    this.scanTitle = "扫一扫",
+    this.scanAlbum = "从图片识别",
+    this.scanPaste = "粘贴",
+    this.scanTorchOn = "打开手电筒",
+    this.scanTorchOff = "关闭手电筒",
+    this.scanChooseCode = "选择二维码",
+    this.scanPreparing = "正在准备相机…",
+    this.scanLive = "将二维码放入画面",
+    this.scanLowLight = "光线较暗，可打开手电筒",
+    this.scanLocked = "已识别",
+    this.scanChoosing = "发现多个二维码，请点选要识别的码",
+    this.scanPaused = "扫描已暂停",
+    this.scanImageDecoding = "正在识别图片…",
+    this.scanImageError = "图片识别失败，请重试或选择其他图片",
+    this.scanNoCodeInImage = "图片中没有二维码",
+    this.scanNoCamera = "此设备没有可用相机",
+    this.scanInsecureContext = "相机需要安全连接，请选择图片",
+    this.scanCameraBusy = "视频通话正在使用相机",
+    this.scanCameraError = "相机暂不可用，请重试或选择图片",
+    this.scanResult = "识别结果",
+    this.scanUpgradeRequired = "请更新应用后使用此操作",
+    this.scanSaveCode = "保存二维码",
+    this.scanShareCode = "分享二维码",
+    this.scanCodeExpired = "二维码已过期，请刷新",
     // 通话
     this.microphone = '麦克风',
     this.camera = '摄像头',
@@ -2140,7 +2182,97 @@ class FlareStrings {
   final String emojiPickerEmoji;
 
   /// 只覆盖需要改的串，其余保持不变。
+  final String scanTitle;
+  final String scanAlbum;
+  final String scanPaste;
+  final String scanTorchOn;
+  final String scanTorchOff;
+  final String scanChooseCode;
+  final String scanPreparing;
+  final String scanLive;
+  final String scanLowLight;
+  final String scanLocked;
+  final String scanChoosing;
+  final String scanPaused;
+  final String scanImageDecoding;
+  final String scanImageError;
+  final String scanNoCodeInImage;
+  final String scanNoCamera;
+  final String scanInsecureContext;
+  final String scanCameraBusy;
+  final String scanCameraError;
+  final String scanResult;
+  final String scanUpgradeRequired;
+  final String scanSaveCode;
+  final String scanShareCode;
+  final String scanCodeExpired;
+
+  final String scanLoginRequired;
+  final String scanForeignCode;
+  final String scanText;
+  final String scanExternalLink;
+  final String scanPending;
+  final String scanUnknown;
+
+  final String scanAllowAddByQr;
+  final String scanOpenExternal;
+  final String scanRetryable;
+  final String reauthFailed;
+  final String reauthTitle;
+  final String reauthDestination;
+  final String reauthCode;
+  final String reauthSendCode;
+  final String reauthResendIn;
+  final String reauthUnavailable;
+  final String scanContinueLogin;
+  final String scanProvidedBy;
+
   FlareStrings copyWith({
+    String? scanAllowAddByQr,
+    String? scanOpenExternal,
+    String? scanRetryable,
+    String? reauthFailed,
+    String? reauthTitle,
+    String? reauthDestination,
+    String? reauthCode,
+    String? reauthSendCode,
+    String? reauthResendIn,
+    String? reauthUnavailable,
+    String? scanContinueLogin,
+    String? scanProvidedBy,
+
+    String? scanLoginRequired,
+    String? scanForeignCode,
+    String? scanText,
+    String? scanExternalLink,
+    String? scanPending,
+    String? scanUnknown,
+
+    String? scanTitle,
+    String? scanAlbum,
+    String? scanPaste,
+    String? scanTorchOn,
+    String? scanTorchOff,
+    String? scanChooseCode,
+    String? scanPreparing,
+    String? scanLive,
+    String? scanLowLight,
+    String? scanLocked,
+    String? scanChoosing,
+    String? scanPaused,
+    String? scanImageDecoding,
+    String? scanImageError,
+    String? scanNoCodeInImage,
+    String? scanNoCamera,
+    String? scanInsecureContext,
+    String? scanCameraBusy,
+    String? scanCameraError,
+    String? scanResult,
+    String? scanUpgradeRequired,
+    String? scanSaveCode,
+    String? scanShareCode,
+    String? scanCodeExpired,
+
     String? microphone,
     String? camera,
     String? flipCamera,
@@ -3080,6 +3212,51 @@ class FlareStrings {
     String? emojiPickerEmoji,
   }) {
     return FlareStrings(
+      scanAllowAddByQr: scanAllowAddByQr ?? this.scanAllowAddByQr,
+      scanOpenExternal: scanOpenExternal ?? this.scanOpenExternal,
+      scanRetryable: scanRetryable ?? this.scanRetryable,
+      reauthFailed: reauthFailed ?? this.reauthFailed,
+      reauthTitle: reauthTitle ?? this.reauthTitle,
+      reauthDestination: reauthDestination ?? this.reauthDestination,
+      reauthCode: reauthCode ?? this.reauthCode,
+      reauthSendCode: reauthSendCode ?? this.reauthSendCode,
+      reauthResendIn: reauthResendIn ?? this.reauthResendIn,
+      reauthUnavailable: reauthUnavailable ?? this.reauthUnavailable,
+      scanContinueLogin: scanContinueLogin ?? this.scanContinueLogin,
+      scanProvidedBy: scanProvidedBy ?? this.scanProvidedBy,
+
+      scanLoginRequired: scanLoginRequired ?? this.scanLoginRequired,
+      scanForeignCode: scanForeignCode ?? this.scanForeignCode,
+      scanText: scanText ?? this.scanText,
+      scanExternalLink: scanExternalLink ?? this.scanExternalLink,
+      scanPending: scanPending ?? this.scanPending,
+      scanUnknown: scanUnknown ?? this.scanUnknown,
+
+      scanTitle: scanTitle ?? this.scanTitle,
+      scanAlbum: scanAlbum ?? this.scanAlbum,
+      scanPaste: scanPaste ?? this.scanPaste,
+      scanTorchOn: scanTorchOn ?? this.scanTorchOn,
+      scanTorchOff: scanTorchOff ?? this.scanTorchOff,
+      scanChooseCode: scanChooseCode ?? this.scanChooseCode,
+      scanPreparing: scanPreparing ?? this.scanPreparing,
+      scanLive: scanLive ?? this.scanLive,
+      scanLowLight: scanLowLight ?? this.scanLowLight,
+      scanLocked: scanLocked ?? this.scanLocked,
+      scanChoosing: scanChoosing ?? this.scanChoosing,
+      scanPaused: scanPaused ?? this.scanPaused,
+      scanImageDecoding: scanImageDecoding ?? this.scanImageDecoding,
+      scanImageError: scanImageError ?? this.scanImageError,
+      scanNoCodeInImage: scanNoCodeInImage ?? this.scanNoCodeInImage,
+      scanNoCamera: scanNoCamera ?? this.scanNoCamera,
+      scanInsecureContext: scanInsecureContext ?? this.scanInsecureContext,
+      scanCameraBusy: scanCameraBusy ?? this.scanCameraBusy,
+      scanCameraError: scanCameraError ?? this.scanCameraError,
+      scanResult: scanResult ?? this.scanResult,
+      scanUpgradeRequired: scanUpgradeRequired ?? this.scanUpgradeRequired,
+      scanSaveCode: scanSaveCode ?? this.scanSaveCode,
+      scanShareCode: scanShareCode ?? this.scanShareCode,
+      scanCodeExpired: scanCodeExpired ?? this.scanCodeExpired,
+
       microphone: microphone ?? this.microphone,
       camera: camera ?? this.camera,
       flipCamera: flipCamera ?? this.flipCamera,

@@ -112,6 +112,8 @@ import {
   ExtensionPuzzleOutline,
   LocateOutline,
   WalletOutline,
+  ScanOutline,
+  FlashlightOutline,
 } from "./icon-glyphs";
 import { RedPacketOutline } from "./icon-custom";
 
@@ -231,6 +233,8 @@ export const flareIcons = {
   locate: LocateOutline,
   // The 我 page's wallet entry (the red packet plugin's account-entry).
   wallet: WalletOutline,
+  scan: ScanOutline,
+  flashlight: FlashlightOutline,
 } satisfies Record<string, Component>;
 
 export type FlareIconName = keyof typeof flareIcons;

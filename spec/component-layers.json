@@ -149,6 +149,7 @@
     "AccountView": "im-ui",
     "SlashCommandMenu": "im-ui",
     "TranslationView": "im-ui",
+    "QRMatrix": "general-ui",
     "QRCard": "im-ui",
     "MyInvitePanel": "im-ui",
     "ImageGrid": "im-ui",
@@ -230,7 +231,11 @@
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
     "UserIdentity": "general-ui",
-    "ImageUploadSlot": "general-ui",
-    "FileUpload": "general-ui"
+    "ImageUploadSlot": "im-ui",
+    "FileUpload": "im-ui",
+    "ScanViewfinder": "im-ui",
+    "ScanResultSheet": "general-ui",
+    "ScanDropZone": "im-ui",
+    "ReauthSheet": "general-ui"
   }
 }

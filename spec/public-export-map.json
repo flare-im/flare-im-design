@@ -2667,6 +2667,32 @@
       }
     },
     {
+      "name": "QRMatrix",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareQrMatrix",
+          "sourcePath": "packages/vue-im-ui/src/components/profile/FlareQrMatrix.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareQrMatrix",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_qr_card.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareQrMatrix",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/QRCard.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareQrMatrix",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/QRCardView.swift"
+        }
+      }
+    },
+    {
       "name": "QRCard",
       "status": "stable",
       "platforms": {
@@ -4631,6 +4657,95 @@
           "package": "flare_im_ui",
           "symbol": "FlareFileUpload",
           "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_file_upload.dart"
+        }
+      }
+    },
+    {
+      "name": "ScanViewfinder",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanViewfinder",
+          "sourcePath": "packages/vue-im-ui/src/components/scan/FlareScanViewfinder.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScanViewfinder",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_scan.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanViewfinder",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ScanComponents.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScanViewfinderView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ScanViews.swift"
+        }
+      }
+    },
+    {
+      "name": "ScanResultSheet",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanResultSheet",
+          "sourcePath": "packages/vue-im-ui/src/components/scan/FlareScanResultSheet.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScanResultSheet",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_scan.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanResultSheet",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ScanComponents.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScanResultSheetView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ScanViews.swift"
+        }
+      }
+    },
+    {
+      "name": "ScanDropZone",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanDropZone",
+          "sourcePath": "packages/vue-im-ui/src/components/scan/FlareScanDropZone.vue"
+        }
+      }
+    },
+    {
+      "name": "ReauthSheet",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareReauthSheet",
+          "sourcePath": "packages/vue-im-ui/src/components/form/FlareReauthSheet.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareReauthSheet",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_reauth_sheet.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ReauthSheet",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ReauthSheet.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ReauthSheetView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ReauthSheetView.swift"
         }
       }
     }

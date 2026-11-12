@@ -23,6 +23,8 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
     super.key,
     required this.amount,
     required this.methodLabel,
+    this.payee,
+    this.notice,
     this.confirmLabel,
     this.insufficient = false,
     this.busy = false,
@@ -37,6 +39,7 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
 
   /// The paying account, e.g. "钱包（余额 ¥12.00）".
   final String methodLabel;
+  final String? payee, notice;
   final String? confirmLabel;
   final bool insufficient;
   final bool busy;
@@ -74,6 +77,8 @@ class FlareRedPacketPayConfirm extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (payee?.isNotEmpty == true) Padding(padding: const EdgeInsets.only(bottom: FlareSizes.spacingMd), child: Text(payee!, textAlign: TextAlign.center, style: TextStyle(color: colors.textPrimary, fontSize: FlareSizes.fontSizeLg))),
+          if (notice?.isNotEmpty == true) Padding(padding: const EdgeInsets.only(bottom: FlareSizes.spacingMd), child: Text(notice!, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary))),
           Text(
             amount,
             textAlign: TextAlign.center,

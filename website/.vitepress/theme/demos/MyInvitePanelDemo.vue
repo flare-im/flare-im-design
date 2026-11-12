@@ -24,7 +24,7 @@ const hasMore = ref(true);
 const loadingMore = ref(false);
 const last = ref("尚未操作");
 
-const code = computed(() => (loading.value || unavailable.value ? "" : "AB23CD"));
+const code = computed(() => (loading.value || unavailable.value ? "" : "AB23CD45"));
 const stats = computed(() => (loading.value ? null : { direct: 5, l2: 12, l3: 40, total: 57 }));
 
 function copy(c) { last.value = `copy：${c}`; }
@@ -58,7 +58,7 @@ function reset() {
     <div class="my-invite-demo">
       <FlareMyInvitePanel
         :code="code"
-        :share-url="code && showQr ? `https://flare.example/r/t1/${code}` : ''"
+        :share-url="code && showQr ? `https://scan.flare.test/i/${code}` : ''"
         :stats="stats"
         :max-depth-shown="3"
         :invitees="invitees"

@@ -19,3 +19,11 @@ func flareHapticTick() {
     UISelectionFeedbackGenerator().selectionChanged()
     #endif
 }
+
+/// A successful scan lock uses the system notification feedback and honours system settings.
+@MainActor
+public func flareHapticSuccess() {
+    #if canImport(UIKit)
+    UINotificationFeedbackGenerator().notificationOccurred(.success)
+    #endif
+}

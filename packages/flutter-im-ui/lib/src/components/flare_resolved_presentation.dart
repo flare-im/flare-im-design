@@ -323,6 +323,8 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
       confirmLabel: bound('confirm')?.label,
       amount: _text(p['amount']),
       methodLabel: _text(p['methodLabel']),
+      payee: _text(p['payee']),
+      notice: _text(p['notice']),
       busy: widget.busy,
       confirmDisabled:
           input != null &&
@@ -368,7 +370,7 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
     return FlarePluginViewModel(
       available: widget.view.available,
       title: '',
-      fields: ['redPacket.pay', 'payment.confirm'].contains(renderer)
+      fields: ['redPacket.pay', 'payment.confirm', 'flare.qr'].contains(renderer)
           ? widget.view.fields
           : const [],
       blocks: renderer == 'redPacket.card' ? const [] : widget.view.blocks,

@@ -60,6 +60,7 @@ class FlarePluginView extends StatefulWidget {
   const FlarePluginView({
     super.key,
     required this.view,
+    this.onInteractionChanged,
     this.icon,
     this.displayName,
     this.viewerId,
@@ -90,6 +91,7 @@ class FlarePluginView extends StatefulWidget {
   });
 
   final FlarePluginViewModel view;
+  final ValueChanged<bool>? onInteractionChanged;
 
   /// Kit icon name before the title (the plugin's icon).
   final String? icon;
@@ -449,12 +451,14 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     if (_locked || widget.onAction == null) return;
     final confirm = action.confirm;
     if (confirm != null && confirm.isNotEmpty) {
+      widget.onInteractionChanged?.call(true);
       final ok = await FlareDangerConfirm.show(
         context,
         title: action.label,
         description: confirm,
         confirmText: action.label,
       );
+      widget.onInteractionChanged?.call(false);
       if (!ok || !mounted) return;
     }
     if (action.form.isNotEmpty) {
@@ -513,6 +517,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     FlarePluginActionPayload carry,
     VoidCallback? before,
   ) {
+    widget.onInteractionChanged?.call(true);
     _formAction = action;
     _formCarry = carry;
     _formBefore = before;
@@ -557,6 +562,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         );
       },
     ).whenComplete(() {
+      widget.onInteractionChanged?.call(false);
       _sheetContext = null;
       if (_formAction == action) {
         _formAction = null;

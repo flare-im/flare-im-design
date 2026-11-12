@@ -7,6 +7,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const checks = [
   ["repository scope", "node", ["tooling/check-repository-scope.mjs"]],
   ["legacy and temporary paths", "node", ["tooling/check-legacy-paths.mjs"]],
+  ["platform contract fixtures", "node", ["--test", "spec/platform-contracts.test.mjs"]],
   ["spec validation", "node", ["spec/validate.mjs"]],
   ["platform signature drift", "node", ["spec/signature-report.mjs", "--json"]],
   ["generated tokens", "node", ["tokens/build.mjs", "--check"]],

@@ -259,7 +259,8 @@ struct ResolvedPresentationView: View {
                 onConfirm: confirmPayment, onCancel: cancelPayment, confirmLabel: bound("confirm")?.label,
                 credential: passwordInput.map { input in AnyView(InputView(text: $payment.password,
                     placeholder: input.placeholder ?? input.label, maxLength: 6, disabled: busy, secure: true)
-                    .accessibilityLabel(input.label)) }, confirmDisabled: !passwordValid)
+                    .accessibilityLabel(input.label)) }, confirmDisabled: !passwordValid,
+                payee: text("payee"), notice: text("notice"))
         }
     }
     var body: some View {

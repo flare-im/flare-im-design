@@ -49,10 +49,16 @@ fun QRCard(
     subtitle: String? = null,
     avatarUrl: String? = null,
     qrPayload: String? = null,
+    phase: String = "ready",
+    refreshInMs: Long? = null,
+    onRefresh: (() -> Unit)? = null,
+    onSave: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val symbol = remember(qrPayload) { qrPayload?.takeIf { it.isNotEmpty() }?.let(QrEncoder::encodeText) }
+    val displayPayload = qrPayload?.takeIf { phase in listOf("ready", "offline") && (refreshInMs == null || refreshInMs > 0) }
+    val symbol = remember(displayPayload) { displayPayload?.takeIf { it.isNotEmpty() }?.let(QrEncoder::encodeText) }
     Column(
         Modifier.width(240.dp)
             .shadow(14.dp, RoundedCornerShape(FlareSizes.radiusBubble), clip = false)
@@ -77,7 +83,18 @@ fun QRCard(
                 modifier = Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd),
                 textAlign = TextAlign.Center)
         }
+        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(FlareSizes.spacingSm)) {
+            if (symbol == null && phase !in listOf("loading", "refreshing") && onRefresh != null) Button(label = strings.retry, variant = FlareButtonVariant.Quiet, onClick = onRefresh)
+            if (symbol != null && onSave != null) Button(label = strings.scanSaveCode, variant = FlareButtonVariant.Quiet, onClick = onSave)
+            if (symbol != null && onShare != null) Button(label = strings.scanShareCode, variant = FlareButtonVariant.Quiet, onClick = onShare)
+        }
     }
+}
+
+@Composable
+fun FlareQrMatrix(payload: String?, label: String, modifier: Modifier = Modifier) {
+    val symbol = remember(payload) { payload?.takeIf { it.isNotEmpty() }?.let(QrEncoder::encodeText) }
+    FlareQrFrame(symbol, label, modifier)
 }
 
 /** The scannable square and its light quiet zone, shared by contact and invite cards. */
@@ -144,4 +161,23 @@ private fun QrCodeImage(symbol: QrSymbol, color: Color, modifier: Modifier) {
             }
         }
     }
+}
+
+
+/** Exports the same real QR matrix as [FlareQrMatrix], with whole pixels and its four-module quiet zone. */
+fun flareQrBitmap(payload: String, pixels: Int = 1024): android.graphics.Bitmap? {
+    val symbol = payload.takeIf { it.isNotEmpty() }?.let(QrEncoder::encodeText) ?: return null
+    val modules = symbol.size + 2 * QrEncoder.QUIET_ZONE
+    val module = (pixels.coerceIn(128, 2048) / modules).coerceAtLeast(1)
+    val side = modules * module
+    val bitmap = android.graphics.Bitmap.createBitmap(side, side, android.graphics.Bitmap.Config.ARGB_8888)
+    bitmap.eraseColor(android.graphics.Color.WHITE)
+    val canvas = android.graphics.Canvas(bitmap)
+    val paint = android.graphics.Paint().apply { color = android.graphics.Color.BLACK; isAntiAlias = false }
+    for (y in 0 until symbol.size) for (x in 0 until symbol.size) if (symbol.isDark(x, y)) {
+        val left = ((x + QrEncoder.QUIET_ZONE) * module).toFloat()
+        val top = ((y + QrEncoder.QUIET_ZONE) * module).toFloat()
+        canvas.drawRect(left, top, left + module, top + module, paint)
+    }
+    return bitmap
 }

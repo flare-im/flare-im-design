@@ -16,6 +16,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -96,6 +104,25 @@ internal fun pluginPageFilterValues(filters: Map<String, Any?>, inputId: String,
 internal fun pluginPageFilterChoice(filter: PluginPageFilter, value: String?, busy: Boolean, filters: Map<String, Any?>): Map<String, Any?>? =
     if (busy || value == filter.selected) null else pluginPageFilterValues(filters, filter.input.id, value)
 
+/** Window effects requested by a trusted page presentation; the host restores its previous window state. */
+data class PluginSurfaceHints(val secure: Boolean = false, val maxBrightness: Boolean = false)
+
+internal fun pluginPageSurfaceHints(view: PluginPageViewModel?): PluginSurfaceHints {
+    val presentation = view?.view?.takeIf { it.available }?.presentation
+    if (presentation?.get("renderer") != "flare.qr") return PluginSurfaceHints()
+    val props = presentation["props"] as? Map<*, *>
+    return PluginSurfaceHints(secure = props?.get("ttlMs") is Number, maxBrightness = true)
+}
+
+internal fun flarePluginMayRefresh(visible: Boolean, foreground: Boolean, loading: Boolean, refreshing: Boolean, busy: Boolean, interaction: Boolean): Boolean =
+    visible && foreground && !loading && !refreshing && !busy && !interaction
+
+internal fun pluginPageRefreshInterval(previous: Long?, view: PluginPageViewModel?): Long? = when {
+    view == null -> previous
+    view.view.unavailableReason == PluginUnavailableReason.CatalogUnreachable -> view.refreshMs ?: previous
+    else -> view.refreshMs
+}
+
 /**
  * Plugin page host — a full-screen page for a plugin's `page` contribution (the red packet wallet and its history, any
  * plugin list). Spec: Message/PluginPage (`PluginPage`), docs/design/red-packet-v5-roles-and-wallet.md §3.2; facts in
@@ -163,10 +190,38 @@ fun FlarePluginPage(
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    providerName: String? = null,
+    encodePluginCode: (suspend (pluginId: String, token: String) -> String)? = null,
+    onSurfaceHints: ((PluginSurfaceHints) -> Unit)? = null,
+    visible: Boolean = true,
+    automaticRefreshing: Boolean = false,
+    onAutoRefresh: (() -> Unit)? = null,
     onAction: ((String, PluginPageActionPayload) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
+    var interval by remember(page) { mutableStateOf<Long?>(null) }
+    var interactionActive by remember(page) { mutableStateOf(false) }
+    LaunchedEffect(view) { interval = pluginPageRefreshInterval(interval, view) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var resumed by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, _ -> resumed = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val mayTick by rememberUpdatedState(flarePluginMayRefresh(visible, resumed, loading, refreshing, loadingMore || busyActionId != null, interactionActive))
+    val autoRefresh by rememberUpdatedState(onAutoRefresh ?: onRefresh)
+    LaunchedEffect(page, interval, visible, resumed) {
+        val period = interval ?: return@LaunchedEffect
+        if (!visible || !resumed) return@LaunchedEffect
+        while (true) { delay(period); if (mayTick) autoRefresh?.invoke() }
+    }
+    val surfaceHints = pluginPageSurfaceHints(view)
+    val emitHints by rememberUpdatedState(onSurfaceHints)
+    SideEffect { emitHints?.invoke(surfaceHints) }
+    DisposableEffect(page) { onDispose { emitHints?.invoke(PluginSurfaceHints()) } }
+    val visualRefreshing = refreshing && !automaticRefreshing
     val heading = pluginPageTitle(view, title)
     val phase = pluginPagePhase(loading, error, view)
     // The cursor asked for and not answered yet: the same page is never asked for twice.
@@ -190,13 +245,18 @@ fun FlarePluginPage(
         contentMaxWidth = contentMaxWidth,
         actions = if (!refreshKey) null else ({
             FlareIconControl(label = strings.pluginPageRefresh, onClick = { onRefresh?.invoke() }, enabled = !refreshing) {
-                if (refreshing) CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), color = colors.primaryText, strokeWidth = 2.dp)
+                if (visualRefreshing) CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeMd), color = colors.primaryText, strokeWidth = 2.dp)
                 else FlareIcon("refresh", size = FlareSizes.iconSizeMd, tint = colors.textSecondary)
             }
         }),
     ) {
         val body: @Composable () -> Unit = {
-            Box(Modifier.fillMaxSize().semantics { paneTitle = heading }) {
+            Column(Modifier.fillMaxSize().semantics { paneTitle = heading }) {
+                providerName?.takeIf { it.isNotBlank() }?.let { provider ->
+                    Text(strings.scanProvidedBy.replace("{name}", provider), color = colors.textSecondary,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm))
+                }
+                Box(Modifier.weight(1f)) {
                 when (phase) {
                     PluginPagePhase.Loading -> Box(Modifier.fillMaxWidth().padding(padding).heightIn(min = 160.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
@@ -228,7 +288,7 @@ fun FlarePluginPage(
                     }
                     PluginPagePhase.Loaded -> view?.let { loaded ->
                         val pageFilters = pluginPageFilters(loaded.view, filters, strings.pluginViewAll)
-                        val filtersBusy = loading || refreshing || loadingMore
+                        val filtersBusy = loading || visualRefreshing || loadingMore
                         val more = paging.key(loaded.view.nextCursor, loadingMore)
                         val failed = error?.takeIf { it.isNotEmpty() }
                         val list = PluginViewList(
@@ -281,13 +341,17 @@ fun FlarePluginPage(
                             onOpenDetail = null,
                             list = list,
                             fileStates = fileStates, onFileAction = onFileAction,
+                            encodeQr = encodePluginCode?.let { encode -> { token -> encode(page.pluginId, token) } },
+                            qrReceivedAtNanos = loaded.receivedAtNanos,
+                            onInteractionChanged = { interactionActive = it },
                         )
                     }
+                }
                 }
             }
         }
         if (refreshes) {
-            PullToRefreshBox(isRefreshing = refreshing, onRefresh = { onRefresh?.invoke() }, modifier = Modifier.fillMaxSize()) { body() }
+            PullToRefreshBox(isRefreshing = visualRefreshing, onRefresh = { onRefresh?.invoke() }, modifier = Modifier.fillMaxSize()) { body() }
         } else {
             body()
         }

@@ -280,6 +280,76 @@
       "content": "long",
       "interaction": "keyboard",
       "accessibilityExpectation": "busy dialog: close, Escape, back and scrim blocked until the action settles"
+    },
+    {
+      "id": "scan-live",
+      "component": "ScanViewfinder",
+      "variant": "camera",
+      "state": "live",
+      "theme": "light",
+      "content": "singleCode",
+      "interaction": "camera",
+      "accessibilityExpectation": "Camera status is announced and all actions have names"
+    },
+    {
+      "id": "scan-multiple",
+      "component": "ScanViewfinder",
+      "variant": "camera",
+      "state": "choosing",
+      "theme": "dark",
+      "content": "multipleCodes",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "Each normalized marker is a focusable explicit choice"
+    },
+    {
+      "id": "scan-denied",
+      "component": "ScanViewfinder",
+      "variant": "camera",
+      "state": "denied",
+      "theme": "light",
+      "content": "permission",
+      "interaction": "pickImage",
+      "accessibilityExpectation": "Album remains usable when camera permission is denied"
+    },
+    {
+      "id": "scan-unknown",
+      "component": "ScanResultSheet",
+      "variant": "adaptive",
+      "state": "unknown",
+      "theme": "dark",
+      "content": "long",
+      "interaction": "retry",
+      "accessibilityExpectation": "Uncertain action remains visible and retry is explicit"
+    },
+    {
+      "id": "scan-text-input",
+      "component": "ScanResultSheet",
+      "variant": "adaptive",
+      "state": "ready",
+      "theme": "light",
+      "content": "long",
+      "interaction": "keyboard",
+      "accessibilityExpectation": "Input is labelled and only the selected action values are emitted"
+    },
+    {
+      "id": "scan-desktop-drop",
+      "component": "ScanDropZone",
+      "variant": "desktop",
+      "state": "ready",
+      "theme": "dark",
+      "content": "image",
+      "interaction": "drop",
+      "accessibilityExpectation": "Named file selection works without camera or drag support"
+    },
+    {
+      "id": "qr-rotating",
+      "component": "QRCard",
+      "variant": "personal",
+      "state": "refreshing",
+      "theme": "light",
+      "content": "code",
+      "interaction": "refresh",
+      "accessibilityExpectation": "Old code is hidden until replacement completes"
     }
   ]
 }

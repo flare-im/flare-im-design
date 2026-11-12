@@ -199,7 +199,7 @@ const components = spec.components.map((component) => {
         platform,
         component.platforms?.[platform]
           ? { support: "supported", ...component.platforms[platform] }
-          : { support: "not-applicable" },
+          : { support: "not-applicable", ...(component.notApplicablePlatforms?.[platform] ? { reason: component.notApplicablePlatforms[platform] } : {}) },
       ]),
     ),
     sourcePaths: sourcePaths(component),

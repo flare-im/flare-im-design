@@ -62,4 +62,15 @@ describe("FlareQRCard", () => {
       expect(wrapper.find(".flare-qr-card__hint").exists()).toBe(false);
     }
   });
+  it("exports the rendered symbol with its quiet zone inside the SVG", async () => {
+    const wrapper = mountCard({ name: "Ann", qrPayload: "https://scan.flare.test/u/vYy5hW5dKbiV8aZraFR4rA" });
+    await nextTick();
+    const svg = wrapper.vm.exportSvg();
+    const document = new DOMParser().parseFromString(svg!, "image/svg+xml");
+    const side = Number(wrapper.get("svg").attributes("viewBox")?.split(" ")[2]);
+    expect(document.documentElement.getAttribute("viewBox")).toBe(`-4 -4 ${side + 8} ${side + 8}`);
+    expect(document.querySelector('rect')?.getAttribute('fill')).toBe(flareDesignTokens.colors.bg.primary);
+    expect(document.querySelector('path[shape-rendering="crispEdges"]')).toBeTruthy();
+    expect(document.querySelector('[href]')).toBeNull();
+  });
 });

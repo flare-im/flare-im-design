@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -147,12 +148,13 @@ fun PluginView(
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    onInteractionChanged: ((Boolean) -> Unit)? = null,
     onOpenDetail: (() -> Unit)? = null,
 ) = PluginViewContent(
     view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
     resolveUser = resolveUser, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = formErrors, settleToken = settleToken, displayName = displayName,
     viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null, actionLayout = actionLayout, showError = showError, labelRows = labelRows, inlineFormActionId = inlineFormActionId, inlineFormTitle = inlineFormTitle, inlineFormDescription = inlineFormDescription,
-    fileStates = fileStates, onFileAction = onFileAction,
+    fileStates = fileStates, onFileAction = onFileAction, onInteractionChanged = onInteractionChanged,
 )
 
 /**
@@ -200,6 +202,9 @@ internal fun PluginViewContent(
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    encodeQr: (suspend (String) -> String)? = null,
+    qrReceivedAtNanos: Long? = null,
+    onInteractionChanged: ((Boolean) -> Unit)? = null,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -215,6 +220,8 @@ internal fun PluginViewContent(
     var formRun by remember { mutableStateOf<PluginActionRun?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
     val inlineAction = pluginInlineFormAction(view, inlineFormActionId, onAction != null)
+    var presentationInteraction by remember { mutableStateOf(false) }
+    SideEffect { onInteractionChanged?.invoke(confirming != null || formRun != null || inlineAction != null || menuOpen || presentationInteraction) }
     var inlineForm by remember(inlineAction?.id) { mutableStateOf(PluginInlineFormState()) }
     // The rows action last handed over, as (action id, row key): only that row's key spins while the action runs.
     var rowRun by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -437,7 +444,7 @@ internal fun PluginViewContent(
             quote?.invoke()
             ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
                 onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
-                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision)
+                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, encodeQr = encodeQr, qrReceivedAtNanos = qrReceivedAtNanos, onInteractionChanged = { presentationInteraction = it })
             if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
         }
         if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }

@@ -1,6 +1,7 @@
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import SwiftUI
+import ImageIO
 
 // MARK: - QRCard
 
@@ -16,18 +17,24 @@ public struct QRCardView: View {
     private let subtitle: String?
     private let avatarURL: String?
     private let qrPayload: String?
+    private let phase: String
+    private let refreshInMs: Double?
+    private let onRefresh: (() -> Void)?
+    private let onSave: (() -> Void)?
+    private let onShare: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @State private var cache = FlareQRCodeCache()
 
-    public init(name: String, subtitle: String? = nil, avatarURL: String? = nil, qrPayload: String? = nil) {
+    public init(name: String, subtitle: String? = nil, avatarURL: String? = nil, qrPayload: String? = nil, phase: String = "ready", refreshInMs: Double? = nil, onRefresh: (() -> Void)? = nil, onSave: (() -> Void)? = nil, onShare: (() -> Void)? = nil) {
         self.name = name; self.subtitle = subtitle; self.avatarURL = avatarURL; self.qrPayload = qrPayload
+        self.phase = phase; self.refreshInMs = refreshInMs; self.onRefresh = onRefresh; self.onSave = onSave; self.onShare = onShare
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let code = cache.image(for: qrPayload)
+        let code = cache.image(for: ["ready", "offline"].contains(phase) && (refreshInMs == nil || refreshInMs! > 0) ? qrPayload : nil)
         VStack(spacing: FlareSizes.spacingMd) {
             HStack(spacing: FlareSizes.spacingMd) {
                 AvatarView(userId: name, displayName: name, avatarURL: avatarURL, size: 44)
@@ -48,6 +55,11 @@ public struct QRCardView: View {
                 Text(strings.scanToAddMe).font(.system(size: 12)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity)
             }
+            HStack {
+                if code == nil && !["loading", "refreshing"].contains(phase), let onRefresh { ButtonView(label: strings.retry, variant: .quiet, action: onRefresh) }
+                if code != nil, let onSave { ButtonView(label: strings.scanSaveCode, variant: .quiet, action: onSave) }
+                if code != nil, let onShare { ButtonView(label: strings.scanShareCode, variant: .quiet, action: onShare) }
+            }
         }
         .padding(18)
         .frame(width: 240)
@@ -56,6 +68,35 @@ public struct QRCardView: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.bgPrimary)
             .shadow(color: Color.black.opacity(0.14), radius: 24, y: 10)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderPrimary, lineWidth: 1)))
+    }
+}
+
+public struct FlareQrMatrix: View {
+    private let payload: String?
+    private let label: String
+    @State private var cache = FlareQRCodeCache()
+    public init(payload: String?, label: String) { self.payload = payload; self.label = label }
+    public var body: some View { FlareQRCodeFrame(code: cache.image(for: payload), label: label) }
+}
+
+/// Export uses the exact same matrix and quiet zone as the on-screen QR component.
+public enum FlareQrExport {
+    public static func pngData(payload: String, pixelsPerModule: Int = 8) -> Data? {
+        guard (1...32).contains(pixelsPerModule), let mask = FlareQRCode.maskImage(for: payload),
+              let context = CGContext(data: nil, width: mask.width * pixelsPerModule,
+                height: mask.height * pixelsPerModule, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        let rect = CGRect(x: 0, y: 0, width: context.width, height: context.height)
+        context.setFillColor(CGColor(gray: 1, alpha: 1)); context.fill(rect)
+        context.interpolationQuality = .none
+        context.clip(to: rect, mask: mask)
+        context.setFillColor(CGColor(gray: 0, alpha: 1)); context.fill(rect)
+        guard let image = context.makeImage() else { return nil }
+        let data = NSMutableData()
+        guard let output = CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil) else { return nil }
+        CGImageDestinationAddImage(output, image, nil)
+        guard CGImageDestinationFinalize(output) else { return nil }
+        return data as Data
     }
 }
 

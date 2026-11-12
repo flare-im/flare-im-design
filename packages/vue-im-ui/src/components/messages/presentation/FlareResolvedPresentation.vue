@@ -100,7 +100,7 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
   </template>
   <template v-else-if="['redPacket.pay','payment.confirm'].includes(renderer)">
     <FlareButton v-if="bound('confirm')" :label="bound('confirm')!.label" :disabled="busy||paymentBlocked" @click="payOpen=true" />
-    <FlareRedPacketPayConfirm :open="payOpen&&Boolean(bound('confirm'))&&!paymentBlocked" :confirm-label="bound('confirm')?.label" :amount="text(p.amount)" :method-label="text(p.methodLabel)" :busy="busy" :confirm-disabled="passwordInvalid" @confirm="confirmPay" @cancel="cancelPay">
+    <FlareRedPacketPayConfirm :open="payOpen&&Boolean(bound('confirm'))&&!paymentBlocked" :confirm-label="bound('confirm')?.label" :amount="text(p.amount)" :method-label="text(p.methodLabel)" :payee="text(p.payee)" :notice="text(p.notice)" :busy="busy" :confirm-disabled="passwordInvalid" @confirm="confirmPay" @cancel="cancelPay">
       <template v-if="passwordInput" #credential><FlareInput v-model="paymentPassword" :placeholder="passwordInput.placeholder ?? passwordInput.label" :aria-label="passwordInput.label" :secure="true" inputmode="numeric" autocomplete="off" :max-length="6" :disabled="busy" @submit="confirmPay" /></template>
     </FlareRedPacketPayConfirm>
   </template>

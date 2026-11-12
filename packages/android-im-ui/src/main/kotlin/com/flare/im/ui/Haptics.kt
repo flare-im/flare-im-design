@@ -21,3 +21,10 @@ internal fun flareHapticCrossed(was: Boolean, now: Boolean): Boolean = was != no
 internal fun HapticFeedback.flareHapticTick() {
     performHapticFeedback(HapticFeedbackType.TextHandleMove)
 }
+
+
+/** A successful capture uses the platform confirmation feedback and honours system haptic settings. */
+fun android.view.View.flareHapticSuccess() {
+    performHapticFeedback(if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
+        android.view.HapticFeedbackConstants.CONFIRM else android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+}

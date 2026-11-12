@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
+import '../tokens/flare_strings.dart';
+import '../models/directory_data.dart';
+import 'flare_button.dart';
 import 'flare_avatar.dart';
 import 'qr/flare_qr_code_frame.dart';
 
@@ -20,8 +23,16 @@ class FlareQRCard extends StatelessWidget {
     this.avatarUrl,
     this.qrPayload,
     this.hint,
+    this.phase = 'ready',
+    this.refreshInMs,
+    this.onRefresh,
+    this.onSave,
+    this.onShare,
   });
 
+  final String phase;
+  final int? refreshInMs;
+  final VoidCallback? onRefresh, onSave, onShare;
   final String name;
   final String? subtitle;
   final String? avatarUrl;
@@ -36,6 +47,8 @@ class FlareQRCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final s = FlareStrings.of(context);
+    final displayPayload = ['ready', 'offline'].contains(phase) && (refreshInMs == null || refreshInMs! > 0) ? qrPayload : null;
     return Container(
       width: 240,
       padding: const EdgeInsets.all(18),
@@ -97,9 +110,24 @@ class FlareQRCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: FlareSizes.spacingLg),
-          FlareQrCodeFrame(payload: qrPayload, name: name, hint: hint),
+          FlareQrCodeFrame(payload: displayPayload, name: name, hint: hint),
+          Wrap(spacing: FlareSizes.spacingSm, children: [
+            if (!['loading', 'refreshing'].contains(phase) && onRefresh != null) FlareButton(label: displayPayload == null ? s.retry : s.pluginPageRefresh, variant: FlareButtonVariant.quiet, onPressed: onRefresh),
+            if (displayPayload != null && onSave != null) FlareButton(label: s.scanSaveCode, variant: FlareButtonVariant.quiet, onPressed: onSave),
+            if (displayPayload != null && onShare != null) FlareButton(label: s.scanShareCode, variant: FlareButtonVariant.quiet, onPressed: onShare),
+          ]),
         ],
       ),
     );
   }
+}
+
+/// Public matrix surface reused by host-bound plugin QR presentations.
+class FlareQrMatrix extends StatelessWidget {
+  const FlareQrMatrix({super.key, required this.payload, required this.label, this.size = 240});
+  final String? payload;
+  final String label;
+  final double size;
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(constraints: BoxConstraints(maxWidth: size), child: FlareQrCodeFrame(payload: payload, name: label, hint: null));
 }

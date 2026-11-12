@@ -10,7 +10,7 @@ private fun Any?.props(): Map<*, *> = this as? Map<*, *> ?: emptyMap<Any, Any>()
 private fun Any?.words(): String = this as? String ?: ""
 internal fun hasResolvedPresentation(view: PluginViewModel): Boolean {
  val kind=view.presentation?.get("renderer")
- return view.available && kind in listOf("redPacket.card","redPacket.composer","redPacket.detail","redPacket.pay","payment.confirm") && (kind!="redPacket.detail" || view.presentation?.get("props").props()["details"] is Map<*, *>)
+ return view.available && kind in listOf("redPacket.card","redPacket.composer","redPacket.detail","redPacket.pay","payment.confirm","flare.qr") && (kind!="redPacket.detail" || view.presentation?.get("props").props()["details"] is Map<*, *>)
 }
 /** Visual composition over resolved values. Requests are opaque IDs of visible actions. */
 @Composable
@@ -21,6 +21,9 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    encodeQr: (suspend (String) -> String)? = null,
+    qrReceivedAtNanos: Long? = null,
+    onInteractionChanged: ((Boolean) -> Unit)? = null,
 ) {
  val p=view.presentation?.get("props").props()
  val renderer=view.presentation?.get("renderer")
@@ -61,10 +64,11 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
  LaunchedEffect(ids,resolveUser) { val resolve=resolveUser?:return@LaunchedEffect; for(id in ids.distinct().filter { it.isNotEmpty() }) { val u=try { resolve(id) } catch(cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch(_:Exception) { null };if(u!=null)people=people+(id to u) } }
  fun person(id:String)=people[id]?:PluginUser(PluginViewFormat.fallbackName(id))
  val sender=person(p["senderId"].words())
- val remainder=view.copy(presentation=null,title="",fields=if(renderer in listOf("redPacket.pay","payment.confirm"))view.fields else emptyList(),detail=false,
+ val remainder=view.copy(presentation=null,title="",fields=if(pluginPresentationKeepsFields(renderer as? String))view.fields else emptyList(),detail=false,
   blocks=if(renderer=="redPacket.card")emptyList() else view.blocks,actions=view.actions.filter { it.id !in bound.values })
  Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingMd)) {
   when(renderer) {
+   "flare.qr" -> PluginQrPresentation(p, qrReceivedAtNanos, encodeQr)
    "redPacket.card" -> RedPacketCard(blessing=p["blessing"].words(),kind=FlareRedPacketKind.entries.firstOrNull { it.name.equals(p["kind"].words(),true) }?:FlareRedPacketKind.Normal,
     state=flareRedPacketCardState(FlareRedPacketStatus.entries.firstOrNull { it.wire==p["status"] }?:FlareRedPacketStatus.Open,p["claimedByMe"]==true,if(p["canClaim"]==false)FlareRedPacketTapAction.Details else FlareRedPacketTapAction.Open),busy=busy,disabled=action("open")==null,brandName=p["brandName"].words(),onOpen={request("open")})
    "redPacket.composer" -> {
@@ -98,12 +102,53 @@ internal fun ResolvedPresentation(view: PluginViewModel, busy: Boolean, error: S
    }
    "redPacket.pay", "payment.confirm" -> action("confirm")?.let { a ->
     Button(label=a.label,disabled=busy||paymentBlocked,onClick={paying=true})
-    if(paying&&!paymentBlocked)RedPacketPayConfirm(confirmLabel=a.label,amount=p["amount"].words(),methodLabel=p["methodLabel"].words(),busy=busy,onCancel={paymentPassword="";paying=false},
+    if(paying&&!paymentBlocked)RedPacketPayConfirm(confirmLabel=a.label,amount=p["amount"].words(),methodLabel=p["methodLabel"].words(),payee=p["payee"] as? String,notice=p["notice"] as? String,busy=busy,onCancel={paymentPassword="";paying=false},
       confirmDisabled=!passwordValid,
       credential=if(passwordInput==null)null else ({Input(value=paymentPassword,onValueChange={paymentPassword=it.take(6)},placeholder=passwordInput.placeholder?:passwordInput.label,disabled=busy,secure=true)}),
       onConfirm={if(passwordValid&&!busy&&!paymentBlocked){paying=false;if(passwordInput!=null){val value=paymentPassword;paymentPassword="";onAction?.invoke(a.id,PluginActionPayload(formValues=mapOf(passwordInput.id to value)))}else request("confirm")}})
    }
   }
-  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, settleToken=settleToken,resolveUser=resolveUser,onAction=onAction)
+  if(renderer!="redPacket.card")PluginView(view=remainder,embedded=true,busy=busy,error=error,formErrors=formErrors,members=members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, settleToken=settleToken,resolveUser=resolveUser,onAction=onAction,onInteractionChanged=onInteractionChanged)
  }
+}
+
+
+internal fun pluginPresentationKeepsFields(renderer: String?): Boolean = renderer in listOf("redPacket.pay", "payment.confirm", "flare.qr")
+
+/** Remaining validity derives only from elapsed monotonic time since the resolved view was received. */
+internal fun pluginQrRemainingMs(ttlMs: Long, receivedAtNanos: Long, nowNanos: Long): Long =
+    (ttlMs - ((nowNanos - receivedAtNanos).coerceAtLeast(0L) / 1_000_000L)).coerceAtLeast(0L)
+
+@Composable
+private fun PluginQrPresentation(props: Map<*, *>, receivedAtNanos: Long?, encodeQr: (suspend (String) -> String)?) {
+    val token = (props["token"] as? String)?.takeIf { it.isNotBlank() } ?: return
+    val receipt = receivedAtNanos ?: remember(props) { System.nanoTime() }
+    val ttl = (props["ttlMs"] as? Number)?.toLong()?.coerceAtLeast(0L)
+    var remaining by remember(receipt, ttl) { mutableStateOf(ttl?.let { pluginQrRemainingMs(it, receipt, System.nanoTime()) }) }
+    val encoder by rememberUpdatedState(encodeQr)
+    var payload by remember(token, receipt) { mutableStateOf<String?>(null) }
+    var encoding by remember(token, receipt) { mutableStateOf(true) }
+    LaunchedEffect(token, receipt) {
+        payload = try { encoder?.invoke(token) } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch (_: Exception) { null }
+        encoding = false
+    }
+    LaunchedEffect(receipt, ttl) {
+        if (ttl == null) return@LaunchedEffect
+        do {
+            remaining = pluginQrRemainingMs(ttl, receipt, System.nanoTime())
+            if (remaining == 0L) break
+            kotlinx.coroutines.delay(minOf(250L, remaining ?: 250L))
+        } while (true)
+    }
+    val strings = flareStrings()
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+        when {
+            remaining == 0L -> Text(strings.scanCodeExpired, color = flareColors().textSecondary)
+            encoding -> androidx.compose.material3.CircularProgressIndicator()
+            payload == null -> Text(strings.qrCardUnavailable, color = flareColors().textSecondary)
+            else -> FlareQrMatrix(payload, strings.qrCode, Modifier.widthIn(max = androidx.compose.ui.unit.Dp(280f)))
+        }
+        (props["caption"] as? String)?.takeIf { it.isNotBlank() }?.let { Text(it, color = flareColors().textSecondary) }
+    }
 }

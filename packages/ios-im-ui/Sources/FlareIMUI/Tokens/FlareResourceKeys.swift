@@ -880,6 +880,48 @@ extension FlareStrings {
         case "myInviteCountOnlyOne": return self.myInviteCountOnlyOne
         case "storageUsageFileCountOne": return self.storageUsageFileCountOne
         case "messageMenuLoading": return self.messageMenuLoading
+        case "scanTitle": return self.scanTitle
+        case "scanAlbum": return self.scanAlbum
+        case "scanPaste": return self.scanPaste
+        case "scanTorchOn": return self.scanTorchOn
+        case "scanTorchOff": return self.scanTorchOff
+        case "scanChooseCode": return self.scanChooseCode
+        case "scanPreparing": return self.scanPreparing
+        case "scanLive": return self.scanLive
+        case "scanLowLight": return self.scanLowLight
+        case "scanLocked": return self.scanLocked
+        case "scanChoosing": return self.scanChoosing
+        case "scanPaused": return self.scanPaused
+        case "scanImageDecoding": return self.scanImageDecoding
+        case "scanImageError": return self.scanImageError
+        case "scanNoCodeInImage": return self.scanNoCodeInImage
+        case "scanNoCamera": return self.scanNoCamera
+        case "scanInsecureContext": return self.scanInsecureContext
+        case "scanCameraBusy": return self.scanCameraBusy
+        case "scanCameraError": return self.scanCameraError
+        case "scanResult": return self.scanResult
+        case "scanUpgradeRequired": return self.scanUpgradeRequired
+        case "scanSaveCode": return self.scanSaveCode
+        case "scanShareCode": return self.scanShareCode
+        case "scanCodeExpired": return self.scanCodeExpired
+        case "scanLoginRequired": return self.scanLoginRequired
+        case "scanForeignCode": return self.scanForeignCode
+        case "scanText": return self.scanText
+        case "scanExternalLink": return self.scanExternalLink
+        case "scanPending": return self.scanPending
+        case "scanUnknown": return self.scanUnknown
+        case "scanAllowAddByQr": return self.scanAllowAddByQr
+        case "scanOpenExternal": return self.scanOpenExternal
+        case "scanRetryable": return self.scanRetryable
+        case "scanContinueLogin": return self.scanContinueLogin
+        case "reauthFailed": return self.reauthFailed
+        case "reauthTitle": return self.reauthTitle
+        case "reauthDestination": return self.reauthDestination
+        case "reauthCode": return self.reauthCode
+        case "reauthSendCode": return self.reauthSendCode
+        case "reauthResendIn": return self.reauthResendIn
+        case "reauthUnavailable": return self.reauthUnavailable
+        case "scanProvidedBy": return self.scanProvidedBy
         default: return nil
         }
     }
@@ -1761,6 +1803,48 @@ extension FlareStrings {
         case "myInviteCountOnlyOne": self.myInviteCountOnlyOne = value
         case "storageUsageFileCountOne": self.storageUsageFileCountOne = value
         case "messageMenuLoading": self.messageMenuLoading = value
+        case "scanTitle": self.scanTitle = value
+        case "scanAlbum": self.scanAlbum = value
+        case "scanPaste": self.scanPaste = value
+        case "scanTorchOn": self.scanTorchOn = value
+        case "scanTorchOff": self.scanTorchOff = value
+        case "scanChooseCode": self.scanChooseCode = value
+        case "scanPreparing": self.scanPreparing = value
+        case "scanLive": self.scanLive = value
+        case "scanLowLight": self.scanLowLight = value
+        case "scanLocked": self.scanLocked = value
+        case "scanChoosing": self.scanChoosing = value
+        case "scanPaused": self.scanPaused = value
+        case "scanImageDecoding": self.scanImageDecoding = value
+        case "scanImageError": self.scanImageError = value
+        case "scanNoCodeInImage": self.scanNoCodeInImage = value
+        case "scanNoCamera": self.scanNoCamera = value
+        case "scanInsecureContext": self.scanInsecureContext = value
+        case "scanCameraBusy": self.scanCameraBusy = value
+        case "scanCameraError": self.scanCameraError = value
+        case "scanResult": self.scanResult = value
+        case "scanUpgradeRequired": self.scanUpgradeRequired = value
+        case "scanSaveCode": self.scanSaveCode = value
+        case "scanShareCode": self.scanShareCode = value
+        case "scanCodeExpired": self.scanCodeExpired = value
+        case "scanLoginRequired": self.scanLoginRequired = value
+        case "scanForeignCode": self.scanForeignCode = value
+        case "scanText": self.scanText = value
+        case "scanExternalLink": self.scanExternalLink = value
+        case "scanPending": self.scanPending = value
+        case "scanUnknown": self.scanUnknown = value
+        case "scanAllowAddByQr": self.scanAllowAddByQr = value
+        case "scanOpenExternal": self.scanOpenExternal = value
+        case "scanRetryable": self.scanRetryable = value
+        case "scanContinueLogin": self.scanContinueLogin = value
+        case "reauthFailed": self.reauthFailed = value
+        case "reauthTitle": self.reauthTitle = value
+        case "reauthDestination": self.reauthDestination = value
+        case "reauthCode": self.reauthCode = value
+        case "reauthSendCode": self.reauthSendCode = value
+        case "reauthResendIn": self.reauthResendIn = value
+        case "reauthUnavailable": self.reauthUnavailable = value
+        case "scanProvidedBy": self.scanProvidedBy = value
         default: break
         }
     }

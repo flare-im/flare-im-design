@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/directory_data.dart'
     show FlareButtonVariant, FlareControlSize;
 import '../models/plugin_view.dart';
+import '../models/scan_view_rules.dart';
 import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -17,6 +18,8 @@ import 'flare_plugin_view.dart';
 import 'flare_screen.dart';
 import 'flare_status_banner.dart';
 import 'plugin_paging.dart';
+import 'flare_plugin_qr.dart';
+import 'flare_scan.dart';
 
 /// Plugin page host — a full-screen page for a plugin's `page` contribution
 /// (red packet v5's wallet and its history, a list): the kit [FlareScreen]
@@ -47,6 +50,10 @@ class FlarePluginPage extends StatefulWidget {
     super.key,
     required this.page,
     this.title,
+    this.providerName,
+    this.visible = true,
+    this.encodePluginCode,
+    this.onSurfaceHints,
     this.appearance = FlarePluginPageAppearance.document,
     this.contentMaxWidth = FlareSizes.directoryContentMaxWidth,
     this.view,
@@ -84,6 +91,10 @@ class FlarePluginPage extends StatefulWidget {
   /// Page title while there is no view (or the view has none, as an
   /// unavailable one); the view's title wins.
   final String? title;
+  final String? providerName;
+  final bool visible;
+  final Future<String> Function(String pluginId, String token)? encodePluginCode;
+  final ValueChanged<FlareScanSurfaceHints>? onSurfaceHints;
   final FlarePluginPageAppearance appearance;
 
   /// Shared header/body column, including page gutters. Null or a nonpositive
@@ -178,7 +189,29 @@ class FlarePluginPage extends StatefulWidget {
   State<FlarePluginPage> createState() => _FlarePluginPageState();
 }
 
-class _FlarePluginPageState extends State<FlarePluginPage> {
+class _FlarePluginPageState extends State<FlarePluginPage> with WidgetsBindingObserver {
+  Timer? _scanRefresh;
+  int? _lastRefreshMs;
+  bool _automaticRefresh = false, _interacting = false, _foreground = true, _routeVisible = true;
+  @override
+  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); _configureScanRefresh(); WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _publishSurface(); }); }
+  @override
+  void didChangeDependencies() { super.didChangeDependencies(); _routeVisible = ModalRoute.isCurrentOf(context) ?? true; WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _publishSurface(); }); }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) { _foreground = state == AppLifecycleState.resumed; _publishSurface(); }
+  void _configureScanRefresh() {
+    final interval = widget.view?.refreshMs;
+    if (interval != null && interval >= 3000 && interval <= 60000 && interval != _lastRefreshMs) { _lastRefreshMs = interval; _scanRefresh?.cancel(); _scanRefresh = Timer.periodic(Duration(milliseconds: interval), (_) {
+      if (!mounted || !flarePluginMayRefresh(visible: widget.visible && _routeVisible, foreground: _foreground, loading: widget.loading, refreshing: widget.refreshing, busy: widget.loadingMore || widget.busyActionId != null, interaction: _interacting)) return;
+      _automaticRefresh = true; widget.onRefresh?.call();
+    }); }
+  }
+  void _publishSurface() {
+    final qr = widget.visible && _foreground && _routeVisible && widget.view?.available == true && widget.view?.presentation?['renderer'] == 'flare.qr';
+    final presentation = widget.view?.presentation?['props'];
+    widget.onSurfaceHints?.call(FlareScanSurfaceHints(secure: qr && presentation is Map && presentation['ttlMs'] is num, maxBrightness: qr));
+  }
+
   final _cursor = FlarePluginPageCursor();
 
   /// The pull the indicator is showing, until the host's refresh ends.
@@ -187,6 +220,9 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
   @override
   void didUpdateWidget(FlarePluginPage old) {
     super.didUpdateWidget(old);
+    if (old.page.pluginId != widget.page.pluginId || old.page.page != widget.page.page) { _scanRefresh?.cancel(); _lastRefreshMs = null; _automaticRefresh = false; }
+    _configureScanRefresh();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _publishSurface(); });
     _cursor.update(
       wasLoadingMore: old.loadingMore,
       loadingMore: widget.loadingMore,
@@ -203,6 +239,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
       _cursor.release();
     }
     if (old.refreshing && !widget.refreshing) {
+      _automaticRefresh = false;
       _cursor.release();
       _endPull();
     }
@@ -210,6 +247,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this); _scanRefresh?.cancel(); widget.onSurfaceHints?.call(const FlareScanSurfaceHints(secure: false, maxBrightness: false));
     _endPull();
     super.dispose();
   }
@@ -241,7 +279,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
   }
 
   bool get _filtersBusy =>
-      widget.loading || widget.refreshing || widget.loadingMore;
+      widget.loading || (widget.refreshing && !_automaticRefresh) || widget.loadingMore;
 
   void _choose(FlarePluginPageFilter filter, String key) {
     if (_filtersBusy) return;
@@ -258,6 +296,12 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
         actionId,
         flarePluginPagePayload(widget.page, widget.view, payload),
       );
+
+  Widget _qr(FlarePluginPageViewModel view) {
+    final raw = view.presentation?['props'];
+    final props = raw is Map ? raw : const <String, Object?>{};
+    return FlarePluginQr(token: props['token'] as String?, ttlMs: (props['ttlMs'] as num?)?.toInt(), caption: props['caption'] as String?, encodeQr: widget.encodePluginCode == null ? null : (token) => widget.encodePluginCode!(widget.page.pluginId, token));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -433,6 +477,8 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           const SizedBox(height: FlareSizes.spacingXs),
         ],
         if (filters.isNotEmpty) const SizedBox(height: FlareSizes.spacingSm),
+        if (widget.providerName?.isNotEmpty == true) Text(strings.scanProvidedBy.replaceAll('{name}', widget.providerName!)),
+        if (view.presentation?['renderer'] == 'flare.qr') _qr(view),
         if (widget.appearance == FlarePluginPageAppearance.account ||
             view.presentation?['renderer'] == 'account')
           FlareAccountView(
@@ -453,6 +499,7 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           )
         else
           FlarePluginView(
+            onInteractionChanged: (active) => _interacting = active,
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
             view: view,

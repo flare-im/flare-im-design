@@ -377,6 +377,7 @@ fun FlareGroupDetail(
     loading: Boolean = false,
     joinRequests: List<FlareGroupJoinRequestView> = emptyList(),
     loadingJoinRequests: Boolean = false,
+    /** Complete host-supplied invite URL; the kit renders/copies it without classification. */
     inviteCode: String? = null,
     loadingInviteLink: Boolean = false,
     invitableContacts: List<Contact> = emptyList(),
@@ -870,6 +871,7 @@ fun FlareGroupDetail(
                 } else if (inviteCode.isNullOrEmpty()) {
                     Text(labels.cannotGenerate, color = colors.textTertiary)
                 } else {
+                    FlareQrMatrix(payload = inviteCode, label = labels.inviteLink)
                     Text(labels.inviteCodeLabel, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
                     Text(inviteCode, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl)
                 }

@@ -14,6 +14,8 @@ import SwiftUI
 public struct RedPacketPayConfirmView: View {
     private let amount: String
     private let methodLabel: String
+    private let payee: String?
+    private let notice: String?
     private let confirmLabel: String?
     private let credential: AnyView?
     private let confirmDisabled: Bool
@@ -26,7 +28,9 @@ public struct RedPacketPayConfirmView: View {
     @Environment(\.flareStrings) private var strings
 
     public init(amount: String, methodLabel: String, insufficient: Bool = false, busy: Bool = false,
-                onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil, confirmLabel: String? = nil, credential: AnyView? = nil, confirmDisabled: Bool = false) {
+                onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil, confirmLabel: String? = nil, credential: AnyView? = nil, confirmDisabled: Bool = false,
+                payee: String? = nil, notice: String? = nil) {
+        self.payee = payee; self.notice = notice
         self.credential = credential; self.confirmDisabled = confirmDisabled
         self.confirmLabel = confirmLabel
         self.amount = amount; self.methodLabel = methodLabel; self.insufficient = insufficient; self.busy = busy
@@ -50,6 +54,12 @@ public struct RedPacketPayConfirmView: View {
                 .foregroundColor(colors.textPrimary)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+            if let payee, !payee.isEmpty {
+                Text(payee).foregroundColor(colors.textPrimary).multilineTextAlignment(.center)
+            }
+            if let notice, !notice.isEmpty {
+                Text(notice).foregroundColor(colors.textSecondary).multilineTextAlignment(.center)
+            }
             VStack(spacing: 0) {
                 Rectangle().fill(colors.borderSecondary).frame(height: RedPacketMetrics.hairline)
                 HStack(spacing: FlareSizes.spacingMd) {

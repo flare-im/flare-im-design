@@ -6,13 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 // The semantic icon registry: one fixed vocabulary, the same names in the same
 // order on Vue / Flutter / SwiftUI / Compose, each name drawn by one glyph.
 void main() {
-  test('the registry holds 109 unique names, each with a glyph, in order', () {
-    expect(flareIconNames, hasLength(109));
-    expect(flareIconNames.toSet(), hasLength(109));
-    // wallet follows locate, the last of the list on every kit.
-    expect(flareIconNames.sublist(flareIconNames.length - 2), [
+  test('the registry holds 111 unique names, each with a glyph, in order', () {
+    expect(flareIconNames, hasLength(111));
+    expect(flareIconNames.toSet(), hasLength(111));
+    // Stable positions precede the scanner controls added to all four kits.
+    expect(flareIconNames.sublist(107), [
       'locate',
       'wallet',
+      'scan',
+      'flashlight',
     ]);
     expect(flareIconMap['wallet'], Icons.account_balance_wallet_outlined);
     expect(flareIconMap.keys.toList(), flareIconNames);
@@ -134,13 +136,13 @@ void main() {
   });
 
   test('plugin, the generic plugin glyph, comes before locate', () {
-    expect(flareIconNames[flareIconNames.length - 3], 'plugin');
+    expect(flareIconNames[106], 'plugin');
     expect(flareIconMap['plugin'], Icons.extension_outlined);
     expect(flareIconGlyph('plugin'), Icons.extension_outlined);
   });
 
   test('locate, the picker\'s current-location key, precedes wallet', () {
-    expect(flareIconNames[flareIconNames.length - 2], 'locate');
+    expect(flareIconNames[107], 'locate');
     expect(flareIconMap['locate'], Icons.my_location_outlined);
     expect(flareIconMap['locate'], isNot(flareIconMap['location']));
   });

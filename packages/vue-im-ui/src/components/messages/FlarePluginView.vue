@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FlarePluginQr from "../scan/FlarePluginQr.vue";
 import FlareUserIdentity from "../data/FlareUserIdentity.vue";
 import {
   computed,
@@ -81,6 +82,7 @@ import {
 const props = withDefaults(
   defineProps<{
     view: FlarePluginViewModel;
+    encodeQr?: (token: string) => Promise<string>;
     /** Kit icon name before the title. */
     icon?: string;
     /** The envelope's displayName (the plugin's name): leads the unavailable reason line. */
@@ -175,6 +177,7 @@ const props = withDefaults(
   },
 );
 const emit = defineEmits<{
+  interactionChange: [active: boolean];
   action: [actionId: string, payload: FlarePluginActionPayload];
   fileAction: [event: FlarePluginFileAction];
   /** "See all", the card's view details key (or a row of an admin table, with its key and the detail operation's input). */
@@ -553,6 +556,7 @@ const confirming = ref<{
   proceed: () => void;
 } | null>(null);
 const formAction = ref<FlarePluginAction | null>(null);
+watch(() => Boolean(confirming.value || formAction.value || inlineFormAction.value), active => emit("interactionChange", active), { immediate: true });
 // What the action already carries when its form opens (a choices selection and its optimistic mark):
 // the form adds its values to it, so every platform sends both.
 const formCarry = ref<{
@@ -906,6 +910,7 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
     >
       {{ reasonLine }}
     </p>
+    <FlarePluginQr v-if="view.available && view.presentation?.renderer === 'flare.qr'" :token="typeof view.presentation.props.token === 'string' ? view.presentation.props.token : undefined" :ttl-ms="typeof view.presentation.props.ttlMs === 'number' ? view.presentation.props.ttlMs : undefined" :caption="typeof view.presentation.props.caption === 'string' ? view.presentation.props.caption : undefined" :encode-qr="encodeQr" />
     <template v-if="view.available && !specialPresentation">
       <dl v-if="view.fields.length" class="flare-plugin-view__fields">
         <div v-for="(field, index) in shownFields" :key="index">

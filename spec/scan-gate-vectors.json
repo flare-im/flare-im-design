@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "collectionMs": 150,
+  "rearmAbsenceMs": 1500,
+  "cases": [
+    {
+      "name": "collect before resolve and single flight",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 149,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        },
+        {
+          "tsMs": 400,
+          "codes": [
+            "B"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        }
+      ]
+    },
+    {
+      "name": "second code requires explicit selection even when first disappears",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 80,
+          "codes": [
+            "B"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [],
+          "expect": {
+            "kind": "choose",
+            "raws": [
+              "A",
+              "B"
+            ]
+          }
+        },
+        {
+          "select": "X",
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "select": "B",
+          "expect": {
+            "kind": "lock",
+            "raw": "B",
+            "ready": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "duplicates are one code",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A",
+            "A",
+            ""
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "dismissal requires continuous absence",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        },
+        {
+          "dismiss": true
+        },
+        {
+          "tsMs": 160,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 200,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1699,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1700,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1701,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "visibility resets absence timer",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        },
+        {
+          "dismiss": true
+        },
+        {
+          "tsMs": 200,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1600,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1700,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 2000,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        }
+      ]
+    },
+    {
+      "name": "clock regression cannot settle a collection",
+      "steps": [
+        {
+          "tsMs": 300,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 100,
+          "codes": [
+            "B"
+          ],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 450,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "returning after a long observed absence rearms immediately",
+      "steps": [
+        {
+          "tsMs": 0,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        },
+        {
+          "tsMs": 150,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": true
+          }
+        },
+        {
+          "dismiss": true
+        },
+        {
+          "tsMs": 200,
+          "codes": [],
+          "expect": {
+            "kind": "ignore"
+          }
+        },
+        {
+          "tsMs": 1800,
+          "codes": [
+            "A"
+          ],
+          "expect": {
+            "kind": "lock",
+            "raw": "A",
+            "ready": false
+          }
+        }
+      ]
+    }
+  ]
+}

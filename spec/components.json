@@ -4452,6 +4452,337 @@
           }
         }
       ]
+    },
+    {
+      "name": "ScanHitGate",
+      "symbol": "FlareScanHitGate",
+      "kind": "class",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "observe",
+          "type": "(frame: {codes: ScanCode[], tsMs: number}) => ScanHit",
+          "required": true,
+          "description": {
+            "en": "Collect a monotonic decoder frame without side effects.",
+            "zh": "以单调时钟输入解码帧，不执行副作用。"
+          }
+        },
+        {
+          "name": "select",
+          "type": "(raw: string) => ScanHit",
+          "required": true,
+          "description": {
+            "en": "Resolve only an explicitly selected visible code.",
+            "zh": "只锁定用户明确选中的码。"
+          }
+        },
+        {
+          "name": "dismiss",
+          "type": "() => void",
+          "required": true,
+          "description": {
+            "en": "Release single flight while retaining absence suppression.",
+            "zh": "解除单飞并保留离视野抑制规则。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanMarker",
+      "symbol": "FlareScanMarker",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Stable marker selection key.",
+            "zh": "稳定标记选择键。"
+          }
+        },
+        {
+          "name": "corners",
+          "type": "Array<{x: number, y: number}>",
+          "required": true,
+          "description": {
+            "en": "Coordinates already projected into normalized preview space.",
+            "zh": "已投影到预览归一化空间的坐标。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Accessible localized marker name.",
+            "zh": "本地化无障碍标记名称。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanCapabilities",
+      "symbol": "FlareScanCapabilities",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "live",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host supports live camera capture.",
+            "zh": "宿主支持实时相机采集。"
+          }
+        },
+        {
+          "name": "album",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host can select an image.",
+            "zh": "宿主可选择图片。"
+          }
+        },
+        {
+          "name": "paste",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host exposes an explicit clipboard action.",
+            "zh": "宿主提供显式剪贴板动作。"
+          }
+        },
+        {
+          "name": "myCode",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Host can open the account code.",
+            "zh": "宿主可打开账户二维码。"
+          }
+        },
+        {
+          "name": "torch",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "Current camera exposes a torch.",
+            "zh": "当前相机提供补光灯。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanHeader",
+      "symbol": "FlareScanHeader",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Resolved primary title.",
+            "zh": "已解析的主标题。"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Resolved secondary text.",
+            "zh": "已解析的次要文本。"
+          }
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Stable readable avatar address.",
+            "zh": "稳定可读的头像地址。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanFact",
+      "symbol": "FlareScanFact",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Localized field label.",
+            "zh": "本地化字段标签。"
+          }
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Selectable plain-text fact.",
+            "zh": "可选择的纯文本信息。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanInput",
+      "symbol": "FlareScanInput",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Action-scoped input key.",
+            "zh": "动作内的输入键。"
+          }
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Only text is supported; unknown kinds disable the action.",
+            "zh": "仅支持 text，未知类型禁用整个动作。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Accessible localized input label.",
+            "zh": "本地化无障碍输入标签。"
+          }
+        },
+        {
+          "name": "maxLen",
+          "type": "number",
+          "required": true,
+          "description": {
+            "en": "Positive maximum text length.",
+            "zh": "正数文本长度上限。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ScanAction",
+      "symbol": "FlareScanAction",
+      "kind": "interface",
+      "summary": {
+        "en": "Pure shared scan presentation/arbitration contract.",
+        "zh": "共享扫码展示与命中规则契约。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Opaque SDK action identity.",
+            "zh": "不透明 SDK 动作标识。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Resolved action label.",
+            "zh": "已解析的动作标签。"
+          }
+        },
+        {
+          "name": "primary",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Primary emphasis.",
+            "zh": "主要动作强调。"
+          }
+        },
+        {
+          "name": "inputs",
+          "type": "ScanInput[]",
+          "required": false,
+          "description": {
+            "en": "Inputs sent only with this action.",
+            "zh": "只随此动作发送的输入。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ReauthDestination",
+      "symbol": "FlareReauthDestination",
+      "kind": "interface",
+      "summary": {
+        "en": "Opaque verification destination for controlled OTP UI.",
+        "zh": "供受控验证码 UI 使用的不透明验证方式。"
+      },
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Opaque SDK identifier.",
+            "zh": "SDK 不透明标识。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Already masked display label.",
+            "zh": "已脱敏展示文字。"
+          }
+        },
+        {
+          "name": "detail",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional display hint.",
+            "zh": "可选展示提示。"
+          }
+        }
+      ]
     }
   ],
   "components": [
@@ -6898,6 +7229,7 @@
           "compose"
         ],
         "openLink": [
+          "vue",
           "flutter",
           "ios",
           "compose"
@@ -16788,6 +17120,24 @@
             "zh": "确认按钮文案；宿主区分付款和资金授权，默认沿用确认支付。",
             "en": "Confirm label; lets the host distinguish payment from authorizing funds. Defaults to Confirm payment."
           }
+        },
+        {
+          "name": "payee",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Trusted recipient label shown before confirmation.",
+            "zh": "确认前显示的收款方名称。"
+          }
+        },
+        {
+          "name": "notice",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Optional transfer note shown before confirmation.",
+            "zh": "确认前显示的可选转账备注。"
+          }
         }
       ],
       "states": [
@@ -17093,7 +17443,9 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "fileAction",
+        "interactionChange"
       ],
       "eventPlatforms": {
         "loadMore": [
@@ -17113,6 +17465,21 @@
         ],
         "protectedMediaRead": [
           "vue"
+        ],
+        "memberSearch": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "membersRetry": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "interactionChange": [
+          "vue",
+          "flutter",
+          "compose"
         ]
       },
       "platforms": {
@@ -17165,6 +17532,18 @@
       },
       "slotReasons": {
         "quote": "Flutter and SwiftUI have no quote parameter: the timeline hands the row's quote to the card through the ambient FlareCardQuote (Flutter) / flareMessageCardQuote environment (SwiftUI), and PluginView draws it inside its shell above the title row, so a host renderer gets it without passing anything."
+      },
+      "platformAliases": {
+        "flutter": {
+          "events": {
+            "interactionChange": "onInteractionChanged"
+          }
+        },
+        "compose": {
+          "events": {
+            "interactionChange": "onInteractionChanged"
+          }
+        }
       }
     },
     {
@@ -17773,6 +18152,33 @@
             "zh": "成员、可见性或权限的权威失效信号。变化只清成员草稿、选中姓名和旧选择器，保留金额等其他字段。普通搜索部分结果不可改变此值。"
           },
           "default": "0"
+        },
+        {
+          "name": "providerName",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Provider attribution from the trusted SDK catalog.",
+            "zh": "Provider attribution from the trusted SDK catalog."
+          }
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "The host page visibility; hidden pages never refresh.",
+            "zh": "The host page visibility; hidden pages never refresh."
+          }
+        },
+        {
+          "name": "encodePluginCode",
+          "type": "(pluginId, token) => Promise<string>",
+          "required": false,
+          "description": {
+            "en": "Trusted code encoder bound to the page plugin.",
+            "zh": "Trusted code encoder bound to the page plugin."
+          }
         }
       ],
       "states": [
@@ -17791,7 +18197,10 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "surfaceHints",
+        "fileAction",
+        "autoRefresh"
       ],
       "notes": {
         "en": "The page host for any plugin `page` contribution — the red packet wallet and its history (docs/design/red-packet-v5-roles-and-wallet.md §3.2). The kit Screen with the heading (view.title, else the host's title: an unavailable page keeps the host's) and back key, then the filter tabs, the view drawn by PluginView embedded (the detail sheet's document renderer: blocks, menu actions as keys, forms and settling behave the same; rows draw as a list with their badges, at most once per key, and only the row that ran an action spins) and a full-width load-more key while view.nextCursor is non-blank (asked once per cursor, as in PluginDetailSheet; the end of a refresh also forgets the asked cursor). Pull to refresh on touch and a refresh key in the header on pointer devices. Data and actions: view.data is what the page was resolved against; every action run on the page — a view action, a menu action, a choices submit, a row action, after its confirm and form — emits action(id, {page, data?, row?, selection?, formValues?}), the request invokePageAction takes, so the host passes it through and routes the outcome (a page target opens the next page with its payload as the arguments). Paging: loadMore(cursor) asks for the next page; the host passes back the merged view from the core SDK (new rows and entries after the shown ones, shown row keys dropped, data kept). Filters: the select inputs the rows block lists (every input when it lists none) are FilterTabs rows, all first; choosing a tab emits filter(values) with the host's filters updated, and the host re-reads the first page. Unavailable (view.available false): the kit empty state with the reason's copy, a retry key only for catalog_unreachable, nothing else. The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws nothing the view does not declare. A page has no openDetail (a page view has no detail). Facts in spec/plugin-view-vectors.json (rules.page, pageRows, pagePaging, pageFilters; pageViews, pageActions, pagePaging, pageFilters). Member search: memberSearch(query) / membersRetry map to onMemberSearch / onMembersRetry in Flutter, SwiftUI and Compose. Opening a picker requests the empty query once; the host searches its authorized member directory, debounces and rejects stale route/account/query responses. With server search, members is only the current result page: do not locally filter again or remove an already picked member merely because another query omits them. Keep the picked name until explicit clear or membersRevision invalidation. The server rechecks membership on submit. See docs/design/plugin-member-search.md.",
@@ -17832,6 +18241,28 @@
         },
         "reducedMotionBehavior": "The pull indicator follows the finger without easing; the spinner is static under reduced motion.",
         "screenReaderSemantics": "Region named by the heading; each filter row is a tab list named by its input's label; the refresh indicator is a status that announces refreshing; an unavailable page reads its reason; load more is a button named by its label."
+      },
+      "eventPlatforms": {
+        "memberSearch": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "membersRetry": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "autoRefresh": [
+          "compose"
+        ]
+      },
+      "platformAliases": {
+        "ios": {
+          "props": {
+            "encodePluginCode": "encodeQr"
+          }
+        }
       }
     },
     {
@@ -18155,6 +18586,80 @@
       }
     },
     {
+      "name": "QRMatrix",
+      "category": "General",
+      "summary": {
+        "en": "A host-supplied QR payload rendered with a four-module quiet zone and a named image role.",
+        "zh": "将宿主提供的内容绘制成带四模块静区、可访问图像名称的二维码。"
+      },
+      "dataSource": {
+        "en": "The host supplies an already encoded payload and an accessible label; the component does not resolve links or authorize actions.",
+        "zh": "宿主提供已编码的内容和可访问名称；组件不解析链接或授权动作。"
+      },
+      "props": [
+        {
+          "name": "payload",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Nonempty text to encode; obtain business-code URLs from the SDK before rendering.",
+            "zh": "待编码的非空文本；业务码 URL 应先由 SDK 生成。"
+          }
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Accessible image name describing the code's purpose without reading its raw contents.",
+            "zh": "描述二维码用途的可访问图像名称，不朗读原始内容。"
+          }
+        }
+      ],
+      "states": [
+        "ready"
+      ],
+      "events": [],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareQrMatrix"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareQrMatrix"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareQrMatrix"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareQrMatrix"
+        }
+      },
+      "notes": {
+        "en": "Pure image output with no focus, click, SDK, camera or timer. All themes preserve dark modules on a light panel and a four-module quiet zone. Size comes from the host container (Flutter also accepts size; Compose accepts Modifier). Vue exposes exportSvg/exportPng; native image export uses the existing platform QR export helpers. Native nullable payloads show unavailability, while the shared ready contract requires nonempty payload; use QRCard for loading, expiry and retry controls.",
+        "zh": "纯图像输出，不持有焦点、点击、SDK、相机或定时器。所有主题保留浅底深码和四模块静区。尺寸由宿主容器约束（Flutter 另接受 size，Compose 接受 Modifier）。Vue 暴露 exportSvg/exportPng；原生图像导出复用现有平台 QR 导出工具。原生可空内容展示不可用状态，共享 ready 合同要求非空内容；加载、过期及重试控件请使用 QRCard。"
+      },
+      "accessibility": {
+        "role": "img",
+        "labelRequired": true,
+        "focusable": "never",
+        "keyboardBehavior": [
+          "Static image; does not enter the Tab order or handle activation"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "No animation or motion; replacing the payload replaces the code immediately.",
+        "screenReaderSemantics": "Expose the host-supplied image label. Matrix modules and raw payload text are not separate accessible children."
+      }
+    },
+    {
       "name": "QRCard",
       "category": "Profile",
       "summary": {
@@ -18201,10 +18706,38 @@
             "en": "Text the kit encodes as a scannable QR code (byte mode, error correction M, 4-module quiet zone, dark on a light panel in both themes). Without it the card shows a \"QR code unavailable\" panel and no matrix.",
             "zh": "由组件编码成可扫描二维码的文本（字节模式、纠错等级 M、4 模块静区，两种主题下都是浅底深码）。不传时显示“二维码暂不可用”，不画任何矩阵。"
           }
+        },
+        {
+          "name": "phase",
+          "type": "FlareQrPhase",
+          "required": false,
+          "description": {
+            "en": "Code lifecycle; loading, ready, offline, refreshing, failed",
+            "zh": "Code lifecycle; loading, ready, offline, refreshing, failed"
+          }
+        },
+        {
+          "name": "refreshInMs",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Remaining lifetime; zero obscures expired code",
+            "zh": "Remaining lifetime; zero obscures expired code"
+          }
         }
       ],
-      "states": [],
-      "events": [],
+      "states": [
+        "loading",
+        "ready",
+        "offline",
+        "refreshing",
+        "failed"
+      ],
+      "events": [
+        "refresh",
+        "save",
+        "share"
+      ],
       "platforms": {
         "vue": {
           "package": "@flare-im/vue-ui",
@@ -18226,6 +18759,23 @@
       "notes": {
         "en": "Encoders: Vue naive-ui NQrCode, iOS CoreImage CIQRCodeGenerator, Flutter and Compose an internal encoder verified bit for bit against a reference implementation. The code is an image named \"QR code\" plus the name; the scan hint shows only when there is a code.",
         "zh": "编码：Vue 用 naive-ui NQrCode，iOS 用 CoreImage CIQRCodeGenerator，Flutter 与 Compose 用内部编码器（与参考实现逐位比对过）。二维码是以“二维码 + 名称”命名的图像；只有有码时才显示扫码提示。"
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits refresh, save and share actions in visual order",
+          "Enter or Space activates the focused action"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Code expiry changes immediately; no animation carries required information.",
+        "screenReaderSemantics": "Name the code with its owner and status. Refresh, save and share are named buttons; failed or expired codes announce unavailability."
       }
     },
     {
@@ -28525,6 +29075,542 @@
         },
         "reducedMotionBehavior": "No motion; transfer state remains readable.",
         "screenReaderSemantics": "Expose a named file selection group, upload availability, status and native progress. Decorative previews are hidden."
+      }
+    },
+    {
+      "name": "ScanViewfinder",
+      "category": "Media",
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "dataSource": {
+        "en": "Passed in by the host.",
+        "zh": "由宿主传入。"
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "FlareScanViewState",
+          "required": true,
+          "description": {
+            "en": "Camera state supplied by host",
+            "zh": "Camera state supplied by host"
+          }
+        },
+        {
+          "name": "markers",
+          "type": "FlareScanMarker[]",
+          "required": false,
+          "description": {
+            "en": "Normalized preview-space markers",
+            "zh": "Normalized preview-space markers"
+          }
+        },
+        {
+          "name": "capabilities",
+          "type": "FlareScanCapabilities",
+          "required": true,
+          "description": {
+            "en": "Host capture/action capabilities",
+            "zh": "Host capture/action capabilities"
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized status override",
+            "zh": "Localized status override"
+          }
+        },
+        {
+          "name": "torch",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Torch state",
+            "zh": "Torch state"
+          }
+        }
+      ],
+      "states": [
+        "preparing",
+        "live",
+        "lowLight",
+        "locked",
+        "choosing",
+        "paused",
+        "imageDecoding",
+        "imageError",
+        "noCodeInImage",
+        "permissionUndetermined",
+        "denied",
+        "restricted",
+        "noCamera",
+        "insecureContext",
+        "cameraBusy",
+        "cameraError"
+      ],
+      "slots": [
+        "preview"
+      ],
+      "events": [
+        "close",
+        "toggleTorch",
+        "pickImage",
+        "paste",
+        "openMyCode",
+        "selectMarker",
+        "retry",
+        "requestPermission",
+        "openSettings"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanViewfinder"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScanViewfinder"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScanViewfinderView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanViewfinder"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Markers use normalized preview coordinates. ScanDropZone is Vue only. Unknown input kinds disable the action.",
+        "zh": "标记使用取景区归一化坐标。ScanDropZone 仅 Vue 支持。未知输入类型禁用动作。"
+      }
+    },
+    {
+      "name": "ScanResultSheet",
+      "category": "Overlay",
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "dataSource": {
+        "en": "Passed in by the host.",
+        "zh": "由宿主传入。"
+      },
+      "props": [
+        {
+          "name": "phase",
+          "type": "FlareScanSheetPhase",
+          "required": true,
+          "description": {
+            "en": "Scan result presentation state",
+            "zh": "Scan result presentation state"
+          }
+        },
+        {
+          "name": "header",
+          "type": "FlareScanHeader",
+          "required": true,
+          "description": {
+            "en": "Localized title and identity",
+            "zh": "Localized title and identity"
+          }
+        },
+        {
+          "name": "facts",
+          "type": "FlareScanFact[]",
+          "required": false,
+          "description": {
+            "en": "Read-only facts",
+            "zh": "Read-only facts"
+          }
+        },
+        {
+          "name": "notice",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized notice",
+            "zh": "Localized notice"
+          }
+        },
+        {
+          "name": "actions",
+          "type": "FlareScanAction[]",
+          "required": false,
+          "description": {
+            "en": "Action-scoped text inputs",
+            "zh": "Action-scoped text inputs"
+          }
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Operation owns the flow",
+            "zh": "Operation owns the flow"
+          }
+        }
+      ],
+      "states": [
+        "loading",
+        "slow",
+        "ready",
+        "acting",
+        "done",
+        "pending",
+        "failed",
+        "offlineWaiting",
+        "unknown"
+      ],
+      "events": [
+        "action",
+        "dismiss",
+        "retry"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanResultSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareScanResultSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ScanResultSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ScanResultSheet"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Markers use normalized preview coordinates. ScanDropZone is Vue only. Unknown input kinds disable the action.",
+        "zh": "标记使用取景区归一化坐标。ScanDropZone 仅 Vue 支持。未知输入类型禁用动作。"
+      }
+    },
+    {
+      "name": "ScanDropZone",
+      "category": "Media",
+      "summary": {
+        "en": "Host-driven QR scan presentation; no camera or SDK dependency.",
+        "zh": "由宿主驱动的扫码展示，不依赖相机或 SDK。"
+      },
+      "dataSource": {
+        "en": "Passed in by the host.",
+        "zh": "由宿主传入。"
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Image decode state",
+            "zh": "Image decode state"
+          }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized drop instructions",
+            "zh": "Localized drop instructions"
+          }
+        }
+      ],
+      "states": [
+        "idle",
+        "decoding",
+        "failed"
+      ],
+      "events": [
+        "pickImage",
+        "paste",
+        "drop"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareScanDropZone"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "Markers use normalized preview coordinates. ScanDropZone is Vue only. Unknown input kinds disable the action.",
+        "zh": "标记使用取景区归一化坐标。ScanDropZone 仅 Vue 支持。未知输入类型禁用动作。"
+      },
+      "notApplicablePlatforms": {
+        "flutter": "HTML image drop is a web host capability.",
+        "ios": "HTML image drop is a web host capability.",
+        "compose": "HTML image drop is a web host capability."
+      }
+    },
+    {
+      "name": "ReauthSheet",
+      "category": "Form",
+      "summary": {
+        "en": "Controlled identity-verification OTP form; no credential, proof, SDK or network dependency.",
+        "zh": "受控身份验证码表单，不依赖凭据、证明、SDK 或网络。"
+      },
+      "dataSource": {
+        "en": "SDK host supplies masked destinations and presentation state.",
+        "zh": "SDK 宿主提供脱敏验证方式与展示状态。"
+      },
+      "props": [
+        {
+          "name": "destinations",
+          "type": "FlareReauthDestination[]",
+          "required": true,
+          "description": {
+            "en": "Masked destinations with opaque ids",
+            "zh": "含不透明标识的脱敏验证方式"
+          }
+        },
+        {
+          "name": "selectedId",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Controlled destination id",
+            "zh": "受控验证方式标识"
+          }
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Ephemeral controlled OTP input",
+            "zh": "临时受控验证码输入"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized purpose title",
+            "zh": "本地化用途标题"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized explanation",
+            "zh": "本地化说明"
+          }
+        },
+        {
+          "name": "codeLength",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "Input length limit; default 6",
+            "zh": "输入长度上限，默认 6"
+          }
+        },
+        {
+          "name": "sending",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Code delivery in progress",
+            "zh": "正在发送验证码"
+          }
+        },
+        {
+          "name": "submitting",
+          "type": "boolean",
+          "required": false,
+          "description": {
+            "en": "Verification in progress",
+            "zh": "正在验证"
+          }
+        },
+        {
+          "name": "canSend",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "SDK permits explicit delivery",
+            "zh": "SDK 允许主动发送"
+          }
+        },
+        {
+          "name": "canSubmit",
+          "type": "boolean",
+          "required": true,
+          "description": {
+            "en": "SDK permits explicit submission",
+            "zh": "SDK 允许主动提交"
+          }
+        },
+        {
+          "name": "resendInSeconds",
+          "type": "number",
+          "required": false,
+          "description": {
+            "en": "SDK-supplied cooldown; component owns no timer",
+            "zh": "SDK 提供重发倒计时，组件不持有时钟"
+          }
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized error",
+            "zh": "本地化错误"
+          }
+        },
+        {
+          "name": "notice",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "Localized notice",
+            "zh": "本地化提示"
+          }
+        }
+      ],
+      "states": [
+        "ready",
+        "sending",
+        "submitting",
+        "cooldown",
+        "unavailable",
+        "failed"
+      ],
+      "events": [
+        "selectDestination",
+        "changeCode",
+        "send",
+        "submit",
+        "cancel"
+      ],
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareReauthSheet"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareReauthSheet"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "ReauthSheetView"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "ReauthSheet"
+        }
+      },
+      "accessibility": {
+        "role": "group",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "Tab visits interactive descendants in visual order",
+          "Escape closes the active contextual layer"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "Remove non-essential motion; preserve state change with static content or immediate transition.",
+        "screenReaderSemantics": "Expose a named group and meaningful descendant roles, values, states, availability, and progress. Decorative imagery is hidden."
+      },
+      "notes": {
+        "en": "SwiftUI selection and code are two-way Binding values; selection/code callbacks apply to Vue, Flutter and Compose. Opaque destinations and presentation state come from the SDK host.",
+        "zh": "SwiftUI 的选择项与验证码使用双向 Binding；选择/验证码回调适用于 Vue、Flutter 与 Compose。不透明验证方式及展示状态由 SDK 宿主提供。"
+      },
+      "eventPlatforms": {
+        "selectDestination": [
+          "vue",
+          "flutter",
+          "compose"
+        ],
+        "changeCode": [
+          "vue",
+          "flutter",
+          "compose"
+        ]
+      },
+      "platformAliases": {
+        "flutter": {
+          "events": {
+            "changeCode": "onCodeChange"
+          }
+        },
+        "compose": {
+          "events": {
+            "changeCode": "onCodeChange"
+          }
+        }
       }
     }
   ],

@@ -879,6 +879,48 @@ internal val flareStringKeys: Set<String> = setOf(
     "pluginViewVotesOne",
     "storageUsageFileCountOne",
     "myInviteCountOnlyOne",
+    "scanTitle",
+    "scanAlbum",
+    "scanPaste",
+    "scanTorchOn",
+    "scanTorchOff",
+    "scanChooseCode",
+    "scanPreparing",
+    "scanLive",
+    "scanLowLight",
+    "scanLocked",
+    "scanChoosing",
+    "scanPaused",
+    "scanImageDecoding",
+    "scanImageError",
+    "scanNoCodeInImage",
+    "scanNoCamera",
+    "scanInsecureContext",
+    "scanCameraBusy",
+    "scanCameraError",
+    "scanResult",
+    "scanUpgradeRequired",
+    "scanSaveCode",
+    "scanShareCode",
+    "scanCodeExpired",
+    "scanLoginRequired",
+    "scanForeignCode",
+    "scanText",
+    "scanExternalLink",
+    "scanPending",
+    "scanUnknown",
+    "scanAllowAddByQr",
+    "scanOpenExternal",
+    "scanRetryable",
+    "scanContinueLogin",
+    "reauthFailed",
+    "reauthTitle",
+    "reauthDestination",
+    "reauthCode",
+    "reauthSendCode",
+    "reauthResendIn",
+    "reauthUnavailable",
+    "scanProvidedBy",
 )
 
 /** The text of the plain string field [key] names, or null. */
@@ -1756,6 +1798,48 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "pluginViewVotesOne" -> this.pluginViewVotesOne
     "storageUsageFileCountOne" -> this.storageUsageFileCountOne
     "myInviteCountOnlyOne" -> this.myInviteCountOnlyOne
+    "scanTitle" -> this.scanTitle
+    "scanAlbum" -> this.scanAlbum
+    "scanPaste" -> this.scanPaste
+    "scanTorchOn" -> this.scanTorchOn
+    "scanTorchOff" -> this.scanTorchOff
+    "scanChooseCode" -> this.scanChooseCode
+    "scanPreparing" -> this.scanPreparing
+    "scanLive" -> this.scanLive
+    "scanLowLight" -> this.scanLowLight
+    "scanLocked" -> this.scanLocked
+    "scanChoosing" -> this.scanChoosing
+    "scanPaused" -> this.scanPaused
+    "scanImageDecoding" -> this.scanImageDecoding
+    "scanImageError" -> this.scanImageError
+    "scanNoCodeInImage" -> this.scanNoCodeInImage
+    "scanNoCamera" -> this.scanNoCamera
+    "scanInsecureContext" -> this.scanInsecureContext
+    "scanCameraBusy" -> this.scanCameraBusy
+    "scanCameraError" -> this.scanCameraError
+    "scanResult" -> this.scanResult
+    "scanUpgradeRequired" -> this.scanUpgradeRequired
+    "scanSaveCode" -> this.scanSaveCode
+    "scanShareCode" -> this.scanShareCode
+    "scanCodeExpired" -> this.scanCodeExpired
+    "scanLoginRequired" -> this.scanLoginRequired
+    "scanForeignCode" -> this.scanForeignCode
+    "scanText" -> this.scanText
+    "scanExternalLink" -> this.scanExternalLink
+    "scanPending" -> this.scanPending
+    "scanUnknown" -> this.scanUnknown
+    "scanAllowAddByQr" -> this.scanAllowAddByQr
+    "scanOpenExternal" -> this.scanOpenExternal
+    "scanRetryable" -> this.scanRetryable
+    "scanContinueLogin" -> this.scanContinueLogin
+    "reauthFailed" -> this.reauthFailed
+    "reauthTitle" -> this.reauthTitle
+    "reauthDestination" -> this.reauthDestination
+    "reauthCode" -> this.reauthCode
+    "reauthSendCode" -> this.reauthSendCode
+    "reauthResendIn" -> this.reauthResendIn
+    "reauthUnavailable" -> this.reauthUnavailable
+    "scanProvidedBy" -> this.scanProvidedBy
     else -> null
 }
 

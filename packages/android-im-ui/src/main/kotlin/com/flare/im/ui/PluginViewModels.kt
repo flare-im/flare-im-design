@@ -313,7 +313,13 @@ data class PluginPageRef(val pluginId: String, val page: String)
  * against, which every page action carries back. An unavailable page is `{available: false, title: "",
  * unavailableReason}` and has no data.
  */
-data class PluginPageViewModel(val view: PluginViewModel, val data: Map<String, Any?>? = null) {
+data class PluginPageViewModel(
+    val view: PluginViewModel,
+    val data: Map<String, Any?>? = null,
+    val refreshMs: Long? = null,
+) {
+    /** Receipt time is monotonic and belongs to this resolved snapshot, never the device wall clock. */
+    val receivedAtNanos: Long = System.nanoTime()
     companion object {
         /** Reads the core's page JSON; throws [IllegalArgumentException] on malformed JSON. */
         fun fromJson(json: String): PluginPageViewModel {
@@ -325,6 +331,7 @@ data class PluginPageViewModel(val view: PluginViewModel, val data: Map<String, 
         fun fromMap(map: Map<*, *>): PluginPageViewModel = PluginPageViewModel(
             view = PluginViewModel.fromMap(map),
             data = (map["data"] as? Map<*, *>)?.entries?.associate { (k, v) -> k.toString() to v },
+            refreshMs = (map["refreshMs"] as? Number)?.toLong()?.takeIf { it in 3_000L..60_000L },
         )
     }
 }

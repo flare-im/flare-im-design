@@ -707,18 +707,20 @@ public struct PluginPageRef: Codable, Equatable, Hashable, Sendable {
 /// unavailableReason}` and has no data.
 @dynamicMemberLookup
 public struct PluginPageViewModel: Codable, Equatable, Sendable {
+    public let refreshMs: Int?
     public let view: PluginViewModel
     /// Passed back as is by every action run on the page; the kit reads nothing in it.
     public let data: PluginJSONValue?
 
-    public init(view: PluginViewModel, data: PluginJSONValue? = nil) { self.view = view; self.data = data }
+    public init(view: PluginViewModel, data: PluginJSONValue? = nil, refreshMs: Int? = nil) { self.view = view; self.data = data; self.refreshMs = refreshMs }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<PluginViewModel, T>) -> T { view[keyPath: keyPath] }
 
-    private enum CodingKeys: String, CodingKey { case data }
+    private enum CodingKeys: String, CodingKey { case data, refreshMs }
 
     public init(from decoder: Decoder) throws {
         view = try PluginViewModel(from: decoder)
+        refreshMs = try decoder.container(keyedBy: CodingKeys.self).lenient(Int.self, .refreshMs)
         data = try decoder.container(keyedBy: CodingKeys.self).lenient(PluginJSONValue.self, .data)
     }
 
@@ -726,6 +728,7 @@ public struct PluginPageViewModel: Codable, Equatable, Sendable {
         try view.encode(to: encoder)
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encodeIfPresent(data, forKey: .data)
+        try c.encodeIfPresent(refreshMs, forKey: .refreshMs)
     }
 }
 

@@ -45,6 +45,8 @@ fun RedPacketPayConfirm(
     confirmLabel: String? = null,
     credential: (@Composable () -> Unit)? = null,
     confirmDisabled: Boolean = false,
+    payee: String? = null,
+    notice: String? = null,
 ) {
     val strings = flareStrings()
     BottomSheet(
@@ -54,7 +56,7 @@ fun RedPacketPayConfirm(
         titleHidden = true,
         dismissible = !busy,
     ) {
-        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel, confirmLabel, credential, confirmDisabled)
+        RedPacketPayConfirmBody(amount, methodLabel, insufficient, busy, onConfirm, onCancel, confirmLabel, credential, confirmDisabled, payee, notice)
     }
 }
 
@@ -69,6 +71,8 @@ internal fun RedPacketPayConfirmBody(
     confirmLabel: String? = null,
     credential: (@Composable () -> Unit)? = null,
     confirmDisabled: Boolean = false,
+    payee: String? = null,
+    notice: String? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -85,6 +89,12 @@ internal fun RedPacketPayConfirmBody(
             amount, color = colors.textPrimary, fontSize = FlareSizes.componentRedPacketAmountFontSize.value.sp,
             fontWeight = FontWeight.SemiBold, maxLines = 1,
         )
+        payee?.takeIf { it.isNotBlank() }?.let {
+            Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, textAlign = TextAlign.Center)
+        }
+        notice?.takeIf { it.isNotBlank() }?.let {
+            Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd, textAlign = TextAlign.Center)
+        }
         Column(Modifier.fillMaxWidth()) {
             HorizontalDivider(thickness = RedPacketMetrics.hairline, color = colors.borderSecondary)
             Row(

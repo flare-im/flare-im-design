@@ -122,6 +122,8 @@ const List<String> flareIconNames = <String>[
   'locate',
   // The wallet entry of the 我 page (the red packet plugin's account entry).
   'wallet',
+  'scan',
+  'flashlight',
 ];
 
 /// Maps each semantic name in [flareIconNames] to the closest Material glyph.
@@ -244,6 +246,8 @@ const Map<String, IconData> flareIconMap = <String, IconData>{
   'plugin': Icons.extension_outlined,
   'locate': Icons.my_location_outlined,
   'wallet': Icons.account_balance_wallet_outlined,
+  'scan': Icons.qr_code_scanner,
+  'flashlight': Icons.flashlight_on_outlined,
 };
 
 /// The red packet as a line glyph — the card's small envelope (rounded body,

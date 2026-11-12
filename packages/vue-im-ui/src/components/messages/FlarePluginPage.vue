@@ -6,7 +6,7 @@
 // page. Every action run on the page goes out as the page action request ({page, data?, row?, selection?,
 // formValues?}). The host fetches: refresh, retry, loadMore and filter are requests; the kit calls nothing and draws
 // nothing the view does not declare.
-import { computed, getCurrentInstance, ref } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import FlareFilterTabs from "../general/FlareFilterTabs.vue";
@@ -20,6 +20,7 @@ import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { flareLayout } from "../../design-system/theme/layout-tokens";
+import { flarePluginMayRefresh } from "../../shared/contracts/scan";
 import {
   flarePluginPageFilters,
   flarePluginPageFilterValues,
@@ -48,6 +49,9 @@ const props = withDefaults(
     contentMaxWidth?: number | null;
     /** Page title while there is no view (or the view has none); the view's title wins. */
     title?: string;
+    providerName?: string;
+    visible?: boolean;
+    encodePluginCode?: (pluginId: string, token: string) => Promise<string>;
     /** The resolved page view (pluginPage's result, with data); absent while the first load runs. */
     view?: FlarePluginPageViewModel;
     /** The applied filter values by input id (what the host passed to pluginPage); the filter tabs show them. */
@@ -92,6 +96,7 @@ const emit = defineEmits<{
   fileAction: [event: FlarePluginFileAction];
   /** Pull to refresh or the refresh key: the host fetches the page again and passes back the view. */
   refresh: [];
+  surfaceHints: [hints: { secure: boolean; maxBrightness: boolean }];
   /** The first load failed and the reader asked again. */
   retry: [];
   /** The next page after `cursor` (view.nextCursor); the host passes back the merged view. */
@@ -105,6 +110,30 @@ const emit = defineEmits<{
 const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
 const platform = useFlarePlatformSafe();
+const automatic = ref(false);
+const interacting = ref(false);
+const lastRefreshMs = ref<number>();
+const pageVisible = ref(typeof document === "undefined" || !document.hidden);
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
+function visibility() { pageVisible.value = !document.hidden; }
+watch(() => `${props.page.pluginId}/${props.page.page}`, () => { lastRefreshMs.value = undefined; automatic.value = false; });
+watch(() => props.view?.refreshMs, value => { if (typeof value === "number" && value >= 3000 && value <= 60000) lastRefreshMs.value = value; }, { immediate: true });
+watch(lastRefreshMs, value => {
+  clearInterval(refreshTimer);
+  if (value) refreshTimer = setInterval(() => {
+    if (!flarePluginMayRefresh({ visible: props.visible !== false, foreground: pageVisible.value, loading: props.loading, refreshing: props.refreshing, busy: props.loadingMore || Boolean(props.busyActionId), interaction: interacting.value })) return;
+    automatic.value = true; emit("refresh");
+  }, value);
+}, { immediate: true });
+watch(() => props.refreshing, (value, previous) => { if (previous && !value) automatic.value = false; });
+watch(() => [props.view, props.visible, pageVisible.value] as const, () => {
+  const qr = props.visible !== false && pageVisible.value && props.view?.available && props.view.presentation?.renderer === "flare.qr";
+  emit("surfaceHints", { secure: Boolean(qr && typeof props.view?.presentation?.props.ttlMs === "number"), maxBrightness: Boolean(qr) });
+}, { immediate: true });
+onMounted(() => document.addEventListener("visibilitychange", visibility));
+onBeforeUnmount(() => { clearInterval(refreshTimer); document.removeEventListener("visibilitychange", visibility); emit("surfaceHints", { secure: false, maxBrightness: false }); });
+const visibleRefreshing = computed(() => props.refreshing && !automatic.value);
+const encodeQr = computed(() => props.encodePluginCode ? (token: string) => props.encodePluginCode!(props.page.pluginId, token) : undefined);
 const heading = computed(() => props.view?.title || props.title);
 const isAccount = computed(() => props.appearance === "account" || props.view?.presentation?.renderer === "account");
 const state = computed(() => flarePluginPageState(props.view, props.loading, props.error));
@@ -171,7 +200,7 @@ function runAction(actionId: string, payload: FlarePluginActionPayload): void {
 
 // ── filters (spec rules.pageFilters) ─────────────────────────────────────
 const filterRows = computed<FlarePluginPageFilter[]>(() => (props.view?.available ? flarePluginPageFilters(props.view, props.filters, t("pluginView.all")) : []));
-const filtersBusy = computed(() => props.refreshing || props.loadingMore);
+const filtersBusy = computed(() => visibleRefreshing.value || props.loadingMore);
 // FilterTabs keys its options by a string: all is the empty key (choice values are never empty).
 const tabsOf = (filter: FlarePluginPageFilter) => filter.tabs.map((tab) => ({ value: tab.value ?? "", label: tab.label }));
 function choose(filter: FlarePluginPageFilter, key: string): void {
@@ -208,17 +237,17 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
     <div
       ref="scroller"
       class="flare-plugin-page__scroll"
-      :aria-busy="state === 'loading' || refreshing"
+      :aria-busy="state === 'loading' || visibleRefreshing"
       @touchstart="onTouchStart"
       @touchmove="onTouchMove"
       @touchend="onTouchEnd"
       @touchcancel="onTouchEnd"
     >
       <div
-        v-if="canRefresh && (pull > 0 || refreshing)"
+        v-if="canRefresh && (pull > 0 || visibleRefreshing)"
         class="flare-plugin-page__pull"
-        :class="{ 'is-armed': armed, 'is-refreshing': refreshing }"
-        :style="{ height: `${refreshing ? PULL_THRESHOLD / 1.5 : pull}px` }"
+        :class="{ 'is-armed': armed, 'is-refreshing': visibleRefreshing }"
+        :style="{ height: `${visibleRefreshing ? PULL_THRESHOLD / 1.5 : pull}px` }"
         role="status"
         data-page-pull="true"
       >{{ indicatorText }}</div>
@@ -249,6 +278,7 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
           />
           </div>
         </div>
+        <FlareStatusBanner v-if="providerName" :text="t('scan.providedBy', { name: providerName })" />
         <div class="flare-plugin-page__body">
           <FlareAccountView
             :file-states="fileStates"
@@ -264,6 +294,8 @@ function forwardFileAction(event: FlarePluginFileAction): void { emit("fileActio
             :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
             v-else
             :view="view"
+            :encode-qr="encodeQr"
+            @interaction-change="value => interacting = value"
             embedded
             rows-layout="list"
             :resolve-user="resolveUser"

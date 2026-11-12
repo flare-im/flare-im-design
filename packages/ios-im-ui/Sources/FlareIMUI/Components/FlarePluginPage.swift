@@ -28,6 +28,13 @@ import SwiftUI
 /// The host fetches: `onRefresh`, `onRetry`, `onLoadMore` and `onFilter` are requests; the kit calls nothing and
 /// draws nothing the view does not declare.
 public struct FlarePluginPage: View {
+    private var providerName: String? = nil
+    private var visible = true
+    private var encodeQr: (@Sendable (String) async throws -> String)? = nil
+    private var onSurfaceHints: ((FlareScanSurfaceHints) -> Void)? = nil
+    @State private var refreshInterval: Int?
+    @State private var automaticRefresh = false
+    @Environment(\.scenePhase) private var scenePhase
     private let page: PluginPageRef
     private let title: String?
     private let view: PluginPageViewModel?
@@ -86,13 +93,17 @@ public struct FlarePluginPage: View {
                 fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
                 onAction: ((String, PluginPageActionPayload) -> Void)? = nil,
                 appearance: FlarePluginPageAppearance = .document,
-                contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth) {
+                contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth,
+                providerName: String? = nil, visible: Bool = true,
+                encodeQr: (@Sendable (String) async throws -> String)? = nil,
+                onSurfaceHints: ((FlareScanSurfaceHints) -> Void)? = nil) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                   settleToken: settleToken, onBack: onBack, onRefresh: onRefresh, onRetry: onRetry,
                   onLoadMore: onLoadMore, onFilter: onFilter, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, clock: .system, contentMaxWidth: contentMaxWidth)
         self.appearance = appearance
+        self.providerName = providerName; self.visible = visible; self.encodeQr = encodeQr; self.onSurfaceHints = onSurfaceHints
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -120,6 +131,11 @@ public struct FlarePluginPage: View {
         self._refreshInFlight = State(initialValue: refreshing)
     }
 
+    private func updateScanSurface() {
+        let qr = visible && scenePhase == .active && view?.available == true && view?.view.presentation?.renderer == "flare.qr"
+        onSurfaceHints?(FlareScanSurfaceHints(secure: qr && view?.view.presentation?.props["ttlMs"]?.numberValue != nil, maxBrightness: qr))
+    }
+
     /// The page's heading: the view's title, else the host's.
     public static func heading(view: PluginPageViewModel?, title: String?) -> String {
         PluginDetailSheetView.heading(view: view?.view, title: title)
@@ -144,7 +160,7 @@ public struct FlarePluginPage: View {
     private var canRefresh: Bool { onRefresh != nil && phase == .loaded }
 
     /// The filters wait while the page is read again or grows.
-    private var filtersWaiting: Bool { loading || refreshing || loadingMore }
+    private var filtersWaiting: Bool { loading || (refreshing && !automaticRefresh) || loadingMore }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -170,7 +186,26 @@ public struct FlarePluginPage: View {
         .onChange(of: error) { next in if !(next ?? "").isEmpty { paging.release() } }
         .onChange(of: refreshing) { next in
             refreshInFlight = next
+            if !next { automaticRefresh = false }
             if !next { paging.release() }
+        }
+        .onAppear { updateScanSurface(); if let value = view?.refreshMs, (3000...60000).contains(value) { refreshInterval = value } }
+        .onDisappear { onSurfaceHints?(FlareScanSurfaceHints(secure: false, maxBrightness: false)) }
+        .onChange(of: view?.refreshMs) { value in if let value, (3000...60000).contains(value) { refreshInterval = value } }
+        .onChange(of: view?.view.presentation) { _ in updateScanSurface() }
+        .onChange(of: visible) { _ in updateScanSurface() }
+        .onChange(of: scenePhase) { _ in updateScanSurface() }
+        .task(id: refreshInterval) {
+            guard let interval = refreshInterval else { return }
+            while !Task.isCancelled {
+                do { try await Task.sleep(nanoseconds: UInt64(interval) * 1_000_000) } catch { return }
+                guard !Task.isCancelled else { return }
+                if flareScanPluginCanRefresh(visible: visible, foreground: scenePhase == .active,
+                    loading: loading || loadingMore, refreshing: refreshing, busy: busyActionId != nil,
+                    interaction: !(view?.view.inputs.isEmpty ?? true)) {
+                    automaticRefresh = true; onRefresh?()
+                }
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Self.heading(view: view, title: title))
@@ -179,7 +214,7 @@ public struct FlarePluginPage: View {
     /// The pointer's refresh key, spinning while the host refreshes.
     private var headerActions: AnyView? {
         guard canRefresh, Self.refreshKeyInHeader else { return nil }
-        if refreshing {
+        if refreshing && !automaticRefresh {
             return AnyView(ProgressView().controlSize(.small).flareTouchTarget()
                 .accessibilityLabel(strings.loading))
         }
@@ -227,6 +262,10 @@ public struct FlarePluginPage: View {
                         StatusBannerView(text: error, tone: .danger,
                                          actionText: onRefresh != nil && !refreshing ? strings.retry : nil,
                                          onAction: !refreshing ? onRefresh : nil)
+                    }
+                    if let providerName, !providerName.isEmpty { Text(strings.scanProvidedBy.replacingOccurrences(of: "{name}", with: providerName)).foregroundColor(colors.textSecondary) }
+                    if let presentation = view.view.presentation, presentation.renderer == "flare.qr" {
+                        FlarePluginQrView(token: presentation.props["token"]?.stringValue, ttlMs: presentation.props["ttlMs"]?.numberValue, caption: presentation.props["caption"]?.stringValue, encodeQr: encodeQr)
                     }
                     filterRows(view.view)
                     if appearance == .account || view.view.presentation?.renderer == "account" {
