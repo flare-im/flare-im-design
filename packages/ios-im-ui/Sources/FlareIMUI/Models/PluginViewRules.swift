@@ -677,6 +677,7 @@ enum PluginFormRules {
         case .members:
             return .array((raw?.arrayValue ?? []).compactMap { $0.stringValue.map(PluginJSONValue.string) })
         case .file, .image, .document: return PluginFileValue.read(raw)?.json ?? .null
+        case .location: return PluginLocationValue.read(raw, precision: input.precision)?.json ?? .null
         case .money: return PluginMoneyRulesCheck.draft(raw)
         case .password: return .string("")
         case .text, .textarea, .select:
@@ -722,6 +723,9 @@ enum PluginFormRules {
         case .file, .image, .document:
             if draft == nil || draft == .null { return input.required ? .required : nil }
             return PluginFileValue.read(draft) == nil ? .invalidType : nil
+        case .location:
+            if draft == nil || draft == .null { return input.required ? .required : nil }
+            return PluginLocationValue.read(draft, precision: input.precision) == nil ? .invalidType : nil
         case .money:
             return PluginMoneyRulesCheck.check(input, draft)
         case .toggle:
@@ -758,6 +762,8 @@ enum PluginFormRules {
                 if let ids = value?.arrayValue, !ids.isEmpty { out[input.id] = .array(ids) }
             case .file, .image, .document:
                 if let file = PluginFileValue.read(value) { out[input.id] = file.json }
+            case .location:
+                if let fix = PluginLocationValue.read(value, precision: input.precision) { out[input.id] = fix.json }
             case .money:
                 if let money = PluginMoneyRulesCheck.value(input, value) { out[input.id] = money.json }
             }

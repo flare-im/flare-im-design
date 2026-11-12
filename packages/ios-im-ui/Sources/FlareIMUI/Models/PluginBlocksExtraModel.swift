@@ -181,6 +181,7 @@ public struct PluginSectionBlock: Codable, Equatable, Sendable {
         blocks = (c.lenient([PluginLossy<PluginBlock>].self, .blocks) ?? []).compactMap(\.value).filter {
             if case .section = $0 { return false }
             if case .rows = $0 { return false }
+            if case .protectedMedia = $0 { return false }
             return true
         }
     }
@@ -531,6 +532,76 @@ public struct PluginTimelineBlock: Codable, Equatable, Sendable {
         items = (c.lenient([PluginLossy<PluginTimelineItem>].self, .items) ?? []).compactMap(\.value)
         emptyText = c.lenient(String.self, .emptyText)
     }
+}
+
+// MARK: - Protected media
+
+/// One item of a protected media block; nothing about its content is in the view.
+public struct PluginProtectedItem: Codable, Equatable, Identifiable, Sendable {
+    public let id: String
+    public let label: String
+    public let mediaType: String?
+    /// The action's declared input, bound from the resolved data.
+    public let input: PluginJSONValue?
+    public init(id: String, label: String, mediaType: String? = nil, input: PluginJSONValue? = nil) {
+        self.id = id; self.label = label; self.mediaType = mediaType; self.input = input
+    }
+    public var isImage: Bool { mediaType.map { $0.hasPrefix("image/") } ?? true }
+}
+
+/// `protected-media`: private material read one item at a time through `action` — with a stated reason when
+/// `reasonInput` is declared (a console), with one tap on the owner's own page (no `reasonInput`; the operation is
+/// owner-scoped).
+public struct PluginProtectedMediaBlock: Codable, Equatable, Sendable {
+    public let label: String?
+    public let items: [PluginProtectedItem]
+    /// Absent on a read-only copy.
+    public let action: PluginViewAction?
+    public let inputName: String
+    public let reasonInput: String?
+    /// Reads the action's result (a JSON pointer): the address to draw.
+    public let urlPath: String
+    public let emptyText: String?
+    public init(label: String? = nil, items: [PluginProtectedItem], action: PluginViewAction? = nil, inputName: String,
+                reasonInput: String? = nil, urlPath: String, emptyText: String? = nil) {
+        self.label = label; self.items = items; self.action = action; self.inputName = inputName
+        self.reasonInput = reasonInput; self.urlPath = urlPath; self.emptyText = emptyText
+    }
+    private enum CodingKeys: String, CodingKey { case label, items, action, inputName, reasonInput, urlPath, emptyText }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = c.lenient(String.self, .label)
+        items = (c.lenient([PluginLossy<PluginProtectedItem>].self, .items) ?? []).compactMap(\.value).filter { !$0.id.isEmpty }
+        action = c.lenient(PluginViewAction.self, .action)
+        inputName = try c.decode(String.self, forKey: .inputName)
+        reasonInput = c.lenient(String.self, .reasonInput).flatMap { $0.isEmpty ? nil : $0 }
+        urlPath = try c.decode(String.self, forKey: .urlPath)
+        emptyText = c.lenient(String.self, .emptyText)
+    }
+    /// Whether a read first asks the viewer why (spec/capability-ui-vectors.json protectedMediaReason).
+    public var asksReason: Bool { reasonInput != nil }
+}
+
+/// What the host has for a protected media item.
+public struct PluginProtectedMediaState: Equatable, Sendable {
+    /// The read's address: the server's short-lived https address (`?grant=`), or a data:image the host fetched.
+    public var url: String?
+    public var loading: Bool
+    public var error: String?
+    public init(url: String? = nil, loading: Bool = false, error: String? = nil) {
+        self.url = url; self.loading = loading; self.error = error
+    }
+}
+
+/// A protected media read for the host to run and audit.
+public struct PluginProtectedMediaRead: Equatable, Sendable {
+    public let action: PluginViewAction
+    public let item: PluginProtectedItem
+    /// Empty when the block asks for none.
+    public let reason: String
+    public let urlPath: String
+    /// The item under `inputName` and, when declared, the reason.
+    public let formValues: [String: PluginJSONValue]
 }
 
 // MARK: - Chart geometry

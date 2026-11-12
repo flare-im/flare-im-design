@@ -520,6 +520,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
     case steps(PluginStepsBlock)
     case banner(PluginBannerBlock)
     case timeline(PluginTimelineBlock)
+    case protectedMedia(PluginProtectedMediaBlock)
 
     public var kind: String {
         switch self {
@@ -543,6 +544,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .steps: return "steps"
         case .banner: return "banner"
         case .timeline: return "timeline"
+        case .protectedMedia: return "protected-media"
         }
     }
 
@@ -571,6 +573,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case "steps": self = .steps(try PluginStepsBlock(from: decoder))
         case "banner": self = .banner(try PluginBannerBlock(from: decoder))
         case "timeline": self = .timeline(try PluginTimelineBlock(from: decoder))
+        case "protected-media": self = .protectedMedia(try PluginProtectedMediaBlock(from: decoder))
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "block kind \(kind)"))
         }
@@ -600,6 +603,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .steps(let block): try block.encode(to: encoder)
         case .banner(let block): try block.encode(to: encoder)
         case .timeline(let block): try block.encode(to: encoder)
+        case .protectedMedia(let block): try block.encode(to: encoder)
         }
     }
 }
@@ -607,6 +611,8 @@ public enum PluginBlock: Codable, Equatable, Sendable {
 /// Form input kinds (UiInput).
 public enum PluginInputKind: String, Codable, Sendable, CaseIterable {
     case text, password, textarea, number, toggle, select, datetime, options, members, file, money, image, document
+    /// A one-time location the engine writes when the page's locationOnce action completes (``PluginLocationValue``).
+    case location
 
     /// Inputs whose value is an uploaded file's `{fileId}`, uploaded through `file`: file, image and document.
     public var isUpload: Bool { self == .file || self == .image || self == .document }
@@ -671,19 +677,22 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
     public let money: PluginMoneyRules?
     /// document only: which side of the document it captures.
     public let side: PluginDocumentSide?
+    /// location only: how precise a fix it takes.
+    public let precision: PluginLocationPrecision?
     public let showWhen: PluginInputCondition?
 
     public init(id: String, kind: PluginInputKind, label: String, required: Bool = false, placeholder: String? = nil,
                 maxLength: Int? = nil, min: Double? = nil, max: Double? = nil, defaultValue: PluginJSONValue? = nil,
                 choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, money: PluginMoneyRules? = nil,
-                side: PluginDocumentSide? = nil, showWhen: PluginInputCondition? = nil) {
+                side: PluginDocumentSide? = nil, showWhen: PluginInputCondition? = nil,
+                precision: PluginLocationPrecision? = nil) {
         self.id = id; self.kind = kind; self.label = label; self.required = required; self.placeholder = placeholder
         self.maxLength = maxLength; self.min = min; self.max = max; self.defaultValue = defaultValue; self.choices = choices
-        self.file = file; self.money = money; self.side = side; self.showWhen = showWhen
+        self.file = file; self.money = money; self.side = side; self.showWhen = showWhen; self.precision = precision
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, money, side, showWhen
+        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, money, side, showWhen, precision
         case defaultValue = "default"
     }
 
@@ -702,9 +711,13 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
         file = try c.decodeIfPresent(PluginFileInput.self, forKey: .file)
         money = try c.decodeIfPresent(PluginMoneyRules.self, forKey: .money)
         side = try c.decodeIfPresent(PluginDocumentSide.self, forKey: .side)
+        precision = try c.decodeIfPresent(PluginLocationPrecision.self, forKey: .precision)
         showWhen = try c.decodeIfPresent(PluginInputCondition.self, forKey: .showWhen)
         if kind.isUpload && file?.valid != true {
             throw DecodingError.dataCorruptedError(forKey: .file, in: c, debugDescription: "Invalid file policy")
+        }
+        if kind == .location && precision == nil {
+            throw DecodingError.dataCorruptedError(forKey: .precision, in: c, debugDescription: "Missing precision")
         }
         if kind == .money && money == nil {
             throw DecodingError.dataCorruptedError(forKey: .money, in: c, debugDescription: "Missing money rules")

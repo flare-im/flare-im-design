@@ -66,6 +66,10 @@ public struct FlarePluginPage: View {
     private var onUpdate: (() -> Void)?
     private var resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
     private var onQrRefresh: ((PluginQrRefresh) -> Void)?
+    private var locationStates: [String: PluginLocationState] = [:]
+    private var onLocationAction: ((PluginLocationAction) -> Void)?
+    private var protectedMedia: [String: PluginProtectedMediaState] = [:]
+    private var onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?
     private let contentMaxWidth: CGFloat?
     private let clock: PluginViewClock
     /// The cursor asked for and not answered yet.
@@ -82,6 +86,13 @@ public struct FlarePluginPage: View {
     ///   - view: The core SDK's `pluginPage` result; nil while the first load runs. After `onLoadMore` pass the merged
     ///     view, after a refresh or a filter change the one read again.
     ///   - filters: The filter values applied, by input id (what the host passed to `pluginPage` as filters).
+    ///   - locationStates: Location inputs: the host's fix, a running locate or a failure, by input id.
+    ///   - onLocationAction: A location input's locate or clear key: the host runs the page's locationOnce action into
+    ///     the input and passes its fix back in `locationStates`; on clear it drops that input's state.
+    ///   - protectedMedia: What the host has for each protected media item, by item id: the read's address (the
+    ///     server's https grant address), a running read or a failure.
+    ///   - onProtectedMediaRead: A protected media read (with its reason when the block asks one): the host runs and
+    ///     audits it, then fills `protectedMedia` with ``FlarePluginProtectedMedia/url(result:urlPath:)``.
     public init(page: PluginPageRef, title: String? = nil, view: PluginPageViewModel? = nil,
                 filters: [String: PluginJSONValue] = [:], loading: Bool = false, error: String? = nil,
                 refreshing: Bool = false, loadingMore: Bool = false, pagingToken: Int = 0,
@@ -97,7 +108,11 @@ public struct FlarePluginPage: View {
                 contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth,
                 upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
                 resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
-                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                protectedMedia: [String: PluginProtectedMediaState] = [:],
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
@@ -106,6 +121,8 @@ public struct FlarePluginPage: View {
         self.appearance = appearance
         self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
         self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
+        self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -257,6 +274,8 @@ public struct FlarePluginPage: View {
                                formErrors: formErrors, settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view),
                                onOpenDetail: nil, clock: clock, users: [:], resolveImage: resolveImage,
                                onQrRefresh: onQrRefresh)
+                        .hostCapabilities(locationStates: locationStates, onLocationAction: onLocationAction,
+                                          protectedMedia: protectedMedia, onProtectedMediaRead: onProtectedMediaRead)
                     }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
                 }

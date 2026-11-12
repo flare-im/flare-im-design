@@ -33,6 +33,8 @@ public struct PluginFormView: View {
     private let onCancel: (() -> Void)?
     private let fileStates: [String: PluginFileState]
     private let onFileAction: ((PluginFileAction) -> Void)?
+    private let locationStates: [String: PluginLocationState]
+    private let onLocationAction: ((PluginLocationAction) -> Void)?
     @State private var form: PluginFormState
     @State private var numberText: [String: String]
     @State private var picking: PluginInput?
@@ -46,8 +48,12 @@ public struct PluginFormView: View {
                 submitLabel: String? = nil, busy: Bool = false, error: String? = nil, members: [PluginMember] = [], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
                 embedded: Bool = false, fileStates: [String: PluginFileState] = [:],
-                onFileAction: ((PluginFileAction) -> Void)? = nil, onSubmit: (([String: PluginJSONValue]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+                onFileAction: ((PluginFileAction) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                onSubmit: (([String: PluginJSONValue]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.embedded = embedded
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
         self.fileStates = fileStates; self.onFileAction = onFileAction
         self.inputs = inputs; self.values = values; self.errors = errors; self.submitLabel = submitLabel
         self.busy = busy; self.error = error; self.members = members
@@ -96,6 +102,8 @@ public struct PluginFormView: View {
         }
         .onChange(of: errors) { _ in form.hostErrorsChanged() }
         .onChange(of: fileStates) { updates in form.acceptFiles(updates) }
+        .onChange(of: locationStates) { _ in applyLocations() }
+        .onAppear { applyLocations() }
         .onDisappear { invalidateFiles() }
         .flareBottomSheet(item: $picking, title: picking?.label, titleHidden: true, size: .large, fill: true) { input in
             ContactPickerView(
@@ -192,6 +200,11 @@ public struct PluginFormView: View {
                     sendFile($0, input: input)
                 }
             }
+        case .location:
+            FormFieldView(label: input.label, required: input.required,
+                          error: locationStates[input.id]?.error ?? errorText(input)) {
+                locationField(input, colors)
+            }
         case .money:
             FormFieldView(label: input.label, required: input.required, hint: input.money?.currency,
                           error: errorText(input)) {
@@ -208,6 +221,61 @@ public struct PluginFormView: View {
                 memberField(input, colors)
             }
         }
+    }
+
+    /// The host's fix is the input's value; one of another precision is never taken.
+    private func applyLocations() {
+        for input in PluginFormRules.visibleInputs(inputs, form.draft) where input.kind == .location {
+            guard let fix = PluginLocationValue.read(locationStates[input.id]?.value?.json, precision: input.precision),
+                  PluginLocationValue.read(form.draft[input.id], precision: input.precision) != fix else { continue }
+            set(input.id, fix.json)
+        }
+    }
+
+    private func locationAction(_ input: PluginInput, _ kind: PluginLocationAction.Kind) {
+        guard !busy, PluginFormRules.visibleInputs(inputs, form.draft).contains(where: { $0.id == input.id }) else { return }
+        if kind == .clear { set(input.id, .null) } else if locationStates[input.id]?.locating == true { return }
+        onLocationAction?(PluginLocationAction(action: kind, inputId: input.id, input: input,
+                                               formValues: PluginFormRules.values(inputs, form.draft)))
+    }
+
+    /// A location input: the fix (place, precision and accuracy) or "no location yet", and its locate and clear keys.
+    @ViewBuilder private func locationField(_ input: PluginInput, _ colors: FlareColors) -> some View {
+        let state = locationStates[input.id]
+        let fix = PluginLocationValue.read(form.draft[input.id], precision: input.precision)
+        let locating = state?.locating == true
+        HStack(spacing: FlareSizes.spacingSm) {
+            IconView("location")
+            VStack(alignment: .leading, spacing: 2) {
+                if locating {
+                    Text(strings.pluginLocationLocating).foregroundColor(colors.textSecondary)
+                        .font(.system(size: FlareSizes.fontSizeMd))
+                } else if let fix {
+                    Text(fix.text).font(.system(size: FlareSizes.fontSizeLg).monospacedDigit())
+                        .foregroundColor(colors.textPrimary)
+                        .accessibilityIdentifier("plugin.location.\(input.id).place")
+                    Text("\(fix.precision == .fine ? strings.pluginLocationFine : strings.pluginLocationCoarse) · "
+                         + strings.pluginLocationAccuracy.replacingOccurrences(of: "{m}", with: String(fix.accuracyM)))
+                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                } else {
+                    Text(strings.pluginLocationEmpty).font(.system(size: FlareSizes.fontSizeMd))
+                        .foregroundColor(colors.textSecondary)
+                        .accessibilityIdentifier("plugin.location.\(input.id).empty")
+                }
+            }
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: FlareSizes.spacingSm)
+            if fix != nil, !locating {
+                ButtonView(label: strings.pluginLocationClear, variant: .quiet, size: .sm, disabled: busy) {
+                    locationAction(input, .clear)
+                }
+            }
+            ButtonView(label: fix == nil ? strings.pluginLocationLocate : strings.pluginLocationRelocate,
+                       variant: .secondary, size: .sm, loading: locating,
+                       disabled: busy || onLocationAction == nil) { locationAction(input, .locate) }
+                .accessibilityIdentifier("plugin.location.\(input.id).locate")
+        }
+        .frame(minHeight: FlareSizes.touchTarget)
     }
 
     private func set(_ id: String, _ value: PluginJSONValue) {

@@ -268,9 +268,10 @@ final class PluginBlocksExtraTests: XCTestCase {
         let declared = try JSONDecoder().decode([String: PluginJSONValue].self, from: Data(PLUGIN_UI_VOCABULARY.utf8))
         let blocks = Set((declared["blocks"]?.arrayValue ?? []).compactMap(\.stringValue))
         XCTAssertEqual(blocks, FlarePluginUIVocabulary.blocks)
-        XCTAssertFalse(blocks.contains("protected-media"), "the kit does not draw it, so it never reports it")
+        XCTAssertTrue(blocks.contains("protected-media"), "the owner's protected media is drawn natively now")
         XCTAssertEqual(Set(PluginInputKind.allCases.map(\.rawValue)), FlarePluginUIVocabulary.inputs)
-        XCTAssertEqual(FlarePluginUIVocabulary.renderers, ["redPacket.card", "redPacket.pay", "payment.confirm"])
+        XCTAssertEqual(FlarePluginUIVocabulary.renderers, ["redPacket.card"])
+        XCTAssertTrue(FlarePluginUIVocabulary.native.isSuperset(of: ["documentCapture", "paymentConfirmation", "locationOnce"]))
         for renderer in FlarePluginUIVocabulary.renderers {
             let view = PluginViewModel(available: true, title: "x",
                                        presentation: PluginPresentation(renderer: renderer, props: [:], actions: [:]))

@@ -101,6 +101,10 @@ public struct PluginView: View {
     private let onUpdate: (() -> Void)?
     private let resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
     private let onQrRefresh: ((PluginQrRefresh) -> Void)?
+    private var locationStates: [String: PluginLocationState] = [:]
+    private var onLocationAction: ((PluginLocationAction) -> Void)?
+    private var protectedMedia: [String: PluginProtectedMediaState] = [:]
+    private var onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?
     private let clock: PluginViewClock
     @State private var interaction = PluginChoicesInteraction()
     @State private var users: [String: PluginUser]
@@ -127,6 +131,13 @@ public struct PluginView: View {
     ///   - onUpdate: Opens the update flow (``FlarePluginUpgradeNotice``).
     ///   - resolveImage: The address of an image block's picture (a package asset or a private upload); nil: none.
     ///   - onQrRefresh: A QR block's refresh key: the host runs the query and passes back a view with the fresh code.
+    ///   - locationStates: Location inputs: the host's fix, a running locate or a failure, by input id.
+    ///   - onLocationAction: A location input's locate or clear key: the host runs the page's locationOnce action into
+    ///     the input and passes its fix back in `locationStates`; on clear it drops that input's state.
+    ///   - protectedMedia: What the host has for each protected media item, by item id: the read's address (the
+    ///     server's https grant address), a running read or a failure.
+    ///   - onProtectedMediaRead: A protected media read (with its reason when the block asks one): the host runs and
+    ///     audits it, then fills `protectedMedia` with ``FlarePluginProtectedMedia/url(result:urlPath:)``.
     public init(view: PluginViewModel, icon: String? = nil, displayName: String? = nil, viewerId: String? = nil,
                 busy: Bool = false, busyActionId: String? = nil,
                 error: String? = nil, embedded: Bool = false, inset: PluginViewInset = .none,
@@ -143,13 +154,31 @@ public struct PluginView: View {
                 onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil,
                 upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
                 resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
-                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                protectedMedia: [String: PluginProtectedMediaState] = [:],
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
         self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
                   busyActionId: busyActionId, error: error, embedded: embedded,
                   inset: inset, actionLayout: actionLayout, showError: showError, labelRows: labelRows, inlineFormActionId: inlineFormActionId, inlineFormTitle: inlineFormTitle, inlineFormDescription: inlineFormDescription, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors,
                   settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:],
                   upgradeStatus: upgradeStatus, upgradeBusy: upgradeBusy, onUpdate: onUpdate, resolveImage: resolveImage,
                   onQrRefresh: onQrRefresh)
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
+        self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
+    }
+
+    /// This view with the host's capability state: location inputs and protected media (how ``FlarePluginPage``
+    /// passes its own on).
+    func hostCapabilities(locationStates: [String: PluginLocationState],
+                          onLocationAction: ((PluginLocationAction) -> Void)?,
+                          protectedMedia: [String: PluginProtectedMediaState],
+                          onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?) -> PluginView {
+        var copy = self
+        copy.locationStates = locationStates; copy.onLocationAction = onLocationAction
+        copy.protectedMedia = protectedMedia; copy.onProtectedMediaRead = onProtectedMediaRead
+        return copy
     }
 
     /// The card at a fixed clock and with users already resolved — how the tests pin `now`, the zone and names.
@@ -270,10 +299,8 @@ public struct PluginView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             if special {
-                ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
-                    settleToken: settleToken, resolveUser: resolveUser, onAction: locked ? nil : onAction,
-                    onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } },
-                    resolveImage: resolveImage, onQrRefresh: locked ? nil : onQrRefresh)
+                ResolvedPresentationView(view: view, busy: locked,
+                    onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
                 if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
             } else if view.available {
                 if !view.fields.isEmpty { PluginFieldRows(fields: view.fields) }
@@ -293,7 +320,8 @@ public struct PluginView: View {
                         }
                     PluginFormView(inputs: view.formInputs(for: action), errors: inlineForm.submitted ? formErrors : [],
                                    submitLabel: action.label, busy: locked, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
-                                   fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in
+                                   fileStates: fileStates, onFileAction: onFileAction,
+                                   locationStates: locationStates, onLocationAction: onLocationAction, onSubmit: { values in
                         guard !locked, Self.inlineAction(view, id: action.id, hasAction: onAction != nil) != nil,
                               inlineForm.begin(action.id) else { return }
                         emit(PluginActionRun(action: action, payload: .empty, block: nil), formValues: values)
@@ -365,7 +393,8 @@ public struct PluginView: View {
         .flareBottomSheet(item: $formRun, title: formRun?.action.label, dismissible: !formPending) { request in
             PluginFormView(inputs: view.formInputs(for: request.action), errors: formSubmitted ? formErrors : [],
                            busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
-                           fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
+                           fileStates: fileStates, onFileAction: onFileAction,
+                                   locationStates: locationStates, onLocationAction: onLocationAction, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
                            onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
         }
         .onChange(of: view) { _ in interaction.viewChanged() }
@@ -472,6 +501,9 @@ public struct PluginView: View {
             PluginBannerBlockView(block: banner, disabled: locked,
                                   onAction: onAction == nil || view.readOnly ? nil : { run($0, .empty) })
         case .timeline(let timeline): PluginTimelineBlockView(block: timeline, clock: clock)
+        case .protectedMedia(let media):
+            PluginProtectedMediaBlockView(block: media, states: protectedMedia, busy: locked,
+                                          onRead: view.readOnly ? nil : onProtectedMediaRead)
         }
     }
 
