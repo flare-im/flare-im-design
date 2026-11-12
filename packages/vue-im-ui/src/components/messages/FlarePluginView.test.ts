@@ -374,7 +374,7 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     const reasons = (JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/plugin-view-vectors.json"), "utf8")) as {
       unavailableReasons: Array<{ reason: string; zh: string; en: string }>;
     }).unavailableReasons;
-    expect(reasons).toHaveLength(7);
+    expect(reasons).toHaveLength(8);
     const zhTree = (flareMessages["zh-CN"] as unknown as { pluginView: { unavailable: Record<string, string> } }).pluginView.unavailable;
     const enTree = (flareMessages["en-US"] as unknown as { pluginView: { unavailable: Record<string, string> } }).pluginView.unavailable;
     for (const r of reasons) {
