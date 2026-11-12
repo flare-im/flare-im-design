@@ -913,6 +913,15 @@
             "en": "`true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither.",
             "zh": "`true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。"
           }
+        },
+        {
+          "name": "tag",
+          "type": "string",
+          "required": false,
+          "description": {
+            "en": "A short warning tag before the chevron (\"Update needed\" on a plugin entry this build cannot open yet). It is words, read with the row; a toggle row draws none.",
+            "zh": "箭头左侧的简短警示标签（当前构建还打不开的插件入口上的「需更新」）。是文字，读屏随行读出；开关行不画。"
+          }
         }
       ]
     },
@@ -3711,6 +3720,15 @@
           "description": {
             "en": "The SDK's sort key; the kit keeps the given order and does not re-sort.",
             "zh": "SDK 的排序键；Kit 保持给定顺序、不重排。"
+          }
+        },
+        {
+          "name": "upgrade",
+          "type": "{ minBuild?: number } | null",
+          "required": false,
+          "description": {
+            "en": "The SDK's upgrade placeholder: this build cannot open the plugin's page yet (`minBuild`, when known, is the first build that can). flareMeMenuSections keeps the row and gives it the pluginUpgradeBadge tag; the host opens its upgrade notice.",
+            "zh": "SDK 的升级占位：当前构建还打不开该插件页面（已知时 `minBuild` 是第一个能打开的构建号）。flareMeMenuSections 保留这一行并加上 pluginUpgradeBadge 标签；宿主点击时打开升级提示。"
           }
         }
       ],

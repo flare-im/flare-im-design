@@ -89,6 +89,8 @@ data class SettingsItem(
     val danger: Boolean = false,
     /** A red dot before the chevron: something here is new (an update waiting in About). A toggle row draws none. */
     val badge: Boolean = false,
+    /** A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet), read with the row. A toggle row draws none. */
+    val tag: String? = null,
 )
 
 data class SettingsSection(

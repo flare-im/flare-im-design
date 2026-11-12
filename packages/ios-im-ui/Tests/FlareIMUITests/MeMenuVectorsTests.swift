@@ -34,6 +34,7 @@ final class MeMenuVectorsTests: XCTestCase {
                 XCTAssertEqual(section.items.map(\.label), items.compactMap { $0["label"]?.stringValue }, "\(id) labels")
                 XCTAssertEqual(section.items.map(\.icon), items.map { $0["icon"]?.stringValue }, "\(id) icons")
                 XCTAssertEqual(section.items.map(\.detail), items.map { $0["detail"]?.stringValue }, "\(id) details")
+                XCTAssertEqual(section.items.map(\.tag), items.map { $0["tag"]?.stringValue }, "\(id) tags")
                 for item in section.items { XCTAssertEqual(item.kind, .navigation, "\(id) \(item.key)") }
             }
         }

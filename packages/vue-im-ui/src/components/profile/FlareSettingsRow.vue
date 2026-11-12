@@ -10,6 +10,7 @@ import { NIcon } from "naive-ui";
 import { ChevronForwardOutline } from "../../shared/icon-glyphs";
 import FlareGlyph from "../general/FlareGlyph.vue";
 import FlareSwitch from "../form/FlareSwitch.vue";
+import FlareTag from "../general/FlareTag.vue";
 import type { FlareSettingsItem } from "../../shared/contracts";
 import { flareCountBadgeDrawn, flareCountBadgeText } from "../../shared/contracts/count-badge";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
@@ -61,6 +62,7 @@ function activate() {
     <template v-else>
       <span v-if="flareCountBadgeDrawn(count, item.badgeMore)" class="flare-settings__badge">{{ flareCountBadgeText(count, item.badgeMore) }}</span>
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
+      <FlareTag v-if="item.tag?.trim()" class="flare-settings__tag" :label="item.tag.trim()" tone="warning" data-settings-tag="true" />
       <span v-if="dot" class="flare-settings__dot" role="img" :aria-label="t('settingsRow.badge')" />
       <span v-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" /></span>
     </template>
@@ -97,7 +99,8 @@ function activate() {
 .flare-settings__row.is-stacked .flare-settings__ico { grid-area: ico; align-self: start; padding-top: 2px; }
 .flare-settings__row.is-stacked .flare-settings__label { grid-area: label; }
 .flare-settings__row.is-stacked .flare-settings__badge,
-.flare-settings__row.is-stacked .flare-settings__dot { grid-area: badge; }
+.flare-settings__row.is-stacked .flare-settings__dot,
+.flare-settings__row.is-stacked .flare-settings__tag { grid-area: badge; }
 .flare-settings__row.is-stacked .flare-settings__chev { grid-area: chev; }
 .flare-settings__row.is-stacked .flare-settings__detail {
   grid-area: detail;
@@ -123,5 +126,6 @@ function activate() {
   border-radius: var(--flare-size-radius-full);
   background: var(--flare-color-error);
 }
+.flare-settings__tag { flex: none; }
 .flare-settings__chev { color: var(--flare-color-text-tertiary); }
 </style>

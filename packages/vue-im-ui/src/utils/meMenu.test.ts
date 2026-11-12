@@ -1,6 +1,9 @@
+// @vitest-environment happy-dom
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import FlareSettingsRow from "../components/profile/FlareSettingsRow.vue";
 import { flareIconNameOrFallback } from "../shared/icons";
 import { flareMeMenuSections, type FlareMeMenu } from "./meMenu";
 
@@ -31,6 +34,16 @@ describe("flareMeMenuSections", () => {
       })));
     },
   );
+
+  it("tags an upgrade placeholder and draws the tag on its row", () => {
+    const menu: FlareMeMenu = { items: [{ kind: "plugin", id: "plugin:w", title: "钱包", icon: "wallet", upgrade: { minBuild: 41020 } }] };
+    const row = flareMeMenuSections(menu, undefined, undefined, "zh-CN")[0]!.items[0]!;
+    expect(row.tag).toBe("需更新");
+    expect(flareMeMenuSections(menu, undefined, undefined, "en-US")[0]!.items[0]!.tag).toBe("Update needed");
+    const wrapper = mount(FlareSettingsRow, { props: { item: row } });
+    expect(wrapper.get("[data-settings-tag]").text()).toBe("需更新");
+    expect(mount(FlareSettingsRow, { props: { item: { ...row, kind: "toggle", value: false } } }).find("[data-settings-tag]").exists()).toBe(false);
+  });
 
   it("takes the summaries as a Map as well", () => {
     const menu: FlareMeMenu = { items: [{ kind: "plugin", id: "plugin:a", title: "钱包", icon: "wallet" }] };

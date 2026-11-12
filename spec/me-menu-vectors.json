@@ -6,7 +6,8 @@
     "builtin": "A built-in item's label is labels[id], else the kit copy meMenuMoments / meMenuReports / meMenuInvite / meMenuSettings. A built-in id the kit does not know is dropped. detail is summaries[id] trimmed when not empty: the host's subtitle for its own page (what 我的邀请 holds), by the item id.",
     "plugin": "A plugin item's label is its title trimmed, else meMenuPluginFallback. detail is summaries[id] trimmed when not empty (its meMenuSummary).",
     "icon": "icon = flareIconNameOrFallback(item.icon): a registry name (trimmed) as is; any other name, or none, → `plugin` (the shared fallback, iconFallback).",
-    "drop": "An item whose kind is neither builtin nor plugin is dropped; of two items with one id the first is kept."
+    "drop": "An item whose kind is neither builtin nor plugin is dropped; of two items with one id the first is kept.",
+    "upgrade": "A plugin item with `upgrade` ({minBuild?}: this build cannot open its page yet) keeps its place, label, icon and detail and carries tag = the kit copy pluginUpgradeBadge (zh 需更新, en Update needed); the host opens its upgrade notice on select. A built-in item never carries a tag; `upgrade: null` is no upgrade."
   },
   "copy": {
     "zh": {
@@ -14,14 +15,16 @@
       "reports": "我的举报",
       "invite": "我的邀请",
       "settings": "设置",
-      "pluginFallback": "插件"
+      "pluginFallback": "插件",
+      "upgrade": "需更新"
     },
     "en": {
       "moments": "Moments",
       "reports": "My reports",
       "invite": "My invites",
       "settings": "Settings",
-      "pluginFallback": "Plugin"
+      "pluginFallback": "Plugin",
+      "upgrade": "Update needed"
     }
   },
   "cases": [
@@ -627,6 +630,208 @@
               "key": "plugin:flare.redpacket.wallet-entry",
               "label": "Wallet",
               "icon": "wallet"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "Settings",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "upgrade-placeholder-zh",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "zh",
+      "menu": {
+        "items": [
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.wallet.account",
+            "contributionId": "flare.wallet.account",
+            "title": "钱包",
+            "icon": "wallet",
+            "order": 40,
+            "target": {
+              "pluginId": "flare.wallet",
+              "page": ""
+            },
+            "upgrade": {
+              "minBuild": 41020
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.account",
+            "contributionId": "flare.redpacket.account",
+            "title": "红包记录",
+            "icon": "red-packet",
+            "order": 41,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "flare.redpacket.page.sent"
+            },
+            "upgrade": null
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.task.account",
+            "contributionId": "flare.task.account",
+            "title": "任务",
+            "icon": "plugin",
+            "order": 42,
+            "target": {
+              "pluginId": "flare.task",
+              "page": ""
+            },
+            "upgrade": {}
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "summaries": {
+        "plugin:flare.wallet.account": "¥12.00"
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "plugin:flare.wallet.account",
+              "label": "钱包",
+              "icon": "wallet",
+              "detail": "¥12.00",
+              "tag": "需更新"
+            },
+            {
+              "key": "plugin:flare.redpacket.account",
+              "label": "红包记录",
+              "icon": "red-packet"
+            },
+            {
+              "key": "plugin:flare.task.account",
+              "label": "任务",
+              "icon": "plugin",
+              "tag": "需更新"
+            }
+          ]
+        },
+        {
+          "items": [
+            {
+              "key": "settings",
+              "label": "设置",
+              "icon": "settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "upgrade-placeholder-en",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "locale": "en",
+      "menu": {
+        "items": [
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.wallet.account",
+            "contributionId": "flare.wallet.account",
+            "title": "钱包",
+            "icon": "wallet",
+            "order": 40,
+            "target": {
+              "pluginId": "flare.wallet",
+              "page": ""
+            },
+            "upgrade": {
+              "minBuild": 41020
+            }
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.redpacket.account",
+            "contributionId": "flare.redpacket.account",
+            "title": "红包记录",
+            "icon": "red-packet",
+            "order": 41,
+            "target": {
+              "pluginId": "flare.redpacket",
+              "page": "flare.redpacket.page.sent"
+            },
+            "upgrade": null
+          },
+          {
+            "kind": "plugin",
+            "id": "plugin:flare.task.account",
+            "contributionId": "flare.task.account",
+            "title": "任务",
+            "icon": "plugin",
+            "order": 42,
+            "target": {
+              "pluginId": "flare.task",
+              "page": ""
+            },
+            "upgrade": {}
+          },
+          {
+            "kind": "builtin",
+            "id": "settings",
+            "icon": "settings",
+            "order": 2147483647,
+            "target": {
+              "route": "settings"
+            }
+          }
+        ],
+        "complete": true
+      },
+      "summaries": {
+        "plugin:flare.wallet.account": "¥12.00"
+      },
+      "expect": [
+        {
+          "items": [
+            {
+              "key": "plugin:flare.wallet.account",
+              "label": "钱包",
+              "icon": "wallet",
+              "detail": "¥12.00",
+              "tag": "Update needed"
+            },
+            {
+              "key": "plugin:flare.redpacket.account",
+              "label": "红包记录",
+              "icon": "red-packet"
+            },
+            {
+              "key": "plugin:flare.task.account",
+              "label": "任务",
+              "icon": "plugin",
+              "tag": "Update needed"
             }
           ]
         },

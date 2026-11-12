@@ -14,7 +14,12 @@ data class FlareMeMenuItem(
     val icon: String? = null,
     val title: String? = null,
     val order: Int = 0,
+    /** The SDK's upgrade placeholder (`upgrade: {minBuild?}`): this build cannot open the plugin's page yet. The row keeps its place and label and carries the 「需更新」 tag. */
+    val upgrade: FlareMeMenuUpgrade? = null,
 )
+
+/** A 我 page item this build cannot open yet: the first build that can, when the catalog says. */
+data class FlareMeMenuUpgrade(val minBuild: Long? = null)
 
 /** The `features.meMenu` result: the items in the SDK's order, and whether the switches and catalog were all read. */
 data class FlareMeMenu(val items: List<FlareMeMenuItem>, val complete: Boolean = true) {
@@ -35,6 +40,7 @@ data class FlareMeMenu(val items: List<FlareMeMenuItem>, val complete: Boolean =
                     icon = item["icon"] as? String,
                     title = item["title"] as? String,
                     order = (item["order"] as? Number)?.toInt() ?: 0,
+                    upgrade = (item["upgrade"] as? Map<*, *>)?.let { FlareMeMenuUpgrade((it["minBuild"] as? Number)?.toLong()) },
                 )
             }
             return FlareMeMenu(items, complete = root["complete"] == true)
@@ -81,6 +87,7 @@ fun flareMeMenuSections(
                 icon = icon,
                 kind = FlareSettingKind.Navigation,
                 detail = detail(item.id),
+                tag = if (item.upgrade != null) strings.pluginUpgradeBadge else null,
             )
             else -> continue
         }

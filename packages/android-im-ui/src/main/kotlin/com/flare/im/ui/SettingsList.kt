@@ -6,6 +6,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -126,6 +127,17 @@ internal fun settingsRowHasChevron(kind: FlareSettingKind): Boolean = kind == Fl
 /** Whether [item] draws its red dot: every kind but a toggle, whose end is the switch. */
 internal fun settingsRowDrawsBadge(item: SettingsItem): Boolean = item.badge && item.kind != FlareSettingKind.Toggle
 
+/** [item]'s tag when it draws one: every kind but a toggle, and only non-blank words. */
+internal fun settingsRowTag(item: SettingsItem): String? =
+    item.tag?.trim()?.takeIf { it.isNotEmpty() && item.kind != FlareSettingKind.Toggle }
+
+/** The warning tag of [SettingsItem.tag], drawn as a plugin badge (the kit's tinted capsule). */
+@Composable
+private fun SettingsRowTag(text: String) {
+    Spacer(Modifier.width(6.dp))
+    PluginBadgeTag(PluginBadge(text, PluginTone.Warning), Modifier.semantics { testTag = "settings.row.tag" })
+}
+
 /** The red dot of [SettingsItem.badge]. The row merges its description, so a screen reader hears it with the row. */
 @Composable
 private fun SettingsRowDot() {
@@ -188,6 +200,7 @@ fun SettingsRow(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(item.label, color = labelColor, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
+                    settingsRowTag(item)?.let { SettingsRowTag(it) }
                     if (settingsRowDrawsBadge(item)) SettingsRowDot()
                     if (settingsRowHasChevron(item.kind)) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
                 }
@@ -204,6 +217,7 @@ fun SettingsRow(
                         Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
+                    settingsRowTag(item)?.let { SettingsRowTag(it) }
                     if (settingsRowDrawsBadge(item)) SettingsRowDot()
                 }
                 FlareSettingKind.Navigation -> {
@@ -212,6 +226,7 @@ fun SettingsRow(
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.width(6.dp))
                     }
+                    settingsRowTag(item)?.let { SettingsRowTag(it) }
                     if (settingsRowDrawsBadge(item)) SettingsRowDot()
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
                 }

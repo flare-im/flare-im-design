@@ -332,6 +332,13 @@ public struct FlareSettingsRow: View {
     /// Whether the row draws its red dot: every kind but a toggle, whose end is the switch.
     static func drawsBadge(_ item: FlareSettingsItem) -> Bool { item.badge && item.kind != .toggle }
 
+    /// The row's tag, when it draws one: every kind but a toggle, and only non-blank words.
+    static func tagText(_ item: FlareSettingsItem) -> String? {
+        guard item.kind != .toggle, let tag = item.tag?.trimmingCharacters(in: .whitespacesAndNewlines), !tag.isEmpty
+        else { return nil }
+        return tag
+    }
+
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         Group {
@@ -369,6 +376,7 @@ public struct FlareSettingsRow: View {
                         HStack(spacing: FlareSizes.spacingMd) {
                             rowTitle(colors)
                             Spacer(minLength: 0)
+                            tag()
                             dot(colors)
                             chevron(colors)
                         }
@@ -390,6 +398,7 @@ public struct FlareSettingsRow: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    tag()
                     dot(colors)
                     chevron(colors)
                 }
@@ -415,6 +424,15 @@ public struct FlareSettingsRow: View {
     private func rowTitle(_ colors: FlareColors) -> some View {
         Text(item.label).font(.system(size: FlareSizes.fontSizeLg))
             .foregroundColor(item.danger ? colors.errorText : colors.textPrimary)
+    }
+
+    /// The warning tag, drawn like a plugin badge (the kit's tinted capsule).
+    @ViewBuilder private func tag() -> some View {
+        if let text = Self.tagText(item) {
+            PluginBadgeView(badge: PluginBadge(text: text, tone: .warning))
+                .fixedSize()
+                .accessibilityIdentifier("settings.row.tag")
+        }
     }
 
     @ViewBuilder private func dot(_ colors: FlareColors) -> some View {
