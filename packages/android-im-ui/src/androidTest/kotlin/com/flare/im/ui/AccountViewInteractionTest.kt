@@ -272,12 +272,12 @@ class AccountViewInteractionTest {
         }
     }
     @Test fun realWalletFlowsShowTheirFormsWithoutOpeningASheet() {
-        val current = mutableStateOf(fixture("wallet-flow-vectors.json", "recharge"))
+        val current = mutableStateOf(fixture("wallet-flow-account-vectors.json", "recharge"))
         compose.setContent { FlareThemeProvider(mode = FlareThemeMode.Light) {
             FlarePluginPage(page = current.value.first, view = current.value.second, onAction = { _, _ -> })
         } }
         for ((id, submit) in listOf("recharge" to "提交充值申请", "withdrawal" to "核对提现", "payout_profiles" to "保存收款资料")) {
-            compose.runOnIdle { current.value = fixture("wallet-flow-vectors.json", id) }
+            compose.runOnIdle { current.value = fixture("wallet-flow-account-vectors.json", id) }
             list().performScrollToIndex(0)
             compose.onAllNodes(hasSetTextAction()).onFirst().assertExists()
             compose.onAllNodesWithText(submit).assertCountEquals(1)

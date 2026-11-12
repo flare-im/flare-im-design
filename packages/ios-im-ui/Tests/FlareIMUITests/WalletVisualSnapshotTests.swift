@@ -12,7 +12,7 @@ final class WalletVisualSnapshotTests: XCTestCase {
         }
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<5 { root.deleteLastPathComponent() }
-        let table = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-flow-vectors.json")))
+        let table = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-flow-account-vectors.json")))
         let cards = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-card-vectors.json")))
         let fixtures = (table["cases"]?.arrayValue ?? []) + (cards["cases"]?.arrayValue ?? [])
         let directory = URL(fileURLWithPath: output)

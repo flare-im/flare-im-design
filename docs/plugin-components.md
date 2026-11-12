@@ -255,7 +255,7 @@
 
 `spec/account-layout-vectors.json` 是独立的纯展示克隆样例，三种 layout 各含中英文，覆盖320／390／603／604／768／880／1360及警告、长金额、原始动作载荷。它不是新的 Rust 解析或数据库输出；旧的44／32等历史向量原文件保持不变。
 
-回归数据见 `spec/wallet-flow-vectors.json`：44 个 Rust 合同实际解析的中英文视图，包含 20 个用户页面与提现、密码条件阶段。确认付款与 checkout 保留专用 `payment.confirm` renderer。布局核验不提交真实资金操作。
+回归数据见 `spec/wallet-flow-vectors.json`：44 个中英文视图，钱包合同（0.6.0 起）不再声明 `account` renderer，页面层级全部是普通块——钱包页以 `section` 包住 `hero`（可用余额）与 `stats`，各页以 `section` 给出标题、步骤与说明，空列表的标题落在 `rows.emptyText`、说明是列表为空时才显示的 `note`，钱包页另有折叠的收款钱包编号 `qr`。确认付款与 checkout 仍保留 `payment.confirm` renderer，直到付款确认成为宿主能力。`spec/wallet-flow-account-vectors.json` 是同 44 个样例在旧 account renderer 下的形态，只供 `FlareAccountView` 的测试与信息完整性比对（`wallet-flow-vectors.test.ts` 逐例核对旧样例里的每段文字、每个字段与每个动作槽在新样例中都还在）。布局核验不提交真实资金操作。
 
 flow 只有一个可见主动作时，可通过 `PluginView.inlineFormActionId` 将资料表单直接放进页面。仅该动作的 `form` 字段顺序生效，输入必须全部可解析、没有密码、无需 confirm、页面可用且非只读；否则保留原按钮与确认／面板链路。组件挂载不执行动作，提交仍走原校验与派发；同步锁定防止重复提交，失败结算保留输入与字段错误，成功结算只重置该表单。`PluginForm.embedded` 去掉面板边距及取消键，保留整宽的原动作提交文案；返回由页面负责。密码、付款确认及行级凭证操作继续原链路。
 

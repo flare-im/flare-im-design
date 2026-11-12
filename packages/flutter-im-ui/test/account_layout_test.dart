@@ -360,7 +360,7 @@ void main() {
   FlarePluginPageViewModel sharedFixture(String id) {
     final vectors =
         jsonDecode(
-              File('../../spec/wallet-flow-vectors.json').readAsStringSync(),
+              File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
             )
             as Map;
     final item = (vectors['cases'] as List).cast<Map>().singleWhere(

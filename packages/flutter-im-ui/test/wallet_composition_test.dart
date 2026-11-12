@@ -19,7 +19,7 @@ Map<String, Object?> walletJson() =>
 FlarePluginPageViewModel realFlow(String id) {
   final cases =
       (jsonDecode(
-                File('../../spec/wallet-flow-vectors.json').readAsStringSync(),
+                File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
               )
               as Map)['cases']
           as List;

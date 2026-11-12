@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
-const vectors = JSON.parse(readFileSync(new URL("../../spec/wallet-flow-vectors.json", import.meta.url), "utf8"));
+const vectors = JSON.parse(readFileSync(new URL("../../spec/wallet-flow-account-vectors.json", import.meta.url), "utf8"));
 
 for (const width of [320, 390, 1360]) {
   for (const mode of ["light", "dark"] as const) {

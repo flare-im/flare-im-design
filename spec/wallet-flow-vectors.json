@@ -1,5 +1,5 @@
 {
-  "description": "Consumer wallet views resolved by the Rust wallet contract; display values are fixtures, never calculated by the UI.",
+  "description": "Consumer wallet views as the Rust wallet contract resolves them with plain blocks (hero, stats, section, rows, qr); display values are fixtures, never calculated by the UI. Rewritten from wallet-flow-account-vectors.json (the retired account renderer's samples); the information test checks that no field was lost.",
   "cases": [
     {
       "id": "home",
@@ -150,6 +150,45 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "余额钱包",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "hero",
+                "label": "可用余额",
+                "value": "1000.00",
+                "amount": true,
+                "tone": "brand"
+              },
+              {
+                "kind": "stats",
+                "items": [
+                  {
+                    "label": "资金类型与币种",
+                    "value": "CNY · cash"
+                  },
+                  {
+                    "label": "当前钱包",
+                    "value": "primary"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "我的钱包",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "余额、充值与提现统一管理。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "items": [],
             "kind": "entries",
             "more": false,
@@ -188,7 +227,7 @@
                 "label": "状态"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "尚未开通钱包",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -221,20 +260,7 @@
             "source": "flare.wallet.ui.home"
           }
         ],
-        "fields": [
-          {
-            "label": "可用余额",
-            "value": "1000.00"
-          },
-          {
-            "label": "资金类型与币种",
-            "value": "CNY · cash"
-          },
-          {
-            "label": "当前钱包",
-            "value": "primary"
-          }
-        ],
+        "fields": [],
         "inputs": [
           {
             "choices": [
@@ -256,31 +282,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "primary": "recharge",
-            "secondary": "withdrawal",
-            "shortcutPrimary": "transactionHistory",
-            "shortcutSecondary": "rechargeHistory",
-            "shortcutTertiary": "withdrawalHistory",
-            "tertiary": "payoutProfiles"
-          },
-          "props": {
-            "description": "余额、充值与提现统一管理。",
-            "emptyDescription": "开通钱包后可管理资金与账单。",
-            "emptyTitle": "尚未开通钱包",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "wallet",
-            "maskRowAmounts": true,
-            "rowEntryAction": "wallet",
-            "sectionTitle": "我的钱包",
-            "servicesTitle": "账户与安全",
-            "shortcutsTitle": "账单与记录",
-            "summaryTitle": "余额钱包"
-          },
-          "renderer": "account"
-        },
         "title": "钱包"
       }
     },
@@ -433,6 +434,45 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Wallet balance",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "hero",
+                "label": "Available balance",
+                "value": "1000.00",
+                "amount": true,
+                "tone": "brand"
+              },
+              {
+                "kind": "stats",
+                "items": [
+                  {
+                    "label": "Fund type and currency",
+                    "value": "CNY · cash"
+                  },
+                  {
+                    "label": "Current wallet",
+                    "value": "primary"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "My wallets",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Manage your balance, recharges and withdrawals in one place.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "items": [],
             "kind": "entries",
             "more": false,
@@ -471,7 +511,7 @@
                 "label": "Status"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No wallets yet",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -504,20 +544,7 @@
             "source": "flare.wallet.ui.home"
           }
         ],
-        "fields": [
-          {
-            "label": "Available balance",
-            "value": "1000.00"
-          },
-          {
-            "label": "Fund type and currency",
-            "value": "CNY · cash"
-          },
-          {
-            "label": "Current wallet",
-            "value": "primary"
-          }
-        ],
+        "fields": [],
         "inputs": [
           {
             "choices": [
@@ -539,31 +566,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "primary": "recharge",
-            "secondary": "withdrawal",
-            "shortcutPrimary": "transactionHistory",
-            "shortcutSecondary": "rechargeHistory",
-            "shortcutTertiary": "withdrawalHistory",
-            "tertiary": "payoutProfiles"
-          },
-          "props": {
-            "description": "Manage your balance, recharges and withdrawals in one place.",
-            "emptyDescription": "Open a wallet to manage your funds and transactions.",
-            "emptyTitle": "No wallets yet",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "wallet",
-            "maskRowAmounts": true,
-            "rowEntryAction": "wallet",
-            "sectionTitle": "My wallets",
-            "servicesTitle": "Account and security",
-            "shortcutsTitle": "Statements and records",
-            "summaryTitle": "Wallet balance"
-          },
-          "renderer": "account"
-        },
         "title": "Wallets"
       }
     },
@@ -587,6 +589,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "查看审核进度",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "开户申请",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "查看钱包开户申请的审核进度与结果。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -606,7 +625,7 @@
                 "label": "原因"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无开户申请",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -633,22 +652,6 @@
           }
         ],
         "fields": [],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "查看钱包开户申请的审核进度与结果。",
-            "emptyDescription": "提交开户申请后，可在这里查看审核进度。",
-            "emptyTitle": "暂无开户申请",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "开户申请",
-            "servicesTitle": "更多操作",
-            "stepLabel": "查看审核进度"
-          },
-          "renderer": "account"
-        },
         "title": "开户进度"
       }
     },
@@ -672,6 +675,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Track review progress",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Opening requests",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Track the review and outcome of wallet opening requests.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -691,7 +711,7 @@
                 "label": "Reason"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No opening requests",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -718,22 +738,6 @@
           }
         ],
         "fields": [],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Track the review and outcome of wallet opening requests.",
-            "emptyDescription": "After submitting an opening request, track its review here.",
-            "emptyTitle": "No opening requests",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Opening requests",
-            "servicesTitle": "More actions",
-            "stepLabel": "Track review progress"
-          },
-          "renderer": "account"
-        },
         "title": "Opening requests"
       }
     },
@@ -983,6 +987,49 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "余额钱包",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "hero",
+                "label": "可用余额",
+                "value": "1000.00",
+                "amount": true,
+                "tone": "brand"
+              },
+              {
+                "kind": "stats",
+                "items": [
+                  {
+                    "label": "资金类型与币种",
+                    "value": "CNY · cash"
+                  },
+                  {
+                    "label": "冻结中",
+                    "value": "0.00"
+                  },
+                  {
+                    "label": "可提现金额",
+                    "value": "1000.00"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "资金账户",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "查看可用余额，管理当前钱包的资金。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -1006,7 +1053,7 @@
                 "label": "可提现"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无资金账户",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -1033,46 +1080,22 @@
               }
             ],
             "source": "flare.wallet.ui.wallet"
+          },
+          {
+            "kind": "section",
+            "label": "收款钱包编号",
+            "collapsed": true,
+            "blocks": [
+              {
+                "kind": "qr",
+                "value": "wallet-fixture",
+                "caption": "转账时请对方在「收款钱包」中填写此编号。",
+                "valuePath": "/walletId"
+              }
+            ]
           }
         ],
-        "fields": [
-          {
-            "label": "可用余额",
-            "value": "1000.00"
-          },
-          {
-            "label": "资金类型与币种",
-            "value": "CNY · cash"
-          },
-          {
-            "label": "冻结中",
-            "value": "0.00"
-          },
-          {
-            "label": "可提现金额",
-            "value": "1000.00"
-          }
-        ],
-        "presentation": {
-          "actions": {
-            "primary": "recharge",
-            "secondary": "withdrawal",
-            "tertiary": "payoutProfiles"
-          },
-          "props": {
-            "description": "查看可用余额，管理当前钱包的资金。",
-            "emptyDescription": "资金到账后会显示在这里。",
-            "emptyTitle": "暂无资金账户",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "wallet",
-            "maskRowAmounts": true,
-            "sectionTitle": "资金账户",
-            "servicesTitle": "钱包操作",
-            "summaryTitle": "余额钱包"
-          },
-          "renderer": "account"
-        },
+        "fields": [],
         "title": "钱包"
       }
     },
@@ -1322,6 +1345,49 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Wallet balance",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "hero",
+                "label": "Available balance",
+                "value": "1000.00",
+                "amount": true,
+                "tone": "brand"
+              },
+              {
+                "kind": "stats",
+                "items": [
+                  {
+                    "label": "Fund type and currency",
+                    "value": "CNY · cash"
+                  },
+                  {
+                    "label": "Frozen",
+                    "value": "0.00"
+                  },
+                  {
+                    "label": "Withdrawable amount",
+                    "value": "1000.00"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Fund account",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "View the available balance and manage funds in this wallet.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "actions": [],
             "columns": [
               {
@@ -1345,7 +1411,7 @@
                 "label": "Withdrawable"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No fund accounts yet",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -1372,46 +1438,22 @@
               }
             ],
             "source": "flare.wallet.ui.wallet"
+          },
+          {
+            "kind": "section",
+            "label": "Wallet number for receiving",
+            "collapsed": true,
+            "blocks": [
+              {
+                "kind": "qr",
+                "value": "wallet-fixture",
+                "caption": "Ask the sender to enter this number as the recipient wallet of a transfer.",
+                "valuePath": "/walletId"
+              }
+            ]
           }
         ],
-        "fields": [
-          {
-            "label": "Available balance",
-            "value": "1000.00"
-          },
-          {
-            "label": "Fund type and currency",
-            "value": "CNY · cash"
-          },
-          {
-            "label": "Frozen",
-            "value": "0.00"
-          },
-          {
-            "label": "Withdrawable amount",
-            "value": "1000.00"
-          }
-        ],
-        "presentation": {
-          "actions": {
-            "primary": "recharge",
-            "secondary": "withdrawal",
-            "tertiary": "payoutProfiles"
-          },
-          "props": {
-            "description": "View the available balance and manage funds in this wallet.",
-            "emptyDescription": "Funds will appear here when received.",
-            "emptyTitle": "No fund accounts yet",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "wallet",
-            "maskRowAmounts": true,
-            "sectionTitle": "Fund account",
-            "servicesTitle": "Wallet actions",
-            "summaryTitle": "Wallet balance"
-          },
-          "renderer": "account"
-        },
+        "fields": [],
         "title": "Wallet"
       }
     },
@@ -1492,6 +1534,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "填写信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "转账信息",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "选择规则并填写收款钱包与金额，下一步核对费用。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
             "tone": "info"
@@ -1531,22 +1590,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "选择规则并填写收款钱包与金额，下一步核对费用。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "转账信息",
-            "servicesTitle": "更多操作",
-            "stepLabel": "填写信息"
-          },
-          "renderer": "account"
-        },
         "title": "转账"
       }
     },
@@ -1627,6 +1670,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Enter details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Transfer details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Choose a policy and enter the recipient wallet and amount. Review fees next.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
             "tone": "info"
@@ -1666,22 +1726,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "Choose a policy and enter the recipient wallet and amount. Review fees next.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Transfer details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Enter details"
-          },
-          "renderer": "account"
-        },
         "title": "Transfer"
       }
     },
@@ -1762,6 +1806,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "填写信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "兑换信息",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "选择兑换规则并填写目标钱包与金额，下一步核对到账金额。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
             "tone": "info"
@@ -1801,22 +1862,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "选择兑换规则并填写目标钱包与金额，下一步核对到账金额。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "兑换信息",
-            "servicesTitle": "更多操作",
-            "stepLabel": "填写信息"
-          },
-          "renderer": "account"
-        },
         "title": "兑换"
       }
     },
@@ -1897,6 +1942,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Enter details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Exchange details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Choose an exchange pair and enter the target wallet and amount. Review the amount received next.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
             "tone": "info"
@@ -1936,22 +1998,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "Choose an exchange pair and enter the target wallet and amount. Review the amount received next.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Exchange details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Enter details"
-          },
-          "renderer": "account"
-        },
         "title": "Exchange"
       }
     },
@@ -2034,6 +2080,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "填写信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "冻结信息",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "填写收款钱包、金额与冻结时长，下一步核对冻结详情。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
             "tone": "info"
@@ -2082,22 +2145,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "填写收款钱包、金额与冻结时长，下一步核对冻结详情。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "冻结信息",
-            "servicesTitle": "更多操作",
-            "stepLabel": "填写信息"
-          },
-          "renderer": "account"
-        },
         "title": "冻结"
       }
     },
@@ -2180,6 +2227,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Enter details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Hold details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Enter the recipient wallet, amount and hold duration. Review the hold next.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
             "tone": "info"
@@ -2228,22 +2292,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "preview"
-          },
-          "props": {
-            "description": "Enter the recipient wallet, amount and hold duration. Review the hold next.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Hold details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Enter details"
-          },
-          "renderer": "account"
-        },
         "title": "Hold"
       }
     },
@@ -2319,6 +2367,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "核对信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "资金明细",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "核对收款钱包、扣款、费用与有效期后，继续验证。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -2351,22 +2416,6 @@
             "value": "99.00"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "prepare"
-          },
-          "props": {
-            "description": "核对收款钱包、扣款、费用与有效期后，继续验证。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "资金明细",
-            "servicesTitle": "更多操作",
-            "stepLabel": "核对信息"
-          },
-          "renderer": "account"
-        },
         "title": "核对资金明细"
       }
     },
@@ -2442,6 +2491,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Review details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Fund details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Review the recipient wallet, debit, fees and expiry, then continue verification.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -2474,22 +2540,6 @@
             "value": "99.00"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "prepare"
-          },
-          "props": {
-            "description": "Review the recipient wallet, debit, fees and expiry, then continue verification.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Fund details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Review details"
-          },
-          "renderer": "account"
-        },
         "title": "Review payment"
       }
     },
@@ -2619,6 +2669,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "验证并确认",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "付款明细",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "核对付款信息并完成验证后确认支付。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -2669,20 +2736,14 @@
           }
         ],
         "presentation": {
-          "actions": {
-            "confirm": "pay"
-          },
+          "renderer": "payment.confirm",
           "props": {
             "amount": "100.00",
-            "description": "核对付款信息并完成验证后确认支付。",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "methodLabel": "CNY",
-            "sectionTitle": "付款明细",
-            "servicesTitle": "更多操作",
-            "stepLabel": "验证并确认"
+            "methodLabel": "CNY"
           },
-          "renderer": "payment.confirm"
+          "actions": {
+            "confirm": "pay"
+          }
         },
         "title": "确认支付"
       }
@@ -2813,6 +2874,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Verify and confirm",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Payment details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Review payment details and complete verification before confirming payment.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -2863,20 +2941,14 @@
           }
         ],
         "presentation": {
-          "actions": {
-            "confirm": "pay"
-          },
+          "renderer": "payment.confirm",
           "props": {
             "amount": "100.00",
-            "description": "Review payment details and complete verification before confirming payment.",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "methodLabel": "CNY",
-            "sectionTitle": "Payment details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Verify and confirm"
+            "methodLabel": "CNY"
           },
-          "renderer": "payment.confirm"
+          "actions": {
+            "confirm": "pay"
+          }
         },
         "title": "Confirm payment"
       }
@@ -2899,6 +2971,25 @@
           }
         ],
         "available": true,
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "查看结果",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "处理详情",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "以当前处理状态为准；结果待确认时请先查看原操作。",
+                "tone": "info"
+              }
+            ]
+          }
+        ],
         "fields": [
           {
             "label": "状态",
@@ -2918,20 +3009,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "以当前处理状态为准；结果待确认时请先查看原操作。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "处理详情",
-            "servicesTitle": "更多操作",
-            "stepLabel": "查看结果"
-          },
-          "renderer": "account"
-        },
         "title": "资金操作结果"
       }
     },
@@ -2953,6 +3030,25 @@
           }
         ],
         "available": true,
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "View outcome",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Operation details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Check the current operation status. If the outcome is unconfirmed, review the original request first.",
+                "tone": "info"
+              }
+            ]
+          }
+        ],
         "fields": [
           {
             "label": "Status",
@@ -2972,20 +3068,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Check the current operation status. If the outcome is unconfirmed, review the original request first.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Operation details",
-            "servicesTitle": "More actions",
-            "stepLabel": "View outcome"
-          },
-          "renderer": "account"
-        },
         "title": "Payment result"
       }
     },
@@ -3008,6 +3090,18 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "资金使用规则",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "查看各笔资金的可用用途与有效期。",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [],
             "columns": [
@@ -3036,7 +3130,7 @@
                 "label": "到期"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无资金记录",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -3075,21 +3169,6 @@
           }
         ],
         "fields": [],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "查看各笔资金的可用用途与有效期。",
-            "emptyDescription": "收到资金后，可在这里查看使用规则。",
-            "emptyTitle": "暂无资金记录",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "ledger",
-            "maskRowAmounts": false,
-            "sectionTitle": "资金使用规则",
-            "servicesTitle": "更多操作"
-          },
-          "renderer": "account"
-        },
         "title": "资金限制"
       }
     },
@@ -3112,6 +3191,18 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "Fund usage rules",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Review the allowed uses and expiry of each fund.",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [],
             "columns": [
@@ -3140,7 +3231,7 @@
                 "label": "到期"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No fund records",
             "filters": [],
             "kind": "rows",
             "rows": [
@@ -3179,21 +3270,6 @@
           }
         ],
         "fields": [],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Review the allowed uses and expiry of each fund.",
-            "emptyDescription": "After receiving funds, review their usage rules here.",
-            "emptyTitle": "No fund records",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "ledger",
-            "maskRowAmounts": false,
-            "sectionTitle": "Fund usage rules",
-            "servicesTitle": "More actions"
-          },
-          "renderer": "account"
-        },
         "title": "Fund restrictions"
       }
     },
@@ -3227,6 +3303,22 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "账单明细",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "primary · CNY · cash"
+              },
+              {
+                "kind": "note",
+                "text": "查看资金变动与处理结果。",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -3273,7 +3365,7 @@
                 "label": "原业务单"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无账单",
             "filters": [
               "direction"
             ],
@@ -3342,25 +3434,6 @@
             "label": "收支方向"
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "contextLabel": "primary · CNY · cash",
-            "description": "查看资金变动与处理结果。",
-            "emptyDescription": "资金操作完成后会显示在这里。",
-            "emptyTitle": "暂无账单",
-            "groupByDate": true,
-            "informationTitle": "账户信息",
-            "layout": "ledger",
-            "maskRowAmounts": false,
-            "rowBadgeLabel": "收支方向",
-            "rowBadgePlacement": "separate",
-            "rowEntryAction": "detail",
-            "sectionTitle": "账单明细",
-            "servicesTitle": "更多操作"
-          },
-          "renderer": "account"
-        },
         "title": "交易记录"
       }
     },
@@ -3394,6 +3467,22 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "Transaction details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "primary · CNY · cash"
+              },
+              {
+                "kind": "note",
+                "text": "Review fund movements and their outcomes.",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -3440,7 +3529,7 @@
                 "label": "Original business reference"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No transactions yet",
             "filters": [
               "direction"
             ],
@@ -3509,25 +3598,6 @@
             "label": "Direction"
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "contextLabel": "primary · CNY · cash",
-            "description": "Review fund movements and their outcomes.",
-            "emptyDescription": "Completed fund operations will appear here.",
-            "emptyTitle": "No transactions yet",
-            "groupByDate": true,
-            "informationTitle": "Account information",
-            "layout": "ledger",
-            "maskRowAmounts": false,
-            "rowBadgeLabel": "Direction",
-            "rowBadgePlacement": "separate",
-            "rowEntryAction": "detail",
-            "sectionTitle": "Transaction details",
-            "servicesTitle": "More actions"
-          },
-          "renderer": "account"
-        },
         "title": "Transactions"
       }
     },
@@ -3556,6 +3626,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "确认原操作",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "原操作详情",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "查询或重试仅处理原请求，请勿重复发起资金操作。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "原资金操作已保存，查询或重试只处理原请求。",
             "tone": "info"
@@ -3576,22 +3663,6 @@
             "value": "false"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "retry"
-          },
-          "props": {
-            "description": "查询或重试仅处理原请求，请勿重复发起资金操作。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "原操作详情",
-            "servicesTitle": "更多操作",
-            "stepLabel": "确认原操作"
-          },
-          "renderer": "account"
-        },
         "title": "待确认操作"
       }
     },
@@ -3620,6 +3691,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Review original operation",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Original operation details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Queries and retries use the original request. Do not submit another fund operation.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "The original operation is retained. Retry always uses that request.",
             "tone": "info"
@@ -3640,22 +3728,6 @@
             "value": "false"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "retry"
-          },
-          "props": {
-            "description": "Queries and retries use the original request. Do not submit another fund operation.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Original operation details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Review original operation"
-          },
-          "renderer": "account"
-        },
         "title": "Recover operation"
       }
     },
@@ -3724,6 +3796,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "填写并提交审核",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "充值信息",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "选择到账钱包与充值渠道，再填写金额和付款凭证。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "填写充值信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "选择到账钱包与充值渠道，按真实转账信息提交申请。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "请按渠道说明转账，填写真实付款单号和付款凭证链接或上传引用。审核确认收到款项后入账。",
             "tone": "info"
@@ -3745,6 +3846,10 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.recharge"
+          },
+          {
+            "kind": "note",
+            "text": "当前没有可用充值渠道，已有记录仍可查看。"
           }
         ],
         "fields": [
@@ -3816,22 +3921,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "选择到账钱包与充值渠道，再填写金额和付款凭证。",
-            "emptyDescription": "当前没有可用充值渠道，已有记录仍可查看。",
-            "emptyTitle": "暂无可用渠道",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "充值信息",
-            "servicesTitle": "更多操作",
-            "stepLabel": "填写并提交审核"
-          },
-          "renderer": "account"
-        },
         "title": "充值"
       }
     },
@@ -3900,6 +3989,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Enter details and submit for review",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Recharge details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Choose the receiving wallet and recharge channel, then enter the amount and payment proof.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Recharge details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Choose the receiving wallet and recharge channel, then submit the actual payment information.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Transfer using the channel instructions and provide the real payment reference and proof link or upload reference. Funds are credited after receipt verification.",
             "tone": "info"
@@ -3921,6 +4039,10 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.recharge"
+          },
+          {
+            "kind": "note",
+            "text": "No recharge channels are available. Existing records remain available."
           }
         ],
         "fields": [
@@ -3992,22 +4114,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "Choose the receiving wallet and recharge channel, then enter the amount and payment proof.",
-            "emptyDescription": "No recharge channels are available. Existing records remain available.",
-            "emptyTitle": "No channels available",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Recharge details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Enter details and submit for review"
-          },
-          "renderer": "account"
-        },
         "title": "Recharge"
       }
     },
@@ -4077,6 +4183,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "填写信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "提现信息",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "选择付款钱包、渠道与收款账户，下一步核对金额和费用。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "填写提现信息",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "选择付款钱包与收款方式，下一步核对费用并验证支付密码。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "请核对固定收款账户、金额与费用。审核通过后由工作人员处理付款。",
             "tone": "info"
@@ -4098,6 +4233,10 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.withdrawal"
+          },
+          {
+            "kind": "note",
+            "text": "当前没有可用提现渠道，已有记录仍可查看。"
           }
         ],
         "fields": [
@@ -4167,22 +4306,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "选择付款钱包、渠道与收款账户，下一步核对金额和费用。",
-            "emptyDescription": "当前没有可用提现渠道，已有记录仍可查看。",
-            "emptyTitle": "暂无可用渠道",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "提现信息",
-            "servicesTitle": "更多操作",
-            "stepLabel": "填写信息"
-          },
-          "renderer": "account"
-        },
         "title": "提现"
       }
     },
@@ -4252,6 +4375,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Enter details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Withdrawal details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Choose the source wallet, channel and payout account. Review the amount and fees next.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Withdrawal details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Choose the paying wallet and payout method, then review fees and verify your payment password.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Check the fixed payout account, amount and fee. Staff process payment after review.",
             "tone": "info"
@@ -4273,6 +4425,10 @@
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.withdrawal"
+          },
+          {
+            "kind": "note",
+            "text": "No withdrawal channels are available. Existing records remain available."
           }
         ],
         "fields": [
@@ -4342,22 +4498,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "Choose the source wallet, channel and payout account. Review the amount and fees next.",
-            "emptyDescription": "No withdrawal channels are available. Existing records remain available.",
-            "emptyTitle": "No channels available",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Withdrawal details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Enter details"
-          },
-          "renderer": "account"
-        },
         "title": "Withdraw"
       }
     },
@@ -4401,6 +4541,35 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "核对并验证",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "提现明细",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "验证并确认",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "先验证支付密码，再核对并确认当前申请。",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "atMs": 1999999999999,
             "countdown": true,
@@ -4447,20 +4616,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "authorize"
-          },
-          "props": {
-            "description": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "提现明细",
-            "servicesTitle": "更多操作",
-            "stepLabel": "核对并验证"
-          },
-          "renderer": "account"
-        },
         "title": "核对提现"
       }
     },
@@ -4522,6 +4677,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "核对并验证",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "提现明细",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "验证并确认",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "先验证支付密码，再核对并确认当前申请。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -4567,18 +4751,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "核对收款账户与实际到账金额，验证支付密码后提交申请。",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "提现明细",
-            "servicesTitle": "更多操作",
-            "stepLabel": "核对并验证"
-          },
-          "renderer": "account"
-        },
         "title": "核对提现"
       }
     },
@@ -4622,6 +4794,35 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "Review and verify",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Withdrawal details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Review the payout account and amount received, then verify your payment password and submit the request.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Verify and confirm",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Verify your payment password, then review and confirm this request.",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "atMs": 1999999999999,
             "countdown": true,
@@ -4668,20 +4869,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "authorize"
-          },
-          "props": {
-            "description": "Review the payout account and amount received, then verify your payment password and submit the request.",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Withdrawal details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Review and verify"
-          },
-          "renderer": "account"
-        },
         "title": "Review withdrawal"
       }
     },
@@ -4743,6 +4930,35 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Review and verify",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Withdrawal details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Review the payout account and amount received, then verify your payment password and submit the request.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Verify and confirm",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Verify your payment password, then review and confirm this request.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "atMs": 1999999999999,
             "countdown": true,
             "kind": "time",
@@ -4788,18 +5004,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Review the payout account and amount received, then verify your payment password and submit the request.",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Withdrawal details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Review and verify"
-          },
-          "renderer": "account"
-        },
         "title": "Review withdrawal"
       }
     },
@@ -4855,6 +5059,35 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "管理收款方式",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "收款账户",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "添加并管理提现收款账户，审核通过后可用于提现。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "添加收款方式",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "填写本人收款信息，审核通过后可用于提现；银行卡需填写银行名称。",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -4946,11 +5179,15 @@
                 "label": "原因"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无收款账户",
             "filters": [],
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.payout_profiles"
+          },
+          {
+            "kind": "note",
+            "text": "添加收款资料并通过审核后，即可选择该账户提现。"
           }
         ],
         "fields": [],
@@ -5007,22 +5244,6 @@
             "maxLength": 128
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "save"
-          },
-          "props": {
-            "description": "添加并管理提现收款账户，审核通过后可用于提现。",
-            "emptyDescription": "添加收款资料并通过审核后，即可选择该账户提现。",
-            "emptyTitle": "暂无收款账户",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "收款账户",
-            "servicesTitle": "更多操作",
-            "stepLabel": "管理收款方式"
-          },
-          "renderer": "account"
-        },
         "title": "收款资料"
       }
     },
@@ -5078,6 +5299,35 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "Manage payout methods",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Payout account",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
+            "kind": "section",
+            "label": "Add a payout method",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Enter your own payout details for review before withdrawals. Bank cards require a bank name.",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -5169,11 +5419,15 @@
                 "label": "Reason"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No payout accounts",
             "filters": [],
             "kind": "rows",
             "rows": [],
             "source": "flare.wallet.ui.payout_profiles"
+          },
+          {
+            "kind": "note",
+            "text": "Add payout details for review. After approval, select the account for withdrawals."
           }
         ],
         "fields": [],
@@ -5230,22 +5484,6 @@
             "maxLength": 128
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "save"
-          },
-          "props": {
-            "description": "Add and manage payout accounts. Approved accounts can be used for withdrawals.",
-            "emptyDescription": "Add payout details for review. After approval, select the account for withdrawals.",
-            "emptyTitle": "No payout accounts",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Payout account",
-            "servicesTitle": "More actions",
-            "stepLabel": "Manage payout methods"
-          },
-          "renderer": "account"
-        },
         "title": "Payout details"
       }
     },
@@ -5268,6 +5506,18 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "充值与提现明细",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "查看申请进度、到账金额与审核结果。",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -5374,7 +5624,7 @@
                 "label": "原因"
               }
             ],
-            "emptyText": "暂无记录",
+            "emptyText": "暂无充值或提现记录",
             "filters": [
               "direction",
               "status"
@@ -5492,22 +5742,6 @@
             "label": "类型"
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "查看申请进度、到账金额与审核结果。",
-            "emptyDescription": "提交充值或提现申请后，可在这里查看进度。",
-            "emptyTitle": "暂无充值或提现记录",
-            "informationTitle": "账户信息",
-            "layout": "ledger",
-            "rowBadgeLabel": "状态",
-            "rowBadgePlacement": "separate",
-            "rowEntryAction": "detail",
-            "sectionTitle": "充值与提现明细",
-            "servicesTitle": "更多操作"
-          },
-          "renderer": "account"
-        },
         "title": "充值与提现记录"
       }
     },
@@ -5530,6 +5764,18 @@
         ],
         "available": true,
         "blocks": [
+          {
+            "kind": "section",
+            "label": "Recharge and withdrawal details",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "note",
+                "text": "Review request progress, amounts received and review outcomes.",
+                "tone": "info"
+              }
+            ]
+          },
           {
             "actions": [
               {
@@ -5636,7 +5882,7 @@
                 "label": "Reason"
               }
             ],
-            "emptyText": "No records",
+            "emptyText": "No recharge or withdrawal records",
             "filters": [
               "direction",
               "status"
@@ -5754,22 +6000,6 @@
             "label": "Type"
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Review request progress, amounts received and review outcomes.",
-            "emptyDescription": "After submitting a recharge or withdrawal request, track its progress here.",
-            "emptyTitle": "No recharge or withdrawal records",
-            "informationTitle": "Account information",
-            "layout": "ledger",
-            "rowBadgeLabel": "Status",
-            "rowBadgePlacement": "separate",
-            "rowEntryAction": "detail",
-            "sectionTitle": "Recharge and withdrawal details",
-            "servicesTitle": "More actions"
-          },
-          "renderer": "account"
-        },
         "title": "Recharge and withdrawal history"
       }
     },
@@ -5798,6 +6028,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "确认原操作",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "原操作详情",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "查询或重试仅处理原请求，请勿重复发起资金操作。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "未确认的资金操作请先查询原单，避免重复提交。",
             "tone": "warning"
@@ -5809,20 +6056,6 @@
             "value": "结果待查"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "查询或重试仅处理原请求，请勿重复发起资金操作。",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "sectionTitle": "原操作详情",
-            "servicesTitle": "更多操作",
-            "stepLabel": "确认原操作"
-          },
-          "renderer": "account"
-        },
         "title": "待确认操作"
       }
     },
@@ -5851,6 +6084,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Review original operation",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Original operation details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Queries and retries use the original request. Do not submit another fund operation.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Check the original operation before submitting again.",
             "tone": "warning"
@@ -5862,20 +6112,6 @@
             "value": "Result unknown"
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "submit"
-          },
-          "props": {
-            "description": "Queries and retries use the original request. Do not submit another fund operation.",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "sectionTitle": "Original operation details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Review original operation"
-          },
-          "renderer": "account"
-        },
         "title": "Recover operation"
       }
     },
@@ -5924,6 +6160,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "验证并确认",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "付款明细",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "核对付款信息并完成验证后确认支付。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "支付密码连续输错五次将暂时锁定。",
             "tone": "info"
@@ -5953,20 +6206,14 @@
           }
         ],
         "presentation": {
-          "actions": {
-            "confirm": "authorize"
-          },
+          "renderer": "payment.confirm",
           "props": {
             "amount": "100.00",
-            "description": "核对付款信息并完成验证后确认支付。",
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "methodLabel": "余额钱包",
-            "sectionTitle": "付款明细",
-            "servicesTitle": "更多操作",
-            "stepLabel": "验证并确认"
+            "methodLabel": "余额钱包"
           },
-          "renderer": "payment.confirm"
+          "actions": {
+            "confirm": "authorize"
+          }
         },
         "title": "确认支付"
       }
@@ -6016,6 +6263,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Verify and confirm",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Payment details",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Review payment details and complete verification before confirming payment.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Five incorrect attempts temporarily lock payment verification.",
             "tone": "info"
@@ -6045,20 +6309,14 @@
           }
         ],
         "presentation": {
-          "actions": {
-            "confirm": "authorize"
-          },
+          "renderer": "payment.confirm",
           "props": {
             "amount": "100.00",
-            "description": "Review payment details and complete verification before confirming payment.",
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "methodLabel": "余额钱包",
-            "sectionTitle": "Payment details",
-            "servicesTitle": "More actions",
-            "stepLabel": "Verify and confirm"
+            "methodLabel": "余额钱包"
           },
-          "renderer": "payment.confirm"
+          "actions": {
+            "confirm": "authorize"
+          }
         },
         "title": "Confirm payment"
       }
@@ -6109,6 +6367,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "设置与验证",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "支付安全",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
             "tone": "info"
@@ -6138,22 +6413,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "set"
-          },
-          "props": {
-            "description": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "支付安全",
-            "servicesTitle": "更多操作",
-            "stepLabel": "设置与验证"
-          },
-          "renderer": "account"
-        },
         "title": "支付密码"
       }
     },
@@ -6194,6 +6453,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "设置与验证",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "支付安全",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。",
             "tone": "info"
@@ -6223,20 +6499,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "使用六位支付密码验证资金操作，请勿与登录密码混用。",
-            "groupByDate": false,
-            "informationTitle": "账户信息",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "支付安全",
-            "servicesTitle": "更多操作",
-            "stepLabel": "设置与验证"
-          },
-          "renderer": "account"
-        },
         "title": "支付密码"
       }
     },
@@ -6286,6 +6548,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Set up and verify",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Payment security",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
             "tone": "info"
@@ -6315,22 +6594,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {
-            "submit": "set"
-          },
-          "props": {
-            "description": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Payment security",
-            "servicesTitle": "More actions",
-            "stepLabel": "Set up and verify"
-          },
-          "renderer": "account"
-        },
         "title": "Payment password"
       }
     },
@@ -6371,6 +6634,23 @@
         "available": true,
         "blocks": [
           {
+            "kind": "section",
+            "label": "Set up and verify",
+            "collapsed": false,
+            "blocks": [
+              {
+                "kind": "text",
+                "text": "Payment security",
+                "style": "title"
+              },
+              {
+                "kind": "note",
+                "text": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
+                "tone": "info"
+              }
+            ]
+          },
+          {
             "kind": "note",
             "text": "Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.",
             "tone": "info"
@@ -6400,20 +6680,6 @@
             "required": true
           }
         ],
-        "presentation": {
-          "actions": {},
-          "props": {
-            "description": "Verify fund operations with a six-digit payment password, separate from your sign-in password.",
-            "groupByDate": false,
-            "informationTitle": "Account information",
-            "layout": "flow",
-            "maskRowAmounts": false,
-            "sectionTitle": "Payment security",
-            "servicesTitle": "More actions",
-            "stepLabel": "Set up and verify"
-          },
-          "renderer": "account"
-        },
         "title": "Payment password"
       }
     }
