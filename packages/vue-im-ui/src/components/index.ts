@@ -336,8 +336,5 @@ export type { FlareUserIdentityValue } from "./data/FlareUserIdentity.vue";
 export { default as FlareAdminIconPicker } from "./form/FlareAdminIconPicker.vue";
 export type { FlareAdminIconOption } from "./form/FlareAdminIconPicker.vue";
 
-export { default as FlareScanViewfinder } from "./scan/FlareScanViewfinder.vue";
-export { default as FlareScanResultSheet } from "./scan/FlareScanResultSheet.vue";
-export { default as FlareScanDropZone } from "./scan/FlareScanDropZone.vue";
 export { default as FlareReauthSheet } from "./form/FlareReauthSheet.vue";
 export { default as FlareQrMatrix } from "./profile/FlareQrMatrix.vue";

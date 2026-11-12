@@ -402,5 +402,6 @@ export type {
 export { matchesFlareContactPickerEntry } from "./contact-picker";
 export type { FlareUploadState } from "./upload";
 
-export * from "./scan";
+export * from "./qr";
+export * from "./plugin-refresh";
 export * from "./reauth";

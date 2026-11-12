@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { platformContractIssues } from "./platform-contracts.mjs";
 const platforms = ["vue", "flutter", "ios", "compose"];
-test("the actual Vue-only scan drop zone explicitly excludes native HTML drag/drop", () => {
-  const spec = JSON.parse(readFileSync(new URL("./components.json", import.meta.url), "utf8"));
-  const component = spec.components.find(value => value.name === "ScanDropZone");
+test("a Vue-only component that names why each native platform does not apply is complete", () => {
+  const reason = "HTML image drop is a web host capability.";
+  const component = { platforms: { vue: { package: "@flare-im/vue-ui", symbol: "FlareDropZone" } }, notApplicablePlatforms: { flutter: reason, ios: reason, compose: reason } };
   assert.deepEqual(platformContractIssues(component, platforms), { errors: [], missing: [] });
 });
 test("N/A cannot conceal incomplete, contradictory or unknown implementation bindings", () => {

@@ -235,10 +235,8 @@ export 'src/components/flare_account_view.dart';
 export 'src/models/plugin_view.dart';
 export 'src/models/server_clock.dart';
 
-export 'src/models/scan_hit_gate.dart';
-export 'src/models/scan_view_rules.dart';
+export 'src/models/plugin_refresh.dart';
 
-export 'src/components/flare_scan.dart';
 export 'src/components/flare_reauth_sheet.dart';
 
 export 'src/components/flare_plugin_qr.dart';

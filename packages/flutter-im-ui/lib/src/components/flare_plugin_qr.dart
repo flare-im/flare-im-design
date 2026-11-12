@@ -43,3 +43,8 @@ class _FlarePluginQrState extends State<FlarePluginQr> {
     return Column(mainAxisSize: MainAxisSize.min, children: [if (_url != null) FlareQrMatrix(payload: _url, label: widget.caption ?? s.qrCode) else if (_phase == 'expired') Text(s.scanCodeExpired) else if (_phase == 'failed') Text(s.qrCardUnavailable) else Text(s.scanPreparing), if (widget.caption != null) Text(widget.caption!)]);
   }
 }
+
+class FlareScanSurfaceHints {
+  const FlareScanSurfaceHints({required this.secure, required this.maxBrightness});
+  final bool secure, maxBrightness;
+}

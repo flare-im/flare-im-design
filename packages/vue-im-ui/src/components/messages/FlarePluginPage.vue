@@ -20,7 +20,7 @@ import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { flareLayout } from "../../design-system/theme/layout-tokens";
-import { flarePluginMayRefresh } from "../../shared/contracts/scan";
+import { flarePluginMayRefresh } from "../../shared/contracts/plugin-refresh";
 import {
   flarePluginPageFilters,
   flarePluginPageFilterValues,

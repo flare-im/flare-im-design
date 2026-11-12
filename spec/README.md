@@ -48,7 +48,7 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**191 components / 17 categories** (source in [`components.json`](./components.json);
+**188 components / 17 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
@@ -67,18 +67,18 @@ props/events extracted and calibrated from the `@flare-im/vue-ui` source).
   `AccessDiagnostics` · `AnnouncementReadBar` · `CapabilityBoundary` · `ConnectionNotice` · `EmptyState` · `PermissionPrompt` · `ProgressBar` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast` · `UpdatePrompt`
 - **Profile** — 11
   `DeviceSessions` · `MyInvitePanel` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage` · `VersionPanel`
-- **Media** — 10
-  `FileUpload` · `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `ScanDropZone` · `ScanViewfinder` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Layout** — 9
   `AppLayout` · `AuthShell` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
 - **Call** — 8
   `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
+- **Media** — 8
+  `FileUpload` · `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
 - **Moments** — 8
   `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Overlay** — 8
-  `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `ScanResultSheet` · `SearchPanel`
+- **Overlay** — 7
+  `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
 - **Navigation** — 6
   `AdaptiveNavigation` · `CommandPalette` · `FilterTabs` · `RecentSearches` · `SearchBar` · `SegmentedControl`
 - **Patterns** — 2

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "pluginRefresh": [
+    {
+      "name": "active quiet page",
+      "visible": true,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": false,
+      "expect": true
+    },
+    {
+      "name": "hidden page",
+      "visible": false,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": false,
+      "expect": false
+    },
+    {
+      "name": "open action form",
+      "visible": true,
+      "foreground": true,
+      "loading": false,
+      "refreshing": false,
+      "busy": false,
+      "interaction": true,
+      "expect": false
+    }
+  ]
+}

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/directory_data.dart'
     show FlareButtonVariant, FlareControlSize;
 import '../models/plugin_view.dart';
-import '../models/scan_view_rules.dart';
+import '../models/plugin_refresh.dart';
 import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -19,7 +19,6 @@ import 'flare_screen.dart';
 import 'flare_status_banner.dart';
 import 'plugin_paging.dart';
 import 'flare_plugin_qr.dart';
-import 'flare_scan.dart';
 
 /// Plugin page host — a full-screen page for a plugin's `page` contribution
 /// (red packet v5's wallet and its history, a list): the kit [FlareScreen]

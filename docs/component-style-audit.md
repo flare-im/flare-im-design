@@ -205,9 +205,6 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 | Tag | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | UserIdentity | General | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | FileUpload | Media | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
-| ScanViewfinder | Media | General UI primitive; semantic tokens; capabilities | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
-| ScanResultSheet | Overlay | Elevated overlay; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
-| ScanDropZone | Media | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 | ReauthSheet | Form | General UI primitive; semantic tokens; base controlled contract | No blocking drift found; inherits the category token and state grammar. | Uses the shared focus, touch-target, disabled, and recovery expectations. | Configuration is limited to its public task boundary. | Retain current boundary and review with its category when behavior changes. | P3 monitor |
 
 ## Priority summary
@@ -217,4 +214,4 @@ The audit checks typography, spacing, padding, alignment, icon scale and stroke,
 - P2 guarded: core visual components remain under token, state, and visual regression gates.
 - P3 monitor: focused primitives retain their existing boundary unless a real product inconsistency appears.
 
-Audited components: 190.
+Audited components: 187.

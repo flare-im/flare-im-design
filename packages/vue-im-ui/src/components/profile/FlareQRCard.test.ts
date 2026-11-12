@@ -73,4 +73,7 @@ describe("FlareQRCard", () => {
     expect(document.querySelector('path[shape-rendering="crispEdges"]')).toBeTruthy();
     expect(document.querySelector('[href]')).toBeNull();
   });
+  it('never shows the stale QR matrix after expiry or while rotating', () => {
+    for (const props of [{ phase: 'ready', refreshInMs: 0 }, { phase: 'refreshing' }] as const) { const view = mount(defineComponent({ setup() { useFlareI18nProvider('en-US'); return () => h(FlareQRCard, { name: 'My code', qrPayload: 'https://scan.test/u/token', ...props }); } })); expect(view.find('svg').exists()).toBe(false); view.unmount(); }
+  });
 });

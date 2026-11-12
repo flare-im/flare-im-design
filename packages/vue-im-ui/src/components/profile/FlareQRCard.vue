@@ -4,7 +4,7 @@ import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import FlareQrMatrix from "./FlareQrMatrix.vue";
 import FlareButton from "../general/FlareButton.vue";
-import type { FlareQrPhase } from "../../shared/contracts/scan";
+import type { FlareQrPhase } from "../../shared/contracts/qr";
 
 const props = defineProps<{
   name: string;

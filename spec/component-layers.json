@@ -233,9 +233,6 @@
     "UserIdentity": "general-ui",
     "ImageUploadSlot": "im-ui",
     "FileUpload": "im-ui",
-    "ScanViewfinder": "im-ui",
-    "ScanResultSheet": "general-ui",
-    "ScanDropZone": "im-ui",
     "ReauthSheet": "general-ui"
   }
 }
