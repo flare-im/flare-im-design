@@ -50,6 +50,37 @@ internal fun messageListRequests(fromTopDp: Float, fromBottomDp: Float, older: M
     )
 }
 
+/**
+ * Whether a window overflows the viewport by no more than the paging distance (`fill`): `fromTop + fromBottom` is that
+ * overflow wherever the reader is. Such a window cannot be scrolled far enough to move either end into or out of reach
+ * (one that fits does not scroll at all), so the list asks for its pages by itself until it overflows, or there is
+ * nothing more. A missing report (null) decides nothing.
+ */
+internal fun messageListFillsViewport(fromTopDp: Float?, fromBottomDp: Float?): Boolean {
+    if (fromTopDp == null || fromBottomDp == null) return false
+    return fromTopDp + fromBottomDp <= minOf(MESSAGE_LIST_OLDER_WITHIN_DP, MESSAGE_LIST_NEWER_WITHIN_DP)
+}
+
+/**
+ * What lets each end of the list ask again, as last applied: an end that asked asks nothing more until its page
+ * settles, its first or last row changes, or its error does. Each call answers whether its inputs changed since the
+ * last one.
+ */
+internal class MessageListRequestSettle {
+    private var older: Triple<Boolean, String?, String?>? = null
+    private var newer: Triple<Boolean, String?, String?>? = null
+
+    fun older(loading: Boolean, firstId: String?, error: String?): Boolean {
+        val now = Triple(loading, firstId, error)
+        return (now != older).also { older = now }
+    }
+
+    fun newer(loading: Boolean, lastId: String?, error: String?): Boolean {
+        val now = Triple(loading, lastId, error)
+        return (now != newer).also { newer = now }
+    }
+}
+
 /** What the floating key at the bottom does. */
 internal enum class MessageListLatestAction { JumpToLatest, ScrollToBottom }
 

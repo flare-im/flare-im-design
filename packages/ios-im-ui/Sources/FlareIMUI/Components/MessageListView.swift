@@ -46,6 +46,9 @@ public struct MessageListView: View {
     /// nil until the row is laid out.
     @State private var pagingFromTop: CGFloat?
     @State private var pagingFromBottom: CGFloat?
+    /// The window a fill last asked for: its first and last rows and how far it overflowed. A page that brings no rows
+    /// does not ask again.
+    @State private var fillAskedFor: String?
     /// The bottom-most visible row (iOS 17 and later): the reading position the scroll view keeps when rows are
     /// added above it.
     @State private var visibleId: String?
@@ -513,19 +516,22 @@ public struct MessageListView: View {
             })
     }
 
-    private func askOlder(retry: Bool) {
-        guard !requested, !loadingOlder, hasOlder, let onLoadOlder, retry || !olderEnd.failed else { return }
+    /// Whether it asked: an end that already asked and has not settled asks nothing.
+    @discardableResult private func askOlder(retry: Bool) -> Bool {
+        guard !requested, !loadingOlder, hasOlder, let onLoadOlder, retry || !olderEnd.failed else { return false }
         requested = true
         onLoadOlder()
+        return true
     }
 
-    private func askNewer(retry: Bool) {
-        guard !requestedNewer, !loadingNewer, hasNewer, let onLoadNewer, retry || !newerEnd.failed else { return }
+    @discardableResult private func askNewer(retry: Bool) -> Bool {
+        guard !requestedNewer, !loadingNewer, hasNewer, let onLoadNewer, retry || !newerEnd.failed else { return false }
         requestedNewer = true
         // The row at the bottom holds the reading position while the page grows under it, rather than the end
         // of the timeline, which would carry the reader down with the new rows.
         if visibleId == Self.timelineEndId { visibleId = messages.last?.id }
         onLoadNewer()
+        return true
     }
 
     /// One end of the window: the spinner while a page loads, else the error and the load or retry button.
@@ -541,17 +547,40 @@ public struct MessageListView: View {
 
     /// The reader moved: an edge row reported a new position. Pages are asked for within the shared distance of
     /// either edge; the first report of a window only records where it is, and so does every report of a replaced
-    /// window until the reader moves it.
+    /// window until the reader moves it. Any report may also fill the viewport (``pagingFill()``).
     private func pagingMoved(fromTop: CGFloat?? = .none, fromBottom: CGFloat?? = .none) {
         var moved = false
         if case .some(let top) = fromTop, top != pagingFromTop { moved = pagingFromTop != nil; pagingFromTop = top }
         if case .some(let bottom) = fromBottom, bottom != pagingFromBottom { moved = moved || pagingFromBottom != nil; pagingFromBottom = bottom }
         // In a replaced window the reader's first move lets the list ask again; its own moves never do.
-        guard moved, paging.mayAsk else { return }
+        guard paging.mayAsk else { return }
+        guard moved else { return pagingFill() }
         let wanted = FlareMessageListPaging.requests(fromTop: pagingFromTop ?? .infinity, fromBottom: pagingFromBottom ?? .infinity,
                                                      older: olderEnd, newer: newerEnd)
         if wanted.older { askOlder(retry: false) }
         if wanted.newer { askNewer(retry: false) }
+    }
+
+    /// A window that fits the viewport or barely overflows it cannot be moved far enough to report anything new, so it
+    /// asks by itself until it overflows (`fill`): without that, a first window of about one screen neither scrolled
+    /// nor grew. Once per window, and only when a page was really asked for: an end still waiting for its last page
+    /// asks again from the layout after that page settles.
+    private func pagingFill() {
+        guard paging.mayAsk, let first = messages.first?.id, let last = messages.last?.id,
+              FlareMessageListPaging.fillsViewport(fromTop: pagingFromTop, fromBottom: pagingFromBottom),
+              let top = pagingFromTop, let bottom = pagingFromBottom else { return }
+        let shown = "\(first)|\(last)|\(Int((top + bottom).rounded()))"
+        guard shown != fillAskedFor else { return }
+        let wanted = FlareMessageListPaging.requests(fromTop: top, fromBottom: bottom, older: olderEnd, newer: newerEnd)
+        let askedOlder = wanted.older && askOlder(retry: false)
+        let askedNewer = wanted.newer && askNewer(retry: false)
+        if askedOlder || askedNewer { fillAskedFor = shown }
+    }
+
+    /// An end may ask again (its page settled, its edge row or its error changed): the layout that follows may still
+    /// fill the viewport, and no edge row reports anything new when the window still fits.
+    private func pagingSettled() {
+        DispatchQueue.main.async { pagingFill() }
     }
 
     @ViewBuilder
@@ -578,16 +607,16 @@ public struct MessageListView: View {
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(colors.bgSecondary)
-            .onChange(of: loadingOlder) { if !$0 { requested = false } }
-            .onChange(of: messages.first?.id) { _ in requested = false }
+            .onChange(of: loadingOlder) { if !$0 { requested = false; pagingSettled() } }
+            .onChange(of: messages.first?.id) { _ in requested = false; pagingSettled() }
             .onChange(of: olderError) { _ in requested = false }
-            .onChange(of: loadingNewer) { if !$0 { requestedNewer = false } }
-            .onChange(of: messages.last?.id) { _ in requestedNewer = false }
+            .onChange(of: loadingNewer) { if !$0 { requestedNewer = false; pagingSettled() } }
+            .onChange(of: messages.last?.id) { _ in requestedNewer = false; pagingSettled() }
             .onChange(of: newerError) { _ in requestedNewer = false }
             .onChange(of: conversationId) { _ in
                 requested = false; visibleId = nil; rowFrames = [:]; restorationGeneration += 1; locatedId = nil
                 requestedNewer = false; paging = TimelinePaging(detachedSinceRows: hasNewer, windowId: windowId)
-                pagingFromTop = nil; pagingFromBottom = nil
+                pagingFromTop = nil; pagingFromBottom = nil; fillAskedFor = nil
                 follow = TimelineFollow()
                 bottomForConversation()
                 mediaSession.voice.stop()
@@ -1311,7 +1340,7 @@ private struct RowSwipeReply: ViewModifier {
     func body(content: Content) -> some View {
         if enabled {
             let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-            ZStack(alignment: .leading) {
+            let row = ZStack(alignment: .leading) {
                 Image(systemName: flareIconSymbol("reply"))
                     .font(.system(size: FlareSizes.iconSizeMd))
                     .foregroundColor(colors.textTertiary)
@@ -1323,30 +1352,85 @@ private struct RowSwipeReply: ViewModifier {
                 content
                     .offset(x: direction == .rightToLeft ? -gesture.travel : gesture.travel)
             }
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 12)
-                    // Following a finger is direct manipulation, not an animation; only the spring back
-                    // to rest is animated, and not under Reduce Motion.
-                    .onChanged { value in
-                        let next = Self.resolve(value, rtl: direction == .rightToLeft)
-                        // Crossing the arming distance changes what letting go means, so it is felt as
-                        // well as seen.
-                        if flareHapticCrossed(was: gesture.armed, now: next.armed) { flareHapticTick() }
-                        gesture = next
-                    }
-                    .onEnded { value in
-                        let armed = Self.resolve(value, rtl: direction == .rightToLeft).armed
-                        withAnimation(reduceMotion ? nil : FlareMotion.fastAnimation) { gesture = .none }
-                        if armed { action() }
-                    }
-            )
+            #if os(iOS)
+            if #available(iOS 18.0, *) {
+                // A UIKit pan that only begins on a mostly sideways drag and runs beside the timeline's scroll:
+                // since iOS 18 a SwiftUI drag on every row kept the scroll view's pan from starting, and a finger
+                // that went down on a row did not scroll the list.
+                row.gesture(SwipeReplyPan(changed: changed, ended: ended))
+            } else {
+                row.simultaneousGesture(drag)
+            }
+            #else
+            row.simultaneousGesture(drag)
+            #endif
         } else { content }
     }
 
-    private static func resolve(_ value: DragGesture.Value, rtl: Bool) -> FlareSwipeReplyGesture {
-        FlareSwipeReply.resolve(dx: value.translation.width, dy: value.translation.height, rtl: rtl)
+    private var drag: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { changed(dx: $0.translation.width, dy: $0.translation.height) }
+            .onEnded { ended(dx: $0.translation.width, dy: $0.translation.height) }
+    }
+
+    /// Following a finger is direct manipulation, not an animation; only the spring back to rest is animated, and
+    /// not under Reduce Motion.
+    private func changed(dx: CGFloat, dy: CGFloat) {
+        let next = FlareSwipeReply.resolve(dx: dx, dy: dy, rtl: direction == .rightToLeft)
+        // Crossing the arming distance changes what letting go means, so it is felt as well as seen.
+        if flareHapticCrossed(was: gesture.armed, now: next.armed) { flareHapticTick() }
+        gesture = next
+    }
+
+    private func ended(dx: CGFloat, dy: CGFloat) {
+        let armed = FlareSwipeReply.resolve(dx: dx, dy: dy, rtl: direction == .rightToLeft).armed
+        withAnimation(reduceMotion ? nil : FlareMotion.fastAnimation) { gesture = .none }
+        if armed { action() }
     }
 }
+
+#if os(iOS)
+/// The swipe-to-reply drag as a UIKit pan: it begins only when the drag starts mostly sideways
+/// (``FlareSwipeReply/claims(dx:dy:)``) and is recognised together with the scroll view's own pan, so a vertical
+/// drag is the timeline's from its first point. Translations are in points, left to right, as a SwiftUI drag's are.
+@available(iOS 18.0, *)
+private struct SwipeReplyPan: UIGestureRecognizerRepresentable {
+    let changed: (CGFloat, CGFloat) -> Void
+    let ended: (CGFloat, CGFloat) -> Void
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let pan = UIPanGestureRecognizer()
+        pan.delegate = context.coordinator
+        return pan
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        let travel = recognizer.translation(in: recognizer.view)
+        switch recognizer.state {
+        case .changed: changed(travel.x, travel.y)
+        case .ended: ended(travel.x, travel.y)
+        // A cancelled or failed drag replies to nothing; the row goes back to rest.
+        case .cancelled, .failed: ended(0, 0)
+        default: break
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = recognizer as? UIPanGestureRecognizer else { return false }
+            let velocity = pan.velocity(in: pan.view)
+            return FlareSwipeReply.claims(dx: velocity.x, dy: velocity.y)
+        }
+
+        func gestureRecognizer(_ recognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            true
+        }
+    }
+}
+#endif
 
 /// The list's long-press sheet, only for a list with a menu source: a list without one presents nothing of its own.
 private struct MenuSheetHost<Sheet: View>: ViewModifier {

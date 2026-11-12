@@ -6,6 +6,12 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **Message list: the timeline scrolls from a message, and a short window fills itself** (all four kits).
+  - SwiftUI: from iOS 18 the swipe-to-reply drag on every row kept the scroll view's pan from starting, so a finger that went down on a message did not scroll the list, often for seconds after a conversation opened. On iOS 18 and later the swipe is a UIKit pan that begins only on a mostly sideways drag (`FlareSwipeReply.claims`, the rule's 1.25 dominance) and runs beside the scroll. Flutter and Compose never had the conflict; their tests now start a vertical drag on a row and check that the list moved.
+  - A window that fits the viewport, or overflows it by no more than the 160-point paging distance, cannot be scrolled far enough to ask for older messages (one that fits sends no scroll at all), so a first window of about one screen never grew. Every kit now asks by itself after a layout of such a window until it overflows or there is nothing more, once per window, so a page that brings no rows does not ask again (`spec/message-list-paging-vectors.json` `fill`). A replaced window still waits for the reader.
+  - Compose: after a page landed in a list that could not scroll, the scroll that keeps the reader's row in place consumed nothing and the list stopped reading its layout, so no further page was asked for; and an end's asked-for flag was cleared by an effect that could run after the page's layout, which dropped the ask. The flag now settles as the composition is applied.
+  - SwiftUI: the first row's distance from the top is clamped at zero, so a window that still fitted after a page reported nothing new; the list checks again after an end settles.
+
 - **Composer: the send key alone keeps the end of the row** (all four kits).
   - With no tool key offered (the composer menu failed closed, or a host turned every tool off), the phone band put the send key alone in the middle of the tool row (SwiftUI, Flutter, Compose) or at its start (Vue). It now stays at the trailing end, where it is beside the tools.
 

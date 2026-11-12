@@ -138,6 +138,23 @@ describe("MessageList newer end", () => {
     host.unmount();
   });
 
+  it("asks for older pages by itself while the window does not overflow the viewport by more than the distance", async () => {
+    // `fill`: three rows fit the viewport and send no scroll, so without the list asking they would never grow.
+    const asked: string[] = [];
+    const { host, messages } = mountList({ messages: range(18, 20), hasOlder: true }, { onLoadOlder: () => asked.push("older") });
+    await settle();
+    expect(asked).toEqual(["older"]);
+    // A page that lands and still overflows by no more than the distance asks again.
+    messages.value = range(16, 20);
+    await settle();
+    expect(asked).toEqual(["older", "older"]);
+    // One that overflows past it leaves the next page to the reader's scroll.
+    messages.value = range(9, 20);
+    await settle();
+    expect(asked).toEqual(["older", "older"]);
+    host.unmount();
+  });
+
   it("keeps a reader at the bottom of a detached window where they are when a newer page arrives", async () => {
     const { host, scroller, messages, hasNewer } = mountList(
       { messages: range(1, 20), hasNewer: true },

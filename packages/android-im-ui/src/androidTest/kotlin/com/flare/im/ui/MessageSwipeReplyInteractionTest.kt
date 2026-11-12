@@ -1,6 +1,10 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.TouchInjectionScope
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -86,5 +90,40 @@ class MessageSwipeReplyInteractionTest {
         list(replied, message = message("m2", "撤回的", FlareMessageLifecycle(mutation = FlareMessageMutationState.Recalled)))
         compose.onNodeWithText(strings.messageRecalledPeer).performTouchInput { drag(40.dp, 120.dp) }
         compose.runOnIdle { assertTrue(replied.isEmpty()) }
+    }
+
+    /**
+     * Every row carries the swipe, so a finger that goes down on a row and moves mostly up or down must still scroll
+     * the thread: the swipe only claims a drag that is mostly sideways.
+     */
+    @Test fun aVerticalDragThatStartsOnARowScrollsTheThread() {
+        val replied = mutableListOf<String>()
+        lateinit var state: FlareMessageListState
+        compose.setContent { MaterialTheme {
+            state = rememberFlareMessageListState()
+            Box(Modifier.fillMaxWidth().height(320.dp)) {
+                MessageList(
+                    messages = (1..40).map { message("m$it", "第 $it 条") },
+                    currentUserId = "me",
+                    state = state,
+                    onSwipeReply = { replied += it.id },
+                )
+            }
+        } }
+        compose.waitForIdle()
+        // Rows read upwards from the newest: the first one in view is how far back the reader is.
+        fun place() = state.listState.firstVisibleItemIndex to state.listState.firstVisibleItemScrollOffset
+        val before = compose.runOnIdle { place() }
+        compose.onNodeWithText("第 40 条").performTouchInput {
+            down(center)
+            // A little sideways on the way, as a thumb does.
+            repeat(10) { moveBy(Offset(2.dp.toPx(), 12.dp.toPx())) }
+            up()
+        }
+        compose.runOnIdle {
+            assertTrue(replied.isEmpty())
+            val after = place()
+            assertTrue(after.first < before.first || (after.first == before.first && after.second < before.second))
+        }
     }
 }

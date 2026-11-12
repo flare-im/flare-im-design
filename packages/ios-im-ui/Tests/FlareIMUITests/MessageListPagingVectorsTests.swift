@@ -65,6 +65,24 @@ final class MessageListPagingVectorsTests: XCTestCase {
         }
     }
 
+    /// A window of about one screen asks for its pages by itself (`fill`): the reader cannot move it far enough to.
+    func testAWindowThatBarelyOverflowsFillsItself() throws {
+        struct Fill: Decodable {
+            struct Case: Decodable { let id: String; let fromTop: CGFloat?; let fromBottom: CGFloat?; let expected: Bool }
+            let cases: [Case]
+        }
+        struct Wrapper: Decodable { let fill: Fill }
+        var root = URL(fileURLWithPath: #filePath)
+        for _ in 0..<5 { root.deleteLastPathComponent() }
+        let url = root.appendingPathComponent("spec/message-list-paging-vectors.json")
+        let cases = try JSONDecoder().decode(Wrapper.self, from: Data(contentsOf: url)).fill.cases
+        XCTAssertGreaterThanOrEqual(cases.count, 7)
+        for vector in cases {
+            XCTAssertEqual(FlareMessageListPaging.fillsViewport(fromTop: vector.fromTop, fromBottom: vector.fromBottom),
+                           vector.expected, vector.id)
+        }
+    }
+
     func testTheKeyAtTheBottomDoesWhatTheTableSays() throws {
         for vector in try table().jumpToLatest {
             let action: FlareMessageListPaging.LatestEntry.Action? = switch vector.expected.action {

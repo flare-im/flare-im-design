@@ -252,6 +252,43 @@ void main() {
       expect(asked, ['newer']);
     });
 
+    testWidgets(
+      'a window that does not overflow asks for older pages by itself',
+      (tester) async {
+        // `fill`: rows that fit the viewport cannot be dragged at all under
+        // clamping physics, so without the list asking they never grow.
+        final asked = <String>[];
+        var messages = rows(29, 30);
+        var loading = false;
+        Future<void> render() => tester.pumpWidget(
+          host(
+            FlareMessageList(
+              messages: messages,
+              currentUserId: 'me',
+              hasOlder: true,
+              loadingOlder: loading,
+              onLoadOlder: () => asked.add('older'),
+            ),
+          ),
+        );
+        await render();
+        await tester.pumpAndSettle();
+        expect(asked, ['older']);
+        // A page that brings no rows does not ask again.
+        loading = true;
+        await render();
+        loading = false;
+        await render();
+        await tester.pumpAndSettle();
+        expect(asked, ['older']);
+        // One that lands and still fits asks for the next.
+        messages = rows(28, 30);
+        await render();
+        await tester.pumpAndSettle();
+        expect(asked, ['older', 'older']);
+      },
+    );
+
     testWidgets('a newer page keeps the reader where they are', (tester) async {
       var messages = rows(1, 30);
       var hasNewer = true;
@@ -337,6 +374,25 @@ void main() {
             },
         ];
         expect(told, [for (final step in steps) step['reports'] as bool?]);
+      });
+    }
+  });
+
+  group('fill', () {
+    final cases = ((table['fill'] as Map<String, dynamic>)['cases'] as List)
+        .cast<Map<String, dynamic>>();
+    test('the fill table has its cases', () {
+      expect(cases.length, greaterThanOrEqualTo(7));
+    });
+    for (final raw in cases) {
+      test('fills the viewport: ${raw['id']}', () {
+        expect(
+          flareMessageListFillsViewport(
+            fromTop: (raw['fromTop'] as num?)?.toDouble(),
+            fromBottom: (raw['fromBottom'] as num?)?.toDouble(),
+          ),
+          raw['expected'] as bool,
+        );
       });
     }
   });

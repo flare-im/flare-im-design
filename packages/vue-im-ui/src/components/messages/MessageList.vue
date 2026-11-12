@@ -44,6 +44,7 @@ import {
   FlareMessageListBottomReport,
   flareMessageListEdge,
   flareMessageListLatestEntry,
+  flareMessageListFillsViewport,
   flareMessageListRequests,
   flareMessageListWindowReplaced,
   type FlareMessageListEnd,
@@ -629,6 +630,33 @@ function tellBottom(answer: boolean | null): void {
 /** One layout or scroll, as the bottom report reads it: how far the end of the timeline is below the viewport. */
 function measureBottom(root: HTMLElement): void {
   tellBottom(bottomReport.layout(Math.max(0, root.scrollHeight - root.scrollTop - root.clientHeight)));
+  fillViewport(root);
+}
+
+/** The window a fill asked for last: its first and last rows and how far it overflowed. */
+let fillAskedFor = "";
+
+/**
+ * A window that fits the viewport or barely overflows it cannot be scrolled far enough to ask for a page, and one that
+ * fits sends no scroll at all, so it asks by itself until it overflows or there is nothing more (`fill`). Asked once per
+ * window: a page that brings no rows does not ask again. A replaced window waits for the reader, as a scroll does.
+ */
+function fillViewport(root: HTMLElement): void {
+  const rows = displayMessages.value;
+  // A list that is not laid out (hidden, or not yet measured) has no viewport to fill.
+  if (requestsHeld || rows.length === 0 || root.clientHeight <= 0) return;
+  // Within the scroll range: an offset kept for the reader while rows land can run past the end until it is laid out.
+  const overflow = Math.max(0, root.scrollHeight - root.clientHeight);
+  const fromTop = Math.min(Math.max(0, root.scrollTop), overflow);
+  const viewport = { fromTop, fromBottom: overflow - fromTop };
+  if (!flareMessageListFillsViewport(viewport)) return;
+  const wanted = flareMessageListRequests(viewport, olderEnd.value, newerEnd.value);
+  if (!wanted.older && !wanted.newer) return;
+  const shown = `${timelineKeyOrEmpty(rows[0])}|${timelineKeyOrEmpty(rows[rows.length - 1])}|${overflow}`;
+  if (shown === fillAskedFor) return;
+  fillAskedFor = shown;
+  if (wanted.older) requestOlder(false);
+  if (wanted.newer) requestNewer(false);
 }
 
 /** Another conversation starts the bottom report over: it answers once more after the first layout. */

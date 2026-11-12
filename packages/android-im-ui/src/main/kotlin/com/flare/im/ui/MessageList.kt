@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import java.time.ZoneId
 
 /**
@@ -694,21 +695,28 @@ fun MessageList(
     DisposableEffect(state, handleOwner) { onDispose { state.detach(handleOwner) } }
     val media = rememberFlareMediaHost()
     var requested by remember(conversationId) { mutableStateOf(false) }
-    LaunchedEffect(loadingOlder, messages.firstOrNull()?.id, olderError) { if (!loadingOlder) requested = false }
     var requestedNewer by remember(conversationId) { mutableStateOf(false) }
-    LaunchedEffect(loadingNewer, messages.lastOrNull()?.id, newerError) { if (!loadingNewer) requestedNewer = false }
+    // A page that settles, a first or last row that changes, or a new error lets that end ask again. Settled as the
+    // composition is applied, before the layout that follows: the layout of a page that just landed may ask for the
+    // next one (`fill`), and an effect launched for it could run after that layout.
+    val settle = remember(conversationId) { MessageListRequestSettle() }
+    SideEffect {
+        if (settle.older(loadingOlder, messages.firstOrNull()?.id, olderError) && !loadingOlder) requested = false
+        if (settle.newer(loadingNewer, messages.lastOrNull()?.id, newerError) && !loadingNewer) requestedNewer = false
+    }
     // The two ends of the window (spec/message-list-paging-vectors.json): one rule above and below the timeline.
     val olderEnd = MessageListEnd(hasOlder, loadingOlder, olderError, handled = onLoadOlder != null)
     val newerEnd = MessageListEnd(hasNewer, loadingNewer, newerError, handled = onLoadNewer != null)
-    val askOlder: (Boolean) -> Unit = { retry ->
-        if (!requested && !loadingOlder && hasOlder && onLoadOlder != null && (retry || !olderEnd.failed)) {
-            requested = true; tail.olderRequested = true; onLoadOlder()
-        }
+    // Each answers whether it asked: one already asked and not settled asks nothing.
+    val askOlder: (Boolean) -> Boolean = { retry ->
+        val asks = !requested && !loadingOlder && hasOlder && onLoadOlder != null && (retry || !olderEnd.failed)
+        if (asks) { requested = true; tail.olderRequested = true; onLoadOlder?.invoke() }
+        asks
     }
-    val askNewer: (Boolean) -> Unit = { retry ->
-        if (!requestedNewer && !loadingNewer && hasNewer && onLoadNewer != null && (retry || !newerEnd.failed)) {
-            requestedNewer = true; onLoadNewer()
-        }
+    val askNewer: (Boolean) -> Boolean = { retry ->
+        val asks = !requestedNewer && !loadingNewer && hasNewer && onLoadNewer != null && (retry || !newerEnd.failed)
+        if (asks) { requestedNewer = true; onLoadNewer?.invoke() }
+        asks
     }
     val currentOlderEnd by rememberUpdatedState(olderEnd)
     val currentNewerEnd by rememberUpdatedState(newerEnd)
@@ -814,25 +822,42 @@ fun MessageList(
     val currentRowKeys by rememberUpdatedState(rowKeys)
     LaunchedEffect(listState, tail, bottom) {
         var previous: MessageListViewport? = null
+        // The window a fill last asked for: its first and last rows and how far it overflowed.
+        var fillAskedFor: String? = null
         snapshotFlow { messageListViewport(listState.layoutInfo, listState.isScrollInProgress) }.collect { viewport ->
             val last = previous
             previous = viewport
             if (tail.shift > 0 && viewport.totalRows == tail.shiftRows) {
                 val shift = tail.shift
                 tail.shift = 0
-                listState.scrollBy(-shift.toFloat())
-                return@collect
+                // The layout after the scroll carries on; a list that cannot scroll (its rows fit) lays out nothing
+                // new, so this one does.
+                if (listState.scrollBy(-shift.toFloat()) != 0f) return@collect
             }
             val located = tail.located
             val moved = messageListViewportMoved(last, viewport)
             if (located && moved) tail.located = false
             // Pages are asked for within the shared distance of either edge, when the reader moves (never on the
-            // first layout of a window, and not in a replaced one before the reader drags it).
-            if (moved && tail.mayAsk()) {
+            // first layout of a window, and not in a replaced one before the reader drags it). A window that barely
+            // overflows the viewport cannot move far enough to ask, and one that fits does not move at all, so a layout
+            // of this list's rows asks by itself while it does (`fill`), once per window: a page that brings no rows
+            // does not ask again.
+            val ownLayout = currentMessages.isNotEmpty() &&
+                (viewport.lastKey as? String)?.let(currentRowKeys::contains) == true
+            if (tail.mayAsk() && (moved || ownLayout)) {
                 val (fromTop, fromBottom) = messageListEdgeDistances(listState.layoutInfo)
-                val wanted = messageListRequests(fromTop / density.density, fromBottom / density.density, currentOlderEnd, currentNewerEnd)
-                if (wanted.older) currentAskOlder(false)
-                if (wanted.newer) currentAskNewer(false)
+                val topDp = fromTop / density.density
+                val bottomDp = fromBottom / density.density
+                val fill = !moved && messageListFillsViewport(topDp, bottomDp)
+                val shown = if (fill) {
+                    "${currentMessages.first().id}|${currentMessages.last().id}|${(topDp + bottomDp).roundToInt()}"
+                } else null
+                if (moved || (fill && shown != fillAskedFor)) {
+                    val wanted = messageListRequests(topDp, bottomDp, currentOlderEnd, currentNewerEnd)
+                    val askedOlder = wanted.older && currentAskOlder(false)
+                    val askedNewer = wanted.newer && currentAskNewer(false)
+                    if (fill && (askedOlder || askedNewer)) fillAskedFor = shown
+                }
             }
             val action = messageListTailAction(last, viewport, tail.followTail, slackPx, located)
             when (action) {

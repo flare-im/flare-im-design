@@ -173,6 +173,19 @@ class MessageListPagingVectorsTest {
         }
     }
 
+    @Test fun aWindowThatBarelyOverflowsFillsItself() {
+        val cases = (table["fill"] as Map<*, *>)["cases"] as List<*>
+        assertTrue(cases.size >= 7, "the shared table lost fill cases: ${cases.size}")
+        for (raw in cases) {
+            val case = raw as Map<*, *>
+            assertEquals(
+                case["expected"] as Boolean,
+                messageListFillsViewport((case["fromTop"] as Number?)?.toFloat(), (case["fromBottom"] as Number?)?.toFloat()),
+                case["id"] as String,
+            )
+        }
+    }
+
     @Test fun theReaderIsAtTheBottomWhereTheTableSays() {
         val group = table["atBottom"] as Map<*, *>
         assertEquals(MESSAGE_LIST_BOTTOM_WITHIN_DP, (group["within"] as Number).toInt())

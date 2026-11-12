@@ -147,6 +147,42 @@ void main() {
     );
   });
 
+  testWidgets('a vertical drag that starts on a row scrolls the thread', (
+    tester,
+  ) async {
+    // Every row carries the swipe, so a finger that goes down on a row and
+    // moves mostly down must still scroll the thread: the swipe only claims a
+    // drag that is mostly sideways.
+    final replied = <String>[];
+    await tester.pumpWidget(
+      _host(
+        FlareMessageList(
+          currentUserId: 'me',
+          messages: [for (var i = 0; i < 40; i++) _message('m$i', '第 $i 条')],
+          onSwipeReply: (message) => replied.add(message.id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final before = position.pixels;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('第 39 条')),
+    );
+    // A little sideways on the way, as a thumb does.
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(2, 16));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    // Read before the fling the lift starts carries the thread further.
+    expect(position.pixels, greaterThan(before + 100));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(replied, isEmpty);
+  });
+
   testWidgets('a host that does not take the intent gets no gesture', (
     tester,
   ) async {

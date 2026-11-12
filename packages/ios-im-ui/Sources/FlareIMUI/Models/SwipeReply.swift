@@ -25,6 +25,13 @@ enum FlareSwipeReply {
     private static let resistance: CGFloat = 0.35
     private static let dominance: CGFloat = 1.25
 
+    /// Whether a drag that is just starting is the swipe's rather than the timeline's: moving mostly sideways, by
+    /// the same dominance as ``resolve(dx:dy:rtl:)``. A recognizer that declines here leaves the drag to the list's
+    /// own scrolling. `dx` and `dy` are the drag's velocity (or travel) at that moment.
+    static func claims(dx: CGFloat, dy: CGFloat) -> Bool {
+        dx != 0 && abs(dx) >= abs(dy) * dominance
+    }
+
     /// `dx` and `dy` are the drag's travel from where the finger went down.
     static func resolve(dx: CGFloat, dy: CGFloat, rtl: Bool) -> FlareSwipeReplyGesture {
         let leading = rtl ? dx < 0 : dx > 0

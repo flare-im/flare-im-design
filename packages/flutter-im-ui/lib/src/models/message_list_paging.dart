@@ -106,6 +106,23 @@ FlareMessageListEdge flareMessageListEdge(FlareMessageListEnd end) {
   );
 }
 
+/// Whether a window overflows the viewport by no more than the paging distance
+/// (`fill`): `fromTop + fromBottom` is that overflow wherever the reader is.
+/// Such a window cannot be dragged far enough to move either end into or out of
+/// reach (one that fits does not scroll at all under clamping physics), so the
+/// list asks for its pages by itself until it overflows, or there is nothing
+/// more. A missing report (null) decides nothing.
+bool flareMessageListFillsViewport({
+  required double? fromTop,
+  required double? fromBottom,
+}) {
+  if (fromTop == null || fromBottom == null) return false;
+  return fromTop + fromBottom <=
+      (flareMessageListOlderWithin < flareMessageListNewerWithin
+          ? flareMessageListOlderWithin
+          : flareMessageListNewerWithin);
+}
+
 /// What the floating key at the bottom does.
 enum FlareMessageListLatestAction { jumpToLatest, scrollToBottom }
 

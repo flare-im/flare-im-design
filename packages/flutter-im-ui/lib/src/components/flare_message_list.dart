@@ -495,6 +495,14 @@ class _FlareMessageListState extends State<FlareMessageList>
   /// change meanwhile keep it where the locate put it.
   String? _locatedHoldId;
 
+  /// The window was replaced and the reader has not moved it since: the list
+  /// asks for no page by itself (`locateAfterReplace`).
+  bool _pagingHeld = false;
+
+  /// The window a fill last asked for: its first and last rows and how far it
+  /// overflowed. A page that brings no rows does not ask again.
+  String? _fillAskedFor;
+
   /// Whether the reader is at the bottom (`atBottom`), as told to the host.
   final _bottom = FlareMessageListBottomReport();
 
@@ -552,6 +560,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       final position = controller.position;
       if (!position.hasContentDimensions || !position.hasPixels) return;
       _measureBottom(position);
+      _fill(position);
     });
   }
 
@@ -924,6 +933,8 @@ class _FlareMessageListState extends State<FlareMessageList>
       _requestedNewer = false;
       _jumpRequested = false;
       _locatedHoldId = null;
+      _pagingHeld = false;
+      _fillAskedFor = null;
       _detachedSinceRows = widget.hasNewer;
       _bottom.anotherConversation();
       _showNewest();
@@ -939,6 +950,7 @@ class _FlareMessageListState extends State<FlareMessageList>
       );
       _jumpRequested = false;
       _locatedHoldId = null;
+      _pagingHeld = true;
       _requested = false;
       _requestedNewer = false;
       _detachedSinceRows = widget.hasNewer;
@@ -1258,6 +1270,46 @@ class _FlareMessageListState extends State<FlareMessageList>
     if (wanted.newer) _requestNewer();
   }
 
+  /// A window that fits the viewport or barely overflows it cannot be dragged
+  /// far enough to ask for a page (one that fits does not scroll at all under
+  /// clamping physics), so it asks by itself until it overflows or there is
+  /// nothing more (`fill`). Read after a layout, never during one.
+  void _fill(ScrollMetrics metrics) {
+    if (_pagingHeld ||
+        widget.messages.isEmpty ||
+        metrics.viewportDimension <= 0) {
+      return;
+    }
+    final overflow = (metrics.maxScrollExtent - metrics.minScrollExtent).clamp(
+      0.0,
+      double.infinity,
+    );
+    final fromTop = (metrics.maxScrollExtent - metrics.pixels).clamp(
+      0.0,
+      overflow,
+    );
+    final fromBottom = overflow - fromTop;
+    if (!flareMessageListFillsViewport(
+      fromTop: fromTop,
+      fromBottom: fromBottom,
+    )) {
+      return;
+    }
+    final wanted = flareMessageListRequests(
+      fromTop: fromTop,
+      fromBottom: fromBottom,
+      older: _olderEnd,
+      newer: _newerEnd,
+    );
+    if (!wanted.older && !wanted.newer) return;
+    final shown =
+        '${widget.messages.first.id}|${widget.messages.last.id}|${overflow.round()}';
+    if (shown == _fillAskedFor) return;
+    _fillAskedFor = shown;
+    if (wanted.older) _requestOlder();
+    if (wanted.newer) _requestNewer();
+  }
+
   /// The floating key: back to the latest messages for a detached window,
   /// else straight to the newest message.
   void _onLatestKey(FlareMessageListLatestAction? action) {
@@ -1510,8 +1562,10 @@ class _FlareMessageListState extends State<FlareMessageList>
                                       // Content that grew or shrank without a
                                       // scroll moves the end of the timeline.
                                       if (n is ScrollMetricsNotification) {
-                                        if (n.depth == 0)
+                                        if (n.depth == 0) {
                                           _measureBottom(n.metrics);
+                                          _fill(n.metrics);
+                                        }
                                         return false;
                                       }
                                       if (n is! ScrollNotification ||
@@ -1522,11 +1576,13 @@ class _FlareMessageListState extends State<FlareMessageList>
                                       if (n is ScrollStartNotification &&
                                           n.dragDetails != null) {
                                         _locatedHoldId = null;
+                                        _pagingHeld = false;
                                       }
                                       // The reader scrolling the list (a drag or
                                       // a wheel) ends a hold on the answer.
                                       if (n is UserScrollNotification &&
                                           n.direction != ScrollDirection.idle) {
+                                        _pagingHeld = false;
                                         _tellBottom(_bottom.readerMoved());
                                       }
                                       if (n is ScrollUpdateNotification) {
