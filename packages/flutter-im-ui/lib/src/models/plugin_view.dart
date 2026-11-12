@@ -297,6 +297,7 @@ sealed class FlarePluginBlock {
                       )
                     : null,
                 badge: FlarePluginBadge.fromJson(e['badge']),
+                timeMs: _optInt(e['timeMs']),
               ),
           ],
           numbered: json['numbered'] != false,
@@ -388,6 +389,7 @@ sealed class FlarePluginBlock {
               FlarePluginAction.fromJson(a),
           ],
           emptyText: _optString(json['emptyText']),
+          groupByDay: _bool(json['groupByDay']),
           filters: filters is List
               ? [
                   for (final id in filters)
@@ -474,6 +476,7 @@ sealed class FlarePluginBlock {
           format: _optMap(json['format']),
           subtitle: _optString(json['subtitle']),
           tone: flarePluginHeroTone(json['tone']),
+          maskable: _bool(json['maskable']),
           actions: [
             for (final a in _maps(json['actions']))
               FlarePluginAction.fromJson(a),
@@ -618,6 +621,7 @@ class FlarePluginEntry {
     this.userId,
     this.group,
     this.badge,
+    this.timeMs,
   });
 
   /// 1-based position in the data (within its group in a grouped list).
@@ -631,6 +635,9 @@ class FlarePluginEntry {
 
   /// Drawn after the name and the "我" tag, before [text].
   final FlarePluginBadge? badge;
+
+  /// When it happened, drawn after [text] in the device zone.
+  final int? timeMs;
 }
 
 /// Entries — sign-ups, voters; [more] offers "see all". A [grouped] list is
@@ -784,6 +791,7 @@ final class FlarePluginRowsBlock extends FlarePluginBlock {
     this.actions = const [],
     this.emptyText,
     this.filters,
+    this.groupByDay = false,
   });
 
   /// The query operation the rows come from.
@@ -798,6 +806,10 @@ final class FlarePluginRowsBlock extends FlarePluginBlock {
   /// Ids of the view's inputs the page shows as its filters; null: every
   /// input ([flarePluginFilterInputs]).
   final List<String>? filters;
+
+  /// Day headings over the rows by the first time column
+  /// ([flarePluginRowDayHeadings]).
+  final bool groupByDay;
 }
 
 // ── vocabulary 2 blocks (docs/plugin-components.md) ────────────────────────
@@ -945,6 +957,7 @@ final class FlarePluginHeroBlock extends FlarePluginBlock {
     this.subtitle,
     this.tone = FlarePluginHeroTone.neutral,
     this.actions = const [],
+    this.maskable = false,
   });
   final String? label;
   final String value;
@@ -953,6 +966,9 @@ final class FlarePluginHeroBlock extends FlarePluginBlock {
   final String? subtitle;
   final FlarePluginHeroTone tone;
   final List<FlarePluginAction> actions;
+
+  /// The viewer may hide [value] behind an eye toggle.
+  final bool maskable;
 }
 
 enum FlarePluginStepState { pending, current, done, failed }
@@ -1639,6 +1655,59 @@ String flarePluginDateTime(
         : strings.pluginViewDateTimeYearFormat,
     at,
   );
+}
+
+/// What a hidden value reads as (a maskable hero).
+const flarePluginMaskedValue = '••••';
+
+/// The date part of a date-time pattern (`M月d日 HH:mm` → `M月d日`).
+String _datePattern(String pattern) => pattern
+    .replaceFirst(RegExp(r'[\s,]*HH:mm[\s,]*'), ' ')
+    .replaceFirst(RegExp(r'[\s,]+$'), '')
+    .trim();
+
+/// The day headings of a page list grouped by day
+/// (`spec/plugin-view-vectors.json` rules.rowsGroupByDay): one per row,
+/// present on the first row of each day — today, yesterday, else the date —
+/// by the row's first time column; a row without a time starts no group.
+List<String?> flarePluginRowDayHeadings(
+  FlarePluginRowsBlock block,
+  int nowMs,
+  FlareStrings strings, {
+  int? utcOffsetMinutes,
+}) {
+  final column = block.columns.indexWhere(
+    (c) => c.format == FlarePluginColumnFormat.time,
+  );
+  if (!block.groupByDay || column < 0) {
+    return List<String?>.filled(block.rows.length, null);
+  }
+  String key(DateTime at) => '${at.year}-${at.month}-${at.day}';
+  final now = _wall(nowMs, utcOffsetMinutes);
+  final today = key(now);
+  final yesterday = key(_wall(nowMs - 86400000, utcOffsetMinutes));
+  String? previous;
+  return [
+    for (final row in block.rows)
+      () {
+        final ms = column < row.cells.length ? row.cells[column].timeMs : null;
+        if (ms == null) return null;
+        final at = _wall(ms, utcOffsetMinutes);
+        final day = key(at);
+        if (day == previous) return null;
+        previous = day;
+        if (day == today) return strings.accountToday;
+        if (day == yesterday) return strings.accountYesterday;
+        return flarePluginRenderPattern(
+          _datePattern(
+            at.year == now.year
+                ? strings.pluginViewDateTimeFormat
+                : strings.pluginViewDateTimeYearFormat,
+          ),
+          at,
+        );
+      }(),
+  ];
 }
 
 /// A time block's text: an instant, a range on one day (`…14:00–15:00`) or

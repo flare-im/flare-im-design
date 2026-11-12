@@ -1842,6 +1842,18 @@ class _EntriesBlock extends StatelessWidget {
               ),
             ),
           ),
+          if (entry.timeMs case final timeMs?) ...[
+            const SizedBox(width: FlareSizes.spacingXs),
+            Text(
+              flarePluginDateTime(timeMs, flarePluginNowMs(), strings),
+              key: ValueKey('flare-plugin-entry-time-$position'),
+              style: TextStyle(
+                fontSize: FlareSizes.fontSizeSm,
+                color: colors.textTertiary,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1896,12 +1908,40 @@ class _RowsBlock extends StatelessWidget {
       );
     }
     final nowMs = flarePluginNowMs();
+    final days = flarePluginRowDayHeadings(
+      FlarePluginRowsBlock(
+        columns: block.columns,
+        rows: rows,
+        groupByDay: block.groupByDay,
+      ),
+      nowMs,
+      strings,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < rows.length; i += 1) ...[
-          if (i > 0)
+          if (days[i] case final day?)
+            Padding(
+              key: ValueKey('flare-plugin-row-day-$i'),
+              padding: EdgeInsets.only(
+                top: i == 0 ? 0 : FlareSizes.spacingMd,
+                bottom: FlareSizes.spacingXs,
+              ),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  day,
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeSm,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else if (i > 0)
             Divider(height: 1, thickness: 1, color: colors.borderSecondary),
           _item(
             colors,

@@ -667,36 +667,20 @@ void main() {
       expect(find.byType(FlareRedPacketPayConfirm), findsNothing);
     },
   );
-  testWidgets('the composer opens directly and emits no funding selectors', (
-    tester,
-  ) async {
-    final events = <(String, FlarePluginActionPayload)>[];
-    await tester.pumpWidget(
-      host(
-        FlarePluginView(
-          view: FlarePluginViewModel.fromJson(fixture('composer')),
-          onAction: (id, p) => events.add((id, p)),
-        ),
-      ),
-    );
-    expect(find.byType(FlarePluginForm), findsNothing);
-    var composer = tester.widget<FlareRedPacketComposer>(
-      find.byType(FlareRedPacketComposer),
-    );
-    composer.onAmountChange!('0.23');
-    composer.onCountChange!(2);
-    await tester.pump();
-    composer = tester.widget<FlareRedPacketComposer>(
-      find.byType(FlareRedPacketComposer),
-    );
-    expect(composer.total, 'CNY 0.46');
-    composer.onSubmit!();
-    expect(events.single.$1, 'prepare');
-    expect(events.single.$2.formValues, containsPair('decimalAmount', '0.23'));
-    expect(events.single.$2.formValues, isNot(contains('sourceWalletId')));
-    expect(events.single.$2.formValues, isNot(contains('assetId')));
-    expect(events.single.$2.formValues, isNot(contains('lifetimeSeconds')));
-  });
+  testWidgets(
+    'the retired composer renderer draws the plain document (the red packet compose page is plain blocks)',
+    (tester) async {
+      final raw = fixture('composer');
+      raw['blocks'] = [
+        {'kind': 'text', 'text': 'Declarative body'},
+      ];
+      await tester.pumpWidget(
+        host(FlarePluginView(view: FlarePluginViewModel.fromJson(raw))),
+      );
+      expect(find.byType(FlareRedPacketComposer), findsNothing);
+      expect(find.text('Declarative body'), findsOneWidget);
+    },
+  );
   test('page decode retains the presentation just like card decode', () {
     final page = FlarePluginPageViewModel.fromJson(fixture('payment'));
     expect(page.presentation?['renderer'], 'payment.confirm');

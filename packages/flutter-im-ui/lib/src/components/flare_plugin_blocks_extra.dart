@@ -9,6 +9,7 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_button.dart';
 import 'flare_icon.dart';
+import 'flare_icon_button.dart';
 import 'flare_status_banner.dart';
 import 'flare_tag.dart';
 import 'qr/flare_qr_code_frame.dart';
@@ -782,7 +783,7 @@ class _FlarePluginQrViewState extends State<FlarePluginQrView> {
 
 /// The page's lead figure: label, the formatted value, subtitle and up to
 /// three owned actions, on a surface tinted by its tone.
-class FlarePluginHeroView extends StatelessWidget {
+class FlarePluginHeroView extends StatefulWidget {
   const FlarePluginHeroView({
     super.key,
     required this.block,
@@ -795,8 +796,23 @@ class FlarePluginHeroView extends StatelessWidget {
   final bool busy;
   final String? busyActionId;
 
+  /// The eye toggle of a maskable hero (rules.heroMask).
+  static const maskKey = ValueKey('flare-plugin-hero-mask');
+
+  @override
+  State<FlarePluginHeroView> createState() => _FlarePluginHeroViewState();
+}
+
+class _FlarePluginHeroViewState extends State<FlarePluginHeroView> {
+  // A maskable hero starts shown; the eye hides it for this view only.
+  bool _hidden = false;
+
   @override
   Widget build(BuildContext context) {
+    final block = widget.block;
+    final onAction = widget.onAction;
+    final busy = widget.busy;
+    final busyActionId = widget.busyActionId;
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final (surface, ink) = switch (block.tone) {
@@ -824,17 +840,34 @@ class FlarePluginHeroView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (block.label case final label? when label.isNotEmpty)
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: FlareSizes.fontSizeMd,
-                color: colors.textSecondary,
-              ),
-            ),
+          Row(
+            children: [
+              if (block.label case final label? when label.isNotEmpty)
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeMd,
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ),
+              if (block.maskable)
+                FlareIconButton(
+                  key: FlarePluginHeroView.maskKey,
+                  icon: _hidden ? 'eye-off' : 'eye',
+                  semanticLabel: _hidden
+                      ? strings.accountShowBalance
+                      : strings.accountHideBalance,
+                  onPressed: () => setState(() => _hidden = !_hidden),
+                ),
+            ],
+          ),
           const SizedBox(height: FlareSizes.spacingXs),
           Text(
-            flarePluginFormatText(block.value, block.format, strings),
+            block.maskable && _hidden
+                ? flarePluginMaskedValue
+                : flarePluginFormatText(block.value, block.format, strings),
             key: const ValueKey('flare-plugin-hero-value'),
             style: TextStyle(
               fontSize: FlareSizes.fontSize5xl,

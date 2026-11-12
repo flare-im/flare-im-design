@@ -29,6 +29,7 @@ FlarePluginViewModel get _blocks => FlarePluginViewModel.fromJson({
       'amount': true,
       'subtitle': '托管中 ¥6.00',
       'tone': 'brand',
+      'maskable': true,
       'actions': [_op('recharge', '充值', 'primary'), _op('withdraw', '提现')],
     },
     {
