@@ -146,6 +146,7 @@
     "PluginForm": "im-ui",
     "PluginDetailSheet": "im-ui",
     "PluginPage": "im-ui",
+    "PluginUpgradeNotice": "im-ui",
     "AccountView": "im-ui",
     "SlashCommandMenu": "im-ui",
     "TranslationView": "im-ui",

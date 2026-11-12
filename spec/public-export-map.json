@@ -2589,6 +2589,32 @@
       }
     },
     {
+      "name": "PluginUpgradeNotice",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginUpgradeNotice",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlarePluginUpgradeNotice.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginUpgradeNotice",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_plugin_upgrade_notice.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginUpgradeNotice",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginUpgradeNotice.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginUpgradeNotice",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePluginUpgradeNotice.swift"
+        }
+      }
+    },
+    {
       "name": "AccountView",
       "status": "stable",
       "platforms": {

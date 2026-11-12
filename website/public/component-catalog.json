@@ -42,8 +42,8 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 186,
-    "stable": 185,
+    "total": 187,
+    "stable": 186,
     "general": 60,
     "im": 121
   },
@@ -10946,6 +10946,22 @@
               "undefined>",
               "undefined"
             ]
+          },
+          {
+            "name": "resolveImage",
+            "values": [
+              "(source: FlarePluginImageSource) => string",
+              "undefined",
+              "Promise<string",
+              "undefined>"
+            ]
+          },
+          {
+            "name": "upgradeStatus",
+            "values": [
+              "FlarePluginUpgradeStatus",
+              "null"
+            ]
           }
         ],
         "states": [
@@ -10982,7 +10998,8 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "states": [
         "unavailable",
@@ -11004,7 +11021,8 @@
         "referenceLoad",
         "protectedMediaRead",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11046,7 +11064,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginView",
-      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
+      "searchText": "pluginview message im-ui stable message unavailable readonly busy error voted closed embedded menu action opendetail loadmore selectionsearch selectionretry selectionmore referenceload protectedmediaread membersearch membersretry qrrefresh supportsconfiguration generic plugin card — the core sdk's resolved view drawn as a kit business card: blocks (text, fields, choices, entries, people, status, progress, time, divider, note; rows on vue admin pages), then the action keys. 通用插件卡片 —— 把核心 sdk 解析好的视图画成 kit 业务卡片：展示块（文本、键值、选项、条目、人员、状态、进度、时间、分隔、提示；vue 管理页另有 rows），再是底部动作。"
     },
     {
       "name": "PluginForm",
@@ -11345,6 +11363,22 @@
               "undefined>",
               "undefined"
             ]
+          },
+          {
+            "name": "resolveImage",
+            "values": [
+              "(source: FlarePluginImageSource) => string",
+              "undefined",
+              "Promise<string",
+              "undefined>"
+            ]
+          },
+          {
+            "name": "upgradeStatus",
+            "values": [
+              "FlarePluginUpgradeStatus",
+              "null"
+            ]
           }
         ],
         "states": [
@@ -11381,7 +11415,8 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "states": [
         "loading",
@@ -11399,7 +11434,8 @@
         "filter",
         "action",
         "memberSearch",
-        "membersRetry"
+        "membersRetry",
+        "qrRefresh"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11441,7 +11477,130 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginPage",
-      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+      "searchText": "pluginpage message im-ui stable plugin page wallet plugin screen 钱包 插件页面 钱包页 message loading error unavailable loaded refreshing loadingmore back refresh retry loadmore filter action membersearch membersretry qrrefresh supportsconfiguration plugin page host — a full-screen page for a plugin's page contribution (a wallet, a list): header with back, pull to refresh, the resolved view drawn by the pluginview document renderer, load more. 插件页面宿主 —— 插件 page 贡献（钱包、列表）的全屏页面：带返回的页头、下拉刷新、由 pluginview 文档渲染器画出的解析视图、加载更多。"
+    },
+    {
+      "name": "PluginUpgradeNotice",
+      "slug": "plugin-upgrade-notice",
+      "category": "Message",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "responsive",
+      "previewViewports": [
+        "desktop",
+        "mobile"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": true,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "variant",
+            "values": [
+              "card",
+              "entry",
+              "page"
+            ]
+          },
+          {
+            "name": "status",
+            "values": [
+              "FlarePluginUpgradeStatus",
+              "null"
+            ]
+          }
+        ],
+        "states": [
+          "description",
+          "update",
+          "notAvailable"
+        ]
+      },
+      "summary": {
+        "en": "Plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or Me entry, or a whole page.",
+        "zh": "插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
+      },
+      "aliases": [
+        "plugin upgrade",
+        "update required",
+        "upgrade notice",
+        "需更新",
+        "升级提示",
+        "去更新",
+        "Message",
+        "description",
+        "update",
+        "notAvailable"
+      ],
+      "states": [
+        "description",
+        "update",
+        "notAvailable"
+      ],
+      "interactions": [
+        "update"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "flutter": {
+          "support": "supported",
+          "package": "flare_im_ui",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginUpgradeNotice"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginUpgradeNotice"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/messages/FlarePluginUpgradeNotice.vue",
+        "flutter": "packages/flutter-im-ui/lib/src/components/flare_plugin_upgrade_notice.dart",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginUpgradeNotice.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlarePluginUpgradeNotice.swift"
+      },
+      "docs": {
+        "zh": "website/components/plugin-upgrade-notice.md",
+        "en": "website/en/components/plugin-upgrade-notice.md"
+      },
+      "examples": {
+        "live": true,
+        "code": true,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginUpgradeNotice",
+      "searchText": "pluginupgradenotice message  stable plugin upgrade update required upgrade notice 需更新 升级提示 去更新 message description update notavailable update supportsconfiguration plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or me entry, or a whole page. 插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
     },
     {
       "name": "AccountView",
