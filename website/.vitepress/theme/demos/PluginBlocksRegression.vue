@@ -10,7 +10,7 @@ const blocks = {
   fields: [],
   actions: [],
   blocks: [
-    { kind: "hero", label: "可用余额", value: "¥128.60", amount: true, subtitle: "托管中 ¥6.00", tone: "brand", actions: [op("recharge", "充值", { style: "primary" }), op("withdraw", "提现")] },
+    { kind: "hero", label: "可用余额", value: "¥128.60", amount: true, maskable: true, subtitle: "托管中 ¥6.00", tone: "brand", actions: [op("recharge", "充值", { style: "primary" }), op("withdraw", "提现")] },
     { kind: "stats", items: [
       { label: "进行中", value: "12", trend: { text: "+3", direction: "up" } },
       { label: "成员", value: "12345", format: { kind: "count", count: 12345 }, tone: "success" },
