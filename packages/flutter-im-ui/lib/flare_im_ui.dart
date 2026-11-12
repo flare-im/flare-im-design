@@ -159,7 +159,11 @@ export 'src/components/flare_red_packet_card.dart';
 export 'src/components/flare_red_packet_composer.dart';
 export 'src/components/flare_red_packet_detail.dart';
 export 'src/components/flare_red_packet_open_sheet.dart';
-export 'src/components/flare_red_packet_pay_confirm.dart';
+export 'src/components/flare_capability_consent.dart';
+export 'src/components/flare_document_capture.dart';
+export 'src/components/flare_payment_confirmation.dart';
+export 'src/components/flare_plugin_protected_media.dart';
+export 'src/models/capability_ui.dart';
 export 'src/components/flare_responsive_layout.dart';
 export 'src/components/flare_shell_scope.dart'
     show FlareShellScope, FlareDestinationDepth;

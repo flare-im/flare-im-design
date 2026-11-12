@@ -17,6 +17,9 @@ dependencies:
   record: ^6.1.2
   video_player: ^2.10.1
   path_provider: ^2.1.5
+  # Document capture: decode, bake the orientation, drop EXIF and re-encode a
+  # JPEG off the UI isolate (pure Dart, no platform code).
+  image: ^4.3.0
   flutter:
     sdk: flutter
 

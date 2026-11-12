@@ -17,6 +17,7 @@ import 'flare_icon_button.dart';
 import 'flare_message_card_shell.dart';
 import 'flare_plugin_blocks_extra.dart';
 import 'flare_plugin_form.dart';
+import 'flare_plugin_protected_media.dart';
 import 'flare_plugin_upgrade_notice.dart';
 import 'flare_scene_panels.dart';
 import 'flare_status_banner.dart';
@@ -86,6 +87,10 @@ class FlarePluginView extends StatefulWidget {
     this.formErrors = const [],
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
+    this.protectedMedia = const {},
+    this.onProtectedMediaRead,
     this.settleToken = 0,
     this.onAction,
     this.onOpenDetail,
@@ -166,6 +171,23 @@ class FlarePluginView extends StatefulWidget {
   final List<FlarePluginFormError> formErrors;
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
+
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id ([FlarePluginForm.locationStates]).
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's locate or clear key: the host runs the page's
+  /// locationOnce action into the input ([FlarePluginForm.onLocationAction]).
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
+
+  /// What the host has for each protected media item, by item id: the read's
+  /// address (the server's https grant address), a running read or a failure.
+  final Map<String, FlarePluginProtectedMediaState> protectedMedia;
+
+  /// A protected media read (with its reason when the block asks one): the
+  /// host runs and audits it, then fills [protectedMedia] with
+  /// [flarePluginProtectedMediaUrl] of the result.
+  final ValueChanged<FlarePluginProtectedMediaRead>? onProtectedMediaRead;
 
   /// The host's settle signal: incremented once per finished action, after
   /// that result's [error] / [formErrors] are set. Every change settles the
@@ -587,6 +609,8 @@ class _FlarePluginViewState extends State<FlarePluginView> {
           builder: (context, state, _) => FlarePluginForm(
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
+            locationStates: widget.locationStates,
+            onLocationAction: widget.onLocationAction,
             inputs: inputs,
             errors: state.errors,
             busy: state.busy,
@@ -651,19 +675,6 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         fileStates: widget.fileStates,
         onFileAction: widget.onFileAction,
         busy: _locked,
-        error: widget.error,
-        formErrors: widget.formErrors,
-        settleToken: widget.settleToken,
-        members: widget.members,
-        membersLoading: widget.membersLoading,
-        membersRevision: widget.membersRevision,
-        membersError: widget.membersError,
-        onMemberSearch: widget.onMemberSearch,
-        onMembersRetry: widget.onMembersRetry,
-        resolveUser: widget.resolveUser,
-        onAction: _locked ? null : widget.onAction,
-        resolveImage: widget.resolveImage,
-        onQrRefresh: _locked ? null : widget.onQrRefresh,
         onRequest: (id) {
           final action = widget.view.actions
               .where((a) => a.id == id)
@@ -865,6 +876,12 @@ class _FlarePluginViewState extends State<FlarePluginView> {
               FlarePluginTimelineBlock() => FlarePluginTimelineView(
                 block: block,
               ),
+              FlarePluginProtectedMediaBlock() => FlarePluginProtectedMediaView(
+                block: block,
+                states: widget.protectedMedia,
+                busy: _locked,
+                onRead: readOnly ? null : widget.onProtectedMediaRead,
+              ),
             },
           ),
         );
@@ -915,6 +932,8 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                     FlarePluginForm(
                       fileStates: widget.fileStates,
                       onFileAction: widget.onFileAction,
+                      locationStates: widget.locationStates,
+                      onLocationAction: widget.onLocationAction,
                       key: ValueKey(
                         'flare-plugin-inline-form:${inlineAction.id}:$_inlineRevision',
                       ),

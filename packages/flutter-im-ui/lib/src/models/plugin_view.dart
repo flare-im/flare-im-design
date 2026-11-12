@@ -87,6 +87,10 @@ enum FlarePluginInputKind {
 
   /// A photo of a document side, uploaded like [file] (vocabulary 2).
   document,
+
+  /// A one-time location the engine writes when the page's locationOnce
+  /// action completes: [FlarePluginLocationValue].
+  location,
 }
 
 /// Inputs whose value is an uploaded file's `{fileId}`: file, image and
@@ -98,6 +102,125 @@ bool flarePluginIsUpload(FlarePluginInputKind kind) =>
 
 /// Which side of a document a document input takes.
 enum FlarePluginDocumentSide { front, back, holding }
+
+/// How precise a fix a location input takes.
+enum FlarePluginLocationPrecision { coarse, fine }
+
+/// A location input's value (flare-plugin-protocol UiLocationValue): what the
+/// engine writes into the input when the viewer's one-time location
+/// (locationOnce) completes, already truncated to the input's precision.
+@immutable
+class FlarePluginLocationValue {
+  const FlarePluginLocationValue({
+    required this.latitude,
+    required this.longitude,
+    required this.accuracyM,
+    required this.precision,
+  });
+
+  final double latitude;
+  final double longitude;
+  final int accuracyM;
+  final FlarePluginLocationPrecision precision;
+
+  /// [value] as a location of [precision] (UiLocationValue::fits): the same
+  /// precision, a point on the globe, at most 2 (coarse) or 5 (fine) decimal
+  /// places and a whole accuracy of at least 1000 m or 1 m. Else null.
+  static FlarePluginLocationValue? of(
+    Object? value,
+    FlarePluginLocationPrecision? precision,
+  ) {
+    if (value is FlarePluginLocationValue) value = value.toJson();
+    if (value is! Map || precision == null) return null;
+    if (value['precision'] != precision.name) return null;
+    final lat = value['latitude'], lng = value['longitude'];
+    final accuracy = value['accuracyM'];
+    if (lat is! num || lng is! num || accuracy is! num) return null;
+    if (!lat.isFinite || !lng.isFinite || !accuracy.isFinite) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+    final places = precision == FlarePluginLocationPrecision.coarse ? 2 : 5;
+    final floor = precision == FlarePluginLocationPrecision.coarse ? 1000 : 1;
+    if (_places(lat) > places || _places(lng) > places) return null;
+    if (accuracy != accuracy.roundToDouble() || accuracy < floor) return null;
+    return FlarePluginLocationValue(
+      latitude: lat.toDouble(),
+      longitude: lng.toDouble(),
+      accuracyM: accuracy.toInt(),
+      precision: precision,
+    );
+  }
+
+  static int _places(num n) {
+    if (n is int || n == n.roundToDouble()) return 0;
+    final text = n.abs().toString();
+    if (text.contains('e')) return 99;
+    final dot = text.indexOf('.');
+    return dot < 0 ? 0 : text.length - dot - 1;
+  }
+
+  Map<String, Object?> toJson() => {
+    'latitude': latitude,
+    'longitude': longitude,
+    'accuracyM': accuracyM,
+    'precision': precision.name,
+  };
+
+  /// The fix as the input shows it: "31.23°N, 121.47°E".
+  String get text {
+    String deg(double v) {
+      final abs = v.abs();
+      return abs == abs.roundToDouble() ? '${abs.toInt()}' : '$abs';
+    }
+
+    return '${deg(latitude)}°${latitude < 0 ? 'S' : 'N'}, '
+        '${deg(longitude)}°${longitude < 0 ? 'W' : 'E'}';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlarePluginLocationValue &&
+      other.latitude == latitude &&
+      other.longitude == longitude &&
+      other.accuracyM == accuracyM &&
+      other.precision == precision;
+
+  @override
+  int get hashCode => Object.hash(latitude, longitude, accuracyM, precision);
+}
+
+/// What a location input shows while the host locates: the host's state by
+/// input id.
+@immutable
+class FlarePluginLocationState {
+  const FlarePluginLocationState({
+    this.value,
+    this.locating = false,
+    this.error,
+  });
+
+  /// The fix the engine wrote (`{kind: "input", input, value}`).
+  final FlarePluginLocationValue? value;
+  final bool locating;
+  final String? error;
+}
+
+/// A location input's key: `locate` asks the host to run the page's
+/// locationOnce action into this input; `clear` empties it.
+enum FlarePluginLocationActionKind { locate, clear }
+
+@immutable
+class FlarePluginLocationAction {
+  const FlarePluginLocationAction({
+    required this.action,
+    required this.inputId,
+    required this.input,
+    required this.formValues,
+  });
+  final FlarePluginLocationActionKind action;
+  final String inputId;
+  final FlarePluginInput input;
+  final Map<String, Object?> formValues;
+}
 
 /// The amount rules of a money input, read by the core SDK: no paths left.
 @immutable
@@ -515,6 +638,31 @@ sealed class FlarePluginBlock {
           action: action is Map
               ? FlarePluginAction.fromJson(action.cast<String, Object?>())
               : null,
+        );
+      case 'protected-media':
+        final action = json['action'];
+        final urlPath = _string(json['urlPath']);
+        final inputName = _string(json['inputName']);
+        if (urlPath.isEmpty || inputName.isEmpty) return null;
+        return FlarePluginProtectedMediaBlock(
+          label: _optString(json['label']),
+          items: [
+            for (final i in _maps(json['items']))
+              if (_string(i['id']).isNotEmpty)
+                FlarePluginProtectedItem(
+                  id: _string(i['id']),
+                  label: _string(i['label']),
+                  mediaType: _optString(i['mediaType']),
+                  input: i['input'],
+                ),
+          ],
+          action: action is Map
+              ? FlarePluginAction.fromJson(action.cast<String, Object?>())
+              : null,
+          inputName: inputName,
+          reasonInput: _optString(json['reasonInput']),
+          urlPath: urlPath,
+          emptyText: _optString(json['emptyText']),
         );
       case 'timeline':
         return FlarePluginTimelineBlock(
@@ -1024,6 +1172,115 @@ class FlarePluginTimelineItem {
   final FlarePluginBadge? status;
 }
 
+/// One item of a protected media block; nothing about its content is in the
+/// view.
+@immutable
+class FlarePluginProtectedItem {
+  const FlarePluginProtectedItem({
+    required this.id,
+    required this.label,
+    this.mediaType,
+    this.input,
+  });
+  final String id;
+  final String label;
+  final String? mediaType;
+
+  /// The action's declared input, bound from the resolved data.
+  final Object? input;
+
+  bool get isImage => mediaType == null || mediaType!.startsWith('image/');
+}
+
+/// Private material read one item at a time through [action]: with a stated
+/// reason when [reasonInput] is declared (a console), with one tap on the
+/// owner's own page (no [reasonInput]; the operation is owner-scoped).
+final class FlarePluginProtectedMediaBlock extends FlarePluginBlock {
+  const FlarePluginProtectedMediaBlock({
+    this.label,
+    this.items = const [],
+    this.action,
+    required this.inputName,
+    this.reasonInput,
+    required this.urlPath,
+    this.emptyText,
+  });
+  final String? label;
+  final List<FlarePluginProtectedItem> items;
+
+  /// Absent on a read-only copy.
+  final FlarePluginAction? action;
+  final String inputName;
+  final String? reasonInput;
+
+  /// Reads the action's result (a JSON pointer): the address to draw.
+  final String urlPath;
+  final String? emptyText;
+
+  /// Whether a read first asks the viewer why
+  /// (spec/capability-ui-vectors.json protectedMediaReason).
+  bool get asksReason => reasonInput != null && reasonInput!.isNotEmpty;
+}
+
+/// What the host has for a protected media item.
+@immutable
+class FlarePluginProtectedMediaState {
+  const FlarePluginProtectedMediaState({
+    this.url,
+    this.loading = false,
+    this.error,
+  });
+
+  /// The read's address: the server's short-lived https address
+  /// (`?grant=`), or a data:image the host fetched.
+  final String? url;
+  final bool loading;
+  final String? error;
+}
+
+/// A protected media read for the host to run and audit.
+@immutable
+class FlarePluginProtectedMediaRead {
+  const FlarePluginProtectedMediaRead({
+    required this.action,
+    required this.item,
+    required this.reason,
+    required this.urlPath,
+    required this.formValues,
+  });
+  final FlarePluginAction action;
+  final FlarePluginProtectedItem item;
+
+  /// Empty when the block asks for none.
+  final String reason;
+  final String urlPath;
+
+  /// The item under `inputName` and, when declared, the reason.
+  final Map<String, Object?> formValues;
+}
+
+/// The address of [url] a protected media block may draw: https (the
+/// server's grant address) or data:image; never anything else.
+Uri? flarePluginProtectedMediaSource(String? url) {
+  if (url == null || url.isEmpty) return null;
+  final lower = url.toLowerCase();
+  if (lower.startsWith('data:image/')) return Uri.tryParse(url);
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) return null;
+  return uri;
+}
+
+/// The address at [urlPath] (a JSON pointer) of a protected media action's
+/// result.
+String? flarePluginProtectedMediaUrl(Object? result, String urlPath) {
+  var value = result;
+  for (final key in urlPath.split('/').skip(1)) {
+    if (value is! Map) return null;
+    value = value[key];
+  }
+  return value is String && value.isNotEmpty ? value : null;
+}
+
 /// Up to 50 dated items, in the plugin's order.
 final class FlarePluginTimelineBlock extends FlarePluginBlock {
   const FlarePluginTimelineBlock({this.items = const [], this.emptyText});
@@ -1049,6 +1306,7 @@ class FlarePluginInput {
     this.showWhen,
     this.money,
     this.side,
+    this.precision,
   });
   static FlarePluginInput? fromJson(Map<String, Object?> json) {
     final kind = _enum(FlarePluginInputKind.values, json['kind']);
@@ -1083,6 +1341,7 @@ class FlarePluginInput {
             )
           : null,
       side: _enum(FlarePluginDocumentSide.values, json['side']),
+      precision: _enum(FlarePluginLocationPrecision.values, json['precision']),
     );
   }
 
@@ -1112,6 +1371,9 @@ class FlarePluginInput {
 
   /// document only.
   final FlarePluginDocumentSide? side;
+
+  /// location only: how precise a fix it takes.
+  final FlarePluginLocationPrecision? precision;
 }
 
 @immutable
@@ -2138,6 +2400,8 @@ Object? flarePluginDraftValue(
     case FlarePluginInputKind.image:
     case FlarePluginInputKind.document:
       return FlarePluginFileValue.fromValue(raw)?.toJson();
+    case FlarePluginInputKind.location:
+      return FlarePluginLocationValue.of(raw, input.precision)?.toJson();
     case FlarePluginInputKind.money:
       // The draft is the amount as typed; the currency comes from the input.
       if (raw is String) return raw;
@@ -2202,6 +2466,12 @@ FlarePluginFormIssue? flarePluginCheckInput(
           : FlarePluginFileValue.fromValue(draft) != null
           ? null
           : FlarePluginFormIssue.invalidType;
+    case FlarePluginInputKind.location:
+      return draft == null
+          ? (input.required ? FlarePluginFormIssue.required : null)
+          : FlarePluginLocationValue.of(draft, input.precision) != null
+          ? null
+          : FlarePluginFormIssue.invalidType;
     case FlarePluginInputKind.password:
     case FlarePluginInputKind.text:
     case FlarePluginInputKind.textarea:
@@ -2258,6 +2528,9 @@ Map<String, Object?> flarePluginFormValues(
       case FlarePluginInputKind.document:
         final file = FlarePluginFileValue.fromValue(value);
         if (file != null) out[input.id] = file.toJson();
+      case FlarePluginInputKind.location:
+        final fix = FlarePluginLocationValue.of(value, input.precision);
+        if (fix != null) out[input.id] = fix.toJson();
       case FlarePluginInputKind.money:
         final amount = flarePluginMoneyAmount(value is String ? value : '');
         final currency = input.money?.currency;

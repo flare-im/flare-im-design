@@ -540,7 +540,7 @@ void main() {
       expect(PLUGIN_UI_VOCABULARY['version'], shared['version']);
       expect(
         PLUGIN_UI_VOCABULARY['blocks'] as List,
-        isNot(contains('protected-media')),
+        contains('protected-media'),
       );
     },
   );

@@ -65,6 +65,10 @@ class FlarePluginPage extends StatefulWidget {
     this.formErrors = const [],
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
+    this.protectedMedia = const {},
+    this.onProtectedMediaRead,
     this.members = const [],
     this.membersLoading = false,
     this.membersRevision = 0,
@@ -153,6 +157,23 @@ class FlarePluginPage extends StatefulWidget {
   final List<FlarePluginFormError> formErrors;
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
+
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id ([FlarePluginForm.locationStates]).
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's locate or clear key: the host runs the page's
+  /// locationOnce action into the input ([FlarePluginForm.onLocationAction]).
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
+
+  /// What the host has for each protected media item, by item id: the read's
+  /// address (the server's https grant address), a running read or a failure.
+  final Map<String, FlarePluginProtectedMediaState> protectedMedia;
+
+  /// A protected media read (with its reason when the block asks one): the
+  /// host runs and audits it, then fills [protectedMedia] with
+  /// [flarePluginProtectedMediaUrl] of the result.
+  final ValueChanged<FlarePluginProtectedMediaRead>? onProtectedMediaRead;
   final List<FlarePluginMember> members;
 
   /// Server member-search state; without onMemberSearch the picker filters locally.
@@ -491,7 +512,11 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
         else
           FlarePluginView(
             fileStates: widget.fileStates,
+            protectedMedia: widget.protectedMedia,
+            onProtectedMediaRead: widget.onProtectedMediaRead,
             onFileAction: widget.onFileAction,
+            locationStates: widget.locationStates,
+            onLocationAction: widget.onLocationAction,
             view: view,
             embedded: true,
             resolveUser: widget.resolveUser,

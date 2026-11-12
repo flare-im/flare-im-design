@@ -12,6 +12,7 @@ import 'flare_button.dart';
 import 'flare_contact_picker.dart';
 import 'flare_date_picker.dart';
 import 'flare_form_field.dart';
+import 'flare_icon.dart';
 import 'flare_icon_button.dart';
 import 'flare_input.dart';
 import 'flare_radio_group.dart';
@@ -49,6 +50,8 @@ class FlarePluginForm extends StatefulWidget {
     this.onCancel,
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
   });
 
   final List<FlarePluginInput> inputs;
@@ -84,6 +87,14 @@ class FlarePluginForm extends StatefulWidget {
   final VoidCallback? onCancel;
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
+
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id. The host drops an input's state on [FlarePluginLocationActionKind.clear].
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's key: `locate` runs the page's locationOnce action into
+  /// the input; `clear` empties it. Without it the locate key is disabled.
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
 
   @override
   State<FlarePluginForm> createState() => _FlarePluginFormState();
@@ -176,6 +187,47 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     widget.onFileAction?.call(event);
   }
 
+  /// The host's fix is the input's value; one of another precision is never
+  /// taken.
+  void _applyLocations() {
+    for (final input in _visible.where(
+      (i) => i.kind == FlarePluginInputKind.location,
+    )) {
+      final fix = FlarePluginLocationValue.of(
+        widget.locationStates[input.id]?.value,
+        input.precision,
+      );
+      if (fix == null) continue;
+      if (FlarePluginLocationValue.of(_draft[input.id], input.precision) == fix)
+        continue;
+      _draft[input.id] = fix.toJson();
+      _editedSinceErrors.add(input.id);
+    }
+  }
+
+  void _locationAction(
+    FlarePluginInput input,
+    FlarePluginLocationActionKind action,
+  ) {
+    if (widget.busy || !_visible.contains(input)) return;
+    if (action == FlarePluginLocationActionKind.clear) {
+      setState(() {
+        _draft[input.id] = null;
+        _editedSinceErrors.add(input.id);
+      });
+    } else if (widget.locationStates[input.id]?.locating == true) {
+      return;
+    }
+    widget.onLocationAction?.call(
+      FlarePluginLocationAction(
+        action: action,
+        inputId: input.id,
+        input: input,
+        formValues: flarePluginFormValues(widget.inputs, _draft),
+      ),
+    );
+  }
+
   void _applyFiles() {
     for (final input in _visible.where((i) => flarePluginIsUpload(i.kind))) {
       final state = widget.fileStates[input.id];
@@ -212,6 +264,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     super.didUpdateWidget(old);
     if (_signatureOf(widget) != _signature) _reset();
     _applyFiles();
+    _applyLocations();
     if (old.membersRevision != widget.membersRevision) {
       _selectedMembers.clear();
       for (final input in widget.inputs.where(
@@ -385,6 +438,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     _edited.clear();
     _editedSinceErrors.clear();
     _attempted = false;
+    _applyLocations();
   }
 
   void _set(String id, Object? value) {
@@ -637,6 +691,109 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
                 _fileAction(input, FlarePluginFileActionKind.preview),
           ),
           labelled: false,
+        );
+      case FlarePluginInputKind.location:
+        final state = widget.locationStates[input.id];
+        final fix = FlarePluginLocationValue.of(
+          _draft[input.id],
+          input.precision,
+        );
+        final locating = state?.locating == true;
+        return KeyedSubtree(
+          key: ValueKey('flare-plugin-input-${input.id}'),
+          child: FlareFormField(
+            label: input.label,
+            required: input.required,
+            error: state?.error ?? error,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FlareSizes.touchTarget,
+              ),
+              child: Row(
+                children: [
+                  const FlareIcon('location'),
+                  const SizedBox(width: FlareSizes.spacingSm),
+                  Expanded(
+                    child: Semantics(
+                      liveRegion: true,
+                      child: locating
+                          ? Text(
+                              strings.pluginLocationLocating,
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: FlareSizes.fontSizeMd,
+                              ),
+                            )
+                          : fix == null
+                          ? Text(
+                              strings.pluginLocationEmpty,
+                              key: const ValueKey(
+                                'flare-plugin-location-empty',
+                              ),
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: FlareSizes.fontSizeMd,
+                              ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fix.text,
+                                  key: const ValueKey(
+                                    'flare-plugin-location-place',
+                                  ),
+                                  style: TextStyle(
+                                    color: colors.textPrimary,
+                                    fontSize: FlareSizes.fontSizeLg,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  '${fix.precision == FlarePluginLocationPrecision.fine ? strings.pluginLocationFine : strings.pluginLocationCoarse}'
+                                  ' · ${strings.pluginLocationAccuracy.replaceAll('{m}', '${fix.accuracyM}')}',
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: FlareSizes.fontSizeSm,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  if (fix != null && !locating)
+                    FlareButton(
+                      key: const ValueKey('flare-plugin-location-clear'),
+                      size: FlareControlSize.sm,
+                      variant: FlareButtonVariant.quiet,
+                      label: strings.pluginLocationClear,
+                      disabled: disabled,
+                      onPressed: () => _locationAction(
+                        input,
+                        FlarePluginLocationActionKind.clear,
+                      ),
+                    ),
+                  const SizedBox(width: FlareSizes.spacingXs),
+                  FlareButton(
+                    key: const ValueKey('flare-plugin-location-locate'),
+                    size: FlareControlSize.sm,
+                    variant: FlareButtonVariant.secondary,
+                    label: fix == null
+                        ? strings.pluginLocationLocate
+                        : strings.pluginLocationRelocate,
+                    loading: locating,
+                    disabled: disabled || widget.onLocationAction == null,
+                    onPressed: () => _locationAction(
+                      input,
+                      FlarePluginLocationActionKind.locate,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       case FlarePluginInputKind.password:
       case FlarePluginInputKind.text:
