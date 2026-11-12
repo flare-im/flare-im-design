@@ -283,6 +283,9 @@ final class PluginViewVectorsTests: XCTestCase {
         case .rows(let rows):
             shown += try PluginVectors.checkRows(rows, fact, clock: PluginViewClock(nowMs: nowMs, utcOffsetMinutes: zone),
                                                  strings: s, id: id)
+        case .section, .stats, .chart, .image, .qr, .hero, .steps, .banner, .timeline:
+            // Vocabulary 2 blocks have their facts in blocks2 (PluginViewV2Tests); no v1 view carries them.
+            XCTFail("\(id): a vocabulary 2 block in a v1 view")
         }
         return shown
     }

@@ -1892,6 +1892,12 @@ let flareColorKeys: Set<String> = [
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "chartSeries1",
+    "chartSeries2",
+    "chartSeries3",
+    "chartSeries4",
+    "chartSeries5",
+    "chartSeries6",
 ]
 
 extension FlareColors {
@@ -1975,7 +1981,13 @@ extension FlareColors {
             redPacketOnSurface: values["redPacketOnSurface"],
             redPacketFadedInk: values["redPacketFadedInk"],
             redPacketFadedMixTarget: values["redPacketFadedMixTarget"],
-            redPacketAccent: values["redPacketAccent"]
+            redPacketAccent: values["redPacketAccent"],
+            chartSeries1: values["chartSeries1"],
+            chartSeries2: values["chartSeries2"],
+            chartSeries3: values["chartSeries3"],
+            chartSeries4: values["chartSeries4"],
+            chartSeries5: values["chartSeries5"],
+            chartSeries6: values["chartSeries6"]
         )
     }
 }

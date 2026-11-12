@@ -222,6 +222,42 @@ enum PluginViewFormat {
         return render(at.year == now.year ? strings.pluginViewDateTimeFormat : strings.pluginViewDateTimeYearFormat, at)
     }
 
+    /// What a hidden value reads as (a maskable hero).
+    static let maskedValue = "••••"
+
+    /// The date part of a date-time pattern ("M月d日 HH:mm" → "M月d日").
+    static func datePattern(_ pattern: String) -> String {
+        var p = pattern.replacingOccurrences(of: #"[\s,]*HH:mm[\s,]*"#, with: " ", options: .regularExpression)
+        p = p.replacingOccurrences(of: #"[\s,]+$"#, with: "", options: .regularExpression)
+        return p.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// The day headings of a page list grouped by day (spec rules.rowsGroupByDay): one per row, present on the first
+    /// row of each day — today, yesterday, else the date — by the row's first time column; a row without a time
+    /// starts no group.
+    static func rowDayHeadings(_ block: PluginRowsBlock, nowMs: Int64, _ strings: FlareStrings,
+                               utcOffsetMinutes: Int?) -> [String?] {
+        guard block.groupByDay, let column = block.columns.firstIndex(where: { $0.format == .time }) else {
+            return block.rows.map { _ in nil }
+        }
+        func key(_ c: PluginWallClock) -> String { "\(c.year)-\(c.month)-\(c.day)" }
+        let now = wallClock(nowMs, utcOffsetMinutes: utcOffsetMinutes)
+        let today = key(now)
+        let yesterday = key(wallClock(nowMs - 86_400_000, utcOffsetMinutes: utcOffsetMinutes))
+        var previous: String?
+        return block.rows.map { row in
+            guard column < row.cells.count, let ms = row.cells[column].timeMs else { return nil }
+            let at = wallClock(ms, utcOffsetMinutes: utcOffsetMinutes)
+            let day = key(at)
+            if day == previous { return nil }
+            previous = day
+            if day == today { return strings.accountToday }
+            if day == yesterday { return strings.accountYesterday }
+            return render(datePattern(at.year == now.year ? strings.pluginViewDateTimeFormat
+                                                          : strings.pluginViewDateTimeYearFormat), at)
+        }
+    }
+
     /// A time block's text: an instant, a range on one day ("…14:00–15:00") or across days ("… – …").
     static func timeText(atMs: Int64, endMs: Int64?, nowMs: Int64, _ strings: FlareStrings,
                          utcOffsetMinutes: Int?) -> String {

@@ -406,12 +406,15 @@ public struct PluginHeroBlock: Codable, Equatable, Sendable {
     public let tone: PluginHeroTone
     /// Empty on a read-only copy.
     public let actions: [PluginViewAction]
+    /// The viewer may hide `value` behind an eye toggle.
+    public let maskable: Bool
     public init(label: String? = nil, value: String, amount: Bool = false, format: PluginValueFormat? = nil,
-                subtitle: String? = nil, tone: PluginHeroTone = .neutral, actions: [PluginViewAction] = []) {
+                subtitle: String? = nil, tone: PluginHeroTone = .neutral, actions: [PluginViewAction] = [],
+                maskable: Bool = false) {
         self.label = label; self.value = value; self.amount = amount; self.format = format; self.subtitle = subtitle
-        self.tone = tone; self.actions = actions
+        self.tone = tone; self.actions = actions; self.maskable = maskable
     }
-    private enum CodingKeys: String, CodingKey { case label, value, amount, format, subtitle, tone, actions }
+    private enum CodingKeys: String, CodingKey { case label, value, amount, format, subtitle, tone, actions, maskable }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         label = c.lenient(String.self, .label)
@@ -421,6 +424,7 @@ public struct PluginHeroBlock: Codable, Equatable, Sendable {
         subtitle = c.lenient(String.self, .subtitle)
         tone = c.lenient(PluginHeroTone.self, .tone) ?? .neutral
         actions = (c.lenient([PluginLossy<PluginViewAction>].self, .actions) ?? []).compactMap(\.value)
+        maskable = c.lenient(Bool.self, .maskable) ?? false
     }
 }
 

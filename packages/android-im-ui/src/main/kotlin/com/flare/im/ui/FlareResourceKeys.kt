@@ -1885,6 +1885,12 @@ internal val flareColorKeys: Set<String> = setOf(
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "chartSeries1",
+    "chartSeries2",
+    "chartSeries3",
+    "chartSeries4",
+    "chartSeries5",
+    "chartSeries6",
 )
 
 /** These colours with the fields [values] names replaced. */
@@ -1967,4 +1973,10 @@ internal fun FlareColors.applying(values: Map<String, Color>): FlareColors = cop
     redPacketFadedInk = values["redPacketFadedInk"] ?: this.redPacketFadedInk,
     redPacketFadedMixTarget = values["redPacketFadedMixTarget"] ?: this.redPacketFadedMixTarget,
     redPacketAccent = values["redPacketAccent"] ?: this.redPacketAccent,
+    chartSeries1 = values["chartSeries1"] ?: this.chartSeries1,
+    chartSeries2 = values["chartSeries2"] ?: this.chartSeries2,
+    chartSeries3 = values["chartSeries3"] ?: this.chartSeries3,
+    chartSeries4 = values["chartSeries4"] ?: this.chartSeries4,
+    chartSeries5 = values["chartSeries5"] ?: this.chartSeries5,
+    chartSeries6 = values["chartSeries6"] ?: this.chartSeries6,
 )

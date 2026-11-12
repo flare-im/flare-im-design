@@ -883,6 +883,13 @@ struct PluginEntriesBlockView: View {
             Text(entry.text).font(.system(size: FlareSizes.fontSizeLg * textScale))
                 .foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            if let timeMs = entry.timeMs {
+                Text(PluginViewFormat.dateTime(timeMs, nowMs: Int64(Date().timeIntervalSince1970 * 1000), strings,
+                                               utcOffsetMinutes: nil))
+                    .font(.system(size: FlareSizes.fontSizeSm * textScale).monospacedDigit())
+                    .foregroundColor(colors.textTertiary)
+                    .lineLimit(1)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -956,9 +963,19 @@ struct PluginRowsBlockView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             let now = clock.now()
+            let days = PluginViewFormat.rowDayHeadings(
+                PluginRowsBlock(columns: block.columns, rows: rows, groupByDay: block.groupByDay),
+                nowMs: now, strings, utcOffsetMinutes: clock.utcOffsetMinutes)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.key) { position, row in
-                    if position > 0 { PluginDivider() }
+                    if let day = days[position] {
+                        Text(day)
+                            .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .semibold))
+                            .foregroundColor(colors.textSecondary)
+                            .padding(.top, position == 0 ? 0 : FlareSizes.spacingMd)
+                            .padding(.bottom, FlareSizes.spacingXs)
+                            .accessibilityAddTraits(.isHeader)
+                    } else if position > 0 { PluginDivider() }
                     item(row, lines: PluginViewFormat.rowLines(block, row, nowMs: now, strings,
                                                                utcOffsetMinutes: clock.utcOffsetMinutes), colors)
                         .padding(.top, position == 0 ? 0 : FlareSizes.spacingSm)

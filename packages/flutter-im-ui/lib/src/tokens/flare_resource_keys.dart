@@ -1902,6 +1902,12 @@ const Set<String> flareColorKeys = <String>{
   'redPacketFadedInk',
   'redPacketFadedMixTarget',
   'redPacketAccent',
+  'chartSeries1',
+  'chartSeries2',
+  'chartSeries3',
+  'chartSeries4',
+  'chartSeries5',
+  'chartSeries6',
 };
 
 /// [base] with the fields [values] names replaced.
@@ -1984,4 +1990,10 @@ FlareColors flareColorsApplying(FlareColors base, Map<String, Color> values) => 
   redPacketFadedInk: values['redPacketFadedInk'],
   redPacketFadedMixTarget: values['redPacketFadedMixTarget'],
   redPacketAccent: values['redPacketAccent'],
+  chartSeries1: values['chartSeries1'],
+  chartSeries2: values['chartSeries2'],
+  chartSeries3: values['chartSeries3'],
+  chartSeries4: values['chartSeries4'],
+  chartSeries5: values['chartSeries5'],
+  chartSeries6: values['chartSeries6'],
 );

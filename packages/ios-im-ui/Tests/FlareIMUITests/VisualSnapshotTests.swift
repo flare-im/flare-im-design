@@ -105,7 +105,7 @@ final class VisualSnapshotTests: XCTestCase {
     func testPluginBlocks2Snapshot() throws {
         let fixture = #"""
         {"available":true,"title":"Task board","blocks":[
-          {"kind":"hero","label":"Balance","value":"1,250.00","amount":true,"tone":"brand","subtitle":"Updated just now",
+          {"kind":"hero","label":"Balance","value":"1,250.00","amount":true,"tone":"brand","maskable":true,"subtitle":"Updated just now",
            "actions":[{"id":"top-up","label":"Top up"},{"id":"withdraw","label":"Withdraw"}]},
           {"kind":"stats","items":[{"label":"Open tasks","value":"12","trend":{"text":"+3","direction":"up"}},
            {"label":"Members","value":"12345","format":{"kind":"count","count":12345}},

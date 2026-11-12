@@ -156,7 +156,7 @@ final class PluginBlocksExtraTests: XCTestCase {
         }
         for item in table["values"]?.arrayValue ?? [] {
             let values = PluginFormRules.values([input], [input.id: item["draft"] ?? .null])
-            XCTAssertEqual(values[input.id], item["expect"].flatMap { $0.isNull ? nil : $0 }, "\(item)")
+            XCTAssertEqual(values[input.id], item["expect"].flatMap { $0.isNull ? PluginJSONValue?.none : $0 }, "\(item)")
         }
         for item in table["drafts"]?.arrayValue ?? [] {
             XCTAssertEqual(PluginFormRules.draftValue(input, values: [input.id: item["value"] ?? .null]),

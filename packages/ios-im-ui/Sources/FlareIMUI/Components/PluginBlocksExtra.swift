@@ -428,13 +428,26 @@ struct PluginHeroBlockView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    /// A maskable hero starts shown; the eye hides it for this view only.
+    @State private var hidden = false
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let value = PluginFormatRules.text(block.value, block.format, strings)
+        let value = block.maskable && hidden
+            ? PluginViewFormat.maskedValue : PluginFormatRules.text(block.value, block.format, strings)
         VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
-            if let label = block.label, !label.isEmpty {
-                Text(label).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+            if (block.label?.isEmpty == false) || block.maskable {
+                HStack(spacing: FlareSizes.spacingXs) {
+                    if let label = block.label, !label.isEmpty {
+                        Text(label).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
+                    }
+                    if block.maskable {
+                        IconButtonView(icon: hidden ? "eye-off" : "eye",
+                                       accessibilityLabel: hidden ? strings.accountShowBalance
+                                                                  : strings.accountHideBalance) { hidden.toggle() }
+                            .accessibilityIdentifier("flare-plugin-hero-mask")
+                    }
+                }
             }
             Text(value)
                 .font(block.amount

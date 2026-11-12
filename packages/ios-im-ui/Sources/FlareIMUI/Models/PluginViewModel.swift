@@ -260,12 +260,14 @@ public struct PluginEntry: Codable, Equatable, Sendable {
     public let userId: String?
     public let group: PluginEntryGroup?
     public let badge: PluginBadge?
+    /// When it happened (epoch ms), drawn after the text in the device zone.
+    public let timeMs: Int64?
     public init(index: Int, text: String, name: String? = nil, userId: String? = nil, group: PluginEntryGroup? = nil,
-                badge: PluginBadge? = nil) {
+                badge: PluginBadge? = nil, timeMs: Int64? = nil) {
         self.index = index; self.text = text; self.name = name; self.userId = userId; self.group = group
-        self.badge = badge
+        self.badge = badge; self.timeMs = timeMs
     }
-    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group, badge }
+    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group, badge, timeMs }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         index = c.lenient(Int.self, .index) ?? 0
@@ -274,6 +276,7 @@ public struct PluginEntry: Codable, Equatable, Sendable {
         userId = c.lenient(String.self, .userId)
         group = c.lenient(PluginEntryGroup.self, .group)
         badge = c.lenient(PluginBadge.self, .badge)
+        timeMs = c.lenient(Int64.self, .timeMs)
     }
 }
 
@@ -476,12 +479,14 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
     public let actions: [PluginViewAction]
     public let emptyText: String?
     public let filters: [String]?
+    /// Day headings over the rows by the first time column (`flarePluginRowDayHeadings`).
+    public let groupByDay: Bool
     public init(columns: [PluginRowsColumn], rows: [PluginRow], actions: [PluginViewAction] = [],
-                emptyText: String? = nil, filters: [String]? = nil) {
+                emptyText: String? = nil, filters: [String]? = nil, groupByDay: Bool = false) {
         self.columns = columns; self.rows = rows; self.actions = actions; self.emptyText = emptyText
-        self.filters = filters
+        self.filters = filters; self.groupByDay = groupByDay
     }
-    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters }
+    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters, groupByDay }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         columns = c.lenient([PluginRowsColumn].self, .columns) ?? []
@@ -489,6 +494,7 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
         actions = (c.lenient([PluginLossy<PluginViewAction>].self, .actions) ?? []).compactMap(\.value)
         emptyText = c.lenient(String.self, .emptyText)
         filters = c.lenient([String].self, .filters)
+        groupByDay = c.lenient(Bool.self, .groupByDay) ?? false
     }
 }
 

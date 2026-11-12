@@ -40,7 +40,7 @@ const resolveImage = () => undefined;
 </script>
 <template>
   <main id="plugin-blocks-regression" class="fixture" data-vr-ready="true">
-    <FlarePluginView :view="blocks" icon="plugin" :resolve-image="resolveImage" :on-qr-refresh="() => {}" @action="() => {}" />
+    <FlarePluginView :view="blocks" icon="plugin" :resolve-image="resolveImage" @qr-refresh="() => {}" @action="() => {}" />
     <FlarePluginView :view="placeholder" :upgrade-status="{ available: true, build: 41020 }" :on-update="() => {}" />
     <FlarePluginView :view="placeholder" :upgrade-status="{ available: false }" />
     <div class="entry"><span>任务看板</span><FlarePluginUpgradeNotice variant="entry" /></div>
