@@ -6,6 +6,10 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **SwiftUI: a device's main thread stack no longer overflows** (iOS kit).
+  - `FlareStrings` (976 fields, about 16 KB) and `FlareBrandTheme` (about 1.3 KB) were read by every component through `@Environment`, which stores the value inline: a screen of nested components went past the 1 MB main thread stack of a device (not the 8 MB of the simulator), and a Debug build crashed on the sign-in screen and on opening a conversation.
+  - Both are now held by reference and copied on write. `FlareStrings` is one pointer: its fields live in `FlareStringsTable` and are read and written through dynamic member lookup, so `strings.send`, `strings.send = "Send"` and the initializer are unchanged; code inside an `extension FlareStrings` names a field as `self.send`. `FlareBrandTheme` keeps `name`, `light` and `dark`; the palettes sit behind a reference.
+
 - **Notification access: the soft-ask and the delivery settings** (contract and all four kits).
   - `PermissionPrompt` gains `softAsk`: the non-blocking invitation a host shows at a moment it picks. No state chip, a Not now key, and for the notifications kind copy of its own: Turn on notifications while the system can ask, Open Settings with where to turn it on once it was turned off. It shows only while undetermined or denied.
   - The permission state gains `granted`, for which the prompt draws nothing, so a host binds the platform's status as it is. `permissionActions` offers no dismiss for it; `permissionPromptShows(state, softAsk)` says whether the prompt draws, and the native kits add `defaultPermissionSoftAskCopy`.

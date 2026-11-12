@@ -393,10 +393,16 @@ const swift =
   `import SwiftUI\n\n` +
   `public struct FlareBrandTheme: Hashable, Sendable, CaseIterable {\n` +
   `    public let name: String\n` +
-  `    public let light: FlareColors\n` +
-  `    public let dark: FlareColors\n\n` +
+  `    public var light: FlareColors { palettes.light }\n` +
+  `    public var dark: FlareColors { palettes.dark }\n\n` +
+  `    /// Held by reference so a theme is two words wide: every component reads it through \`@Environment\`, which\n` +
+  `    /// stores the value inline, and two inline palettes per component overflowed a device's main thread stack.\n` +
+  `    private let palettes: Palettes\n\n` +
+  `    private final class Palettes: Sendable {\n` +
+  `        let light: FlareColors\n        let dark: FlareColors\n` +
+  `        init(light: FlareColors, dark: FlareColors) { self.light = light; self.dark = dark }\n    }\n\n` +
   `    public init(name: String, light: FlareColors, dark: FlareColors) {\n` +
-  `        self.name = name\n        self.light = light\n        self.dark = dark\n    }\n\n` +
+  `        self.name = name\n        self.palettes = Palettes(light: light, dark: dark)\n    }\n\n` +
   themeNames.map((name) => `    public static let ${name} = FlareBrandTheme(name: "${name}", light: .${name}Light, dark: .${name}Dark)`).join("\n") +
   `\n\n    public static let allCases: [FlareBrandTheme] = [${themeNames.map((name) => `.${name}`).join(", ")}]\n` +
   `    public static func == (lhs: FlareBrandTheme, rhs: FlareBrandTheme) -> Bool { lhs.name == rhs.name }\n` +

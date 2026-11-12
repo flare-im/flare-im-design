@@ -95,7 +95,7 @@ final class EnglishFormatsTests: XCTestCase {
     /// Every function field the kit declares has a case listing ios, and at least one of them reads differently in
     /// English — so a count field added later cannot stay Chinese in the English preset.
     func testEveryFunctionFieldHasAnEnglishCase() throws {
-        let functions = Mirror(reflecting: FlareStrings()).children.compactMap { child -> String? in
+        let functions = Mirror(reflecting: FlareStrings().table).children.compactMap { child -> String? in
             guard let label = child.label, String(describing: type(of: child.value)).contains("->") else { return nil }
             return label
         }

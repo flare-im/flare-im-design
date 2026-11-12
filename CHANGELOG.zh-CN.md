@@ -6,6 +6,10 @@
 
 ### 设计系统与跨端组件
 
+- **SwiftUI：真机主线程栈不再溢出**（iOS Kit）。
+  - `FlareStrings`（976 个字段，约 16 KB）与 `FlareBrandTheme`（约 1.3 KB）被每个组件经 `@Environment` 读取，而 `@Environment` 按值内联存放：一屏嵌套的组件超过了真机 1 MB 的主线程栈（模拟器是 8 MB），Debug 构建在登录页和打开会话时闪退。
+  - 两者改为引用存储、写时复制。`FlareStrings` 只占一个指针：字段在 `FlareStringsTable` 里，经动态成员读写，`strings.send`、`strings.send = "Send"` 与初始化写法都不变；在 `extension FlareStrings` 里引用字段要写 `self.send`。`FlareBrandTheme` 仍有 `name`、`light`、`dark`，两套色板放在引用后面。
+
 - **通知送达：轻询问与送达设置**（契约与四端 Kit）。
   - `PermissionPrompt` 新增 `softAsk`：宿主在自选时机展示的非阻断询问。不画状态标签，关闭键为「以后再说」；通知类有自己的文案：系统还能询问时为「开启通知」，被关闭后为「前往设置」并说明在哪里打开。只在 undetermined 或 denied 时出现。
   - 权限状态新增 `granted`，提示什么都不画，宿主可原样绑定平台状态。`permissionActions` 对它不给关闭键；`permissionPromptShows(state, softAsk)` 判断是否绘制，原生三端另有 `defaultPermissionSoftAskCopy`。

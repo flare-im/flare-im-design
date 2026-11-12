@@ -62,31 +62,31 @@ public func flarePlural(_ count: Int, one: String, other: String, locale: Locale
 public extension FlareStrings {
     /// "N 票" / "1 vote" for a count (`pluginViewVotes` / `pluginViewVotesOne`).
     func pluginViewVotesText(_ count: Int, locale: Locale) -> String {
-        flarePlural(count, one: pluginViewVotesOne, other: pluginViewVotes, locale: locale)
+        flarePlural(count, one: self.pluginViewVotesOne, other: self.pluginViewVotes, locale: locale)
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 
     /// "N 人" / "1 person" (`myInviteCountOnly` / `myInviteCountOnlyOne`).
     func myInviteCountOnlyText(_ count: Int, locale: Locale) -> String {
-        flarePlural(count, one: myInviteCountOnlyOne, other: myInviteCountOnly, locale: locale)
+        flarePlural(count, one: self.myInviteCountOnlyOne, other: self.myInviteCountOnly, locale: locale)
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 
     /// The merged-forward card's subtitle "共 N 条消息" (`forwardRecordTotal` / `forwardRecordTotalOne`).
     func forwardRecordTotalText(_ count: Int, locale: Locale) -> String {
-        flarePlural(count, one: forwardRecordTotalOne, other: forwardRecordTotal, locale: locale)
+        flarePlural(count, one: self.forwardRecordTotalOne, other: self.forwardRecordTotal, locale: locale)
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 
     /// The batch toolbar's "N 条不支持转发" (`messageBatchUnforwardable` / `messageBatchUnforwardableOne`).
     func messageBatchUnforwardableText(_ count: Int, locale: Locale) -> String {
-        flarePlural(count, one: messageBatchUnforwardableOne, other: messageBatchUnforwardable, locale: locale)
+        flarePlural(count, one: self.messageBatchUnforwardableOne, other: self.messageBatchUnforwardable, locale: locale)
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 
     /// The merged-forward card's "还有 N 条消息…" (`forwardRecordMore` / `forwardRecordMoreOne`).
     func forwardRecordMoreText(_ count: Int, locale: Locale) -> String {
-        flarePlural(count, one: forwardRecordMoreOne, other: forwardRecordMore, locale: locale)
+        flarePlural(count, one: self.forwardRecordMoreOne, other: self.forwardRecordMore, locale: locale)
             .replacingOccurrences(of: "{count}", with: String(count))
     }
 }
