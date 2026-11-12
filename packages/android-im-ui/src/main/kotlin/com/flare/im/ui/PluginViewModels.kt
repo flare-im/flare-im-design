@@ -226,7 +226,9 @@ data class PluginRowsBlock(
 /** Form input kinds (UiInput). */
 enum class PluginInputKind(val wire: String) {
     Text("text"), Password("password"), Textarea("textarea"), Number("number"), Toggle("toggle"), Select("select"), Datetime("datetime"),
-    Options("options"), Members("members"), File("file"), Money("money"), Image("image"), Document("document");
+    Options("options"), Members("members"), File("file"), Money("money"), Image("image"), Document("document"),
+    /** A one-time location the engine writes when the page's locationOnce action completes ([PluginLocationValue]). */
+    Location("location");
 
     /** Inputs whose value is an uploaded file's `{fileId}`, uploaded through `file`: file, image and document. */
     val isUpload: Boolean get() = this == File || this == Image || this == Document
@@ -262,6 +264,8 @@ data class PluginInput(
     val money: PluginMoneyRules? = null,
     /** document only: which side of the document it captures. */
     val side: PluginDocumentSide? = null,
+    /** location only: how precise a fix it takes. */
+    val precision: PluginLocationPrecision? = null,
 )
 
 /** What is wrong with a submitted value (UiFormIssue). */
@@ -572,6 +576,8 @@ private fun Map<*, *>.input(): PluginInput? {
     // A money input without rules stays, without a currency: the form shows it and accepts nothing (as every kit).
     val money = pluginMoneyRules(this["money"])
     val side = this["side"]?.let { PluginDocumentSide.fromWire(it as? String) ?: return null }
+    val precision = PluginLocationPrecision.fromWire(this["precision"] as? String)
+    if (kind == PluginInputKind.Location && precision == null) return null
     val showWhen = (this["showWhen"] as? Map<*, *>)?.let { condition ->
         val field = condition.string("field")?.takeIf { it.isNotBlank() } ?: return null
         val anyOf = (condition["anyOf"] as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() } ?: return null
@@ -585,7 +591,7 @@ private fun Map<*, *>.input(): PluginInput? {
             val c = raw as? Map<*, *> ?: return@mapNotNull null
             PluginInputChoice(c.string("value") ?: return@mapNotNull null, c.string("label") ?: "")
         },
-        file = file, showWhen = showWhen, money = money, side = side,
+        file = file, showWhen = showWhen, money = money, side = side, precision = precision,
     )
 }
 
@@ -1186,6 +1192,7 @@ internal object PluginFormRules {
             PluginInputKind.Text, PluginInputKind.Textarea, PluginInputKind.Select -> raw as? String ?: ""
             PluginInputKind.Number, PluginInputKind.Datetime -> (raw as? Number)?.toDouble()?.takeIf { it.isFinite() }
             PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> pluginFileReference(raw)
+            PluginInputKind.Location -> PluginLocationValue.read(raw, input.precision)?.toMap()
             PluginInputKind.Money -> PluginMoneyInputRules.draft(raw)
         }
     }
@@ -1226,6 +1233,11 @@ internal object PluginFormRules {
                 pluginFileReference(draft) == null -> PluginFormIssue.InvalidType
                 else -> null
             }
+            PluginInputKind.Location -> when {
+                draft == null -> if (input.required) PluginFormIssue.Required else null
+                PluginLocationValue.read(draft, input.precision) == null -> PluginFormIssue.InvalidType
+                else -> null
+            }
             PluginInputKind.Money -> PluginMoneyInputRules.check(input, draft)
         }
     }
@@ -1248,6 +1260,7 @@ internal object PluginFormRules {
                 PluginInputKind.Options -> items(value).takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.Members -> (value as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() }?.let { out[input.id] = it }
                 PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> pluginFileReference(value)?.let { out[input.id] = it }
+                PluginInputKind.Location -> PluginLocationValue.read(value, input.precision)?.let { out[input.id] = it.toMap() }
                 PluginInputKind.Money -> PluginMoneyInputRules.value(input, value)?.let { out[input.id] = it }
             }
         }

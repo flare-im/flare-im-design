@@ -233,13 +233,14 @@ class PluginBlocksExtraTest {
     fun theDeclaredVocabularyIsWhatTheKitDraws() {
         val declared = FlareJson.parse(PLUGIN_UI_VOCABULARY) as Map<*, *>
         assertEquals(PluginUiVocabulary.blocks, (declared["blocks"] as List<*>).toSet())
-        assertFalse("protected-media" in PluginUiVocabulary.blocks, "the kit does not draw it, so it never reports it")
+        assertTrue("protected-media" in PluginUiVocabulary.blocks, "the owner's protected media is drawn natively now")
         assertEquals(PluginInputKind.entries.map { it.wire }.toSet(), PluginUiVocabulary.inputs)
-        assertEquals(setOf("redPacket.card", "redPacket.pay", "payment.confirm"), PluginUiVocabulary.renderers)
+        assertEquals(setOf("redPacket.card"), PluginUiVocabulary.renderers)
+        assertTrue(PluginUiVocabulary.native.containsAll(setOf("documentCapture", "paymentConfirmation", "locationOnce")))
         for (renderer in PluginUiVocabulary.renderers) {
             assertTrue(hasResolvedPresentation(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to renderer))), renderer)
         }
-        for (renderer in listOf("redPacket.composer", "redPacket.detail", "account", "flare.qr")) {
+        for (renderer in listOf("redPacket.composer", "redPacket.detail", "account", "flare.qr", "redPacket.pay", "payment.confirm")) {
             assertFalse(hasResolvedPresentation(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to renderer))), renderer)
         }
     }

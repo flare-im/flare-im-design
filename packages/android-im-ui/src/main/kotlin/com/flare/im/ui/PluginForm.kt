@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.time.Instant
@@ -67,6 +69,10 @@ fun PluginForm(
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
     onCancel: (() -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
 ) {
     val strings = flareStrings()
     var form by remember(inputs, values) { mutableStateOf(PluginFormState.initial(inputs, values)) }
@@ -152,6 +158,19 @@ fun PluginForm(
         }
     }
     fun errorText(input: PluginInput) = form.errorText(input, errors, strings)
+    // The host's fix is the input's value; one of another precision is never taken.
+    LaunchedEffect(form.draft.keys, locationStates) {
+        inputs.filter { it.kind == PluginInputKind.Location && it.visibleIn(form.draft) }.forEach { input ->
+            val fix = PluginLocationValue.read(locationStates[input.id]?.value, input.precision) ?: return@forEach
+            if (PluginLocationValue.read(form.draft[input.id], input.precision) != fix) set(input.id, fix.toMap())
+        }
+    }
+    fun locationAction(input: PluginInput, kind: PluginLocationActionKind) {
+        if (busy || !input.visibleIn(form.draft)) return
+        if (kind == PluginLocationActionKind.Clear) set(input.id, null)
+        else if (locationStates[input.id]?.locating == true) return
+        onLocationAction?.invoke(PluginLocationAction(kind, input.id, input, PluginFormRules.values(inputs, form.draft)))
+    }
 
     Column(
         Modifier.fillMaxWidth().padding(horizontal = if (embedded) 0.dp else FlareSizes.spacingLg, vertical = if (embedded) 0.dp else FlareSizes.spacingMd),
@@ -230,6 +249,11 @@ fun PluginForm(
                     },
                         placeholder = input.placeholder, disabled = busy || input.money?.currency == null,
                         inputMode = if (input.money?.effectiveScale == 0) FlareInputMode.Numeric else FlareInputMode.Decimal)
+                }
+                PluginInputKind.Location -> FormField(input.label, input.required, null, locationStates[input.id]?.error ?: errorText(input)) {
+                    PluginLocationField(input, form.draft[input.id], locationStates[input.id], busy, onLocationAction != null) {
+                        locationAction(input, it)
+                    }
                 }
                 PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> FormField(input.label, input.required, null, errorText(input)) {
                     val state = localFiles[input.id] ?: PluginFileState(fileScope, fileGenerations[input.id] ?: 0, PluginFilePhase.Empty)
@@ -319,4 +343,46 @@ internal fun pluginDateTimeMs(parts: Pair<String, String>, zone: ZoneId = ZoneId
     val date = runCatching { LocalDate.parse(parts.first) }.getOrNull() ?: return null
     val time = runCatching { LocalTime.parse(parts.second) }.getOrNull() ?: return null
     return LocalDateTime.of(date, time).atZone(zone).toInstant().toEpochMilli()
+}
+
+/** A location input: the fix (place, precision and accuracy) or "no location yet", and its locate and clear keys. */
+@Composable
+internal fun PluginLocationField(
+    input: PluginInput,
+    draft: Any?,
+    state: PluginLocationState?,
+    busy: Boolean,
+    enabled: Boolean,
+    onAction: (PluginLocationActionKind) -> Unit,
+) {
+    val colors = flareColors()
+    val strings = flareStrings()
+    val fix = PluginLocationValue.read(draft, input.precision)
+    val locating = state?.locating == true
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+    ) {
+        FlareIcon("location")
+        Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+            when {
+                locating -> Text(strings.pluginLocationLocating, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
+                fix != null -> {
+                    Text(fix.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg,
+                        modifier = Modifier.testTag("plugin-location-${input.id}-place"))
+                    Text("${if (fix.precision == PluginLocationPrecision.Fine) strings.pluginLocationFine else strings.pluginLocationCoarse} · " +
+                        strings.pluginLocationAccuracy.replace("{m}", fix.accuracyM.toString()),
+                        color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
+                }
+                else -> Text(strings.pluginLocationEmpty, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd,
+                    modifier = Modifier.testTag("plugin-location-${input.id}-empty"))
+            }
+        }
+        if (fix != null && !locating) Button(label = strings.pluginLocationClear, variant = FlareButtonVariant.Quiet,
+            size = FlareControlSize.Sm, disabled = busy, onClick = { onAction(PluginLocationActionKind.Clear) })
+        Button(label = if (fix == null) strings.pluginLocationLocate else strings.pluginLocationRelocate,
+            variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm, loading = locating, disabled = busy || !enabled,
+            onClick = { onAction(PluginLocationActionKind.Locate) })
+    }
 }

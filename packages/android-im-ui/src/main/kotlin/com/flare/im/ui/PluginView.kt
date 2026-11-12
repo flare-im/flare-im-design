@@ -165,12 +165,21 @@ fun PluginView(
     resolveImage: (suspend (PluginImageSource) -> String?)? = null,
     /** A QR block's refresh key: the host runs the query and passes back a view with the fresh code. */
     onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) = PluginViewContent(
     view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
     resolveUser = resolveUser, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = formErrors, settleToken = settleToken, displayName = displayName,
     viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null, actionLayout = actionLayout, showError = showError, labelRows = labelRows, inlineFormActionId = inlineFormActionId, inlineFormTitle = inlineFormTitle, inlineFormDescription = inlineFormDescription,
     fileStates = fileStates, onFileAction = onFileAction,
     upgradeStatus = upgradeStatus, upgradeBusy = upgradeBusy, onUpdate = onUpdate, resolveImage = resolveImage, onQrRefresh = onQrRefresh,
+    locationStates = locationStates, onLocationAction = onLocationAction, protectedMedia = protectedMedia, onProtectedMediaRead = onProtectedMediaRead,
 )
 
 /**
@@ -223,6 +232,14 @@ internal fun PluginViewContent(
     onUpdate: (() -> Unit)? = null,
     resolveImage: (suspend (PluginImageSource) -> String?)? = null,
     onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -359,6 +376,8 @@ internal fun PluginViewContent(
             is PluginBannerBlock -> PluginBannerBlockView(block, locked,
                 if (onAction == null) null else ({ action: PluginViewAction -> run(action, PluginActionPayload.Empty) }))
             is PluginTimelineBlock -> PluginTimelineBlockView(block)
+            is PluginProtectedMediaBlock -> PluginProtectedMediaBlockView(block, protectedMedia, locked,
+                onProtectedMediaRead.takeUnless { PluginViewFormat.readOnly(view) })
             // Rows are drawn row by row (PluginViewPart.Row).
             is PluginRowsBlock -> Unit
             else -> Unit
@@ -378,6 +397,7 @@ internal fun PluginViewContent(
                 PluginForm(inputs = view.formInputs(action), errors = if (inlineForm.submitted) formErrors else emptyList(),
                     submitLabel = action.label, busy = locked, error = failure, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  embedded = true,
                     fileStates = fileStates, onFileAction = onFileAction,
+                    locationStates = locationStates, onLocationAction = onLocationAction,
                     onSubmit = { values ->
                         if (!locked && pluginInlineFormAction(view, action.id, emitAction != null) != null) {
                             val next = inlineForm.begin()
@@ -480,10 +500,7 @@ internal fun PluginViewContent(
     if (hasResolvedPresentation(view)) {
         val content: @Composable () -> Unit = {
             quote?.invoke()
-            ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
-                onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
-                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
-                resolveImage = resolveImage, onQrRefresh = onQrRefresh.takeUnless { locked })
+            ResolvedPresentation(view, locked) { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } }
             if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
         }
         if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }
@@ -545,6 +562,7 @@ internal fun PluginViewContent(
                     error = if (formSubmitted) failure else null,
                     members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
                     fileStates = fileStates, onFileAction = onFileAction,
+                    locationStates = locationStates, onLocationAction = onLocationAction,
                     onSubmit = { values -> formSubmitted = true; advance(request.submitted(values)) },
                     onCancel = { if (!formPending) { formRun = null; formSubmitted = false } },
                 )

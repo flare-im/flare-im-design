@@ -175,6 +175,14 @@ fun FlarePluginPage(
     onUpdate: (() -> Unit)? = null,
     resolveImage: (suspend (PluginImageSource) -> String?)? = null,
     onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -295,6 +303,7 @@ fun FlarePluginPage(
                             list = list,
                             fileStates = fileStates, onFileAction = onFileAction,
                             resolveImage = resolveImage, onQrRefresh = onQrRefresh,
+                            locationStates = locationStates, onLocationAction = onLocationAction, protectedMedia = protectedMedia, onProtectedMediaRead = onProtectedMediaRead,
                         )
                     }
                 }

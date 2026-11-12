@@ -344,6 +344,57 @@ data class PluginBannerBlock(val tone: PluginBannerTone = PluginBannerTone.Info,
 data class PluginTimelineItem(val atMs: Long, val title: String, val detail: String? = null, val status: PluginBadge? = null)
 
 /** `timeline`: up to 50 dated items, in the plugin's order. */
+/** One item of a protected media block; nothing about its content is in the view. */
+data class PluginProtectedItem(val id: String, val label: String, val mediaType: String? = null, val input: Any? = null) {
+    val isImage: Boolean get() = mediaType?.startsWith("image/") ?: true
+}
+
+/**
+ * `protected-media`: private material read one item at a time through [action] — with a stated reason when
+ * [reasonInput] is declared (a console), with one tap on the owner's own page (no [reasonInput]; owner-scoped).
+ */
+data class PluginProtectedMediaBlock(
+    val label: String? = null,
+    val items: List<PluginProtectedItem>,
+    /** Absent on a read-only copy. */
+    val action: PluginViewAction? = null,
+    val inputName: String,
+    val reasonInput: String? = null,
+    /** Reads the action's result (a JSON pointer): the address to draw. */
+    val urlPath: String,
+    val emptyText: String? = null,
+) : PluginBlock {
+    /** Whether a read first asks the viewer why (spec/capability-ui-vectors.json protectedMediaReason). */
+    val asksReason: Boolean get() = reasonInput != null
+
+    /** The read handed to the host for [item] with [reason] (empty when none is asked). */
+    fun read(item: PluginProtectedItem, reason: String): PluginProtectedMediaRead? {
+        val action = action ?: return null
+        val values = linkedMapOf<String, Any?>(inputName to item.id)
+        reasonInput?.let { values[it] = reason }
+        return PluginProtectedMediaRead(action, item, reason, urlPath, values)
+    }
+}
+
+/** What the host has for a protected media item. */
+data class PluginProtectedMediaState(
+    /** The read's address: the server's short-lived https address (`?grant=`), or a data:image the host fetched. */
+    val url: String? = null,
+    val loading: Boolean = false,
+    val error: String? = null,
+)
+
+/** A protected media read for the host to run and audit. */
+data class PluginProtectedMediaRead(
+    val action: PluginViewAction,
+    val item: PluginProtectedItem,
+    /** Empty when the block asks for none. */
+    val reason: String,
+    val urlPath: String,
+    /** The item under `inputName` and, when declared, the reason. */
+    val formValues: Map<String, Any?>,
+)
+
 data class PluginTimelineBlock(val items: List<PluginTimelineItem>, val emptyText: String? = null) : PluginBlock {
     override val kind: String get() = "timeline"
 }
@@ -363,7 +414,7 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
         collapsed = map.flag("collapsed") ?: false,
         // A nested section or rows block is not allowed: dropped like an unknown kind.
         blocks = map.items("blocks").mapNotNull { (it as? Map<*, *>)?.let(::pluginBlockOf) }
-            .filterNot { it is PluginSectionBlock || it is PluginRowsBlock },
+            .filterNot { it is PluginSectionBlock || it is PluginRowsBlock || it is PluginProtectedMediaBlock },
     )
     "stats" -> PluginStatsBlock(map.items("items").mapNotNull { raw ->
         val item = raw as? Map<*, *> ?: return@mapNotNull null
@@ -419,6 +470,23 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
         },
         emptyText = map.str("emptyText"),
     )
+    "protected-media" -> {
+        val inputName = map.str("inputName")?.takeIf { it.isNotEmpty() }
+        val urlPath = map.str("urlPath")?.takeIf { it.isNotEmpty() }
+        if (inputName == null || urlPath == null) null else PluginProtectedMediaBlock(
+            label = map.str("label"),
+            items = map.items("items").mapNotNull { raw ->
+                val item = raw as? Map<*, *> ?: return@mapNotNull null
+                val id = item.str("id")?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                PluginProtectedItem(id, item.str("label") ?: "", item.str("mediaType"), item["input"])
+            },
+            action = (map["action"] as? Map<*, *>)?.let(::pluginActionOf),
+            inputName = inputName,
+            reasonInput = map.str("reasonInput")?.takeIf { it.isNotEmpty() },
+            urlPath = urlPath,
+            emptyText = map.str("emptyText"),
+        )
+    }
     else -> null
 }
 
