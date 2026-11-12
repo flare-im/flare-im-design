@@ -887,9 +887,11 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       children: [if (quote != null) _quote(context, colors, quote), ...rows],
     );
     // A failed bubble is the failure surface with its red edge (status has
-    // meaning); the others are drawn by their fill alone, the incoming one on
-    // a tertiary tone the chat canvas never uses
-    // (spec/message-surface-vectors.json palette).
+    // meaning); the others are drawn by their fill
+    // (spec/message-surface-vectors.json palette). The incoming one, as every
+    // kit draws it, is a step darker than the chat canvas (bg.primary) under
+    // the small shadow token, so the bubble and the gap between two of them
+    // read without a hairline.
     final palette = flareMessageBubblePalette(
       flareMessageBubbleTone(self: self, status: _status),
       colors,
@@ -899,6 +901,7 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
       color: palette.background,
       borderRadius: shape,
       border: edge == null ? null : Border.all(color: edge),
+      boxShadow: self ? null : FlareShadows.of(Theme.of(context).brightness).sm,
     );
     return _withActions(
       ConstrainedBox(

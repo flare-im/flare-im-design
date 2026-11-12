@@ -808,6 +808,117 @@
           ]
         }
       }
+    },
+    {
+      "id": "MessageList.canvas",
+      "why": "时间线底色曾是两种:Vue 铺 --flare-component-chat-window-bg(bg.primary),三个原生端铺 bg.secondary。对方气泡靠和画布的色差立住,原生端上只剩 1.05:1,同一个人连发的几条连成一片看不出分隔。四端现在都铺 bg.primary(spec/message-surface-vectors.json palette.canvas)。",
+      "token": "colors.bg.primary",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageListView.swift",
+          "require": [
+            "\\.background\\(colors\\.bgPrimary\\)"
+          ],
+          "forbid": [
+            "\\.background\\(colors\\.bgSecondary\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageList.kt",
+          "require": [
+            "fillMaxSize\\(\\)\\.background\\(colors\\.bgPrimary\\)"
+          ],
+          "forbid": [
+            "fillMaxSize\\(\\)\\.background\\(colors\\.bgSecondary\\)"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_list.dart",
+          "require": [
+            "ColoredBox\\(\\s*color: colors\\.bgPrimary"
+          ],
+          "forbid": [
+            "ColoredBox\\(\\s*color: colors\\.bgSecondary"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/message-workspace.css",
+          "require": [
+            "background: var\\(--flare-component-chat-window-bg\\)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "MessageBubble.incomingShadow",
+      "why": "对方气泡的阴影曾是四种:Vue shadow-sm、iOS 手写 0.05/半径 5/下移 2 的晕影、Compose 2dp 投影、Flutter 没有。四端现在都引用 shadows.sm,发出的气泡不带阴影。",
+      "token": "shadows.sm",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
+          "require": [
+            "flareShadow\\(FlareShadows\\.of\\(scheme\\)\\.sm\\)"
+          ],
+          "forbid": [
+            "\\.shadow\\(color: Color\\.black\\.opacity\\(0\\.05\\), radius: 5"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/MessageBubble.kt",
+          "require": [
+            "Modifier\\.shadow\\(flareShadowElevation\\(flareShadows\\(\\)\\.sm\\)"
+          ],
+          "forbid": [
+            "Modifier\\.shadow\\(2\\.dp, shape"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_message_bubble.dart",
+          "require": [
+            "boxShadow: self \\? null : FlareShadows\\.of\\(Theme\\.of\\(context\\)\\.brightness\\)\\.sm"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/design-system/styles/chat/message-bubble.css",
+          "require": [
+            "box-shadow: var\\(--flare-shadow-sm\\)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "Composer.topEdge",
+      "why": "输入区和时间线之间的那条线曾只有 Vue 有(border-block-start: --flare-component-composer-border)。三个原生端的手机形态靠「灰色时间线 + 白色输入条」的色差隔开;时间线统一铺 bg.primary 后两边同色,输入框看起来像时间线的一部分。四端现在都画这一条 border.primary。",
+      "token": "colors.border.primary",
+      "platforms": {
+        "ios": {
+          "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ComposerView.swift",
+          "require": [
+            "\\.overlay\\(alignment: \\.top\\) \\{ Rectangle\\(\\)\\.fill\\(colors\\.borderPrimary\\)"
+          ]
+        },
+        "android": {
+          "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Composer.kt",
+          "require": [
+            "drawBehind \\{ drawLine\\(colors\\.borderPrimary"
+          ]
+        },
+        "flutter": {
+          "file": "packages/flutter-im-ui/lib/src/components/flare_composer.dart",
+          "require": [
+            "border: Border\\(top: BorderSide\\(color: colors\\.borderPrimary\\)\\)"
+          ],
+          "forbid": [
+            "border: m\\.wide\\s*\\?\\s*Border\\(top:"
+          ]
+        },
+        "vue": {
+          "file": "packages/vue-im-ui/src/components/composer/composer-studio.css",
+          "require": [
+            "border-block-start: 1px solid var\\(--flare-component-composer-border\\)"
+          ]
+        }
+      }
     }
   ]
 }

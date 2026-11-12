@@ -38,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
@@ -407,6 +409,9 @@ fun Composer(
         val m = ComposerMetrics.of(maxWidth, keys = keys)
         Column(
             Modifier.fillMaxWidth().background(if (m.band) colors.bgSecondary else colors.bgPrimary)
+                // The one line between the composer and the timeline, as on every kit (Vue `--flare-component-composer-border`):
+                // the timeline is the same bg.primary as the band, so without it the field reads as part of the thread.
+                .drawBehind { drawLine(colors.borderPrimary, Offset(0f, 0.5.dp.toPx()), Offset(size.width, 0.5.dp.toPx()), 1.dp.toPx()) }
                 .then(if (m.band) Modifier.padding(bottom = FlareSizes.spacingXs) else Modifier.padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingSm))
         ) {
             replyTo?.let { ReplyStrip(it, replyLabel, strings.cancelReply, colors, onCancelReply, m.band) }

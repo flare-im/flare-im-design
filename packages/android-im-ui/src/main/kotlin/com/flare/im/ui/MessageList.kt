@@ -906,7 +906,9 @@ fun MessageList(
         LocalFlareMediaHost provides media, LocalLocateHighlight provides locateHost, LocalFlareImageGallery provides gallery,
         LocalFlareConversationId provides conversationId,
     ) {
-        Column(Modifier.fillMaxSize().background(colors.bgSecondary).pointerInput(keyboard, view) {
+        // The chat canvas the four kits share (Vue `--flare-component-chat-window-bg`): the incoming bubble is drawn by its
+        // fill against this surface, so it has to be the one the bubble's colour was chosen for.
+        Column(Modifier.fillMaxSize().background(colors.bgPrimary).pointerInput(keyboard, view) {
             detectTapGestures {
                 val editor = view.findFocus() as? android.widget.EditText ?: return@detectTapGestures
                 keyboard?.hide()

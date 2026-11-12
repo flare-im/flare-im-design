@@ -300,6 +300,9 @@ public struct ComposerView: View {
             }
         }.padding(.horizontal, m.band ? 0 : 4).padding(.top, m.band ? 0 : 8).padding(.bottom, m.band ? 4 : 8)
         .background(m.band ? colors.bgSecondary : colors.bgPrimary)
+        // The one line between the composer and the timeline, as on every kit (Vue `--flare-component-composer-border`):
+        // the timeline is the same bg.primary as the band, so without it the field reads as part of the thread.
+        .overlay(alignment: .top) { Rectangle().fill(colors.borderPrimary).frame(height: 1).accessibilityHidden(true) }
         .background(GeometryReader { proxy in Color.clear.onAppear { width = proxy.size.width }.onChange(of: proxy.size.width) { width = $0 } })
         .onChange(of: capabilities) { _ in closeRevokedTools() }
         // A menu that empties closes "+" (its key is hidden); the draft stays.

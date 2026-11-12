@@ -150,6 +150,32 @@ final class MessageSurfaceVectorsTests: XCTestCase {
         }
     }
 
+    /// The chat canvas (`palette.canvas`): the incoming bubble stands off bg.primary, the surface the timeline lays
+    /// down, in every brand and both modes — or a run from one sender reads as one block.
+    func testTheIncomingBubbleStandsOffTheChatCanvas() throws {
+        let canvas = try XCTUnwrap(try table("message-surface-vectors.json")["palette"]?["canvas"])
+        XCTAssertEqual(string(canvas["background"]), "bg.primary")
+        let minimum = try XCTUnwrap(canvas["minIncomingContrast"]?.numberValue)
+        func luminance(_ color: Color) throws -> Double {
+            let srgb = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+            let resolved = color.resolve(in: EnvironmentValues()).cgColor
+            let parts = try XCTUnwrap(resolved.converted(to: srgb, intent: .defaultIntent, options: nil)?.components)
+            func linear(_ c: CGFloat) -> Double {
+                let v = Double(c)
+                return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+            }
+            return 0.2126 * linear(parts[0]) + 0.7152 * linear(parts[1]) + 0.0722 * linear(parts[2])
+        }
+        for brand in FlareBrandTheme.allCases {
+            for scheme in [ColorScheme.light, .dark] {
+                let colors = FlareColors.of(scheme, brand: brand)
+                let (a, b) = (try luminance(colors.messageIncomingBackground), try luminance(colors.bgPrimary))
+                let ratio = (max(a, b) + 0.05) / (min(a, b) + 0.05)
+                XCTAssertGreaterThanOrEqual(ratio, minimum, "\(brand) \(scheme)")
+            }
+        }
+    }
+
     // MARK: Receipt (C3)
 
     func testReceiptFollowsTheSharedTable() throws {

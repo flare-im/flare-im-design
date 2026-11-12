@@ -6,6 +6,13 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **Message list: an incoming message stands off the chat canvas on every kit** (tokens and all four kits).
+  - The native kits laid the timeline on `bg.secondary` (#F7F8FA), where the incoming bubble (#F1F2F5) read at 1.05:1 and a run of messages from one sender looked like one block. All four kits now lay it on `bg.primary`, as Vue already did (`--flare-component-chat-window-bg`), and `message.incoming.background` is a step darker: #ECEEF2 light, #2E323C dark (1.16:1 and 1.22:1 on the canvas). `spec/message-surface-vectors.json` `palette.canvas` names the canvas and the minimum, 1.15:1, which the native kits check in every brand and mode and the web bubble gate measures in the page.
+  - The incoming bubble's shadow is the small shadow token (`shadows.sm`) on all four kits; SwiftUI drew a hand-written blur, Compose a 2dp elevation and Flutter none.
+  - The composer draws its top line (`border.primary`) on all four kits, as Vue already did: with the timeline and the phone band now the same surface, the field otherwise read as part of the thread.
+  - Forest and Sunset, light: `primaryText` and `text.link` move one step darker (#166534 and #9A3412; link hover #14532D and #7C2D12), so links and mentions in an incoming bubble keep 4.5:1 on the darker fill. Forest was at 4.48:1 already.
+  - The cross-platform visual contract gains `MessageList.canvas`, `MessageBubble.incomingShadow` and `Composer.topEdge`.
+
 - **Message list: the timeline scrolls from a message, and a short window fills itself** (all four kits).
   - SwiftUI: from iOS 18 the swipe-to-reply drag on every row kept the scroll view's pan from starting, so a finger that went down on a message did not scroll the list, often for seconds after a conversation opened. On iOS 18 and later the swipe is a UIKit pan that begins only on a mostly sideways drag (`FlareSwipeReply.claims`, the rule's 1.25 dominance) and runs beside the scroll. Flutter and Compose never had the conflict; their tests now start a vertical drag on a row and check that the list moved.
   - A window that fits the viewport, or overflows it by no more than the 160-point paging distance, cannot be scrolled far enough to ask for older messages (one that fits sends no scroll at all), so a first window of about one screen never grew. Every kit now asks by itself after a layout of such a window until it overflows or there is nothing more, once per window, so a page that brings no rows does not ask again (`spec/message-list-paging-vectors.json` `fill`). A replaced window still waits for the reader.

@@ -606,7 +606,9 @@ public struct MessageListView: View {
                         disabled: requestedNewer, colors: colors) { askNewer(retry: true) }
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(colors.bgSecondary)
+            // The chat canvas the four kits share (Vue `--flare-component-chat-window-bg`): the incoming bubble is drawn
+            // by its fill against this surface, so it has to be the one the bubble's colour was chosen for.
+            .background(colors.bgPrimary)
             .onChange(of: loadingOlder) { if !$0 { requested = false; pagingSettled() } }
             .onChange(of: messages.first?.id) { _ in requested = false; pagingSettled() }
             .onChange(of: olderError) { _ in requested = false }

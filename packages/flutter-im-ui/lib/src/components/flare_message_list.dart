@@ -1531,8 +1531,12 @@ class _FlareMessageListState extends State<FlareMessageList>
               : _downloadGalleryPicture,
           reveal: widget.onMediaReveal == null ? null : _revealGalleryPicture,
           downloadStateOf: _galleryPictureState,
+          // The chat canvas the four kits share (Vue
+          // `--flare-component-chat-window-bg`): the incoming bubble is drawn by
+          // its fill against this surface, so it has to be the one the bubble's
+          // colour was chosen for.
           child: ColoredBox(
-            color: colors.bgSecondary,
+            color: colors.bgPrimary,
             child: Column(
               children: [
                 if (olderEdge.visible && !emptyWindow)

@@ -1262,9 +1262,11 @@ class FlareComposerState extends State<FlareComposer> {
           return Container(
             decoration: BoxDecoration(
               color: m.wide ? colors.bgPrimary : colors.bgSecondary,
-              border: m.wide
-                  ? Border(top: BorderSide(color: colors.borderPrimary))
-                  : null,
+              // The one line between the composer and the timeline, as on
+              // every kit (Vue `--flare-component-composer-border`): the
+              // timeline is the same bg.primary as the band, so without it the
+              // field reads as part of the thread.
+              border: Border(top: BorderSide(color: colors.borderPrimary)),
             ),
             padding: m.wide
                 ? EdgeInsets.fromLTRB(

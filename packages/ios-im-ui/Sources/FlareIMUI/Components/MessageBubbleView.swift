@@ -598,11 +598,10 @@ public struct MessageBubbleView: View {
                     .background(shape.fill(palette.background))
                     .background { locateRing(colors, shape: AnyShape(shape)) }
             } else {
-                // Drawn by fill, not by outline: the incoming surface is a tertiary tone the chat canvas
-                // never uses, so the bubble has an edge without a hairline to keep in sync with it.
+                // The incoming bubble as every kit draws it: a fill a step darker than the chat canvas (bg.primary)
+                // under the small shadow token, so the bubble and the gap between two of them read without a hairline.
                 bubbleInner(colors)
-                    .background(shape.fill(palette.background))
-                    .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
+                    .background(shape.fill(palette.background).flareShadow(FlareShadows.of(scheme).sm))
                     .background { locateRing(colors, shape: AnyShape(shape)) }
             }
         }

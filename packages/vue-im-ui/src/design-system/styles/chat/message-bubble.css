@@ -256,8 +256,10 @@ button.message-avatar {
    改前进来的一条是「和画布同色 + 1px 发丝线」：浅色 #FFFFFF 的气泡画在 #FFFFFF 的画布上、
    暗色 #20232B 的气泡画在 #20232B 的画布上 —— 两边都是 1.00:1，那条线不是装饰，是气泡
    唯一的轮廓。于是尾巴那块纯填充一盖上去就把线抹掉一段，出现豁口；描边和填充本来就在
-   打架。现在底色自己就是轮廓：进来的一条取 tertiary 面（浅 #F1F2F5 / 暗 #292D37），
-   画布留在 primary，尾巴与气泡同一种填充，接缝无处可露。发出去的一条本来就是实色紫，
+   打架。现在底色自己就是轮廓：进来的一条取 message.incoming（浅 #ECEEF2 / 暗 #2E323C，
+   比画布深一档：1.16:1 / 1.22:1；原先的 tertiary 1.12:1 在原生端铺 bg.secondary 的画布上
+   只剩 1.05:1，同一个人连发的几条连成一片），画布留在 primary（四端同一张），尾巴与气泡
+   同一种填充，接缝无处可露。发出去的一条本来就是实色紫，
    三个原生端也从来没给它描过边 —— 这次一并去掉，四端同一套画法。 */
 .message-bubble:not(.message-bubble--chromeless-media) {
   --flare-component-bubble-tail-fill: var(--flare-color-message-incoming-background);

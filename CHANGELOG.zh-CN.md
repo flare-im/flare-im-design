@@ -6,6 +6,13 @@
 
 ### 设计系统与跨端组件
 
+- **消息列表：对方的消息在四端都和聊天底色分得开**（Token 与四端 Kit）。
+  - 原生三端的时间线铺的是 `bg.secondary`（#F7F8FA），对方气泡（#F1F2F5）在上面只有 1.05:1，同一个人连发的几条连成一片。四端现在都铺 `bg.primary`，和 Vue 原本一样（`--flare-component-chat-window-bg`）；`message.incoming.background` 加深一档：亮色 #ECEEF2、暗色 #2E323C（在底色上 1.16:1 与 1.22:1）。`spec/message-surface-vectors.json` 的 `palette.canvas` 写明底色和下限 1.15:1，原生三端按每个品牌、两种模式检查，网页端的气泡门禁在页面里实测。
+  - 对方气泡的阴影四端都引用小阴影 token（`shadows.sm`）；原先 SwiftUI 是手写的晕影、Compose 是 2dp 投影、Flutter 没有。
+  - 输入区顶部的分隔线（`border.primary`）四端都画，和 Vue 原本一样：时间线和手机形态的输入条现在是同一种底色，没有这条线时输入框看起来像时间线的一部分。
+  - Forest 与 Sunset 亮色：`primaryText` 和 `text.link` 各调深一档（#166534 与 #9A3412；链接悬停 #14532D 与 #7C2D12），对方气泡加深后，里面的链接和 @ 提及仍有 4.5:1。Forest 原来就只有 4.48:1。
+  - 跨端视觉契约新增 `MessageList.canvas`、`MessageBubble.incomingShadow` 与 `Composer.topEdge`。
+
 - **消息列表：从消息上开始拖也能滚动，不满一屏的窗口自己补页**（四端 Kit）。
   - SwiftUI：iOS 18 起，每行上的右滑回复手势会让滚动视图的拖动起不来，手指落在消息上时列表不动，刚进会话的几秒里尤其常见。iOS 18 及以上，右滑改为 UIKit 拖动手势，只在以横向为主的拖动上开始（`FlareSwipeReply.claims`，与规则同一个 1.25 倍判据），并与滚动同时识别。Flutter 与 Compose 没有这个冲突；两端的测试现在从消息行上开始竖向拖动，并检查列表确实滚动了。
   - 放得下一屏、或只比一屏多出不到 160 点翻页距离的窗口，滚不到能请求更早消息的位置（放得下的根本没有滚动事件），于是首屏约一屏时永远不再加载。四端现在在这种窗口布局之后自己请求，直到超出这段距离或没有更多，每个窗口一次，带不回新行的一页不会再请求（`spec/message-list-paging-vectors.json` 的 `fill`）。被替换的窗口仍等读者先动。
