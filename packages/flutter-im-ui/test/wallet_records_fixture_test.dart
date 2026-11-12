@@ -69,6 +69,7 @@ void main() {
                   strings: strings,
                   child: Scaffold(
                     body: FlarePluginPage(
+                      appearance: FlarePluginPageAppearance.account,
                       page: FlarePluginPageRef(
                         pluginId: 'fixture',
                         page: item['page'] as String? ?? item['id'] as String,

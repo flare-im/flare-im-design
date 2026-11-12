@@ -1,20 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/plugin_view.dart';
-import '../models/contact_picker.dart';
-import '../models/directory_data.dart';
 import '../models/red_packet.dart';
-import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_plugin_view.dart';
-import 'flare_contact_picker.dart';
-import 'flare_bottom_sheet.dart';
 import 'flare_input.dart';
 import 'flare_button.dart';
 import 'flare_red_packet_card.dart';
-import 'flare_red_packet_composer.dart';
-import 'flare_red_packet_detail.dart';
-import 'flare_red_packet_open_sheet.dart';
 import 'flare_red_packet_pay_confirm.dart';
 
 Map<String, Object?> _map(Object? v) => v is Map
@@ -24,19 +16,17 @@ Map<String, Object?> _map(Object? v) => v is Map
       }
     : {};
 String _text(Object? v) => v is String ? v : '';
-bool flareHasResolvedPresentation(FlarePluginViewModel view) {
-  final renderer = view.presentation?['renderer'];
-  return view.available &&
-      [
-        'redPacket.card',
-        'redPacket.composer',
-        'redPacket.detail',
-        'redPacket.pay',
-        'payment.confirm',
-      ].contains(renderer) &&
-      (renderer != 'redPacket.detail' ||
-          _map(view.presentation?['props'])['details'] is Map);
-}
+
+/// Whether [view] is drawn by a compiled-in renderer: the red packet card and
+/// the payment confirmation are all that is left after vocabulary 2 (the
+/// composer and detail are declarative: money input; hero, entries, banner).
+bool flareHasResolvedPresentation(FlarePluginViewModel view) =>
+    view.available &&
+    const [
+      'redPacket.card',
+      'redPacket.pay',
+      'payment.confirm',
+    ].contains(view.presentation?['renderer']);
 
 /// Compiled-in visual composition over already-resolved props. It never dispatches or interprets targets.
 class FlareResolvedPresentation extends StatefulWidget {
@@ -85,11 +75,6 @@ class FlareResolvedPresentation extends StatefulWidget {
 }
 
 class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
-  FlarePluginMember? _recipient;
-  bool _recipientRequired = false;
-  final _memberRevision = ValueNotifier(0);
-  ModalRoute<Object?>? _recipientRoute;
-  NavigatorState? _recipientNavigator;
   final _paymentPassword = TextEditingController();
   final _paymentRevision = ValueNotifier(0);
   final _paymentBusy = ValueNotifier(false);
@@ -116,7 +101,6 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
       // Keep its field/controller valid until its widgets are unmounted.
       unawaited(route.completed.then((_) => _disposePaymentDraft()));
     }
-    _memberRevision.dispose();
     super.dispose();
   }
 
@@ -126,11 +110,6 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
     _paymentBusy.dispose();
   }
 
-  var _kind = FlareRedPacketKind.normal;
-  var _amount = '';
-  var _count = 1;
-  var _greeting = '';
-  final _users = <String, FlarePluginUser>{};
   Map<String, Object?> get p => _map(widget.view.presentation?['props']);
   String get renderer => _text(widget.view.presentation?['renderer']);
   FlarePluginAction? bound(String name) {
@@ -149,48 +128,18 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
   @override
   void initState() {
     super.initState();
-    _greeting = _text(
-      widget.view.inputs
-          .where((i) => i.id == 'greeting')
-          .firstOrNull
-          ?.defaultValue,
-    );
-    _resolve();
     _schedulePayment();
   }
 
   @override
   void didUpdateWidget(covariant FlareResolvedPresentation old) {
     super.didUpdateWidget(old);
-    _resolve();
-    if (old.membersRevision != widget.membersRevision) {
-      _recipient = null;
-      _recipientRequired = true;
-      final route = _recipientRoute, navigator = _recipientNavigator;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (navigator?.mounted == true && route?.isActive == true)
-          navigator!.removeRoute(route!);
-      });
-    }
-    if (old.view.presentation?['props'] is Map &&
-        _map(old.view.presentation?['props'])['conversationType'] !=
-            p['conversationType']) {
-      _kind = FlareRedPacketKind.normal;
-      _recipient = null;
-      _recipientRequired = false;
-    }
-    if (widget.onMemberSearch == null &&
-        _recipient != null &&
-        !widget.members.any((m) => m.userId == _recipient!.userId)) {
-      _recipient = null;
-    }
     final entered = old.view.presentation?['renderer'] != renderer;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (old.view != widget.view) _paymentPassword.clear();
       _paymentBusy.value = widget.busy;
       _paymentRevision.value++;
-      _memberRevision.value++;
       if (!_paymentEligible ||
           (old.settleToken != widget.settleToken &&
               ((widget.error?.isNotEmpty ?? false) ||
@@ -344,25 +293,6 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
     );
   }
 
-  void _resolve() {
-    final ids = {
-      _text(p['senderId']),
-      ...((p['claims'] is List)
-          ? (p['claims'] as List).map((c) => _text(_map(c)['id']))
-          : <String>[]),
-    };
-    for (final id in ids) {
-      if (id.isEmpty || _users.containsKey(id) || widget.resolveUser == null)
-        continue;
-      _users[id] = FlarePluginUser(name: flarePluginFallbackName(id));
-      Future.sync(() => widget.resolveUser!(id)).then((u) {
-        if (mounted && u != null) setState(() => _users[id] = u);
-      }, onError: (_) {});
-    }
-  }
-
-  FlarePluginUser person(String id) =>
-      _users[id] ?? FlarePluginUser(name: flarePluginFallbackName(id));
   FlarePluginViewModel get remainder {
     final handled = _map(widget.view.presentation?['actions']).values.toSet();
     return FlarePluginViewModel(
@@ -390,243 +320,8 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
       widget.onRequest?.call(a.id);
   }
 
-  Future<void> envelope(FlareRedPacketDetailsView details) async {
-    if (widget.busy || unknown || bound('open') == null) return;
-    final sender = person(_text(p['senderId']));
-    final claim = await FlareRedPacketOpenSheet.show<bool>(
-      context,
-      builder: (inner) => FlareRedPacketOpenSheet(
-        senderName: sender.name,
-        senderAvatar: sender.avatarUrl,
-        blessing: details.greeting,
-        state: FlareRedPacketOpenState.ready,
-        onOpen: () => Navigator.of(inner).pop(true),
-        onClose: () => Navigator.of(inner).pop(false),
-        onViewDetails: () => Navigator.of(inner).pop(false),
-      ),
-    );
-    if (mounted && claim == true) request('open');
-  }
-
-  List<FlareRedPacketKind> get _composerKinds =>
-      switch (_text(p['conversationType'])) {
-        'single' => const [FlareRedPacketKind.normal],
-        'group' => const [
-          FlareRedPacketKind.normal,
-          FlareRedPacketKind.lucky,
-          FlareRedPacketKind.exclusive,
-        ],
-        _ => const [],
-      };
-  FlareRedPacketKind get _composerKind => _composerKinds.contains(_kind)
-      ? _kind
-      : (_composerKinds.firstOrNull ?? FlareRedPacketKind.normal);
-  FlarePluginInput? get _recipientInput => widget.view.inputs
-      .where(
-        (input) =>
-            input.id == 'designatedUserIds' &&
-            input.kind == FlarePluginInputKind.members,
-      )
-      .firstOrNull;
-
-  Future<void> _pickRecipient() async {
-    if (widget.busy ||
-        unknown ||
-        _composerKind != FlareRedPacketKind.exclusive ||
-        _recipientInput == null)
-      return;
-    final revision = widget.membersRevision;
-    widget.onMemberSearch?.call('');
-    final selected = await FlareBottomSheet.show<List<FlareContactPickerEntry>>(
-      context,
-      title: _recipientInput!.label,
-      fill: true,
-      listenable: _memberRevision,
-      builder: (sheet) {
-        _recipientRoute = ModalRoute.of(sheet);
-        _recipientNavigator = Navigator.of(sheet);
-        return FlareContactPicker(
-          title: _recipientInput!.label,
-          groups: [
-            FlareContactPickerGroup(
-              id: flareContactPickerGroupMembers,
-              entries: [
-                for (final m in widget.members)
-                  FlareContactPickerEntry(
-                    userId: m.userId,
-                    name: m.name,
-                    avatarUrl: m.avatarUrl,
-                  ),
-              ],
-            ),
-          ],
-          multiple: false,
-          loading: widget.membersLoading,
-          error: widget.membersError,
-          onSearch: widget.onMemberSearch,
-          onRetry: widget.onMembersRetry,
-          onSelect: (entries) {
-            if (!mounted ||
-                revision != widget.membersRevision ||
-                widget.busy ||
-                unknown ||
-                _composerKind != FlareRedPacketKind.exclusive ||
-                widget.membersLoading ||
-                (widget.membersError?.isNotEmpty ?? false))
-              return;
-            Navigator.of(sheet).pop(entries);
-          },
-          onCancel: () => Navigator.of(sheet).pop(),
-        );
-      },
-    );
-    _recipientRoute = null;
-    _recipientNavigator = null;
-    if (!mounted ||
-        revision != widget.membersRevision ||
-        selected == null ||
-        selected.length != 1 ||
-        _composerKind != FlareRedPacketKind.exclusive ||
-        widget.membersLoading ||
-        (widget.membersError?.isNotEmpty ?? false))
-      return;
-    final member = widget.members
-        .where((m) => m.userId == selected.single.userId)
-        .firstOrNull;
-    if (member != null)
-      setState(() {
-        _recipient = member;
-        _recipientRequired = false;
-      });
-  }
-
-  Widget _recipientField(FlareStrings strings) => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.end,
-    children: [
-      if (_recipient != null)
-        Text(
-          _recipient!.name,
-          key: const ValueKey('flare-red-packet-recipient-name'),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      Wrap(
-        spacing: FlareSizes.spacingXs,
-        children: [
-          FlareButton(
-            key: const ValueKey('flare-red-packet-recipient-choose'),
-            label: strings.select,
-            variant: FlareButtonVariant.secondary,
-            size: FlareControlSize.sm,
-            disabled: widget.busy || unknown || _recipientInput == null,
-            onPressed: _pickRecipient,
-          ),
-          if (_recipient != null)
-            FlareButton(
-              key: const ValueKey('flare-red-packet-recipient-clear'),
-              label: strings.clear,
-              variant: FlareButtonVariant.text,
-              size: FlareControlSize.sm,
-              disabled: widget.busy || unknown,
-              onPressed: () => setState(() {
-                _recipient = null;
-                _recipientRequired = true;
-              }),
-            ),
-        ],
-      ),
-      if (_recipientRequired && _recipient == null)
-        Text(
-          strings.pluginFormRequired,
-          key: const ValueKey('flare-red-packet-recipient-required'),
-          style: TextStyle(color: FlareColors.of(context).error),
-        ),
-    ],
-  );
-
-  Widget composer(FlareStrings strings) {
-    final kind = _composerKind;
-    final asset = _map(p['funding']);
-    final exponent = asset['currencyExponent'] is int
-        ? asset['currencyExponent'] as int
-        : 2;
-    final minor = flareRedPacketAmountMinor(_amount, exponent);
-    final total = minor != null && minor.length <= 64
-        ? flareRedPacketMinorText(
-            (BigInt.parse(minor) *
-                    BigInt.from(
-                      kind == FlareRedPacketKind.normal &&
-                              _text(p['conversationType']) == 'group'
-                          ? _count
-                          : 1,
-                    ))
-                .toString(),
-            exponent,
-          )
-        : '';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FlareRedPacketComposer(
-          kinds: _composerKinds,
-          kind: kind,
-          amount: _amount,
-          currencyExponent: exponent,
-          count: _count,
-          greeting: _greeting,
-          total: '${_text(asset['currency'])} ${total ?? ''}',
-          busy: widget.busy,
-          locked: unknown || _composerKinds.isEmpty || bound('submit') == null,
-          error: widget.formErrors.isEmpty ? null : strings.pluginFormInvalid,
-          submitLabel: bound('submit')?.label,
-          recipient: _recipientField(strings),
-          onKindChange: (v) {
-            if (_composerKinds.contains(v))
-              setState(() {
-                _kind = v;
-                _recipientRequired = false;
-              });
-          },
-          onAmountChange: (v) => setState(() => _amount = v),
-          onCountChange: (v) => setState(() => _count = v),
-          onGreetingChange: (v) => setState(() => _greeting = v),
-          onSubmit: () {
-            final a = bound('submit');
-            if (a == null || unknown || widget.busy || _composerKinds.isEmpty)
-              return;
-            if (kind == FlareRedPacketKind.exclusive &&
-                (_recipient == null || _recipientInput == null)) {
-              setState(() => _recipientRequired = true);
-              return;
-            }
-            widget.onAction?.call(
-              a.id,
-              FlarePluginActionPayload(
-                formValues: {
-                  'designatedUserIds': kind == FlareRedPacketKind.exclusive
-                      ? [_recipient!.userId]
-                      : <String>[],
-                  'kind': kind.name,
-                  'decimalAmount': _amount,
-                  'shareCount':
-                      kind == FlareRedPacketKind.exclusive ||
-                          _text(p['conversationType']) == 'single'
-                      ? 1
-                      : _count,
-                  'greeting': _greeting,
-                },
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final strings = FlareStrings.of(context);
     if (renderer == 'redPacket.card') {
       final card = FlareRedPacketCard(
         blessing: _text(p['blessing']),
@@ -676,42 +371,6 @@ class _FlareResolvedPresentationState extends State<FlareResolvedPresentation> {
       );
     }
     final children = <Widget>[];
-    if (renderer == 'redPacket.composer') children.add(composer(strings));
-    if (renderer == 'redPacket.detail') {
-      final details = FlareRedPacketDetailsView.fromJson(_map(p['details'])),
-          sender = person(_text(p['senderId']));
-      final claims = [
-        for (final raw in (p['claims'] is List ? p['claims'] as List : []))
-          if (_map(raw) case final c)
-            FlareRedPacketClaim(
-              id: _text(c['id']),
-              name: person(_text(c['id'])).name,
-              avatar: person(_text(c['id'])).avatarUrl,
-              amountMinor: _text(c['amountMinor']),
-              claimedAtMs: c['claimedAtMs'] is int
-                  ? c['claimedAtMs'] as int
-                  : 0,
-              best: c['best'] == true,
-            ),
-      ];
-      children.add(
-        FlareRedPacketDetail(
-          senderName: sender.name,
-          senderAvatar: sender.avatarUrl,
-          details: details,
-          claims: claims,
-        ),
-      );
-      final open = bound('open');
-      if (open != null)
-        children.add(
-          FlareButton(
-            label: open.label,
-            disabled: widget.busy || unknown,
-            onPressed: () => envelope(details),
-          ),
-        );
-    }
     if (['redPacket.pay', 'payment.confirm'].contains(renderer) &&
         bound('confirm') != null)
       children.add(

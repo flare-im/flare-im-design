@@ -231,6 +231,10 @@ export 'src/components/flare_tag.dart';
 export 'src/components/flare_plugin_form.dart';
 export 'src/components/flare_plugin_detail_sheet.dart';
 export 'src/components/flare_plugin_page.dart';
+export 'src/components/flare_plugin_upgrade_notice.dart';
+export 'src/components/flare_plugin_blocks_extra.dart'
+    show FlarePluginImageResolver, FlarePluginImageSource;
 export 'src/components/flare_account_view.dart';
 export 'src/models/plugin_view.dart';
+export 'src/models/plugin_ui_vocabulary.dart';
 export 'src/models/server_clock.dart';

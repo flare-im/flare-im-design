@@ -81,6 +81,7 @@ Widget page(
   int settle = 0,
   FlarePluginPageActionCallback? onAction,
 }) => FlarePluginPage(
+  appearance: FlarePluginPageAppearance.account,
   page: const FlarePluginPageRef(pluginId: 'test.wallet', page: 'fixture.home'),
   view: view,
   busyActionId: busy,

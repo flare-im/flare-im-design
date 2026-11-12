@@ -62,6 +62,7 @@ FlarePluginPageViewModel aligned(String layout) =>
 
 Widget frame(Widget child) => MaterialApp(home: Scaffold(body: child));
 Widget page(FlarePluginPageViewModel view) => FlarePluginPage(
+  appearance: FlarePluginPageAppearance.account,
   page: const FlarePluginPageRef(pluginId: 'fixture', page: 'aligned'),
   view: view,
   onBack: () {},
@@ -81,6 +82,7 @@ void main() {
       await tester.pumpWidget(
         frame(
           FlarePluginPage(
+            appearance: FlarePluginPageAppearance.account,
             page: const FlarePluginPageRef(
               pluginId: 'fixture',
               page: 'safe-area',
@@ -120,6 +122,7 @@ void main() {
         await tester.pumpWidget(
           frame(
             FlarePluginPage(
+              appearance: FlarePluginPageAppearance.account,
               page: const FlarePluginPageRef(
                 pluginId: 'fixture',
                 page: 'width',
@@ -174,6 +177,9 @@ void main() {
       await tester.pumpWidget(
         frame(
           FlarePluginPage(
+            appearance: state == 'account'
+                ? FlarePluginPageAppearance.account
+                : FlarePluginPageAppearance.document,
             page: const FlarePluginPageRef(pluginId: 'fixture', page: 'states'),
             title: 'State page',
             onBack: () {},

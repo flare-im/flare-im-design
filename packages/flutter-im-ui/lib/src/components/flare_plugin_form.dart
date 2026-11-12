@@ -128,7 +128,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   bool get _filesPending =>
-      _visible.where((i) => i.kind == FlarePluginInputKind.file).any((input) {
+      _visible.where((i) => flarePluginIsUpload(i.kind)).any((input) {
         final state = _fileState(input);
         return state.phase != FlarePluginFilePhase.empty &&
             (state.phase != FlarePluginFilePhase.uploaded ||
@@ -177,9 +177,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   void _applyFiles() {
-    for (final input in _visible.where(
-      (i) => i.kind == FlarePluginInputKind.file,
-    )) {
+    for (final input in _visible.where((i) => flarePluginIsUpload(i.kind))) {
       final state = widget.fileStates[input.id];
       if (state?.scope != _fileScope ||
           state?.generation != (_fileGenerations[input.id] ?? 0))
@@ -270,7 +268,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     final emit = widget.onFileAction;
     final events = [
       for (final input in widget.inputs.where(
-        (i) => i.kind == FlarePluginInputKind.file,
+        (i) => flarePluginIsUpload(i.kind),
       ))
         _advanceFile(input, FlarePluginFileActionKind.invalidate),
     ];
@@ -336,7 +334,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       final emit = widget.onFileAction;
       final events = [
         for (final input in widget.inputs.where(
-          (i) => i.kind == FlarePluginInputKind.file,
+          (i) => flarePluginIsUpload(i.kind),
         ))
           _advanceFile(input, FlarePluginFileActionKind.invalidate),
       ];
@@ -359,6 +357,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       switch (input.kind) {
         case FlarePluginInputKind.password:
         case FlarePluginInputKind.text:
+        case FlarePluginInputKind.money:
           _text[input.id] = TextEditingController(text: '${value ?? ''}');
         case FlarePluginInputKind.number:
           _text[input.id] = TextEditingController(
@@ -409,7 +408,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
         _editedSinceErrors.add(input.id);
       }
       for (final input in dependents) {
-        if (input.kind == FlarePluginInputKind.file)
+        if (flarePluginIsUpload(input.kind))
           events.add(_advanceFile(input, FlarePluginFileActionKind.invalidate));
       }
     });
@@ -586,18 +585,37 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     );
     switch (input.kind) {
       case FlarePluginInputKind.file:
+      case FlarePluginInputKind.image:
+      case FlarePluginInputKind.document:
         final file = _fileState(input);
         final policy = input.file;
         final max = policy?.maxBytes ?? 0;
         final size = max >= 1048576
             ? '${(max / 1048576).toStringAsFixed(max % 1048576 == 0 ? 0 : 1)} MiB'
             : '${(max / 1024).ceil()} KiB';
+        // A document input names the side it takes after its label.
+        final side = switch (input.side) {
+          FlarePluginDocumentSide.front =>
+            ' · ${strings.pluginFormDocumentFront}',
+          FlarePluginDocumentSide.back =>
+            ' · ${strings.pluginFormDocumentBack}',
+          FlarePluginDocumentSide.holding =>
+            ' · ${strings.pluginFormDocumentHolding}',
+          null => '',
+        };
         final hint = policy == null
             ? strings.pluginFileChoose
             : '${policy.accept.map((mime) => mime.split('/').last.toUpperCase()).join(', ')} · ≤ $size';
         return wrap(
           FlareFileUpload(
-            title: '${input.label}${input.required ? ' *' : ''}',
+            title: '${input.label}$side${input.required ? ' *' : ''}',
+            pickLabel: switch (input.kind) {
+              FlarePluginInputKind.image => strings.pluginFormChooseImage,
+              FlarePluginInputKind.document =>
+                strings.pluginFormCaptureDocument,
+              _ => null,
+            },
+            icon: input.kind == FlarePluginInputKind.file ? 'file' : 'image',
             state: FlareImageUploadState.values.byName(file.phase.name),
             fileName: file.fileName,
             progress: file.progress,
@@ -630,6 +648,40 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
             placeholder: input.placeholder,
             disabled: disabled,
             onChanged: (v) => _set(input.id, v),
+          ),
+        );
+      case FlarePluginInputKind.money:
+        final currency = input.money?.currency;
+        final scale = flarePluginMoneyScale(input);
+        return wrap(
+          Row(
+            children: [
+              Expanded(
+                child: FlareInput(
+                  key: ValueKey('flare-plugin-money-${input.id}'),
+                  controller: _text[input.id],
+                  semanticLabel: input.label,
+                  placeholder:
+                      input.placeholder ??
+                      (scale == 0 ? '0' : '0.${'0' * scale}'),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: scale > 0,
+                  ),
+                  disabled: disabled || currency == null,
+                  onChanged: (v) => _set(input.id, v),
+                ),
+              ),
+              if (currency != null) ...[
+                const SizedBox(width: FlareSizes.spacingSm),
+                Text(
+                  currency,
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeLg,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
           ),
         );
       case FlarePluginInputKind.textarea:

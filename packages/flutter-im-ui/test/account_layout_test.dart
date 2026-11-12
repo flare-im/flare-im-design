@@ -122,6 +122,7 @@ Widget host(
   ),
   home: Scaffold(
     body: FlarePluginPage(
+      appearance: FlarePluginPageAppearance.account,
       page: const FlarePluginPageRef(pluginId: 'test.wallet', page: 'wallet'),
       view: view,
       busyActionId: busy,

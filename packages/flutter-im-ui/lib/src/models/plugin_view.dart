@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -32,6 +33,10 @@ enum FlarePluginUnavailableReason {
   incompatibleVersion,
   catalogUnreachable,
   unboundCopy,
+
+  /// This build cannot draw it; [FlarePluginViewModel.minBuild] names the
+  /// first build that can, when known (`FlarePluginUpgradeNotice`).
+  upgradeRequired,
 }
 
 /// The wire name of [reason] (`not_installed` …).
@@ -73,9 +78,48 @@ enum FlarePluginInputKind {
   datetime,
   options,
   members,
+
+  /// An amount: `{amount: "<decimal>", currency}` (vocabulary 2).
+  money,
+
+  /// One picture, uploaded like [file] (vocabulary 2).
+  image,
+
+  /// A photo of a document side, uploaded like [file] (vocabulary 2).
+  document,
 }
 
-/// Form error kinds (UiFormIssue).
+/// Inputs whose value is an uploaded file's `{fileId}`: file, image and
+/// document.
+bool flarePluginIsUpload(FlarePluginInputKind kind) =>
+    kind == FlarePluginInputKind.file ||
+    kind == FlarePluginInputKind.image ||
+    kind == FlarePluginInputKind.document;
+
+/// Which side of a document a document input takes.
+enum FlarePluginDocumentSide { front, back, holding }
+
+/// The amount rules of a money input, read by the core SDK: no paths left.
+@immutable
+class FlarePluginMoneyRules {
+  const FlarePluginMoneyRules({this.currency, this.scale, this.min, this.max});
+  factory FlarePluginMoneyRules.fromJson(Map<String, Object?> json) =>
+      FlarePluginMoneyRules(
+        currency: _optString(json['currency']),
+        scale: _optInt(json['scale']),
+        min: _optString(json['min']),
+        max: _optString(json['max']),
+      );
+  final String? currency;
+
+  /// Fraction digits the amount may have; 2 when null.
+  final int? scale;
+
+  /// Bounds as decimal strings.
+  final String? min;
+  final String? max;
+}
+
 enum FlarePluginFormIssue {
   required,
   unknown,
@@ -97,6 +141,10 @@ T? _enum<T extends Enum>(List<T> values, Object? name) {
 }
 
 String _string(Object? value) => value is String ? value : '';
+double? _optDouble(Object? value) =>
+    value is num && value.isFinite ? value.toDouble() : null;
+Map<String, Object?>? _optMap(Object? value) =>
+    value is Map ? value.cast<String, Object?>() : null;
 String? _optString(Object? value) => value is String ? value : null;
 int _int(Object? value) => value is num ? value.toInt() : 0;
 int? _optInt(Object? value) => value is num ? value.toInt() : null;
@@ -110,14 +158,23 @@ List<Map<String, Object?>> _maps(Object? value) => value is List
 
 @immutable
 class FlarePluginField {
-  const FlarePluginField({required this.label, required this.value});
+  const FlarePluginField({
+    required this.label,
+    required this.value,
+    this.format,
+  });
   factory FlarePluginField.fromJson(Map<String, Object?> json) =>
       FlarePluginField(
         label: _string(json['label']),
         value: _string(json['value']),
+        format: _optMap(json['format']),
       );
   final String label;
   final String value;
+
+  /// What the resolved format adds to [value] (ResolvedUiFormat, as JSON);
+  /// read through [flarePluginFormatText]. The text alone is always right.
+  final Map<String, Object?>? format;
 }
 
 /// A resolved action. Its target and input stay with the core SDK; the kit
@@ -337,6 +394,122 @@ sealed class FlarePluginBlock {
                     if (id is String) id,
                 ]
               : null,
+        );
+      case 'section':
+        return FlarePluginSectionBlock(
+          label: _optString(json['label']),
+          collapsed: _bool(json['collapsed']),
+          blocks: [
+            for (final b in _maps(json['blocks']))
+              if (b['kind'] != 'section')
+                if (FlarePluginBlock.fromJson(b) case final block?) block,
+          ],
+        );
+      case 'stats':
+        return FlarePluginStatsBlock(
+          items: [
+            for (final i in _maps(json['items']))
+              FlarePluginStat(
+                label: _string(i['label']),
+                value: _string(i['value']),
+                format: _optMap(i['format']),
+                trend: i['trend'] is Map
+                    ? FlarePluginTrend(
+                        text: _string((i['trend'] as Map)['text']),
+                        direction: flarePluginTrendDirection(
+                          (i['trend'] as Map)['direction'],
+                        ),
+                      )
+                    : null,
+                tone: i['tone'] == null
+                    ? null
+                    : flarePluginBadgeTone(i['tone']),
+              ),
+          ],
+        );
+      case 'chart':
+        final chartKind = _enum(FlarePluginChartKind.values, json['chartKind']);
+        if (chartKind == null) return null;
+        return FlarePluginChartBlock(
+          chartKind: chartKind,
+          series: [
+            for (final s in _maps(json['series']))
+              FlarePluginChartSeries(
+                label: _optString(s['label']),
+                points: [
+                  for (final p in _maps(s['points']))
+                    if (_optDouble(p['value']) case final value?)
+                      FlarePluginChartPoint(
+                        label: _string(p['label']),
+                        value: value,
+                        text: _string(p['text']),
+                      ),
+                ],
+              ),
+          ],
+          emptyText: _optString(json['emptyText']),
+        );
+      case 'image':
+        return FlarePluginImageBlock(
+          asset: _optString(json['asset']),
+          fileId: _optString(json['fileId']),
+          aspect: _string(json['aspect']),
+          alt: _string(json['alt']),
+        );
+      case 'qr':
+        return FlarePluginQrBlock(
+          value: _string(json['value']),
+          label: _optString(json['label']),
+          caption: _optString(json['caption']),
+          refreshOperation: _optString(json['refreshOperation']),
+          valuePath: _string(json['valuePath']),
+          expiresAtPath: _optString(json['expiresAtPath']),
+          expiresAtMs: _optInt(json['expiresAtMs']),
+        );
+      case 'hero':
+        return FlarePluginHeroBlock(
+          label: _optString(json['label']),
+          value: _string(json['value']),
+          amount: _bool(json['amount']),
+          format: _optMap(json['format']),
+          subtitle: _optString(json['subtitle']),
+          tone: flarePluginHeroTone(json['tone']),
+          actions: [
+            for (final a in _maps(json['actions']))
+              FlarePluginAction.fromJson(a),
+          ],
+        );
+      case 'steps':
+        return FlarePluginStepsBlock(
+          items: [
+            for (final i in _maps(json['items']))
+              (
+                label: _string(i['label']),
+                state: flarePluginStepState(i['state']),
+              ),
+          ],
+        );
+      case 'banner':
+        final action = json['action'];
+        return FlarePluginBannerBlock(
+          tone: flarePluginBannerTone(json['tone']),
+          text: _string(json['text']),
+          action: action is Map
+              ? FlarePluginAction.fromJson(action.cast<String, Object?>())
+              : null,
+        );
+      case 'timeline':
+        return FlarePluginTimelineBlock(
+          items: [
+            for (final i in _maps(json['items']))
+              FlarePluginTimelineItem(
+                atMs: _int(i['atMs']),
+                title: _string(i['title']),
+                detail: _optString(i['detail']),
+                status: FlarePluginBadge.fromJson(i['status']),
+              ),
+          ],
+          emptyText: _optString(json['emptyText']),
         );
     }
     return null;
@@ -627,6 +800,204 @@ final class FlarePluginRowsBlock extends FlarePluginBlock {
   final List<String>? filters;
 }
 
+// ── vocabulary 2 blocks (docs/plugin-components.md) ────────────────────────
+
+/// Blocks under a heading, collapsible. Never holds a section, rows or
+/// protected media; children of kinds the kit does not know are skipped.
+final class FlarePluginSectionBlock extends FlarePluginBlock {
+  const FlarePluginSectionBlock({
+    this.label,
+    this.collapsed = false,
+    this.blocks = const [],
+  });
+  final String? label;
+  final bool collapsed;
+  final List<FlarePluginBlock> blocks;
+}
+
+enum FlarePluginTrendDirection { up, down, flat }
+
+/// How a figure moved: the text as sent and its direction.
+@immutable
+class FlarePluginTrend {
+  const FlarePluginTrend({
+    required this.text,
+    this.direction = FlarePluginTrendDirection.flat,
+  });
+  final String text;
+  final FlarePluginTrendDirection direction;
+}
+
+@immutable
+class FlarePluginStat {
+  const FlarePluginStat({
+    required this.label,
+    required this.value,
+    this.format,
+    this.trend,
+    this.tone,
+  });
+  final String label;
+
+  /// The plain text, whatever [format] says.
+  final String value;
+  final Map<String, Object?>? format;
+  final FlarePluginTrend? trend;
+  final FlarePluginTone? tone;
+}
+
+/// 2 to 6 figures side by side.
+final class FlarePluginStatsBlock extends FlarePluginBlock {
+  const FlarePluginStatsBlock({required this.items});
+  final List<FlarePluginStat> items;
+}
+
+enum FlarePluginChartKind { bar, line, donut }
+
+@immutable
+class FlarePluginChartPoint {
+  const FlarePluginChartPoint({
+    required this.label,
+    required this.value,
+    required this.text,
+  });
+  final String label;
+  final double value;
+
+  /// The value as text, through the block's format.
+  final String text;
+}
+
+@immutable
+class FlarePluginChartSeries {
+  const FlarePluginChartSeries({this.label, this.points = const []});
+  final String? label;
+  final List<FlarePluginChartPoint> points;
+}
+
+/// Up to 3 series (one for a donut) of up to 60 points, drawn with Canvas
+/// from kit colours; no chart library.
+final class FlarePluginChartBlock extends FlarePluginBlock {
+  const FlarePluginChartBlock({
+    required this.chartKind,
+    this.series = const [],
+    this.emptyText,
+  });
+  final FlarePluginChartKind chartKind;
+  final List<FlarePluginChartSeries> series;
+  final String? emptyText;
+}
+
+/// A picture at its declared aspect: a package [asset] or a private
+/// [fileId]; the host's `resolveImage` turns either into an image.
+final class FlarePluginImageBlock extends FlarePluginBlock {
+  const FlarePluginImageBlock({
+    this.asset,
+    this.fileId,
+    required this.aspect,
+    required this.alt,
+  });
+  final String? asset;
+  final String? fileId;
+
+  /// `1:1`, `4:3`, `16:9` or `3:4` ([flarePluginImageRatio]).
+  final String aspect;
+  final String alt;
+}
+
+/// What `onQrRefresh` carries: the host runs [operation] and passes back a
+/// view with the fresh code.
+typedef FlarePluginQrRefresh = ({
+  String operation,
+  String valuePath,
+  String? expiresAtPath,
+});
+
+/// A QR code of [value]; [refreshOperation] (a query) returns a fresh one.
+final class FlarePluginQrBlock extends FlarePluginBlock {
+  const FlarePluginQrBlock({
+    required this.value,
+    this.label,
+    this.caption,
+    this.refreshOperation,
+    this.valuePath = '',
+    this.expiresAtPath,
+    this.expiresAtMs,
+  });
+  final String value;
+  final String? label;
+  final String? caption;
+  final String? refreshOperation;
+  final String valuePath;
+  final String? expiresAtPath;
+  final int? expiresAtMs;
+}
+
+enum FlarePluginHeroTone { neutral, positive, warning, brand }
+
+/// The page's lead figure (one per document) with up to 3 owned actions.
+final class FlarePluginHeroBlock extends FlarePluginBlock {
+  const FlarePluginHeroBlock({
+    this.label,
+    required this.value,
+    this.amount = false,
+    this.format,
+    this.subtitle,
+    this.tone = FlarePluginHeroTone.neutral,
+    this.actions = const [],
+  });
+  final String? label;
+  final String value;
+  final bool amount;
+  final Map<String, Object?>? format;
+  final String? subtitle;
+  final FlarePluginHeroTone tone;
+  final List<FlarePluginAction> actions;
+}
+
+enum FlarePluginStepState { pending, current, done, failed }
+
+/// 2 to 6 steps of a process.
+final class FlarePluginStepsBlock extends FlarePluginBlock {
+  const FlarePluginStepsBlock({required this.items});
+  final List<({String label, FlarePluginStepState state})> items;
+}
+
+enum FlarePluginBannerTone { info, success, warning, danger }
+
+/// A prominent notice (at most 2 per document) with an optional owned action.
+final class FlarePluginBannerBlock extends FlarePluginBlock {
+  const FlarePluginBannerBlock({
+    this.tone = FlarePluginBannerTone.info,
+    required this.text,
+    this.action,
+  });
+  final FlarePluginBannerTone tone;
+  final String text;
+  final FlarePluginAction? action;
+}
+
+@immutable
+class FlarePluginTimelineItem {
+  const FlarePluginTimelineItem({
+    required this.atMs,
+    required this.title,
+    this.detail,
+    this.status,
+  });
+  final int atMs;
+  final String title;
+  final String? detail;
+  final FlarePluginBadge? status;
+}
+
+/// Up to 50 dated items, in the plugin's order.
+final class FlarePluginTimelineBlock extends FlarePluginBlock {
+  const FlarePluginTimelineBlock({this.items = const [], this.emptyText});
+  final List<FlarePluginTimelineItem> items;
+  final String? emptyText;
+}
+
 /// A resolved form input (UiInput).
 @immutable
 class FlarePluginInput {
@@ -643,6 +1014,8 @@ class FlarePluginInput {
     this.choices = const [],
     this.file,
     this.showWhen,
+    this.money,
+    this.side,
   });
   static FlarePluginInput? fromJson(Map<String, Object?> json) {
     final kind = _enum(FlarePluginInputKind.values, json['kind']);
@@ -671,6 +1044,12 @@ class FlarePluginInput {
               (json['showWhen'] as Map).cast<String, Object?>(),
             )
           : null,
+      money: json['money'] is Map
+          ? FlarePluginMoneyRules.fromJson(
+              (json['money'] as Map).cast<String, Object?>(),
+            )
+          : null,
+      side: _enum(FlarePluginDocumentSide.values, json['side']),
     );
   }
 
@@ -690,8 +1069,16 @@ class FlarePluginInput {
 
   /// select only.
   final List<({String value, String label})> choices;
+
+  /// file, image and document: what may be uploaded and how.
   final FlarePluginFilePolicy? file;
   final FlarePluginInputCondition? showWhen;
+
+  /// money only.
+  final FlarePluginMoneyRules? money;
+
+  /// document only.
+  final FlarePluginDocumentSide? side;
 }
 
 @immutable
@@ -947,6 +1334,7 @@ class FlarePluginViewModel {
     this.menuActions = const [],
     this.unavailableReason,
     this.presentation,
+    this.minBuild,
   }) : _source = null;
 
   FlarePluginViewModel._json({
@@ -961,6 +1349,7 @@ class FlarePluginViewModel {
     required this.menuActions,
     required this.unavailableReason,
     required this.presentation,
+    required this.minBuild,
     required String source,
   }) : _source = source;
 
@@ -992,6 +1381,7 @@ class FlarePluginViewModel {
         presentation: json['presentation'] is Map
             ? Map<String, Object?>.from(json['presentation'] as Map)
             : null,
+        minBuild: _optInt(json['minBuild']),
         source: jsonEncode(json),
       );
 
@@ -1009,6 +1399,10 @@ class FlarePluginViewModel {
 
   /// Why the view is unavailable, or read-only ([FlarePluginUnavailableReason.unboundCopy]).
   final FlarePluginUnavailableReason? unavailableReason;
+
+  /// [FlarePluginUnavailableReason.upgradeRequired]: the first build that
+  /// draws it, when the plugin declared one.
+  final int? minBuild;
   final List<FlarePluginBlock> blocks;
 
   /// Every input of the document; an action's form names the ones it collects.
@@ -1088,6 +1482,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     super.menuActions,
     super.unavailableReason,
     super.presentation,
+    super.minBuild,
     this.data,
   });
 
@@ -1102,6 +1497,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     required super.menuActions,
     required super.unavailableReason,
     required super.presentation,
+    required super.minBuild,
     required this.data,
     required super.source,
   }) : super._json(detail: false);
@@ -1120,6 +1516,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
       menuActions: view.menuActions,
       unavailableReason: view.unavailableReason,
       presentation: view.presentation,
+      minBuild: view.minBuild,
       data: data is Map ? data.cast<String, Object?>() : null,
       source: jsonEncode(json),
     );
@@ -1540,6 +1937,8 @@ String flarePluginUnavailableReasonText(
     strings.pluginViewUnavailableCatalogUnreachable,
   FlarePluginUnavailableReason.unboundCopy =>
     strings.pluginViewUnavailableUnboundCopy,
+  FlarePluginUnavailableReason.upgradeRequired =>
+    strings.pluginViewUnavailableUpgradeRequired,
 };
 
 /// The reason line of a view (rules.unavailableReason): an unavailable view
@@ -1644,7 +2043,13 @@ Object? flarePluginDraftValue(
       : input.defaultValue;
   switch (input.kind) {
     case FlarePluginInputKind.file:
+    case FlarePluginInputKind.image:
+    case FlarePluginInputKind.document:
       return FlarePluginFileValue.fromValue(raw)?.toJson();
+    case FlarePluginInputKind.money:
+      // The draft is the amount as typed; the currency comes from the input.
+      if (raw is String) return raw;
+      return raw is Map && raw['amount'] is String ? raw['amount'] : '';
     case FlarePluginInputKind.toggle:
       return raw == true;
     case FlarePluginInputKind.options:
@@ -1695,7 +2100,11 @@ FlarePluginFormIssue? flarePluginCheckInput(
 ) {
   final limit = flarePluginMaxLength(input);
   switch (input.kind) {
+    case FlarePluginInputKind.money:
+      return flarePluginCheckMoney(input, draft);
     case FlarePluginInputKind.file:
+    case FlarePluginInputKind.image:
+    case FlarePluginInputKind.document:
       return draft == null
           ? (input.required ? FlarePluginFormIssue.required : null)
           : FlarePluginFileValue.fromValue(draft) != null
@@ -1753,8 +2162,15 @@ Map<String, Object?> flarePluginFormValues(
     final value = draft[input.id];
     switch (input.kind) {
       case FlarePluginInputKind.file:
+      case FlarePluginInputKind.image:
+      case FlarePluginInputKind.document:
         final file = FlarePluginFileValue.fromValue(value);
         if (file != null) out[input.id] = file.toJson();
+      case FlarePluginInputKind.money:
+        final amount = flarePluginMoneyAmount(value is String ? value : '');
+        final currency = input.money?.currency;
+        if (amount.isNotEmpty && currency != null)
+          out[input.id] = {'amount': amount, 'currency': currency};
       case FlarePluginInputKind.password:
         final secret = value is String ? value : "";
         if (secret.isNotEmpty) out[input.id] = secret;
@@ -1809,4 +2225,330 @@ String? flarePluginCounter(FlarePluginInput input, Object? draft) {
     return null;
   final limit = flarePluginMaxLength(input);
   return limit == null ? null : '${_codePoints('${draft ?? ''}')}/$limit';
+}
+
+// ── vocabulary 2: formats, blocks and the upgrade notice ───────────────────
+// spec/plugin-view-vectors.json → formats2, blocks2, moneyInput, upgradeNotice.
+
+/// A count written compact (formats2): the largest unit of [units]
+/// (`4:万|8:亿`, `3:K|6:M|9:B`: exponent and suffix pairs) the count reaches,
+/// one decimal cut (never rounded up) and a trailing `.0` dropped; below
+/// every unit, the count itself.
+String flarePluginCompactCount(num count, String units) {
+  final whole = count.truncate();
+  final sign = whole < 0 ? '-' : '';
+  final n = whole.abs();
+  final parsed = <({int exponent, String suffix})>[];
+  for (final pair in units.split('|')) {
+    final at = pair.indexOf(':');
+    if (at <= 0) continue;
+    final exponent = int.tryParse(pair.substring(0, at));
+    final suffix = pair.substring(at + 1);
+    if (exponent != null && exponent > 0 && suffix.isNotEmpty) {
+      parsed.add((exponent: exponent, suffix: suffix));
+    }
+  }
+  parsed.sort((a, b) => b.exponent.compareTo(a.exponent));
+  for (final unit in parsed) {
+    final base = BigInt.from(10).pow(unit.exponent);
+    if (BigInt.from(n) < base) continue;
+    final tenths = (BigInt.from(n) * BigInt.from(10)) ~/ base;
+    final text = tenths % BigInt.from(10) == BigInt.zero
+        ? '${tenths ~/ BigInt.from(10)}'
+        : '${tenths ~/ BigInt.from(10)}.${tenths % BigInt.from(10)}';
+    return '$sign$text${unit.suffix}';
+  }
+  return '$sign$n';
+}
+
+/// A duration in the viewer's words (formats2): whole seconds; under a minute
+/// the seconds alone, else the largest non-zero unit and, when it is not
+/// zero, the next one ("2 小时 5 分钟", "1 天").
+String flarePluginDurationText(
+  int ms, {
+  required String days,
+  required String hours,
+  required String minutes,
+  required String seconds,
+}) {
+  final total = (ms < 0 ? 0 : ms) ~/ 1000;
+  String unit(String template, int n) => template.replaceAll('{n}', '$n');
+  if (total < 60) return unit(seconds, total);
+  final parts = <(int, String)>[
+    (total ~/ 86400, days),
+    ((total % 86400) ~/ 3600, hours),
+    ((total % 3600) ~/ 60, minutes),
+    (total % 60, seconds),
+  ];
+  final first = parts.indexWhere((part) => part.$1 > 0);
+  final next = first + 1 < parts.length ? parts[first + 1] : null;
+  return unit(parts[first].$2, parts[first].$1) +
+      (next != null && next.$1 > 0 ? ' ${unit(next.$2, next.$1)}' : '');
+}
+
+/// The text of a value with its resolved format: count and duration in the
+/// viewer's language, everything else (percent, bytes, money, an unknown
+/// format) the plain text the core SDK wrote.
+String flarePluginFormatText(
+  String text,
+  Map<String, Object?>? format,
+  FlareStrings strings,
+) {
+  switch (format?['kind']) {
+    case 'count':
+      final count = format!['count'];
+      return count is num && count.isFinite
+          ? flarePluginCompactCount(count, strings.pluginFormatCountUnits)
+          : text;
+    case 'duration':
+      final ms = format!['ms'];
+      return ms is num && ms.isFinite
+          ? flarePluginDurationText(
+              ms.toInt(),
+              days: strings.myInviteUnitDays,
+              hours: strings.myInviteUnitHours,
+              minutes: strings.myInviteUnitMinutes,
+              seconds: strings.pluginFormatSeconds,
+            )
+          : text;
+    default:
+      return text;
+  }
+}
+
+/// A step's state as drawn: one of the four, anything else pending.
+FlarePluginStepState flarePluginStepState(Object? state) =>
+    _enum(FlarePluginStepState.values, state) ?? FlarePluginStepState.pending;
+
+/// A trend's direction as drawn: up, down, anything else flat.
+FlarePluginTrendDirection flarePluginTrendDirection(Object? direction) =>
+    _enum(FlarePluginTrendDirection.values, direction) ??
+    FlarePluginTrendDirection.flat;
+
+/// A banner's tone as drawn: one of the four, anything else info.
+FlarePluginBannerTone flarePluginBannerTone(Object? tone) =>
+    _enum(FlarePluginBannerTone.values, tone) ?? FlarePluginBannerTone.info;
+
+/// A hero's tone as drawn: one of the four, anything else neutral.
+FlarePluginHeroTone flarePluginHeroTone(Object? tone) =>
+    _enum(FlarePluginHeroTone.values, tone) ?? FlarePluginHeroTone.neutral;
+
+/// Width over height of an image block's aspect; an unknown one is square.
+double flarePluginImageRatio(String aspect) => switch (aspect) {
+  '4:3' => 4 / 3,
+  '16:9' => 16 / 9,
+  '3:4' => 3 / 4,
+  _ => 1,
+};
+
+/// Whether a QR code has expired: it names an expiry and that instant came.
+bool flarePluginQrExpired(int? expiresAtMs, int nowMs) =>
+    expiresAtMs != null && expiresAtMs <= nowMs;
+
+/// How long until the code expires; null without an expiry or once expired.
+int? flarePluginQrRefreshMs(int? expiresAtMs, int nowMs) =>
+    expiresAtMs != null && expiresAtMs > nowMs ? expiresAtMs - nowMs : null;
+
+/// A donut's slices: every point with a positive value, its start and sweep
+/// as fractions of the sum of those values, in point order.
+List<({int index, double start, double sweep})> flarePluginDonutSlices(
+  List<double> values,
+) {
+  final shown = [
+    for (var i = 0; i < values.length; i += 1)
+      if (values[i].isFinite && values[i] > 0) (index: i, value: values[i]),
+  ];
+  final total = shown.fold<double>(0, (sum, point) => sum + point.value);
+  if (!(total > 0)) return const [];
+  var start = 0.0;
+  return [
+    for (final point in shown)
+      () {
+        final slice = (
+          index: point.index,
+          start: start,
+          sweep: point.value / total,
+        );
+        start += slice.sweep;
+        return slice;
+      }(),
+  ];
+}
+
+/// Whether a chart has anything to draw: some series has a point.
+bool flarePluginChartHasPoints(List<FlarePluginChartSeries> series) =>
+    series.any((s) => s.points.isNotEmpty);
+
+/// The value range a bar or line chart shows (the same rule as the Vue kit's
+/// chart geometry): it always holds 0, and its ends are 1, 2, 2.5 or 5 × 10ⁿ.
+({double min, double max, bool flat}) flarePluginChartDomain(
+  Iterable<double> values,
+) {
+  double nice(double value) {
+    if (!(value > 0) || !value.isFinite) return 0;
+    final magnitude = math.pow(10, (math.log(value) / math.ln10).floor());
+    final fraction = ((value / magnitude) * 1e9).round() / 1e9;
+    final step = fraction <= 1
+        ? 1
+        : fraction <= 2
+        ? 2
+        : fraction <= 2.5
+        ? 2.5
+        : fraction <= 5
+        ? 5
+        : 10;
+    return (step * magnitude).toDouble();
+  }
+
+  var high = 0.0, low = 0.0;
+  for (final value in values) {
+    if (!value.isFinite) continue;
+    if (value > high) high = value;
+    if (value < low) low = value;
+  }
+  final max = nice(high);
+  final min = low < 0 ? -nice(-low) : 0.0;
+  if (max == min) return (min: 0.0, max: 1.0, flat: true);
+  return (min: min, max: max, flat: false);
+}
+
+/// The blocks in reading order with every section's children after it
+/// (blocks2.flatten); [section] is the index of the heading a child belongs
+/// to.
+List<({FlarePluginBlock block, int? section})> flarePluginFlatBlocks(
+  List<FlarePluginBlock> blocks,
+) {
+  final out = <({FlarePluginBlock block, int? section})>[];
+  for (final block in blocks) {
+    out.add((block: block, section: null));
+    if (block is FlarePluginSectionBlock) {
+      final at = out.length - 1;
+      for (final child in block.blocks) {
+        if (child is! FlarePluginSectionBlock) {
+          out.add((block: child, section: at));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/// What the engine's update.plugin_upgrade_status answers for a
+/// placeholder's minBuild.
+@immutable
+class FlarePluginUpgradeStatus {
+  const FlarePluginUpgradeStatus({required this.available, this.build});
+  factory FlarePluginUpgradeStatus.fromJson(Map<String, Object?> json) =>
+      FlarePluginUpgradeStatus(
+        available: _bool(json['available']),
+        build: _optInt(json['build']),
+      );
+
+  /// A build at least minBuild is offered to this device.
+  final bool available;
+  final int? build;
+}
+
+/// Where an upgrade notice sits.
+enum FlarePluginUpgradeVariant { card, entry, page }
+
+/// What an upgrade notice offers (upgradeNotice).
+enum FlarePluginUpgradeMode { update, notAvailable, description }
+
+/// [FlarePluginUpgradeMode.update] when a newer build is offered and the host
+/// has an update handler; [FlarePluginUpgradeMode.notAvailable] when the
+/// status says no build for this device; otherwise
+/// [FlarePluginUpgradeMode.description].
+FlarePluginUpgradeMode flarePluginUpgradeMode(
+  FlarePluginUpgradeStatus? status, {
+  required bool canUpdate,
+}) {
+  if (status?.available == true) {
+    return canUpdate
+        ? FlarePluginUpgradeMode.update
+        : FlarePluginUpgradeMode.description;
+  }
+  return status == null
+      ? FlarePluginUpgradeMode.description
+      : FlarePluginUpgradeMode.notAvailable;
+}
+
+// ── money input (moneyInput) ───────────────────────────────────────────────
+
+/// Fraction digits of a money input: its scale, 2 when absent.
+int flarePluginMoneyScale(FlarePluginInput input) {
+  final scale = input.money?.scale;
+  return scale != null && scale >= 0 && scale <= 18 ? scale : 2;
+}
+
+/// The amount typed, as the protocol writes decimals: spaces gone, leading
+/// zeros of the whole part dropped (one kept), a leading `.` gets a `0`, a
+/// trailing `.` goes. Anything else is left for the check to refuse.
+String flarePluginMoneyAmount(String typed) {
+  var text = typed.replaceAll(RegExp(r'\s+'), '');
+  if (text.startsWith('.')) text = '0$text';
+  if (text.endsWith('.')) text = text.substring(0, text.length - 1);
+  final at = text.indexOf('.');
+  final whole = at < 0 ? text : text.substring(0, at);
+  final rest = at < 0 ? '' : text.substring(at);
+  final trimmed = RegExp(r'^\d+$').hasMatch(whole)
+      ? whole.replaceFirst(RegExp(r'^0+(?=\d)'), '')
+      : whole;
+  return '$trimmed$rest';
+}
+
+/// A decimal the protocol accepts: no sign or exponent, no leading zero, at
+/// most 30 whole and [scale] fraction digits.
+bool flarePluginIsDecimal(String amount, int scale) {
+  final match = RegExp(r'^(\d+)(?:\.(\d+))?$').firstMatch(amount);
+  if (match == null) return false;
+  final whole = match.group(1)!;
+  final fraction = match.group(2);
+  return whole.length <= 30 &&
+      (whole == '0' || !whole.startsWith('0')) &&
+      (fraction == null || fraction.length <= scale);
+}
+
+/// The order of two decimals [flarePluginIsDecimal] accepts: -1, 0 or 1.
+int flarePluginCompareDecimal(String a, String b) {
+  (String, String) split(String s) {
+    final at = s.indexOf('.');
+    return at < 0
+        ? (s, '')
+        : (
+            s.substring(0, at),
+            s.substring(at + 1).replaceFirst(RegExp(r'0+$'), ''),
+          );
+  }
+
+  final (aw, af) = split(a);
+  final (bw, bf) = split(b);
+  if (aw.length != bw.length) return aw.length < bw.length ? -1 : 1;
+  final whole = aw.compareTo(bw);
+  if (whole != 0) return whole.sign;
+  final width = af.length > bf.length ? af.length : bf.length;
+  return af.padRight(width, '0').compareTo(bf.padRight(width, '0')).sign;
+}
+
+/// The light check of a money draft: what the core SDK will say.
+FlarePluginFormIssue? flarePluginCheckMoney(
+  FlarePluginInput input,
+  Object? draft,
+) {
+  final amount = flarePluginMoneyAmount(draft is String ? draft : '');
+  if (amount.isEmpty) {
+    return input.required ? FlarePluginFormIssue.required : null;
+  }
+  final rules = input.money;
+  if (!flarePluginIsDecimal(amount, flarePluginMoneyScale(input)) ||
+      rules?.currency == null) {
+    return FlarePluginFormIssue.invalidType;
+  }
+  if (rules!.min != null && flarePluginCompareDecimal(amount, rules.min!) < 0) {
+    return FlarePluginFormIssue.outOfRange;
+  }
+  if (rules.max != null && flarePluginCompareDecimal(amount, rules.max!) > 0) {
+    return FlarePluginFormIssue.outOfRange;
+  }
+  return null;
 }

@@ -27,6 +27,7 @@ Widget _host(
 ) => MaterialApp(
   home: Scaffold(
     body: FlarePluginPage(
+      appearance: FlarePluginPageAppearance.account,
       page: const FlarePluginPageRef(
         pluginId: 'fixture.wallet',
         page: 'fixture.payout-profiles',

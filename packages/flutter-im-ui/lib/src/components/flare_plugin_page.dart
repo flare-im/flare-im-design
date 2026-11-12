@@ -13,6 +13,8 @@ import 'flare_button.dart';
 import 'flare_empty_state.dart';
 import 'flare_filter_tabs.dart';
 import 'flare_icon_button.dart';
+import 'flare_plugin_blocks_extra.dart';
+import 'flare_plugin_upgrade_notice.dart';
 import 'flare_plugin_view.dart';
 import 'flare_screen.dart';
 import 'flare_status_banner.dart';
@@ -76,7 +78,30 @@ class FlarePluginPage extends StatefulWidget {
     this.onLoadMore,
     this.onFilter,
     this.onAction,
+    this.resolveImage,
+    this.onQrRefresh,
+    this.upgradeStatus,
+    this.onUpdate,
+    this.upgradeBusy = false,
   });
+
+  /// Image blocks: what the host fetched for an asset path or private file id
+  /// (FlarePluginView.resolveImage).
+  final FlarePluginImageResolver? resolveImage;
+
+  /// An expired QR code on the page asks for a fresh one
+  /// (FlarePluginView.onQrRefresh).
+  final ValueChanged<FlarePluginQrRefresh>? onQrRefresh;
+
+  /// An upgrade_required page: update.plugin_upgrade_status for its minBuild.
+  final FlarePluginUpgradeStatus? upgradeStatus;
+
+  /// An upgrade_required page: opens the update flow; without it the page has
+  /// no update key.
+  final VoidCallback? onUpdate;
+
+  /// The update flow is opening.
+  final bool upgradeBusy;
 
   /// The page shown; every page action carries it.
   final FlarePluginPageRef page;
@@ -308,6 +333,17 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           ],
         ),
       ),
+      FlarePluginPageState.unavailable
+          when view?.unavailableReason ==
+              FlarePluginUnavailableReason.upgradeRequired =>
+        FlarePluginUpgradeNotice(
+          key: FlarePluginPage.unavailableKey,
+          variant: FlarePluginUpgradeVariant.page,
+          title: view!.title.isEmpty ? null : view.title,
+          status: widget.upgradeStatus,
+          onUpdate: widget.onUpdate,
+          busy: widget.upgradeBusy,
+        ),
       FlarePluginPageState.unavailable => Semantics(
         liveRegion: true,
         child: FlareEmptyState(
@@ -433,8 +469,9 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
           const SizedBox(height: FlareSizes.spacingXs),
         ],
         if (filters.isNotEmpty) const SizedBox(height: FlareSizes.spacingSm),
-        if (widget.appearance == FlarePluginPageAppearance.account ||
-            view.presentation?['renderer'] == 'account')
+        // The host picks the account layout; a view no longer selects it
+        // through a renderer (vocabulary 2 draws accounts from blocks).
+        if (widget.appearance == FlarePluginPageAppearance.account)
           FlareAccountView(
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
@@ -469,6 +506,8 @@ class _FlarePluginPageState extends State<FlarePluginPage> {
             onMemberSearch: widget.onMemberSearch,
             onMembersRetry: widget.onMembersRetry,
             settleToken: widget.settleToken,
+            resolveImage: widget.resolveImage,
+            onQrRefresh: widget.onQrRefresh,
             onAction: widget.onAction == null ? null : _runAction,
           ),
         if (cursor != null) ...[

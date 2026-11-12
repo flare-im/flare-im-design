@@ -15,7 +15,9 @@ import 'flare_button.dart';
 import 'flare_icon.dart';
 import 'flare_icon_button.dart';
 import 'flare_message_card_shell.dart';
+import 'flare_plugin_blocks_extra.dart';
 import 'flare_plugin_form.dart';
+import 'flare_plugin_upgrade_notice.dart';
 import 'flare_scene_panels.dart';
 import 'flare_status_banner.dart';
 import 'flare_tag.dart';
@@ -87,6 +89,11 @@ class FlarePluginView extends StatefulWidget {
     this.settleToken = 0,
     this.onAction,
     this.onOpenDetail,
+    this.resolveImage,
+    this.onQrRefresh,
+    this.upgradeStatus,
+    this.onUpdate,
+    this.upgradeBusy = false,
   });
 
   final FlarePluginViewModel view;
@@ -171,6 +178,27 @@ class FlarePluginView extends StatefulWidget {
   /// (spec rules.detailKey). Without it the card offers no view details key.
   final VoidCallback? onOpenDetail;
 
+  /// Image blocks: turns the block's asset path or private file id into what
+  /// the host fetched. Without it an image block keeps its frame and says the
+  /// image is unavailable.
+  final FlarePluginImageResolver? resolveImage;
+
+  /// An expired QR code with a refresh query asks the host for a fresh one:
+  /// the host runs the query and passes back a view. Without it no refresh
+  /// key is drawn.
+  final ValueChanged<FlarePluginQrRefresh>? onQrRefresh;
+
+  /// [FlarePluginUnavailableReason.upgradeRequired]: the engine's
+  /// update.plugin_upgrade_status for the view's minBuild.
+  final FlarePluginUpgradeStatus? upgradeStatus;
+
+  /// [FlarePluginUnavailableReason.upgradeRequired]: opens the update flow;
+  /// without it the notice has no update key.
+  final VoidCallback? onUpdate;
+
+  /// The update flow is opening.
+  final bool upgradeBusy;
+
   /// The view details key (a test hook).
   static const Key detailKey = ValueKey('flare-plugin-detail-key');
 
@@ -210,6 +238,9 @@ class _FormState {
 
 class _FlarePluginViewState extends State<FlarePluginView> {
   final Map<String, FlarePluginUser?> _users = {};
+
+  /// A section's fold the reader chose, by its index in the flat blocks.
+  final Map<int, bool> _folded = {};
   final Map<int, List<int>> _drafts = {};
   _Pending? _pending;
 
@@ -307,7 +338,9 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   }
 
   Iterable<String> _userIds() sync* {
-    for (final block in widget.view.blocks) {
+    for (final (:block, section: _) in flarePluginFlatBlocks(
+      widget.view.blocks,
+    )) {
       if (block is FlarePluginPeopleBlock) {
         for (final group in block.groups) {
           yield* group.userIds;
@@ -322,6 +355,30 @@ class _FlarePluginViewState extends State<FlarePluginView> {
 
   FlarePluginUser _userOf(String userId) =>
       _users[userId] ?? FlarePluginUser(name: flarePluginFallbackName(userId));
+
+  // ── vocabulary 2: sections and QR refresh ──────────────────────────────
+  /// Whether the section at [index] of [flat] is folded: the reader's choice,
+  /// else what the plugin declared; a section without a label never is.
+  bool _sectionCollapsed(
+    List<({FlarePluginBlock block, int? section})> flat,
+    int index,
+  ) {
+    final block = flat[index].block;
+    if (block is! FlarePluginSectionBlock || (block.label ?? '').isEmpty) {
+      return false;
+    }
+    return _folded[index] ?? block.collapsed;
+  }
+
+  void _refreshQr(FlarePluginQrBlock block) {
+    final operation = block.refreshOperation;
+    if (_locked || operation == null) return;
+    widget.onQrRefresh?.call((
+      operation: operation,
+      valuePath: block.valuePath,
+      expiresAtPath: block.expiresAtPath,
+    ));
+  }
 
   // ── choices ────────────────────────────────────────────────────────────
   List<int> _viewSelection(FlarePluginChoicesBlock block) => [
@@ -696,14 +753,29 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         ),
       );
     }
-    if (!view.available && reason != null) {
+    if (!view.available &&
+        view.unavailableReason ==
+            FlarePluginUnavailableReason.upgradeRequired) {
+      // A contribution this build cannot draw: the line and, when a newer
+      // build is offered, the update key.
+      children.add(
+        FlarePluginUpgradeNotice(
+          status: widget.upgradeStatus,
+          onUpdate: widget.onUpdate,
+          busy: widget.upgradeBusy,
+        ),
+      );
+    } else if (!view.available && reason != null) {
       children.add(_reasonLine(colors, reason, secondary: true));
     }
     if (view.available) {
       if (view.fields.isNotEmpty)
         children.add(_FieldsList(fields: view.fields));
-      for (var i = 0; i < view.blocks.length; i += 1) {
-        final block = view.blocks[i];
+      final flat = flarePluginFlatBlocks(view.blocks);
+      for (var i = 0; i < flat.length; i += 1) {
+        final (:block, :section) = flat[i];
+        // The children of a folded section are not drawn.
+        if (section != null && _sectionCollapsed(flat, section)) continue;
         children.add(
           KeyedSubtree(
             key: ValueKey('flare-plugin-block-$i'),
@@ -750,6 +822,46 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 busyActionId: widget.busyActionId,
                 rowInFlight: _rowInFlight,
                 onAction: (action, row, input) => _runRow(action, row, input),
+              ),
+              FlarePluginSectionBlock() => FlarePluginSectionHeader(
+                block: block,
+                collapsed: _sectionCollapsed(flat, i),
+                onToggle: () =>
+                    setState(() => _folded[i] = !_sectionCollapsed(flat, i)),
+              ),
+              FlarePluginStatsBlock() => FlarePluginStatsView(block: block),
+              FlarePluginChartBlock() => FlarePluginChartView(block: block),
+              FlarePluginImageBlock() => FlarePluginImageView(
+                block: block,
+                resolve: widget.resolveImage,
+              ),
+              FlarePluginQrBlock() => FlarePluginQrView(
+                block: block,
+                busy: _locked,
+                onRefresh: widget.onQrRefresh == null || readOnly
+                    ? null
+                    : () => _refreshQr(block),
+              ),
+              FlarePluginHeroBlock() => FlarePluginHeroView(
+                block: block,
+                busy: _locked,
+                busyActionId: widget.busyActionId,
+                onAction: readOnly || widget.onAction == null
+                    ? null
+                    : (action) =>
+                          _run(action, const FlarePluginActionPayload()),
+              ),
+              FlarePluginStepsBlock() => FlarePluginStepsView(block: block),
+              FlarePluginBannerBlock() => FlarePluginBannerView(
+                block: block,
+                busy: _locked,
+                onAction: readOnly || widget.onAction == null
+                    ? null
+                    : (action) =>
+                          _run(action, const FlarePluginActionPayload()),
+              ),
+              FlarePluginTimelineBlock() => FlarePluginTimelineView(
+                block: block,
               ),
             },
           ),
@@ -1163,7 +1275,11 @@ class _FieldsList extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    fields[i].value,
+                    flarePluginFormatText(
+                      fields[i].value,
+                      fields[i].format,
+                      FlareStrings.of(context),
+                    ),
                     style: TextStyle(
                       fontSize: FlareSizes.fontSizeMd,
                       color: colors.textPrimary,

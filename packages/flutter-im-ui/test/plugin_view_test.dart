@@ -560,7 +560,7 @@ void main() {
   });
 
   group('protocol v2 rules', () {
-    test('unavailable reasons: the seven copies', () {
+    test('unavailable reasons: every copy', () {
       for (final v
           in (vectors['unavailableReasons'] as List)
               .cast<Map<String, dynamic>>()) {
