@@ -793,6 +793,31 @@ enum PluginFormRules {
     }
 }
 
+/// A page action's native target for the form that holds its `into` input; a new `token` runs it again.
+public struct PluginNativeIntoRequest: Equatable, Sendable {
+    public let target: PluginActionTarget
+    public let token: UUID
+    public init(target: PluginActionTarget, token: UUID = UUID()) { self.target = target; self.token = token }
+}
+
+extension PluginFormRules {
+    /// Host capabilities that write a file into an upload input.
+    static let uploadCapabilities: Set<String> = ["documentCapture", "selectImage", "camera", "selectFile"]
+
+    /// Which key of `input` a native action `target` runs through when it names that input as `into`
+    /// (spec/plugin-native-into-vectors.json): `file` (the input's own choose, or replace when it holds a file) for
+    /// an upload capability into an upload input, `location` (its locate key) for `locationOnce` into a location
+    /// input, nil otherwise (the action goes out as itself).
+    static func nativeIntoKey(_ target: PluginActionTarget?, _ input: PluginInput) -> String? {
+        guard let target, target.kind == "native", let into = target.into, into == input.id else { return nil }
+        if target.capability == "locationOnce" { return input.kind == .location ? "location" : nil }
+        guard let capability = target.capability, uploadCapabilities.contains(capability), input.kind.isUpload else {
+            return nil
+        }
+        return "file"
+    }
+}
+
 /// A form being filled in: the draft, which inputs were edited (their client issue shows; their host error is
 /// spent) and whether submit was tried (every issue shows).
 struct PluginFormState: Equatable, Sendable {

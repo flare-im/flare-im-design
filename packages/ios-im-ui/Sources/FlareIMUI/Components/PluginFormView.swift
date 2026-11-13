@@ -35,6 +35,7 @@ public struct PluginFormView: View {
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let locationStates: [String: PluginLocationState]
     private let onLocationAction: ((PluginLocationAction) -> Void)?
+    private let nativeRequest: PluginNativeIntoRequest?
     @State private var form: PluginFormState
     @State private var numberText: [String: String]
     @State private var picking: PluginInput?
@@ -51,8 +52,10 @@ public struct PluginFormView: View {
                 onFileAction: ((PluginFileAction) -> Void)? = nil,
                 locationStates: [String: PluginLocationState] = [:],
                 onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                nativeRequest: PluginNativeIntoRequest? = nil,
                 onSubmit: (([String: PluginJSONValue]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.embedded = embedded
+        self.nativeRequest = nativeRequest
         self.locationStates = locationStates; self.onLocationAction = onLocationAction
         self.fileStates = fileStates; self.onFileAction = onFileAction
         self.inputs = inputs; self.values = values; self.errors = errors; self.submitLabel = submitLabel
@@ -103,6 +106,7 @@ public struct PluginFormView: View {
         .onChange(of: errors) { _ in form.hostErrorsChanged() }
         .onChange(of: fileStates) { updates in form.acceptFiles(updates) }
         .onChange(of: locationStates) { _ in applyLocations() }
+        .onChange(of: nativeRequest) { request in if let request { _ = nativeInto(request.target) } }
         .onAppear { applyLocations() }
         .onDisappear { invalidateFiles() }
         .flareBottomSheet(item: $picking, title: picking?.label, titleHidden: true, size: .large, fill: true) { input in
@@ -286,6 +290,22 @@ public struct PluginFormView: View {
             }
         }
         for event in form.set(id, value) { onFileAction?(event) }
+    }
+
+    /// A page action's native `target` writing `into` one of this form's inputs: run it through that input's own
+    /// key, so the host gets the form's scope with it and its answer lands in this form, even before the viewer
+    /// touched the input. False when no visible input here takes it or the host has no handler for that key.
+    @discardableResult private func nativeInto(_ target: PluginActionTarget) -> Bool {
+        guard !busy, let input = PluginFormRules.visibleInputs(inputs, form.draft)
+            .first(where: { PluginFormRules.nativeIntoKey(target, $0) != nil }) else { return false }
+        if PluginFormRules.nativeIntoKey(target, input) == "location" {
+            guard onLocationAction != nil else { return false }
+            locationAction(input, .locate)
+            return true
+        }
+        guard onFileAction != nil else { return false }
+        sendFile((form.files[input.id]?.phase ?? .empty) == .empty ? .choose : .replace, input: input)
+        return true
     }
 
     private func sendFile(_ action: PluginFileActionKind, input: PluginInput) {

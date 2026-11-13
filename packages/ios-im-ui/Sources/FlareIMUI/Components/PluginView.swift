@@ -110,6 +110,8 @@ public struct PluginView: View {
     @State private var users: [String: PluginUser]
     @State private var confirming: PluginActionRun?
     @State private var formRun: PluginActionRun?
+    /// A page action's native target handed to the form holding its `into` input.
+    @State private var nativeRequest: PluginNativeIntoRequest?
     @State private var formSubmitted = false
     @State private var inlineForm = PluginInlineFormState()
     /// The row whose key last went out: `busyActionId` spins that row's key, not every row's.
@@ -321,7 +323,8 @@ public struct PluginView: View {
                     PluginFormView(inputs: view.formInputs(for: action), errors: inlineForm.submitted ? formErrors : [],
                                    submitLabel: action.label, busy: locked, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
                                    fileStates: fileStates, onFileAction: onFileAction,
-                                   locationStates: locationStates, onLocationAction: onLocationAction, onSubmit: { values in
+                                   locationStates: locationStates, onLocationAction: onLocationAction,
+                                   nativeRequest: nativeRequest, onSubmit: { values in
                         guard !locked, Self.inlineAction(view, id: action.id, hasAction: onAction != nil) != nil,
                               inlineForm.begin(action.id) else { return }
                         emit(PluginActionRun(action: action, payload: .empty, block: nil), formValues: values)
@@ -394,7 +397,8 @@ public struct PluginView: View {
             PluginFormView(inputs: view.formInputs(for: request.action), errors: formSubmitted ? formErrors : [],
                            busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                            fileStates: fileStates, onFileAction: onFileAction,
-                                   locationStates: locationStates, onLocationAction: onLocationAction, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
+                                   locationStates: locationStates, onLocationAction: onLocationAction,
+                           nativeRequest: nativeRequest, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
                            onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
         }
         .onChange(of: view) { _ in interaction.viewChanged() }
@@ -570,8 +574,31 @@ public struct PluginView: View {
     /// Confirm, then collect the form, then hand the action over.
     private func run(_ action: PluginViewAction, _ payload: PluginActionPayload, block: Int? = nil) {
         guard !locked, onAction != nil else { return }
+        // A native target writing `into` an input of a form on this view runs through that input's own key, so
+        // the host's answer is written into the form's current scope (no earlier touch of the input needed).
+        if payload.row == nil, let target = action.target, takesNativeInto(target) {
+            nativeRequest = PluginNativeIntoRequest(target: target)
+            return
+        }
         let request = PluginActionRun(action: action, payload: payload, block: block)
         if case .confirm = PluginActionFlow.start(action) { confirming = request } else { proceed(request) }
+    }
+
+    /// Whether a form on this view (the inline form, or the open form sheet) holds the input `target` writes
+    /// into, with the host listening for that input's key.
+    private func takesNativeInto(_ target: PluginActionTarget) -> Bool {
+        var forms: [PluginViewAction] = []
+        if let inline = inlineAction { forms.append(inline) }
+        if let open = formRun?.action { forms.append(open) }
+        return forms.contains { form in
+            view.formInputs(for: form).contains { input in
+                switch PluginFormRules.nativeIntoKey(target, input) {
+                case "file": return onFileAction != nil
+                case "location": return onLocationAction != nil
+                default: return false
+                }
+            }
+        }
     }
 
     private func proceed(_ request: PluginActionRun) {

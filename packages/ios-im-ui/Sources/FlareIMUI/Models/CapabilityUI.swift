@@ -11,15 +11,10 @@ import UniformTypeIdentifiers
 public enum FlareCapabilityConsentDecision: String, Sendable, CaseIterable {
     case once, always, deny
 
-    /// The engine's `{granted}` and whether the host keeps the grant: when `remember` is false the host revokes it
-    /// once the request is done (`revokePluginCapabilityConsent`), so the next use asks again.
-    public var answer: (granted: Bool, remember: Bool) {
-        switch self {
-        case .always: return (true, true)
-        case .once: return (true, false)
-        case .deny: return (false, false)
-        }
-    }
+    /// What the host answers the engine's consent request with (`plugin.capability_complete` result):
+    /// `{decision: "once" | "always" | "deny"}`. The engine keeps only "always"; "once" lets this request through
+    /// and keeps nothing, so the host never revokes anything to emulate it.
+    public var answer: [String: String] { ["decision": rawValue] }
 }
 
 public enum FlareCapabilityRules {

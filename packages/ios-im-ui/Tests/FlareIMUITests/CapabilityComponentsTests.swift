@@ -31,8 +31,7 @@ final class CapabilityComponentsTests: XCTestCase {
     func testConsentAndLabels() throws {
         for c in try cases("consentDecision") {
             let answer = FlareCapabilityConsentDecision(rawValue: c["decision"] as! String)!.answer
-            XCTAssertEqual(answer.granted, c["granted"] as? Bool)
-            XCTAssertEqual(answer.remember, c["remember"] as? Bool)
+            XCTAssertEqual(answer, c["answer"] as? [String: String])
         }
         for c in try cases("capabilityLabel") {
             let params = try (c["params"] as? [String: Any]).map { try json($0).objectValue ?? [:] }

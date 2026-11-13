@@ -86,7 +86,9 @@ public struct PluginViewField: Codable, Equatable, Sendable {
 /// How an action key is drawn; none is the secondary key.
 public enum PluginActionStyle: String, Codable, Sendable { case primary, danger }
 
-/// A resolved action. Its `target` and `input` stay with the core: the kit hands back the opaque `id` only.
+/// A resolved action. Its `input` stays with the core: the kit hands back the opaque `id` only. The kit reads a
+/// native `target`'s `into`: a page action writing into one of the form's own inputs runs through that input's key
+/// (``PluginFormRules/nativeIntoKey(_:_:)``), so the host's answer lands in the form's current scope.
 public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
     public let id: String
     public let label: String
@@ -95,12 +97,16 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
     public let confirm: String?
     /// Input ids collected first in ``PluginFormView``.
     public let form: [String]?
+    /// Where the action goes, as the view gives it.
+    public let target: PluginActionTarget?
 
-    public init(id: String, label: String, style: PluginActionStyle? = nil, confirm: String? = nil, form: [String]? = nil) {
+    public init(id: String, label: String, style: PluginActionStyle? = nil, confirm: String? = nil, form: [String]? = nil,
+                target: PluginActionTarget? = nil) {
         self.id = id; self.label = label; self.style = style; self.confirm = confirm; self.form = form
+        self.target = target
     }
 
-    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form }
+    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form, target }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -109,6 +115,31 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
         style = c.lenient(String.self, .style).flatMap(PluginActionStyle.init(rawValue:))
         confirm = c.lenient(String.self, .confirm)
         form = c.lenient([String].self, .form)
+        target = c.lenient(PluginActionTarget.self, .target)
+    }
+}
+
+/// An action's target (flare-plugin-protocol UiActionTarget): `native` (`capability`, `params`, `into`),
+/// `operation` or `page`. The kit only reads a native one.
+public struct PluginActionTarget: Codable, Equatable, Hashable, Sendable {
+    public let kind: String
+    public let capability: String?
+    public let params: [String: PluginJSONValue]?
+    /// The page input the native capability writes into.
+    public let into: String?
+
+    public init(kind: String, capability: String? = nil, params: [String: PluginJSONValue]? = nil, into: String? = nil) {
+        self.kind = kind; self.capability = capability; self.params = params; self.into = into
+    }
+
+    private enum CodingKeys: String, CodingKey { case kind, capability, params, into }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try c.decode(String.self, forKey: .kind)
+        capability = c.lenient(String.self, .capability)
+        params = c.lenient([String: PluginJSONValue].self, .params)
+        into = c.lenient(String.self, .into)
     }
 }
 
