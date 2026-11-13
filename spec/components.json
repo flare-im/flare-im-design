@@ -17020,7 +17020,11 @@
           "description": {
             "en": "What to open: plugin, contribution, route, arguments, presentation (page, detail, composerForm), conversation, locale.",
             "zh": "打开什么：插件、贡献、路由、参数、呈现方式（page、detail、composerForm）、会话、语言。"
-          }
+          },
+          "platforms": [
+            "compose",
+            "flutter"
+          ]
         },
         {
           "name": "channel",
@@ -17050,7 +17054,11 @@
           "description": {
             "en": "The page header's back (page presentation).",
             "zh": "页面标题栏的返回（page 呈现）。"
-          }
+          },
+          "platforms": [
+            "compose",
+            "flutter"
+          ]
         },
         {
           "name": "onNavigate",
@@ -17059,7 +17067,11 @@
           "description": {
             "en": "ui.navigate: a declarative page of the plugin or a route of the same bundle; false answers not_found.",
             "zh": "ui.navigate：插件的声明式页面或同一 Web 包内的路由；返回 false 时应答 not_found。"
-          }
+          },
+          "platforms": [
+            "compose",
+            "flutter"
+          ]
         },
         {
           "name": "onOpenExternal",
@@ -17068,7 +17080,11 @@
           "description": {
             "en": "Opens an https link the viewer confirmed; the system browser by default (D-13).",
             "zh": "打开用户确认过的 https 链接；默认用系统浏览器（D-13）。"
-          }
+          },
+          "platforms": [
+            "compose",
+            "flutter"
+          ]
         },
         {
           "name": "onHeightChange",
@@ -17077,7 +17093,11 @@
           "description": {
             "en": "ui.resize in a sheet, in dp; without it the request is unavailable.",
             "zh": "半屏弹层里的 ui.resize（dp）；不传时该请求应答 unavailable。"
-          }
+          },
+          "platforms": [
+            "compose",
+            "flutter"
+          ]
         },
         {
           "name": "files",
@@ -17258,6 +17278,37 @@
         "failed",
         "retry"
       ],
+      "eventPlatforms": {
+        "fallback": [
+          "compose",
+          "flutter"
+        ],
+        "navigate": [
+          "vue",
+          "compose",
+          "flutter"
+        ],
+        "back": [
+          "vue",
+          "compose",
+          "flutter"
+        ],
+        "title": [
+          "vue"
+        ],
+        "resize": [
+          "vue"
+        ],
+        "closed": [
+          "vue"
+        ],
+        "failed": [
+          "vue"
+        ],
+        "retry": [
+          "vue"
+        ]
+      },
       "platforms": {
         "compose": {
           "package": "com.flare.im:im-ui-compose",

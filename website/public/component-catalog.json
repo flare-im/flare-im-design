@@ -11136,7 +11136,9 @@
           "symbol": "FlarePluginBundleHost"
         },
         "flutter": {
-          "support": "not-applicable"
+          "support": "supported",
+          "package": "flare_plugin_bundle_host",
+          "symbol": "FlarePluginBundleHost"
         },
         "compose": {
           "support": "supported",

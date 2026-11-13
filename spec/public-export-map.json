@@ -2519,6 +2519,10 @@
           "symbol": "FlarePluginBundleHost",
           "sourcePath": "packages/vue-im-ui/src/components/plugin/FlarePluginBundleHost.vue"
         },
+        "flutter": {
+          "package": "flare_plugin_bundle_host",
+          "symbol": "FlarePluginBundleHost"
+        },
         "compose": {
           "package": "com.flare.im:im-ui-compose",
           "symbol": "FlarePluginBundleHost",
