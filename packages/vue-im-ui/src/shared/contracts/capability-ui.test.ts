@@ -10,7 +10,8 @@ import {
   flareDocumentAcceptsJpeg,
   flareDocumentFileName,
   flareDocumentFrameAspect,
-  flareJpegHasExif,
+  flareJpegIsStripped,
+  flareJpegStrippingMetadata,
   flarePaymentAmountText,
   flarePaymentCountdown,
   type FlareCapabilityConsentDecision,
@@ -68,8 +69,17 @@ describe("capability components (spec/capability-ui-vectors.json)", () => {
   it("checks the accept list", () => {
     for (const c of vectors.documentAccept.cases) expect(flareDocumentAcceptsJpeg(c.accept)).toBe(c.ok);
   });
-  it("finds EXIF as the engine does", () => {
-    for (const c of vectors.jpegExif.cases) expect(flareJpegHasExif(hex(c.hex))).toBe(c.exif);
+  it("takes a JPEG as stripped by the engine's rule", () => {
+    for (const c of vectors.jpegStripped.cases) expect(flareJpegIsStripped(hex(c.hex)), c.note).toBe(c.stripped);
+  });
+  it("strips what an encoder adds and keeps the image data", () => {
+    for (const c of vectors.jpegStripped.strip) {
+      expect(Array.from(flareJpegStrippingMetadata(hex(c.hex))), c.note).toEqual(Array.from(hex(c.out)));
+    }
+    // A stripped JPEG stays as it is.
+    for (const c of vectors.jpegStripped.cases.filter((c) => c.stripped)) {
+      expect(flareJpegIsStripped(flareJpegStrippingMetadata(hex(c.hex)))).toBe(true);
+    }
   });
   it("draws only the protected media addresses the web may", () => {
     for (const c of vectors.protectedMediaSource.cases) expect(Boolean(flarePluginProtectedMediaSource(c.url))).toBe(c.web);

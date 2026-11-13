@@ -142,44 +142,66 @@ public enum FlareDocumentRules {
         accept.isEmpty || accept.contains { ["image/jpeg", "image/*", "*/*"].contains($0.trimmingCharacters(in: .whitespaces).lowercased()) }
     }
 
-    /// Whether bytes are a JPEG with an APP1 Exif segment before the scan (the engine's jpeg_has_exif).
-    public static func jpegHasExif(_ data: Data) -> Bool {
-        let bytes = [UInt8](data)
-        guard bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0xD8 else { return false }
-        var at = 2
-        let exif: [UInt8] = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]
-        while at + 4 <= bytes.count {
-            guard bytes[at] == 0xFF else { return false }
-            let marker = bytes[at + 1]
-            if marker == 0xDA || marker == 0xD9 { return false }
-            let length = Int(bytes[at + 2]) << 8 | Int(bytes[at + 3])
-            guard length >= 2 else { return false }
-            if marker == 0xE1, at + 10 <= bytes.count, Array(bytes[(at + 4)..<(at + 10)]) == exif { return true }
-            at += 2 + length
-        }
-        return false
+    /// One segment before the scan: its bytes `start..<end` from its 0xFF, and whether it may stay.
+    private struct JpegSegment {
+        let start: Int
+        let end: Int
+        let allowed: Bool
     }
 
-    /// The JPEG without its Exif/XMP (APP1), Photoshop/IPTC (APP13) and comment segments; the JFIF header, ICC
-    /// profile and image data stay. Data that is not a well-formed JPEG header comes back unchanged.
+    /// The segments before the scan and the scan's offset; nil when the bytes are not a well-formed JPEG header.
+    private static func jpegSegments(_ bytes: [UInt8]) -> (segments: [JpegSegment], scan: Int)? {
+        func at(_ i: Int) -> Int { i < bytes.count ? Int(bytes[i]) : -1 }
+        func starts(_ from: Int, _ text: String) -> Bool {
+            let ascii = Array(text.utf8)
+            guard from + ascii.count <= bytes.count else { return false }
+            return Array(bytes[from..<(from + ascii.count)]) == ascii
+        }
+        guard bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0xD8 else { return nil }
+        var segments: [JpegSegment] = []
+        var i = 2
+        while true {
+            guard at(i) == 0xFF else { return nil }
+            // 0xFF fill bytes may come before a marker.
+            while at(i + 1) == 0xFF { i += 1 }
+            let marker = at(i + 1)
+            guard marker >= 0 else { return nil }
+            if marker == 0xDA { return (segments, i) }
+            guard i + 4 <= bytes.count else { return nil }
+            let length = at(i + 2) << 8 | at(i + 3)
+            guard length >= 2, i + 2 + length <= bytes.count else { return nil }
+            let allowed: Bool
+            switch marker {
+            case 0xE0: allowed = starts(i + 4, "JFIF\0")
+            case 0xE2: allowed = starts(i + 4, "ICC_PROFILE\0")
+            case 0xEE: allowed = starts(i + 4, "Adobe")
+            case 0xDB, 0xC4, 0xCC, 0xDD: allowed = true
+            case 0xC0...0xCF: allowed = marker != 0xC8
+            default: allowed = false
+            }
+            segments.append(JpegSegment(start: i, end: i + 2 + length, allowed: allowed))
+            i += 2 + length
+        }
+    }
+
+    /// Whether the data is a JPEG with nothing but image data before its scan: an APP0 JFIF header, an APP2 ICC
+    /// profile, the APP14 Adobe segment, tables and the frame header (0xFF fill allowed). Exif or XMP, MPF, IPTC,
+    /// comments and any other segment, a truncated header or no scan fail. The engine's own rule (jpeg_is_stripped).
+    public static func jpegIsStripped(_ data: Data) -> Bool {
+        guard let parsed = jpegSegments([UInt8](data)) else { return false }
+        return parsed.segments.allSatisfy(\.allowed)
+    }
+
+    /// The JPEG with only the segments `jpegIsStripped` allows before its scan (and no fill bytes): ImageIO's own
+    /// Exif (APP1) and Photoshop (APP13) segments go, the JFIF header, ICC profile and image data stay. Data that is
+    /// not a well-formed JPEG header comes back unchanged.
     public static func strippingMetadata(_ data: Data) -> Data {
         let bytes = [UInt8](data)
-        guard bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0xD8 else { return data }
+        guard let parsed = jpegSegments(bytes) else { return data }
         var out: [UInt8] = [0xFF, 0xD8]
-        var at = 2
-        while at + 4 <= bytes.count {
-            guard bytes[at] == 0xFF else { return data }
-            let marker = bytes[at + 1]
-            if marker == 0xDA {
-                out += bytes[at...]
-                return Data(out)
-            }
-            let length = Int(bytes[at + 2]) << 8 | Int(bytes[at + 3])
-            guard length >= 2, at + 2 + length <= bytes.count else { return data }
-            if ![0xE1, 0xED, 0xFE].contains(marker) { out += bytes[at..<(at + 2 + length)] }
-            at += 2 + length
-        }
-        return data
+        for segment in parsed.segments where segment.allowed { out += bytes[segment.start..<segment.end] }
+        out += bytes[parsed.scan...]
+        return Data(out)
     }
 
     /// Re-encodes a photo to a JPEG that fits `maxBytes`. ImageIO makes an upright thumbnail of each step's edge
@@ -215,7 +237,7 @@ public enum FlareDocumentRules {
             throw FlareDocumentProcessError.tooLarge
         }
         let bytes = try await task.value
-        guard !jpegHasExif(bytes) else { throw FlareDocumentProcessError.failed }
+        guard jpegIsStripped(bytes) else { throw FlareDocumentProcessError.failed }
         return FlareCapturedDocument(fileName: side.fileName, contentType: "image/jpeg", bytes: bytes)
     }
 }

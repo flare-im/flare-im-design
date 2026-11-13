@@ -71,8 +71,14 @@ final class CapabilityComponentsTests: XCTestCase {
         for c in try cases("documentAccept") {
             XCTAssertEqual(FlareDocumentRules.acceptsJpeg(c["accept"] as! [String]), c["ok"] as? Bool)
         }
-        for c in try cases("jpegExif") {
-            XCTAssertEqual(FlareDocumentRules.jpegHasExif(hex(c["hex"] as! String)), c["exif"] as? Bool, "\(c)")
+        for c in try cases("jpegStripped") {
+            XCTAssertEqual(FlareDocumentRules.jpegIsStripped(hex(c["hex"] as! String)), c["stripped"] as? Bool, "\(c)")
+            if c["stripped"] as? Bool == true {
+                XCTAssertTrue(FlareDocumentRules.jpegIsStripped(FlareDocumentRules.strippingMetadata(hex(c["hex"] as! String))))
+            }
+        }
+        for c in (try vectors()["jpegStripped"] as! [String: Any])["strip"] as! [[String: Any]] {
+            XCTAssertEqual(FlareDocumentRules.strippingMetadata(hex(c["hex"] as! String)), hex(c["out"] as! String), "\(c)")
         }
     }
 
@@ -91,12 +97,12 @@ final class CapabilityComponentsTests: XCTestCase {
             kCGImagePropertyGPSDictionary: [kCGImagePropertyGPSLatitude: 31.2],
         ] as CFDictionary)
         XCTAssertTrue(CGImageDestinationFinalize(destination))
-        XCTAssertTrue(FlareDocumentRules.jpegHasExif(source as Data))
+        XCTAssertFalse(FlareDocumentRules.jpegIsStripped(source as Data))
         let file = try await FlareDocumentRules.process(source as Data, side: .front, maxBytes: 400 * 1024)
         XCTAssertEqual(file.fileName, "document-front.jpg")
         XCTAssertEqual(file.contentType, "image/jpeg")
         XCTAssertLessThanOrEqual(file.bytes.count, 400 * 1024)
-        XCTAssertFalse(FlareDocumentRules.jpegHasExif(file.bytes))
+        XCTAssertTrue(FlareDocumentRules.jpegIsStripped(file.bytes))
         let out = CGImageSourceCreateWithData(file.bytes as CFData, nil)!
         let properties = CGImageSourceCopyPropertiesAtIndex(out, 0, nil) as? [CFString: Any] ?? [:]
         XCTAssertNil(properties[kCGImagePropertyGPSDictionary])

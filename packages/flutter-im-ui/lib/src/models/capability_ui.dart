@@ -196,31 +196,84 @@ bool flareDocumentAcceptsJpeg(List<String>? accept) {
   });
 }
 
-/// Whether [bytes] are a JPEG with an APP1 Exif segment before the scan (the
-/// engine's jpeg_has_exif).
-bool flareJpegHasExif(List<int> bytes) {
-  if (bytes.length < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8) return false;
-  var at = 2;
-  while (at + 4 <= bytes.length) {
-    if (bytes[at] != 0xFF) return false;
-    final marker = bytes[at + 1];
-    if (marker == 0xDA || marker == 0xD9) return false;
-    final length = (bytes[at + 2] << 8) | bytes[at + 3];
-    if (length < 2) return false;
-    if (marker == 0xE1 && at + 10 <= bytes.length) {
-      const exif = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00];
-      var match = true;
-      for (var i = 0; i < exif.length; i++) {
-        if (bytes[at + 4 + i] != exif[i]) {
-          match = false;
-          break;
-        }
-      }
-      if (match) return true;
+/// One segment before the scan: its bytes `[start, end)` from its 0xFF, and
+/// whether it may stay.
+class _JpegSegment {
+  const _JpegSegment(this.start, this.end, this.allowed);
+  final int start;
+  final int end;
+  final bool allowed;
+}
+
+/// The segments before the scan and the scan's offset; null when [bytes] are
+/// not a well-formed JPEG header.
+(List<_JpegSegment>, int)? _jpegSegments(List<int> bytes) {
+  int at(int i) => i < bytes.length ? bytes[i] & 0xFF : -1;
+  bool startsWith(int from, String text) {
+    if (from + text.length > bytes.length) return false;
+    for (var i = 0; i < text.length; i++) {
+      if (at(from + i) != text.codeUnitAt(i)) return false;
     }
-    at += 2 + length;
+    return true;
   }
-  return false;
+
+  if (bytes.length < 4 || at(0) != 0xFF || at(1) != 0xD8) return null;
+  final segments = <_JpegSegment>[];
+  var i = 2;
+  while (true) {
+    if (at(i) != 0xFF) return null;
+    // 0xFF fill bytes may come before a marker.
+    while (at(i + 1) == 0xFF) {
+      i++;
+    }
+    final marker = at(i + 1);
+    if (marker < 0) return null;
+    if (marker == 0xDA) return (segments, i);
+    if (i + 4 > bytes.length) return null;
+    final length = (at(i + 2) << 8) | at(i + 3);
+    if (length < 2 || i + 2 + length > bytes.length) return null;
+    final bool allowed;
+    if (marker == 0xE0) {
+      allowed = startsWith(i + 4, 'JFIF\u0000');
+    } else if (marker == 0xE2) {
+      allowed = startsWith(i + 4, 'ICC_PROFILE\u0000');
+    } else if (marker == 0xEE) {
+      allowed = startsWith(i + 4, 'Adobe');
+    } else {
+      allowed =
+          marker == 0xDB ||
+          marker == 0xC4 ||
+          marker == 0xCC ||
+          marker == 0xDD ||
+          (marker >= 0xC0 && marker <= 0xCF && marker != 0xC8);
+    }
+    segments.add(_JpegSegment(i, i + 2 + length, allowed));
+    i += 2 + length;
+  }
+}
+
+/// Whether [bytes] are a JPEG with nothing but image data before its scan: an
+/// APP0 JFIF header, an APP2 ICC profile, the APP14 Adobe segment, tables and
+/// the frame header (0xFF fill allowed). Exif or XMP, MPF, IPTC, comments and
+/// any other segment, a truncated header or no scan fail. The engine's own
+/// rule (jpeg_is_stripped).
+bool flareJpegIsStripped(List<int> bytes) {
+  final parsed = _jpegSegments(bytes);
+  return parsed != null && parsed.$1.every((segment) => segment.allowed);
+}
+
+/// The JPEG with only the segments [flareJpegIsStripped] allows before its
+/// scan (and no fill bytes); the scan and what follows stay as they are.
+/// Bytes that are not a well-formed JPEG header come back unchanged.
+Uint8List flareJpegStrippingMetadata(List<int> bytes) {
+  final parsed = _jpegSegments(bytes);
+  if (parsed == null) return Uint8List.fromList(bytes);
+  final out = BytesBuilder(copy: false)..add(const [0xFF, 0xD8]);
+  for (final segment in parsed.$1) {
+    if (segment.allowed) out.add(bytes.sublist(segment.start, segment.end));
+  }
+  out.add(bytes.sublist(parsed.$2));
+  return out.takeBytes();
 }
 
 /// The photo the capture hands the host: `captureDocument`'s `{file}`.
@@ -273,12 +326,15 @@ Future<FlareCapturedDocument> flareProcessDocumentPhoto(
       FlareDocumentProcessError.tooLarge,
     );
   }
-  if (out.isEmpty || flareJpegHasExif(out)) {
+  // The image package writes no metadata once the EXIF data is cleared; whatever
+  // an encoder might add besides image data goes all the same.
+  final clean = flareJpegStrippingMetadata(out);
+  if (!flareJpegIsStripped(clean)) {
     throw const FlareDocumentProcessException(FlareDocumentProcessError.failed);
   }
   return FlareCapturedDocument(
     fileName: flareDocumentFileName(side),
-    bytes: out,
+    bytes: clean,
   );
 }
 

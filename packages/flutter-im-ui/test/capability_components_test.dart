@@ -117,9 +117,31 @@ void main() {
         );
       }
     });
-    test('EXIF detection matches the engine', () {
-      for (final c in cases('jpegExif')) {
-        expect(flareJpegHasExif(hex(c['hex'] as String)), c['exif']);
+    test('the stripped JPEG rule matches the engine', () {
+      for (final c in cases('jpegStripped')) {
+        expect(
+          flareJpegIsStripped(hex(c['hex'] as String)),
+          c['stripped'],
+          reason: c['note'] as String?,
+        );
+      }
+      final section = vectors['jpegStripped'] as Map<String, Object?>;
+      for (final c in (section['strip'] as List).cast<Map<String, Object?>>()) {
+        expect(
+          flareJpegStrippingMetadata(hex(c['hex'] as String)),
+          hex(c['out'] as String),
+          reason: c['note'] as String?,
+        );
+      }
+      for (final c in cases(
+        'jpegStripped',
+      ).where((c) => c['stripped'] == true)) {
+        expect(
+          flareJpegIsStripped(
+            flareJpegStrippingMetadata(hex(c['hex'] as String)),
+          ),
+          isTrue,
+        );
       }
     });
     test('protected media addresses', () {
@@ -167,7 +189,7 @@ void main() {
       source.exif.imageIfd['Orientation'] = 6;
       source.exif.imageIfd['Make'] = 'Camera';
       final original = img.encodeJpg(source, quality: 95);
-      expect(flareJpegHasExif(original), isTrue);
+      expect(flareJpegIsStripped(original), isFalse);
       final file = await flareProcessDocumentPhoto(
         original,
         FlareDocumentSide.front,
@@ -177,7 +199,7 @@ void main() {
       expect(file.fileName, 'document-front.jpg');
       expect(file.contentType, 'image/jpeg');
       expect(file.bytes.length, lessThanOrEqualTo(400 * 1024));
-      expect(flareJpegHasExif(file.bytes), isFalse);
+      expect(flareJpegIsStripped(file.bytes), isTrue);
       final decoded = img.decodeJpg(file.bytes)!;
       // Orientation 6 is baked in: the long edge is now the height.
       expect(decoded.height, greaterThan(decoded.width));

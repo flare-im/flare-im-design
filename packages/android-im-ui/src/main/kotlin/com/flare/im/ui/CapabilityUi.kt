@@ -160,22 +160,59 @@ object FlareDocumentRules {
     fun acceptsJpeg(accept: List<String>): Boolean =
         accept.isEmpty() || accept.any { it.trim().lowercase() in setOf("image/jpeg", "image/*", "*/*") }
 
-    /** Whether bytes are a JPEG with an APP1 Exif segment before the scan (the engine's jpeg_has_exif). */
-    fun jpegHasExif(bytes: ByteArray): Boolean {
-        fun at(i: Int) = bytes[i].toInt() and 0xFF
-        if (bytes.size < 4 || at(0) != 0xFF || at(1) != 0xD8) return false
+    /** One segment before the scan: its bytes `[start, end)` from its 0xFF, and whether it may stay. */
+    private class JpegSegment(val start: Int, val end: Int, val allowed: Boolean)
+
+    /** The segments before the scan and the scan's offset; null when the bytes are not a well-formed JPEG header. */
+    private fun jpegSegments(bytes: ByteArray): Pair<List<JpegSegment>, Int>? {
+        fun at(i: Int) = if (i < bytes.size) bytes[i].toInt() and 0xFF else -1
+        fun startsWith(from: Int, text: String) =
+            from + text.length <= bytes.size && text.indices.all { at(from + it) == text[it].code }
+        if (bytes.size < 4 || at(0) != 0xFF || at(1) != 0xD8) return null
+        val segments = ArrayList<JpegSegment>()
         var i = 2
-        val exif = intArrayOf(0x45, 0x78, 0x69, 0x66, 0x00, 0x00)
-        while (i + 4 <= bytes.size) {
-            if (at(i) != 0xFF) return false
+        while (true) {
+            if (at(i) != 0xFF) return null
+            // 0xFF fill bytes may come before a marker.
+            while (at(i + 1) == 0xFF) i++
             val marker = at(i + 1)
-            if (marker == 0xDA || marker == 0xD9) return false
+            if (marker < 0) return null
+            if (marker == 0xDA) return segments to i
+            if (i + 4 > bytes.size) return null
             val length = (at(i + 2) shl 8) or at(i + 3)
-            if (length < 2) return false
-            if (marker == 0xE1 && i + 10 <= bytes.size && exif.indices.all { at(i + 4 + it) == exif[it] }) return true
+            if (length < 2 || i + 2 + length > bytes.size) return null
+            val allowed = when (marker) {
+                0xE0 -> startsWith(i + 4, "JFIF\u0000")
+                0xE2 -> startsWith(i + 4, "ICC_PROFILE\u0000")
+                0xEE -> startsWith(i + 4, "Adobe")
+                0xDB, 0xC4, 0xCC, 0xDD -> true
+                in 0xC0..0xCF -> marker != 0xC8
+                else -> false
+            }
+            segments.add(JpegSegment(i, i + 2 + length, allowed))
             i += 2 + length
         }
-        return false
+    }
+
+    /**
+     * Whether bytes are a JPEG with nothing but image data before its scan: an APP0 JFIF header, an APP2 ICC profile,
+     * the APP14 Adobe segment, tables and the frame header (0xFF fill allowed). Exif or XMP, MPF, IPTC, comments and
+     * any other segment, a truncated header or no scan fail. The engine's own rule (jpeg_is_stripped).
+     */
+    fun jpegIsStripped(bytes: ByteArray): Boolean = jpegSegments(bytes)?.first?.all { it.allowed } == true
+
+    /**
+     * The JPEG with only the segments [jpegIsStripped] allows before its scan (and no fill bytes); the scan and what
+     * follows stay as they are. Bytes that are not a well-formed JPEG header come back unchanged.
+     */
+    fun jpegStrippingMetadata(bytes: ByteArray): ByteArray {
+        val (segments, scan) = jpegSegments(bytes) ?: return bytes
+        val out = java.io.ByteArrayOutputStream(bytes.size)
+        out.write(0xFF)
+        out.write(0xD8)
+        segments.filter { it.allowed }.forEach { out.write(bytes, it.start, it.end - it.start) }
+        out.write(bytes, scan, bytes.size - scan)
+        return out.toByteArray()
     }
 
     /** The rotation an EXIF orientation asks for, and whether it mirrors. */
@@ -198,8 +235,9 @@ object FlareDocumentRules {
      */
     suspend fun process(photo: ByteArray, side: FlareDocumentSide, maxBytes: Int, accept: List<String> = emptyList()): FlareCapturedDocument {
         if (!acceptsJpeg(accept)) throw FlareDocumentProcessException(FlareDocumentProcessError.NotAccepted)
-        val out = withContext(Dispatchers.Default) { encode(photo, maxBytes) }
-        if (jpegHasExif(out)) throw FlareDocumentProcessException(FlareDocumentProcessError.Failed)
+        // Bitmap.compress writes no metadata; whatever an encoder might add besides image data goes all the same.
+        val out = withContext(Dispatchers.Default) { jpegStrippingMetadata(encode(photo, maxBytes)) }
+        if (!jpegIsStripped(out)) throw FlareDocumentProcessException(FlareDocumentProcessError.Failed)
         return FlareCapturedDocument(side.fileName, out)
     }
 

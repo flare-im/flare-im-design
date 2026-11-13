@@ -207,7 +207,7 @@
 
 - 输入：`side`（front / back / holding）、`maxBytes`、`accept`、`preview`（宿主相机画面：Vue 插槽、Flutter Widget、SwiftUI `AnyView`、Compose composable）、`capture`（宿主取静帧）、`pickPhoto`（宿主相册）、`cameraUnavailable`；回调 `done(file)`、`cancel`。
 - Kit 画取景框（正反面 ID-1 比例 1.585，手持 3:4）、提示、处理中、确认与重拍。相机权限与相机本身归宿主（CameraX、AVFoundation、Flutter `camera`、`getUserMedia`）。
-- 压缩与去 EXIF 在 Kit：按 `documentCompression.plan`（最长边 2048→1024，质量 0.86→0.5）逐级编码成 `image/jpeg`，方向先烤进像素，再用与引擎一致的 `flareJpegHasExif` 复查。Vue 用画布，Flutter 在后台 isolate 用 `image` 包，SwiftUI 用 ImageIO 不带属性的缩略图，Compose 用 `BitmapFactory` + `ExifInterface` + `Bitmap.compress`。`done` 交出 `{fileName: document-<side>.jpg, contentType, bytes}`，即 `captureDocument` 的 `{file}`（字节转成 0–255 数组）。
+- 压缩与去 EXIF 在 Kit：按 `documentCompression.plan`（最长边 2048→1024，质量 0.86→0.5）逐级编码成 `image/jpeg`，方向先烤进像素；编码器自己加的段（Apple 编码器会写 Exif 与 IPTC）用 `flareJpegStrippingMetadata` 去掉，只留 JFIF 头、ICC 色彩、Adobe 段、量化与霍夫曼表和帧头，再用与引擎一致的 `flareJpegIsStripped` 复查（引擎 `jpeg_is_stripped`：扫描段之前只许这些段，0xFF 填充可跳过；Exif、XMP、MPF、IPTC、注释、截断的头或没有扫描段都不算；证件照只收 JPEG）。Vue 用画布，Flutter 在后台 isolate 用 `image` 包，SwiftUI 用 ImageIO 不带属性的缩略图，Compose 用 `BitmapFactory` + `ExifInterface` + `Bitmap.compress`。`done` 交出 `{fileName: document-<side>.jpg, contentType, bytes}`，即 `captureDocument` 的 `{file}`（字节转成 0–255 数组）。
 
 ### 付款确认 `FlarePaymentConfirmation`（method `confirmPayment`）
 
@@ -271,13 +271,14 @@ Android 的宿主分两层，`PluginBundleHost.kt`：普通 Android 视图 `Flar
 - **运行时**：`FlarePluginBundleRuntime.profile(context)` 是宿主资料的 `bundleRuntime`（`{bridge: 1, engine: "webview", engineMajor}`）。只有 Android System WebView 主版本 ≥111 且支持 `WEB_MESSAGE_LISTENER` 时才返回，低于这个下限返回 null，宿主资料不报 `bundle`（D-17）。依赖 `androidx.webkit:webkit:1.15.0`。
 - **源与文件**：每个会话一个 WebView，入口 `https://{pluginKey}.plugin.flare.invalid/{entry}`。`shouldInterceptRequest` 只对本源的 `GET`、并且路径在 `plugin_bundle_open` 返回的 `files` 清单里的请求，从引擎缓存目录读文件（规范化后再查一次是否在缓存目录内）；其余一律 403。每个响应都带引擎给的 CSP、`Access-Control-Allow-Origin: *`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`。规则 `pluginBundleServe`。
 - **隔离**：不用 `addJavascriptInterface`；桥是 `WebViewCompat.addWebMessageListener(view, "flareBridge", setOf(origin))`，只收主框架、本源的消息，回信和引擎事件经同一个 `JavaScriptReplyProxy` 以 JSON 文本发回。关闭文件访问、内容访问、`allowFileAccessFromFileURLs`、`allowUniversalAccessFromFileURLs`、DOM 存储、数据库、定位、混合内容、第三方 Cookie；不开新窗口，拒绝权限请求、文件选择、JS 对话框和下载；离开本源的主框架导航全部拦下；控制台输出不上报。
+- **存储**：`domStorageEnabled = false` 只关 localStorage 与 sessionStorage，IndexedDB、Cache Storage 与第一方 Cookie 仍在。所以 `FlarePluginBundleStorage`（`PluginBundleStorage.kt`）在 WebView 支持 `MULTI_PROFILE` 时把每个包 WebView 放进当前登录用户自己的配置文件，应用在登录后调 `signedIn(context, scope)`、退出或换号时调 `signedOut(context)`，配置文件随之删除；不支持时包页面开着期间不收 Cookie，删除各源在默认配置文件里写下的数据。两种情况下，一个源的最后一个页面关闭时都删掉它的存储与 Cookie，进程被杀留下的数据在下一个包打开前删掉。回信总是发给最近说话的那个文档的 `JavaScriptReplyProxy`：页面自己 `location.reload()` 后，新文档开口前的信封先排队。
 - **手势**：宿主在原生层记录最近一次触摸（5 秒内），随每条桥消息作为 `userGesture` 交给引擎；不信页面自己的声明。
 - **宿主请求**：引擎答 `{host}` 时交给 `FlarePluginBundleHostDelegate`。Compose 组件用 Kit 组件画：`ui.toast`（`LocalFlareToast`）、`ui.confirm`（`LocalFlareDialog`，标题 ≤64、正文 ≤512 字符）、`ui.setTitle`（页面标题）、`ui.openExternal`（只收 https，先确认再用系统浏览器，D-13）、`clipboard.write`（系统剪贴板加「已复制」提示）、`ui.navigate`（`onNavigate`）、`ui.resize`（`onHeightChange`，只在弹层里）、`ui.close`（`onClose(result)`）。每个请求只回答一次。
 - **引擎事件**：宿主把 `plugin.bundle_event`（7004）的载荷交给 `FlarePluginBundleEvents.dispatch(json)`，对应会话的页面转发信封；`close` 为 `withdrawn`、`suspended`、`disabled`、`replaced` 时回落到声明式变体（`onFallback`），`signedOut` 关闭（`onClose(null)`），`evicted` 等回到前台再打开。
 - **生命周期**：跟随所在界面的生命周期。暂停时 `WebView.onPause()` 并发 `visibility.changed`；后台超过 30 秒或收到内存警告就销毁并结束会话，回来时重新打开，页面用 `ui.saveState` 恢复。渲染进程退出（`onRenderProcessGone`）显示错误与「重新加载」，同一次打开第三次崩溃回落到声明式变体。主题、语言变化经 `plugin_bundle_host_event` 发给订阅的页面。
 - **打不开时**：`plugin_bundle_open` 失败（`not_offered`、`unsupported`、`unavailable`、`rejected`）也回落到声明式变体，所以宿主可以先试 Web 包再退回声明式页面。
 - **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 SwiftUI 共用）；`flarePluginBridgeErrorText(code, strings)` 接受错误码或 `plugin.bridge.*` 键。
-- **测试**：`PluginBundleHostTest`（运行时下限、会话校验、拦截器规则、响应头、导航、外链、关闭与崩溃状态、桥应答、事件分发、打开请求）。
+- **测试**：`PluginBundleHostTest`（运行时下限、会话校验、拦截器规则、响应头、导航、外链、关闭与崩溃状态、桥应答、事件分发、打开请求），`PluginBundleStorageTest`（按用户的配置文件名、Cookie 过期、源的页面计数、刷新后的回信通道）。
 
 ## Web 包宿主：SwiftUI（L3，设计 8.4 到 8.8）
 

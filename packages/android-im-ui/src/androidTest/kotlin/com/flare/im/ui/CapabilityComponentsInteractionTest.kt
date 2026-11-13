@@ -37,11 +37,11 @@ class CapabilityComponentsInteractionTest {
             saveAttributes()
         }
         val withExif = file.readBytes()
-        assertTrue(FlareDocumentRules.jpegHasExif(withExif))
+        assertFalse(FlareDocumentRules.jpegIsStripped(withExif))
         val out = runBlocking { FlareDocumentRules.process(withExif, FlareDocumentSide.Front, 400 * 1024) }
         assertEquals("document-front.jpg", out.fileName)
         assertTrue(out.bytes.size <= 400 * 1024)
-        assertFalse(FlareDocumentRules.jpegHasExif(out.bytes))
+        assertTrue(FlareDocumentRules.jpegIsStripped(out.bytes))
         val decoded = BitmapFactory.decodeByteArray(out.bytes, 0, out.bytes.size)
         assertTrue("rotation is baked into the pixels", decoded.height > decoded.width)
         assertTrue(maxOf(decoded.width, decoded.height) <= 2048)

@@ -60,7 +60,18 @@ class CapabilityUiTest {
             assertEquals(m["name"], FlareDocumentSide.of(m["side"] as String)!!.fileName)
         }
         for (c in cases("documentAccept")) assertEquals(c["ok"], FlareDocumentRules.acceptsJpeg((c["accept"] as List<*>).map { it as String }))
-        for (c in cases("jpegExif")) assertEquals(c["exif"], FlareDocumentRules.jpegHasExif(hex(c["hex"] as String)), "$c")
+        for (c in cases("jpegStripped")) assertEquals(c["stripped"], FlareDocumentRules.jpegIsStripped(hex(c["hex"] as String)), "$c")
+        val strip = ((vectors["jpegStripped"] as Map<*, *>)["strip"] as List<*>).map { it as Map<*, *> }
+        for (c in strip) {
+            assertEquals(
+                (c["out"] as String).lowercase(),
+                FlareDocumentRules.jpegStrippingMetadata(hex(c["hex"] as String)).joinToString("") { "%02x".format(it) },
+                "$c",
+            )
+        }
+        for (c in cases("jpegStripped").filter { it["stripped"] == true }) {
+            assertTrue(FlareDocumentRules.jpegIsStripped(FlareDocumentRules.jpegStrippingMetadata(hex(c["hex"] as String))))
+        }
         val file = FlareCapturedDocument("document-front.jpg", byteArrayOf(-1, -40))
         assertEquals(listOf(255, 216), file.toJson()["bytes"])
     }

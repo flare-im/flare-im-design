@@ -1,5 +1,5 @@
 {
-  "$comment": "Shared facts of the plugin host capability components (docs/design/plugin-client-hot-delivery.md 7): FlareCapabilityConsent, FlareDocumentCapture, FlarePaymentConfirmation and the protected media block's address rule. Every kit reads this file in its tests; the rules have the same names in every kit (flareCapability*, flareDocument*, flarePayment*, flareJpegHasExif, flarePluginProtectedMediaSource).",
+  "$comment": "Shared facts of the plugin host capability components (docs/design/plugin-client-hot-delivery.md 7): FlareCapabilityConsent, FlareDocumentCapture, FlarePaymentConfirmation and the protected media block's address rule. Every kit reads this file in its tests; the rules have the same names in every kit (flareCapability*, flareDocument*, flarePayment*, flareJpegIsStripped, flarePluginProtectedMediaSource).",
   "consentDecision": {
     "$comment": "What the viewer's choice answers the engine's consent request with: {decision}. The engine keeps only \"always\"; \"once\" lets the current request through and keeps nothing, so the host never revokes anything to emulate it.",
     "cases": [
@@ -313,41 +313,100 @@
       }
     ]
   },
-  "jpegExif": {
-    "$comment": "Whether bytes are a JPEG with an APP1 Exif segment before the scan: the engine refuses a document that has one (flare-core-sdk-engine jpeg_has_exif).",
+  "jpegStripped": {
+    "$comment": "Whether bytes are a JPEG with nothing but image data before its scan: an APP0 JFIF header, an APP2 ICC profile, the APP14 Adobe segment, tables and the frame header, 0xFF fill bytes allowed. Exif or XMP (APP1), MPF, IPTC, comments, any other segment, a truncated header or no scan is not stripped. The engine refuses a document photo that is not a stripped JPEG (flare-core-sdk-engine jpeg_is_stripped); the kits check their own output with the same rule. strip: what a kit's own encoder output becomes when the segments outside that list are removed (Apple encoders write Exif and IPTC segments of their own).",
     "cases": [
       {
-        "hex": "FFD8FFE10010457869660000",
-        "exif": true,
-        "note": "truncated after the Exif header still counts"
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "JFIF header, tables, frame header, scan"
       },
       {
-        "hex": "FFD8FFE100104578696600004D4D002A00000008FFDA0002FFD9",
-        "exif": true
+        "hex": "FFD8FFFFFFE000104A46494600010100000100010000FFFFFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFFFFFDA0002FFD9",
+        "stripped": true,
+        "note": "0xFF fill bytes before markers"
       },
       {
-        "hex": "FFD8FFE000104A46494600010100000100010000FFE100104578696600004D4D002A00000008FFDA0002FFD9",
-        "exif": true
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "an ICC profile is colour, not metadata"
       },
       {
-        "hex": "FFD8FFE000104A46494600010100000100010000FFDA0002FFD9",
-        "exif": false
+        "hex": "FFD8FFEE000741646F6265FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "the Adobe segment"
       },
       {
-        "hex": "FFD8FFE10008687474703A2FFFDA0002FFD9",
-        "exif": false
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE10008457869660000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "Exif"
       },
       {
-        "hex": "FFD8FFDA0002FFE10010457869660000",
-        "exif": false
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFE1000A687474703A2F2F6E73FFDA0002FFD9",
+        "stripped": false,
+        "note": "XMP after the tables"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE200084D5046000000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "MPF"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFED00045043FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "Photoshop/IPTC"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFFE0004AAAAFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "a comment"
+      },
+      {
+        "hex": "FFD8FFE000064A465858FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "an APP0 that is not JFIF"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "stripped": false,
+        "note": "a truncated header"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AA",
+        "stripped": false,
+        "note": "no scan"
       },
       {
         "hex": "89504E470D0A1A0A",
-        "exif": false
+        "stripped": false,
+        "note": "not a JPEG"
       },
       {
         "hex": "",
-        "exif": false
+        "stripped": false,
+        "note": "empty"
+      }
+    ],
+    "strip": [
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE10008457869660000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFED00045043FFFE0004AAAAFFDA0002FFD9",
+        "out": "FFD8FFE000104A46494600010100000100010000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "note": "Exif, IPTC and the comment go; the ICC profile stays"
+      },
+      {
+        "hex": "FFD8FFFFFFE000104A46494600010100000100010000FFE200084D5046000000FFFFFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "out": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "note": "MPF and fill bytes go; the scan is kept as it is"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "out": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "note": "a truncated header comes back unchanged (and is not stripped)"
+      },
+      {
+        "hex": "89504E470D0A1A0A",
+        "out": "89504E470D0A1A0A",
+        "note": "not a JPEG: unchanged"
       }
     ]
   },

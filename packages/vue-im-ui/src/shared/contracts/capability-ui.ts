@@ -144,23 +144,76 @@ export function flareDocumentAcceptsJpeg(accept: ReadonlyArray<string> | null | 
   });
 }
 
-/** Whether bytes are a JPEG with an APP1 Exif segment before the scan (the engine's jpeg_has_exif). */
-export function flareJpegHasExif(bytes: Uint8Array): boolean {
-  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return false;
+/** One JPEG segment before the scan: `[start, end)` of its bytes from its 0xFF, its marker, and whether it may stay. */
+interface FlareJpegSegment {
+  start: number;
+  end: number;
+  marker: number;
+  allowed: boolean;
+}
+
+function startsWithAscii(bytes: Uint8Array, at: number, text: string): boolean {
+  if (at + text.length > bytes.length) return false;
+  for (let i = 0; i < text.length; i++) if (bytes[at + i] !== text.charCodeAt(i)) return false;
+  return true;
+}
+
+/** The segments before the scan, with the scan's offset; null when the bytes are not a well-formed JPEG header. */
+function flareJpegSegments(bytes: Uint8Array): { segments: FlareJpegSegment[]; scan: number } | null {
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
+  const segments: FlareJpegSegment[] = [];
   let at = 2;
-  while (at + 4 <= bytes.length) {
-    if (bytes[at] !== 0xff) return false;
+  for (;;) {
+    if (bytes[at] !== 0xff) return null;
+    // 0xFF fill bytes may come before a marker.
+    while (bytes[at + 1] === 0xff) at++;
     const marker = bytes[at + 1];
-    if (marker === 0xda || marker === 0xd9) return false;
+    if (marker === undefined) return null;
+    if (marker === 0xda) return { segments, scan: at };
+    if (at + 4 > bytes.length) return null;
     const length = (bytes[at + 2] << 8) | bytes[at + 3];
-    if (length < 2) return false;
-    if (marker === 0xe1 && at + 10 <= bytes.length) {
-      const exif = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00];
-      if (exif.every((b, i) => bytes[at + 4 + i] === b)) return true;
-    }
+    if (length < 2 || at + 2 + length > bytes.length) return null;
+    const body = at + 4;
+    let allowed: boolean;
+    if (marker === 0xe0) allowed = startsWithAscii(bytes, body, "JFIF\0");
+    else if (marker === 0xe2) allowed = startsWithAscii(bytes, body, "ICC_PROFILE\0");
+    else if (marker === 0xee) allowed = startsWithAscii(bytes, body, "Adobe");
+    else allowed = marker === 0xdb || marker === 0xc4 || marker === 0xcc || marker === 0xdd
+      || (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc8);
+    segments.push({ start: at, end: at + 2 + length, marker, allowed });
     at += 2 + length;
   }
-  return false;
+}
+
+/**
+ * Whether bytes are a JPEG with nothing but image data before its scan: an APP0 JFIF header, an APP2 ICC profile,
+ * the APP14 Adobe segment, tables and the frame header (0xFF fill allowed). Exif or XMP, MPF, IPTC, comments and any
+ * other segment, a truncated header or no scan fail. The engine's own rule (jpeg_is_stripped).
+ */
+export function flareJpegIsStripped(bytes: Uint8Array): boolean {
+  const parsed = flareJpegSegments(bytes);
+  return parsed !== null && parsed.segments.every((segment) => segment.allowed);
+}
+
+/**
+ * The JPEG with only the segments {@link flareJpegIsStripped} allows before its scan (and no fill bytes); the scan and
+ * what follows stay as they are. Bytes that are not a well-formed JPEG header come back unchanged.
+ */
+export function flareJpegStrippingMetadata(bytes: Uint8Array): Uint8Array {
+  const parsed = flareJpegSegments(bytes);
+  if (!parsed) return bytes;
+  const kept = parsed.segments.filter((segment) => segment.allowed);
+  const size = 2 + kept.reduce((sum, segment) => sum + segment.end - segment.start, 0) + bytes.length - parsed.scan;
+  const out = new Uint8Array(size);
+  out[0] = 0xff;
+  out[1] = 0xd8;
+  let at = 2;
+  for (const segment of kept) {
+    out.set(bytes.subarray(segment.start, segment.end), at);
+    at += segment.end - segment.start;
+  }
+  out.set(bytes.subarray(parsed.scan), at);
+  return out;
 }
 
 /** The photo the capture hands the host: `captureDocument`'s `{file}` once the host turns bytes into a number list. */
@@ -203,9 +256,10 @@ export async function flareProcessDocumentPhoto(
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
       if (!blob) throw "failed" satisfies FlareDocumentProcessError;
       if (blob.size > options.maxBytes) continue;
-      const bytes = new Uint8Array(await blob.arrayBuffer());
-      // A canvas never writes EXIF; refuse rather than hand on a file the engine would refuse anyway.
-      if (flareJpegHasExif(bytes)) throw "failed" satisfies FlareDocumentProcessError;
+      // A canvas draws only pixels, but a browser's encoder may add segments of its own (Apple's ImageIO writes Exif):
+      // keep only image data, and refuse rather than hand on a file the engine would refuse anyway.
+      const bytes = flareJpegStrippingMetadata(new Uint8Array(await blob.arrayBuffer()));
+      if (!flareJpegIsStripped(bytes)) throw "failed" satisfies FlareDocumentProcessError;
       return { fileName: flareDocumentFileName(side), contentType: "image/jpeg", bytes };
     }
     throw "tooLarge" satisfies FlareDocumentProcessError;
