@@ -8,6 +8,8 @@ import MetricTile from "./components/data/FlareMetricTile.vue";
 import PluginView from "./components/messages/FlarePluginView.vue";
 import PluginForm from "./components/form/FlarePluginForm.vue";
 import PluginDetailSheet from "./components/messages/FlarePluginDetailSheet.vue";
+import { FlarePluginBundleHost } from "./admin";
+import PluginBundleHost from "./components/plugin/FlarePluginBundleHost.vue";
 
 describe("focused admin data states", () => {
   it("exports the existing chart without a separate dashboard implementation", () => {
@@ -24,5 +26,8 @@ describe("focused admin data states", () => {
     expect(FlarePluginView).toBe(PluginView);
     expect(FlarePluginForm).toBe(PluginForm);
     expect(FlarePluginDetailSheet).toBe(PluginDetailSheet);
+  });
+  it("exports the plugin web bundle host for a review preview", () => {
+    expect(FlarePluginBundleHost).toBe(PluginBundleHost);
   });
 });

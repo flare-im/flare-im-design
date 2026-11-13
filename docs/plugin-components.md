@@ -232,6 +232,18 @@
 - 地址规则（`protectedMediaSource` 向量）：原生只画 https 与 data:image；Vue 另接受 blob: 与 Tauri 资源地址。图片只在内存：SwiftUI 用无缓存、无 Cookie 的临时会话自己取，Compose 用 Coil 并关闭磁盘缓存，Flutter 用内存图片缓存并在离开时清掉；图片不可拖拽、无长按菜单、无保存或分享入口。
 - 原生新参数：`protectedMedia`、`onProtectedMediaRead`（SwiftUI、Compose、Flutter 的 `PluginView` 与 `FlarePluginPage`）；Vue `FlarePluginPage` 也转发 `protectedMedia` 与 `protectedMediaRead`。
 
+## Web 包宿主 `FlarePluginBundleHost`（L3，设计 8.4 到 8.6）
+
+Vue（Web、Tauri）的宿主组件，原生三端的同名组件由各自的 Kit 提供。
+
+- **沙箱**：`<iframe sandbox="allow-scripts allow-forms">`（常量 `FLARE_PLUGIN_BUNDLE_SANDBOX`），不给 `allow-same-origin`、`allow-popups`、`allow-top-navigation`，文档是不透明源；`referrerpolicy="no-referrer"`，`allow=""`。
+- **消息搬运**：只收 `event.source` 是本 iframe 的 `contentWindow` 的消息（`flarePluginBundleMessage`），对象或 JSON 对象文本，超过 64 KiB 丢弃；连同宿主自己记录的最近手势（宿主文档的按下、`navigator.userActivation`、焦点进入 iframe）交给 `bridge.request`。回给页面一律 `postMessage(envelope, "*")`（不透明源只能用 `*`）。
+- **宿主画的请求**（引擎答 `{host}` 时）：`ui.toast`（Kit 提示条）、`ui.confirm`（Kit 模态框，`destructive` 用危险按钮）、`ui.setTitle`（页面标题，并发 `title`）、`ui.resize`（只在非页面形态有效）、`ui.close`（发 `close(result)`）、`ui.navigate`（发 `navigate`）、`ui.openExternal`（只收 https，先弹确认再经 `openExternal` 或新窗口 `noopener,noreferrer` 打开）、`clipboard.write`（经 `writeClipboard` 或系统剪贴板）。每个请求只回一次：`bridge.hostResult(id, {result} | {error})`；没有 `hostResult` 的桥（审核台的模拟桥）由 Kit 自己拼响应信封。
+- **事件**：`theme`、`locale` 变化与页面可见性经 `bridge.hostEvent` 换成信封发给订阅的页面；`bridge.subscribe` 送来的事件信封原样转发，`close` 结束页面并发 `closed(reason)`，容器据此回落到声明式变体。
+- **生命周期**：组件卸载或文档 `pagehide` 时调 `bridge.close()` 结束会话；挂着的确认按取消回答。15 秒内没收到 `host.hello` 显示加载失败与重试，并发 `failed`（容器计数，同一次会话连续三次改用声明式变体）。
+- **形态**：`presentation="page"` 画 Kit Screen（标题、返回键）；`detail`、`composerForm` 填满所在的弹层。
+- **文案**：`pluginBundle.*`（中英），桥错误码对应 `pluginBundle.error.<lowerCamel>`，用 `flarePluginBridgeErrorKey(code)` 取键。
+
 ## Web 包宿主：Compose（L3，设计 8.4 到 8.8）
 
 Android 的宿主分两层，`PluginBundleHost.kt`：普通 Android 视图 `FlarePluginBundleView`（不依赖 Compose，Flutter 的平台视图直接复用），和包在它外面的 Compose 组件 `FlarePluginBundleHost`。

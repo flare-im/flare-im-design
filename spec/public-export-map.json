@@ -2511,6 +2511,27 @@
       }
     },
     {
+      "name": "PluginBundleHost",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginBundleHost",
+          "sourcePath": "packages/vue-im-ui/src/components/plugin/FlarePluginBundleHost.vue"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginBundleHost",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginBundleHost.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginBundleHost",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginBundleHost.swift"
+        }
+      }
+    },
+    {
       "name": "DocumentCapture",
       "status": "stable",
       "platforms": {

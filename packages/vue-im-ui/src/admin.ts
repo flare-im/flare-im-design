@@ -131,3 +131,13 @@ export type { FlareUserIdentityValue } from "./components/data/FlareUserIdentity
 export { default as FlareAdminIconPicker } from "./components/form/FlareAdminIconPicker.vue";
 export type { FlareAdminIconOption } from "./components/form/FlareAdminIconPicker.vue";
 export { flarePluginProtectedMediaUrl } from "./shared/contracts/plugin-ui";
+// A plugin web bundle in its sandboxed frame, for a console's review preview against a mock bridge.
+export { default as FlarePluginBundleHost } from "./components/plugin/FlarePluginBundleHost.vue";
+export type {
+  FlarePluginBundleAnswer,
+  FlarePluginBundleBridge,
+  FlarePluginBundleBridgeEvent,
+  FlarePluginBundleEnvelope,
+  FlarePluginBundleHostRequest,
+  FlarePluginBundleTheme,
+} from "./components/plugin/pluginBundleHost";

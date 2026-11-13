@@ -332,6 +332,18 @@ export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailS
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
 export { default as FlarePluginUpgradeNotice } from "./messages/FlarePluginUpgradeNotice.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
+// Plugin web bundles (design 8.4 to 8.6): the sandboxed frame, its envelope relay and the ui.* requests the host draws.
+export { default as FlarePluginBundleHost } from "./plugin/FlarePluginBundleHost.vue";
+export {
+  FLARE_PLUGIN_BUNDLE_SANDBOX, FLARE_PLUGIN_BRIDGE_ERROR_CODES, flarePluginBridgeErrorKey, flarePluginBundleExternalUrl,
+  flarePluginBundleMessage, flarePluginBundleAnswer, flarePluginBundleEvent, flarePluginBundleHostResponse,
+  createFlarePluginBundleGesture,
+} from "./plugin/pluginBundleHost";
+export type {
+  FlarePluginBundleBridge, FlarePluginBundleBridgeEvent, FlarePluginBundleEnvelope, FlarePluginBundleHostRequest,
+  FlarePluginBundleHostError, FlarePluginBundleAnswer, FlarePluginBundleTheme, FlarePluginBundlePresentation,
+  FlarePluginBridgeErrorCode,
+} from "./plugin/pluginBundleHost";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";
 
 export { default as FlareAccountView } from "./messages/account/FlareAccountView.vue";

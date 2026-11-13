@@ -42,10 +42,10 @@
     "supportsDensity": "The component takes a density of its own (its prop says what the values mean); the kit has no global density scale."
   },
   "counts": {
-    "total": 189,
-    "stable": 188,
+    "total": 190,
+    "stable": 189,
     "general": 58,
-    "im": 126
+    "im": 127
   },
   "specializedMessageGroups": {
     "Text": [
@@ -11020,6 +11020,151 @@
       },
       "sourceOfTruth": "spec/components.json#CapabilityConsent",
       "searchText": "capabilityconsent message im-ui stable capability consent permission allow once 授权 能力授权 仅本次允许 message ask askonce decide supportsconfiguration supportscapabilities capability consent — the panel a host shows the first time a plugin uses a host capability: \"〈plugin〉 wants to use 〈capability〉\", the purpose, and allow once, always allow, don't allow. 能力授权 —— 插件第一次使用宿主能力时宿主弹出的面板：「〈插件〉想要使用〈能力〉」、用途，以及仅本次允许、始终允许、不允许。"
+    },
+    {
+      "name": "PluginBundleHost",
+      "slug": "plugin-bundle-host",
+      "category": "Message",
+      "layer": "im-ui",
+      "scope": "public-library",
+      "status": "stable",
+      "since": "2.0.0-rc.1",
+      "replacement": null,
+      "supportsConfiguration": true,
+      "supportsCustomActions": false,
+      "supportsCustomContent": false,
+      "supportsSlots": false,
+      "supportsCapabilities": false,
+      "supportsDensity": false,
+      "supportsResponsive": false,
+      "previewMode": "single",
+      "previewViewports": [
+        "desktop"
+      ],
+      "previewPresentation": "isolated",
+      "previewOpener": null,
+      "docsSections": {
+        "configuration": true,
+        "variants": true,
+        "states": true,
+        "interaction": true,
+        "responsive": false,
+        "keyboard": true,
+        "density": false,
+        "slots": false,
+        "customization": false
+      },
+      "docExamples": {
+        "variants": [
+          {
+            "name": "bridge",
+            "values": [
+              "FlarePluginBundleBridge",
+              "null"
+            ]
+          },
+          {
+            "name": "presentation",
+            "values": [
+              "page",
+              "detail",
+              "composerForm"
+            ]
+          },
+          {
+            "name": "openExternal",
+            "values": [
+              "(url: string) => void",
+              "Promise<void>"
+            ]
+          }
+        ],
+        "states": [
+          "opening",
+          "ready",
+          "suspended",
+          "crashed",
+          "fallback",
+          "closed"
+        ]
+      },
+      "summary": {
+        "en": "Plugin web bundle host — a plugin's sandboxed web page (design 8.4): served only from the engine's verified cache on the plugin's own origin, its bridge carried to the engine, and the host requests it makes (title, toast, confirm, external link, clipboard, navigate, close) drawn with kit components.",
+        "zh": "插件 Web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 Kit 组件绘制。"
+      },
+      "aliases": [
+        "Message",
+        "opening",
+        "ready",
+        "suspended",
+        "crashed",
+        "fallback",
+        "closed",
+        "close",
+        "navigate",
+        "back",
+        "title",
+        "resize",
+        "failed",
+        "retry"
+      ],
+      "states": [
+        "opening",
+        "ready",
+        "suspended",
+        "crashed",
+        "fallback",
+        "closed"
+      ],
+      "interactions": [
+        "fallback",
+        "close",
+        "navigate",
+        "back",
+        "title",
+        "resize",
+        "closed",
+        "failed",
+        "retry"
+      ],
+      "accessibility": "accessibility-contract",
+      "responsive": "application-layout-vectors",
+      "platforms": {
+        "vue": {
+          "support": "supported",
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePluginBundleHost"
+        },
+        "flutter": {
+          "support": "not-applicable"
+        },
+        "compose": {
+          "support": "supported",
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginBundleHost"
+        },
+        "ios": {
+          "support": "supported",
+          "package": "FlareIMUI",
+          "symbol": "FlarePluginBundleHost"
+        }
+      },
+      "sourcePaths": {
+        "vue": "packages/vue-im-ui/src/components/plugin/FlarePluginBundleHost.vue",
+        "compose": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/PluginBundleHost.kt",
+        "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginBundleHost.swift"
+      },
+      "docs": {
+        "zh": null,
+        "en": null
+      },
+      "examples": {
+        "live": false,
+        "code": false,
+        "gallery": false
+      },
+      "sourceOfTruth": "spec/components.json#PluginBundleHost",
+      "searchText": "pluginbundlehost message im-ui stable message opening ready suspended crashed fallback closed fallback close navigate back title resize closed failed retry supportsconfiguration plugin web bundle host — a plugin's sandboxed web page (design 8.4): served only from the engine's verified cache on the plugin's own origin, its bridge carried to the engine, and the host requests it makes (title, toast, confirm, external link, clipboard, navigate, close) drawn with kit components. 插件 web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 kit 组件绘制。"
     },
     {
       "name": "DocumentCapture",
