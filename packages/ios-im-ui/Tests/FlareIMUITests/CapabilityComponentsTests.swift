@@ -173,19 +173,21 @@ final class CapabilityComponentsTests: XCTestCase {
     }
 
     @MainActor func testConsentOffersOnlyWhatItMay() throws {
+        // The inspector reads the view's own environment, so the checks use the default strings.
+        let strings = FlareStrings()
         var decisions: [FlareCapabilityConsentDecision] = []
         let view = FlareCapabilityConsent(pluginName: "Realname", capability: "documentCapture", purpose: "Verify",
-                                          onDecide: { decisions.append($0) }).environment(\.flareStrings, .english)
+                                          onDecide: { decisions.append($0) })
         let tree = try view.inspect()
-        XCTAssertNoThrow(try tree.find(text: "“Realname” wants to use"))
-        XCTAssertNoThrow(try tree.find(text: FlareStrings.english.capabilityDocumentCapture))
-        try tree.find(button: FlareStrings.english.capabilityConsentAllowAlways).tap()
-        try tree.find(button: FlareStrings.english.capabilityConsentDeny).tap()
+        XCTAssertNoThrow(try tree.find(text: FlareCapabilityConsent.title(strings, pluginName: "Realname")))
+        XCTAssertNoThrow(try tree.find(text: strings.capabilityDocumentCapture))
+        try tree.find(button: strings.capabilityConsentAllowAlways).tap()
+        try tree.find(button: strings.capabilityConsentDeny).tap()
         XCTAssertEqual(decisions, [.always, .deny])
         let location = try FlareCapabilityConsent(pluginName: "C", capability: "locationOnce",
-                                                  params: ["precision": .string("fine")])
-            .environment(\.flareStrings, .english).inspect()
-        XCTAssertThrowsError(try location.find(button: FlareStrings.english.capabilityConsentAllowAlways))
+                                                  params: ["precision": .string("fine")]).inspect()
+        XCTAssertThrowsError(try location.find(button: strings.capabilityConsentAllowAlways))
+        XCTAssertNoThrow(try location.find(button: strings.capabilityConsentAllowOnce))
     }
 
     func testPaymentConfirmOnlyBeforeExpiry() {
