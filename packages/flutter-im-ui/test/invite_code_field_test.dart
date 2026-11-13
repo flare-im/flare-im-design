@@ -165,6 +165,39 @@ void main() {
     expect(find.text('邀请人：Ann'), findsNothing);
   });
 
+  testWidgets(
+    'offers a scan button only with onScan, reports the press, and follows disabled',
+    (tester) async {
+      await tester.pumpWidget(_host(const FlareInviteCodeField()));
+      expect(find.byType(FlareIconButton), findsNothing);
+      expect(find.bySemanticsLabel('扫码填入邀请码'), findsNothing);
+
+      var scans = 0;
+      await tester.pumpWidget(
+        _host(FlareInviteCodeField(onScan: () => scans++)),
+      );
+      final button = find.byType(FlareIconButton);
+      expect(button, findsOneWidget);
+      final widget = tester.widget<FlareIconButton>(button);
+      expect(widget.icon, 'scan');
+      expect(widget.semanticLabel, '扫码填入邀请码');
+      expect(widget.variant, FlareIconButtonVariant.tinted);
+      expect(widget.disabled, isFalse);
+      expect(find.bySemanticsLabel('扫码填入邀请码'), findsOneWidget);
+      await tester.tap(button);
+      await tester.pump();
+      expect(scans, 1);
+
+      await tester.pumpWidget(
+        _host(FlareInviteCodeField(disabled: true, onScan: () => scans++)),
+      );
+      expect(tester.widget<FlareIconButton>(button).disabled, isTrue);
+      await tester.tap(button, warnIfMissed: false);
+      await tester.pump();
+      expect(scans, 1);
+    },
+  );
+
   testWidgets('a host override changes the copy', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

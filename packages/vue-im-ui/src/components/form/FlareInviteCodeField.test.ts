@@ -38,6 +38,28 @@ describe("FlareInviteCodeField", () => {
   beforeEach(() => { vi.useFakeTimers(); });
   afterEach(() => { vi.useRealTimers(); });
 
+  it("offers a scan button only when scannable, and reports the press", async () => {
+    const plain = mountField();
+    expect(plain.host.find('button[aria-label="Scan an invite code"]').exists()).toBe(false);
+    const scans: number[] = [];
+    const host = mount(defineComponent({ setup() { useFlareI18nProvider("en-US"); return () => h(FlareInviteCodeField, { modelValue: "", scannable: true, onScan: () => { scans.push(1); } }); } }));
+    await host.find('button[aria-label="Scan an invite code"]').trigger("click");
+    expect(scans).toEqual([1]);
+    const disabled = mount(defineComponent({ setup() { useFlareI18nProvider("en-US"); return () => h(FlareInviteCodeField, { modelValue: "", scannable: true, disabled: true }); } }));
+    expect(disabled.find('button[aria-label="Scan an invite code"]').attributes("disabled")).toBeDefined();
+  });
+
+  it("pre-checks a code the host writes, as a scanned code arrives", async () => {
+    vi.useFakeTimers();
+    try {
+      const { value, checks } = mountField();
+      value.value = "AB12CD";
+      await nextTick();
+      vi.advanceTimersByTime(1000);
+      expect(checks).toEqual(["AB12CD"]);
+    } finally { vi.useRealTimers(); }
+  });
+
   it("renders nothing at all in off mode", () => {
     const { host } = mountField({ mode: "off", modelValue: "AB12CD" });
     expect(host.find("input").exists()).toBe(false);

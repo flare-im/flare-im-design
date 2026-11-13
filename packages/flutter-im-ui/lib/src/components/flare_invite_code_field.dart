@@ -7,6 +7,7 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_form_field.dart';
 import 'flare_icon.dart';
+import 'flare_icon_button.dart';
 import 'flare_input.dart';
 
 /// The registration form's invite-code field. Spec: Form/InviteCodeField.
@@ -16,6 +17,8 @@ import 'flare_input.dart';
 /// code is complete — asks the host to pre-check it through [onCheck]. The host
 /// owns the request: it sets [checking], then hands back [checkResult] (or an
 /// [error] it has already localized). The field never touches the network.
+/// With [onScan] it shows a scan button at the end of the input; the host scans
+/// and writes the code back through [controller].
 class FlareInviteCodeField extends StatefulWidget {
   const FlareInviteCodeField({
     super.key,
@@ -30,6 +33,7 @@ class FlareInviteCodeField extends StatefulWidget {
     this.placeholder,
     this.onChanged,
     this.onCheck,
+    this.onScan,
   });
 
   /// Holds the code; its text is kept normalized. Owned by the field when null.
@@ -59,6 +63,11 @@ class FlareInviteCodeField extends StatefulWidget {
 
   /// A complete, normalized code the host should pre-check; debounced after typing stops.
   final ValueChanged<String>? onCheck;
+
+  /// Shows a scan button at the end of the input. The host opens its scanner
+  /// and writes the code it reads into [controller]; the field normalizes and
+  /// pre-checks it like a typed one.
+  final VoidCallback? onScan;
 
   @override
   State<FlareInviteCodeField> createState() => _FlareInviteCodeFieldState();
@@ -205,11 +214,30 @@ class _FlareInviteCodeFieldState extends State<FlareInviteCodeField> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          FlareInput(
-            controller: _controller,
-            placeholder: widget.placeholder ?? strings.inviteCodePlaceholder,
-            disabled: widget.disabled,
-            monospace: true,
+          Row(
+            children: [
+              Expanded(
+                child: FlareInput(
+                  controller: _controller,
+                  placeholder:
+                      widget.placeholder ?? strings.inviteCodePlaceholder,
+                  disabled: widget.disabled,
+                  monospace: true,
+                ),
+              ),
+              // The host opens its scanner and writes the code it reads back
+              // through the controller.
+              if (widget.onScan != null) ...[
+                const SizedBox(width: FlareSizes.spacingSm),
+                FlareIconButton(
+                  icon: 'scan',
+                  semanticLabel: strings.inviteCodeScan,
+                  variant: FlareIconButtonVariant.tinted,
+                  disabled: widget.disabled,
+                  onPressed: widget.onScan,
+                ),
+              ],
+            ],
           ),
           if (status != null) ...[
             const SizedBox(height: FlareSizes.spacing2xs),

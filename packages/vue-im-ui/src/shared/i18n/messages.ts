@@ -1565,6 +1565,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       valid: "邀请码可用",
       inviter: "邀请人：{name}",
       invalid: "邀请码无效",
+      scan: "扫码填入邀请码",
     },
     myInvite: {
       title: "我的邀请",
@@ -3240,6 +3241,7 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       valid: "Invite code accepted",
       inviter: "Inviter: {name}",
       invalid: "Invalid invite code",
+      scan: "Scan an invite code",
     },
     myInvite: {
       title: "My invite",

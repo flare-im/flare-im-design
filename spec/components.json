@@ -11654,6 +11654,15 @@
             "en": "Empty-field hint; defaults to the strings table.",
             "zh": "空输入占位；默认取文案表。"
           }
+        },
+        {
+          "name": "scannable",
+          "type": "boolean",
+          "default": "false",
+          "description": {
+            "en": "Shows a scan button at the end of the input (Vue `scannable` with the `scan` event; the native kits show it when `onScan` is given). The host opens its scanner and writes the code it reads back through the model, which is pre-checked like a typed one.",
+            "zh": "在输入框末尾显示扫码按钮（Vue 为 `scannable` 加 `scan` 事件；原生三端传入 `onScan` 时显示）。宿主打开扫码，把读到的码写回绑定值，按手输一样预检。"
+          }
         }
       ],
       "states": [
@@ -11667,7 +11676,8 @@
       ],
       "events": [
         "update:modelValue",
-        "check"
+        "check",
+        "scan"
       ],
       "model": {
         "prop": "modelValue",

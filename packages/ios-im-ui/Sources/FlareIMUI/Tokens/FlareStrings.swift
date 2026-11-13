@@ -54,6 +54,7 @@ public struct FlareStrings: Sendable {
         scanInsecureContext: String = "相机需要安全连接，请选择图片",
         scanCameraBusy: String = "视频通话正在使用相机",
         scanCameraError: String = "相机暂不可用，请重试或选择图片",
+        scanNotInviteCode: String = "这不是邀请码，请扫描邀请二维码",
         scanResult: String = "识别结果",
         scanUpgradeRequired: String = "请更新应用后使用此操作",
         scanSaveCode: String = "保存二维码",
@@ -369,6 +370,7 @@ public struct FlareStrings: Sendable {
         inviteCodeValid: String = "邀请码可用",
         inviteCodeInviter: String = "邀请人：{name}",
         inviteCodeInvalid: String = "邀请码无效",
+        inviteCodeScan: String = "扫码填入邀请码",
         myInviteTitle: String = "我的邀请",
         myInviteCodeLabel: String = "我的邀请码",
         myInviteCodeUnavailable: String = "邀请码暂不可用",
@@ -1296,6 +1298,7 @@ public struct FlareStrings: Sendable {
             inviteCodeValid: inviteCodeValid,
             inviteCodeInviter: inviteCodeInviter,
             inviteCodeInvalid: inviteCodeInvalid,
+            inviteCodeScan: inviteCodeScan,
             myInviteTitle: myInviteTitle,
             myInviteCodeLabel: myInviteCodeLabel,
             myInviteCodeUnavailable: myInviteCodeUnavailable,
@@ -1957,6 +1960,7 @@ public struct FlareStrings: Sendable {
             scanInsecureContext: scanInsecureContext,
             scanCameraBusy: scanCameraBusy,
             scanCameraError: scanCameraError,
+            scanNotInviteCode: scanNotInviteCode,
             scanResult: scanResult,
             scanUpgradeRequired: scanUpgradeRequired,
             scanSaveCode: scanSaveCode,
@@ -2341,6 +2345,8 @@ public struct FlareStringsTable: Sendable {
     public var inviteCodeValid: String
     public var inviteCodeInviter: String
     public var inviteCodeInvalid: String
+    /// The invite field's scan button (accessibility label).
+    public var inviteCodeScan: String
     public var myInviteTitle: String
     public var myInviteCodeLabel: String
     public var myInviteCodeUnavailable: String
@@ -3278,6 +3284,8 @@ public struct FlareStringsTable: Sendable {
     public var scanInsecureContext: String
     public var scanCameraBusy: String
     public var scanCameraError: String
+    /// Scanning for an invite code read something else.
+    public var scanNotInviteCode: String
     public var scanResult: String
     public var scanUpgradeRequired: String
     public var scanSaveCode: String

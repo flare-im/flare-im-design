@@ -8,6 +8,8 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import FlareFormField from "./FlareFormField.vue";
 import FlareInput from "../general/FlareInput.vue";
 import FlareIcon from "../general/FlareIcon.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
+import { flareIcons } from "../../shared/icons";
 import {
   FLARE_INVITE_CHECK_DEBOUNCE_MS,
   inviteCodeFieldState,
@@ -35,6 +37,8 @@ const props = withDefaults(
     disabled?: boolean;
     label?: string;
     placeholder?: string;
+    /** Shows a scan button at the end of the input. The host opens its scanner on `scan` and writes the code it reads back through `v-model`. */
+    scannable?: boolean;
   }>(),
   {
     mode: "optional",
@@ -45,12 +49,15 @@ const props = withDefaults(
     disabled: false,
     label: undefined,
     placeholder: undefined,
+    scannable: false,
   },
 );
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
   /** A complete, normalized code the host should pre-check; debounced after typing stops. */
   (e: "check", code: string): void;
+  /** The scan button was pressed (`scannable` only). */
+  (e: "scan"): void;
 }>();
 
 const { t } = useFlareI18nOptional();
@@ -140,6 +147,10 @@ function onInput(raw: string): void {
   scheduleCheck(next);
 }
 
+// A value the host writes (a scanned code) is checked like a typed one, as the native kits do. A value the
+// field just emitted reschedules the same check, which changes nothing.
+watch(() => props.modelValue, value => scheduleCheck(value));
+
 // Deep-link prefill: applied once, while the field is empty, and checked like a
 // paste. A person who clears the field afterwards is not re-filled.
 let prefillApplied = false;
@@ -179,6 +190,7 @@ watch(
         :spellcheck="false"
         @update:model-value="onInput"
       />
+      <FlareIconButton v-if="scannable" :icon="flareIcons.scan" :ariaLabel="t('inviteCode.scan')" variant="tinted" :disabled="disabled" @click="emit('scan')" />
     </div>
     <p v-if="statusLine" class="flare-invite-code__status" :class="`flare-invite-code__status--${statusLine.kind}`" role="status">
       <span v-if="statusLine.kind === 'checking'" class="flare-invite-code__spinner" aria-hidden="true" />
@@ -189,6 +201,8 @@ watch(
 </template>
 
 <style scoped>
+.flare-invite-code__control { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); }
+.flare-invite-code__control > :first-child { flex: 1; min-width: 0; }
 .flare-invite-code__status {
   display: inline-flex;
   align-items: center;

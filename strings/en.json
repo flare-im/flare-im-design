@@ -3535,6 +3535,15 @@
     ],
     "zh": "邀请码无效"
   },
+  "inviteCodeScan": {
+    "en": "Scan an invite code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "扫码填入邀请码"
+  },
   "inviteCodeInviter": {
     "en": "Inviter: {name}",
     "kits": [
@@ -8693,6 +8702,15 @@
   "scanCameraError": {
     "en": "Camera unavailable. Retry or choose an image",
     "zh": "相机暂不可用，请重试或选择图片",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "scanNotInviteCode": {
+    "en": "This is not an invite code. Scan an invite QR code.",
+    "zh": "这不是邀请码，请扫描邀请二维码",
     "kits": [
       "android",
       "flutter",

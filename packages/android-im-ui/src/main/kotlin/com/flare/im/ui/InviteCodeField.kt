@@ -1,5 +1,7 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +33,8 @@ import kotlinx.coroutines.delay
  * normalizes it the way the server reads it (what reaches [onValueChange] is already normalized) and
  * — once the code is complete — asks the host to pre-check it through [onCheck]. The host owns the
  * request: it sets [checking], then hands back [checkResult] (or an [error] it has already localized).
- * The field never touches the network.
+ * The field never touches the network. With [onScan] it shows a scan button at the end of the input;
+ * the host scans and writes the code back through [onValueChange].
  */
 @Composable
 fun InviteCodeField(
@@ -49,6 +52,8 @@ fun InviteCodeField(
     placeholder: String? = null,
     /** A complete, normalized code the host should pre-check; debounced after typing stops. */
     onCheck: ((String) -> Unit)? = null,
+    /** Shows a scan button at the end of the input. The host opens its scanner and writes the code it reads back. */
+    onScan: (() -> Unit)? = null,
 ) {
     val state = inviteCodeFieldState(mode, value, checking, checkResult, error, disabled)
     if (state == FlareInviteCodeFieldState.Off) return
@@ -94,13 +99,31 @@ fun InviteCodeField(
         error = errorLine,
     ) {
         Column(Modifier.fillMaxWidth()) {
-            Input(
-                value = value,
-                onValueChange = { raw -> onValueChange(normalizeInviteCode(raw)) },
-                placeholder = placeholder ?: strings.inviteCodePlaceholder,
-                disabled = disabled,
-                monospace = true,
-            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.weight(1f)) {
+                    Input(
+                        value = value,
+                        onValueChange = { raw -> onValueChange(normalizeInviteCode(raw)) },
+                        placeholder = placeholder ?: strings.inviteCodePlaceholder,
+                        disabled = disabled,
+                        monospace = true,
+                    )
+                }
+                // The host opens its scanner and writes the code it reads back through onValueChange.
+                if (onScan != null) {
+                    IconButton(
+                        icon = "scan",
+                        contentDescription = strings.inviteCodeScan,
+                        variant = FlareIconButtonVariant.Tinted,
+                        disabled = disabled,
+                        onClick = onScan,
+                    )
+                }
+            }
             val statusModifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
             if (state == FlareInviteCodeFieldState.Checking) {
                 Spacer(Modifier.height(FlareSizes.spacing2xs))

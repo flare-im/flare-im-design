@@ -814,6 +814,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["inviteCodeInviter"] as? (String)) ?: "邀请人：{name}"
     val inviteCodeInvalid: String
         get() = (overrides["inviteCodeInvalid"] as? (String)) ?: "邀请码无效"
+    val inviteCodeScan: String
+        get() = (overrides["inviteCodeScan"] as? (String)) ?: "扫码填入邀请码"
     val myInviteTitle: String
         get() = (overrides["myInviteTitle"] as? (String)) ?: "我的邀请"
     val myInviteCodeLabel: String
@@ -2155,6 +2157,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val scanCameraError: String
         get() = (overrides["scanCameraError"] as? String) ?: "相机暂不可用，请重试或选择图片"
 
+    val scanNotInviteCode: String
+        get() = (overrides["scanNotInviteCode"] as? String) ?: "这不是邀请码，请扫描邀请二维码"
+
     val scanResult: String
         get() = (overrides["scanResult"] as? String) ?: "识别结果"
 
@@ -2362,6 +2367,10 @@ class FlareStringsBuilder internal constructor() {
     var scanCameraError: String
         get() = (values["scanCameraError"] as? String) ?: "相机暂不可用，请重试或选择图片"
         set(value) { values["scanCameraError"] = value }
+
+    var scanNotInviteCode: String
+        get() = (values["scanNotInviteCode"] as? String) ?: "这不是邀请码，请扫描邀请二维码"
+        set(value) { values["scanNotInviteCode"] = value }
 
     var scanResult: String
         get() = (values["scanResult"] as? String) ?: "识别结果"
@@ -3686,6 +3695,10 @@ class FlareStringsBuilder internal constructor() {
     var inviteCodeInvalid: String
         get() = (values["inviteCodeInvalid"] as? (String)) ?: "邀请码无效"
         set(value) { values["inviteCodeInvalid"] = value }
+
+    var inviteCodeScan: String
+        get() = (values["inviteCodeScan"] as? (String)) ?: "扫码填入邀请码"
+        set(value) { values["inviteCodeScan"] = value }
 
     var myInviteTitle: String
         get() = (values["myInviteTitle"] as? (String)) ?: "我的邀请"

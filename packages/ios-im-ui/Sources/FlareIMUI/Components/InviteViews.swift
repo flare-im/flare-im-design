@@ -213,7 +213,8 @@ func inviteCooldownText(_ strings: FlareStrings, _ remaining: FlareInviteCooldow
 /// normalizes it the way the server reads it (the binding holds the normalized code) and — once
 /// the code is complete — asks the host to pre-check it through `onCheck`. The host owns the
 /// request: it sets `checking`, then hands back `checkResult` (or an `error` it has already
-/// localized). The field never touches the network.
+/// localized). The field never touches the network. With `onScan` it shows a scan button at the
+/// end of the input; the host scans and writes the code back through `text`.
 public struct InviteCodeFieldView: View {
     @Binding private var text: String
     private let mode: FlareInviteCodeMode
@@ -225,6 +226,7 @@ public struct InviteCodeFieldView: View {
     private let label: String?
     private let placeholder: String?
     private let onCheck: ((String) -> Void)?
+    private let onScan: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -235,10 +237,11 @@ public struct InviteCodeFieldView: View {
     public init(text: Binding<String>, mode: FlareInviteCodeMode = .optional, prefill: String? = nil,
                 checking: Bool = false, checkResult: FlareInviteCodeCheckResult? = nil, error: String? = nil,
                 disabled: Bool = false,
-                label: String? = nil, placeholder: String? = nil, onCheck: ((String) -> Void)? = nil) {
+                label: String? = nil, placeholder: String? = nil, onCheck: ((String) -> Void)? = nil,
+                onScan: (() -> Void)? = nil) {
         self._text = text; self.mode = mode; self.prefill = prefill; self.checking = checking
         self.checkResult = checkResult; self.error = error; self.disabled = disabled
-        self.label = label; self.placeholder = placeholder; self.onCheck = onCheck
+        self.label = label; self.placeholder = placeholder; self.onCheck = onCheck; self.onScan = onScan
     }
 
     /// The state the view is in for the current props — what the spec's state vector names.
@@ -262,9 +265,16 @@ public struct InviteCodeFieldView: View {
             }()
             FormFieldView(label: label ?? strings.inviteCodeLabel, required: mode == .required, error: errorLine) {
                 VStack(alignment: .leading, spacing: FlareSizes.spacing2xs) {
-                    InputView(text: normalizedBinding, placeholder: placeholder ?? strings.inviteCodePlaceholder,
-                              disabled: disabled, monospace: true)
-                        .autocorrectionDisabled()
+                    HStack(spacing: FlareSizes.spacingSm) {
+                        InputView(text: normalizedBinding, placeholder: placeholder ?? strings.inviteCodePlaceholder,
+                                  disabled: disabled, monospace: true)
+                            .autocorrectionDisabled()
+                        // The host opens its scanner and writes the code it reads back through `text`.
+                        if let onScan {
+                            IconButtonView(icon: "scan", accessibilityLabel: strings.inviteCodeScan, variant: .tinted,
+                                           disabled: disabled, action: onScan)
+                        }
+                    }
                     if state == .checking {
                         HStack(spacing: FlareSizes.spacing2xs) {
                             ProgressView().controlSize(.small)

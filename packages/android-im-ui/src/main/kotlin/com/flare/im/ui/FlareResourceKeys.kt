@@ -310,6 +310,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "inviteCodeValid",
     "inviteCodeInviter",
     "inviteCodeInvalid",
+    "inviteCodeScan",
     "myInviteTitle",
     "myInviteCodeLabel",
     "myInviteCodeUnavailable",
@@ -898,6 +899,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "scanInsecureContext",
     "scanCameraBusy",
     "scanCameraError",
+    "scanNotInviteCode",
     "scanResult",
     "scanUpgradeRequired",
     "scanSaveCode",
@@ -1229,6 +1231,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "inviteCodeValid" -> this.inviteCodeValid
     "inviteCodeInviter" -> this.inviteCodeInviter
     "inviteCodeInvalid" -> this.inviteCodeInvalid
+    "inviteCodeScan" -> this.inviteCodeScan
     "myInviteTitle" -> this.myInviteTitle
     "myInviteCodeLabel" -> this.myInviteCodeLabel
     "myInviteCodeUnavailable" -> this.myInviteCodeUnavailable
@@ -1817,6 +1820,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "scanInsecureContext" -> this.scanInsecureContext
     "scanCameraBusy" -> this.scanCameraBusy
     "scanCameraError" -> this.scanCameraError
+    "scanNotInviteCode" -> this.scanNotInviteCode
     "scanResult" -> this.scanResult
     "scanUpgradeRequired" -> this.scanUpgradeRequired
     "scanSaveCode" -> this.scanSaveCode

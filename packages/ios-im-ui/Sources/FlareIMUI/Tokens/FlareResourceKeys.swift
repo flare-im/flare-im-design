@@ -263,6 +263,7 @@ extension FlareStrings {
         case "inviteCodeValid": return self.inviteCodeValid
         case "inviteCodeInviter": return self.inviteCodeInviter
         case "inviteCodeInvalid": return self.inviteCodeInvalid
+        case "inviteCodeScan": return self.inviteCodeScan
         case "myInviteTitle": return self.myInviteTitle
         case "myInviteCodeLabel": return self.myInviteCodeLabel
         case "myInviteCodeUnavailable": return self.myInviteCodeUnavailable
@@ -899,6 +900,7 @@ extension FlareStrings {
         case "scanInsecureContext": return self.scanInsecureContext
         case "scanCameraBusy": return self.scanCameraBusy
         case "scanCameraError": return self.scanCameraError
+        case "scanNotInviteCode": return self.scanNotInviteCode
         case "scanResult": return self.scanResult
         case "scanUpgradeRequired": return self.scanUpgradeRequired
         case "scanSaveCode": return self.scanSaveCode
@@ -1186,6 +1188,7 @@ extension FlareStrings {
         case "inviteCodeValid": self.inviteCodeValid = value
         case "inviteCodeInviter": self.inviteCodeInviter = value
         case "inviteCodeInvalid": self.inviteCodeInvalid = value
+        case "inviteCodeScan": self.inviteCodeScan = value
         case "myInviteTitle": self.myInviteTitle = value
         case "myInviteCodeLabel": self.myInviteCodeLabel = value
         case "myInviteCodeUnavailable": self.myInviteCodeUnavailable = value
@@ -1822,6 +1825,7 @@ extension FlareStrings {
         case "scanInsecureContext": self.scanInsecureContext = value
         case "scanCameraBusy": self.scanCameraBusy = value
         case "scanCameraError": self.scanCameraError = value
+        case "scanNotInviteCode": self.scanNotInviteCode = value
         case "scanResult": self.scanResult = value
         case "scanUpgradeRequired": self.scanUpgradeRequired = value
         case "scanSaveCode": self.scanSaveCode = value

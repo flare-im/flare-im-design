@@ -60,6 +60,7 @@ class FlareStrings {
     this.scanInsecureContext = "相机需要安全连接，请选择图片",
     this.scanCameraBusy = "视频通话正在使用相机",
     this.scanCameraError = "相机暂不可用，请重试或选择图片",
+    this.scanNotInviteCode = "这不是邀请码，请扫描邀请二维码",
     this.scanResult = "识别结果",
     this.scanUpgradeRequired = "请更新应用后使用此操作",
     this.scanSaveCode = "保存二维码",
@@ -825,6 +826,7 @@ class FlareStrings {
     this.inviteCodeValid = '邀请码可用',
     this.inviteCodeInviter = '邀请人：{name}',
     this.inviteCodeInvalid = '邀请码无效',
+    this.inviteCodeScan = '扫码填入邀请码',
     this.myInviteTitle = '我的邀请',
     this.myInviteCodeLabel = '我的邀请码',
     this.myInviteCodeUnavailable = '邀请码暂不可用',
@@ -1912,6 +1914,7 @@ class FlareStrings {
   final String inviteCodeValid;
   final String inviteCodeInviter;
   final String inviteCodeInvalid;
+  final String inviteCodeScan;
   final String myInviteTitle;
   final String myInviteCodeLabel;
   final String myInviteCodeUnavailable;
@@ -2201,6 +2204,7 @@ class FlareStrings {
   final String scanInsecureContext;
   final String scanCameraBusy;
   final String scanCameraError;
+  final String scanNotInviteCode;
   final String scanResult;
   final String scanUpgradeRequired;
   final String scanSaveCode;
@@ -2267,6 +2271,7 @@ class FlareStrings {
     String? scanInsecureContext,
     String? scanCameraBusy,
     String? scanCameraError,
+    String? scanNotInviteCode,
     String? scanResult,
     String? scanUpgradeRequired,
     String? scanSaveCode,
@@ -2969,6 +2974,7 @@ class FlareStrings {
     String? inviteCodeValid,
     String? inviteCodeInviter,
     String? inviteCodeInvalid,
+    String? inviteCodeScan,
     String? myInviteTitle,
     String? myInviteCodeLabel,
     String? myInviteCodeUnavailable,
@@ -3251,6 +3257,7 @@ class FlareStrings {
       scanInsecureContext: scanInsecureContext ?? this.scanInsecureContext,
       scanCameraBusy: scanCameraBusy ?? this.scanCameraBusy,
       scanCameraError: scanCameraError ?? this.scanCameraError,
+      scanNotInviteCode: scanNotInviteCode ?? this.scanNotInviteCode,
       scanResult: scanResult ?? this.scanResult,
       scanUpgradeRequired: scanUpgradeRequired ?? this.scanUpgradeRequired,
       scanSaveCode: scanSaveCode ?? this.scanSaveCode,
@@ -4237,6 +4244,7 @@ class FlareStrings {
       inviteCodeValid: inviteCodeValid ?? this.inviteCodeValid,
       inviteCodeInviter: inviteCodeInviter ?? this.inviteCodeInviter,
       inviteCodeInvalid: inviteCodeInvalid ?? this.inviteCodeInvalid,
+      inviteCodeScan: inviteCodeScan ?? this.inviteCodeScan,
       myInviteTitle: myInviteTitle ?? this.myInviteTitle,
       myInviteCodeLabel: myInviteCodeLabel ?? this.myInviteCodeLabel,
       myInviteCodeUnavailable:
