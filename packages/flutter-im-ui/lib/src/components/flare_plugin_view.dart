@@ -282,6 +282,22 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   String? _inlineSubmitted;
   int _inlineRevision = 0;
 
+  // The forms on this view: a page action whose native target writes into
+  // one of their inputs runs through it. The inline form's key changes with
+  // its action and revision, like the value key it replaced.
+  GlobalKey<FlarePluginFormState>? _inlineFormKey;
+  String _inlineFormKeyId = '';
+  GlobalKey<FlarePluginFormState>? _sheetFormKey;
+  GlobalKey<FlarePluginFormState> _inlineKey(String id) {
+    if (_inlineFormKey == null || _inlineFormKeyId != id) {
+      _inlineFormKeyId = id;
+      _inlineFormKey = GlobalKey<FlarePluginFormState>(
+        debugLabel: 'flare-plugin-inline-form:$id',
+      );
+    }
+    return _inlineFormKey!;
+  }
+
   bool get _locked =>
       widget.busy || widget.busyActionId != null || _inlineSubmitted != null;
 
@@ -526,6 +542,17 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     VoidCallback? before,
   }) async {
     if (_locked || widget.onAction == null) return;
+    // A native target writing `into` an input of a form on this view runs
+    // through that input's own key, so the host's answer is written into the
+    // form's current scope (no earlier touch of the input needed).
+    final target = action.target;
+    if (payload.row == null &&
+        target?.kind == 'native' &&
+        target?.into != null &&
+        ((_inlineFormKey?.currentState?.nativeInto(target) ?? false) ||
+            (_sheetFormKey?.currentState?.nativeInto(target) ?? false))) {
+      return;
+    }
     final confirm = action.confirm;
     if (confirm != null && confirm.isNotEmpty) {
       final ok = await FlareDangerConfirm.show(
@@ -598,6 +625,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     _formSubmitted = false;
     _syncForm();
     final inputs = _formInputs(action);
+    _sheetFormKey = GlobalKey<FlarePluginFormState>();
     FlareBottomSheet.show<void>(
       context,
       title: action.label,
@@ -607,6 +635,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         return ValueListenableBuilder<_FormState>(
           valueListenable: _form,
           builder: (context, state, _) => FlarePluginForm(
+            key: _sheetFormKey,
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
             locationStates: widget.locationStates,
@@ -934,9 +963,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                       onFileAction: widget.onFileAction,
                       locationStates: widget.locationStates,
                       onLocationAction: widget.onLocationAction,
-                      key: ValueKey(
-                        'flare-plugin-inline-form:${inlineAction.id}:$_inlineRevision',
-                      ),
+                      key: _inlineKey('${inlineAction.id}:$_inlineRevision'),
                       inputs: _formInputs(inlineAction),
                       embedded: true,
                       submitLabel: inlineAction.label,

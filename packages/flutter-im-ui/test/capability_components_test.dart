@@ -39,8 +39,7 @@ void main() {
         final answer = flareCapabilityConsentAnswer(
           FlareCapabilityConsentDecision.values.byName(c['decision'] as String),
         );
-        expect(answer.granted, c['granted']);
-        expect(answer.remember, c['remember']);
+        expect(answer, c['answer']);
       }
     });
     test('capability labels', () {

@@ -13,8 +13,8 @@ import 'flare_icon.dart';
 /// 〈capability〉", the purpose, and allow once, always allow, don't allow.
 ///
 /// The kit keeps no consent record: [onDecide] hands the choice back and the
-/// host answers the engine with [flareCapabilityConsentAnswer] (revoking a
-/// "once" grant when the request is done). A one-time location is confirmed
+/// host answers the engine with [flareCapabilityConsentAnswer] (`{decision}`;
+/// the engine keeps only "always"). A one-time location is confirmed
 /// every time, so it offers no "always". [show] presents it on the kit sheet
 /// and resolves with the choice (deny when dismissed).
 class FlareCapabilityConsent extends StatelessWidget {

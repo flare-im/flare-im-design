@@ -322,6 +322,7 @@ class FlarePluginAction {
     this.style,
     this.confirm,
     this.form = const [],
+    this.target,
   });
   factory FlarePluginAction.fromJson(Map<String, Object?> json) =>
       FlarePluginAction(
@@ -334,6 +335,10 @@ class FlarePluginAction {
               in (json['form'] is List ? json['form'] as List : const []))
             if (id is String) id,
         ],
+        target: switch (_optMap(json['target'])) {
+          final target? => FlarePluginActionTarget.fromJson(target),
+          null => null,
+        },
       );
   final String id;
   final String label;
@@ -344,6 +349,70 @@ class FlarePluginAction {
 
   /// Input ids collected first in [FlarePluginForm].
   final List<String> form;
+
+  /// Where the action goes, as the view gives it. The kit reads a native
+  /// target's `into`: a page action writing into one of the form's own
+  /// inputs runs through that input's key ([flarePluginNativeIntoKey]), so
+  /// the host's answer lands in the form's current scope.
+  final FlarePluginActionTarget? target;
+}
+
+/// An action's target (flare-plugin-protocol UiActionTarget): `native`
+/// ([capability], [params], [into]), `operation` or `page`. The kit only
+/// reads a native one.
+class FlarePluginActionTarget {
+  const FlarePluginActionTarget({
+    required this.kind,
+    this.capability,
+    this.params,
+    this.into,
+  });
+  factory FlarePluginActionTarget.fromJson(Map<String, Object?> json) =>
+      FlarePluginActionTarget(
+        kind: _string(json['kind']),
+        capability: _optString(json['capability']),
+        params: _optMap(json['params']),
+        into: _optString(json['into']),
+      );
+  final String kind;
+  final String? capability;
+  final Map<String, Object?>? params;
+
+  /// The page input the native capability writes into.
+  final String? into;
+}
+
+/// Host capabilities that write a file into an upload input.
+const flarePluginUploadCapabilities = [
+  'documentCapture',
+  'selectImage',
+  'camera',
+  'selectFile',
+];
+
+/// Which key of [input] a native action [target] runs through when it names
+/// that input as `into` (spec/plugin-native-into-vectors.json): `file` (the
+/// input's own choose, or replace when it holds a file) for an upload
+/// capability into an upload input, `location` (its locate key) for
+/// `locationOnce` into a location input, null otherwise (the action goes out
+/// as itself).
+String? flarePluginNativeIntoKey(
+  FlarePluginActionTarget? target,
+  FlarePluginInput input,
+) {
+  if (target == null ||
+      target.kind != 'native' ||
+      target.into == null ||
+      target.into != input.id) {
+    return null;
+  }
+  if (target.capability == 'locationOnce') {
+    return input.kind == FlarePluginInputKind.location ? 'location' : null;
+  }
+  return flarePluginUploadCapabilities.contains(target.capability) &&
+          flarePluginIsUpload(input.kind)
+      ? 'file'
+      : null;
 }
 
 /// An entry's or a row's enumerated value as words and a tone (the plugin's

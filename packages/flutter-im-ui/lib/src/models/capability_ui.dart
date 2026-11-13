@@ -18,18 +18,13 @@ import '../tokens/flare_strings.dart';
 /// The viewer's answer to a consent prompt.
 enum FlareCapabilityConsentDecision { once, always, deny }
 
-/// What the host answers the engine's consent request with (`{granted}`), and
-/// whether it keeps the grant: when [remember] is false the host revokes it
-/// once the request is done (`revokePluginCapabilityConsent`).
-typedef FlareCapabilityConsentAnswer = ({bool granted, bool remember});
-
-FlareCapabilityConsentAnswer flareCapabilityConsentAnswer(
+/// What the host answers the engine's consent request with
+/// (`plugin.capability_complete` result): `{decision: "once" | "always" |
+/// "deny"}`. The engine keeps only "always"; "once" lets this request through
+/// and keeps nothing, so the host never revokes anything to emulate it.
+Map<String, Object?> flareCapabilityConsentAnswer(
   FlareCapabilityConsentDecision decision,
-) => switch (decision) {
-  FlareCapabilityConsentDecision.always => (granted: true, remember: true),
-  FlareCapabilityConsentDecision.once => (granted: true, remember: false),
-  FlareCapabilityConsentDecision.deny => (granted: false, remember: false),
-};
+) => {'decision': decision.name};
 
 /// The FlareStrings field naming what a plugin asks to use; an unknown
 /// capability is the generic line, never its raw name.

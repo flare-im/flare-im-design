@@ -97,10 +97,12 @@ class FlarePluginForm extends StatefulWidget {
   final ValueChanged<FlarePluginLocationAction>? onLocationAction;
 
   @override
-  State<FlarePluginForm> createState() => _FlarePluginFormState();
+  State<FlarePluginForm> createState() => FlarePluginFormState();
 }
 
-class _FlarePluginFormState extends State<FlarePluginForm> {
+/// The form's state. [nativeInto] lets the view run a page action's native
+/// target through the input it writes into.
+class FlarePluginFormState extends State<FlarePluginForm> {
   final Map<String, Object?> _draft = {};
   final Set<String> _edited = {};
   final Set<String> _editedSinceErrors = {};
@@ -185,6 +187,35 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     late FlarePluginFileAction event;
     setState(() => event = _advanceFile(input, action));
     widget.onFileAction?.call(event);
+  }
+
+  /// A page action's native [target] writing `into` one of this form's
+  /// inputs: run it through that input's own key, so the host gets the
+  /// form's scope with it and its answer lands in this form, even before the
+  /// viewer touched the input. False when no visible input here takes it (or
+  /// the host has no handler for that key): the action then goes out as
+  /// itself.
+  bool nativeInto(FlarePluginActionTarget? target) {
+    if (widget.busy) return false;
+    final input = _visible
+        .where(
+          (candidate) => flarePluginNativeIntoKey(target, candidate) != null,
+        )
+        .firstOrNull;
+    if (input == null) return false;
+    if (flarePluginNativeIntoKey(target, input) == 'location') {
+      if (widget.onLocationAction == null) return false;
+      _locationAction(input, FlarePluginLocationActionKind.locate);
+      return true;
+    }
+    if (widget.onFileAction == null) return false;
+    _fileAction(
+      input,
+      _fileState(input).phase == FlarePluginFilePhase.empty
+          ? FlarePluginFileActionKind.choose
+          : FlarePluginFileActionKind.replace,
+    );
+    return true;
   }
 
   /// The host's fix is the input's value; one of another precision is never
