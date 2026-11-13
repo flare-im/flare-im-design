@@ -340,7 +340,7 @@ defineExpose({ sandbox: FLARE_PLUGIN_BUNDLE_SANDBOX });
         loading="eager"
         :title="heading || t('pluginBundle.frameLabel')"
         data-bundle-frame="true"
-        @error="() => { timedOut = true; emit('failed'); }"
+        @error="() => { if (!ready) { timedOut = true; emit('failed'); } }"
       />
       <div v-if="state === 'loading'" class="flare-plugin-bundle-host__overlay">
         <FlareEmptyState :title="t('pluginBundle.loading')" loading />
