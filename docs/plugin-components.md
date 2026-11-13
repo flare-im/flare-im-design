@@ -275,6 +275,22 @@ iOS 的宿主在 `PluginBundleHost.swift`，分三层：不依赖 SwiftUI 的控
 - **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 Compose 共用）；`FlareStrings.pluginBridgeMessage(forKey:)` 按 `plugin.bridge.*` 键取文案。
 - **测试**：`PluginBundleHostTests`（运行时下限、会话校验、路径与文件规则、响应头、导航、外链、信封与投递脚本、打开请求、崩溃账本、事件分发、宿主请求、文案）。
 
+## Web 包宿主：Flutter（L3，设计 8.4 到 8.8）
+
+Flutter 的宿主是联邦插件 `flare_plugin_bundle_host`，放在 `packages/flutter-im-ui/packages/flare_plugin_bundle_host/` 下，和 Kit 同属一个 pub workspace（`flutter-im-ui/pubspec.yaml` 的 `workspace`）。它不写自己的 WebView，也不用 `webview_flutter`（D-14）：Android、iOS 两个实现包把上面两节的原生宿主以平台视图嵌进来，源、拦截、桥、隔离、生命周期都和原生应用一样。
+
+- **三个包**：`flare_plugin_bundle_host`（Dart：组件、引擎端口、运行时、事件分发、预取）；`flare_plugin_bundle_host_android`（默认实现，包 `FlarePluginBundleView`，依赖 `com.flare.im:im-ui-compose`）；`flare_plugin_bundle_host_ios`（包 `FlarePluginBundleHostViewController`，依赖 `FlareIMUI`，只支持 Swift Package Manager，iOS 16 起）。iOS 实现不是默认实现：Kit 的 iOS 包要求 iOS 16，应用的最低版本到 iOS 16 后自己把它加进依赖；没加时 iOS 上不报运行时，全部走声明式变体（D-17）。
+- **引擎调用**：原生宿主的引擎调用经 `flare_plugin_bundle_host` 通道回到 Dart（`engine`，`{route, payload}`，载荷是 JSON 文本），由应用装上的引擎执行：`FlarePluginBundleBindings.install((route, payload) => …)`，应用转给核心 SDK 的 `capability.<路由>`，`{payload}`。只放行六个 `plugin_bundle_*` 路由；拒绝时把 `sdk.plugin_bundle.<原因>` 的原因作为错误码交回原生宿主，原生宿主据此回落。
+- **运行时**：`FlarePluginBundleRuntime.profile()` 是宿主资料的 `bundleRuntime`。Android 8 及以上、WebView 111+ 且支持 web message listener 才有；iOS 16 及以上且应用加了 iOS 实现才有；Web、桌面和没有原生实现时为 null。Android 实现在 API 26 以下不加载 Kit（Kit 库声明 26，应用清单用 `tools:overrideLibrary="com.flare.im.ui"` 保留更低的最低版本）。
+- **引擎事件**：应用把事件 7004 的载荷交给 `FlarePluginBundleEvents.dispatch(payload)`，原生宿主按会话转给页面（Android `FlarePluginBundleEvents.dispatch`，iOS `FlarePluginBundleEvents.receive`）。
+- **组件**：`FlarePluginBundleHost(request:, title:, onFallback:, onClose:, onBack:, onNavigate:, onOpenExternal:, onHeightChange:, gestureRecognizers:)`。page 呈现时自带 `FlareScreen` 页框（标题先用 `title`，Web 包 `ui.setTitle` 后用它的）；detail、composerForm 不画页框，由所在弹层做框。平台视图默认认领全部手势。没有原生宿主的平台上立即 `onFallback('unsupported')`。
+- **谁来画**：Android 上打开中、崩溃（重新加载）两个状态和宿主请求由 Dart 用 Flutter Kit 画：`ui.toast` 用 `FlareToast`，`ui.confirm` 和外链确认用 `FlareDangerConfirm`（标题 ≤64、说明 ≤512、按钮 ≤16），确认后的 https 外链由原生宿主交给系统浏览器（D-13），`clipboard.write` 写系统剪贴板并提示「已复制」，`ui.setTitle`、`ui.navigate`、`ui.resize`、`ui.close` 交给对应回调。iOS 上状态与这些请求由原生宿主用 SwiftUI Kit 画，跳转、关闭、回落和标题交回 Dart；iOS 宿主的配色跟随 Flutter 应用的主题，而不是系统外观。
+- **回落与关闭**：未下发、不支持、打不开、崩溃三次、被撤回、暂停、停用、替换时调 `onFallback(reason)`，应用改画声明式变体；`signedOut` 和 `ui.close` 调 `onClose(result)`。平台视图创建前就回落的状态，组件建好通道后用 `attach` 补读，不会丢。
+- **生命周期**：Android 按应用前后台给原生宿主 `pause`/`resume`（后台 30 秒销毁、回来重开由原生宿主做）；iOS 控制器自己跟随应用前后台。主题变化发 `setDark`，语言变化发 `setLocale`，其余字段变化会换一个平台视图、重新打开。
+- **预取**：`FlarePluginBundlePrefetch` 在 `schedule()` 后空闲 10 秒，设备在 Wi-Fi（Android 不计流量的网络；iOS 为 Wi-Fi 且非低数据模式）时调 `plugin_bundle_prefetch {wifi: true, idle: true}`。
+- **文案**：Flutter 的 `FlareStrings` 新增 `pluginBundle*` 与 `pluginBridgeError*` 共 27 个字段（中文默认值，英文在 `strings/en.json`），`flarePluginBridgeErrorText(code, strings)` 按错误码或 `plugin.bridge.*` 键取文案。
+- **测试**：Dart `flare_plugin_bundle_host_test.dart`（打开请求与身份、创建参数、导航、确认与外链规则、宿主应答、提示类型、错误文案、引擎绑定与路由放行、运行时、事件分发、无原生宿主时回落）；Android `FlarePluginBundleHostPluginTest`（状态、引擎应答、拒绝原因、宿主应答、呈现方式的映射）。平台视图本身要在真机或模拟器上验。
+
 ## 自定义内容渲染器
 
 插件卡片通过 Kit 的内容渲染器注册进消息列表，四端同一套语义：
