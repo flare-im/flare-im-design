@@ -2028,6 +2028,61 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["capabilityLocationCoarse"] as? String) ?: "你的大致位置（仅本次）"
     val capabilityLocationFine: String
         get() = (overrides["capabilityLocationFine"] as? String) ?: "你的精确位置（仅本次）"
+    // 插件 Web 包宿主（设计 8.4）与桥错误码（8.6）
+    val pluginBundleOpening: String
+        get() = (overrides["pluginBundleOpening"] as? String) ?: "正在打开…"
+    val pluginBundleUnavailable: String
+        get() = (overrides["pluginBundleUnavailable"] as? String) ?: "页面暂时无法打开"
+    val pluginBundleCrashed: String
+        get() = (overrides["pluginBundleCrashed"] as? String) ?: "页面意外停止"
+    val pluginBundleCrashedHint: String
+        get() = (overrides["pluginBundleCrashedHint"] as? String) ?: "重新加载后可以继续使用"
+    val pluginBundleReload: String
+        get() = (overrides["pluginBundleReload"] as? String) ?: "重新加载"
+    val pluginBundleClosed: String
+        get() = (overrides["pluginBundleClosed"] as? String) ?: "页面已关闭"
+    val pluginBundleExternalTitle: String
+        get() = (overrides["pluginBundleExternalTitle"] as? String) ?: "打开外部链接"
+    val pluginBundleExternalMessage: String
+        get() = (overrides["pluginBundleExternalMessage"] as? String) ?: "将在浏览器中打开以下地址，请确认来源可信。"
+    val pluginBundleExternalOpen: String
+        get() = (overrides["pluginBundleExternalOpen"] as? String) ?: "打开"
+    val pluginBundleCopied: String
+        get() = (overrides["pluginBundleCopied"] as? String) ?: "已复制"
+    val pluginBridgeErrorInvalidEnvelope: String
+        get() = (overrides["pluginBridgeErrorInvalidEnvelope"] as? String) ?: "请求格式不正确"
+    val pluginBridgeErrorUnsupportedBridge: String
+        get() = (overrides["pluginBridgeErrorUnsupportedBridge"] as? String) ?: "当前版本不支持该页面"
+    val pluginBridgeErrorNotReady: String
+        get() = (overrides["pluginBridgeErrorNotReady"] as? String) ?: "页面还没准备好"
+    val pluginBridgeErrorMethodNotFound: String
+        get() = (overrides["pluginBridgeErrorMethodNotFound"] as? String) ?: "不支持该操作"
+    val pluginBridgeErrorInvalidParams: String
+        get() = (overrides["pluginBridgeErrorInvalidParams"] as? String) ?: "请求参数不正确"
+    val pluginBridgeErrorPayloadTooLarge: String
+        get() = (overrides["pluginBridgeErrorPayloadTooLarge"] as? String) ?: "请求内容过大"
+    val pluginBridgeErrorPermissionDenied: String
+        get() = (overrides["pluginBridgeErrorPermissionDenied"] as? String) ?: "没有权限执行该操作"
+    val pluginBridgeErrorRateLimited: String
+        get() = (overrides["pluginBridgeErrorRateLimited"] as? String) ?: "操作太频繁，请稍后再试"
+    val pluginBridgeErrorCancelled: String
+        get() = (overrides["pluginBridgeErrorCancelled"] as? String) ?: "已取消"
+    val pluginBridgeErrorGestureRequired: String
+        get() = (overrides["pluginBridgeErrorGestureRequired"] as? String) ?: "请先点按页面再试"
+    val pluginBridgeErrorQuotaExceeded: String
+        get() = (overrides["pluginBridgeErrorQuotaExceeded"] as? String) ?: "存储空间已满"
+    val pluginBridgeErrorNotFound: String
+        get() = (overrides["pluginBridgeErrorNotFound"] as? String) ?: "找不到要打开的内容"
+    val pluginBridgeErrorUnavailable: String
+        get() = (overrides["pluginBridgeErrorUnavailable"] as? String) ?: "暂时不可用，请稍后再试"
+    val pluginBridgeErrorTimeout: String
+        get() = (overrides["pluginBridgeErrorTimeout"] as? String) ?: "请求超时，请重试"
+    val pluginBridgeErrorOperationFailed: String
+        get() = (overrides["pluginBridgeErrorOperationFailed"] as? String) ?: "操作失败"
+    val pluginBridgeErrorRevoked: String
+        get() = (overrides["pluginBridgeErrorRevoked"] as? String) ?: "页面已被停用"
+    val pluginBridgeErrorInternal: String
+        get() = (overrides["pluginBridgeErrorInternal"] as? String) ?: "出现问题，请稍后再试"
     val capabilityCamera: String
         get() = (overrides["capabilityCamera"] as? String) ?: "相机"
     val capabilityMicrophone: String
@@ -5651,6 +5706,88 @@ class FlareStringsBuilder internal constructor() {
     var capabilityLocationFine: String
         get() = (values["capabilityLocationFine"] as? String) ?: "你的精确位置（仅本次）"
         set(value) { values["capabilityLocationFine"] = value }
+    // 插件 Web 包宿主（设计 8.4）与桥错误码（8.6）
+    var pluginBundleOpening: String
+        get() = (values["pluginBundleOpening"] as? String) ?: "正在打开…"
+        set(value) { values["pluginBundleOpening"] = value }
+    var pluginBundleUnavailable: String
+        get() = (values["pluginBundleUnavailable"] as? String) ?: "页面暂时无法打开"
+        set(value) { values["pluginBundleUnavailable"] = value }
+    var pluginBundleCrashed: String
+        get() = (values["pluginBundleCrashed"] as? String) ?: "页面意外停止"
+        set(value) { values["pluginBundleCrashed"] = value }
+    var pluginBundleCrashedHint: String
+        get() = (values["pluginBundleCrashedHint"] as? String) ?: "重新加载后可以继续使用"
+        set(value) { values["pluginBundleCrashedHint"] = value }
+    var pluginBundleReload: String
+        get() = (values["pluginBundleReload"] as? String) ?: "重新加载"
+        set(value) { values["pluginBundleReload"] = value }
+    var pluginBundleClosed: String
+        get() = (values["pluginBundleClosed"] as? String) ?: "页面已关闭"
+        set(value) { values["pluginBundleClosed"] = value }
+    var pluginBundleExternalTitle: String
+        get() = (values["pluginBundleExternalTitle"] as? String) ?: "打开外部链接"
+        set(value) { values["pluginBundleExternalTitle"] = value }
+    var pluginBundleExternalMessage: String
+        get() = (values["pluginBundleExternalMessage"] as? String) ?: "将在浏览器中打开以下地址，请确认来源可信。"
+        set(value) { values["pluginBundleExternalMessage"] = value }
+    var pluginBundleExternalOpen: String
+        get() = (values["pluginBundleExternalOpen"] as? String) ?: "打开"
+        set(value) { values["pluginBundleExternalOpen"] = value }
+    var pluginBundleCopied: String
+        get() = (values["pluginBundleCopied"] as? String) ?: "已复制"
+        set(value) { values["pluginBundleCopied"] = value }
+    var pluginBridgeErrorInvalidEnvelope: String
+        get() = (values["pluginBridgeErrorInvalidEnvelope"] as? String) ?: "请求格式不正确"
+        set(value) { values["pluginBridgeErrorInvalidEnvelope"] = value }
+    var pluginBridgeErrorUnsupportedBridge: String
+        get() = (values["pluginBridgeErrorUnsupportedBridge"] as? String) ?: "当前版本不支持该页面"
+        set(value) { values["pluginBridgeErrorUnsupportedBridge"] = value }
+    var pluginBridgeErrorNotReady: String
+        get() = (values["pluginBridgeErrorNotReady"] as? String) ?: "页面还没准备好"
+        set(value) { values["pluginBridgeErrorNotReady"] = value }
+    var pluginBridgeErrorMethodNotFound: String
+        get() = (values["pluginBridgeErrorMethodNotFound"] as? String) ?: "不支持该操作"
+        set(value) { values["pluginBridgeErrorMethodNotFound"] = value }
+    var pluginBridgeErrorInvalidParams: String
+        get() = (values["pluginBridgeErrorInvalidParams"] as? String) ?: "请求参数不正确"
+        set(value) { values["pluginBridgeErrorInvalidParams"] = value }
+    var pluginBridgeErrorPayloadTooLarge: String
+        get() = (values["pluginBridgeErrorPayloadTooLarge"] as? String) ?: "请求内容过大"
+        set(value) { values["pluginBridgeErrorPayloadTooLarge"] = value }
+    var pluginBridgeErrorPermissionDenied: String
+        get() = (values["pluginBridgeErrorPermissionDenied"] as? String) ?: "没有权限执行该操作"
+        set(value) { values["pluginBridgeErrorPermissionDenied"] = value }
+    var pluginBridgeErrorRateLimited: String
+        get() = (values["pluginBridgeErrorRateLimited"] as? String) ?: "操作太频繁，请稍后再试"
+        set(value) { values["pluginBridgeErrorRateLimited"] = value }
+    var pluginBridgeErrorCancelled: String
+        get() = (values["pluginBridgeErrorCancelled"] as? String) ?: "已取消"
+        set(value) { values["pluginBridgeErrorCancelled"] = value }
+    var pluginBridgeErrorGestureRequired: String
+        get() = (values["pluginBridgeErrorGestureRequired"] as? String) ?: "请先点按页面再试"
+        set(value) { values["pluginBridgeErrorGestureRequired"] = value }
+    var pluginBridgeErrorQuotaExceeded: String
+        get() = (values["pluginBridgeErrorQuotaExceeded"] as? String) ?: "存储空间已满"
+        set(value) { values["pluginBridgeErrorQuotaExceeded"] = value }
+    var pluginBridgeErrorNotFound: String
+        get() = (values["pluginBridgeErrorNotFound"] as? String) ?: "找不到要打开的内容"
+        set(value) { values["pluginBridgeErrorNotFound"] = value }
+    var pluginBridgeErrorUnavailable: String
+        get() = (values["pluginBridgeErrorUnavailable"] as? String) ?: "暂时不可用，请稍后再试"
+        set(value) { values["pluginBridgeErrorUnavailable"] = value }
+    var pluginBridgeErrorTimeout: String
+        get() = (values["pluginBridgeErrorTimeout"] as? String) ?: "请求超时，请重试"
+        set(value) { values["pluginBridgeErrorTimeout"] = value }
+    var pluginBridgeErrorOperationFailed: String
+        get() = (values["pluginBridgeErrorOperationFailed"] as? String) ?: "操作失败"
+        set(value) { values["pluginBridgeErrorOperationFailed"] = value }
+    var pluginBridgeErrorRevoked: String
+        get() = (values["pluginBridgeErrorRevoked"] as? String) ?: "页面已被停用"
+        set(value) { values["pluginBridgeErrorRevoked"] = value }
+    var pluginBridgeErrorInternal: String
+        get() = (values["pluginBridgeErrorInternal"] as? String) ?: "出现问题，请稍后再试"
+        set(value) { values["pluginBridgeErrorInternal"] = value }
     var capabilityCamera: String
         get() = (values["capabilityCamera"] as? String) ?: "相机"
         set(value) { values["capabilityCamera"] = value }

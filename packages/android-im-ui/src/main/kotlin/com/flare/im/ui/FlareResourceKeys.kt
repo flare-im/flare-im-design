@@ -847,6 +847,33 @@ internal val flareStringKeys: Set<String> = setOf(
     "capabilityPaymentConfirmation",
     "capabilityLocationCoarse",
     "capabilityLocationFine",
+    "pluginBundleOpening",
+    "pluginBundleUnavailable",
+    "pluginBundleCrashed",
+    "pluginBundleCrashedHint",
+    "pluginBundleReload",
+    "pluginBundleClosed",
+    "pluginBundleExternalTitle",
+    "pluginBundleExternalMessage",
+    "pluginBundleExternalOpen",
+    "pluginBundleCopied",
+    "pluginBridgeErrorInvalidEnvelope",
+    "pluginBridgeErrorUnsupportedBridge",
+    "pluginBridgeErrorNotReady",
+    "pluginBridgeErrorMethodNotFound",
+    "pluginBridgeErrorInvalidParams",
+    "pluginBridgeErrorPayloadTooLarge",
+    "pluginBridgeErrorPermissionDenied",
+    "pluginBridgeErrorRateLimited",
+    "pluginBridgeErrorCancelled",
+    "pluginBridgeErrorGestureRequired",
+    "pluginBridgeErrorQuotaExceeded",
+    "pluginBridgeErrorNotFound",
+    "pluginBridgeErrorUnavailable",
+    "pluginBridgeErrorTimeout",
+    "pluginBridgeErrorOperationFailed",
+    "pluginBridgeErrorRevoked",
+    "pluginBridgeErrorInternal",
     "capabilityCamera",
     "capabilityMicrophone",
     "capabilityRtcSession",
@@ -1798,6 +1825,33 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "capabilityPaymentConfirmation" -> this.capabilityPaymentConfirmation
     "capabilityLocationCoarse" -> this.capabilityLocationCoarse
     "capabilityLocationFine" -> this.capabilityLocationFine
+    "pluginBundleOpening" -> this.pluginBundleOpening
+    "pluginBundleUnavailable" -> this.pluginBundleUnavailable
+    "pluginBundleCrashed" -> this.pluginBundleCrashed
+    "pluginBundleCrashedHint" -> this.pluginBundleCrashedHint
+    "pluginBundleReload" -> this.pluginBundleReload
+    "pluginBundleClosed" -> this.pluginBundleClosed
+    "pluginBundleExternalTitle" -> this.pluginBundleExternalTitle
+    "pluginBundleExternalMessage" -> this.pluginBundleExternalMessage
+    "pluginBundleExternalOpen" -> this.pluginBundleExternalOpen
+    "pluginBundleCopied" -> this.pluginBundleCopied
+    "pluginBridgeErrorInvalidEnvelope" -> this.pluginBridgeErrorInvalidEnvelope
+    "pluginBridgeErrorUnsupportedBridge" -> this.pluginBridgeErrorUnsupportedBridge
+    "pluginBridgeErrorNotReady" -> this.pluginBridgeErrorNotReady
+    "pluginBridgeErrorMethodNotFound" -> this.pluginBridgeErrorMethodNotFound
+    "pluginBridgeErrorInvalidParams" -> this.pluginBridgeErrorInvalidParams
+    "pluginBridgeErrorPayloadTooLarge" -> this.pluginBridgeErrorPayloadTooLarge
+    "pluginBridgeErrorPermissionDenied" -> this.pluginBridgeErrorPermissionDenied
+    "pluginBridgeErrorRateLimited" -> this.pluginBridgeErrorRateLimited
+    "pluginBridgeErrorCancelled" -> this.pluginBridgeErrorCancelled
+    "pluginBridgeErrorGestureRequired" -> this.pluginBridgeErrorGestureRequired
+    "pluginBridgeErrorQuotaExceeded" -> this.pluginBridgeErrorQuotaExceeded
+    "pluginBridgeErrorNotFound" -> this.pluginBridgeErrorNotFound
+    "pluginBridgeErrorUnavailable" -> this.pluginBridgeErrorUnavailable
+    "pluginBridgeErrorTimeout" -> this.pluginBridgeErrorTimeout
+    "pluginBridgeErrorOperationFailed" -> this.pluginBridgeErrorOperationFailed
+    "pluginBridgeErrorRevoked" -> this.pluginBridgeErrorRevoked
+    "pluginBridgeErrorInternal" -> this.pluginBridgeErrorInternal
     "capabilityCamera" -> this.capabilityCamera
     "capabilityMicrophone" -> this.capabilityMicrophone
     "capabilityRtcSession" -> this.capabilityRtcSession
