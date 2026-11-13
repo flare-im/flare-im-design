@@ -253,6 +253,14 @@
       "确认付款",
       "支付确认",
       "付款"
+    ],
+    "PluginBundleHost": [
+      "web bundle",
+      "plugin bundle",
+      "sandboxed page",
+      "Web 包",
+      "插件网页",
+      "沙箱页面"
     ]
   },
   "overrides": {

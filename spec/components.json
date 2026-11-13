@@ -18748,9 +18748,7 @@
         "update",
         "notAvailable"
       ],
-      "events": [
-        "update"
-      ],
+      "events": [],
       "notes": {
         "en": "Design 6.4 of docs/design/plugin-client-hot-delivery.md. The kit asks nothing: the host reads update.plugin_upgrade_status({minBuild}) and passes the answer; the mode is flarePluginUpgradeMode(status, onUpdate passed) — update (status.available and a handler), notAvailable (status says no build for this device: \"Not supported in this version yet…\", no key) or description (no status yet, or no handler: \"Update the app to view this\"). Message actions and conversation menus never list placeholders (the host filters them). Facts in spec/plugin-view-vectors.json (upgradeNotice). The update event is the onUpdate callback in every kit.",
         "zh": "见 docs/design/plugin-client-hot-delivery.md 6.4。Kit 不发请求：宿主调用 update.plugin_upgrade_status({minBuild}) 并把答复传入；形态由 flarePluginUpgradeMode(status, 是否传了 onUpdate) 决定 —— update（有可用版本且有回调）、notAvailable（答复说本设备没有可用版本：「当前版本暂不支持，新版本发布后可用」，不画按钮）、description（还没有答复或没有回调：「更新应用后查看」）。消息动作与会话菜单不列占位（宿主过滤）。事实见 spec/plugin-view-vectors.json（upgradeNotice）。update 事件在各端都是 onUpdate 回调。"

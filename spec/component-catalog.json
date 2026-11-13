@@ -11093,6 +11093,12 @@
         "zh": "插件 Web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 Kit 组件绘制。"
       },
       "aliases": [
+        "web bundle",
+        "plugin bundle",
+        "sandboxed page",
+        "Web 包",
+        "插件网页",
+        "沙箱页面",
         "Message",
         "opening",
         "ready",
@@ -11157,16 +11163,16 @@
         "ios": "packages/ios-im-ui/Sources/FlareIMUI/Components/PluginBundleHost.swift"
       },
       "docs": {
-        "zh": null,
-        "en": null
+        "zh": "website/components/plugin-bundle-host.md",
+        "en": "website/en/components/plugin-bundle-host.md"
       },
       "examples": {
-        "live": false,
-        "code": false,
+        "live": true,
+        "code": true,
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginBundleHost",
-      "searchText": "pluginbundlehost message im-ui stable message opening ready suspended crashed fallback closed fallback close navigate back title resize closed failed retry supportsconfiguration plugin web bundle host — a plugin's sandboxed web page (design 8.4): served only from the engine's verified cache on the plugin's own origin, its bridge carried to the engine, and the host requests it makes (title, toast, confirm, external link, clipboard, navigate, close) drawn with kit components. 插件 web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 kit 组件绘制。"
+      "searchText": "pluginbundlehost message im-ui stable web bundle plugin bundle sandboxed page web 包 插件网页 沙箱页面 message opening ready suspended crashed fallback closed fallback close navigate back title resize closed failed retry supportsconfiguration plugin web bundle host — a plugin's sandboxed web page (design 8.4): served only from the engine's verified cache on the plugin's own origin, its bridge carried to the engine, and the host requests it makes (title, toast, confirm, external link, clipboard, navigate, close) drawn with kit components. 插件 web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 kit 组件绘制。"
     },
     {
       "name": "DocumentCapture",
@@ -11934,7 +11940,7 @@
         "configuration": true,
         "variants": true,
         "states": true,
-        "interaction": true,
+        "interaction": false,
         "responsive": true,
         "keyboard": true,
         "density": false,
@@ -11986,9 +11992,7 @@
         "update",
         "notAvailable"
       ],
-      "interactions": [
-        "update"
-      ],
+      "interactions": [],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
       "platforms": {
@@ -12029,7 +12033,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginUpgradeNotice",
-      "searchText": "pluginupgradenotice message im-ui stable plugin upgrade update required upgrade notice 需更新 升级提示 去更新 message description update notavailable update supportsconfiguration plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or me entry, or a whole page. 插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
+      "searchText": "pluginupgradenotice message im-ui stable plugin upgrade update required upgrade notice 需更新 升级提示 去更新 message description update notavailable supportsconfiguration plugin upgrade notice — what a plugin contribution this build cannot draw shows instead: a line with an update key in a message card, a \"needs update\" mark on a \"+\" or me entry, or a whole page. 插件升级提示 —— 当前构建画不了的插件贡献改为显示的内容：消息卡片里的一行文案与「去更新」、「+」菜单或「我」页入口上的「需更新」标记、整页提示。"
     },
     {
       "name": "AccountView",
