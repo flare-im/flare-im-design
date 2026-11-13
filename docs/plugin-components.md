@@ -17,6 +17,7 @@
 | 插件表单 | `FlarePluginForm` | `PluginFormView` | `PluginForm` | `FlarePluginForm` |
 | 插件详情（查看全部） | `FlarePluginDetailSheet` | `PluginDetailSheetView` | `PluginDetailSheet` | `FlarePluginDetailSheet` |
 | 插件升级提示（卡片行、入口标记、整页） | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` |
+| Web 包宿主（L3，页面、卡片详情、「+」表单） | `FlarePluginBundleHost` | `FlarePluginBundleHost`（控制器 `FlarePluginBundleHostController`） | `FlarePluginBundleHost`（视图 `FlarePluginBundleView`） | `FlarePluginBundleHost`（包 `flare_plugin_bundle_host`） |
 | 加载/错误/权限说明 | `FlareStatusBanner` | `StatusBannerView` | `StatusBanner` | `FlareStatusBanner` |
 | 页面与表单 | `FlareScreen`、`FlareSchemaForm` | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 |
 
@@ -231,6 +232,23 @@
 - 宿主执行读取并审计，用 `flarePluginProtectedMediaUrl`（原生 `FlarePluginProtectedMedia.url`）从结果取地址填回 `protectedMedia[itemId].url`。服务端给的是带 `?grant=` 的短时绝对 https 地址。
 - 地址规则（`protectedMediaSource` 向量）：原生只画 https 与 data:image；Vue 另接受 blob: 与 Tauri 资源地址。图片只在内存：SwiftUI 用无缓存、无 Cookie 的临时会话自己取，Compose 用 Coil 并关闭磁盘缓存，Flutter 用内存图片缓存并在离开时清掉；图片不可拖拽、无长按菜单、无保存或分享入口。
 - 原生新参数：`protectedMedia`、`onProtectedMediaRead`（SwiftUI、Compose、Flutter 的 `PluginView` 与 `FlarePluginPage`）；Vue `FlarePluginPage` 也转发 `protectedMedia` 与 `protectedMediaRead`。
+
+## Web 包宿主四端对照
+
+四端同名组件 `FlarePluginBundleHost`，同一份契约：宿主只搬运信封、画宿主请求、转发事件，权限、限速和缓存都在引擎里（`plugin_bundle_open`、`_bridge`、`_host_result`、`_host_event`、`_close`、`_prefetch`，事件 `plugin.bundle_event` 7004）。
+
+| | Vue（Web、Tauri） | SwiftUI | Compose | Flutter |
+|---|---|---|---|---|
+| 承载 | `<iframe sandbox="allow-scripts allow-forms">`，不透明源 | 每页一个 WKWebView，非持久数据存储 | 每页一个 WebView | 平台视图：Android 复用 `FlarePluginBundleView`，iOS 复用 `FlarePluginBundleHostViewController` |
+| 源 | Web 为部署的沙箱域；Tauri 为 `flare-plugin://{插件键}` | `flare-plugin://{插件键}` | `https://{插件键}.plugin.flare.invalid` | 同所在平台 |
+| 桥 | `postMessage`，只收本 iframe 的消息 | `WKScriptMessageHandlerWithReply` `flareBridge` + `window.__flareBridgeDeliver` | `addWebMessageListener` `flareBridge`，JSON 文本 | 同所在平台 |
+| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android、iOS 分别同原生，iOS 15 不报 |
+
+- **回落**：打不开（`not_offered`、`unsupported`、`unavailable`、`rejected`）、引擎关闭（`withdrawn`、`suspended`、`disabled`、`replaced`）、同一次打开第三次崩溃，一律回到声明式变体；`evicted` 等页面再显示时重新打开；`signedOut` 直接关闭。
+- **宿主请求**用各端 Kit 已有组件：提示条、确认框（危险操作用危险按钮）、标题、外链确认（只收 https，D-13）、剪贴板；`ui.navigate`、`ui.close`、`ui.resize` 交给容器。每个请求只回答一次。
+- **手势**由宿主记录（5 秒内的触摸或按键），随请求交给引擎；`host.capability` 和 `clipboard.write` 没有手势时引擎回 `gesture_required`。
+- **文案**：Vue `pluginBundle.*`，原生三端 `pluginBundle*` 与 `pluginBridgeError*`，桥错误码中英各一套，四端同义。
+- 包怎么写、怎么审核与下发，见 flare-plugin-devkit 的 Web 包说明和知识库「插件客户端免重装上线」。
 
 ## Web 包宿主 `FlarePluginBundleHost`（L3，设计 8.4 到 8.6）
 
