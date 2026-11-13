@@ -247,6 +247,22 @@ Android 的宿主分两层，`PluginBundleHost.kt`：普通 Android 视图 `Flar
 - **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 SwiftUI 共用）；`flarePluginBridgeErrorText(code, strings)` 接受错误码或 `plugin.bridge.*` 键。
 - **测试**：`PluginBundleHostTest`（运行时下限、会话校验、拦截器规则、响应头、导航、外链、关闭与崩溃状态、桥应答、事件分发、打开请求）。
 
+## Web 包宿主：SwiftUI（L3，设计 8.4 到 8.8）
+
+iOS 的宿主在 `PluginBundleHost.swift`，分三层：不依赖 SwiftUI 的控制器 `FlarePluginBundleHostController`（会话、WKWebView、桥），SwiftUI 视图 `FlarePluginBundleHost`，以及给 UIKit 和 Flutter 平台视图用的 `FlarePluginBundleHostViewController`（自带反馈宿主，提示和确认仍是 Kit 的）。
+
+- **运行时**：`FlarePluginBundleRuntime.current` 是宿主资料的 `bundleRuntime`（`{bridge: 1, engine: "wkwebview", engineMajor}`），iOS 16 起才返回（D-17）；macOS 冒烟构建返回 nil。
+- **引擎调用**：`FlarePluginBundleCalls(dispatch:)` 只要求宿主把 `plugin_bundle_open`、`_bridge`、`_host_result`、`_host_event`、`_close`、`_prefetch` 原样转给核心 SDK（`capability.<路由>`，`{payload}`）并原样返回应答；载荷由 Kit 拼，应答由 Kit 读。`FlarePluginBundleHostController.open(request, calls:, dark:)` 先试 Web 包，贡献在本端没有 Web 包（未下发、低于运行时、本次运行已崩溃三次、校验失败、下载失败）时返回 nil，宿主据此画声明式变体。
+- **源与文件**：每个会话一个 WKWebView，入口 `flare-plugin://{pluginKey}/{entry}`。`WKURLSchemeHandler` 只对本源的 `GET`/`HEAD`、并且路径在 `files` 清单里的请求，从引擎缓存目录读文件（规范化后再查一次是否在缓存目录内，大小与清单不符也拒绝）；其余一律 403。每个响应都带引擎给的 CSP、`Access-Control-Allow-Origin: *`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`。数据存储是 `WKWebsiteDataStore.nonPersistent()`。
+- **隔离**：桥是 `WKScriptMessageHandlerWithReply`，名字 `flareBridge`，挂在页面的 content world：每个 WebView 只装一个包，插件 Web SDK 只能在这个 world 里拿到它；独立 content world 里的处理器页面脚本看不见。只收主框架、`flare-plugin://{pluginKey}` 源的消息。事件经 `window.__flareBridgeDeliver` 送入（宿主把信封作为 JSON 字符串字面量传进去，不拼接 JS）。只允许主框架加载入口本身（首次加载与刷新），其余导航、新窗口、下载、子框架、媒体采集一律拒绝；JS 对话框按系统缺省（不弹）。
+- **手势**：WebView 上挂一个只记录触摸、从不识别的手势识别器，5 秒内的触摸作为 `userGesture` 交给引擎。
+- **宿主请求**：`ui.toast`、`ui.confirm` 用环境里的 `FlareFeedback`（没有时应答 `unavailable`）；`ui.openExternal` 只收 https，先用 Kit 确认（文案 `pluginBundleExternal*`），确认后用系统浏览器打开（D-13）；`ui.setTitle` 更新 `title`；`ui.resize` 只在 `resizable` 时有效；`ui.navigate` 交给 `FlarePluginBundleHostActions.navigate`（`page` 或 `bundleRoute`，返回 false 应答 `not_found`）；`ui.close` 先应答再调 `close(result)` 并结束会话；`clipboard.write` 写系统剪贴板。
+- **引擎事件**：宿主把 `plugin.bundle_event`（7004）的载荷交给 `FlarePluginBundleEvents.receive(_:)`。信封转给对应页面；`close` 为 `evicted` 时页面挂起、再次显示时重新打开，其余原因调 `fallback(.closed(reason))`。
+- **生命周期**：视图出现、消失时发 `visibility.changed`；配色变化发 `theme.changed`，`setLocale` 发 `locale.changed`。切后台 30 秒后或收到内存警告（页面不可见时）销毁 WebView 并结束会话，回来时重新打开，页面用 `ui.saveState` 恢复。Web 内容进程退出显示错误与「重新加载」，同一贡献本次运行第三次崩溃调 `fallback(.crashed)`（`FlarePluginBundleCrashLedger`）。控制器被释放而没调 `close()` 时也会结束会话。
+- **形态**：传 `onClose` 时自带 `FlareScreen` 标题栏与关闭键，放进 `FullScreenView`（卡片详情、「+」表单）；不传时填满所在页面，标题由宿主自己的导航栏读 `controller.title`。
+- **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 Compose 共用）；`FlareStrings.pluginBridgeMessage(forKey:)` 按 `plugin.bridge.*` 键取文案。
+- **测试**：`PluginBundleHostTests`（运行时下限、会话校验、路径与文件规则、响应头、导航、外链、信封与投递脚本、打开请求、崩溃账本、事件分发、宿主请求、文案）。
+
 ## 自定义内容渲染器
 
 插件卡片通过 Kit 的内容渲染器注册进消息列表，四端同一套语义：

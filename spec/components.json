@@ -17075,6 +17075,30 @@
             "en": "ui.resize in a sheet, in dp; without it the request is unavailable.",
             "zh": "半屏弹层里的 ui.resize（dp）；不传时该请求应答 unavailable。"
           }
+        },
+        {
+          "name": "controller",
+          "type": "FlarePluginBundleHostController",
+          "required": true,
+          "platforms": [
+            "ios"
+          ],
+          "description": {
+            "en": "SwiftUI: the page's controller (session, web view, bridge). FlarePluginBundleHostController.open tries the bundle first and returns nil when the contribution has none here, so the host shows the declarative variant.",
+            "zh": "SwiftUI：页面的控制器（会话、WebView、桥）。FlarePluginBundleHostController.open 先试 Web 包，贡献在本端没有 Web 包时返回 nil，宿主改画声明式变体。"
+          }
+        },
+        {
+          "name": "onClose",
+          "type": "() -> Void",
+          "required": false,
+          "platforms": [
+            "ios"
+          ],
+          "description": {
+            "en": "SwiftUI: gives the page its own header (FlareScreen) with a close key, for a FullScreenView; the session ends before it is called.",
+            "zh": "SwiftUI：页面自带标题栏（FlareScreen）和关闭键，用于 FullScreenView；回调前先结束会话。"
+          }
         }
       ],
       "states": [
@@ -17093,6 +17117,10 @@
       "platforms": {
         "compose": {
           "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginBundleHost"
+        },
+        "ios": {
+          "package": "FlareIMUI",
           "symbol": "FlarePluginBundleHost"
         }
       },
@@ -17114,8 +17142,8 @@
         "screenReaderSemantics": "The page header names the page; the opening state reads \"Opening…\"; the crash state reads its title and hint and offers Reload as a button."
       },
       "notes": {
-        "en": "Design 8.4, 8.5, 8.8. Compose: FlarePluginBundleHost over the plain view FlarePluginBundleView, which a Flutter platform view reuses (Task 19). Only Android System WebView 111+ with the web message listener reports bundleRuntime (FlarePluginBundleRuntime.profile, D-17). The interceptor serves GET https://{pluginKey}.plugin.flare.invalid/{listed path} from the cache with the CSP and Access-Control-Allow-Origin: *, and answers everything else 403; the bridge is WebViewCompat.addWebMessageListener(\"flareBridge\") for that origin only; no addJavascriptInterface, file or content access, DOM storage, third-party cookies, windows, permissions or downloads. In the background it pauses and sends visibility.changed, and after 30 s (or a memory warning) it is destroyed and opened again on return; a renderer crash shows reload, and the third falls back to the declarative variant. Withdrawn, suspended, disabled or replaced bundles fall back as well.",
-        "zh": "设计 8.4、8.5、8.8。Compose：FlarePluginBundleHost 包在普通视图 FlarePluginBundleView 外面，Flutter 平台视图直接复用这个视图（任务 19）。只有 Android System WebView 111+ 且支持 web message listener 时才报 bundleRuntime（FlarePluginBundleRuntime.profile，D-17）。拦截器只按 GET https://{pluginKey}.plugin.flare.invalid/{清单内路径} 从缓存出文件，带 CSP 和 Access-Control-Allow-Origin: *，其余一律 403；桥是只对本源生效的 WebViewCompat.addWebMessageListener(\"flareBridge\")；不用 addJavascriptInterface，关闭文件与内容访问、DOM 存储、第三方 Cookie、新窗口、权限请求和下载。切后台暂停并发 visibility.changed，30 秒后（或收到内存警告）销毁，回来时重新打开；渲染进程崩溃显示重新加载，第三次回落到声明式变体。包被撤回、插件暂停、停用或替换时同样回落。"
+        "en": "Design 8.4, 8.5, 8.8. Compose: FlarePluginBundleHost over the plain view FlarePluginBundleView, which a Flutter platform view reuses (Task 19). Only Android System WebView 111+ with the web message listener reports bundleRuntime (FlarePluginBundleRuntime.profile, D-17). The interceptor serves GET https://{pluginKey}.plugin.flare.invalid/{listed path} from the cache with the CSP and Access-Control-Allow-Origin: *, and answers everything else 403; the bridge is WebViewCompat.addWebMessageListener(\"flareBridge\") for that origin only; no addJavascriptInterface, file or content access, DOM storage, third-party cookies, windows, permissions or downloads. In the background it pauses and sends visibility.changed, and after 30 s (or a memory warning) it is destroyed and opened again on return; a renderer crash shows reload, and the third falls back to the declarative variant. Withdrawn, suspended, disabled or replaced bundles fall back as well. SwiftUI (iOS 16+): FlarePluginBundleHost draws a FlarePluginBundleHostController, which owns the session and the WKWebView and works without SwiftUI; FlarePluginBundleHostViewController wraps it for UIKit and the Flutter platform view (Task 19). Files come from a WKURLSchemeHandler on flare-plugin://{pluginKey}/ that serves only the listed files from the cache with the CSP and Access-Control-Allow-Origin: * (everything else 403), in a WKWebsiteDataStore.nonPersistent() store. The bridge is the WKScriptMessageHandlerWithReply \"flareBridge\" in the page's content world (one bundle per web view, and the plugin web SDK reaches it only there); messages from other frames or origins are refused, and events go in through window.__flareBridgeDeliver. Navigation away from the entry, new windows, downloads and media capture are refused. A terminated web content process shows Reload; the third crash of a contribution in a run falls back (FlarePluginBundleCrashLedger). FlarePluginBundleRuntime.current reports bundleRuntime from iOS 16 (D-17); the app hands event 7004 to FlarePluginBundleEvents.receive.",
+        "zh": "设计 8.4、8.5、8.8。Compose：FlarePluginBundleHost 包在普通视图 FlarePluginBundleView 外面，Flutter 平台视图直接复用这个视图（任务 19）。只有 Android System WebView 111+ 且支持 web message listener 时才报 bundleRuntime（FlarePluginBundleRuntime.profile，D-17）。拦截器只按 GET https://{pluginKey}.plugin.flare.invalid/{清单内路径} 从缓存出文件，带 CSP 和 Access-Control-Allow-Origin: *，其余一律 403；桥是只对本源生效的 WebViewCompat.addWebMessageListener(\"flareBridge\")；不用 addJavascriptInterface，关闭文件与内容访问、DOM 存储、第三方 Cookie、新窗口、权限请求和下载。切后台暂停并发 visibility.changed，30 秒后（或收到内存警告）销毁，回来时重新打开；渲染进程崩溃显示重新加载，第三次回落到声明式变体。包被撤回、插件暂停、停用或替换时同样回落。 SwiftUI（iOS 16+）：FlarePluginBundleHost 画 FlarePluginBundleHostController，后者持有会话与 WKWebView，不依赖 SwiftUI；FlarePluginBundleHostViewController 把它包给 UIKit 和 Flutter 平台视图（任务 19）。文件由 flare-plugin://{pluginKey}/ 上的 WKURLSchemeHandler 只按清单从缓存出，带 CSP 与 Access-Control-Allow-Origin: *，其余一律 403；数据存储是 WKWebsiteDataStore.nonPersistent()。桥是页面 content world 里的 WKScriptMessageHandlerWithReply「flareBridge」（每个 WebView 只装一个包，插件 Web SDK 只能在这个 world 里拿到它），拒绝其他框架和源的消息，事件经 window.__flareBridgeDeliver 送入。离开入口的导航、新窗口、下载、媒体采集一律拒绝。Web 内容进程退出时显示重新加载，同一贡献本次运行第三次崩溃回落（FlarePluginBundleCrashLedger）。FlarePluginBundleRuntime.current 从 iOS 16 起报 bundleRuntime（D-17）；应用把事件 7004 交给 FlarePluginBundleEvents.receive。"
       }
     },
     {
