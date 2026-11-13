@@ -253,6 +253,8 @@ internal fun PluginViewContent(
     var users by remember { mutableStateOf<Map<String, PluginUser>>(emptyMap()) }
     var confirming by remember { mutableStateOf<PluginActionRun?>(null) }
     var formRun by remember { mutableStateOf<PluginActionRun?>(null) }
+    // A page action's native target handed to the form holding its `into` input.
+    var nativeRequest by remember { mutableStateOf<PluginNativeIntoRequest?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
     val inlineAction = pluginInlineFormAction(view, inlineFormActionId, onAction != null)
     var inlineForm by remember(inlineAction?.id) { mutableStateOf(PluginInlineFormState()) }
@@ -309,6 +311,25 @@ internal fun PluginViewContent(
     /** Confirm, then collect the form, then hand the action over. */
     fun run(action: PluginViewAction, payload: PluginActionPayload, block: Int? = null) {
         if (locked || emitAction == null) return
+        // A native target writing `into` an input of a form on this view (the inline form or the open form sheet)
+        // runs through that input's own key, so the host's answer is written into the form's current scope.
+        val target = action.target
+        if (payload.row == null && target != null) {
+            val forms = listOfNotNull(inlineAction, formRun?.action)
+            val takes = forms.any { form ->
+                view.formInputs(form).any { input ->
+                    when (pluginNativeIntoKey(target, input)) {
+                        "file" -> onFileAction != null
+                        "location" -> onLocationAction != null
+                        else -> false
+                    }
+                }
+            }
+            if (takes) {
+                nativeRequest = PluginNativeIntoRequest(target)
+                return
+            }
+        }
         advance(PluginActionRun(action, payload, block).start())
     }
 
@@ -398,6 +419,7 @@ internal fun PluginViewContent(
                     submitLabel = action.label, busy = locked, error = failure, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  embedded = true,
                     fileStates = fileStates, onFileAction = onFileAction,
                     locationStates = locationStates, onLocationAction = onLocationAction,
+                    nativeRequest = nativeRequest,
                     onSubmit = { values ->
                         if (!locked && pluginInlineFormAction(view, action.id, emitAction != null) != null) {
                             val next = inlineForm.begin()
@@ -563,6 +585,7 @@ internal fun PluginViewContent(
                     members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
                     fileStates = fileStates, onFileAction = onFileAction,
                     locationStates = locationStates, onLocationAction = onLocationAction,
+                    nativeRequest = nativeRequest,
                     onSubmit = { values -> formSubmitted = true; advance(request.submitted(values)) },
                     onCancel = { if (!formPending) { formRun = null; formSubmitted = false } },
                 )

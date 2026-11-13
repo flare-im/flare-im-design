@@ -73,6 +73,8 @@ fun PluginForm(
     locationStates: Map<String, PluginLocationState> = emptyMap(),
     /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
     onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** A page action's native target writing into one of these inputs: it runs through that input's key. */
+    nativeRequest: PluginNativeIntoRequest? = null,
 ) {
     val strings = flareStrings()
     var form by remember(inputs, values) { mutableStateOf(PluginFormState.initial(inputs, values)) }
@@ -170,6 +172,20 @@ fun PluginForm(
         if (kind == PluginLocationActionKind.Clear) set(input.id, null)
         else if (locationStates[input.id]?.locating == true) return
         onLocationAction?.invoke(PluginLocationAction(kind, input.id, input, PluginFormRules.values(inputs, form.draft)))
+    }
+    // A page action's native target writing `into` one of these inputs runs through that input's own key, so the host
+    // gets this form's scope with it and its answer lands here, even before the viewer touched the input.
+    LaunchedEffect(nativeRequest) {
+        val target = nativeRequest?.target ?: return@LaunchedEffect
+        if (busy) return@LaunchedEffect
+        val input = inputs.firstOrNull { it.visibleIn(form.draft) && pluginNativeIntoKey(target, it) != null }
+            ?: return@LaunchedEffect
+        if (pluginNativeIntoKey(target, input) == "location") {
+            if (onLocationAction != null) locationAction(input, PluginLocationActionKind.Locate)
+        } else if (fileCallback != null) {
+            val phase = localFiles[input.id]?.phase ?: PluginFilePhase.Empty
+            fileAction(input, if (phase == PluginFilePhase.Empty) PluginFileActionKind.Choose else PluginFileActionKind.Replace)
+        }
     }
 
     Column(

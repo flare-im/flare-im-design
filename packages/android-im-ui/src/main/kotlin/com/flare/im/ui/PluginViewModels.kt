@@ -25,8 +25,10 @@ enum class PluginActionStyle(val wire: String) {
 }
 
 /**
- * A resolved action. Its `target` and `input` stay with the core: the kit hands back the opaque [id] only. [confirm] is
- * asked first in the kit DangerConfirm; [form] lists the input ids [PluginForm] collects first.
+ * A resolved action. Its `input` stays with the core: the kit hands back the opaque [id] only. [confirm] is asked first
+ * in the kit DangerConfirm; [form] lists the input ids [PluginForm] collects first. The kit reads a native [target]'s
+ * `into`: a page action writing into one of the form's own inputs runs through that input's key
+ * ([pluginNativeIntoKey]), so the host's answer lands in the form's current scope.
  */
 data class PluginViewAction(
     val id: String,
@@ -34,7 +36,35 @@ data class PluginViewAction(
     val style: PluginActionStyle? = null,
     val confirm: String? = null,
     val form: List<String>? = null,
+    val target: PluginActionTarget? = null,
 )
+
+/** An action's target (flare-plugin-protocol UiActionTarget): `native` ([capability], [params], [into]), `operation` or `page`. */
+data class PluginActionTarget(
+    val kind: String,
+    val capability: String? = null,
+    val params: Map<String, Any?>? = null,
+    /** The page input the native capability writes into. */
+    val into: String? = null,
+)
+
+/** A page action's native target for the form that holds its `into` input; a new [token] runs it again. */
+data class PluginNativeIntoRequest(val target: PluginActionTarget, val token: String = java.util.UUID.randomUUID().toString())
+
+/** Host capabilities that write a file into an upload input. */
+val PluginUploadCapabilities: Set<String> = setOf("documentCapture", "selectImage", "camera", "selectFile")
+
+/**
+ * Which key of [input] a native action [target] runs through when it names that input as `into`
+ * (spec/plugin-native-into-vectors.json): `file` (the input's own choose, or replace when it holds a file) for an upload
+ * capability into an upload input, `location` (its locate key) for `locationOnce` into a location input, null otherwise
+ * (the action goes out as itself).
+ */
+fun pluginNativeIntoKey(target: PluginActionTarget?, input: PluginInput): String? {
+    if (target == null || target.kind != "native" || target.into == null || target.into != input.id) return null
+    if (target.capability == "locationOnce") return if (input.kind == PluginInputKind.Location) "location" else null
+    return if (target.capability in PluginUploadCapabilities && input.kind.isUpload) "file" else null
+}
 
 /** Semantic colour of a status, a note or a people group, drawn with the `*Text` tokens. */
 enum class PluginTone(val wire: String) {
@@ -481,7 +511,13 @@ private fun Map<*, *>.action(): PluginViewAction? {
     val id = string("id") ?: return null
     val label = string("label") ?: return null
     return PluginViewAction(id, label, PluginActionStyle.fromWire(string("style")), string("confirm"),
-        (this["form"] as? List<*>)?.filterIsInstance<String>())
+        (this["form"] as? List<*>)?.filterIsInstance<String>(), (this["target"] as? Map<*, *>)?.actionTarget())
+}
+
+private fun Map<*, *>.actionTarget(): PluginActionTarget? {
+    val kind = string("kind") ?: return null
+    val params = (this["params"] as? Map<*, *>)?.entries?.associate { (key, value) -> key.toString() to value }
+    return PluginActionTarget(kind, string("capability"), params, string("into"))
 }
 
 private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {

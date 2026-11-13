@@ -20,8 +20,7 @@ class CapabilityUiTest {
     @Test fun consentDecisionsAndLabels() {
         for (c in cases("consentDecision")) {
             val d = FlareCapabilityConsentDecision.entries.first { it.wire == c["decision"] }
-            assertEquals(c["granted"], d.granted)
-            assertEquals(c["remember"], d.remember)
+            assertEquals(c["answer"], d.answer)
         }
         for (c in cases("capabilityLabel")) {
             @Suppress("UNCHECKED_CAST") val params = c["params"] as Map<String, Any?>?

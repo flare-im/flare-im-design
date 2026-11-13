@@ -23,9 +23,12 @@ import kotlinx.coroutines.withContext
 enum class FlareCapabilityConsentDecision(val wire: String) {
     Once("once"), Always("always"), Deny("deny");
 
-    /** The engine's `{granted}`; when false, [remember] tells the host to revoke a once-grant after the request. */
-    val granted: Boolean get() = this != Deny
-    val remember: Boolean get() = this == Always
+    /**
+     * What the host answers the engine's consent request with (`plugin.capability_complete` result):
+     * `{decision: "once" | "always" | "deny"}`. The engine keeps only "always"; "once" lets this request through
+     * and keeps nothing, so the host never revokes anything to emulate it.
+     */
+    val answer: Map<String, String> get() = mapOf("decision" to wire)
 }
 
 object FlareCapabilityRules {

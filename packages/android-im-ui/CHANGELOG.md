@@ -1,5 +1,6 @@
 ## 未发布
 
+- 插件动作带上 `target`（`PluginActionTarget`）：页面上一个原生动作的 `into` 指向本页表单的上传或定位输入时，走那个输入自己的键，引擎写回的结果直接进表单（`spec/plugin-native-into-vectors.json`；`pluginNativeIntoKey`；`PluginForm` 新参数 `nativeRequest: PluginNativeIntoRequest?`）。`FlareCapabilityConsentDecision` 去掉 `granted`、`remember`，改为 `answer`（`{decision}`）。
 - 宿主能力组件（`docs/plugin-components.md`「宿主能力组件」，`spec/capability-ui-vectors.json`）：新增 `FlareCapabilityConsent`、`FlareDocumentCapture`（宿主传 `preview` 与 `capture`，`BitmapFactory` + `ExifInterface` 摆正，`Bitmap.compress` 写出不带元数据的 JPEG）、`FlarePaymentConfirmation`（`FlarePaymentOrder`，按 `FlareServerClock` 倒计时）与 `FlareCapabilityRules`、`FlarePaymentRules`、`FlareDocumentRules`。**删除** `RedPacketPayConfirm` 与 `redPacket.pay`、`payment.confirm` 渲染器（`ResolvedPresentation` 只画红包卡片）；`packetPay*` 文案字段保留。新增受保护媒体块（`PluginProtectedMediaBlock`，`PluginView`、`FlarePluginPage` 新参数 `protectedMedia`、`onProtectedMediaRead`；Coil 关闭磁盘缓存）。新输入 `location`（`PluginLocationValue`、`PluginInput.precision`，参数 `locationStates`、`onLocationAction`）。
 - `Input` 新增 `inputMode: FlareInputMode`（Text、Numeric、Decimal、Tel、Email、Url、Search），对应契约 `inputmode`；插件 `money` 输入打开小数键盘，小数位为 0 时只给数字键盘。
 - 插件 `chart` 块改用图表 token `chartSeries1`–`chartSeries6`，不再借用语义状态色。
