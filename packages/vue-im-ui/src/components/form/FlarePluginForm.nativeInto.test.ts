@@ -22,8 +22,11 @@ const vectors = JSON.parse(
 
 const front: FlarePluginInput = {
   id: "front", kind: "document", label: "Front", required: true, side: "front",
-  file: { accept: ["image/jpeg"], maxBytes: 1048576 },
-} as FlarePluginInput;
+  file: {
+    accept: ["image/jpeg"], maxBytes: 1048576,
+    upload: { prepareOperation: "example.documents.prepare", completeOperation: "example.documents.complete", purpose: "front" },
+  },
+};
 const area: FlarePluginInput = { id: "area", kind: "location", label: "Area", precision: "coarse" };
 const scan: FlarePluginActionTarget = { kind: "native", capability: "documentCapture", params: { side: "front" }, into: "front" };
 const locate: FlarePluginActionTarget = { kind: "native", capability: "locationOnce", params: { precision: "coarse" }, into: "area" };

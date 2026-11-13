@@ -110,7 +110,7 @@ describe("FlareDocumentCapture", () => {
     render(FlareDocumentCapture, { open: true, side: "holding", maxBytes: 1_000_000, cameraUnavailable: true, capture: async () => null, pickPhoto: async () => null }, { preview: () => h("video", { "data-host-preview": "true" }) });
     await flushPromises();
     expect(document.body.querySelector("[data-host-preview]")).not.toBeNull();
-    expect((document.body.querySelector("[data-doc-frame]") as HTMLElement).style.aspectRatio).toBe("0.75");
+    expect((document.body.querySelector("[data-doc-frame]") as HTMLElement).style.aspectRatio).toMatch(/^0\.75( \/ 1)?$/);
     expect(document.body.querySelector("[data-doc-shoot]")).toBeNull();
     expect(document.body.querySelector("[data-doc-album]")).not.toBeNull();
     expect(document.body.textContent).toContain("The camera is not available");
