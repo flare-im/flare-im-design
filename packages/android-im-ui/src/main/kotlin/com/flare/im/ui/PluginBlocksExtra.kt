@@ -364,6 +364,8 @@ data class PluginProtectedMediaBlock(
     val urlPath: String,
     val emptyText: String? = null,
 ) : PluginBlock {
+    override val kind: String get() = "protected-media"
+
     /** Whether a read first asks the viewer why (spec/capability-ui-vectors.json protectedMediaReason). */
     val asksReason: Boolean get() = reasonInput != null
 

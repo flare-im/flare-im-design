@@ -378,7 +378,7 @@ class PluginViewVectorsTest {
         assertEquals(listOf<PluginBlock>(PluginDividerBlock, PluginRowsBlock("list", emptyList(), emptyList())), view.blocks,
             "a kind the kit does not know is skipped; rows read")
         assertEquals(listOf("y"), view.inputs.map { it.id })
-        assertEquals(listOf(PluginViewAction("a", "A")), view.actions)
+        assertEquals(listOf(PluginViewAction("a", "A", target = PluginActionTarget("operation"))), view.actions)
         assertTrue(view.detail)
         val v1 = PluginViewModel.fromJson("""{"available":true,"title":"红包","fields":[{"label":"金额","value":"¥5.00"}],"actions":[{"id":"claim","label":"领取"}]}""")
         assertEquals(PluginViewModel(true, "红包", listOf(PluginViewField("金额", "¥5.00")), listOf(PluginViewAction("claim", "领取"))), v1)
