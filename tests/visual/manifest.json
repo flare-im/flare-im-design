@@ -134,7 +134,9 @@
           "theme-rose-light.png",
           "theme-sunset-light.png",
           "theme-violet-dark.png",
-          "theme-violet-light.png"
+          "theme-violet-light.png",
+          "plugin-blocks-light.png",
+          "plugin-blocks-dark.png"
         ],
         "linux": [
           "attachment-surface-1280-dark.png",
