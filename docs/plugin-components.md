@@ -242,8 +242,10 @@
 | 承载 | `<iframe sandbox="allow-scripts allow-forms">`，不透明源 | 每页一个 WKWebView，非持久数据存储 | 每页一个 WebView | 平台视图：Android 复用 `FlarePluginBundleView`，iOS 复用 `FlarePluginBundleHostViewController` |
 | 源 | Web 为部署的沙箱域；Tauri 为 `flare-plugin://{插件键}` | `flare-plugin://{插件键}` | `https://{插件键}.plugin.flare.invalid` | 同所在平台 |
 | 桥 | `postMessage`，只收本 iframe 的消息 | `WKScriptMessageHandlerWithReply` `flareBridge` + `window.__flareBridgeDeliver` | `addWebMessageListener` `flareBridge`，JSON 文本 | 同所在平台 |
-| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android、iOS 分别同原生，iOS 15 不报 |
+| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android、iOS 分别同原生（Flutter 示例应用最低 iOS 16） |
 
+- **何时打开**：页面先读声明式页面（`plugin_page`）；回答带 `bundle: true`（宿主报了 `bundleRuntime`、目录为这一页选中 Web 包变体、包已下发、桥版本够）时才切到 Web 包宿主，打不开或被撤回时留在已读到的声明式页面。卡片详情与「+」表单直接先试 Web 包。
+- **媒体**：`media.read` 由宿主经桥回 `data:` 地址（最大 4 MiB），插件 Web SDK 在包内转成 `blob:` 地址。
 - **回落**：打不开（`not_offered`、`unsupported`、`unavailable`、`rejected`）、引擎关闭（`withdrawn`、`suspended`、`disabled`、`replaced`）、同一次打开第三次崩溃，一律回到声明式变体；`evicted` 等页面再显示时重新打开；`signedOut` 直接关闭。
 - **宿主请求**用各端 Kit 已有组件：提示条、确认框（危险操作用危险按钮）、标题、外链确认（只收 https，D-13）、剪贴板；`ui.navigate`、`ui.close`、`ui.resize` 交给容器。每个请求只回答一次。
 - **手势**由宿主记录（5 秒内的触摸或按键），随请求交给引擎；`host.capability` 和 `clipboard.write` 没有手势时引擎回 `gesture_required`。
@@ -297,7 +299,7 @@ iOS 的宿主在 `PluginBundleHost.swift`，分三层：不依赖 SwiftUI 的控
 
 Flutter 的宿主是联邦插件 `flare_plugin_bundle_host`，放在 `packages/flutter-im-ui/packages/flare_plugin_bundle_host/` 下，和 Kit 同属一个 pub workspace（`flutter-im-ui/pubspec.yaml` 的 `workspace`）。它不写自己的 WebView，也不用 `webview_flutter`（D-14）：Android、iOS 两个实现包把上面两节的原生宿主以平台视图嵌进来，源、拦截、桥、隔离、生命周期都和原生应用一样。
 
-- **三个包**：`flare_plugin_bundle_host`（Dart：组件、引擎端口、运行时、事件分发、预取）；`flare_plugin_bundle_host_android`（默认实现，包 `FlarePluginBundleView`，依赖 `com.flare.im:im-ui-compose`）；`flare_plugin_bundle_host_ios`（包 `FlarePluginBundleHostViewController`，依赖 `FlareIMUI`，只支持 Swift Package Manager，iOS 16 起）。iOS 实现不是默认实现：Kit 的 iOS 包要求 iOS 16，应用的最低版本到 iOS 16 后自己把它加进依赖；没加时 iOS 上不报运行时，全部走声明式变体（D-17）。
+- **三个包**：`flare_plugin_bundle_host`（Dart：组件、引擎端口、运行时、事件分发、预取）；`flare_plugin_bundle_host_android`（默认实现，包 `FlarePluginBundleView`，依赖 `com.flare.im:im-ui-compose`）；`flare_plugin_bundle_host_ios`（包 `FlarePluginBundleHostViewController`，依赖 `FlareIMUI`，只支持 Swift Package Manager，iOS 16 起）。iOS 实现不是默认实现：Kit 的 iOS 包要求 iOS 16，应用的最低版本到 iOS 16 后自己把它加进依赖；没加时 iOS 上不报运行时，全部走声明式变体（D-17）。Flutter 示例应用已升到 iOS 16 并加了 iOS 实现，iOS 上也打开 Web 包。
 - **引擎调用**：原生宿主的引擎调用经 `flare_plugin_bundle_host` 通道回到 Dart（`engine`，`{route, payload}`，载荷是 JSON 文本），由应用装上的引擎执行：`FlarePluginBundleBindings.install((route, payload) => …)`，应用转给核心 SDK 的 `capability.<路由>`，`{payload}`。只放行六个 `plugin_bundle_*` 路由；拒绝时把 `sdk.plugin_bundle.<原因>` 的原因作为错误码交回原生宿主，原生宿主据此回落。
 - **运行时**：`FlarePluginBundleRuntime.profile()` 是宿主资料的 `bundleRuntime`。Android 8 及以上、WebView 111+ 且支持 web message listener 才有；iOS 16 及以上且应用加了 iOS 实现才有；Web、桌面和没有原生实现时为 null。Android 实现在 API 26 以下不加载 Kit（Kit 库声明 26，应用清单用 `tools:overrideLibrary="com.flare.im.ui"` 保留更低的最低版本）。
 - **引擎事件**：应用把事件 7004 的载荷交给 `FlarePluginBundleEvents.dispatch(payload)`，原生宿主按会话转给页面（Android `FlarePluginBundleEvents.dispatch`，iOS `FlarePluginBundleEvents.receive`）。
@@ -322,7 +324,7 @@ Flutter 的宿主是联邦插件 `flare_plugin_bundle_host`，放在 `packages/f
 
 插件的 `page` 贡献（钱包、明细等）用 Kit 的通用页面宿主渲染（`docs/design/red-packet-v5-roles-and-wallet.md` §3.2），五个 app 不再自写钱包页。四端都是 `FlarePluginPage`，按 `spec/components.json` 的 PluginPage 契约实现；渲染事实见 `spec/plugin-view-vectors.json` 的 `rules.page`、`pageRows`、`pagePaging`、`pageFilters` 与 `pageViews`、`pageActions`、`pagePaging`、`pageFilters` 四段。
 
-- **数据来源**：宿主用核心 SDK 读页面（TS `PluginUiSession.page(pluginId, page, {args, filters, page, refresh})`，bindings `capability.plugin_page`），把结果原样作为 `view` 传入。它是详情同形的视图加 `data`（页面解析所依据的数据）。宿主同时传 `page: {pluginId, page}`。
+- **数据来源**：宿主用核心 SDK 读页面（TS `PluginUiSession.page(pluginId, page, {args, filters, page, refresh})`，bindings `capability.plugin_page`），把结果原样作为 `view` 传入。它是详情同形的视图加 `data`（页面解析所依据的数据）。宿主同时传 `page: {pluginId, page}`。回答带 `bundle: true` 时这一页在本端有可用的 Web 包，宿主改用 Web 包宿主（见上文），打不开时仍画这份视图；宿主把页面当 `previous` 传回时可以保留这个标记。
 - **页头**：标题取 `view.title`，没有时取宿主的 `title`。不可用的页面标题为空，所以保留宿主标题。返回键与平台返回一致。
 - **状态**：
   - 首次加载转圈。
