@@ -492,10 +492,12 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
     private var rootDir: File? = null
 
     private var webView: WebView? = null
-    private var reply: JavaScriptReplyProxy? = null
 
-    /** Envelopes for the page before it sent its first message (and so before there is a reply channel). */
-    private val pending = ArrayList<String>()
+    /** What [webView]'s storage is held under, released when it is destroyed. */
+    private var storageLease: PluginBundleStorageLease? = null
+
+    /** The reply channel of the page's current document; envelopes wait while the page has not spoken yet. */
+    private val reply = PluginBundleReply<JavaScriptReplyProxy> { proxy, envelope -> proxy.postMessage(envelope) }
 
     /** Each open, reopen and dispose starts a new generation; answers for an older one are dropped. */
     private var generation = 0
@@ -679,6 +681,13 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
     @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "RequiresFeature")
     private fun createWebView(opened: FlarePluginBundleSession): WebView? {
         val view = runCatching { WebView(context) }.getOrNull() ?: return null
+        // First, before anything else touches the view: the signed-in user's profile and the storage hold (design 8.5).
+        val lease = runCatching { FlarePluginBundleStorage.attach(view, opened.origin, opened.files.keys) }.getOrNull()
+        if (lease == null) {
+            runCatching { view.destroy() }
+            return null
+        }
+        storageLease = lease
         view.setBackgroundColor(AndroidColor.TRANSPARENT)
         view.settings.apply {
             javaScriptEnabled = true
@@ -726,6 +735,7 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
             }
         } catch (_: Throwable) {
             view.destroy()
+            releaseStorage()
             return null
         }
         return view
@@ -737,11 +747,8 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
         // The listener is bound to the origin already; check it once more, exactly.
         if ("${source.scheme}://${source.host}".lowercase() != current.origin.lowercase() || source.port != -1) return
         val text = message.data ?: return
-        if (reply == null) {
-            reply = proxy
-            pending.forEach(proxy::postMessage)
-            pending.clear()
-        }
+        // Always the proxy of the document that spoke last: a reload makes a new one.
+        reply.speaking(proxy)
         val gesture = SystemClock.uptimeMillis() - lastGestureAt <= PLUGIN_BUNDLE_GESTURE_MS
         val channel = channel ?: return
         channel.bridge(current.sessionId, text, gesture) { result ->
@@ -790,12 +797,13 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
 
     /** Posts [envelope] to the page (the web SDK reads `message` events on `flareBridge`). */
     private fun post(envelope: String) {
-        val proxy = reply
-        if (proxy == null) {
-            if (pending.size < 64) pending.add(envelope)
-            return
-        }
-        runCatching { proxy.postMessage(envelope) }
+        reply.post(envelope)
+    }
+
+    private fun releaseStorage() {
+        val lease = storageLease ?: return
+        storageLease = null
+        runCatching { FlarePluginBundleStorage.release(context, lease) }
     }
 
     private fun sendHostEvent(event: String, payload: Map<String, Any?>) {
@@ -825,8 +833,7 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
         val ended = session
         session = null
         rootDir = null
-        reply = null
-        pending.clear()
+        reply.reset()
         webView?.let { view ->
             removeView(view)
             runCatching {
@@ -838,6 +845,7 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
             }
         }
         webView = null
+        releaseStorage()
         if (ended != null) {
             FlarePluginBundleEvents.unregister(ended.sessionId)
             if (closeSession) channel?.close(ended.sessionId)
@@ -864,6 +872,12 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
 
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
             !(request.isForMainFrame && pluginBundleNavigationAllowed(request.url.toString(), session))
+
+        override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
+            // A new document (a reload, a same-origin navigation): the old reply proxy answers nobody now, so
+            // envelopes wait until the new document speaks.
+            if (view === webView) reply.documentStarted()
+        }
 
         override fun onPageFinished(view: WebView, url: String?) {
             if (view === webView && state == FlarePluginBundleState.Opening) moveTo(FlarePluginBundleState.Ready)
@@ -931,6 +945,46 @@ class FlarePluginBundleView(context: Context) : FrameLayout(context) {
         override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean = true
     }
 }
+
+/**
+ * The page's reply channel: the proxy of the document that spoke last. Before it speaks (or after a new document
+ * started) envelopes wait, at most [PLUGIN_BUNDLE_PENDING_LIMIT]. Main thread only.
+ */
+internal class PluginBundleReply<P : Any>(private val send: (P, String) -> Unit) {
+    private var proxy: P? = null
+    private val pending = ArrayList<String>()
+
+    /** The document behind [current] sent a message: answer it there from now on, with what waited. */
+    fun speaking(current: P) {
+        if (proxy === current) return
+        proxy = current
+        val waiting = pending.toList()
+        pending.clear()
+        waiting.forEach { runCatching { send(current, it) } }
+    }
+
+    fun post(envelope: String) {
+        val current = proxy
+        if (current == null) {
+            if (pending.size < PLUGIN_BUNDLE_PENDING_LIMIT) pending.add(envelope)
+            return
+        }
+        runCatching { send(current, envelope) }
+    }
+
+    /** A new document started: nobody to answer until it speaks; what waits, waits for it. */
+    fun documentStarted() {
+        proxy = null
+    }
+
+    /** The page went: nothing waits. */
+    fun reset() {
+        proxy = null
+        pending.clear()
+    }
+}
+
+internal const val PLUGIN_BUNDLE_PENDING_LIMIT = 64
 
 /** The `sessionId` of an open answer this host could not use, so it can still be closed. */
 internal fun pluginBundleSessionIdOf(json: String): String? =

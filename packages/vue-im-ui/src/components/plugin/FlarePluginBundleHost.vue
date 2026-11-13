@@ -40,7 +40,7 @@ import {
 const props = withDefaults(
   defineProps<{
     /**
-     * The bundle's file base, ending in `/` (Web: the sandbox domain's `…/b/{sha256}/`; Tauri: `flare-plugin://{key}/`),
+     * The bundle's file base, ending in `/` (Web: the sandbox domain's `…/b/{sha256}/`; Tauri: `flare-plugin://{key}/{sha256}/`),
      * or the entry's full address when `entry` is omitted.
      */
     files: string;
