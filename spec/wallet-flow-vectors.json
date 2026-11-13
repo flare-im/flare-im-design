@@ -2739,16 +2739,6 @@
             "value": "99.00"
           }
         ],
-        "presentation": {
-          "renderer": "payment.confirm",
-          "props": {
-            "amount": "100.00",
-            "methodLabel": "CNY"
-          },
-          "actions": {
-            "confirm": "pay"
-          }
-        },
         "title": "确认支付"
       }
     },
@@ -2944,16 +2934,6 @@
             "value": "99.00"
           }
         ],
-        "presentation": {
-          "renderer": "payment.confirm",
-          "props": {
-            "amount": "100.00",
-            "methodLabel": "CNY"
-          },
-          "actions": {
-            "confirm": "pay"
-          }
-        },
         "title": "Confirm payment"
       }
     },
@@ -6147,7 +6127,6 @@
       "view": {
         "actions": [
           {
-            "confirm": "确认前请核对收款钱包、资产、扣款、费用和有效期。",
             "continuation": {
               "actionId": "commit",
               "input": {
@@ -6157,9 +6136,6 @@
               "page": "flare.redpacket.page.confirm",
               "pluginId": "flare.redpacket"
             },
-            "form": [
-              "password"
-            ],
             "id": "authorize",
             "input": {
               "intentId": "/intentId"
@@ -6168,7 +6144,7 @@
             "style": "primary",
             "target": {
               "kind": "operation",
-              "operation": "flare.wallet.payments.authorize"
+              "operation": "flare.wallet.payments.order"
             }
           },
           {
@@ -6220,25 +6196,6 @@
             "value": "1.00"
           }
         ],
-        "inputs": [
-          {
-            "id": "password",
-            "kind": "password",
-            "label": "六位支付密码",
-            "maxLength": 6,
-            "required": true
-          }
-        ],
-        "presentation": {
-          "renderer": "payment.confirm",
-          "props": {
-            "amount": "100.00",
-            "methodLabel": "余额钱包"
-          },
-          "actions": {
-            "confirm": "authorize"
-          }
-        },
         "title": "支付验证"
       }
     },
@@ -6250,7 +6207,6 @@
       "view": {
         "actions": [
           {
-            "confirm": "Review the recipient wallet, asset, debit, fees and expiry before confirming.",
             "continuation": {
               "actionId": "commit",
               "input": {
@@ -6260,9 +6216,6 @@
               "page": "flare.redpacket.page.confirm",
               "pluginId": "flare.redpacket"
             },
-            "form": [
-              "password"
-            ],
             "id": "authorize",
             "input": {
               "intentId": "/intentId"
@@ -6271,7 +6224,7 @@
             "style": "primary",
             "target": {
               "kind": "operation",
-              "operation": "flare.wallet.payments.authorize"
+              "operation": "flare.wallet.payments.order"
             }
           },
           {
@@ -6323,25 +6276,6 @@
             "value": "1.00"
           }
         ],
-        "inputs": [
-          {
-            "id": "password",
-            "kind": "password",
-            "label": "Six-digit payment password",
-            "maxLength": 6,
-            "required": true
-          }
-        ],
-        "presentation": {
-          "renderer": "payment.confirm",
-          "props": {
-            "amount": "100.00",
-            "methodLabel": "余额钱包"
-          },
-          "actions": {
-            "confirm": "authorize"
-          }
-        },
         "title": "Payment verification"
       }
     },

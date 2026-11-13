@@ -39,7 +39,7 @@ const CONTENT = new Set(["sectionTitle", "description", "stepLabel", "summaryTit
  */
 const EMPTY_STATE = new Set(["emptyTitle", "emptyDescription"]);
 /** Keys whose strings are machine values (ids, targets, paths), not information a person reads. */
-const MACHINE = new Set(["id", "kind", "format", "style", "tone", "target", "command", "continuation", "input", "key", "source", "page", "operation", "value_path", "valuePath", "renderer", "placement", "mode", "slot"]);
+const MACHINE = new Set(["id", "kind", "format", "style", "tone", "target", "command", "continuation", "input", "key", "source", "page", "operation", "value_path", "valuePath", "renderer", "placement", "mode", "slot", "form"]);
 
 /**
  * Copy the wallet contract changed after the account samples were taken: the old string, then what the contract
@@ -71,6 +71,11 @@ const CONTRACT_COPY = new Map<string, string[]>([
   ["Five incorrect attempts temporarily lock payment verification.", []],
   ["设置或修改六位支付密码。忘记密码的身份核验重置暂未开放。", ["设置或修改六位支付密码。密码重置后，原支付授权将失效，请本人重新设置。"]],
   ["Set or change your six-digit payment password. Identity verification for forgotten passwords is not available yet.", []],
+  // The checkout pays through the host's payment confirmation: no confirm prompt or password input on the page.
+  ["确认前请核对收款钱包、资产、扣款、费用和有效期。", []],
+  ["Review the recipient wallet, asset, debit, fees and expiry before confirming.", []],
+  ["六位支付密码", []],
+  ["Six-digit payment password", []],
 ]);
 /** Every string a person reads in a resolved view (labels, values, copy), presentation excluded. */
 function information(node: Json, parent = "", out = new Set<string>()): Set<string> {
