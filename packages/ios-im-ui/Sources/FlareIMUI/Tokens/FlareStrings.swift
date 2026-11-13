@@ -1238,6 +1238,35 @@ public struct FlareStrings: Sendable {
     public var pluginLocationLocating: String
     public var pluginLocationEmpty: String
     public var pluginLocationCoarse: String
+    // Web bundle host (FlarePluginBundleHost): its own states, the external link confirmation, and the bridge
+    // error codes' words (`plugin.bridge.<code>`, FlareStrings.pluginBridgeMessage(forKey:)).
+    public var pluginBundleOpening: String
+    public var pluginBundleUnavailable: String
+    public var pluginBundleCrashed: String
+    public var pluginBundleCrashedHint: String
+    public var pluginBundleReload: String
+    public var pluginBundleClosed: String
+    public var pluginBundleExternalTitle: String
+    public var pluginBundleExternalMessage: String
+    public var pluginBundleExternalOpen: String
+    public var pluginBundleCopied: String
+    public var pluginBridgeErrorInvalidEnvelope: String
+    public var pluginBridgeErrorUnsupportedBridge: String
+    public var pluginBridgeErrorNotReady: String
+    public var pluginBridgeErrorMethodNotFound: String
+    public var pluginBridgeErrorInvalidParams: String
+    public var pluginBridgeErrorPayloadTooLarge: String
+    public var pluginBridgeErrorPermissionDenied: String
+    public var pluginBridgeErrorRateLimited: String
+    public var pluginBridgeErrorCancelled: String
+    public var pluginBridgeErrorGestureRequired: String
+    public var pluginBridgeErrorQuotaExceeded: String
+    public var pluginBridgeErrorNotFound: String
+    public var pluginBridgeErrorUnavailable: String
+    public var pluginBridgeErrorTimeout: String
+    public var pluginBridgeErrorOperationFailed: String
+    public var pluginBridgeErrorRevoked: String
+    public var pluginBridgeErrorInternal: String
     public var pluginLocationFine: String
     public var pluginLocationAccuracy: String
     /// The refresh key in a plugin page's header on a pointer device.
@@ -2280,6 +2309,33 @@ public struct FlareStrings: Sendable {
         pluginLocationLocating: String = "正在获取位置",
         pluginLocationEmpty: String = "尚未获取位置",
         pluginLocationCoarse: String = "大致位置",
+        pluginBundleOpening: String = "正在打开…",
+        pluginBundleUnavailable: String = "页面暂时无法打开",
+        pluginBundleCrashed: String = "页面意外停止",
+        pluginBundleCrashedHint: String = "重新加载后可以继续使用",
+        pluginBundleReload: String = "重新加载",
+        pluginBundleClosed: String = "页面已关闭",
+        pluginBundleExternalTitle: String = "打开外部链接",
+        pluginBundleExternalMessage: String = "将在浏览器中打开以下地址，请确认来源可信。",
+        pluginBundleExternalOpen: String = "打开",
+        pluginBundleCopied: String = "已复制",
+        pluginBridgeErrorInvalidEnvelope: String = "请求格式不正确",
+        pluginBridgeErrorUnsupportedBridge: String = "当前版本不支持该页面",
+        pluginBridgeErrorNotReady: String = "页面还没准备好",
+        pluginBridgeErrorMethodNotFound: String = "不支持该操作",
+        pluginBridgeErrorInvalidParams: String = "请求参数不正确",
+        pluginBridgeErrorPayloadTooLarge: String = "请求内容过大",
+        pluginBridgeErrorPermissionDenied: String = "没有权限执行该操作",
+        pluginBridgeErrorRateLimited: String = "操作太频繁，请稍后再试",
+        pluginBridgeErrorCancelled: String = "已取消",
+        pluginBridgeErrorGestureRequired: String = "请先点按页面再试",
+        pluginBridgeErrorQuotaExceeded: String = "存储空间已满",
+        pluginBridgeErrorNotFound: String = "找不到要打开的内容",
+        pluginBridgeErrorUnavailable: String = "暂时不可用，请稍后再试",
+        pluginBridgeErrorTimeout: String = "请求超时，请重试",
+        pluginBridgeErrorOperationFailed: String = "操作失败",
+        pluginBridgeErrorRevoked: String = "页面已被停用",
+        pluginBridgeErrorInternal: String = "出现问题，请稍后再试",
         pluginLocationFine: String = "精确位置",
         pluginLocationAccuracy: String = "精度约 {m} 米",
         pluginPageRefresh: String = "刷新",
@@ -3271,6 +3327,33 @@ public struct FlareStrings: Sendable {
         self.pluginLocationLocating = pluginLocationLocating
         self.pluginLocationEmpty = pluginLocationEmpty
         self.pluginLocationCoarse = pluginLocationCoarse
+        self.pluginBundleOpening = pluginBundleOpening
+        self.pluginBundleUnavailable = pluginBundleUnavailable
+        self.pluginBundleCrashed = pluginBundleCrashed
+        self.pluginBundleCrashedHint = pluginBundleCrashedHint
+        self.pluginBundleReload = pluginBundleReload
+        self.pluginBundleClosed = pluginBundleClosed
+        self.pluginBundleExternalTitle = pluginBundleExternalTitle
+        self.pluginBundleExternalMessage = pluginBundleExternalMessage
+        self.pluginBundleExternalOpen = pluginBundleExternalOpen
+        self.pluginBundleCopied = pluginBundleCopied
+        self.pluginBridgeErrorInvalidEnvelope = pluginBridgeErrorInvalidEnvelope
+        self.pluginBridgeErrorUnsupportedBridge = pluginBridgeErrorUnsupportedBridge
+        self.pluginBridgeErrorNotReady = pluginBridgeErrorNotReady
+        self.pluginBridgeErrorMethodNotFound = pluginBridgeErrorMethodNotFound
+        self.pluginBridgeErrorInvalidParams = pluginBridgeErrorInvalidParams
+        self.pluginBridgeErrorPayloadTooLarge = pluginBridgeErrorPayloadTooLarge
+        self.pluginBridgeErrorPermissionDenied = pluginBridgeErrorPermissionDenied
+        self.pluginBridgeErrorRateLimited = pluginBridgeErrorRateLimited
+        self.pluginBridgeErrorCancelled = pluginBridgeErrorCancelled
+        self.pluginBridgeErrorGestureRequired = pluginBridgeErrorGestureRequired
+        self.pluginBridgeErrorQuotaExceeded = pluginBridgeErrorQuotaExceeded
+        self.pluginBridgeErrorNotFound = pluginBridgeErrorNotFound
+        self.pluginBridgeErrorUnavailable = pluginBridgeErrorUnavailable
+        self.pluginBridgeErrorTimeout = pluginBridgeErrorTimeout
+        self.pluginBridgeErrorOperationFailed = pluginBridgeErrorOperationFailed
+        self.pluginBridgeErrorRevoked = pluginBridgeErrorRevoked
+        self.pluginBridgeErrorInternal = pluginBridgeErrorInternal
         self.pluginLocationFine = pluginLocationFine
         self.pluginLocationAccuracy = pluginLocationAccuracy
         self.pluginPageRefresh = pluginPageRefresh

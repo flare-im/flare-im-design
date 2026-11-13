@@ -8036,6 +8036,195 @@
     ],
     "zh": "大致位置"
   },
+  "pluginBundleOpening": {
+    "en": "Opening…",
+    "kits": [
+      "ios"
+    ],
+    "zh": "正在打开…"
+  },
+  "pluginBundleUnavailable": {
+    "en": "This page can't be opened right now",
+    "kits": [
+      "ios"
+    ],
+    "zh": "页面暂时无法打开"
+  },
+  "pluginBundleCrashed": {
+    "en": "This page stopped unexpectedly",
+    "kits": [
+      "ios"
+    ],
+    "zh": "页面意外停止"
+  },
+  "pluginBundleCrashedHint": {
+    "en": "Reload it to carry on",
+    "kits": [
+      "ios"
+    ],
+    "zh": "重新加载后可以继续使用"
+  },
+  "pluginBundleReload": {
+    "en": "Reload",
+    "kits": [
+      "ios"
+    ],
+    "zh": "重新加载"
+  },
+  "pluginBundleClosed": {
+    "en": "This page has been closed",
+    "kits": [
+      "ios"
+    ],
+    "zh": "页面已关闭"
+  },
+  "pluginBundleExternalTitle": {
+    "en": "Open external link",
+    "kits": [
+      "ios"
+    ],
+    "zh": "打开外部链接"
+  },
+  "pluginBundleExternalMessage": {
+    "en": "This address will open in your browser. Make sure you trust it.",
+    "kits": [
+      "ios"
+    ],
+    "zh": "将在浏览器中打开以下地址，请确认来源可信。"
+  },
+  "pluginBundleExternalOpen": {
+    "en": "Open",
+    "kits": [
+      "ios"
+    ],
+    "zh": "打开"
+  },
+  "pluginBundleCopied": {
+    "en": "Copied",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已复制"
+  },
+  "pluginBridgeErrorInvalidEnvelope": {
+    "en": "The request is malformed",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请求格式不正确"
+  },
+  "pluginBridgeErrorUnsupportedBridge": {
+    "en": "This version can't run this page",
+    "kits": [
+      "ios"
+    ],
+    "zh": "当前版本不支持该页面"
+  },
+  "pluginBridgeErrorNotReady": {
+    "en": "The page isn't ready yet",
+    "kits": [
+      "ios"
+    ],
+    "zh": "页面还没准备好"
+  },
+  "pluginBridgeErrorMethodNotFound": {
+    "en": "This action isn't supported",
+    "kits": [
+      "ios"
+    ],
+    "zh": "不支持该操作"
+  },
+  "pluginBridgeErrorInvalidParams": {
+    "en": "The request has invalid values",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请求参数不正确"
+  },
+  "pluginBridgeErrorPayloadTooLarge": {
+    "en": "The request is too large",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请求内容过大"
+  },
+  "pluginBridgeErrorPermissionDenied": {
+    "en": "This action isn't allowed",
+    "kits": [
+      "ios"
+    ],
+    "zh": "没有权限执行该操作"
+  },
+  "pluginBridgeErrorRateLimited": {
+    "en": "Too many requests. Try again shortly",
+    "kits": [
+      "ios"
+    ],
+    "zh": "操作太频繁，请稍后再试"
+  },
+  "pluginBridgeErrorCancelled": {
+    "en": "Cancelled",
+    "kits": [
+      "ios"
+    ],
+    "zh": "已取消"
+  },
+  "pluginBridgeErrorGestureRequired": {
+    "en": "Tap the page, then try again",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请先点按页面再试"
+  },
+  "pluginBridgeErrorQuotaExceeded": {
+    "en": "Storage is full",
+    "kits": [
+      "ios"
+    ],
+    "zh": "存储空间已满"
+  },
+  "pluginBridgeErrorNotFound": {
+    "en": "Couldn't find what was asked for",
+    "kits": [
+      "ios"
+    ],
+    "zh": "找不到要打开的内容"
+  },
+  "pluginBridgeErrorUnavailable": {
+    "en": "Not available right now. Try again later",
+    "kits": [
+      "ios"
+    ],
+    "zh": "暂时不可用，请稍后再试"
+  },
+  "pluginBridgeErrorTimeout": {
+    "en": "The request timed out. Try again",
+    "kits": [
+      "ios"
+    ],
+    "zh": "请求超时，请重试"
+  },
+  "pluginBridgeErrorOperationFailed": {
+    "en": "The action failed",
+    "kits": [
+      "ios"
+    ],
+    "zh": "操作失败"
+  },
+  "pluginBridgeErrorRevoked": {
+    "en": "This page has been turned off",
+    "kits": [
+      "ios"
+    ],
+    "zh": "页面已被停用"
+  },
+  "pluginBridgeErrorInternal": {
+    "en": "Something went wrong. Try again later",
+    "kits": [
+      "ios"
+    ],
+    "zh": "出现问题，请稍后再试"
+  },
   "pluginLocationFine": {
     "en": "Precise location",
     "kits": [

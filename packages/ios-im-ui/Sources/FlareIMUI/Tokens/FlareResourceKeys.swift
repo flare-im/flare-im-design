@@ -867,6 +867,33 @@ extension FlareStrings {
         case "pluginLocationLocating": return self.pluginLocationLocating
         case "pluginLocationEmpty": return self.pluginLocationEmpty
         case "pluginLocationCoarse": return self.pluginLocationCoarse
+        case "pluginBundleOpening": return self.pluginBundleOpening
+        case "pluginBundleUnavailable": return self.pluginBundleUnavailable
+        case "pluginBundleCrashed": return self.pluginBundleCrashed
+        case "pluginBundleCrashedHint": return self.pluginBundleCrashedHint
+        case "pluginBundleReload": return self.pluginBundleReload
+        case "pluginBundleClosed": return self.pluginBundleClosed
+        case "pluginBundleExternalTitle": return self.pluginBundleExternalTitle
+        case "pluginBundleExternalMessage": return self.pluginBundleExternalMessage
+        case "pluginBundleExternalOpen": return self.pluginBundleExternalOpen
+        case "pluginBundleCopied": return self.pluginBundleCopied
+        case "pluginBridgeErrorInvalidEnvelope": return self.pluginBridgeErrorInvalidEnvelope
+        case "pluginBridgeErrorUnsupportedBridge": return self.pluginBridgeErrorUnsupportedBridge
+        case "pluginBridgeErrorNotReady": return self.pluginBridgeErrorNotReady
+        case "pluginBridgeErrorMethodNotFound": return self.pluginBridgeErrorMethodNotFound
+        case "pluginBridgeErrorInvalidParams": return self.pluginBridgeErrorInvalidParams
+        case "pluginBridgeErrorPayloadTooLarge": return self.pluginBridgeErrorPayloadTooLarge
+        case "pluginBridgeErrorPermissionDenied": return self.pluginBridgeErrorPermissionDenied
+        case "pluginBridgeErrorRateLimited": return self.pluginBridgeErrorRateLimited
+        case "pluginBridgeErrorCancelled": return self.pluginBridgeErrorCancelled
+        case "pluginBridgeErrorGestureRequired": return self.pluginBridgeErrorGestureRequired
+        case "pluginBridgeErrorQuotaExceeded": return self.pluginBridgeErrorQuotaExceeded
+        case "pluginBridgeErrorNotFound": return self.pluginBridgeErrorNotFound
+        case "pluginBridgeErrorUnavailable": return self.pluginBridgeErrorUnavailable
+        case "pluginBridgeErrorTimeout": return self.pluginBridgeErrorTimeout
+        case "pluginBridgeErrorOperationFailed": return self.pluginBridgeErrorOperationFailed
+        case "pluginBridgeErrorRevoked": return self.pluginBridgeErrorRevoked
+        case "pluginBridgeErrorInternal": return self.pluginBridgeErrorInternal
         case "pluginLocationFine": return self.pluginLocationFine
         case "pluginLocationAccuracy": return self.pluginLocationAccuracy
         case "pluginPageRefresh": return self.pluginPageRefresh
@@ -1822,6 +1849,33 @@ extension FlareStrings {
         case "pluginLocationLocating": self.pluginLocationLocating = value
         case "pluginLocationEmpty": self.pluginLocationEmpty = value
         case "pluginLocationCoarse": self.pluginLocationCoarse = value
+        case "pluginBundleOpening": self.pluginBundleOpening = value
+        case "pluginBundleUnavailable": self.pluginBundleUnavailable = value
+        case "pluginBundleCrashed": self.pluginBundleCrashed = value
+        case "pluginBundleCrashedHint": self.pluginBundleCrashedHint = value
+        case "pluginBundleReload": self.pluginBundleReload = value
+        case "pluginBundleClosed": self.pluginBundleClosed = value
+        case "pluginBundleExternalTitle": self.pluginBundleExternalTitle = value
+        case "pluginBundleExternalMessage": self.pluginBundleExternalMessage = value
+        case "pluginBundleExternalOpen": self.pluginBundleExternalOpen = value
+        case "pluginBundleCopied": self.pluginBundleCopied = value
+        case "pluginBridgeErrorInvalidEnvelope": self.pluginBridgeErrorInvalidEnvelope = value
+        case "pluginBridgeErrorUnsupportedBridge": self.pluginBridgeErrorUnsupportedBridge = value
+        case "pluginBridgeErrorNotReady": self.pluginBridgeErrorNotReady = value
+        case "pluginBridgeErrorMethodNotFound": self.pluginBridgeErrorMethodNotFound = value
+        case "pluginBridgeErrorInvalidParams": self.pluginBridgeErrorInvalidParams = value
+        case "pluginBridgeErrorPayloadTooLarge": self.pluginBridgeErrorPayloadTooLarge = value
+        case "pluginBridgeErrorPermissionDenied": self.pluginBridgeErrorPermissionDenied = value
+        case "pluginBridgeErrorRateLimited": self.pluginBridgeErrorRateLimited = value
+        case "pluginBridgeErrorCancelled": self.pluginBridgeErrorCancelled = value
+        case "pluginBridgeErrorGestureRequired": self.pluginBridgeErrorGestureRequired = value
+        case "pluginBridgeErrorQuotaExceeded": self.pluginBridgeErrorQuotaExceeded = value
+        case "pluginBridgeErrorNotFound": self.pluginBridgeErrorNotFound = value
+        case "pluginBridgeErrorUnavailable": self.pluginBridgeErrorUnavailable = value
+        case "pluginBridgeErrorTimeout": self.pluginBridgeErrorTimeout = value
+        case "pluginBridgeErrorOperationFailed": self.pluginBridgeErrorOperationFailed = value
+        case "pluginBridgeErrorRevoked": self.pluginBridgeErrorRevoked = value
+        case "pluginBridgeErrorInternal": self.pluginBridgeErrorInternal = value
         case "pluginLocationFine": self.pluginLocationFine = value
         case "pluginLocationAccuracy": self.pluginLocationAccuracy = value
         case "pluginPageRefresh": self.pluginPageRefresh = value
