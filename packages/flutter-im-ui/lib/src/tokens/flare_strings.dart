@@ -330,6 +330,33 @@ class FlareStrings {
     this.paymentConfirmationExpiresIn = '{time} 后失效',
     this.paymentConfirmationExpired = '订单已失效，请重新发起',
     this.paymentConfirmationInvalid = '订单金额无法识别，不能付款',
+    this.pluginBundleOpening = '正在打开…',
+    this.pluginBundleUnavailable = '页面暂时无法打开',
+    this.pluginBundleCrashed = '页面意外停止',
+    this.pluginBundleCrashedHint = '重新加载后可以继续使用',
+    this.pluginBundleReload = '重新加载',
+    this.pluginBundleClosed = '页面已关闭',
+    this.pluginBundleExternalTitle = '打开外部链接',
+    this.pluginBundleExternalMessage = '将在浏览器中打开以下地址，请确认来源可信。',
+    this.pluginBundleExternalOpen = '打开',
+    this.pluginBundleCopied = '已复制',
+    this.pluginBridgeErrorInvalidEnvelope = '请求格式不正确',
+    this.pluginBridgeErrorUnsupportedBridge = '当前版本不支持该页面',
+    this.pluginBridgeErrorNotReady = '页面还没准备好',
+    this.pluginBridgeErrorMethodNotFound = '不支持该操作',
+    this.pluginBridgeErrorInvalidParams = '请求参数不正确',
+    this.pluginBridgeErrorPayloadTooLarge = '请求内容过大',
+    this.pluginBridgeErrorPermissionDenied = '没有权限执行该操作',
+    this.pluginBridgeErrorRateLimited = '操作太频繁，请稍后再试',
+    this.pluginBridgeErrorCancelled = '已取消',
+    this.pluginBridgeErrorGestureRequired = '请先点按页面再试',
+    this.pluginBridgeErrorQuotaExceeded = '存储空间已满',
+    this.pluginBridgeErrorNotFound = '找不到要打开的内容',
+    this.pluginBridgeErrorUnavailable = '暂时不可用，请稍后再试',
+    this.pluginBridgeErrorTimeout = '请求超时，请重试',
+    this.pluginBridgeErrorOperationFailed = '操作失败',
+    this.pluginBridgeErrorRevoked = '页面已被停用',
+    this.pluginBridgeErrorInternal = '出现问题，请稍后再试',
     this.paymentConfirmationConfirm = '确认付款',
     this.paymentConfirmationVerifying = '正在验证身份',
     this.pluginProtectedMediaReason = '查看原因',
@@ -1460,6 +1487,35 @@ class FlareStrings {
   final String paymentConfirmationExpiresIn;
   final String paymentConfirmationExpired;
   final String paymentConfirmationInvalid;
+
+  // Plugin web bundle host (L3): its states, the external link confirmation, and the bridge error words.
+  final String pluginBundleOpening;
+  final String pluginBundleUnavailable;
+  final String pluginBundleCrashed;
+  final String pluginBundleCrashedHint;
+  final String pluginBundleReload;
+  final String pluginBundleClosed;
+  final String pluginBundleExternalTitle;
+  final String pluginBundleExternalMessage;
+  final String pluginBundleExternalOpen;
+  final String pluginBundleCopied;
+  final String pluginBridgeErrorInvalidEnvelope;
+  final String pluginBridgeErrorUnsupportedBridge;
+  final String pluginBridgeErrorNotReady;
+  final String pluginBridgeErrorMethodNotFound;
+  final String pluginBridgeErrorInvalidParams;
+  final String pluginBridgeErrorPayloadTooLarge;
+  final String pluginBridgeErrorPermissionDenied;
+  final String pluginBridgeErrorRateLimited;
+  final String pluginBridgeErrorCancelled;
+  final String pluginBridgeErrorGestureRequired;
+  final String pluginBridgeErrorQuotaExceeded;
+  final String pluginBridgeErrorNotFound;
+  final String pluginBridgeErrorUnavailable;
+  final String pluginBridgeErrorTimeout;
+  final String pluginBridgeErrorOperationFailed;
+  final String pluginBridgeErrorRevoked;
+  final String pluginBridgeErrorInternal;
   final String paymentConfirmationConfirm;
   final String paymentConfirmationVerifying;
   final String pluginProtectedMediaReason;
@@ -2577,6 +2633,33 @@ class FlareStrings {
     String? paymentConfirmationExpiresIn,
     String? paymentConfirmationExpired,
     String? paymentConfirmationInvalid,
+    String? pluginBundleOpening,
+    String? pluginBundleUnavailable,
+    String? pluginBundleCrashed,
+    String? pluginBundleCrashedHint,
+    String? pluginBundleReload,
+    String? pluginBundleClosed,
+    String? pluginBundleExternalTitle,
+    String? pluginBundleExternalMessage,
+    String? pluginBundleExternalOpen,
+    String? pluginBundleCopied,
+    String? pluginBridgeErrorInvalidEnvelope,
+    String? pluginBridgeErrorUnsupportedBridge,
+    String? pluginBridgeErrorNotReady,
+    String? pluginBridgeErrorMethodNotFound,
+    String? pluginBridgeErrorInvalidParams,
+    String? pluginBridgeErrorPayloadTooLarge,
+    String? pluginBridgeErrorPermissionDenied,
+    String? pluginBridgeErrorRateLimited,
+    String? pluginBridgeErrorCancelled,
+    String? pluginBridgeErrorGestureRequired,
+    String? pluginBridgeErrorQuotaExceeded,
+    String? pluginBridgeErrorNotFound,
+    String? pluginBridgeErrorUnavailable,
+    String? pluginBridgeErrorTimeout,
+    String? pluginBridgeErrorOperationFailed,
+    String? pluginBridgeErrorRevoked,
+    String? pluginBridgeErrorInternal,
     String? paymentConfirmationConfirm,
     String? paymentConfirmationVerifying,
     String? pluginProtectedMediaReason,
@@ -3640,6 +3723,33 @@ class FlareStrings {
       paymentConfirmationExpiresIn: paymentConfirmationExpiresIn ?? this.paymentConfirmationExpiresIn,
       paymentConfirmationExpired: paymentConfirmationExpired ?? this.paymentConfirmationExpired,
       paymentConfirmationInvalid: paymentConfirmationInvalid ?? this.paymentConfirmationInvalid,
+      pluginBundleOpening: pluginBundleOpening ?? this.pluginBundleOpening,
+      pluginBundleUnavailable: pluginBundleUnavailable ?? this.pluginBundleUnavailable,
+      pluginBundleCrashed: pluginBundleCrashed ?? this.pluginBundleCrashed,
+      pluginBundleCrashedHint: pluginBundleCrashedHint ?? this.pluginBundleCrashedHint,
+      pluginBundleReload: pluginBundleReload ?? this.pluginBundleReload,
+      pluginBundleClosed: pluginBundleClosed ?? this.pluginBundleClosed,
+      pluginBundleExternalTitle: pluginBundleExternalTitle ?? this.pluginBundleExternalTitle,
+      pluginBundleExternalMessage: pluginBundleExternalMessage ?? this.pluginBundleExternalMessage,
+      pluginBundleExternalOpen: pluginBundleExternalOpen ?? this.pluginBundleExternalOpen,
+      pluginBundleCopied: pluginBundleCopied ?? this.pluginBundleCopied,
+      pluginBridgeErrorInvalidEnvelope: pluginBridgeErrorInvalidEnvelope ?? this.pluginBridgeErrorInvalidEnvelope,
+      pluginBridgeErrorUnsupportedBridge: pluginBridgeErrorUnsupportedBridge ?? this.pluginBridgeErrorUnsupportedBridge,
+      pluginBridgeErrorNotReady: pluginBridgeErrorNotReady ?? this.pluginBridgeErrorNotReady,
+      pluginBridgeErrorMethodNotFound: pluginBridgeErrorMethodNotFound ?? this.pluginBridgeErrorMethodNotFound,
+      pluginBridgeErrorInvalidParams: pluginBridgeErrorInvalidParams ?? this.pluginBridgeErrorInvalidParams,
+      pluginBridgeErrorPayloadTooLarge: pluginBridgeErrorPayloadTooLarge ?? this.pluginBridgeErrorPayloadTooLarge,
+      pluginBridgeErrorPermissionDenied: pluginBridgeErrorPermissionDenied ?? this.pluginBridgeErrorPermissionDenied,
+      pluginBridgeErrorRateLimited: pluginBridgeErrorRateLimited ?? this.pluginBridgeErrorRateLimited,
+      pluginBridgeErrorCancelled: pluginBridgeErrorCancelled ?? this.pluginBridgeErrorCancelled,
+      pluginBridgeErrorGestureRequired: pluginBridgeErrorGestureRequired ?? this.pluginBridgeErrorGestureRequired,
+      pluginBridgeErrorQuotaExceeded: pluginBridgeErrorQuotaExceeded ?? this.pluginBridgeErrorQuotaExceeded,
+      pluginBridgeErrorNotFound: pluginBridgeErrorNotFound ?? this.pluginBridgeErrorNotFound,
+      pluginBridgeErrorUnavailable: pluginBridgeErrorUnavailable ?? this.pluginBridgeErrorUnavailable,
+      pluginBridgeErrorTimeout: pluginBridgeErrorTimeout ?? this.pluginBridgeErrorTimeout,
+      pluginBridgeErrorOperationFailed: pluginBridgeErrorOperationFailed ?? this.pluginBridgeErrorOperationFailed,
+      pluginBridgeErrorRevoked: pluginBridgeErrorRevoked ?? this.pluginBridgeErrorRevoked,
+      pluginBridgeErrorInternal: pluginBridgeErrorInternal ?? this.pluginBridgeErrorInternal,
       paymentConfirmationConfirm: paymentConfirmationConfirm ?? this.paymentConfirmationConfirm,
       paymentConfirmationVerifying: paymentConfirmationVerifying ?? this.paymentConfirmationVerifying,
       pluginProtectedMediaReason: pluginProtectedMediaReason ?? this.pluginProtectedMediaReason,

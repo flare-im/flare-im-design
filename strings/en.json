@@ -8040,7 +8040,8 @@
     "en": "Opening…",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "正在打开…"
   },
@@ -8048,7 +8049,8 @@
     "en": "This page can't be opened right now",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "页面暂时无法打开"
   },
@@ -8056,7 +8058,8 @@
     "en": "This page stopped unexpectedly",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "页面意外停止"
   },
@@ -8064,7 +8067,8 @@
     "en": "Reload it to carry on",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "重新加载后可以继续使用"
   },
@@ -8072,7 +8076,8 @@
     "en": "Reload",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "重新加载"
   },
@@ -8080,7 +8085,8 @@
     "en": "This page has been closed",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "页面已关闭"
   },
@@ -8088,7 +8094,8 @@
     "en": "Open external link",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "打开外部链接"
   },
@@ -8096,7 +8103,8 @@
     "en": "This address will open in your browser. Make sure you trust it.",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "将在浏览器中打开以下地址，请确认来源可信。"
   },
@@ -8104,7 +8112,8 @@
     "en": "Open",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "打开"
   },
@@ -8112,7 +8121,8 @@
     "en": "Copied",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "已复制"
   },
@@ -8120,7 +8130,8 @@
     "en": "The request is malformed",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "请求格式不正确"
   },
@@ -8128,7 +8139,8 @@
     "en": "This version can't run this page",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "当前版本不支持该页面"
   },
@@ -8136,7 +8148,8 @@
     "en": "The page isn't ready yet",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "页面还没准备好"
   },
@@ -8144,7 +8157,8 @@
     "en": "This action isn't supported",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "不支持该操作"
   },
@@ -8152,7 +8166,8 @@
     "en": "The request has invalid values",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "请求参数不正确"
   },
@@ -8160,7 +8175,8 @@
     "en": "The request is too large",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "请求内容过大"
   },
@@ -8168,7 +8184,8 @@
     "en": "This action isn't allowed",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "没有权限执行该操作"
   },
@@ -8176,7 +8193,8 @@
     "en": "Too many requests. Try again shortly",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "操作太频繁，请稍后再试"
   },
@@ -8184,7 +8202,8 @@
     "en": "Cancelled",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "已取消"
   },
@@ -8192,7 +8211,8 @@
     "en": "Tap the page, then try again",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "请先点按页面再试"
   },
@@ -8200,7 +8220,8 @@
     "en": "Storage is full",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "存储空间已满"
   },
@@ -8208,7 +8229,8 @@
     "en": "Couldn't find what was asked for",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "找不到要打开的内容"
   },
@@ -8216,7 +8238,8 @@
     "en": "Not available right now. Try again later",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "暂时不可用，请稍后再试"
   },
@@ -8224,7 +8247,8 @@
     "en": "The request timed out. Try again",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "请求超时，请重试"
   },
@@ -8232,7 +8256,8 @@
     "en": "The action failed",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "操作失败"
   },
@@ -8240,7 +8265,8 @@
     "en": "This page has been turned off",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "页面已被停用"
   },
@@ -8248,7 +8274,8 @@
     "en": "Something went wrong. Try again later",
     "kits": [
       "android",
-      "ios"
+      "ios",
+      "flutter"
     ],
     "zh": "出现问题，请稍后再试"
   },
