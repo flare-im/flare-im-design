@@ -29,6 +29,8 @@ import {
   type FlarePluginFileState,
   type FlarePluginLocationAction,
   type FlarePluginLocationState,
+  type FlarePluginActionTarget,
+  flarePluginNativeIntoKey,
   flarePluginLocationValue,
   type FlarePluginFormError,
   type FlarePluginInput,
@@ -558,7 +560,25 @@ const invalid = computed(() =>
   filesPending.value || visibleInputs.value.some((input) => !!errorText(input)),
 );
 defineOptions({ inheritAttrs: false });
-defineExpose({ submit });
+/**
+ * A page action's native target writing `into` one of this form's inputs: run it through that input's own key, so
+ * the host gets the form's scope with it and its answer lands in this form. False when no visible input here
+ * takes it (or the host has no handler for that key): the action then goes out as itself.
+ */
+function nativeInto(target: FlarePluginActionTarget | undefined): boolean {
+  if (props.busy) return false;
+  const input = visibleInputs.value.find((candidate) => flarePluginNativeIntoKey(target, candidate));
+  if (!input) return false;
+  if (flarePluginNativeIntoKey(target, input) === "location") {
+    if (!instance?.vnode.props?.onLocationAction) return false;
+    locationAction(input, "locate");
+    return true;
+  }
+  if (!instance?.vnode.props?.onFileAction) return false;
+  fileAction(input, fileState(input).phase === "empty" ? "choose" : "replace");
+  return true;
+}
+defineExpose({ submit, nativeInto });
 </script>
 
 <template>

@@ -10,26 +10,17 @@
 /** The viewer's answer to a consent prompt. */
 export type FlareCapabilityConsentDecision = "once" | "always" | "deny";
 
-/** What the host answers the engine's consent request with, and whether it keeps the grant afterwards. */
+/**
+ * What the host answers the engine's consent request with (`plugin.capability_complete` result): the decision
+ * itself. The engine keeps only "always"; "once" lets this request through and keeps nothing, so the host never
+ * revokes anything to emulate it.
+ */
 export interface FlareCapabilityConsentAnswer {
-  /** `{granted}`, the engine's consent result. */
-  granted: boolean;
-  /**
-   * false: the host revokes the grant once the request is done (`revokePluginCapabilityConsent({pluginId,
-   * capability})`), so the next use asks again. The engine keeps every grant it is given.
-   */
-  remember: boolean;
+  decision: FlareCapabilityConsentDecision;
 }
 
 export function flareCapabilityConsentAnswer(decision: FlareCapabilityConsentDecision): FlareCapabilityConsentAnswer {
-  switch (decision) {
-    case "always":
-      return { granted: true, remember: true };
-    case "once":
-      return { granted: true, remember: false };
-    default:
-      return { granted: false, remember: false };
-  }
+  return { decision: decision === "always" || decision === "once" ? decision : "deny" };
 }
 
 /** The copy key (`capability.label.*`) naming what a plugin asks to use; an unknown capability is the generic line. */

@@ -23,6 +23,38 @@ export interface FlarePluginAction {
   form?: ReadonlyArray<string>;
   /** `menu`: the action lives in the card's ⋯ menu (it arrives in view.menuActions). */
   placement?: "menu";
+  /**
+   * Where the action goes, as the view gives it (flare-plugin-protocol UiActionTarget). The kit reads a native
+   * target's `into`: a page action writing into one of the form's own inputs runs through that input's key
+   * ({@link flarePluginNativeIntoKey}), so the host's answer lands in the form's current scope.
+   */
+  target?: FlarePluginActionTarget;
+}
+
+/** An action's target (flare-plugin-protocol UiActionTarget); the kit only reads a native target. */
+export type FlarePluginActionTarget =
+  | { kind: "native"; capability: string; params?: Record<string, unknown>; into?: string }
+  | { kind: "operation"; operation: string }
+  | { kind: "page"; page: string; pluginId?: string };
+
+/** Host capabilities that write a file into an upload input (file, image, document). */
+export const FLARE_PLUGIN_UPLOAD_CAPABILITIES: ReadonlyArray<string> = ["documentCapture", "selectImage", "camera", "selectFile"];
+
+/**
+ * Which key of `input` a native action target runs through when it names that input as `into`: the input's own
+ * file key (`file`: a choose, or a replace when it already holds one) for an upload capability into an upload
+ * input, its locate key (`location`) for `locationOnce` into a location input, and nothing otherwise (the action
+ * goes out as itself).
+ */
+export function flarePluginNativeIntoKey(
+  target: FlarePluginActionTarget | undefined,
+  input: Pick<FlarePluginInput, "id" | "kind">,
+): "file" | "location" | undefined {
+  if (target?.kind !== "native" || !target.into || target.into !== input.id) return undefined;
+  if (target.capability === "locationOnce") return input.kind === "location" ? "location" : undefined;
+  return FLARE_PLUGIN_UPLOAD_CAPABILITIES.includes(target.capability) && flarePluginIsUpload(input.kind)
+    ? "file"
+    : undefined;
 }
 
 /**

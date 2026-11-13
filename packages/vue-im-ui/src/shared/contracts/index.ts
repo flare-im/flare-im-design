@@ -235,7 +235,11 @@ export {
 
 export type {
   FlarePluginAction,
+  FlarePluginActionTarget,
   FlarePluginActionPayload,
+  FlarePluginLocationAction,
+  FlarePluginLocationState,
+  FlarePluginLocationValue,
   FlarePluginActionStyle,
   FlarePluginBadge,
   FlarePluginBlock,
@@ -322,6 +326,9 @@ export type { FlarePluginUiVocabulary } from "./plugin-ui-vocabulary";
 export { PLUGIN_UI_VOCABULARY } from "./plugin-ui-vocabulary";
 export * from "./capability-ui";
 export {
+  FLARE_PLUGIN_UPLOAD_CAPABILITIES,
+  flarePluginNativeIntoKey,
+  flarePluginLocationValue,
   flarePluginBannerTone,
   flarePluginChartHasPoints,
   flarePluginCheckMoney,

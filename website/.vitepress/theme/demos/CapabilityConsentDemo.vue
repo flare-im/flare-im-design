@@ -2,8 +2,8 @@
 import { ref } from "vue";
 import { FlareButton, FlareCapabilityConsent } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
-// The host shows this for the engine's consent request; the choice goes back as {granted}, and "once" is revoked
-// after the request.
+// The host shows this for the engine's consent request; the choice goes back as {decision} (the engine keeps only
+// "always").
 const asks = {
   证件拍摄: { pluginName: "实名认证", capability: "documentCapture", purpose: "拍摄身份证件用于实名认证" },
   一次定位: { pluginName: "签到", capability: "locationOnce", params: { precision: "coarse" } },

@@ -1,22 +1,25 @@
 {
   "$comment": "Shared facts of the plugin host capability components (docs/design/plugin-client-hot-delivery.md 7): FlareCapabilityConsent, FlareDocumentCapture, FlarePaymentConfirmation and the protected media block's address rule. Every kit reads this file in its tests; the rules have the same names in every kit (flareCapability*, flareDocument*, flarePayment*, flareJpegHasExif, flarePluginProtectedMediaSource).",
   "consentDecision": {
-    "$comment": "What the viewer's choice answers the engine's consent request with ({granted}); `remember` false asks the host to revoke the grant once the request is done, so the next use asks again.",
+    "$comment": "What the viewer's choice answers the engine's consent request with: {decision}. The engine keeps only \"always\"; \"once\" lets the current request through and keeps nothing, so the host never revokes anything to emulate it.",
     "cases": [
       {
         "decision": "once",
-        "granted": true,
-        "remember": false
+        "answer": {
+          "decision": "once"
+        }
       },
       {
         "decision": "always",
-        "granted": true,
-        "remember": true
+        "answer": {
+          "decision": "always"
+        }
       },
       {
         "decision": "deny",
-        "granted": false,
-        "remember": false
+        "answer": {
+          "decision": "deny"
+        }
       }
     ]
   },

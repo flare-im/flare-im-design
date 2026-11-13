@@ -36,7 +36,7 @@ const LABEL_KEYS: Record<string, string> = {
 describe("capability components (spec/capability-ui-vectors.json)", () => {
   it("turns the consent decision into the engine's answer", () => {
     for (const c of vectors.consentDecision.cases)
-      expect(flareCapabilityConsentAnswer(c.decision as FlareCapabilityConsentDecision)).toEqual({ granted: c.granted, remember: c.remember });
+      expect(flareCapabilityConsentAnswer(c.decision as FlareCapabilityConsentDecision)).toEqual(c.answer);
   });
   it("names what the plugin asks for, in both languages", () => {
     for (const c of vectors.capabilityLabel.cases) {

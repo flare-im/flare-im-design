@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // 插件能力授权 —— 插件第一次用一项宿主能力时宿主弹的同意面板（设计 7.4）：
 // 「〈插件名〉想要使用 〈能力〉」、用途、「仅本次允许」「始终允许」「不允许」。
-// Kit 不存同意记录：`decide` 交回选择，宿主用 flareCapabilityConsentAnswer 换成引擎要的 {granted}，
-// 选「仅本次」时在请求结束后撤销授权。一次性定位每次都要确认，所以不给「始终允许」。
+// Kit 不存同意记录：`decide` 交回选择，宿主用 flareCapabilityConsentAnswer 换成引擎要的 {decision}；
+// 引擎只记「始终允许」，「仅本次」只放行这一次，宿主不用撤销。一次性定位每次都要确认，所以不给「始终允许」。
 import { computed } from "vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareButton from "../general/FlareButton.vue";

@@ -200,7 +200,7 @@
 
 - 输入：`pluginName`、`capability`、`params`、`purpose?`、`busy`；回调 `decide(once | always | deny)`。关闭即拒绝。
 - 文案「「〈插件〉」想要使用」+ 能力一行（`capability.label.*` / `capability*` 字段）；未知能力显示「设备上的一项能力」，不显示原名。`locationOnce` 每次确认，不给「始终允许」。
-- 宿主用 `flareCapabilityConsentAnswer`（原生为 `decision.answer` / `granted` 与 `remember`）回答 `{granted}`。引擎保存每次授权，所以「仅本次」由宿主在请求结束后调用 `revokePluginCapabilityConsent({pluginId, capability})`。
+- 宿主用 `flareCapabilityConsentAnswer`（原生为 `decision.answer`）回答 `{decision: "once" | "always" | "deny"}`。引擎只保存「始终允许」，「仅本次」只放行当前请求、不留记录，宿主不必撤销。
 
 ### 证件拍摄 `FlareDocumentCapture`（method `captureDocument`）
 
@@ -219,6 +219,11 @@
 - 输入声明 `precision`（coarse / fine）。表单显示定位结果（「31.23°N, 121.47°E」、精度、约 N 米）或「尚未获取位置」，「获取位置 / 重新获取」与「清除」两个键。
 - 键交给宿主：Vue 事件 `locationAction`，原生 `onLocationAction`，载荷 `{action: locate | clear, inputId, input, formValues}`。宿主对该输入执行页面的 `locationOnce` 原生动作（`pluginCapabilityInvoke`，带 `into` 和页面表单），引擎回 `{kind: "input", input, value}` 后把 `value` 放进 `locationStates[inputId].value`；清除时宿主丢掉该输入的状态。
 - 值规则同 `UiLocationValue::fits`：精度一致、在地球上、粗 2 位小数且精度 ≥1000 米、细 5 位且 ≥1 米；不符的值不采用（`locationInput` 向量）。
+
+### 页面原生动作写进表单输入（四端）
+
+- 动作带上它的 `target`（Vue `FlarePluginActionTarget`，Flutter `FlarePluginActionTarget`，原生 `PluginActionTarget`）。页面上一个原生动作（`documentCapture`、`selectImage`、`camera`、`selectFile` 进上传输入，`locationOnce` 进定位输入）的 `into` 指向本页表单（行内表单或打开的表单面板）里的输入时，Kit 不发这个动作，改走那个输入自己的键：上传输入发选择（已有文件时为替换）的 `fileAction`，定位输入发 `locate` 的 `locationAction`。宿主照常处理这两个键，带着表单的 scope 与 generation，引擎写回的结果直接进表单，用户不用先碰一下输入。
+- 规则 `flarePluginNativeIntoKey`（原生 `PluginFormRules.nativeIntoKey` / `pluginNativeIntoKey`），向量 `spec/plugin-native-into-vectors.json`。表单里找不到该输入、或宿主没接那个键时，动作照原样发出。
 
 ### 受保护媒体（四端）
 

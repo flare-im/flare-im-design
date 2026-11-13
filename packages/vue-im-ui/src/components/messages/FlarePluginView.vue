@@ -652,6 +652,9 @@ const confirming = ref<{
   proceed: () => void;
 } | null>(null);
 const formAction = ref<FlarePluginAction | null>(null);
+// The forms on this view: a page action whose native target writes into one of their inputs runs through it.
+const inlineForm = ref<InstanceType<typeof FlarePluginForm> | null>(null);
+const sheetForm = ref<InstanceType<typeof FlarePluginForm> | null>(null);
 // What the action already carries when its form opens (a choices selection and its optimistic mark):
 // the form adds its values to it, so every platform sends both.
 const formCarry = ref<{
@@ -713,6 +716,15 @@ function run(
   initialValues?: Record<string, unknown>,
 ): void {
   if (locked.value) return;
+  // A native target writing `into` an input of a form on this view runs through that input's own key, so the
+  // host's answer is written into the form's current scope (no earlier touch of the input needed).
+  if (
+    !payload.row &&
+    action.target?.kind === "native" &&
+    action.target.into &&
+    (inlineForm.value?.nativeInto(action.target) || sheetForm.value?.nativeInto(action.target))
+  )
+    return;
   const proceed = () => {
     if (action.form?.length) {
       formRowContext.value = null;
@@ -1196,6 +1208,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           </p>
         </header>
         <FlarePluginForm
+          ref="inlineForm"
           :file-states="fileStates"
           :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
           :location-states="locationStates"
@@ -1310,6 +1323,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         :block="formRowContext"
       />
       <FlarePluginForm
+          ref="sheetForm"
           :file-states="fileStates"
           :onFileAction="instance?.vnode.props?.onFileAction ? forwardFileAction : undefined"
           :location-states="locationStates"
