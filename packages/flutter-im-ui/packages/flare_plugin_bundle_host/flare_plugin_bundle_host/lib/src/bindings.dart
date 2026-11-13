@@ -153,6 +153,38 @@ abstract final class FlarePluginBundleRuntime {
   }
 }
 
+/// The web storage bundle pages keep, per signed-in user. The app calls
+/// [signedIn] once the user is known (sign-in, a restored session, a switch to
+/// another account) and [signedOut] when the session ends. On Android each user
+/// gets a WebView profile of their own (or a per-origin wipe where profiles are
+/// not supported), and another user's storage is deleted at [signedIn]; on iOS
+/// every page already runs in a store that ends with it, so both are no-ops.
+abstract final class FlarePluginBundleStorage {
+  /// [scope] signed in: a stable key of the user (deployment, tenant and user
+  /// id). False when no native host keeps bundle storage (web, desktop, iOS,
+  /// below the floor).
+  static Future<bool> signedIn(String scope) =>
+      scope.isEmpty ? Future.value(false) : _call('signedIn', {'scope': scope});
+
+  /// The session ended: everything bundles kept for that user is deleted.
+  static Future<bool> signedOut() => _call('signedOut', null);
+
+  static Future<bool> _call(String method, Object? arguments) async {
+    if (kIsWeb) return false;
+    try {
+      return await FlarePluginBundleBindings.channel.invokeMethod<bool>(
+            method,
+            arguments,
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+}
+
 /// The engine's own messages for open pages (`plugin.bundle_event`, event
 /// 7004): the app's event subscription passes each payload here, and the
 /// native host of that session posts the envelope or closes.

@@ -39,6 +39,9 @@ public final class FlarePluginBundleHostPlugin: NSObject, FlutterPlugin {
             }
         case "unmetered":
             BundleNetwork.unmetered { result($0) }
+        case "signedIn", "signedOut":
+            // Every page runs in a non-persistent data store that ends with it: nothing is kept per user.
+            result(false)
         default:
             result(FlutterMethodNotImplemented)
         }

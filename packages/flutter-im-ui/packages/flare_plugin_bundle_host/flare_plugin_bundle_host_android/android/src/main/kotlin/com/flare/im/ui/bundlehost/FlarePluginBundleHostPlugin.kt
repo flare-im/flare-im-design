@@ -19,6 +19,7 @@ import com.flare.im.ui.FlarePluginBundlePresentation
 import com.flare.im.ui.FlarePluginBundleResult
 import com.flare.im.ui.FlarePluginBundleRuntime
 import com.flare.im.ui.FlarePluginBundleState
+import com.flare.im.ui.FlarePluginBundleStorage
 import com.flare.im.ui.FlarePluginBundleView
 import com.flare.im.ui.flarePluginBundleExternalUrl
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -82,6 +83,20 @@ class FlarePluginBundleHostPlugin : FlutterPlugin, MethodChannel.MethodCallHandl
                 result.success(payload != null && Build.VERSION.SDK_INT >= BUNDLE_MIN_SDK && FlarePluginBundleEvents.dispatch(payload))
             }
             "unmetered" -> result.success(unmeteredNetwork(context))
+            // Bundle WebView storage per user (the kit's FlarePluginBundleStorage): the app names the user that signed
+            // in, and another user's storage left on the device is deleted; signing out deletes this user's.
+            "signedIn" -> {
+                val scope = call.argument<String>("scope")?.takeIf { it.isNotBlank() }
+                if (scope == null || Build.VERSION.SDK_INT < BUNDLE_MIN_SDK) {
+                    result.success(false)
+                } else {
+                    result.success(runCatching { FlarePluginBundleStorage.signedIn(context, scope) }.isSuccess)
+                }
+            }
+            "signedOut" -> result.success(
+                Build.VERSION.SDK_INT >= BUNDLE_MIN_SDK &&
+                    runCatching { FlarePluginBundleStorage.signedOut(context) }.isSuccess,
+            )
             else -> result.notImplemented()
         }
     }

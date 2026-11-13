@@ -372,6 +372,26 @@ void main() {
       expect(await FlarePluginBundleEvents.dispatch({'close': 'x'}), isFalse);
       expect(await FlarePluginBundleEvents.dispatch('nope'), isFalse);
     });
+
+    test('bundle storage follows the signed-in user', () async {
+      final calls = <MethodCall>[];
+      messenger.setMockMethodCallHandler(FlarePluginBundleBindings.channel, (
+        call,
+      ) async {
+        calls.add(call);
+        return true;
+      });
+      expect(await FlarePluginBundleStorage.signedIn('prod|0|1001'), isTrue);
+      expect(await FlarePluginBundleStorage.signedIn(''), isFalse);
+      expect(await FlarePluginBundleStorage.signedOut(), isTrue);
+      expect(calls.map((call) => call.method), ['signedIn', 'signedOut']);
+      expect(calls.first.arguments, {'scope': 'prod|0|1001'});
+    });
+
+    test('without a native host bundle storage is a no-op', () async {
+      expect(await FlarePluginBundleStorage.signedIn('prod|0|1001'), isFalse);
+      expect(await FlarePluginBundleStorage.signedOut(), isFalse);
+    });
   });
 
   testWidgets('falls back at once where no native host runs', (tester) async {
