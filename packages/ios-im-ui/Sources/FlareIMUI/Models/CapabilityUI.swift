@@ -160,6 +160,28 @@ public enum FlareDocumentRules {
         return false
     }
 
+    /// The JPEG without its Exif/XMP (APP1), Photoshop/IPTC (APP13) and comment segments; the JFIF header, ICC
+    /// profile and image data stay. Data that is not a well-formed JPEG header comes back unchanged.
+    public static func strippingMetadata(_ data: Data) -> Data {
+        let bytes = [UInt8](data)
+        guard bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0xD8 else { return data }
+        var out: [UInt8] = [0xFF, 0xD8]
+        var at = 2
+        while at + 4 <= bytes.count {
+            guard bytes[at] == 0xFF else { return data }
+            let marker = bytes[at + 1]
+            if marker == 0xDA {
+                out += bytes[at...]
+                return Data(out)
+            }
+            let length = Int(bytes[at + 2]) << 8 | Int(bytes[at + 3])
+            guard length >= 2, at + 2 + length <= bytes.count else { return data }
+            if ![0xE1, 0xED, 0xFE].contains(marker) { out += bytes[at..<(at + 2 + length)] }
+            at += 2 + length
+        }
+        return data
+    }
+
     /// Re-encodes a photo to a JPEG that fits `maxBytes`. ImageIO makes an upright thumbnail of each step's edge
     /// (the orientation applied to the pixels) and writes it with no properties, so nothing of the original file
     /// (EXIF, GPS, TIFF, maker notes, thumbnails) survives. Runs off the main actor.
@@ -186,7 +208,9 @@ public enum FlareDocumentRules {
                 CGImageDestinationAddImage(destination, image,
                                            [kCGImageDestinationLossyCompressionQuality: step.quality] as CFDictionary)
                 guard CGImageDestinationFinalize(destination) else { throw FlareDocumentProcessError.failed }
-                if out.length <= maxBytes { return out as Data }
+                // ImageIO still writes its own Exif (APP1) and Photoshop (APP13) segments; drop them.
+                let clean = strippingMetadata(out as Data)
+                if clean.count <= maxBytes { return clean }
             }
             throw FlareDocumentProcessError.tooLarge
         }
