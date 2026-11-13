@@ -6,6 +6,7 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **SwiftUI FullScreen presenter** (`docs/components/full-screen.md`): `FullScreenView` with `.flareFullScreen(isPresented:)` and `.flareFullScreen(item:)` take the whole screen for a camera, a document capture or a media viewer. The content owns its chrome; the kit draws the ground (`.surface` or the media `.stage`), fades the layer, names it, closes it on Escape while it is dismissible and keeps it in the feedback stack like the other overlays. The iOS example app presents its document capture through it instead of a raw `fullScreenCover`.
 - **Resource packs fold into the four kits** (the update center's L2 layer).
   - Vue `applyFlareResourceOverlay(packs)` (`./i18n`, package root) takes what `update.get_resources` returned: copy goes through `registerFlareMessages`, colours into the custom properties and the Naive theme, emoji into the runtime catalog. Flutter, SwiftUI and Compose build a `FlareResourceOverlay` and pass its copy and colours through the existing scope, environment or CompositionLocal.
   - Rules in `spec/resource-overlay-vectors.json`, run by all four kits: copy and colours must exist, placeholders must match, only `colors` and `dark` are open, emoji only add and their images must be https.

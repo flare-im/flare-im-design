@@ -6,6 +6,7 @@
 
 ### 设计系统与跨端组件
 
+- **SwiftUI 全屏呈现器**（`docs/components/full-screen.md`）：`FullScreenView` 配 `.flareFullScreen(isPresented:)` 与 `.flareFullScreen(item:)`，用于相机、证件拍摄、媒体查看等占满整屏的任务。内容自带操作区；Kit 画底色（`.surface` 或媒体 `.stage`）、淡入淡出、命名图层、可关闭时响应 Escape，并像其他浮层一样进反馈栈。iOS 示例应用的证件拍摄改用它，不再直接用 `fullScreenCover`。
 - **资源包折进四端 Kit**（更新中心的 L2 层）。
   - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。
   - 规则在 `spec/resource-overlay-vectors.json`，四端共跑：文案和颜色必须已存在，占位符必须一致，只开放 `colors`、`dark`，表情只新增，图片地址必须 https。
