@@ -77,7 +77,7 @@ describe("capability components (spec/capability-ui-vectors.json)", () => {
       expect(Array.from(flareJpegStrippingMetadata(hex(c.hex))), c.note).toEqual(Array.from(hex(c.out)));
     }
     // A stripped JPEG stays as it is.
-    for (const c of vectors.jpegStripped.cases.filter((c) => c.stripped)) {
+    for (const c of vectors.jpegStripped.cases.filter((c: { hex: string; stripped: boolean }) => c.stripped)) {
       expect(flareJpegIsStripped(flareJpegStrippingMetadata(hex(c.hex)))).toBe(true);
     }
   });
