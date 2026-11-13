@@ -6,6 +6,7 @@
 
 ### 设计系统与跨端组件
 
+- **FlarePluginBundleHost**（Compose）与普通视图 **FlarePluginBundleView**（`PluginBundleHost.kt`，设计 8.4 到 8.8）：插件 Web 包在自己的源 `https://{pluginKey}.plugin.flare.invalid/` 上的 WebView 里运行。`shouldInterceptRequest` 只对 `plugin_bundle_open` 列出的文件的 GET 请求从引擎缓存出文件，带 CSP 与 `Access-Control-Allow-Origin: *`，其余一律 403。桥是只对本源生效的 `WebViewCompat.addWebMessageListener("flareBridge")`（不用 `addJavascriptInterface`）；关闭文件与内容访问、DOM 存储、第三方 Cookie、新窗口、权限请求、JS 对话框与下载。宿主用 Kit 组件画 `ui.*` 与 `clipboard.write`，把自己记录的最近触摸作为手势交给引擎；切后台暂停，30 秒后或收到内存警告销毁，回来时重新打开；渲染进程崩溃给出重新加载，第三次、打开失败或引擎关闭会话（`FlarePluginBundleEvents.dispatch`）时回落到声明式变体。`FlarePluginBundleRuntime.profile` 只在 Android System WebView 111+ 且支持消息监听时报 `bundleRuntime`（D-17）。新增依赖 `androidx.webkit:webkit:1.15.0`；Android 补上 SwiftUI 已有的 `pluginBundle*`、`pluginBridgeError*` 文案字段。
 - **SwiftUI 全屏呈现器**（`docs/components/full-screen.md`）：`FullScreenView` 配 `.flareFullScreen(isPresented:)` 与 `.flareFullScreen(item:)`，用于相机、证件拍摄、媒体查看等占满整屏的任务。内容自带操作区；Kit 画底色（`.surface` 或媒体 `.stage`）、淡入淡出、命名图层、可关闭时响应 Escape，并像其他浮层一样进反馈栈。iOS 示例应用的证件拍摄改用它，不再直接用 `fullScreenCover`。
 - **资源包折进四端 Kit**（更新中心的 L2 层）。
   - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。

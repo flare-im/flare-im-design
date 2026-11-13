@@ -17002,6 +17002,123 @@
       }
     },
     {
+      "name": "PluginBundleHost",
+      "category": "Message",
+      "summary": {
+        "en": "Plugin web bundle host — a plugin's sandboxed web page (design 8.4): served only from the engine's verified cache on the plugin's own origin, its bridge carried to the engine, and the host requests it makes (title, toast, confirm, external link, clipboard, navigate, close) drawn with kit components.",
+        "zh": "插件 Web 包宿主 —— 插件的沙箱网页（设计 8.4）：只从引擎已校验的缓存、在插件自己的源上提供文件，桥消息交给引擎，页面发起的宿主请求（标题、提示、确认、外链、剪贴板、跳转、关闭）用 Kit 组件绘制。"
+      },
+      "dataSource": {
+        "en": "the engine's plugin_bundle_open answer {sessionId, origin, root, entry, csp, files}; bridge messages through plugin_bundle_bridge / plugin_bundle_host_result; engine events plugin.bundle_event (7004) through FlarePluginBundleEvents.dispatch",
+        "zh": "引擎 plugin_bundle_open 的应答 {sessionId, origin, root, entry, csp, files}；桥消息经 plugin_bundle_bridge / plugin_bundle_host_result；引擎事件 plugin.bundle_event（7004）经 FlarePluginBundleEvents.dispatch"
+      },
+      "props": [
+        {
+          "name": "request",
+          "type": "FlarePluginBundleOpenRequest",
+          "required": true,
+          "description": {
+            "en": "What to open: plugin, contribution, route, arguments, presentation (page, detail, composerForm), conversation, locale.",
+            "zh": "打开什么：插件、贡献、路由、参数、呈现方式（page、detail、composerForm）、会话、语言。"
+          }
+        },
+        {
+          "name": "channel",
+          "type": "FlarePluginBundleChannel",
+          "required": true,
+          "description": {
+            "en": "The host SDK's plugin_bundle_* routes as JSON text in and out (open, bridge, hostResult, hostEvent, close).",
+            "zh": "宿主 SDK 的 plugin_bundle_* 路由，JSON 文本进出（open、bridge、hostResult、hostEvent、close）。"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "The page title until the bundle sets one (ui.setTitle).",
+            "zh": "Web 包设置标题（ui.setTitle）之前的页面标题。"
+          }
+        },
+        {
+          "name": "onBack",
+          "type": "() -> Unit",
+          "required": false,
+          "description": {
+            "en": "The page header's back (page presentation).",
+            "zh": "页面标题栏的返回（page 呈现）。"
+          }
+        },
+        {
+          "name": "onNavigate",
+          "type": "(FlarePluginBundleNavigation) -> Boolean",
+          "required": false,
+          "description": {
+            "en": "ui.navigate: a declarative page of the plugin or a route of the same bundle; false answers not_found.",
+            "zh": "ui.navigate：插件的声明式页面或同一 Web 包内的路由；返回 false 时应答 not_found。"
+          }
+        },
+        {
+          "name": "onOpenExternal",
+          "type": "(String) -> Unit",
+          "required": false,
+          "description": {
+            "en": "Opens an https link the viewer confirmed; the system browser by default (D-13).",
+            "zh": "打开用户确认过的 https 链接；默认用系统浏览器（D-13）。"
+          }
+        },
+        {
+          "name": "onHeightChange",
+          "type": "(Int) -> Unit",
+          "required": false,
+          "description": {
+            "en": "ui.resize in a sheet, in dp; without it the request is unavailable.",
+            "zh": "半屏弹层里的 ui.resize（dp）；不传时该请求应答 unavailable。"
+          }
+        }
+      ],
+      "states": [
+        "opening",
+        "ready",
+        "suspended",
+        "crashed",
+        "fallback",
+        "closed"
+      ],
+      "events": [
+        "fallback",
+        "close",
+        "navigate"
+      ],
+      "platforms": {
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePluginBundleHost"
+        }
+      },
+      "accessibility": {
+        "role": "region",
+        "labelRequired": true,
+        "focusable": "descendants",
+        "keyboardBehavior": [
+          "The platform back leaves the page",
+          "Focus moves into the web content"
+        ],
+        "touchTarget": {
+          "minWidth": 48,
+          "minHeight": 48,
+          "unit": "logicalPx",
+          "appliesTo": "interactiveTargets"
+        },
+        "reducedMotionBehavior": "The opening and crash states appear without motion.",
+        "screenReaderSemantics": "The page header names the page; the opening state reads \"Opening…\"; the crash state reads its title and hint and offers Reload as a button."
+      },
+      "notes": {
+        "en": "Design 8.4, 8.5, 8.8. Compose: FlarePluginBundleHost over the plain view FlarePluginBundleView, which a Flutter platform view reuses (Task 19). Only Android System WebView 111+ with the web message listener reports bundleRuntime (FlarePluginBundleRuntime.profile, D-17). The interceptor serves GET https://{pluginKey}.plugin.flare.invalid/{listed path} from the cache with the CSP and Access-Control-Allow-Origin: *, and answers everything else 403; the bridge is WebViewCompat.addWebMessageListener(\"flareBridge\") for that origin only; no addJavascriptInterface, file or content access, DOM storage, third-party cookies, windows, permissions or downloads. In the background it pauses and sends visibility.changed, and after 30 s (or a memory warning) it is destroyed and opened again on return; a renderer crash shows reload, and the third falls back to the declarative variant. Withdrawn, suspended, disabled or replaced bundles fall back as well.",
+        "zh": "设计 8.4、8.5、8.8。Compose：FlarePluginBundleHost 包在普通视图 FlarePluginBundleView 外面，Flutter 平台视图直接复用这个视图（任务 19）。只有 Android System WebView 111+ 且支持 web message listener 时才报 bundleRuntime（FlarePluginBundleRuntime.profile，D-17）。拦截器只按 GET https://{pluginKey}.plugin.flare.invalid/{清单内路径} 从缓存出文件，带 CSP 和 Access-Control-Allow-Origin: *，其余一律 403；桥是只对本源生效的 WebViewCompat.addWebMessageListener(\"flareBridge\")；不用 addJavascriptInterface，关闭文件与内容访问、DOM 存储、第三方 Cookie、新窗口、权限请求和下载。切后台暂停并发 visibility.changed，30 秒后（或收到内存警告）销毁，回来时重新打开；渲染进程崩溃显示重新加载，第三次回落到声明式变体。包被撤回、插件暂停、停用或替换时同样回落。"
+      }
+    },
+    {
       "name": "DocumentCapture",
       "category": "Message",
       "summary": {

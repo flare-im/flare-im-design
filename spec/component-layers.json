@@ -143,6 +143,7 @@
     "RedPacketComposer": "im-ui",
     "PaymentConfirmation": "im-ui",
     "CapabilityConsent": "im-ui",
+    "PluginBundleHost": "im-ui",
     "DocumentCapture": "im-ui",
     "PluginView": "im-ui",
     "PluginForm": "im-ui",
