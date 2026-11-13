@@ -9,3 +9,5 @@ screenshots/
 *.hprof
 *.tmp
 pubspec.lock
+# Workspace packages publish on their own.
+/packages/

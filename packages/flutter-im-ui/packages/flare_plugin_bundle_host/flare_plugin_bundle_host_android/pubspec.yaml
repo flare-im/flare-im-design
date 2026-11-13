@@ -1,0 +1,25 @@
+name: flare_plugin_bundle_host_android
+description: >-
+  Android implementation of flare_plugin_bundle_host: the Android kit's plugin
+  web bundle host (FlarePluginBundleView, com.flare.im:im-ui-compose) in a
+  platform view, with its engine calls carried over a method channel to Dart.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/flare-im/flare-im-design
+resolution: workspace
+
+environment:
+  sdk: ^3.10.1
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: flare_plugin_bundle_host
+    platforms:
+      android:
+        package: com.flare.im.ui.bundlehost
+        pluginClass: FlarePluginBundleHostPlugin

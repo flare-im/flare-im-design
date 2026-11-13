@@ -1,0 +1,36 @@
+name: flare_plugin_bundle_host
+description: >-
+  Flare IM UI Kit — the plugin web bundle host (L3) for Flutter. A federated
+  plugin: this package is the Dart side (the host widget, the engine port, the
+  runtime profile and the event routing); the Android and iOS packages embed the
+  kit's native hosts as platform views. No webview_flutter: each bundle keeps its
+  own origin, file interception and bridge exactly as the native hosts give them.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/flare-im/flare-im-design
+resolution: workspace
+
+environment:
+  sdk: ^3.10.1
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Pages, states, toasts and confirmations are the kit's own components.
+  flare_im_ui: 2.0.0-rc.1
+  # The endorsed Android implementation. iOS is not endorsed: its host needs
+  # iOS 16, so an app whose floor is iOS 16 adds flare_plugin_bundle_host_ios
+  # itself; below that the profile reports no runtime (D-17).
+  flare_plugin_bundle_host_android:
+    path: ../flare_plugin_bundle_host_android
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: flare_plugin_bundle_host_android

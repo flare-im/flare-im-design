@@ -186,7 +186,8 @@ export function vueSurface(file) {
 
 // ── Flutter ─────────────────────────────────────────────────────────────
 function findFile(root, ext, regex) {
-  for (const f of walkFiles(root, ext)) {
+  // One source root, or several (Flutter: the kit and its workspace packages).
+  for (const f of [].concat(root).flatMap((r) => walkFiles(r, ext))) {
     if (regex.test(readFileSync(f, "utf8"))) return f;
   }
   return null;
