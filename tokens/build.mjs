@@ -564,6 +564,11 @@ const kotlin =
   `@Composable\nfun flareColors(): FlareColors =\n` +
   `    LocalFlareColors.current ?: if (isSystemInDarkTheme()) FlareColors.Dark else FlareColors.Light\n\n` +
   `private val LocalFlareColors = staticCompositionLocalOf<FlareColors?> { null }\n\n` +
+  `/**\n` +
+  ` * The brand of the nearest [FlareThemeProvider] (SwiftUI's \`flareBrandTheme\`). A surface that draws its own palette,\n` +
+  ` * such as the always-dark scan page, resolves that palette in the app's brand from here.\n` +
+  ` */\n` +
+  `val LocalFlareBrandTheme = staticCompositionLocalOf { FlareBrandTheme.Violet }\n\n` +
   `/** The theme a host asks for: [Light] and [Dark] are the person overriding the system, [System] follows it. */\n` +
   `enum class FlareThemeMode { Light, Dark, System }\n\n` +
   `/** Whether to draw dark (\`spec/theme-mode-vectors.json\`, the same rule on four kits). */\n` +
@@ -581,7 +586,7 @@ const kotlin =
   `) {\n` +
   `    val dark = flareThemeIsDark(mode, isSystemInDarkTheme())\n` +
   `    val resolved = colors ?: FlareColors.resolve(brand, dark)\n` +
-  `    CompositionLocalProvider(LocalFlareColors provides resolved) {\n` +
+  `    CompositionLocalProvider(LocalFlareColors provides resolved, LocalFlareBrandTheme provides brand) {\n` +
   `        androidx.compose.material3.MaterialTheme(\n` +
   `            colorScheme = flareMaterialColorScheme(resolved, dark),\n` +
   `            typography = flareMaterialTypography(),\n` +
