@@ -3,7 +3,9 @@ import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import FlarePluginBundleHost from "./FlarePluginBundleHost.vue";
 import {
+  FLARE_PLUGIN_BUNDLE_GESTURE_MS,
   FLARE_PLUGIN_BUNDLE_SANDBOX,
+  createFlarePluginBundleGesture,
   flarePluginBridgeErrorKey,
   flarePluginBundleAnswer,
   flarePluginBundleEvent,
@@ -107,6 +109,53 @@ describe("FlarePluginBundleHost", () => {
     await flushPromises();
     expect(wrapper.emitted("closed")?.[0]).toEqual(["withdrawn"]);
     expect(wrapper.find("iframe").exists()).toBe(false);
+  });
+});
+
+describe("bundle host gestures", () => {
+  /** A window whose clock, focused element and user activation the test sets. */
+  function fakeWindow() {
+    const events = new EventTarget();
+    const state = { now: 1_000, active: false, focused: "BODY" };
+    const target = Object.assign(events, {
+      document: { get activeElement() { return { tagName: state.focused }; } },
+      navigator: { get userActivation() { return { isActive: state.active }; } },
+    }) as unknown as Window & typeof globalThis;
+    const gesture = createFlarePluginBundleGesture(target, () => state.now);
+    return { events, state, gesture };
+  }
+
+  it("never counts the host's own press, such as the tap that opened the page", () => {
+    const { events, state, gesture } = fakeWindow();
+    events.dispatchEvent(new Event("pointerdown"));
+    state.active = true;
+    gesture.reset();
+    expect(gesture.recent()).toBe(false);
+    state.now += 100;
+    events.dispatchEvent(new Event("keydown"));
+    expect(gesture.recent()).toBe(false);
+  });
+
+  it("counts focus moving into the frame, and the frame's own activation once the host press is old", () => {
+    const { events, state, gesture } = fakeWindow();
+    gesture.reset();
+    state.focused = "IFRAME";
+    events.dispatchEvent(new Event("blur"));
+    expect(gesture.recent()).toBe(true);
+    state.now += FLARE_PLUGIN_BUNDLE_GESTURE_MS + 1;
+    expect(gesture.recent()).toBe(false);
+    state.active = true;
+    expect(gesture.recent()).toBe(true);
+  });
+
+  it("forgets everything when the frame reloads", () => {
+    const { events, state, gesture } = fakeWindow();
+    state.focused = "IFRAME";
+    events.dispatchEvent(new Event("blur"));
+    expect(gesture.recent()).toBe(true);
+    gesture.reset();
+    expect(gesture.recent()).toBe(false);
+    gesture.dispose();
   });
 });
 

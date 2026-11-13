@@ -11,7 +11,7 @@ export const FLARE_PLUGIN_BUNDLE_SANDBOX = "allow-scripts allow-forms";
 /** The largest envelope the kit hands on, in UTF-16 code units of its JSON text (the bridge's 64 KiB, with room for escapes). */
 export const FLARE_PLUGIN_BUNDLE_MAX_ENVELOPE_CHARS = 64 * 1024;
 
-/** How long a host gesture (a pointer or key press in the frame or the host) counts as recent, in ms. */
+/** How long a gesture inside the frame (a press or focus moving into it) counts as recent, in ms. */
 export const FLARE_PLUGIN_BUNDLE_GESTURE_MS = 5000;
 
 /** How long the kit waits for the bundle's `host.hello` before it shows the load failure, in ms. */
@@ -167,28 +167,37 @@ export function flarePluginBundleText(value: unknown, max = 512): string {
 }
 
 /**
- * The host's own record of recent gestures: a pointer or key press in the host document, user activation (which a press
- * inside the frame passes to its ancestors), or focus moving into the frame. The page itself cannot set any of these.
+ * The host's own record of recent gestures inside the frame: focus moving into the frame (a click or tab into it), or
+ * user activation (which a press inside the frame passes to its ancestors) while the host document saw no press of its
+ * own. A press in the host document (the tap that opened the page, a host button) is never the page's gesture, and
+ * nothing from before the frame (re)loaded counts. The page itself cannot set any of these.
  */
 export function createFlarePluginBundleGesture(target: Window & typeof globalThis = window, now: () => number = () => Date.now()) {
-  let last = -Infinity;
-  const mark = () => { last = now(); };
+  let inside = -Infinity;
+  let hostPress = -Infinity;
+  const press = () => { hostPress = now(); };
   const onBlur = () => {
     // Focus left the host window for the frame: a click or tab into it.
-    if (target.document.activeElement?.tagName === "IFRAME") mark();
+    if (target.document.activeElement?.tagName === "IFRAME") inside = now();
   };
-  target.addEventListener("pointerdown", mark, true);
-  target.addEventListener("keydown", mark, true);
+  target.addEventListener("pointerdown", press, true);
+  target.addEventListener("keydown", press, true);
   target.addEventListener("blur", onBlur);
   return {
     recent(): boolean {
+      const at = now();
+      if (at - inside <= FLARE_PLUGIN_BUNDLE_GESTURE_MS) return true;
       const activation = (target.navigator as Navigator & { userActivation?: { isActive?: boolean } }).userActivation;
-      return activation?.isActive === true || now() - last <= FLARE_PLUGIN_BUNDLE_GESTURE_MS;
+      // An activation the host's own press caused is not the page's.
+      return activation?.isActive === true && at - hostPress > FLARE_PLUGIN_BUNDLE_GESTURE_MS;
     },
-    mark,
+    /** A gesture inside the frame the host learned of another way. */
+    mark(): void { inside = now(); },
+    /** The frame (re)loaded: nothing from before counts, the activation of the press that opened it included. */
+    reset(): void { inside = -Infinity; hostPress = now(); },
     dispose(): void {
-      target.removeEventListener("pointerdown", mark, true);
-      target.removeEventListener("keydown", mark, true);
+      target.removeEventListener("pointerdown", press, true);
+      target.removeEventListener("keydown", press, true);
       target.removeEventListener("blur", onBlur);
     },
   };
