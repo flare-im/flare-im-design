@@ -633,24 +633,26 @@ public final class FlarePluginBundleHostController: ObservableObject {
         delegate = nil
     }
 
+    private var webViewId: ObjectIdentifier? { webView.map { ObjectIdentifier($0) } }
+
     private var userGesture: Bool {
         lastTouch.map { Date().timeIntervalSince($0) < FlarePluginBundleRules.gestureWindow } ?? false
     }
 
     func didFinish(_ view: ObjectIdentifier) {
-        guard webView.map(ObjectIdentifier.init) == view, phase == .loading else { return }
+        guard webViewId == view, phase == .loading else { return }
         phase = .ready
         sendHostEvent("visibility.changed", ["visible": visible && !inBackground])
     }
 
     func didFail(_ view: ObjectIdentifier) {
-        guard webView.map(ObjectIdentifier.init) == view, phase == .loading else { return }
+        guard webViewId == view, phase == .loading else { return }
         teardownWebView()
         phase = .failed
     }
 
     func didCrash(_ view: ObjectIdentifier) {
-        guard webView.map(ObjectIdentifier.init) == view else { return }
+        guard webViewId == view else { return }
         teardownWebView()
         let count = FlarePluginBundleCrashLedger.recordCrash(pluginId: request.pluginId, contributionId: request.contributionId)
         phase = .crashed
@@ -662,7 +664,7 @@ public final class FlarePluginBundleHostController: ObservableObject {
     /// One request from the page: forwarded to the engine as it came; the engine's answer goes back as it came, or,
     /// for what the host draws, after the host did it.
     func receive(envelope: String, from view: ObjectIdentifier?) async -> (Any?, String?) {
-        guard let session, view != nil, webView.map(ObjectIdentifier.init) == view,
+        guard let session, view != nil, webViewId == view,
               phase == .loading || phase == .ready else { return (nil, "unavailable") }
         let mine = generation
         do {
@@ -910,7 +912,7 @@ final class FlarePluginBundleMessageHandler: NSObject, WKScriptMessageHandlerWit
               let envelope = FlarePluginBundleRules.envelopeText(message.body), let controller else {
             return (nil, "unavailable")
         }
-        return await controller.receive(envelope: envelope, from: message.webView.map(ObjectIdentifier.init))
+        return await controller.receive(envelope: envelope, from: message.webView.map { ObjectIdentifier($0) })
     }
 }
 
