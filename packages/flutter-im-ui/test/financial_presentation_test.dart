@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flare_im_ui/flare_im_ui.dart';
+import 'package:flare_im_ui/src/components/flare_resolved_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
