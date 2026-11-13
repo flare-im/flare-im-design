@@ -4,10 +4,26 @@ import XCTest
 
 final class FlareStringsTests: XCTestCase {
     func testEveryDefaultStringIsNonEmpty() {
-        for child in Mirror(reflecting: FlareStrings()).children {
+        for child in Mirror(reflecting: FlareStrings().table).children {
             guard let value = child.value as? String else { continue }
             XCTAssertFalse(value.isEmpty, "\(child.label ?? "?") must have a default")
         }
+    }
+
+    /// Components read both through `@Environment`, which stores the value inline. Held by value they made every
+    /// component about 17 KB, and a screen of nested components overflowed a device's 1 MB main thread stack.
+    func testEnvironmentValuesStayPointerSized() {
+        XCTAssertLessThanOrEqual(MemoryLayout<FlareStrings>.size, MemoryLayout<Int>.size)
+        XCTAssertLessThanOrEqual(MemoryLayout<FlareBrandTheme>.size, 3 * MemoryLayout<Int>.size)
+    }
+
+    func testACopyChangesOnlyItself() {
+        let original = FlareStrings()
+        var copy = original
+        copy.send = "Send"
+        XCTAssertEqual(original.send, "发送")
+        XCTAssertEqual(copy.send, "Send")
+        XCTAssertEqual(FlareBrandTheme.ocean.light.primary, FlareBrandTheme.allCases[1].light.primary)
     }
 
     func testDefaultFormattersProduceCopy() {

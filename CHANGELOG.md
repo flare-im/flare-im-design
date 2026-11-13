@@ -6,6 +6,10 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **SwiftUI: a device's main thread stack no longer overflows** (iOS kit).
+  - `FlareStrings` (nearly 1,000 fields, about 16 KB) and `FlareBrandTheme` (about 1.3 KB) were read by every component through `@Environment`, which stores the value inline: a screen of nested components went past the 1 MB main thread stack of a device (not the 8 MB of the simulator), and a Debug build crashed on the sign-in screen and on opening a conversation.
+  - Both are now held by reference and copied on write. `FlareStrings` is one pointer: its fields live in `FlareStringsTable` and are read and written through dynamic member lookup, so `strings.send`, `strings.send = "Send"` and the initializer are unchanged; code inside an `extension FlareStrings` names a field as `self.send`. `FlareBrandTheme` keeps `name`, `light` and `dark`; the palettes sit behind a reference.
+
 - **Resource packs fold into the four kits** (the update center's L2 layer).
   - Vue `applyFlareResourceOverlay(packs)` (`./i18n`, package root) takes what `update.get_resources` returned: copy goes through `registerFlareMessages`, colours into the custom properties and the Naive theme, emoji into the runtime catalog. Flutter, SwiftUI and Compose build a `FlareResourceOverlay` and pass its copy and colours through the existing scope, environment or CompositionLocal.
   - Rules in `spec/resource-overlay-vectors.json`, run by all four kits: copy and colours must exist, placeholders must match, only `colors` and `dark` are open, emoji only add and their images must be https.

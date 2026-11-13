@@ -3,13 +3,22 @@ import SwiftUI
 
 public struct FlareBrandTheme: Hashable, Sendable, CaseIterable {
     public let name: String
-    public let light: FlareColors
-    public let dark: FlareColors
+    public var light: FlareColors { palettes.light }
+    public var dark: FlareColors { palettes.dark }
+
+    /// Held by reference so a theme is two words wide: every component reads it through `@Environment`, which
+    /// stores the value inline, and two inline palettes per component overflowed a device's main thread stack.
+    private let palettes: Palettes
+
+    private final class Palettes: Sendable {
+        let light: FlareColors
+        let dark: FlareColors
+        init(light: FlareColors, dark: FlareColors) { self.light = light; self.dark = dark }
+    }
 
     public init(name: String, light: FlareColors, dark: FlareColors) {
         self.name = name
-        self.light = light
-        self.dark = dark
+        self.palettes = Palettes(light: light, dark: dark)
     }
 
     public static let violet = FlareBrandTheme(name: "violet", light: .violetLight, dark: .violetDark)

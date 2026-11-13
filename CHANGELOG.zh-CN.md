@@ -6,6 +6,10 @@
 
 ### 设计系统与跨端组件
 
+- **SwiftUI：真机主线程栈不再溢出**（iOS Kit）。
+  - `FlareStrings`（近千个字段，约 16 KB）与 `FlareBrandTheme`（约 1.3 KB）被每个组件经 `@Environment` 读取，而 `@Environment` 按值内联存放：一屏嵌套的组件超过了真机 1 MB 的主线程栈（模拟器是 8 MB），Debug 构建在登录页和打开会话时闪退。
+  - 两者改为引用存储、写时复制。`FlareStrings` 只占一个指针：字段在 `FlareStringsTable` 里，经动态成员读写，`strings.send`、`strings.send = "Send"` 与初始化写法都不变；在 `extension FlareStrings` 里引用字段要写 `self.send`。`FlareBrandTheme` 仍有 `name`、`light`、`dark`，两套色板放在引用后面。
+
 - **资源包折进四端 Kit**（更新中心的 L2 层）。
   - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。
   - 规则在 `spec/resource-overlay-vectors.json`，四端共跑：文案和颜色必须已存在，占位符必须一致，只开放 `colors`、`dark`，表情只新增，图片地址必须 https。
