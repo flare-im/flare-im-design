@@ -61,7 +61,7 @@ async function take(source: (() => Promise<Blob | null>) | undefined): Promise<v
   phase.value = { kind: "processing" };
   try {
     const file = await flareProcessDocumentPhoto(photo, props.side, { maxBytes: props.maxBytes, accept: props.accept });
-    const url = URL.createObjectURL(new Blob([file.bytes], { type: file.contentType }));
+    const url = URL.createObjectURL(new Blob([new Uint8Array(file.bytes)], { type: file.contentType }));
     phase.value = { kind: "review", file, url };
   } catch (error) {
     const known: FlareDocumentProcessError[] = ["tooLarge", "failed", "notAccepted"];
