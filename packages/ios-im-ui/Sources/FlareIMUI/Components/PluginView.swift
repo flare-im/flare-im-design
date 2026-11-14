@@ -403,6 +403,8 @@ public struct PluginView: View {
         }
         .onChange(of: view) { _ in interaction.viewChanged() }
         .onChange(of: inlineAction?.id) { _ in inlineForm = PluginInlineFormState() }
+        // A native request belongs to the form it was handed to: a later form starts without it.
+        .onChange(of: formRun == nil) { closed in if closed { nativeRequest = nil } }
         // Every host signal arrives in one value (`next`), so an error set in the same update as the settle is read.
         .onChange(of: hostSignal) { next in hostChanged(to: next) }
         .task(id: PluginViewFormat.userIds(in: view)) { await resolve(PluginViewFormat.userIds(in: view)) }
@@ -576,9 +578,19 @@ public struct PluginView: View {
         guard !locked, onAction != nil else { return }
         // A native target writing `into` an input of a form on this view runs through that input's own key, so
         // the host's answer is written into the form's current scope (no earlier touch of the input needed).
-        if payload.row == nil, let target = action.target, takesNativeInto(target) {
-            nativeRequest = PluginNativeIntoRequest(target: target)
-            return
+        if payload.row == nil, let target = action.target {
+            if takesNativeInto(target) {
+                nativeRequest = PluginNativeIntoRequest(target: target)
+                return
+            }
+            // The input belongs to another action's form that is not open (a page's capture keys beside its
+            // submit): open that form and run the target through the input's key there.
+            if formRun == nil, let holder = nativeIntoHolder(target, excluding: action.id) {
+                nativeRequest = PluginNativeIntoRequest(target: target)
+                let request = PluginActionRun(action: holder, payload: .empty, block: block)
+                if case .confirm = PluginActionFlow.start(holder) { confirming = request } else { proceed(request) }
+                return
+            }
         }
         let request = PluginActionRun(action: action, payload: payload, block: block)
         if case .confirm = PluginActionFlow.start(action) { confirming = request } else { proceed(request) }
@@ -592,6 +604,19 @@ public struct PluginView: View {
         if let open = formRun?.action { forms.append(open) }
         return forms.contains { form in
             view.formInputs(for: form).contains { input in
+                switch PluginFormRules.nativeIntoKey(target, input) {
+                case "file": return onFileAction != nil
+                case "location": return onLocationAction != nil
+                default: return false
+                }
+            }
+        }
+    }
+
+    /// Another action of this view whose form holds the input `target` writes into.
+    private func nativeIntoHolder(_ target: PluginActionTarget, excluding id: String) -> PluginViewAction? {
+        view.actions.first { other in
+            other.id != id && view.formInputs(for: other).contains { input in
                 switch PluginFormRules.nativeIntoKey(target, input) {
                 case "file": return onFileAction != nil
                 case "location": return onLocationAction != nil

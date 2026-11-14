@@ -256,6 +256,8 @@ internal fun PluginViewContent(
     // A page action's native target handed to the form holding its `into` input.
     var nativeRequest by remember { mutableStateOf<PluginNativeIntoRequest?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
+    // A native request belongs to the form it was handed to: a form opened later starts without it.
+    LaunchedEffect(formRun == null) { if (formRun == null) nativeRequest = null }
     val inlineAction = pluginInlineFormAction(view, inlineFormActionId, onAction != null)
     var inlineForm by remember(inlineAction?.id) { mutableStateOf(PluginInlineFormState()) }
     // The rows action last handed over, as (action id, row key): only that row's key spins while the action runs.

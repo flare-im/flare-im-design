@@ -107,7 +107,8 @@ public struct PluginFormView: View {
         .onChange(of: fileStates) { updates in form.acceptFiles(updates) }
         .onChange(of: locationStates) { _ in applyLocations() }
         .onChange(of: nativeRequest) { request in if let request { _ = nativeInto(request.target) } }
-        .onAppear { applyLocations() }
+        // A form sheet opened for a native request (its input sat in this closed form) runs it as it appears.
+        .onAppear { applyLocations(); if !embedded, let nativeRequest { _ = nativeInto(nativeRequest.target) } }
         .onDisappear { invalidateFiles() }
         .flareBottomSheet(item: $picking, title: picking?.label, titleHidden: true, size: .large, fill: true) { input in
             ContactPickerView(
