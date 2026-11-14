@@ -151,7 +151,10 @@ class _FlarePaymentConfirmationState extends State<FlarePaymentConfirmation> {
       fontSize: FlareSizes.fontSizeSm,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
-    return Padding(
+    // The sheet hands bounded height and lifts over the keyboard; the panel
+    // owns its scrolling, so the password field and the keys stay reachable
+    // when the keyboard leaves less room than the panel needs.
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         FlareSizes.spacingLg,
         FlareSizes.spacingSm,
