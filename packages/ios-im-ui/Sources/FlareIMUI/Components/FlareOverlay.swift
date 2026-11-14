@@ -244,6 +244,46 @@ public extension EnvironmentValues {
     }
 }
 
+// MARK: - Host content inside layers
+
+/// What a host adds inside every kit layer: see ``SwiftUI/View/flareLayerContent(_:)``.
+public struct FlareLayerContent {
+    let wrap: (AnyView) -> AnyView
+}
+
+private struct FlareLayerContentKey: EnvironmentKey {
+    static let defaultValue: FlareLayerContent? = nil
+}
+
+extension EnvironmentValues {
+    var flareLayerContent: FlareLayerContent? {
+        get { self[FlareLayerContentKey.self] }
+        set { self[FlareLayerContentKey.self] = newValue }
+    }
+}
+
+public extension View {
+    /// Wraps the content of every kit layer opened below this view (bottom sheet, Modal, Drawer, full screen) with
+    /// `transform`. SwiftUI presents only from the topmost presentation, so a host whose own presenters must show
+    /// over whatever is open (a document capture asked for from inside a kit form sheet) attaches them here once,
+    /// and each open layer carries them. Layers opened from inside a layer are wrapped as well.
+    func flareLayerContent<Wrapped: View>(@ViewBuilder _ transform: @escaping (AnyView) -> Wrapped) -> some View {
+        environment(\.flareLayerContent, FlareLayerContent { AnyView(transform($0)) })
+    }
+}
+
+/// A layer's content with the host's ``FlareLayerContent``, when one is set.
+struct FlareLayerHostContent<Content: View>: View {
+    let content: Content
+    @Environment(\.flareLayerContent) private var host
+
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+
+    var body: some View {
+        if let host { host.wrap(AnyView(content)) } else { content }
+    }
+}
+
 // MARK: - Presentation engine
 
 /// How long the presenter waits for UIKit to report a presentation before it gives the layer up.
@@ -310,7 +350,7 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
 
     func body(content: Content) -> some View {
         pushable(content.sheet(isPresented: $sheetShown, onDismiss: sheetGone) {
-            sheetLayer().modifier(FlareSystemDismissLock(dismissible: dismissible))
+            FlareLayerHostContent { sheetLayer() }.modifier(FlareSystemDismissLock(dismissible: dismissible))
         })
         // A second presentation needs its own anchor view.
         .background(coverAnchor)
@@ -348,7 +388,9 @@ struct FlareLayerPresenter<SheetLayer: View, CoverLayer: View, PushLayer: View>:
     private var stage: some View {
         FlareLayerStage(closing: closing, chromeless: !FlareLayerPlatform.clearCover,
                         feedback: registers ? feedback : nil, presence: presence,
-                        presentsRequests: coverKind == .drawer, shown: { coverAppeared = true }) { coverLayer() }
+                        presentsRequests: coverKind == .drawer, shown: { coverAppeared = true }) {
+            FlareLayerHostContent { coverLayer() }
+        }
     }
 
     @ViewBuilder
