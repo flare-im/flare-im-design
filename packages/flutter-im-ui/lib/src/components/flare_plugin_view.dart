@@ -553,6 +553,17 @@ class _FlarePluginViewState extends State<FlarePluginView> {
             (_sheetFormKey?.currentState?.nativeInto(target) ?? false))) {
       return;
     }
+    // The input belongs to another action's form that is not open (a page's
+    // capture keys beside its submit): open that form and run the target
+    // through the input's key there, so the answer lands in the form.
+    final holder = payload.row == null && _formAction == null
+        ? _nativeIntoHolder(target, action.id)
+        : null;
+    if (holder != null) {
+      _openForm(holder, const FlarePluginActionPayload(), before);
+      _runInOpenedForm(target!, holder.id, 30);
+      return;
+    }
     final confirm = action.confirm;
     if (confirm != null && confirm.isNotEmpty) {
       final ok = await FlareDangerConfirm.show(
@@ -569,6 +580,51 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     }
     before?.call();
     widget.onAction?.call(action.id, payload);
+  }
+
+  /// Another action of this view, asking no confirmation, whose form holds
+  /// the input [target] writes into (and the host has that input's key).
+  FlarePluginAction? _nativeIntoHolder(
+    FlarePluginActionTarget? target,
+    String excluding,
+  ) {
+    if (target?.kind != 'native' || target?.into == null) return null;
+    return widget.view.actions
+        .where(
+          (other) =>
+              other.id != excluding &&
+              (other.confirm == null || other.confirm!.isEmpty) &&
+              _formInputs(other).any((input) {
+                switch (flarePluginNativeIntoKey(target, input)) {
+                  case 'file':
+                    return widget.onFileAction != null;
+                  case 'location':
+                    return widget.onLocationAction != null;
+                  default:
+                    return false;
+                }
+              }),
+        )
+        .firstOrNull;
+  }
+
+  /// Runs [target] through the form opened for it once the form is built; a
+  /// form closed (or another opened) meanwhile drops it.
+  void _runInOpenedForm(
+    FlarePluginActionTarget target,
+    String formActionId,
+    int frames,
+  ) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _formAction?.id != formActionId) return;
+      final form = _sheetFormKey?.currentState;
+      if (form != null) {
+        form.nativeInto(target);
+      } else if (frames > 0) {
+        _runInOpenedForm(target, formActionId, frames - 1);
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   List<FlarePluginInput> _formInputs(FlarePluginAction action) => [
