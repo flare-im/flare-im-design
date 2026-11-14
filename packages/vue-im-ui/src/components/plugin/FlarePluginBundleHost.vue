@@ -401,6 +401,11 @@ defineExpose({ sandbox: FLARE_PLUGIN_BUNDLE_SANDBOX });
   min-height: 0;
   background: var(--flare-color-bg-primary);
 }
+/* A page's stage sits in the screen body, which is no flex container: it takes the body's height,
+   or the frame keeps the 150px a frame has by default. */
+.flare-plugin-bundle-host.is-page .flare-plugin-bundle-host__stage {
+  height: 100%;
+}
 .flare-plugin-bundle-host.is-detail .flare-plugin-bundle-host__stage,
 .flare-plugin-bundle-host.is-composerForm .flare-plugin-bundle-host__stage {
   min-height: var(--flare-size-component-rich-card-width);
