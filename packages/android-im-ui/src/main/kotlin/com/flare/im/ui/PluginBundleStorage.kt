@@ -16,7 +16,7 @@ import java.security.MessageDigest
  * first-party cookies stay on in Android WebView, and the bundle origin is stable per tenant and plugin. So:
  *
  * - With `MULTI_PROFILE`, every bundle WebView runs in a profile of the signed-in user ([FlarePluginBundleStorage.signedIn]),
- *   never in the app's default profile. Sign-out and a user switch delete that profile.
+ *   never in the app's default profile, and that profile refuses cookies. Sign-out and a user switch delete it.
  * - Without it, bundle WebViews refuse cookies while one is open, and what an origin wrote is deleted from the default
  *   profile.
  * - Either way, when the last page of an origin closes, that origin's storage and cookies are deleted, and anything a
@@ -133,7 +133,9 @@ object FlarePluginBundleStorage {
         val profile = if (profilesSupported()) {
             val name = pluginBundleProfileName(prefs(context).getString(KEY_SCOPE, null))
             runCatching {
-                ProfileStore.getInstance().getOrCreateProfile(name)
+                // A profile of its own refuses cookies outright (design 8.5: no cookies), which leaves the app's
+                // default profile alone; what a bundle keeps goes through the bridge's storage.
+                ProfileStore.getInstance().getOrCreateProfile(name).cookieManager.setAcceptCookie(false)
                 WebViewCompat.setProfile(view, name)
                 name
             }.getOrNull()

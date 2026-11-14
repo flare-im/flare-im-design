@@ -329,6 +329,22 @@ internal fun PluginViewContent(
                 nativeRequest = PluginNativeIntoRequest(target)
                 return
             }
+            // The input belongs to another action's form that is not open (a page's capture keys beside its submit):
+            // open that form and run the target through the input's key there, so the answer lands in its scope.
+            val holder = if (formRun == null) view.actions.firstOrNull { other ->
+                other.id != action.id && view.formInputs(other).any { input ->
+                    when (pluginNativeIntoKey(target, input)) {
+                        "file" -> onFileAction != null
+                        "location" -> onLocationAction != null
+                        else -> false
+                    }
+                }
+            } else null
+            if (holder != null) {
+                nativeRequest = PluginNativeIntoRequest(target)
+                advance(PluginActionRun(holder, PluginActionPayload.Empty, block).start())
+                return
+            }
         }
         advance(PluginActionRun(action, payload, block).start())
     }
