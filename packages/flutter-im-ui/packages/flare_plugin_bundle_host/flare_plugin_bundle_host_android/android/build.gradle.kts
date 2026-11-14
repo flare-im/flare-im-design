@@ -22,10 +22,14 @@ allprojects {
         // The kit (com.flare.im:im-ui-compose): mavenLocal on the dev branch (`./gradlew publishToMavenLocal` in
         // flare-im-design/packages/android-im-ui), GitHub Packages for the released build. The app resolves its
         // runtime classpath from its own repositories, so it lists the same two.
-        mavenLocal()
+        // Only the kit's group is looked up in these two, so nothing else waits on them or fails on their answers.
+        mavenLocal {
+            content { includeGroup("com.flare.im") }
+        }
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/flare-im/flare-im-design")
+            content { includeGroup("com.flare.im") }
             credentials {
                 username = (providers.gradleProperty("gpr.user")
                     .orElse(providers.environmentVariable("GITHUB_ACTOR"))).orNull ?: ""
