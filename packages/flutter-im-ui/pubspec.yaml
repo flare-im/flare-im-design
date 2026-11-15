@@ -11,12 +11,23 @@ environment:
   sdk: ^3.10.1
   flutter: ">=3.10.0"
 
+# The plugin web bundle host is a federated plugin of its own (it carries
+# native code and the native kits); it lives here and resolves with the kit, so
+# `flutter pub get` and `flutter analyze` in this directory cover it too.
+workspace:
+  - packages/flare_plugin_bundle_host/flare_plugin_bundle_host
+  - packages/flare_plugin_bundle_host/flare_plugin_bundle_host_android
+  - packages/flare_plugin_bundle_host/flare_plugin_bundle_host_ios
+
 dependencies:
   flutter_slidable: ^4.0.3
   extended_text_field: ^17.0.0
   record: ^6.1.2
   video_player: ^2.10.1
   path_provider: ^2.1.5
+  # Document capture: decode, bake the orientation, drop EXIF and re-encode a
+  # JPEG off the UI isolate (pure Dart, no platform code).
+  image: ^4.3.0
   flutter:
     sdk: flutter
 

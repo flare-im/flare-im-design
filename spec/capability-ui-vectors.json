@@ -1,0 +1,569 @@
+{
+  "$comment": "Shared facts of the plugin host capability components (docs/design/plugin-client-hot-delivery.md 7): FlareCapabilityConsent, FlareDocumentCapture, FlarePaymentConfirmation and the protected media block's address rule. Every kit reads this file in its tests; the rules have the same names in every kit (flareCapability*, flareDocument*, flarePayment*, flareJpegIsStripped, flarePluginProtectedMediaSource).",
+  "consentDecision": {
+    "$comment": "What the viewer's choice answers the engine's consent request with: {decision}. The engine keeps only \"always\"; \"once\" lets the current request through and keeps nothing, so the host never revokes anything to emulate it.",
+    "cases": [
+      {
+        "decision": "once",
+        "answer": {
+          "decision": "once"
+        }
+      },
+      {
+        "decision": "always",
+        "answer": {
+          "decision": "always"
+        }
+      },
+      {
+        "decision": "deny",
+        "answer": {
+          "decision": "deny"
+        }
+      }
+    ]
+  },
+  "capabilityLabel": {
+    "$comment": "The FlareStrings field that names what the plugin asks to use. An unknown capability gets the generic line, never its raw name.",
+    "cases": [
+      {
+        "capability": "documentCapture",
+        "params": {
+          "side": "front"
+        },
+        "key": "capabilityDocumentCapture"
+      },
+      {
+        "capability": "paymentConfirmation",
+        "key": "capabilityPaymentConfirmation"
+      },
+      {
+        "capability": "locationOnce",
+        "params": {
+          "precision": "coarse"
+        },
+        "key": "capabilityLocationCoarse"
+      },
+      {
+        "capability": "locationOnce",
+        "params": {
+          "precision": "fine"
+        },
+        "key": "capabilityLocationFine"
+      },
+      {
+        "capability": "locationOnce",
+        "key": "capabilityLocationCoarse"
+      },
+      {
+        "capability": "camera",
+        "key": "capabilityCamera"
+      },
+      {
+        "capability": "microphone",
+        "key": "capabilityMicrophone"
+      },
+      {
+        "capability": "rtcSession",
+        "key": "capabilityRtcSession"
+      },
+      {
+        "capability": "teleport",
+        "key": "capabilityGeneric"
+      }
+    ]
+  },
+  "consentAllowsAlways": {
+    "$comment": "Whether the consent offers \"Always allow\". A one-time location is confirmed every time (design 7.2), so it offers only once and deny.",
+    "cases": [
+      {
+        "capability": "documentCapture",
+        "always": true
+      },
+      {
+        "capability": "paymentConfirmation",
+        "always": true
+      },
+      {
+        "capability": "locationOnce",
+        "always": false
+      },
+      {
+        "capability": "camera",
+        "always": true
+      }
+    ]
+  },
+  "paymentAmount": {
+    "$comment": "The order's amount as the confirmation draws it: the currency's symbol (or the code after the number), the integer part grouped by three with commas, the fraction exactly as the order wrote it. Never parsed as a float. An amount that is not a plain non-negative decimal (at most 18 fraction digits) draws nothing and cannot be confirmed (null).",
+    "cases": [
+      {
+        "amount": "5.00",
+        "currency": "CNY",
+        "text": "¥5.00"
+      },
+      {
+        "amount": "1234.5",
+        "currency": "CNY",
+        "text": "¥1,234.5"
+      },
+      {
+        "amount": "999999999999999999.99",
+        "currency": "CNY",
+        "text": "¥999,999,999,999,999,999.99"
+      },
+      {
+        "amount": "12.30",
+        "currency": "USD",
+        "text": "$12.30"
+      },
+      {
+        "amount": "0.01",
+        "currency": "cny",
+        "text": "¥0.01"
+      },
+      {
+        "amount": "100",
+        "currency": "EUR",
+        "text": "€100"
+      },
+      {
+        "amount": "7",
+        "currency": "GBP",
+        "text": "£7"
+      },
+      {
+        "amount": "3000",
+        "currency": "JPY",
+        "text": "JP¥3,000"
+      },
+      {
+        "amount": "88.8",
+        "currency": "HKD",
+        "text": "HK$88.8"
+      },
+      {
+        "amount": "8",
+        "currency": "XYZ",
+        "text": "8 XYZ"
+      },
+      {
+        "amount": "1e5",
+        "currency": "CNY",
+        "text": null
+      },
+      {
+        "amount": "-3.00",
+        "currency": "CNY",
+        "text": null
+      },
+      {
+        "amount": "",
+        "currency": "CNY",
+        "text": null
+      },
+      {
+        "amount": "1.",
+        "currency": "CNY",
+        "text": null
+      },
+      {
+        "amount": "0.1234567890123456789",
+        "currency": "CNY",
+        "text": null
+      }
+    ]
+  },
+  "paymentCountdown": {
+    "$comment": "What is left of an order (expiresAtMs minus the server's now): whole seconds rounded up, mm:ss under an hour, h:mm:ss from an hour on. At zero or below the order has expired and confirm is off.",
+    "cases": [
+      {
+        "remainingMs": 125000,
+        "text": "02:05",
+        "expired": false
+      },
+      {
+        "remainingMs": 3725000,
+        "text": "1:02:05",
+        "expired": false
+      },
+      {
+        "remainingMs": 999,
+        "text": "00:01",
+        "expired": false
+      },
+      {
+        "remainingMs": 60000,
+        "text": "01:00",
+        "expired": false
+      },
+      {
+        "remainingMs": 0,
+        "text": "00:00",
+        "expired": true
+      },
+      {
+        "remainingMs": -5000,
+        "text": "00:00",
+        "expired": true
+      }
+    ]
+  },
+  "documentFrame": {
+    "$comment": "The viewfinder frame's width over height per side: an ID-1 card (85.6 × 54 mm) for front and back, a 3:4 portrait for holding the document beside the face.",
+    "cases": [
+      {
+        "side": "front",
+        "aspect": 1.585
+      },
+      {
+        "side": "back",
+        "aspect": 1.585
+      },
+      {
+        "side": "holding",
+        "aspect": 0.75
+      }
+    ]
+  },
+  "documentCompression": {
+    "$comment": "The order the kit tries (longest edge in px, JPEG quality) until the photo fits maxBytes; none fits: the photo is too large. The output is always image/jpeg, re-encoded from pixels, so no EXIF, GPS or maker data survives; the orientation is applied to the pixels first.",
+    "plan": [
+      [
+        2048,
+        0.86
+      ],
+      [
+        2048,
+        0.72
+      ],
+      [
+        2048,
+        0.58
+      ],
+      [
+        1600,
+        0.72
+      ],
+      [
+        1600,
+        0.58
+      ],
+      [
+        1280,
+        0.58
+      ],
+      [
+        1024,
+        0.5
+      ]
+    ],
+    "fileName": [
+      {
+        "side": "front",
+        "name": "document-front.jpg"
+      },
+      {
+        "side": "back",
+        "name": "document-back.jpg"
+      },
+      {
+        "side": "holding",
+        "name": "document-holding.jpg"
+      }
+    ]
+  },
+  "documentAccept": {
+    "$comment": "Whether a document input's accept list takes the kit's JPEG. An empty list takes anything.",
+    "cases": [
+      {
+        "accept": [
+          "image/jpeg"
+        ],
+        "ok": true
+      },
+      {
+        "accept": [
+          "image/*"
+        ],
+        "ok": true
+      },
+      {
+        "accept": [],
+        "ok": true
+      },
+      {
+        "accept": [
+          "image/png"
+        ],
+        "ok": false
+      },
+      {
+        "accept": [
+          "application/pdf",
+          "image/jpeg"
+        ],
+        "ok": true
+      },
+      {
+        "accept": [
+          "IMAGE/JPEG"
+        ],
+        "ok": true
+      }
+    ]
+  },
+  "jpegStripped": {
+    "$comment": "Whether bytes are a JPEG with nothing but image data before its scan: an APP0 JFIF header, an APP2 ICC profile, the APP14 Adobe segment, tables and the frame header, 0xFF fill bytes allowed. Exif or XMP (APP1), MPF, IPTC, comments, any other segment, a truncated header or no scan is not stripped. The engine refuses a document photo that is not a stripped JPEG (flare-core-sdk-engine jpeg_is_stripped); the kits check their own output with the same rule. strip: what a kit's own encoder output becomes when the segments outside that list are removed (Apple encoders write Exif and IPTC segments of their own).",
+    "cases": [
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "JFIF header, tables, frame header, scan"
+      },
+      {
+        "hex": "FFD8FFFFFFE000104A46494600010100000100010000FFFFFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFFFFFDA0002FFD9",
+        "stripped": true,
+        "note": "0xFF fill bytes before markers"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "an ICC profile is colour, not metadata"
+      },
+      {
+        "hex": "FFD8FFEE000741646F6265FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": true,
+        "note": "the Adobe segment"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE10008457869660000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "Exif"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFE1000A687474703A2F2F6E73FFDA0002FFD9",
+        "stripped": false,
+        "note": "XMP after the tables"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE200084D5046000000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "MPF"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFED00045043FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "Photoshop/IPTC"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFFE0004AAAAFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "a comment"
+      },
+      {
+        "hex": "FFD8FFE000064A465858FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "stripped": false,
+        "note": "an APP0 that is not JFIF"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "stripped": false,
+        "note": "a truncated header"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AA",
+        "stripped": false,
+        "note": "no scan"
+      },
+      {
+        "hex": "89504E470D0A1A0A",
+        "stripped": false,
+        "note": "not a JPEG"
+      },
+      {
+        "hex": "",
+        "stripped": false,
+        "note": "empty"
+      }
+    ],
+    "strip": [
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFE10008457869660000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFED00045043FFFE0004AAAAFFDA0002FFD9",
+        "out": "FFD8FFE000104A46494600010100000100010000FFE2000E4943435F50524F46494C4500FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "note": "Exif, IPTC and the comment go; the ICC profile stays"
+      },
+      {
+        "hex": "FFD8FFFFFFE000104A46494600010100000100010000FFE200084D5046000000FFFFFFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "out": "FFD8FFE000104A46494600010100000100010000FFDB0004AAAAFFC0000500AAAAFFC4000400AAFFDA0002FFD9",
+        "note": "MPF and fill bytes go; the scan is kept as it is"
+      },
+      {
+        "hex": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "out": "FFD8FFE000104A46494600010100000100010000FFDB0010AAAA",
+        "note": "a truncated header comes back unchanged (and is not stripped)"
+      },
+      {
+        "hex": "89504E470D0A1A0A",
+        "out": "89504E470D0A1A0A",
+        "note": "not a JPEG: unchanged"
+      }
+    ]
+  },
+  "protectedMediaSource": {
+    "$comment": "Which addresses a protected media block draws. The server's owner read answers an absolute https address with a short-lived ?grant=; native kits draw only https and data:image, the Vue kit also blob: (what a web host fetched) and a Tauri asset address. The picture is held in memory only: no disk cache, no share or save menu.",
+    "cases": [
+      {
+        "url": "https://im.example.com/private/realname/owner-materials/a1/m1?grant=abc.def",
+        "native": true,
+        "web": true
+      },
+      {
+        "url": "http://im.example.com/private/x?grant=abc",
+        "native": false,
+        "web": false
+      },
+      {
+        "url": "data:image/png;base64,iVBORw0KGgo=",
+        "native": true,
+        "web": true
+      },
+      {
+        "url": "data:text/html,<b>x</b>",
+        "native": false,
+        "web": false
+      },
+      {
+        "url": "blob:https://im.example.com/1f2e",
+        "native": false,
+        "web": true
+      },
+      {
+        "url": "javascript:alert(1)",
+        "native": false,
+        "web": false
+      },
+      {
+        "url": "file:///tmp/front.jpg",
+        "native": false,
+        "web": false
+      },
+      {
+        "url": "",
+        "native": false,
+        "web": false
+      }
+    ]
+  },
+  "protectedMediaReason": {
+    "$comment": "A protected media read asks the viewer why only when the block declares reasonInput (a console reviewing someone else's material). The owner's own page declares none: one tap reads.",
+    "cases": [
+      {
+        "reasonInput": "reason",
+        "asks": true
+      },
+      {
+        "reasonInput": null,
+        "asks": false
+      }
+    ]
+  },
+  "locationInput": {
+    "$comment": "A location input's value (UiLocationValue::fits): the input's precision, a point on the globe, at most 2 decimal places and a whole accuracy of at least 1000 m when coarse, at most 5 places and at least 1 m when fine. Anything else is no value (null); text is how the input shows a fix.",
+    "cases": [
+      {
+        "precision": "coarse",
+        "value": {
+          "latitude": 31.23,
+          "longitude": 121.47,
+          "accuracyM": 1000,
+          "precision": "coarse"
+        },
+        "ok": true,
+        "text": "31.23°N, 121.47°E"
+      },
+      {
+        "precision": "fine",
+        "value": {
+          "latitude": -33.86785,
+          "longitude": -151.20732,
+          "accuracyM": 12,
+          "precision": "fine"
+        },
+        "ok": true,
+        "text": "33.86785°S, 151.20732°W"
+      },
+      {
+        "precision": "coarse",
+        "value": {
+          "latitude": 31.234,
+          "longitude": 121.47,
+          "accuracyM": 1000,
+          "precision": "coarse"
+        },
+        "ok": false
+      },
+      {
+        "precision": "coarse",
+        "value": {
+          "latitude": 31.23,
+          "longitude": 121.47,
+          "accuracyM": 500,
+          "precision": "coarse"
+        },
+        "ok": false
+      },
+      {
+        "precision": "fine",
+        "value": {
+          "latitude": 31.23,
+          "longitude": 121.47,
+          "accuracyM": 1000,
+          "precision": "coarse"
+        },
+        "ok": false
+      },
+      {
+        "precision": "fine",
+        "value": {
+          "latitude": 31.2,
+          "longitude": 121.4,
+          "accuracyM": 5.5,
+          "precision": "fine"
+        },
+        "ok": false
+      },
+      {
+        "precision": "coarse",
+        "value": {
+          "latitude": 91,
+          "longitude": 0,
+          "accuracyM": 1000,
+          "precision": "coarse"
+        },
+        "ok": false
+      },
+      {
+        "precision": "coarse",
+        "value": {
+          "latitude": 0,
+          "longitude": 180,
+          "accuracyM": 1000,
+          "precision": "coarse"
+        },
+        "ok": true,
+        "text": "0°N, 180°E"
+      },
+      {
+        "precision": "coarse",
+        "value": "31.23,121.47",
+        "ok": false
+      },
+      {
+        "precision": "coarse",
+        "value": null,
+        "ok": false
+      }
+    ]
+  }
+}

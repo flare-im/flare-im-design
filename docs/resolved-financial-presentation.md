@@ -1,7 +1,7 @@
 # Resolved wallet and red packet presentation
 
 All four Kits compose existing AccountView, RedPacketCard, RedPacketComposer,
-RedPacketOpenSheet, RedPacketDetail and RedPacketPayConfirm components. Web and
+RedPacketOpenSheet and RedPacketDetail components. Web and
 Tauri share Vue. Apps retain their existing generic plugin hosts and SDK callbacks.
 
 The plugin protocol owns `UiDocument.presentation`: `renderer`, translated `labels`,
@@ -18,8 +18,12 @@ The extension cannot load code, call URLs, infer permissions or bypass SDK valid
 | `redPacket.card` | RedPacketCard | `open` |
 | `redPacket.composer` | Existing funding form then RedPacketComposer | `submit` |
 | `redPacket.detail` | RedPacketDetail and OpenSheet | `open` |
-| `redPacket.pay` | RedPacketPayConfirm | `confirm` |
-| `payment.confirm` | RedPacketPayConfirm with supplied confirm label | `confirm` or `authorize` |
+| `redPacket.pay`, `payment.confirm` | Retired: drawn as the plain document | — |
+
+Payment is no renderer any more. A plugin operation returns a confirmation order and the
+engine asks the host (`confirmPayment`); the host shows `FlarePaymentConfirmation` and
+verifies the viewer through its reauthenticate flow (docs/plugin-components.md, host
+capability components). Only `redPacket.card` remains a compiled-in renderer.
 
 Funding choices remain strict `{value,label}` records. Display currency metadata
 travels separately; it does not add keys to SDK choices. Amounts use integer strings

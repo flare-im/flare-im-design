@@ -110,12 +110,15 @@ public struct FlareSettingsItem: Identifiable, Sendable {
     public let danger: Bool
     /// A red dot before the chevron: something here is new (an update waiting in About). A toggle row draws none.
     public let badge: Bool
+    /// A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet). It is words,
+    /// read with the row; a toggle row draws none.
+    public let tag: String?
     public init(key: String, label: String, icon: String? = nil,
                 kind: FlareSettingKind = .navigation, value: Bool = false, detail: String? = nil,
-                disabled: Bool = false, danger: Bool = false, badge: Bool = false) {
+                disabled: Bool = false, danger: Bool = false, badge: Bool = false, tag: String? = nil) {
         self.key = key; self.label = label; self.icon = icon
         self.kind = kind; self.value = value; self.detail = detail
-        self.disabled = disabled; self.danger = danger; self.badge = badge
+        self.disabled = disabled; self.danger = danger; self.badge = badge; self.tag = tag
     }
 }
 

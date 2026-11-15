@@ -19,7 +19,7 @@ Map<String, Object?> walletJson() =>
 FlarePluginPageViewModel realFlow(String id) {
   final cases =
       (jsonDecode(
-                File('../../spec/wallet-flow-vectors.json').readAsStringSync(),
+                File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
               )
               as Map)['cases']
           as List;
@@ -81,6 +81,7 @@ Widget page(
   int settle = 0,
   FlarePluginPageActionCallback? onAction,
 }) => FlarePluginPage(
+  appearance: FlarePluginPageAppearance.account,
   page: const FlarePluginPageRef(pluginId: 'test.wallet', page: 'fixture.home'),
   view: view,
   busyActionId: busy,

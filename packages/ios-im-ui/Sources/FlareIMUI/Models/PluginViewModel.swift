@@ -66,16 +66,29 @@ extension PluginJSONValue: ExpressibleByNilLiteral, ExpressibleByBooleanLiteral,
     }
 }
 
-/// A label/value row (v1 `fields`, and the `fields` block).
+/// A label/value row (v1 `fields`, and the `fields` block). `value` is the plain text; `format` is what the kit may
+/// write instead (``PluginFormatRules``: a compact count, a duration in the viewer's words).
 public struct PluginViewField: Codable, Equatable, Sendable {
     public let label: String; public let value: String
-    public init(label: String, value: String) { self.label = label; self.value = value }
+    public let format: PluginValueFormat?
+    public init(label: String, value: String, format: PluginValueFormat? = nil) {
+        self.label = label; self.value = value; self.format = format
+    }
+    private enum CodingKeys: String, CodingKey { case label, value, format }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        label = try c.decode(String.self, forKey: .label)
+        value = c.lenient(String.self, .value) ?? ""
+        format = c.lenient(PluginValueFormat.self, .format)
+    }
 }
 
 /// How an action key is drawn; none is the secondary key.
 public enum PluginActionStyle: String, Codable, Sendable { case primary, danger }
 
-/// A resolved action. Its `target` and `input` stay with the core: the kit hands back the opaque `id` only.
+/// A resolved action. Its `input` stays with the core: the kit hands back the opaque `id` only. The kit reads a
+/// native `target`'s `into`: a page action writing into one of the form's own inputs runs through that input's key
+/// (``PluginFormRules/nativeIntoKey(_:_:)``), so the host's answer lands in the form's current scope.
 public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
     public let id: String
     public let label: String
@@ -84,12 +97,16 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
     public let confirm: String?
     /// Input ids collected first in ``PluginFormView``.
     public let form: [String]?
+    /// Where the action goes, as the view gives it.
+    public let target: PluginActionTarget?
 
-    public init(id: String, label: String, style: PluginActionStyle? = nil, confirm: String? = nil, form: [String]? = nil) {
+    public init(id: String, label: String, style: PluginActionStyle? = nil, confirm: String? = nil, form: [String]? = nil,
+                target: PluginActionTarget? = nil) {
         self.id = id; self.label = label; self.style = style; self.confirm = confirm; self.form = form
+        self.target = target
     }
 
-    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form }
+    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form, target }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -98,6 +115,31 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
         style = c.lenient(String.self, .style).flatMap(PluginActionStyle.init(rawValue:))
         confirm = c.lenient(String.self, .confirm)
         form = c.lenient([String].self, .form)
+        target = c.lenient(PluginActionTarget.self, .target)
+    }
+}
+
+/// An action's target (flare-plugin-protocol UiActionTarget): `native` (`capability`, `params`, `into`),
+/// `operation` or `page`. The kit only reads a native one.
+public struct PluginActionTarget: Codable, Equatable, Hashable, Sendable {
+    public let kind: String
+    public let capability: String?
+    public let params: [String: PluginJSONValue]?
+    /// The page input the native capability writes into.
+    public let into: String?
+
+    public init(kind: String, capability: String? = nil, params: [String: PluginJSONValue]? = nil, into: String? = nil) {
+        self.kind = kind; self.capability = capability; self.params = params; self.into = into
+    }
+
+    private enum CodingKeys: String, CodingKey { case kind, capability, params, into }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try c.decode(String.self, forKey: .kind)
+        capability = c.lenient(String.self, .capability)
+        params = c.lenient([String: PluginJSONValue].self, .params)
+        into = c.lenient(String.self, .into)
     }
 }
 
@@ -249,12 +291,14 @@ public struct PluginEntry: Codable, Equatable, Sendable {
     public let userId: String?
     public let group: PluginEntryGroup?
     public let badge: PluginBadge?
+    /// When it happened (epoch ms), drawn after the text in the device zone.
+    public let timeMs: Int64?
     public init(index: Int, text: String, name: String? = nil, userId: String? = nil, group: PluginEntryGroup? = nil,
-                badge: PluginBadge? = nil) {
+                badge: PluginBadge? = nil, timeMs: Int64? = nil) {
         self.index = index; self.text = text; self.name = name; self.userId = userId; self.group = group
-        self.badge = badge
+        self.badge = badge; self.timeMs = timeMs
     }
-    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group, badge }
+    private enum CodingKeys: String, CodingKey { case index, text, name, userId, group, badge, timeMs }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         index = c.lenient(Int.self, .index) ?? 0
@@ -263,6 +307,7 @@ public struct PluginEntry: Codable, Equatable, Sendable {
         userId = c.lenient(String.self, .userId)
         group = c.lenient(PluginEntryGroup.self, .group)
         badge = c.lenient(PluginBadge.self, .badge)
+        timeMs = c.lenient(Int64.self, .timeMs)
     }
 }
 
@@ -365,11 +410,11 @@ public struct PluginTimeBlock: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         label = c.lenient(String.self, .label)
-        guard let at = c.lenient(Double.self, .atMs) else {
+        guard let at = flarePluginInstant(c.lenient(Double.self, .atMs)) else {
             throw DecodingError.keyNotFound(CodingKeys.atMs, .init(codingPath: c.codingPath, debugDescription: "atMs"))
         }
-        atMs = Int64(at)
-        endMs = c.lenient(Double.self, .endMs).map { Int64($0) }
+        atMs = at
+        endMs = flarePluginInstant(c.lenient(Double.self, .endMs))
         countdown = c.lenient(Bool.self, .countdown) ?? false
     }
 }
@@ -407,16 +452,20 @@ public struct PluginRowsColumn: Codable, Equatable, Sendable {
     }
 }
 
-/// One cell: its text, and the instant of a time column.
+/// One cell: its text, the instant of a time column, and what the column's `valueFormat` adds to the text.
 public struct PluginRowCell: Codable, Equatable, Sendable {
     public let text: String
     public let timeMs: Int64?
-    public init(text: String, timeMs: Int64? = nil) { self.text = text; self.timeMs = timeMs }
-    private enum CodingKeys: String, CodingKey { case text, timeMs }
+    public let format: PluginValueFormat?
+    public init(text: String, timeMs: Int64? = nil, format: PluginValueFormat? = nil) {
+        self.text = text; self.timeMs = timeMs; self.format = format
+    }
+    private enum CodingKeys: String, CodingKey { case text, timeMs, format }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         text = c.lenient(String.self, .text) ?? ""
-        timeMs = c.lenient(Double.self, .timeMs).map { Int64($0) }
+        timeMs = flarePluginInstant(c.lenient(Double.self, .timeMs))
+        format = c.lenient(PluginValueFormat.self, .format)
     }
 }
 
@@ -461,12 +510,14 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
     public let actions: [PluginViewAction]
     public let emptyText: String?
     public let filters: [String]?
+    /// Day headings over the rows by the first time column (`flarePluginRowDayHeadings`).
+    public let groupByDay: Bool
     public init(columns: [PluginRowsColumn], rows: [PluginRow], actions: [PluginViewAction] = [],
-                emptyText: String? = nil, filters: [String]? = nil) {
+                emptyText: String? = nil, filters: [String]? = nil, groupByDay: Bool = false) {
         self.columns = columns; self.rows = rows; self.actions = actions; self.emptyText = emptyText
-        self.filters = filters
+        self.filters = filters; self.groupByDay = groupByDay
     }
-    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters }
+    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters, groupByDay }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         columns = c.lenient([PluginRowsColumn].self, .columns) ?? []
@@ -474,6 +525,7 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
         actions = (c.lenient([PluginLossy<PluginViewAction>].self, .actions) ?? []).compactMap(\.value)
         emptyText = c.lenient(String.self, .emptyText)
         filters = c.lenient([String].self, .filters)
+        groupByDay = c.lenient(Bool.self, .groupByDay) ?? false
     }
 }
 
@@ -490,6 +542,16 @@ public enum PluginBlock: Codable, Equatable, Sendable {
     case divider
     case note(PluginNoteBlock)
     case rows(PluginRowsBlock)
+    case section(PluginSectionBlock)
+    case stats(PluginStatsBlock)
+    case chart(PluginChartBlock)
+    case image(PluginImageBlock)
+    case qr(PluginQrBlock)
+    case hero(PluginHeroBlock)
+    case steps(PluginStepsBlock)
+    case banner(PluginBannerBlock)
+    case timeline(PluginTimelineBlock)
+    case protectedMedia(PluginProtectedMediaBlock)
 
     public var kind: String {
         switch self {
@@ -504,6 +566,16 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .divider: return "divider"
         case .note: return "note"
         case .rows: return "rows"
+        case .section: return "section"
+        case .stats: return "stats"
+        case .chart: return "chart"
+        case .image: return "image"
+        case .qr: return "qr"
+        case .hero: return "hero"
+        case .steps: return "steps"
+        case .banner: return "banner"
+        case .timeline: return "timeline"
+        case .protectedMedia: return "protected-media"
         }
     }
 
@@ -523,6 +595,16 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case "divider": self = .divider
         case "note": self = .note(try PluginNoteBlock(from: decoder))
         case "rows": self = .rows(try PluginRowsBlock(from: decoder))
+        case "section": self = .section(try PluginSectionBlock(from: decoder))
+        case "stats": self = .stats(try PluginStatsBlock(from: decoder))
+        case "chart": self = .chart(try PluginChartBlock(from: decoder))
+        case "image": self = .image(try PluginImageBlock(from: decoder))
+        case "qr": self = .qr(try PluginQrBlock(from: decoder))
+        case "hero": self = .hero(try PluginHeroBlock(from: decoder))
+        case "steps": self = .steps(try PluginStepsBlock(from: decoder))
+        case "banner": self = .banner(try PluginBannerBlock(from: decoder))
+        case "timeline": self = .timeline(try PluginTimelineBlock(from: decoder))
+        case "protected-media": self = .protectedMedia(try PluginProtectedMediaBlock(from: decoder))
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "block kind \(kind)"))
         }
@@ -543,13 +625,28 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .divider: break
         case .note(let block): try block.encode(to: encoder)
         case .rows(let block): try block.encode(to: encoder)
+        case .section(let block): try block.encode(to: encoder)
+        case .stats(let block): try block.encode(to: encoder)
+        case .chart(let block): try block.encode(to: encoder)
+        case .image(let block): try block.encode(to: encoder)
+        case .qr(let block): try block.encode(to: encoder)
+        case .hero(let block): try block.encode(to: encoder)
+        case .steps(let block): try block.encode(to: encoder)
+        case .banner(let block): try block.encode(to: encoder)
+        case .timeline(let block): try block.encode(to: encoder)
+        case .protectedMedia(let block): try block.encode(to: encoder)
         }
     }
 }
 
 /// Form input kinds (UiInput).
 public enum PluginInputKind: String, Codable, Sendable, CaseIterable {
-    case text, password, textarea, number, toggle, select, datetime, options, members, file
+    case text, password, textarea, number, toggle, select, datetime, options, members, file, money, image, document
+    /// A one-time location the engine writes when the page's locationOnce action completes (``PluginLocationValue``).
+    case location
+
+    /// Inputs whose value is an uploaded file's `{fileId}`, uploaded through `file`: file, image and document.
+    public var isUpload: Bool { self == .file || self == .image || self == .document }
 }
 
 public struct PluginInputCondition: Codable, Equatable, Sendable {
@@ -605,19 +702,28 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
     public let defaultValue: PluginJSONValue?
     /// select only.
     public let choices: [PluginInputChoice]?
+    /// file, image and document: what may be uploaded and how.
     public let file: PluginFileInput?
+    /// money only: the currency, scale and bounds the core SDK read.
+    public let money: PluginMoneyRules?
+    /// document only: which side of the document it captures.
+    public let side: PluginDocumentSide?
+    /// location only: how precise a fix it takes.
+    public let precision: PluginLocationPrecision?
     public let showWhen: PluginInputCondition?
 
     public init(id: String, kind: PluginInputKind, label: String, required: Bool = false, placeholder: String? = nil,
                 maxLength: Int? = nil, min: Double? = nil, max: Double? = nil, defaultValue: PluginJSONValue? = nil,
-                choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, showWhen: PluginInputCondition? = nil) {
+                choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, money: PluginMoneyRules? = nil,
+                side: PluginDocumentSide? = nil, showWhen: PluginInputCondition? = nil,
+                precision: PluginLocationPrecision? = nil) {
         self.id = id; self.kind = kind; self.label = label; self.required = required; self.placeholder = placeholder
         self.maxLength = maxLength; self.min = min; self.max = max; self.defaultValue = defaultValue; self.choices = choices
-        self.file = file; self.showWhen = showWhen
+        self.file = file; self.money = money; self.side = side; self.showWhen = showWhen; self.precision = precision
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, showWhen
+        case id, kind, label, required, placeholder, maxLength, min, max, choices, file, money, side, showWhen, precision
         case defaultValue = "default"
     }
 
@@ -634,9 +740,18 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
         defaultValue = c.lenient(PluginJSONValue.self, .defaultValue)
         choices = c.lenient([PluginInputChoice].self, .choices)
         file = try c.decodeIfPresent(PluginFileInput.self, forKey: .file)
+        money = try c.decodeIfPresent(PluginMoneyRules.self, forKey: .money)
+        side = try c.decodeIfPresent(PluginDocumentSide.self, forKey: .side)
+        precision = try c.decodeIfPresent(PluginLocationPrecision.self, forKey: .precision)
         showWhen = try c.decodeIfPresent(PluginInputCondition.self, forKey: .showWhen)
-        if kind == .file && file?.valid != true {
+        if kind.isUpload && file?.valid != true {
             throw DecodingError.dataCorruptedError(forKey: .file, in: c, debugDescription: "Invalid file policy")
+        }
+        if kind == .location && precision == nil {
+            throw DecodingError.dataCorruptedError(forKey: .precision, in: c, debugDescription: "Missing precision")
+        }
+        if kind == .money && money == nil {
+            throw DecodingError.dataCorruptedError(forKey: .money, in: c, debugDescription: "Missing money rules")
         }
     }
 }
@@ -764,6 +879,9 @@ public enum PluginUnavailableReason: String, Codable, Sendable, CaseIterable {
     case catalogUnreachable = "catalog_unreachable"
     /// A forged or forwarded copy of a card: drawn read-only (the core SDK has already stripped its actions).
     case unboundCopy = "unbound_copy"
+    /// This build cannot draw it; the view's `minBuild` names the first one that can, when the plugin declared one
+    /// (``FlarePluginUpgradeNotice``).
+    case upgradeRequired = "upgrade_required"
 }
 
 /// A resolved plugin view (core SDK `ResolvedPluginView`). v1 cards (title, fields, actions) decode unchanged.
@@ -794,11 +912,16 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     public let menuActions: [PluginViewAction]
     /// Why the view is unavailable (`available` false) or a read-only copy (``PluginUnavailableReason/unboundCopy``).
     public let unavailableReason: PluginUnavailableReason?
+    /// ``PluginUnavailableReason/upgradeRequired``: the first build that draws it, when the plugin declared one; the
+    /// host asks `update.plugin_upgrade_status` with it.
+    public let minBuild: Int64?
 
     public init(available: Bool, title: String, fields: [PluginViewField] = [], actions: [PluginViewAction] = [],
                 blocks: [PluginBlock] = [], inputs: [PluginInput] = [], detail: Bool = false, nextCursor: String? = nil,
-                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil, presentation: PluginPresentation? = nil) {
+                menuActions: [PluginViewAction] = [], unavailableReason: PluginUnavailableReason? = nil, presentation: PluginPresentation? = nil,
+                minBuild: Int64? = nil) {
         self.presentation = presentation
+        self.minBuild = minBuild
         self.available = available; self.title = title; self.fields = fields; self.actions = actions
         self.blocks = blocks; self.inputs = inputs; self.detail = detail; self.nextCursor = nextCursor
         self.menuActions = menuActions; self.unavailableReason = unavailableReason
@@ -807,8 +930,12 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
     /// A forwarded or forged copy: its content draws, nothing on it acts.
     public var readOnly: Bool { unavailableReason == .unboundCopy }
 
+    /// This build cannot draw it: the kit shows ``FlarePluginUpgradeNotice`` instead.
+    public var upgradeRequired: Bool { !available && unavailableReason == .upgradeRequired }
+
     private enum CodingKeys: String, CodingKey {
         case available, title, fields, actions, blocks, inputs, detail, nextCursor, menuActions, unavailableReason, presentation
+        case minBuild
     }
 
     public init(from decoder: Decoder) throws {
@@ -827,6 +954,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         }
         menuActions = (c.lenient([PluginLossy<PluginViewAction>].self, .menuActions) ?? []).compactMap(\.value)
         unavailableReason = c.lenient(PluginUnavailableReason.self, .unavailableReason)
+        minBuild = flarePluginWhole(c.lenient(Double.self, .minBuild))
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -842,6 +970,7 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
         if !menuActions.isEmpty { try c.encode(menuActions, forKey: .menuActions) }
         try c.encodeIfPresent(presentation, forKey: .presentation)
         try c.encodeIfPresent(unavailableReason, forKey: .unavailableReason)
+        try c.encodeIfPresent(minBuild, forKey: .minBuild)
     }
 
     /// The inputs an action's form collects, in the order of `action.form`; ids the view does not hold are dropped.
@@ -860,6 +989,33 @@ public struct PluginViewModel: Codable, Equatable, Sendable {
 struct PluginLossy<T: Decodable>: Decodable {
     let value: T?
     init(from decoder: Decoder) throws { value = try? T(from: decoder) }
+}
+
+/// The widest instant every kit can draw (ECMAScript `Date` range, spec rules.instant): later or earlier plugin data is
+/// treated as absent instead of trapping the host.
+let flarePluginInstantLimitMs: Double = 8_640_000_000_000_000
+
+/// A plugin instant (ms since the epoch) as an exact `Int64`, or nil when it is not finite or outside
+/// ±``flarePluginInstantLimitMs``.
+func flarePluginInstant(_ value: Double?) -> Int64? {
+    guard let value, value.isFinite, abs(value) <= flarePluginInstantLimitMs else { return nil }
+    return Int64(exactly: value.rounded(.towardZero))
+}
+
+/// A non-negative whole number (a build) as an exact `Int64`, or nil when it is negative, not finite or too large.
+func flarePluginWhole(_ value: Double?) -> Int64? {
+    guard let value, value.isFinite, value >= 0 else { return nil }
+    return Int64(exactly: value.rounded(.towardZero))
+}
+
+/// The longest single sleep of a ticking view (a day); it wakes, re-reads the clock and sleeps again, so a far-future
+/// instant never overflows the nanosecond count.
+let flarePluginMaxSleepMs: Int64 = 86_400_000
+
+/// Sleeps `ms` milliseconds, at most ``flarePluginMaxSleepMs``.
+func flarePluginSleep(ms: Int64) async {
+    let bounded = UInt64(max(0, min(ms, flarePluginMaxSleepMs)))
+    try? await Task.sleep(nanoseconds: bounded * 1_000_000)
 }
 
 extension KeyedDecodingContainer {

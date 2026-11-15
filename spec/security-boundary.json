@@ -147,10 +147,12 @@
     "packages/vue-im-ui/src/components/messages/MessagesView/views/LinkCardView.vue": "safeExternalUrl",
     "packages/vue-im-ui/src/components/messages/standalone/FlareLocationMessage.vue": "flareLocationMapLinks: built from a range-checked latitude and longitude and a percent-encoded title (spec/location-vectors.json)",
     "packages/vue-im-ui/src/components/messages/standalone/FlareRichDocRuns.vue": "safeExternalUrl",
-    "packages/vue-im-ui/src/components/layout/FlareAdaptiveNavigation.vue": "safeNavigationHref — the host's own navigation: a same-origin path, a hash route or a query as written, otherwise an http/https URL through safeExternalUrl; a refused href draws a button"
+    "packages/vue-im-ui/src/components/layout/FlareAdaptiveNavigation.vue": "safeNavigationHref — the host's own navigation: a same-origin path, a hash route or a query as written, otherwise an http/https URL through safeExternalUrl; a refused href draws a button",
+    "packages/vue-im-ui/src/components/messages/plugin/PluginProtectedMediaBlock.vue": "flarePluginProtectedMediaSource: https grant addresses, data:image, same-origin blob: and Tauri asset addresses only (spec/plugin-view-vectors.json protectedMediaSource)"
   },
   "scriptedNavigation": {
     "note": "Kit modules that create an anchor, assign an href or open a window from script. The value names the function that gates the URL; the module must call it.",
-    "packages/vue-im-ui/src/utils/browserDownload.ts": "downloadableHref (http/https, page-relative paths, same-origin blobs)"
+    "packages/vue-im-ui/src/utils/browserDownload.ts": "downloadableHref (http/https, page-relative paths, same-origin blobs)",
+    "packages/vue-im-ui/src/components/plugin/FlarePluginBundleHost.vue": "flarePluginBundleExternalUrl (https only, after the kit's confirmation)"
   }
 }

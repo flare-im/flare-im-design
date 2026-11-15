@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.time.Instant
@@ -43,7 +45,10 @@ import java.util.UUID
  *
  * Controls: text and textarea with "n/max"; number; toggle ([Switch]); select as a single-choice list ([RadioGroup]);
  * datetime with the kit [DatePicker] and [TimePicker] in the device zone; options as rows with add and remove within
- * [max(min, 1), max]; members through [ContactPicker] over the host's [members] (one pick when max is 1).
+ * [max(min, 1), max]; members through [ContactPicker] over the host's [members] (one pick when max is 1); money as an
+ * amount field with its currency (submitted as `{amount, currency}`, the amount normalised and checked against the
+ * scale and bounds); file, image and document through the upload slot (the host picks, captures and uploads on
+ * [PluginFileAction]; image asks to choose a picture, document to capture its side).
  */
 @Composable
 fun PluginForm(
@@ -64,13 +69,19 @@ fun PluginForm(
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
     onCancel: (() -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** A page action's native target writing into one of these inputs: it runs through that input's key. */
+    nativeRequest: PluginNativeIntoRequest? = null,
 ) {
     val strings = flareStrings()
     var form by remember(inputs, values) { mutableStateOf(PluginFormState.initial(inputs, values)) }
     val fileScope = remember(inputs, values) { UUID.randomUUID().toString() }
-    var fileGenerations by remember(fileScope) { mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { it.id to 0 }) }
+    var fileGenerations by remember(fileScope) { mutableStateOf(inputs.filter { it.kind.isUpload }.associate { it.id to 0 }) }
     var localFiles by remember(fileScope) {
-        mutableStateOf(inputs.filter { it.kind == PluginInputKind.File }.associate { input ->
+        mutableStateOf(inputs.filter { it.kind.isUpload }.associate { input ->
             val value = pluginFileReference(form.draft[input.id])
             input.id to PluginFileState(fileScope, 0, if (value == null) PluginFilePhase.Empty else PluginFilePhase.Uploaded, value)
         })
@@ -80,14 +91,14 @@ fun PluginForm(
     val disposalDraft by rememberUpdatedState(form.draft)
     DisposableEffect(fileScope) {
         onDispose {
-            inputs.filter { it.kind == PluginInputKind.File }.forEach { input ->
+            inputs.filter { it.kind.isUpload }.forEach { input ->
                 fileCallback?.invoke(PluginFileAction(PluginFileActionKind.Invalidate, input.id, input, fileScope,
                     (disposalFiles[input.id] ?: 0) + 1, PluginFormRules.values(inputs, disposalDraft) - input.id))
             }
         }
     }
     LaunchedEffect(fileScope, fileStates) {
-        inputs.filter { it.kind == PluginInputKind.File && it.visibleIn(form.draft) }.forEach { input ->
+        inputs.filter { it.kind.isUpload && it.visibleIn(form.draft) }.forEach { input ->
             pluginFileCurrent(fileStates[input.id], fileScope, fileGenerations[input.id] ?: 0)?.let { state ->
                 localFiles = localFiles + (input.id to state)
                 val reference = if (state.phase == PluginFilePhase.Uploaded) pluginFileReference(state.value) else null
@@ -140,7 +151,7 @@ fun PluginForm(
     fun set(id: String, value: Any?) {
         val changed = form.draft[id] != value
         form = form.set(id, value, inputs)
-        if (changed) inputs.filter { it.showWhen?.field == id && it.kind == PluginInputKind.File }
+        if (changed) inputs.filter { it.showWhen?.field == id && it.kind.isUpload }
             .forEach { fileAction(it, PluginFileActionKind.Invalidate) }
         if (changed) {
             val dependentIds = inputs.filter { it.showWhen?.field == id }.map { it.id }.toSet()
@@ -149,6 +160,33 @@ fun PluginForm(
         }
     }
     fun errorText(input: PluginInput) = form.errorText(input, errors, strings)
+    // The host's fix is the input's value; one of another precision is never taken.
+    LaunchedEffect(form.draft.keys, locationStates) {
+        inputs.filter { it.kind == PluginInputKind.Location && it.visibleIn(form.draft) }.forEach { input ->
+            val fix = PluginLocationValue.read(locationStates[input.id]?.value, input.precision) ?: return@forEach
+            if (PluginLocationValue.read(form.draft[input.id], input.precision) != fix) set(input.id, fix.toMap())
+        }
+    }
+    fun locationAction(input: PluginInput, kind: PluginLocationActionKind) {
+        if (busy || !input.visibleIn(form.draft)) return
+        if (kind == PluginLocationActionKind.Clear) set(input.id, null)
+        else if (locationStates[input.id]?.locating == true) return
+        onLocationAction?.invoke(PluginLocationAction(kind, input.id, input, PluginFormRules.values(inputs, form.draft)))
+    }
+    // A page action's native target writing `into` one of these inputs runs through that input's own key, so the host
+    // gets this form's scope with it and its answer lands here, even before the viewer touched the input.
+    LaunchedEffect(nativeRequest) {
+        val target = nativeRequest?.target ?: return@LaunchedEffect
+        if (busy) return@LaunchedEffect
+        val input = inputs.firstOrNull { it.visibleIn(form.draft) && pluginNativeIntoKey(target, it) != null }
+            ?: return@LaunchedEffect
+        if (pluginNativeIntoKey(target, input) == "location") {
+            if (onLocationAction != null) locationAction(input, PluginLocationActionKind.Locate)
+        } else if (fileCallback != null) {
+            val phase = localFiles[input.id]?.phase ?: PluginFilePhase.Empty
+            fileAction(input, if (phase == PluginFilePhase.Empty) PluginFileActionKind.Choose else PluginFileActionKind.Replace)
+        }
+    }
 
     Column(
         Modifier.fillMaxWidth().padding(horizontal = if (embedded) 0.dp else FlareSizes.spacingLg, vertical = if (embedded) 0.dp else FlareSizes.spacingMd),
@@ -219,7 +257,21 @@ fun PluginForm(
                     Button(label = strings.select, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm, icon = "person-add",
                         disabled = busy || (onMemberSearch == null && members.isEmpty()), onClick = { pickingRevision = membersRevision; picking = input; onMemberSearch?.invoke("") })
                 }
-                PluginInputKind.File -> FormField(input.label, input.required, null, errorText(input)) {
+                PluginInputKind.Money -> FormField(input.label, input.required, input.money?.currency, errorText(input)) {
+                    // A money amount is digits and one point: the decimal keyboard, or digits only at scale 0. The
+                    // locale's decimal separator is kept as "." (spec moneyInput.typed).
+                    Input(value = form.draft[input.id] as? String ?: "", onValueChange = {
+                        set(input.id, PluginMoneyInputRules.typed(it, java.text.DecimalFormatSymbols.getInstance().decimalSeparator.toString()))
+                    },
+                        placeholder = input.placeholder, disabled = busy || input.money?.currency == null,
+                        inputMode = if (input.money?.effectiveScale == 0) FlareInputMode.Numeric else FlareInputMode.Decimal)
+                }
+                PluginInputKind.Location -> FormField(input.label, input.required, null, locationStates[input.id]?.error ?: errorText(input)) {
+                    PluginLocationField(input, form.draft[input.id], locationStates[input.id], busy, onLocationAction != null) {
+                        locationAction(input, it)
+                    }
+                }
+                PluginInputKind.File, PluginInputKind.Image, PluginInputKind.Document -> FormField(input.label, input.required, null, errorText(input)) {
                     val state = localFiles[input.id] ?: PluginFileState(fileScope, fileGenerations[input.id] ?: 0, PluginFilePhase.Empty)
                     PluginFileInput(input, state, busy || fileCallback == null) { kind -> fileAction(input, kind) }
                 }
@@ -233,9 +285,9 @@ fun PluginForm(
             }
             Box(Modifier.weight(1f)) {
                 Button(label = submitLabel ?: strings.pluginViewSubmit, loading = busy,
-                    disabled = onSubmit == null || inputs.any { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }, block = true,
+                    disabled = onSubmit == null || inputs.any { it.visibleIn(form.draft) && it.kind.isUpload && pluginFilePending(localFiles[it.id]) }, block = true,
                     onClick = {
-                        if (!busy && inputs.none { it.visibleIn(form.draft) && it.kind == PluginInputKind.File && pluginFilePending(localFiles[it.id]) }) {
+                        if (!busy && inputs.none { it.visibleIn(form.draft) && it.kind.isUpload && pluginFilePending(localFiles[it.id]) }) {
                             val (next, submitted) = form.submit(inputs)
                             form = next
                             if (submitted != null) { inputs.filter { it.kind == PluginInputKind.Password }.forEach { set(it.id, "") }; onSubmit?.invoke(submitted) }
@@ -307,4 +359,46 @@ internal fun pluginDateTimeMs(parts: Pair<String, String>, zone: ZoneId = ZoneId
     val date = runCatching { LocalDate.parse(parts.first) }.getOrNull() ?: return null
     val time = runCatching { LocalTime.parse(parts.second) }.getOrNull() ?: return null
     return LocalDateTime.of(date, time).atZone(zone).toInstant().toEpochMilli()
+}
+
+/** A location input: the fix (place, precision and accuracy) or "no location yet", and its locate and clear keys. */
+@Composable
+internal fun PluginLocationField(
+    input: PluginInput,
+    draft: Any?,
+    state: PluginLocationState?,
+    busy: Boolean,
+    enabled: Boolean,
+    onAction: (PluginLocationActionKind) -> Unit,
+) {
+    val colors = flareColors()
+    val strings = flareStrings()
+    val fix = PluginLocationValue.read(draft, input.precision)
+    val locating = state?.locating == true
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+    ) {
+        FlareIcon("location")
+        Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+            when {
+                locating -> Text(strings.pluginLocationLocating, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
+                fix != null -> {
+                    Text(fix.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg,
+                        modifier = Modifier.testTag("plugin-location-${input.id}-place"))
+                    Text("${if (fix.precision == PluginLocationPrecision.Fine) strings.pluginLocationFine else strings.pluginLocationCoarse} · " +
+                        strings.pluginLocationAccuracy.replace("{m}", fix.accuracyM.toString()),
+                        color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
+                }
+                else -> Text(strings.pluginLocationEmpty, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd,
+                    modifier = Modifier.testTag("plugin-location-${input.id}-empty"))
+            }
+        }
+        if (fix != null && !locating) Button(label = strings.pluginLocationClear, variant = FlareButtonVariant.Quiet,
+            size = FlareControlSize.Sm, disabled = busy, onClick = { onAction(PluginLocationActionKind.Clear) })
+        Button(label = if (fix == null) strings.pluginLocationLocate else strings.pluginLocationRelocate,
+            variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm, loading = locating, disabled = busy || !enabled,
+            onClick = { onAction(PluginLocationActionKind.Locate) })
+    }
 }

@@ -44,6 +44,7 @@ void main() {
             expect(got.label, want['label'], reason: want['key'] as String);
             expect(got.icon, want['icon'], reason: want['key'] as String);
             expect(got.detail, want['detail'], reason: want['key'] as String);
+            expect(got.tag, want['tag'], reason: want['key'] as String);
             expect(got.kind, FlareSettingKind.navigation);
           }
         }

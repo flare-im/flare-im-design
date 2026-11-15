@@ -22,6 +22,9 @@ import SwiftUI
 ///   confirmation and form — calls `onAction(id, payload)` with the page, the view's `data`, and the row, selection
 ///   or form values it carries: the core SDK's page action request, which the host passes on as it is (a page target
 ///   opens the next page with the outcome's payload as its arguments).
+/// - Upgrade required (``PluginUnavailableReason/upgradeRequired``): the whole page is ``FlarePluginUpgradeNotice``
+///   (page) with the page's title, the update key when `upgradeStatus` says a build is offered and `onUpdate` is set.
+/// - Image and QR blocks: `resolveImage` and `onQrRefresh` go to the view (``PluginView``).
 /// - Paging: `onLoadMore(cursor)` asks for the next page; the host passes back the merged view from the core SDK
 ///   (the new rows and entries after the shown ones, data kept). The kit merges nothing.
 ///
@@ -65,6 +68,15 @@ public struct FlarePluginPage: View {
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginPageActionPayload) -> Void)?
     private var appearance: FlarePluginPageAppearance = .document
+    private var upgradeStatus: PluginUpgradeStatus?
+    private var upgradeBusy = false
+    private var onUpdate: (() -> Void)?
+    private var resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
+    private var onQrRefresh: ((PluginQrRefresh) -> Void)?
+    private var locationStates: [String: PluginLocationState] = [:]
+    private var onLocationAction: ((PluginLocationAction) -> Void)?
+    private var protectedMedia: [String: PluginProtectedMediaState] = [:]
+    private var onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?
     private let contentMaxWidth: CGFloat?
     private let clock: PluginViewClock
     /// The cursor asked for and not answered yet.
@@ -81,6 +93,13 @@ public struct FlarePluginPage: View {
     ///   - view: The core SDK's `pluginPage` result; nil while the first load runs. After `onLoadMore` pass the merged
     ///     view, after a refresh or a filter change the one read again.
     ///   - filters: The filter values applied, by input id (what the host passed to `pluginPage` as filters).
+    ///   - locationStates: Location inputs: the host's fix, a running locate or a failure, by input id.
+    ///   - onLocationAction: A location input's locate or clear key: the host runs the page's locationOnce action into
+    ///     the input and passes its fix back in `locationStates`; on clear it drops that input's state.
+    ///   - protectedMedia: What the host has for each protected media item, by item id: the read's address (the
+    ///     server's https grant address), a running read or a failure.
+    ///   - onProtectedMediaRead: A protected media read (with its reason when the block asks one): the host runs and
+    ///     audits it, then fills `protectedMedia` with ``FlarePluginProtectedMedia/url(result:urlPath:)``.
     public init(page: PluginPageRef, title: String? = nil, view: PluginPageViewModel? = nil,
                 filters: [String: PluginJSONValue] = [:], loading: Bool = false, error: String? = nil,
                 refreshing: Bool = false, loadingMore: Bool = false, pagingToken: Int = 0,
@@ -96,7 +115,14 @@ public struct FlarePluginPage: View {
                 contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth,
                 providerName: String? = nil, visible: Bool = true,
                 encodeQr: (@Sendable (String) async throws -> String)? = nil,
-                onSurfaceHints: ((FlareScanSurfaceHints) -> Void)? = nil) {
+                onSurfaceHints: ((FlareScanSurfaceHints) -> Void)? = nil,
+                upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
+                resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                protectedMedia: [String: PluginProtectedMediaState] = [:],
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
@@ -104,6 +130,10 @@ public struct FlarePluginPage: View {
                   onLoadMore: onLoadMore, onFilter: onFilter, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, clock: .system, contentMaxWidth: contentMaxWidth)
         self.appearance = appearance
         self.providerName = providerName; self.visible = visible; self.encodeQr = encodeQr; self.onSurfaceHints = onSurfaceHints
+        self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
+        self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
+        self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -250,7 +280,11 @@ public struct FlarePluginPage: View {
             }
             .frame(maxWidth: .infinity)
         case .unavailable:
-            if let view {
+            if let view, view.view.upgradeRequired {
+                FlarePluginUpgradeNotice(variant: .page, title: Self.heading(view: view, title: title),
+                                         status: upgradeStatus, busy: upgradeBusy, onUpdate: onUpdate)
+                    .frame(maxWidth: .infinity)
+            } else if let view {
                 EmptyStateView(title: PluginPageRules.unavailableText(view.view, strings), icon: "info",
                                actions: PluginPageRules.unavailableRetry(view.view) ? AnyView(retryKey) : nil)
                     .frame(maxWidth: .infinity)
@@ -268,7 +302,7 @@ public struct FlarePluginPage: View {
                         FlarePluginQrView(token: presentation.props["token"]?.stringValue, ttlMs: presentation.props["ttlMs"]?.numberValue, caption: presentation.props["caption"]?.stringValue, encodeQr: encodeQr)
                     }
                     filterRows(view.view)
-                    if appearance == .account || view.view.presentation?.renderer == "account" {
+                    if appearance == .account {
                         FlareAccountView(view: view.view, busyActionId: busyActionId, error: actionError,
                                          formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  settleToken: settleToken,
                                          fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view))
@@ -277,7 +311,10 @@ public struct FlarePluginPage: View {
                     PluginView(view: view.view, icon: nil, viewerId: viewerId, busy: false, busyActionId: busyActionId,
                                error: actionError, embedded: true, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                                formErrors: formErrors, settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view),
-                               onOpenDetail: nil, clock: clock, users: [:])
+                               onOpenDetail: nil, clock: clock, users: [:], resolveImage: resolveImage,
+                               onQrRefresh: onQrRefresh)
+                        .hostCapabilities(locationStates: locationStates, onLocationAction: onLocationAction,
+                                          protectedMedia: protectedMedia, onProtectedMediaRead: onProtectedMediaRead)
                     }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
                 }

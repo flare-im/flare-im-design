@@ -63,6 +63,15 @@ describe("protected media", () => {
     expect(flarePluginProtectedMediaSource("data:text/html,x")).toBeUndefined();
     expect(flarePluginProtectedMediaSource("http://private/1")).toBeUndefined();
   });
+  it("draws a Tauri host's local file address and nothing that only looks like one", () => {
+    for (const url of ["asset://localhost/%2FUsers%2Fa%2Fp.png", "http://asset.localhost/C%3A%5Cp.png", "https://asset.localhost/p.png"]) {
+      expect(flarePluginProtectedMediaSource(url), url).toBe(url);
+    }
+    for (const url of ["asset://evil.example/p.png", "http://asset.localhost.evil.example/p.png", "http://asset.localhost:8080/p.png",
+      "http://user@asset.localhost/p.png", "asset://localhost:1/p.png", "tauri://localhost/p.png", "asset:/p.png"]) {
+      expect(flarePluginProtectedMediaSource(url), url).toBeUndefined();
+    }
+  });
 
   it("reads the address from the action's result", () => {
     expect(flarePluginProtectedMediaUrl({ grant: { readUrl: "https://x" } }, "/grant/readUrl")).toBe("https://x");

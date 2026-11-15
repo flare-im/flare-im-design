@@ -11,7 +11,10 @@ import SwiftUI
 ///
 /// Controls: text and textarea with "n/max"; number; toggle (``SwitchView``); select as a single-choice list
 /// (``RadioGroupView``); datetime with the platform's date and time picker; options as rows with add and remove within
-/// [max(min, 1), max]; members through ``ContactPickerView`` over the host's `members` (one pick when max is 1).
+/// [max(min, 1), max]; members through ``ContactPickerView`` over the host's `members` (one pick when max is 1); money
+/// as an amount field with its currency (decimal keypad; submitted as `{amount, currency}`, the amount normalised and
+/// checked against the scale and bounds); file, image and document through the upload slot (the host picks, captures
+/// and uploads on ``PluginFileAction``; image asks to choose a picture, document to capture its side).
 public struct PluginFormView: View {
     private let embedded: Bool
     private let inputs: [PluginInput]
@@ -30,6 +33,9 @@ public struct PluginFormView: View {
     private let onCancel: (() -> Void)?
     private let fileStates: [String: PluginFileState]
     private let onFileAction: ((PluginFileAction) -> Void)?
+    private let locationStates: [String: PluginLocationState]
+    private let onLocationAction: ((PluginLocationAction) -> Void)?
+    private let nativeRequest: PluginNativeIntoRequest?
     @State private var form: PluginFormState
     @State private var numberText: [String: String]
     @State private var picking: PluginInput?
@@ -43,8 +49,14 @@ public struct PluginFormView: View {
                 submitLabel: String? = nil, busy: Bool = false, error: String? = nil, members: [PluginMember] = [], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
                 embedded: Bool = false, fileStates: [String: PluginFileState] = [:],
-                onFileAction: ((PluginFileAction) -> Void)? = nil, onSubmit: (([String: PluginJSONValue]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+                onFileAction: ((PluginFileAction) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                nativeRequest: PluginNativeIntoRequest? = nil,
+                onSubmit: (([String: PluginJSONValue]) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.embedded = embedded
+        self.nativeRequest = nativeRequest
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
         self.fileStates = fileStates; self.onFileAction = onFileAction
         self.inputs = inputs; self.values = values; self.errors = errors; self.submitLabel = submitLabel
         self.busy = busy; self.error = error; self.members = members
@@ -93,6 +105,10 @@ public struct PluginFormView: View {
         }
         .onChange(of: errors) { _ in form.hostErrorsChanged() }
         .onChange(of: fileStates) { updates in form.acceptFiles(updates) }
+        .onChange(of: locationStates) { _ in applyLocations() }
+        .onChange(of: nativeRequest) { request in if let request { _ = nativeInto(request.target) } }
+        // A form sheet opened for a native request (its input sat in this closed form) runs it as it appears.
+        .onAppear { applyLocations(); if !embedded, let nativeRequest { _ = nativeInto(nativeRequest.target) } }
         .onDisappear { invalidateFiles() }
         .flareBottomSheet(item: $picking, title: picking?.label, titleHidden: true, size: .large, fill: true) { input in
             ContactPickerView(
@@ -183,17 +199,88 @@ public struct PluginFormView: View {
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 optionRows(input, colors)
             }
-        case .file:
+        case .file, .image, .document:
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 PluginFileUploadField(input: input, state: form.files[input.id], disabled: busy || onFileAction == nil) {
                     sendFile($0, input: input)
                 }
+            }
+        case .location:
+            FormFieldView(label: input.label, required: input.required,
+                          error: locationStates[input.id]?.error ?? errorText(input)) {
+                locationField(input, colors)
+            }
+        case .money:
+            FormFieldView(label: input.label, required: input.required, hint: input.money?.currency,
+                          error: errorText(input)) {
+                InputView(text: money(input), placeholder: input.placeholder ?? "", disabled: busy)
+                    .accessibilityLabel([input.label, input.money?.currency].compactMap { $0 }.joined(separator: ", "))
+                    .accessibilityIdentifier("plugin.form.\(input.id)")
+                    #if os(iOS)
+                    // Digits and one point; digits only when the amount has no fraction.
+                    .keyboardType(input.money?.effectiveScale == 0 ? .numberPad : .decimalPad)
+                    #endif
             }
         case .members:
             FormFieldView(label: input.label, required: input.required, error: errorText(input)) {
                 memberField(input, colors)
             }
         }
+    }
+
+    /// The host's fix is the input's value; one of another precision is never taken.
+    private func applyLocations() {
+        for input in PluginFormRules.visibleInputs(inputs, form.draft) where input.kind == .location {
+            guard let fix = PluginLocationValue.read(locationStates[input.id]?.value?.json, precision: input.precision),
+                  PluginLocationValue.read(form.draft[input.id], precision: input.precision) != fix else { continue }
+            set(input.id, fix.json)
+        }
+    }
+
+    private func locationAction(_ input: PluginInput, _ kind: PluginLocationAction.Kind) {
+        guard !busy, PluginFormRules.visibleInputs(inputs, form.draft).contains(where: { $0.id == input.id }) else { return }
+        if kind == .clear { set(input.id, .null) } else if locationStates[input.id]?.locating == true { return }
+        onLocationAction?(PluginLocationAction(action: kind, inputId: input.id, input: input,
+                                               formValues: PluginFormRules.values(inputs, form.draft)))
+    }
+
+    /// A location input: the fix (place, precision and accuracy) or "no location yet", and its locate and clear keys.
+    @ViewBuilder private func locationField(_ input: PluginInput, _ colors: FlareColors) -> some View {
+        let state = locationStates[input.id]
+        let fix = PluginLocationValue.read(form.draft[input.id], precision: input.precision)
+        let locating = state?.locating == true
+        HStack(spacing: FlareSizes.spacingSm) {
+            IconView("location")
+            VStack(alignment: .leading, spacing: 2) {
+                if locating {
+                    Text(strings.pluginLocationLocating).foregroundColor(colors.textSecondary)
+                        .font(.system(size: FlareSizes.fontSizeMd))
+                } else if let fix {
+                    Text(fix.text).font(.system(size: FlareSizes.fontSizeLg).monospacedDigit())
+                        .foregroundColor(colors.textPrimary)
+                        .accessibilityIdentifier("plugin.location.\(input.id).place")
+                    Text("\(fix.precision == .fine ? strings.pluginLocationFine : strings.pluginLocationCoarse) · "
+                         + strings.pluginLocationAccuracy.replacingOccurrences(of: "{m}", with: String(fix.accuracyM)))
+                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                } else {
+                    Text(strings.pluginLocationEmpty).font(.system(size: FlareSizes.fontSizeMd))
+                        .foregroundColor(colors.textSecondary)
+                        .accessibilityIdentifier("plugin.location.\(input.id).empty")
+                }
+            }
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: FlareSizes.spacingSm)
+            if fix != nil, !locating {
+                ButtonView(label: strings.pluginLocationClear, variant: .quiet, size: .sm, disabled: busy) {
+                    locationAction(input, .clear)
+                }
+            }
+            ButtonView(label: fix == nil ? strings.pluginLocationLocate : strings.pluginLocationRelocate,
+                       variant: .secondary, size: .sm, loading: locating,
+                       disabled: busy || onLocationAction == nil) { locationAction(input, .locate) }
+                .accessibilityIdentifier("plugin.location.\(input.id).locate")
+        }
+        .frame(minHeight: FlareSizes.touchTarget)
     }
 
     private func set(_ id: String, _ value: PluginJSONValue) {
@@ -206,17 +293,40 @@ public struct PluginFormView: View {
         for event in form.set(id, value) { onFileAction?(event) }
     }
 
+    /// A page action's native `target` writing `into` one of this form's inputs: run it through that input's own
+    /// key, so the host gets the form's scope with it and its answer lands in this form, even before the viewer
+    /// touched the input. False when no visible input here takes it or the host has no handler for that key.
+    @discardableResult private func nativeInto(_ target: PluginActionTarget) -> Bool {
+        guard !busy, let input = PluginFormRules.visibleInputs(inputs, form.draft)
+            .first(where: { PluginFormRules.nativeIntoKey(target, $0) != nil }) else { return false }
+        if PluginFormRules.nativeIntoKey(target, input) == "location" {
+            guard onLocationAction != nil else { return false }
+            locationAction(input, .locate)
+            return true
+        }
+        guard onFileAction != nil else { return false }
+        sendFile((form.files[input.id]?.phase ?? .empty) == .empty ? .choose : .replace, input: input)
+        return true
+    }
+
     private func sendFile(_ action: PluginFileActionKind, input: PluginInput) {
         guard !busy, onFileAction != nil else { return }
         onFileAction?(form.fileAction(action, input: input))
     }
 
     private func invalidateFiles() {
-        for input in inputs where input.kind == .file { onFileAction?(form.fileAction(.invalidate, input: input)) }
+        for input in inputs where input.kind.isUpload { onFileAction?(form.fileAction(.invalidate, input: input)) }
     }
 
     private func text(_ input: PluginInput) -> Binding<String> {
         Binding(get: { form.draft[input.id]?.stringValue ?? "" }, set: { set(input.id, .string($0)) })
+    }
+
+    /// A money field: the locale's decimal separator is kept as "." (spec moneyInput.typed).
+    private func money(_ input: PluginInput) -> Binding<String> {
+        Binding(get: { form.draft[input.id]?.stringValue ?? "" }, set: {
+            set(input.id, .string(PluginMoneyRulesCheck.typed($0, decimalSeparator: Locale.current.decimalSeparator ?? ".")))
+        })
     }
 
     private func number(_ input: PluginInput) -> Binding<String> {

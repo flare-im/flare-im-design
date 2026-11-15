@@ -847,6 +847,107 @@ extension FlareStrings {
         case "pluginViewUnavailableIncompatibleVersion": return self.pluginViewUnavailableIncompatibleVersion
         case "pluginViewUnavailableCatalogUnreachable": return self.pluginViewUnavailableCatalogUnreachable
         case "pluginViewUnavailableUnboundCopy": return self.pluginViewUnavailableUnboundCopy
+        case "pluginViewUnavailableUpgradeRequired": return self.pluginViewUnavailableUpgradeRequired
+        case "pluginUpgradeAction": return self.pluginUpgradeAction
+        case "pluginUpgradeNotAvailable": return self.pluginUpgradeNotAvailable
+        case "pluginUpgradeBadge": return self.pluginUpgradeBadge
+        case "pluginUpgradeTitle": return self.pluginUpgradeTitle
+        case "pluginUpgradeDescription": return self.pluginUpgradeDescription
+        case "pluginViewQrExpired": return self.pluginViewQrExpired
+        case "pluginViewQrRefresh": return self.pluginViewQrRefresh
+        case "pluginViewStepPending": return self.pluginViewStepPending
+        case "pluginViewStepCurrent": return self.pluginViewStepCurrent
+        case "pluginViewStepDone": return self.pluginViewStepDone
+        case "pluginViewStepFailed": return self.pluginViewStepFailed
+        case "pluginViewTrendUp": return self.pluginViewTrendUp
+        case "pluginViewTrendDown": return self.pluginViewTrendDown
+        case "pluginViewTrendFlat": return self.pluginViewTrendFlat
+        case "pluginViewImageUnavailable": return self.pluginViewImageUnavailable
+        case "pluginFormatSeconds": return self.pluginFormatSeconds
+        case "pluginFormatCountUnits": return self.pluginFormatCountUnits
+        case "pluginFormChooseImage": return self.pluginFormChooseImage
+        case "pluginFormCaptureDocument": return self.pluginFormCaptureDocument
+        case "pluginFormDocumentFront": return self.pluginFormDocumentFront
+        case "pluginFormDocumentBack": return self.pluginFormDocumentBack
+        case "pluginFormDocumentHolding": return self.pluginFormDocumentHolding
+        case "capabilityConsentTitle": return self.capabilityConsentTitle
+        case "capabilityConsentPurpose": return self.capabilityConsentPurpose
+        case "capabilityConsentAllowOnce": return self.capabilityConsentAllowOnce
+        case "capabilityConsentAllowAlways": return self.capabilityConsentAllowAlways
+        case "capabilityConsentDeny": return self.capabilityConsentDeny
+        case "capabilityConsentNote": return self.capabilityConsentNote
+        case "capabilityDocumentCapture": return self.capabilityDocumentCapture
+        case "capabilityPaymentConfirmation": return self.capabilityPaymentConfirmation
+        case "capabilityLocationCoarse": return self.capabilityLocationCoarse
+        case "capabilityLocationFine": return self.capabilityLocationFine
+        case "capabilityCamera": return self.capabilityCamera
+        case "capabilityMicrophone": return self.capabilityMicrophone
+        case "capabilityRtcSession": return self.capabilityRtcSession
+        case "capabilityGeneric": return self.capabilityGeneric
+        case "documentCaptureHintFront": return self.documentCaptureHintFront
+        case "documentCaptureHintBack": return self.documentCaptureHintBack
+        case "documentCaptureHintHolding": return self.documentCaptureHintHolding
+        case "documentCaptureShoot": return self.documentCaptureShoot
+        case "documentCaptureRetake": return self.documentCaptureRetake
+        case "documentCaptureUse": return self.documentCaptureUse
+        case "documentCaptureFromAlbum": return self.documentCaptureFromAlbum
+        case "documentCaptureProcessing": return self.documentCaptureProcessing
+        case "documentCaptureCameraUnavailable": return self.documentCaptureCameraUnavailable
+        case "documentCaptureTooLarge": return self.documentCaptureTooLarge
+        case "documentCaptureFailed": return self.documentCaptureFailed
+        case "documentCaptureNotAccepted": return self.documentCaptureNotAccepted
+        case "paymentConfirmationTitle": return self.paymentConfirmationTitle
+        case "paymentConfirmationPayee": return self.paymentConfirmationPayee
+        case "paymentConfirmationItem": return self.paymentConfirmationItem
+        case "paymentConfirmationOrder": return self.paymentConfirmationOrder
+        case "paymentConfirmationRequestedBy": return self.paymentConfirmationRequestedBy
+        case "paymentConfirmationExpiresIn": return self.paymentConfirmationExpiresIn
+        case "paymentConfirmationExpired": return self.paymentConfirmationExpired
+        case "paymentConfirmationInvalid": return self.paymentConfirmationInvalid
+        case "paymentConfirmationConfirm": return self.paymentConfirmationConfirm
+        case "paymentConfirmationVerifying": return self.paymentConfirmationVerifying
+        case "pluginProtectedMediaReason": return self.pluginProtectedMediaReason
+        case "pluginProtectedMediaNotice": return self.pluginProtectedMediaNotice
+        case "pluginProtectedMediaOwnNotice": return self.pluginProtectedMediaOwnNotice
+        case "pluginProtectedMediaView": return self.pluginProtectedMediaView
+        case "pluginProtectedMediaHide": return self.pluginProtectedMediaHide
+        case "pluginProtectedMediaUnavailable": return self.pluginProtectedMediaUnavailable
+        case "pluginProtectedMediaNotPreviewable": return self.pluginProtectedMediaNotPreviewable
+        case "pluginLocationLocate": return self.pluginLocationLocate
+        case "pluginLocationRelocate": return self.pluginLocationRelocate
+        case "pluginLocationClear": return self.pluginLocationClear
+        case "pluginLocationLocating": return self.pluginLocationLocating
+        case "pluginLocationEmpty": return self.pluginLocationEmpty
+        case "pluginLocationCoarse": return self.pluginLocationCoarse
+        case "pluginBundleOpening": return self.pluginBundleOpening
+        case "pluginBundleUnavailable": return self.pluginBundleUnavailable
+        case "pluginBundleCrashed": return self.pluginBundleCrashed
+        case "pluginBundleCrashedHint": return self.pluginBundleCrashedHint
+        case "pluginBundleReload": return self.pluginBundleReload
+        case "pluginBundleClosed": return self.pluginBundleClosed
+        case "pluginBundleExternalTitle": return self.pluginBundleExternalTitle
+        case "pluginBundleExternalMessage": return self.pluginBundleExternalMessage
+        case "pluginBundleExternalOpen": return self.pluginBundleExternalOpen
+        case "pluginBundleCopied": return self.pluginBundleCopied
+        case "pluginBridgeErrorInvalidEnvelope": return self.pluginBridgeErrorInvalidEnvelope
+        case "pluginBridgeErrorUnsupportedBridge": return self.pluginBridgeErrorUnsupportedBridge
+        case "pluginBridgeErrorNotReady": return self.pluginBridgeErrorNotReady
+        case "pluginBridgeErrorMethodNotFound": return self.pluginBridgeErrorMethodNotFound
+        case "pluginBridgeErrorInvalidParams": return self.pluginBridgeErrorInvalidParams
+        case "pluginBridgeErrorPayloadTooLarge": return self.pluginBridgeErrorPayloadTooLarge
+        case "pluginBridgeErrorPermissionDenied": return self.pluginBridgeErrorPermissionDenied
+        case "pluginBridgeErrorRateLimited": return self.pluginBridgeErrorRateLimited
+        case "pluginBridgeErrorCancelled": return self.pluginBridgeErrorCancelled
+        case "pluginBridgeErrorGestureRequired": return self.pluginBridgeErrorGestureRequired
+        case "pluginBridgeErrorQuotaExceeded": return self.pluginBridgeErrorQuotaExceeded
+        case "pluginBridgeErrorNotFound": return self.pluginBridgeErrorNotFound
+        case "pluginBridgeErrorUnavailable": return self.pluginBridgeErrorUnavailable
+        case "pluginBridgeErrorTimeout": return self.pluginBridgeErrorTimeout
+        case "pluginBridgeErrorOperationFailed": return self.pluginBridgeErrorOperationFailed
+        case "pluginBridgeErrorRevoked": return self.pluginBridgeErrorRevoked
+        case "pluginBridgeErrorInternal": return self.pluginBridgeErrorInternal
+        case "pluginLocationFine": return self.pluginLocationFine
+        case "pluginLocationAccuracy": return self.pluginLocationAccuracy
         case "pluginPageRefresh": return self.pluginPageRefresh
         case "pluginViewMaxSelections": return self.pluginViewMaxSelections
         case "pluginViewAll": return self.pluginViewAll
@@ -1823,6 +1924,107 @@ extension FlareStrings {
         case "pluginViewUnavailableIncompatibleVersion": self.pluginViewUnavailableIncompatibleVersion = value
         case "pluginViewUnavailableCatalogUnreachable": self.pluginViewUnavailableCatalogUnreachable = value
         case "pluginViewUnavailableUnboundCopy": self.pluginViewUnavailableUnboundCopy = value
+        case "pluginViewUnavailableUpgradeRequired": self.pluginViewUnavailableUpgradeRequired = value
+        case "pluginUpgradeAction": self.pluginUpgradeAction = value
+        case "pluginUpgradeNotAvailable": self.pluginUpgradeNotAvailable = value
+        case "pluginUpgradeBadge": self.pluginUpgradeBadge = value
+        case "pluginUpgradeTitle": self.pluginUpgradeTitle = value
+        case "pluginUpgradeDescription": self.pluginUpgradeDescription = value
+        case "pluginViewQrExpired": self.pluginViewQrExpired = value
+        case "pluginViewQrRefresh": self.pluginViewQrRefresh = value
+        case "pluginViewStepPending": self.pluginViewStepPending = value
+        case "pluginViewStepCurrent": self.pluginViewStepCurrent = value
+        case "pluginViewStepDone": self.pluginViewStepDone = value
+        case "pluginViewStepFailed": self.pluginViewStepFailed = value
+        case "pluginViewTrendUp": self.pluginViewTrendUp = value
+        case "pluginViewTrendDown": self.pluginViewTrendDown = value
+        case "pluginViewTrendFlat": self.pluginViewTrendFlat = value
+        case "pluginViewImageUnavailable": self.pluginViewImageUnavailable = value
+        case "pluginFormatSeconds": self.pluginFormatSeconds = value
+        case "pluginFormatCountUnits": self.pluginFormatCountUnits = value
+        case "pluginFormChooseImage": self.pluginFormChooseImage = value
+        case "pluginFormCaptureDocument": self.pluginFormCaptureDocument = value
+        case "pluginFormDocumentFront": self.pluginFormDocumentFront = value
+        case "pluginFormDocumentBack": self.pluginFormDocumentBack = value
+        case "pluginFormDocumentHolding": self.pluginFormDocumentHolding = value
+        case "capabilityConsentTitle": self.capabilityConsentTitle = value
+        case "capabilityConsentPurpose": self.capabilityConsentPurpose = value
+        case "capabilityConsentAllowOnce": self.capabilityConsentAllowOnce = value
+        case "capabilityConsentAllowAlways": self.capabilityConsentAllowAlways = value
+        case "capabilityConsentDeny": self.capabilityConsentDeny = value
+        case "capabilityConsentNote": self.capabilityConsentNote = value
+        case "capabilityDocumentCapture": self.capabilityDocumentCapture = value
+        case "capabilityPaymentConfirmation": self.capabilityPaymentConfirmation = value
+        case "capabilityLocationCoarse": self.capabilityLocationCoarse = value
+        case "capabilityLocationFine": self.capabilityLocationFine = value
+        case "capabilityCamera": self.capabilityCamera = value
+        case "capabilityMicrophone": self.capabilityMicrophone = value
+        case "capabilityRtcSession": self.capabilityRtcSession = value
+        case "capabilityGeneric": self.capabilityGeneric = value
+        case "documentCaptureHintFront": self.documentCaptureHintFront = value
+        case "documentCaptureHintBack": self.documentCaptureHintBack = value
+        case "documentCaptureHintHolding": self.documentCaptureHintHolding = value
+        case "documentCaptureShoot": self.documentCaptureShoot = value
+        case "documentCaptureRetake": self.documentCaptureRetake = value
+        case "documentCaptureUse": self.documentCaptureUse = value
+        case "documentCaptureFromAlbum": self.documentCaptureFromAlbum = value
+        case "documentCaptureProcessing": self.documentCaptureProcessing = value
+        case "documentCaptureCameraUnavailable": self.documentCaptureCameraUnavailable = value
+        case "documentCaptureTooLarge": self.documentCaptureTooLarge = value
+        case "documentCaptureFailed": self.documentCaptureFailed = value
+        case "documentCaptureNotAccepted": self.documentCaptureNotAccepted = value
+        case "paymentConfirmationTitle": self.paymentConfirmationTitle = value
+        case "paymentConfirmationPayee": self.paymentConfirmationPayee = value
+        case "paymentConfirmationItem": self.paymentConfirmationItem = value
+        case "paymentConfirmationOrder": self.paymentConfirmationOrder = value
+        case "paymentConfirmationRequestedBy": self.paymentConfirmationRequestedBy = value
+        case "paymentConfirmationExpiresIn": self.paymentConfirmationExpiresIn = value
+        case "paymentConfirmationExpired": self.paymentConfirmationExpired = value
+        case "paymentConfirmationInvalid": self.paymentConfirmationInvalid = value
+        case "paymentConfirmationConfirm": self.paymentConfirmationConfirm = value
+        case "paymentConfirmationVerifying": self.paymentConfirmationVerifying = value
+        case "pluginProtectedMediaReason": self.pluginProtectedMediaReason = value
+        case "pluginProtectedMediaNotice": self.pluginProtectedMediaNotice = value
+        case "pluginProtectedMediaOwnNotice": self.pluginProtectedMediaOwnNotice = value
+        case "pluginProtectedMediaView": self.pluginProtectedMediaView = value
+        case "pluginProtectedMediaHide": self.pluginProtectedMediaHide = value
+        case "pluginProtectedMediaUnavailable": self.pluginProtectedMediaUnavailable = value
+        case "pluginProtectedMediaNotPreviewable": self.pluginProtectedMediaNotPreviewable = value
+        case "pluginLocationLocate": self.pluginLocationLocate = value
+        case "pluginLocationRelocate": self.pluginLocationRelocate = value
+        case "pluginLocationClear": self.pluginLocationClear = value
+        case "pluginLocationLocating": self.pluginLocationLocating = value
+        case "pluginLocationEmpty": self.pluginLocationEmpty = value
+        case "pluginLocationCoarse": self.pluginLocationCoarse = value
+        case "pluginBundleOpening": self.pluginBundleOpening = value
+        case "pluginBundleUnavailable": self.pluginBundleUnavailable = value
+        case "pluginBundleCrashed": self.pluginBundleCrashed = value
+        case "pluginBundleCrashedHint": self.pluginBundleCrashedHint = value
+        case "pluginBundleReload": self.pluginBundleReload = value
+        case "pluginBundleClosed": self.pluginBundleClosed = value
+        case "pluginBundleExternalTitle": self.pluginBundleExternalTitle = value
+        case "pluginBundleExternalMessage": self.pluginBundleExternalMessage = value
+        case "pluginBundleExternalOpen": self.pluginBundleExternalOpen = value
+        case "pluginBundleCopied": self.pluginBundleCopied = value
+        case "pluginBridgeErrorInvalidEnvelope": self.pluginBridgeErrorInvalidEnvelope = value
+        case "pluginBridgeErrorUnsupportedBridge": self.pluginBridgeErrorUnsupportedBridge = value
+        case "pluginBridgeErrorNotReady": self.pluginBridgeErrorNotReady = value
+        case "pluginBridgeErrorMethodNotFound": self.pluginBridgeErrorMethodNotFound = value
+        case "pluginBridgeErrorInvalidParams": self.pluginBridgeErrorInvalidParams = value
+        case "pluginBridgeErrorPayloadTooLarge": self.pluginBridgeErrorPayloadTooLarge = value
+        case "pluginBridgeErrorPermissionDenied": self.pluginBridgeErrorPermissionDenied = value
+        case "pluginBridgeErrorRateLimited": self.pluginBridgeErrorRateLimited = value
+        case "pluginBridgeErrorCancelled": self.pluginBridgeErrorCancelled = value
+        case "pluginBridgeErrorGestureRequired": self.pluginBridgeErrorGestureRequired = value
+        case "pluginBridgeErrorQuotaExceeded": self.pluginBridgeErrorQuotaExceeded = value
+        case "pluginBridgeErrorNotFound": self.pluginBridgeErrorNotFound = value
+        case "pluginBridgeErrorUnavailable": self.pluginBridgeErrorUnavailable = value
+        case "pluginBridgeErrorTimeout": self.pluginBridgeErrorTimeout = value
+        case "pluginBridgeErrorOperationFailed": self.pluginBridgeErrorOperationFailed = value
+        case "pluginBridgeErrorRevoked": self.pluginBridgeErrorRevoked = value
+        case "pluginBridgeErrorInternal": self.pluginBridgeErrorInternal = value
+        case "pluginLocationFine": self.pluginLocationFine = value
+        case "pluginLocationAccuracy": self.pluginLocationAccuracy = value
         case "pluginPageRefresh": self.pluginPageRefresh = value
         case "pluginViewMaxSelections": self.pluginViewMaxSelections = value
         case "pluginViewAll": self.pluginViewAll = value
@@ -2015,6 +2217,9 @@ let flareColorKeys: Set<String> = [
     "warning",
     "warningText",
     "scrim",
+    "mediaStage",
+    "mediaOnStage",
+    "mediaStageShade",
     "avatarTintBlueBg",
     "avatarTintBlueFg",
     "avatarTintPurpleBg",
@@ -2036,6 +2241,12 @@ let flareColorKeys: Set<String> = [
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "chartSeries1",
+    "chartSeries2",
+    "chartSeries3",
+    "chartSeries4",
+    "chartSeries5",
+    "chartSeries6",
 ]
 
 extension FlareColors {
@@ -2099,6 +2310,9 @@ extension FlareColors {
             warning: values["warning"],
             warningText: values["warningText"],
             scrim: values["scrim"],
+            mediaStage: values["mediaStage"],
+            mediaOnStage: values["mediaOnStage"],
+            mediaStageShade: values["mediaStageShade"],
             avatarTintBlueBg: values["avatarTintBlueBg"],
             avatarTintBlueFg: values["avatarTintBlueFg"],
             avatarTintPurpleBg: values["avatarTintPurpleBg"],
@@ -2119,7 +2333,13 @@ extension FlareColors {
             redPacketOnSurface: values["redPacketOnSurface"],
             redPacketFadedInk: values["redPacketFadedInk"],
             redPacketFadedMixTarget: values["redPacketFadedMixTarget"],
-            redPacketAccent: values["redPacketAccent"]
+            redPacketAccent: values["redPacketAccent"],
+            chartSeries1: values["chartSeries1"],
+            chartSeries2: values["chartSeries2"],
+            chartSeries3: values["chartSeries3"],
+            chartSeries4: values["chartSeries4"],
+            chartSeries5: values["chartSeries5"],
+            chartSeries6: values["chartSeries6"]
         )
     }
 }

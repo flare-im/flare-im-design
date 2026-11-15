@@ -10,10 +10,14 @@
 | 开红包浮层 | `FlareRedPacketOpenSheet` | `RedPacketOpenSheet` | `RedPacketOpenSheet` | `FlareRedPacketOpenSheet` |
 | 红包详情 | `FlareRedPacketDetail` | `RedPacketDetailView` | `RedPacketDetail` | `FlareRedPacketDetail` |
 | 发红包表单 | `FlareRedPacketComposer` | `RedPacketComposerView` | `RedPacketComposer` | `FlareRedPacketComposer` |
-| 支付确认 | `FlareRedPacketPayConfirm` | `RedPacketPayConfirmView` | `RedPacketPayConfirm` | `FlareRedPacketPayConfirm` |
+| 付款确认（宿主能力 paymentConfirmation） | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` | `FlarePaymentConfirmation` |
+| 能力授权 | `FlareCapabilityConsent` | `FlareCapabilityConsent` | `FlareCapabilityConsent` | `FlareCapabilityConsent` |
+| 证件拍摄（宿主能力 documentCapture） | `FlareDocumentCapture` | `FlareDocumentCapture` | `FlareDocumentCapture` | `FlareDocumentCapture` |
 | 通用插件卡片（v1 字段与动作，v2 展示块） | `FlarePluginView` | `PluginView` | `PluginView` | `FlarePluginView` |
 | 插件表单 | `FlarePluginForm` | `PluginFormView` | `PluginForm` | `FlarePluginForm` |
 | 插件详情（查看全部） | `FlarePluginDetailSheet` | `PluginDetailSheetView` | `PluginDetailSheet` | `FlarePluginDetailSheet` |
+| 插件升级提示（卡片行、入口标记、整页） | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` | `FlarePluginUpgradeNotice` |
+| Web 包宿主（L3，页面、卡片详情、「+」表单） | `FlarePluginBundleHost` | `FlarePluginBundleHost`（控制器 `FlarePluginBundleHostController`） | `FlarePluginBundleHost`（视图 `FlarePluginBundleView`） | `FlarePluginBundleHost`（包 `flare_plugin_bundle_host`） |
 | 加载/错误/权限说明 | `FlareStatusBanner` | `StatusBannerView` | `StatusBanner` | `FlareStatusBanner` |
 | 页面与表单 | `FlareScreen`、`FlareSchemaForm` | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 | Kit Screen/Drawer/Form 组件 |
 
@@ -63,17 +67,13 @@
 - `locked`：原命令结果未知、等待核对。所有输入和种类切换只读（读屏标为只读），提交按钮不可点，但不显示加载动画；宿主通常在表单上方用 StatusBanner 说明原因。
 - 种类切换的选中项用 `redPacket.accent`（浅色 #C8291F，深色 #FF7B6B，在深色分段底上 6.2:1），经 Kit 分段控件新增的可选参数 `accent` 传入，其他页面的分段控件不受影响。
 
-### 支付确认 `RedPacketPayConfirm`
+### 支付确认
 
-`amount`、`methodLabel`（如「钱包（余额 ¥12.00）」）、`insufficient`、`busy`；回调 `confirm`、`cancel`。Vue 另有可见性 `open`。
-
-- 复用 Kit BottomSheet：手机形态是底部面板，其余形态交给 Modal。Flutter 的内容组件配 `FlareRedPacketPayConfirm.show`，标题为「确认付款」。
-- 大字金额、支付方式行、确认（红色 Kit Button）和取消。`insufficient` 时确认不可用并显示「余额不足」；`busy` 时两个按钮和遮罩、Escape、返回键都锁定。沙箱钱包，不做支付密码。
+红包与钱包的付款不再是红包组件族的一部分：`RedPacketPayConfirm` 与 `payment.confirm`、`redPacket.pay` 渲染器已删除，改由宿主能力 `paymentConfirmation` 和 `FlarePaymentConfirmation` 承担，见下文「宿主能力组件」。
 
 ### SwiftUI 与 Compose
 
 - 开红包浮层：SwiftUI 的 `RedPacketOpenSheet` 是整层视图（遮罩、信封、下方关闭键），用 `flareRedPacketOpenSheet(isPresented:onDismiss:sheet:)` 呈现（iOS 16.4+ 为透明全屏覆盖，更早的 iOS 与 macOS 为系统 sheet），`onClose` 里由宿主把 `isPresented` 置回 false；也可以自己叠在页面上。Compose 的 `RedPacketOpenSheet` 组合即显示，独立对话窗口，`onClose` 在退出动画后调用（减少动态效果时立即调用）。减少动态效果读 iOS `accessibilityReduceMotion`、Android 动画时长缩放为 0。
-- 支付确认：SwiftUI 的 `RedPacketPayConfirmView` 是面板内容，用 `flareBottomSheet(isPresented:title:titleHidden:dismissible:)` 呈现，标题传 `packetPayTitle` 并隐藏（内容自绘标题），`dismissible` 传 `!busy`。Compose 的 `RedPacketPayConfirm` 组合即显示 Kit `BottomSheet`，`busy` 时锁定遮罩与返回键。
 - 红色金额按钮：Compose 用 Kit `Button`，在局部主题里把 primary 换成 `redPacket.end`；SwiftUI 的 `ButtonView` 没有改色入口，组件族内部用同尺寸（高 48、圆角 lg、白字）的红色按钮代替，不对外公开。
 - 发红包表单：原生 `count` 是整数，0 表示空；`onCountChange` 回传整数。`recipient` 在 SwiftUI 是 `@ViewBuilder` 参数（不需要时用不带它的初始化方法），在 Compose 是可空的 composable 参数。种类切换复用 Kit 分段控件，分段的命中区覆盖整条轨道高度（SwiftUI 44、Compose 48）。
 - 测试：iOS `RedPacketComponentsTests`（ViewInspector 状态矩阵，macOS 上另有宿主窗口真实点击），Android JVM `RedPacketComponentsTest` 与设备上的 `RedPacketComponentsInteractionTest`，两端都读 `spec/red-packet-vectors.json`。
@@ -138,6 +138,180 @@
     - 规则与样例见向量的 `detailPaging`。
 - **管理页筛选（Vue）**：rows 块的 `filters` 列出筛选栏要显示的输入，不带时为全部输入；其余输入归行动作的表单。控制台用 `flarePluginFilterInputs(view)` 取筛选输入，也可以从 `@flare-im/vue-ui/admin` 导入。
 
+## 第 2 版词汇：新块、新输入、新格式与升级提示
+
+设计见工作区 `docs/design/plugin-client-hot-delivery.md` 6.3 到 6.6。协议真源是 `flare-plugin-protocol`（`ui/blocks.rs`、`ui/inputs.rs`、`ui/formats.rs`）；Kit 只画核心 SDK 解析好的视图，不读路径。纯规则与事实在 `spec/plugin-view-vectors.json` 的 `rules.formats2`、`rules.blocks2`、`rules.moneyInput`、`rules.upgradeNotice` 与同名四段，四端测试读同一份。
+
+### 词汇常量 `PLUGIN_UI_VOCABULARY`
+
+每个 Kit 导出自己能画的词汇，形状就是协议的 `UiVocabulary`（`{version, blocks, inputs, formats, actions, native, renderers, kinds}`）。宿主初始化时把它作为 `kitVocabulary` 交给引擎（`plugin.set_host_profile`），引擎与自身词汇、宿主允许名单取交集后报给 Core，Core 据此选变体。
+
+- 真源：`spec/plugin-ui-vocabulary.json`。`vocabulary` 是四端共同能画的名字；`kits.<kit>.omit` 是某端暂时画不了、因而不能上报的名字（目前三个原生端不画 `protected-media`）。
+- 生成：`node spec/build-plugin-ui-vocabulary.mjs [--kits vue,flutter,android,ios]`；`--check` 进 `check:generated`。生成物：Vue `src/shared/contracts/plugin-ui-vocabulary.ts`（`PLUGIN_UI_VOCABULARY`，从包入口导出）、Flutter `lib/src/models/plugin_ui_vocabulary.dart`（`PLUGIN_UI_VOCABULARY`，`Map<String, Object>`）、Compose `PluginUiVocabulary.kt`（JSON 字符串 `PLUGIN_UI_VOCABULARY` 与 `PluginUiVocabulary` 集合）、SwiftUI `PluginUIVocabulary.swift`（同上）。
+- 只有当一个名字在所有未省略它的 Kit 里都画出来了，才能加进 `vocabulary`。报了画不了的名字，Core 就会把用到它的变体发给这台设备（Review Focus 3）。
+- `native` 只列第 1 版的五个能力；`paymentConfirmation`、`documentCapture`、`locationOnce` 由宿主能力（任务 10）落地后再加。`renderers` 只剩 `redPacket.card`、`redPacket.pay`、`payment.confirm`。
+
+### 新块
+
+| 块 | 四端画法 |
+|---|---|
+| `section` | 标题（label）与折叠键，其后是子块；子块与顶层块同一套渲染与动作管线。没有 label 的分组不画标题、也不折叠。折叠时子块不画。子块里不认识的 kind 和顶层一样跳过。 |
+| `stats` | 2 到 6 个指标并排（Vue 复用 `FlareMetricTile` 的 plain 外观）；值经格式化（见下），趋势是插件给的文本加方向（up / down，其余按 flat），只报告不评判；tone 给数值着色。 |
+| `chart` | 柱、线、环。取图表 token `colors.chart.series1` 到 `series6`（系列依次 series1–3；环的扇区依次 series1–6，超过 6 个循环），不借语义状态色；图例与读屏表格始终存在，浅色下低对比的系列靠它们辨认，不引第三方图表库：Web 端 SVG 复用 `data/chart-geometry.ts`，原生端 Canvas / Path。读屏有逐点表格。没有任何点时显示 `emptyText`，没有时「暂无数据」。环只画正值，扇区为各正值占和的比例。 |
+| `image` | 按声明比例（1:1、4:3、16:9、3:4，未知按 1:1）留框。视图里没有地址：`asset`（包内资源路径）或 `fileId`（插件私有上传的文件）由宿主的 `resolveImage` 换成取到的地址，只画 blob:、https:、data:image。取不到时保留框并提示「图片无法显示」。 |
+| `qr` | Kit 二维码（Vue `FlareQrMatrix`，Flutter `FlareQrCodeFrame` 的编码器），label 在上、caption 在下。`expiresAtMs` 到期（服务器时钟）后覆盖「二维码已失效」；声明了 `refreshOperation` 且宿主监听时给「刷新二维码」，发出 `qrRefresh({operation, valuePath, expiresAtPath?})`，宿主执行查询后传回新视图。取代 `flare.qr` 渲染器。 |
+| `hero` | 每文档一个主数字：label、格式化后的值、subtitle，tone 为 neutral / positive / warning / brand（未知按 neutral），至多三个自有动作，与视图动作同一条确认 / 表单 / 宿主管线。 |
+| `steps` | 2 到 6 步，状态 done（勾）、failed（叉）、current（品牌色环）、pending（序号）；未知状态按 pending；状态也以文字告诉读屏。 |
+| `banner` | Kit `StatusBanner`，tone 为 info / success / warning / danger（未知按 info），可带一个自有动作。 |
+| `timeline` | 至多 50 项：时间（同 time 块的写法）、标题、说明、状态标签，沿竖线排列；没有项时显示 `emptyText` 或「暂无数据」。 |
+
+### 新格式与新输入
+
+- 格式：`count` 按读者语言紧凑书写（`pluginFormatCountUnits`：中文「1.2万」「2.5亿」，英文「12.3K」「3B」；只截不进位）；`duration` 写成最大的非零单位加下一个非零单位（「2 小时 5 分钟」「45 秒」）；`percent`、`bytes` 保持核心 SDK 写好的文本。不认识的格式保持文本。
+- `money`：草稿是输入的金额文本，币种来自输入（核心 SDK 已把 `currencyPath` 等读成值）。提交前规范化（去空格、去整数部分前导零、补「0.」、去尾「.」），校验与协议一致：不是不超过 `scale`（默认 2）位小数的十进制数或没有币种为 `invalidType`，越过 min / max 为 `outOfRange`。提交 `{amount, currency}`。
+- `image`、`document`：与 `file` 一样是上传输入，值是 `{fileId}`，走同一套宿主上传状态（`fileStates` / `fileAction`）。按钮文案为「选择图片」「拍摄证件」；`document` 在标题后标明证件面（正面、反面、手持）。
+
+### 升级提示 `FlarePluginUpgradeNotice`
+
+当前构建画不了的贡献由引擎解析成 `unavailableReason: "upgrade_required"`（可带 `minBuild`）。
+
+- **形态**：`card`（消息卡片里一行文案与「去更新」，`PluginView` 自己画，代替原因行）、`entry`（「+」菜单、「我」页入口旁的「需更新」标记，点入口由宿主弹出带 `page` 形态的弹层）、`page`（整页，`PluginPage` 自己画，代替不可用空态）。消息动作与会话菜单不列占位，由宿主过滤。
+- **数据**：Kit 不发请求。宿主调用 `update.plugin_upgrade_status({minBuild})`，把 `{available, build?}` 作为 `upgradeStatus`（独立组件为 `status`）传入，并传 `onUpdate`（调用 `update.open_flow` 或各端更新界面）。
+- **规则**（`flarePluginUpgradeMode`）：有可用版本且传了 `onUpdate` 时显示「去更新」；答复说没有可用版本（含仍在灰度、本设备未命中）时只显示「当前版本暂不支持，新版本发布后可用」；还没有答复或没有回调时显示「更新应用后查看」。
+
+### 原生端接线（SwiftUI、Compose）
+
+- `PluginView`、`FlarePluginPage` 新增参数：`upgradeStatus`（`PluginUpgradeStatus`，引擎 `update.plugin_upgrade_status` 的答复）、`upgradeBusy`、`onUpdate`、`resolveImage`、`onQrRefresh`。`resolveImage` 在 SwiftUI 是 `(PluginImageSource) async -> URL?`，在 Compose 是 `suspend (PluginImageSource) -> String?`；`onQrRefresh` 收到 `PluginQrRefresh(operation, valuePath, expiresAtPath)`。
+- 视图模型：`PluginViewModel.minBuild`、`upgradeRequired`；`PluginUnavailableReason.upgradeRequired`；`PluginInputKind` 增加 `money`、`image`、`document`（`isUpload`）；`PluginInput.money`（`PluginMoneyRules`）、`side`（`PluginDocumentSide`）；字段、单元格、指标、主数字带 `format`（`PluginValueFormat`）。
+- 上传输入（file、image、document）共用 `PluginFileAction`：宿主按 `input.kind` 与 `input.side` 决定打开相册、相机还是证件拍摄。
+- 词汇常量：SwiftUI `PLUGIN_UI_VOCABULARY`（JSON 字符串）与 `FlarePluginUIVocabulary`；Compose `PLUGIN_UI_VOCABULARY` 与 `PluginUiVocabulary`。宿主把 JSON 原样作为 `kitVocabulary` 交给 `plugin.set_host_profile`，`platform` 填 `ios` / `android`。
+- 视觉门禁：SwiftUI `VisualSnapshotTests.testPluginBlocks2Snapshot`（基线 `tests/visual/ios/baselines/swiftui-plugin-blocks2-{light,dark}.png`），Compose `RcScreenshotHarnessTest.pluginBlocksLight/Dark`（金样 `goldens/plugin-blocks2-{light,dark}.png`）。
+
+### 删除的专用渲染器
+
+`redPacket.pay` 与 `payment.confirm`（改为宿主能力 `paymentConfirmation`，见「宿主能力组件」）、`redPacket.composer`（改为 `money` 输入加现有输入）、`redPacket.detail`（改为 `hero` + `entries` + `banner`）、`account`（改为 `hero` + `stats` + `section` + `rows`）、`flare.qr`（改为 `qr` 块）在 Kit 里不再识别，这些名字的视图按普通文档画。合同迁移在插件仓完成。`FlareRedPacketComposer`、`FlareRedPacketDetail` 组件本身保留给宿主直接组合。`PluginPage.appearance="account"` 仍可由宿主显式选择，但视图不再通过 renderer 选它。
+
+## 宿主能力组件（L2，设计 7）
+
+插件经引擎申请宿主能力时，引擎发出事件 `plugin.capability_request {requestId, method, request}`，宿主画 Kit 组件、拿到结果后用 `plugin.capability_complete {requestId, result}` 回答。Kit 只画，不发请求，不存同意记录，不申请系统权限；能力按「做什么」命名，组件里不出现任何插件 ID。四端共享事实表 `spec/capability-ui-vectors.json`，四端测试读同一份。
+
+`PLUGIN_UI_VOCABULARY.native` 现在包含 `documentCapture`、`paymentConfirmation`、`locationOnce`；`renderers` 只剩 `redPacket.card`；`inputs` 新增 `location`；四端都画 `protected-media`。宿主的 `nativeAllowlist` 也要列出它真正接好的能力（引擎取三者交集）。
+
+### 能力授权 `FlareCapabilityConsent`（method `consent`）
+
+- 输入：`pluginName`、`capability`、`params`、`purpose?`、`busy`；回调 `decide(once | always | deny)`。关闭即拒绝。
+- 文案「「〈插件〉」想要使用」+ 能力一行（`capability.label.*` / `capability*` 字段）；未知能力显示「设备上的一项能力」，不显示原名。`locationOnce` 每次确认，不给「始终允许」。
+- 宿主用 `flareCapabilityConsentAnswer`（原生为 `decision.answer`）回答 `{decision: "once" | "always" | "deny"}`。引擎只保存「始终允许」，「仅本次」只放行当前请求、不留记录，宿主不必撤销。
+
+### 证件拍摄 `FlareDocumentCapture`（method `captureDocument`）
+
+- 输入：`side`（front / back / holding）、`maxBytes`、`accept`、`preview`（宿主相机画面：Vue 插槽、Flutter Widget、SwiftUI `AnyView`、Compose composable）、`capture`（宿主取静帧）、`pickPhoto`（宿主相册）、`cameraUnavailable`；回调 `done(file)`、`cancel`。
+- Kit 画取景框（正反面 ID-1 比例 1.585，手持 3:4）、提示、处理中、确认与重拍。相机权限与相机本身归宿主（CameraX、AVFoundation、Flutter `camera`、`getUserMedia`）。
+- 压缩与去 EXIF 在 Kit：按 `documentCompression.plan`（最长边 2048→1024，质量 0.86→0.5）逐级编码成 `image/jpeg`，方向先烤进像素；编码器自己加的段（Apple 编码器会写 Exif 与 IPTC）用 `flareJpegStrippingMetadata` 去掉，只留 JFIF 头、ICC 色彩、Adobe 段、量化与霍夫曼表和帧头，再用与引擎一致的 `flareJpegIsStripped` 复查（引擎 `jpeg_is_stripped`：扫描段之前只许这些段，0xFF 填充可跳过；Exif、XMP、MPF、IPTC、注释、截断的头或没有扫描段都不算；证件照只收 JPEG）。Vue 用画布，Flutter 在后台 isolate 用 `image` 包，SwiftUI 用 ImageIO 不带属性的缩略图，Compose 用 `BitmapFactory` + `ExifInterface` + `Bitmap.compress`。`done` 交出 `{fileName: document-<side>.jpg, contentType, bytes}`，即 `captureDocument` 的 `{file}`（字节转成 0–255 数组）。
+
+### 付款确认 `FlarePaymentConfirmation`（method `confirmPayment`）
+
+- 输入：`order {orderId, amount, currency, payee, title, expiresAtMs, operation}`、`pluginName?`、`busy`、`error?`、`confirmDisabled`、`credential`（宿主在面板内收密码时放输入框；Vue 为插槽）；回调 `confirm`、`cancel`、`expire`。Vue 另有 `open`。
+- 金额只取订单：`flarePaymentAmountText` 不经浮点，整数部分三位分组，小数原样，常见币种用符号；不是普通非负小数时不能确认。倒计时按 `FlareServerClock`（服务端时钟），过期后不能确认并提示重新发起。
+- 身份验证沿用宿主已有的 `reauthenticate` 流程（支付密码、生物识别）：`confirm` 只表示用户确认，宿主验证后把凭证作为 `{confirmation}` 回答引擎；`busy` 时所有按钮与关闭方式锁定。
+
+### 位置输入 `location`
+
+- 输入声明 `precision`（coarse / fine）。表单显示定位结果（「31.23°N, 121.47°E」、精度、约 N 米）或「尚未获取位置」，「获取位置 / 重新获取」与「清除」两个键。
+- 键交给宿主：Vue 事件 `locationAction`，原生 `onLocationAction`，载荷 `{action: locate | clear, inputId, input, formValues}`。宿主对该输入执行页面的 `locationOnce` 原生动作（`pluginCapabilityInvoke`，带 `into` 和页面表单），引擎回 `{kind: "input", input, value}` 后把 `value` 放进 `locationStates[inputId].value`；清除时宿主丢掉该输入的状态。
+- 值规则同 `UiLocationValue::fits`：精度一致、在地球上、粗 2 位小数且精度 ≥1000 米、细 5 位且 ≥1 米；不符的值不采用（`locationInput` 向量）。
+
+### 页面原生动作写进表单输入（四端）
+
+- 动作带上它的 `target`（Vue `FlarePluginActionTarget`，Flutter `FlarePluginActionTarget`，原生 `PluginActionTarget`）。页面上一个原生动作（`documentCapture`、`selectImage`、`camera`、`selectFile` 进上传输入，`locationOnce` 进定位输入）的 `into` 指向本页表单（行内表单或打开的表单面板）里的输入时，Kit 不发这个动作，改走那个输入自己的键：上传输入发选择（已有文件时为替换）的 `fileAction`，定位输入发 `locate` 的 `locationAction`。宿主照常处理这两个键，带着表单的 scope 与 generation，引擎写回的结果直接进表单，用户不用先碰一下输入。
+- 规则 `flarePluginNativeIntoKey`（原生 `PluginFormRules.nativeIntoKey` / `pluginNativeIntoKey`），向量 `spec/plugin-native-into-vectors.json`。表单里找不到该输入、或宿主没接那个键时，动作照原样发出。
+
+### 受保护媒体（四端）
+
+- 本人页面（实名「我的证件」）的读取操作是 owner-scoped 查询，块不声明 `reasonInput`：点「查看」即读，不问原因，提示「仅你本人可查看，图片不会保存到设备」。控制台声明 `reasonInput`，仍先问原因并提示审计。
+- 宿主执行读取并审计，用 `flarePluginProtectedMediaUrl`（原生 `FlarePluginProtectedMedia.url`）从结果取地址填回 `protectedMedia[itemId].url`。服务端给的是带 `?grant=` 的短时绝对 https 地址。
+- 地址规则（`protectedMediaSource` 向量）：原生只画 https 与 data:image；Vue 另接受 blob: 与 Tauri 资源地址。图片只在内存：SwiftUI 用无缓存、无 Cookie 的临时会话自己取，Compose 用 Coil 并关闭磁盘缓存，Flutter 用内存图片缓存并在离开时清掉；图片不可拖拽、无长按菜单、无保存或分享入口。
+- 原生新参数：`protectedMedia`、`onProtectedMediaRead`（SwiftUI、Compose、Flutter 的 `PluginView` 与 `FlarePluginPage`）；Vue `FlarePluginPage` 也转发 `protectedMedia` 与 `protectedMediaRead`。
+
+## Web 包宿主四端对照
+
+四端同名组件 `FlarePluginBundleHost`，同一份契约：宿主只搬运信封、画宿主请求、转发事件，权限、限速和缓存都在引擎里（`plugin_bundle_open`、`_bridge`、`_host_result`、`_host_event`、`_close`、`_prefetch`，事件 `plugin.bundle_event` 7004）。
+
+| | Vue（Web、Tauri） | SwiftUI | Compose | Flutter |
+|---|---|---|---|---|
+| 承载 | `<iframe sandbox="allow-scripts allow-forms">`，不透明源 | 每页一个 WKWebView，非持久数据存储 | 每页一个 WebView | 平台视图：Android 复用 `FlarePluginBundleView`，iOS 复用 `FlarePluginBundleHostViewController` |
+| 源 | Web 为部署的沙箱域；Tauri 为 `flare-plugin://{插件键}` | `flare-plugin://{插件键}` | `https://{插件键}.plugin.flare.invalid` | 同所在平台 |
+| 桥 | `postMessage`，只收本 iframe 的消息 | `WKScriptMessageHandlerWithReply` `flareBridge` + `window.__flareBridgeDeliver` | `addWebMessageListener` `flareBridge`，JSON 文本 | 同所在平台 |
+| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android、iOS 分别同原生（Flutter 示例应用最低 iOS 16） |
+
+- **何时打开**：页面先读声明式页面（`plugin_page`）；回答带 `bundle: true`（宿主报了 `bundleRuntime`、目录为这一页选中 Web 包变体、包已下发、桥版本够）时才切到 Web 包宿主，打不开或被撤回时留在已读到的声明式页面。卡片详情与「+」表单直接先试 Web 包。
+- **媒体**：`media.read` 由宿主经桥回 `data:` 地址（最大 4 MiB），插件 Web SDK 在包内转成 `blob:` 地址。
+- **回落**：打不开（`not_offered`、`unsupported`、`unavailable`、`rejected`）、引擎关闭（`withdrawn`、`suspended`、`disabled`、`replaced`）、同一次打开第三次崩溃，一律回到声明式变体；`evicted` 等页面再显示时重新打开；`signedOut` 直接关闭。
+- **宿主请求**用各端 Kit 已有组件：提示条、确认框（危险操作用危险按钮）、标题、外链确认（只收 https，D-13）、剪贴板；`ui.navigate`、`ui.close`、`ui.resize` 交给容器。每个请求只回答一次。
+- **手势**由宿主记录（5 秒内的触摸或按键），随请求交给引擎；`host.capability` 和 `clipboard.write` 没有手势时引擎回 `gesture_required`。
+- **文案**：Vue `pluginBundle.*`，原生三端 `pluginBundle*` 与 `pluginBridgeError*`，桥错误码中英各一套，四端同义。
+- 包怎么写、怎么审核与下发，见 flare-plugin-devkit 的 Web 包说明和知识库「插件客户端免重装上线」。
+
+## Web 包宿主 `FlarePluginBundleHost`（L3，设计 8.4 到 8.6）
+
+Vue（Web、Tauri）的宿主组件，原生三端的同名组件由各自的 Kit 提供。
+
+- **沙箱**：`<iframe sandbox="allow-scripts allow-forms">`（常量 `FLARE_PLUGIN_BUNDLE_SANDBOX`），不给 `allow-same-origin`、`allow-popups`、`allow-top-navigation`，文档是不透明源；`referrerpolicy="no-referrer"`，`allow=""`。
+- **消息搬运**：只收 `event.source` 是本 iframe 的 `contentWindow` 的消息（`flarePluginBundleMessage`），对象或 JSON 对象文本，超过 64 KiB 丢弃；连同宿主自己记录的最近手势（宿主文档的按下、`navigator.userActivation`、焦点进入 iframe）交给 `bridge.request`。回给页面一律 `postMessage(envelope, "*")`（不透明源只能用 `*`）。
+- **宿主画的请求**（引擎答 `{host}` 时）：`ui.toast`（Kit 提示条）、`ui.confirm`（Kit 模态框，`destructive` 用危险按钮）、`ui.setTitle`（页面标题，并发 `title`）、`ui.resize`（只在非页面形态有效）、`ui.close`（发 `close(result)`）、`ui.navigate`（发 `navigate`）、`ui.openExternal`（只收 https，先弹确认再经 `openExternal` 或新窗口 `noopener,noreferrer` 打开）、`clipboard.write`（经 `writeClipboard` 或系统剪贴板）。每个请求只回一次：`bridge.hostResult(id, {result} | {error})`；没有 `hostResult` 的桥（审核台的模拟桥）由 Kit 自己拼响应信封。
+- **事件**：`theme`、`locale` 变化与页面可见性经 `bridge.hostEvent` 换成信封发给订阅的页面；`bridge.subscribe` 送来的事件信封原样转发，`close` 结束页面并发 `closed(reason)`，容器据此回落到声明式变体。
+- **生命周期**：组件卸载或文档 `pagehide` 时调 `bridge.close()` 结束会话；挂着的确认按取消回答。15 秒内没收到 `host.hello` 显示加载失败与重试，并发 `failed`（容器计数，同一次会话连续三次改用声明式变体）。
+- **形态**：`presentation="page"` 画 Kit Screen（标题、返回键）；`detail`、`composerForm` 填满所在的弹层。
+- **文案**：`pluginBundle.*`（中英），桥错误码对应 `pluginBundle.error.<lowerCamel>`，用 `flarePluginBridgeErrorKey(code)` 取键。
+
+## Web 包宿主：Compose（L3，设计 8.4 到 8.8）
+
+Android 的宿主分两层，`PluginBundleHost.kt`：普通 Android 视图 `FlarePluginBundleView`（不依赖 Compose，Flutter 的平台视图直接复用），和包在它外面的 Compose 组件 `FlarePluginBundleHost`。
+
+- **运行时**：`FlarePluginBundleRuntime.profile(context)` 是宿主资料的 `bundleRuntime`（`{bridge: 1, engine: "webview", engineMajor}`）。只有 Android System WebView 主版本 ≥111 且支持 `WEB_MESSAGE_LISTENER` 时才返回，低于这个下限返回 null，宿主资料不报 `bundle`（D-17）。依赖 `androidx.webkit:webkit:1.15.0`。
+- **源与文件**：每个会话一个 WebView，入口 `https://{pluginKey}.plugin.flare.invalid/{entry}`。`shouldInterceptRequest` 只对本源的 `GET`、并且路径在 `plugin_bundle_open` 返回的 `files` 清单里的请求，从引擎缓存目录读文件（规范化后再查一次是否在缓存目录内）；其余一律 403。每个响应都带引擎给的 CSP、`Access-Control-Allow-Origin: *`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`。规则 `pluginBundleServe`。
+- **隔离**：不用 `addJavascriptInterface`；桥是 `WebViewCompat.addWebMessageListener(view, "flareBridge", setOf(origin))`，只收主框架、本源的消息，回信和引擎事件经同一个 `JavaScriptReplyProxy` 以 JSON 文本发回。关闭文件访问、内容访问、`allowFileAccessFromFileURLs`、`allowUniversalAccessFromFileURLs`、DOM 存储、数据库、定位、混合内容、第三方 Cookie；不开新窗口，拒绝权限请求、文件选择、JS 对话框和下载；离开本源的主框架导航全部拦下；控制台输出不上报。
+- **存储**：`domStorageEnabled = false` 只关 localStorage 与 sessionStorage，IndexedDB、Cache Storage 与第一方 Cookie 仍在。所以 `FlarePluginBundleStorage`（`PluginBundleStorage.kt`）在 WebView 支持 `MULTI_PROFILE` 时把每个包 WebView 放进当前登录用户自己的配置文件，应用在登录后调 `signedIn(context, scope)`、退出或换号时调 `signedOut(context)`，配置文件随之删除；不支持时包页面开着期间不收 Cookie，删除各源在默认配置文件里写下的数据。两种情况下，一个源的最后一个页面关闭时都删掉它的存储与 Cookie，进程被杀留下的数据在下一个包打开前删掉。回信总是发给最近说话的那个文档的 `JavaScriptReplyProxy`：页面自己 `location.reload()` 后，新文档开口前的信封先排队。
+- **手势**：宿主在原生层记录最近一次触摸（5 秒内），随每条桥消息作为 `userGesture` 交给引擎；不信页面自己的声明。
+- **宿主请求**：引擎答 `{host}` 时交给 `FlarePluginBundleHostDelegate`。Compose 组件用 Kit 组件画：`ui.toast`（`LocalFlareToast`）、`ui.confirm`（`LocalFlareDialog`，标题 ≤64、正文 ≤512 字符）、`ui.setTitle`（页面标题）、`ui.openExternal`（只收 https，先确认再用系统浏览器，D-13）、`clipboard.write`（系统剪贴板加「已复制」提示）、`ui.navigate`（`onNavigate`）、`ui.resize`（`onHeightChange`，只在弹层里）、`ui.close`（`onClose(result)`）。每个请求只回答一次。
+- **引擎事件**：宿主把 `plugin.bundle_event`（7004）的载荷交给 `FlarePluginBundleEvents.dispatch(json)`，对应会话的页面转发信封；`close` 为 `withdrawn`、`suspended`、`disabled`、`replaced` 时回落到声明式变体（`onFallback`），`signedOut` 关闭（`onClose(null)`），`evicted` 等回到前台再打开。
+- **生命周期**：跟随所在界面的生命周期。暂停时 `WebView.onPause()` 并发 `visibility.changed`；后台超过 30 秒或收到内存警告就销毁并结束会话，回来时重新打开，页面用 `ui.saveState` 恢复。渲染进程退出（`onRenderProcessGone`）显示错误与「重新加载」，同一次打开第三次崩溃回落到声明式变体。主题、语言变化经 `plugin_bundle_host_event` 发给订阅的页面。
+- **打不开时**：`plugin_bundle_open` 失败（`not_offered`、`unsupported`、`unavailable`、`rejected`）也回落到声明式变体，所以宿主可以先试 Web 包再退回声明式页面。
+- **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 SwiftUI 共用）；`flarePluginBridgeErrorText(code, strings)` 接受错误码或 `plugin.bridge.*` 键。
+- **测试**：`PluginBundleHostTest`（运行时下限、会话校验、拦截器规则、响应头、导航、外链、关闭与崩溃状态、桥应答、事件分发、打开请求），`PluginBundleStorageTest`（按用户的配置文件名、Cookie 过期、源的页面计数、刷新后的回信通道）。
+
+## Web 包宿主：SwiftUI（L3，设计 8.4 到 8.8）
+
+iOS 的宿主在 `PluginBundleHost.swift`，分三层：不依赖 SwiftUI 的控制器 `FlarePluginBundleHostController`（会话、WKWebView、桥），SwiftUI 视图 `FlarePluginBundleHost`，以及给 UIKit 和 Flutter 平台视图用的 `FlarePluginBundleHostViewController`（自带反馈宿主，提示和确认仍是 Kit 的）。
+
+- **运行时**：`FlarePluginBundleRuntime.current` 是宿主资料的 `bundleRuntime`（`{bridge: 1, engine: "wkwebview", engineMajor}`），iOS 16 起才返回（D-17）；macOS 冒烟构建返回 nil。
+- **引擎调用**：`FlarePluginBundleCalls(dispatch:)` 只要求宿主把 `plugin_bundle_open`、`_bridge`、`_host_result`、`_host_event`、`_close`、`_prefetch` 原样转给核心 SDK（`capability.<路由>`，`{payload}`）并原样返回应答；载荷由 Kit 拼，应答由 Kit 读。`FlarePluginBundleHostController.open(request, calls:, dark:)` 先试 Web 包，贡献在本端没有 Web 包（未下发、低于运行时、本次运行已崩溃三次、校验失败、下载失败）时返回 nil，宿主据此画声明式变体。
+- **源与文件**：每个会话一个 WKWebView，入口 `flare-plugin://{pluginKey}/{entry}`。`WKURLSchemeHandler` 只对本源的 `GET`/`HEAD`、并且路径在 `files` 清单里的请求，从引擎缓存目录读文件（规范化后再查一次是否在缓存目录内，大小与清单不符也拒绝）；其余一律 403。每个响应都带引擎给的 CSP、`Access-Control-Allow-Origin: *`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`。数据存储是 `WKWebsiteDataStore.nonPersistent()`。
+- **隔离**：桥是 `WKScriptMessageHandlerWithReply`，名字 `flareBridge`，挂在页面的 content world：每个 WebView 只装一个包，插件 Web SDK 只能在这个 world 里拿到它；独立 content world 里的处理器页面脚本看不见。只收主框架、`flare-plugin://{pluginKey}` 源的消息。事件经 `window.__flareBridgeDeliver` 送入（宿主把信封作为 JSON 字符串字面量传进去，不拼接 JS）。只允许主框架加载入口本身（首次加载与刷新），其余导航、新窗口、下载、子框架、媒体采集一律拒绝；JS 对话框按系统缺省（不弹）。
+- **手势**：WebView 上挂一个只记录触摸、从不识别的手势识别器，5 秒内的触摸作为 `userGesture` 交给引擎。
+- **宿主请求**：`ui.toast`、`ui.confirm` 用环境里的 `FlareFeedback`（没有时应答 `unavailable`）；`ui.openExternal` 只收 https，先用 Kit 确认（文案 `pluginBundleExternal*`），确认后用系统浏览器打开（D-13）；`ui.setTitle` 更新 `title`；`ui.resize` 只在 `resizable` 时有效；`ui.navigate` 交给 `FlarePluginBundleHostActions.navigate`（`page` 或 `bundleRoute`，返回 false 应答 `not_found`）；`ui.close` 先应答再调 `close(result)` 并结束会话；`clipboard.write` 写系统剪贴板。
+- **引擎事件**：宿主把 `plugin.bundle_event`（7004）的载荷交给 `FlarePluginBundleEvents.receive(_:)`。信封转给对应页面；`close` 为 `evicted` 时页面挂起、再次显示时重新打开，其余原因调 `fallback(.closed(reason))`。
+- **生命周期**：视图出现、消失时发 `visibility.changed`；配色变化发 `theme.changed`，`setLocale` 发 `locale.changed`。切后台 30 秒后或收到内存警告（页面不可见时）销毁 WebView 并结束会话，回来时重新打开，页面用 `ui.saveState` 恢复。Web 内容进程退出显示错误与「重新加载」，同一贡献本次运行第三次崩溃调 `fallback(.crashed)`（`FlarePluginBundleCrashLedger`）。控制器被释放而没调 `close()` 时也会结束会话。
+- **形态**：传 `onClose` 时自带 `FlareScreen` 标题栏与关闭键，放进 `FullScreenView`（卡片详情、「+」表单）；不传时填满所在页面，标题由宿主自己的导航栏读 `controller.title`。
+- **文案**：`pluginBundle*` 与 `pluginBridgeError*` 字段（中英，`strings/en.json`，与 Compose 共用）；`FlareStrings.pluginBridgeMessage(forKey:)` 按 `plugin.bridge.*` 键取文案。
+- **测试**：`PluginBundleHostTests`（运行时下限、会话校验、路径与文件规则、响应头、导航、外链、信封与投递脚本、打开请求、崩溃账本、事件分发、宿主请求、文案）。
+
+## Web 包宿主：Flutter（L3，设计 8.4 到 8.8）
+
+Flutter 的宿主是联邦插件 `flare_plugin_bundle_host`，放在 `packages/flutter-im-ui/packages/flare_plugin_bundle_host/` 下，和 Kit 同属一个 pub workspace（`flutter-im-ui/pubspec.yaml` 的 `workspace`）。它不写自己的 WebView，也不用 `webview_flutter`（D-14）：Android、iOS 两个实现包把上面两节的原生宿主以平台视图嵌进来，源、拦截、桥、隔离、生命周期都和原生应用一样。
+
+- **三个包**：`flare_plugin_bundle_host`（Dart：组件、引擎端口、运行时、事件分发、预取）；`flare_plugin_bundle_host_android`（默认实现，包 `FlarePluginBundleView`，依赖 `com.flare.im:im-ui-compose`）；`flare_plugin_bundle_host_ios`（包 `FlarePluginBundleHostViewController`，依赖 `FlareIMUI`，只支持 Swift Package Manager，iOS 16 起）。iOS 实现不是默认实现：Kit 的 iOS 包要求 iOS 16，应用的最低版本到 iOS 16 后自己把它加进依赖；没加时 iOS 上不报运行时，全部走声明式变体（D-17）。Flutter 示例应用已升到 iOS 16 并加了 iOS 实现，iOS 上也打开 Web 包。
+- **引擎调用**：原生宿主的引擎调用经 `flare_plugin_bundle_host` 通道回到 Dart（`engine`，`{route, payload}`，载荷是 JSON 文本），由应用装上的引擎执行：`FlarePluginBundleBindings.install((route, payload) => …)`，应用转给核心 SDK 的 `capability.<路由>`，`{payload}`。只放行六个 `plugin_bundle_*` 路由；拒绝时把 `sdk.plugin_bundle.<原因>` 的原因作为错误码交回原生宿主，原生宿主据此回落。
+- **运行时**：`FlarePluginBundleRuntime.profile()` 是宿主资料的 `bundleRuntime`。Android 8 及以上、WebView 111+ 且支持 web message listener 才有；iOS 16 及以上且应用加了 iOS 实现才有；Web、桌面和没有原生实现时为 null。Android 实现在 API 26 以下不加载 Kit（Kit 库声明 26，应用清单用 `tools:overrideLibrary="com.flare.im.ui"` 保留更低的最低版本）。
+- **引擎事件**：应用把事件 7004 的载荷交给 `FlarePluginBundleEvents.dispatch(payload)`，原生宿主按会话转给页面（Android `FlarePluginBundleEvents.dispatch`，iOS `FlarePluginBundleEvents.receive`）。
+- **组件**：`FlarePluginBundleHost(request:, title:, onFallback:, onClose:, onBack:, onNavigate:, onOpenExternal:, onHeightChange:, gestureRecognizers:)`。page 呈现时自带 `FlareScreen` 页框（标题先用 `title`，Web 包 `ui.setTitle` 后用它的）；detail、composerForm 不画页框，由所在弹层做框。平台视图默认认领全部手势。没有原生宿主的平台上立即 `onFallback('unsupported')`。
+- **谁来画**：Android 上打开中、崩溃（重新加载）两个状态和宿主请求由 Dart 用 Flutter Kit 画：`ui.toast` 用 `FlareToast`，`ui.confirm` 和外链确认用 `FlareDangerConfirm`（标题 ≤64、说明 ≤512、按钮 ≤16），确认后的 https 外链由原生宿主交给系统浏览器（D-13），`clipboard.write` 写系统剪贴板并提示「已复制」，`ui.setTitle`、`ui.navigate`、`ui.resize`、`ui.close` 交给对应回调。iOS 上状态与这些请求由原生宿主用 SwiftUI Kit 画，跳转、关闭、回落和标题交回 Dart；iOS 宿主的配色跟随 Flutter 应用的主题，而不是系统外观。
+- **回落与关闭**：未下发、不支持、打不开、崩溃三次、被撤回、暂停、停用、替换时调 `onFallback(reason)`，应用改画声明式变体；`signedOut` 和 `ui.close` 调 `onClose(result)`。平台视图创建前就回落的状态，组件建好通道后用 `attach` 补读，不会丢。
+- **生命周期**：Android 按应用前后台给原生宿主 `pause`/`resume`（后台 30 秒销毁、回来重开由原生宿主做）；iOS 控制器自己跟随应用前后台。主题变化发 `setDark`，语言变化发 `setLocale`，其余字段变化会换一个平台视图、重新打开。
+- **预取**：`FlarePluginBundlePrefetch` 在 `schedule()` 后空闲 10 秒，设备在 Wi-Fi（Android 不计流量的网络；iOS 为 Wi-Fi 且非低数据模式）时调 `plugin_bundle_prefetch {wifi: true, idle: true}`。
+- **文案**：Flutter 的 `FlareStrings` 新增 `pluginBundle*` 与 `pluginBridgeError*` 共 27 个字段（中文默认值，英文在 `strings/en.json`），`flarePluginBridgeErrorText(code, strings)` 按错误码或 `plugin.bridge.*` 键取文案。
+- **测试**：Dart `flare_plugin_bundle_host_test.dart`（打开请求与身份、创建参数、导航、确认与外链规则、宿主应答、提示类型、错误文案、引擎绑定与路由放行、运行时、事件分发、无原生宿主时回落）；Android `FlarePluginBundleHostPluginTest`（状态、引擎应答、拒绝原因、宿主应答、呈现方式的映射）。平台视图本身要在真机或模拟器上验。
+
 ## 自定义内容渲染器
 
 插件卡片通过 Kit 的内容渲染器注册进消息列表，四端同一套语义：
@@ -151,7 +325,7 @@
 
 插件的 `page` 贡献（钱包、明细等）用 Kit 的通用页面宿主渲染（`docs/design/red-packet-v5-roles-and-wallet.md` §3.2），五个 app 不再自写钱包页。四端都是 `FlarePluginPage`，按 `spec/components.json` 的 PluginPage 契约实现；渲染事实见 `spec/plugin-view-vectors.json` 的 `rules.page`、`pageRows`、`pagePaging`、`pageFilters` 与 `pageViews`、`pageActions`、`pagePaging`、`pageFilters` 四段。
 
-- **数据来源**：宿主用核心 SDK 读页面（TS `PluginUiSession.page(pluginId, page, {args, filters, page, refresh})`，bindings `capability.plugin_page`），把结果原样作为 `view` 传入。它是详情同形的视图加 `data`（页面解析所依据的数据）。宿主同时传 `page: {pluginId, page}`。
+- **数据来源**：宿主用核心 SDK 读页面（TS `PluginUiSession.page(pluginId, page, {args, filters, page, refresh})`，bindings `capability.plugin_page`），把结果原样作为 `view` 传入。它是详情同形的视图加 `data`（页面解析所依据的数据）。宿主同时传 `page: {pluginId, page}`。回答带 `bundle: true` 时这一页在本端有可用的 Web 包，宿主改用 Web 包宿主（见上文），打不开时仍画这份视图；宿主把页面当 `previous` 传回时可以保留这个标记。
 - **页头**：标题取 `view.title`，没有时取宿主的 `title`。不可用的页面标题为空，所以保留宿主标题。返回键与平台返回一致。
 - **状态**：
   - 首次加载转圈。
@@ -177,7 +351,7 @@
 
 ### 钱包与资金流程的 account 布局
 
-钱包沿用插件页面宿主，由合同声明 `presentation.renderer = "account"`。四端 Kit 根据解析后的 `presentation.props.layout` 组合共享组件，不在示例 App 写钱包样式或资金动作分支：
+钱包沿用插件页面宿主，由宿主显式传 `appearance="account"`（第 2 版词汇起视图的 `presentation.renderer = "account"` 不再自动选择这一布局，合同改用 hero、stats、section、rows 块）。四端 Kit 根据解析后的 `presentation.props.layout` 组合共享组件，不在示例 App 写钱包样式或资金动作分支：
 
 - `wallet`：顶部按实际钱包／资金账户行展示卡片，不再把 overview 和「我的钱包」重复画成两份余额。卡片使用服务端原始金额及首列标签、原名称和其他列的标签／值；声明 `rowEntryAction` 时整卡经过原守卫直接派发原行绑定，并显示动作标签作为入口提示，否则打开原本地详情。标题区仅一组充值／提现／收款方式入口及可见性按钮。全部 overview 字段（包括默认钱包可用余额）放进账户信息，位于钱包服务上方；不把账面余额改称可用余额或自行求和。手机单列，桌面多卡自适应分列；没有行时保留原概览和空态。 钱包首页不显示 description；流程与账单页的说明保持原样，真实 warning／danger 提示仍按原规则可见。
 - `flow`：步骤与说明、资金明细卡、主操作及辅助服务。所有字段按明细展示，不把手续费或状态误画成大余额；没有交易列表时不制造空账单。渠道、收款账户等 rows 仍由通用列表渲染，启用 `PluginView.labelRows`，首格显示原列标签及标题值，其余非空值与列标签成对展示。
@@ -201,7 +375,7 @@
 
 `spec/account-layout-vectors.json` 是独立的纯展示克隆样例，三种 layout 各含中英文，覆盖320／390／603／604／768／880／1360及警告、长金额、原始动作载荷。它不是新的 Rust 解析或数据库输出；旧的44／32等历史向量原文件保持不变。
 
-回归数据见 `spec/wallet-flow-vectors.json`：44 个 Rust 合同实际解析的中英文视图，包含 20 个用户页面与提现、密码条件阶段。确认付款与 checkout 保留专用 `payment.confirm` renderer。布局核验不提交真实资金操作。
+回归数据见 `spec/wallet-flow-vectors.json`：44 个中英文视图，钱包合同（0.6.0 起）不再声明 `account` renderer，页面层级全部是普通块——钱包页以 `section` 包住 `hero`（可用余额）与 `stats`，各页以 `section` 给出标题、步骤与说明，空列表的标题落在 `rows.emptyText`、说明是列表为空时才显示的 `note`，钱包页另有折叠的收款钱包编号 `qr`。确认付款与 checkout 仍保留 `payment.confirm` renderer，直到付款确认成为宿主能力。`spec/wallet-flow-account-vectors.json` 是同 44 个样例在旧 account renderer 下的形态，只供 `FlareAccountView` 的测试与信息完整性比对（`wallet-flow-vectors.test.ts` 逐例核对旧样例里的每段文字、每个字段与每个动作槽在新样例中都还在）。布局核验不提交真实资金操作。
 
 flow 只有一个可见主动作时，可通过 `PluginView.inlineFormActionId` 将资料表单直接放进页面。仅该动作的 `form` 字段顺序生效，输入必须全部可解析、没有密码、无需 confirm、页面可用且非只读；否则保留原按钮与确认／面板链路。组件挂载不执行动作，提交仍走原校验与派发；同步锁定防止重复提交，失败结算保留输入与字段错误，成功结算只重置该表单。`PluginForm.embedded` 去掉面板边距及取消键，保留整宽的原动作提交文案；返回由页面负责。密码、付款确认及行级凭证操作继续原链路。
 

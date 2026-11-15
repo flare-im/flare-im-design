@@ -141,6 +141,9 @@ public struct FlareColors: Sendable {
     public let warning: Color
     public let warningText: Color
     public let scrim: Color
+    public let mediaStage: Color
+    public let mediaOnStage: Color
+    public let mediaStageShade: Color
     public let avatarTintBlueBg: Color
     public let avatarTintBlueFg: Color
     public let avatarTintPurpleBg: Color
@@ -162,6 +165,12 @@ public struct FlareColors: Sendable {
     public let redPacketFadedInk: Color
     public let redPacketFadedMixTarget: Color
     public let redPacketAccent: Color
+    public let chartSeries1: Color
+    public let chartSeries2: Color
+    public let chartSeries3: Color
+    public let chartSeries4: Color
+    public let chartSeries5: Color
+    public let chartSeries6: Color
 
     public init(
         bgDisabled: Color,
@@ -221,6 +230,9 @@ public struct FlareColors: Sendable {
         warning: Color,
         warningText: Color,
         scrim: Color,
+        mediaStage: Color,
+        mediaOnStage: Color,
+        mediaStageShade: Color,
         avatarTintBlueBg: Color,
         avatarTintBlueFg: Color,
         avatarTintPurpleBg: Color,
@@ -241,7 +253,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color,
         redPacketFadedInk: Color,
         redPacketFadedMixTarget: Color,
-        redPacketAccent: Color
+        redPacketAccent: Color,
+        chartSeries1: Color,
+        chartSeries2: Color,
+        chartSeries3: Color,
+        chartSeries4: Color,
+        chartSeries5: Color,
+        chartSeries6: Color
     ) {
         self.bgDisabled = bgDisabled
         self.bgElevated = bgElevated
@@ -300,6 +318,9 @@ public struct FlareColors: Sendable {
         self.warning = warning
         self.warningText = warningText
         self.scrim = scrim
+        self.mediaStage = mediaStage
+        self.mediaOnStage = mediaOnStage
+        self.mediaStageShade = mediaStageShade
         self.avatarTintBlueBg = avatarTintBlueBg
         self.avatarTintBlueFg = avatarTintBlueFg
         self.avatarTintPurpleBg = avatarTintPurpleBg
@@ -321,6 +342,12 @@ public struct FlareColors: Sendable {
         self.redPacketFadedInk = redPacketFadedInk
         self.redPacketFadedMixTarget = redPacketFadedMixTarget
         self.redPacketAccent = redPacketAccent
+        self.chartSeries1 = chartSeries1
+        self.chartSeries2 = chartSeries2
+        self.chartSeries3 = chartSeries3
+        self.chartSeries4 = chartSeries4
+        self.chartSeries5 = chartSeries5
+        self.chartSeries6 = chartSeries6
     }
 
     public func copy(
@@ -381,6 +408,9 @@ public struct FlareColors: Sendable {
         warning: Color? = nil,
         warningText: Color? = nil,
         scrim: Color? = nil,
+        mediaStage: Color? = nil,
+        mediaOnStage: Color? = nil,
+        mediaStageShade: Color? = nil,
         avatarTintBlueBg: Color? = nil,
         avatarTintBlueFg: Color? = nil,
         avatarTintPurpleBg: Color? = nil,
@@ -401,7 +431,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color? = nil,
         redPacketFadedInk: Color? = nil,
         redPacketFadedMixTarget: Color? = nil,
-        redPacketAccent: Color? = nil
+        redPacketAccent: Color? = nil,
+        chartSeries1: Color? = nil,
+        chartSeries2: Color? = nil,
+        chartSeries3: Color? = nil,
+        chartSeries4: Color? = nil,
+        chartSeries5: Color? = nil,
+        chartSeries6: Color? = nil
     ) -> FlareColors {
         FlareColors(
             bgDisabled: bgDisabled ?? self.bgDisabled,
@@ -461,6 +497,9 @@ public struct FlareColors: Sendable {
             warning: warning ?? self.warning,
             warningText: warningText ?? self.warningText,
             scrim: scrim ?? self.scrim,
+            mediaStage: mediaStage ?? self.mediaStage,
+            mediaOnStage: mediaOnStage ?? self.mediaOnStage,
+            mediaStageShade: mediaStageShade ?? self.mediaStageShade,
             avatarTintBlueBg: avatarTintBlueBg ?? self.avatarTintBlueBg,
             avatarTintBlueFg: avatarTintBlueFg ?? self.avatarTintBlueFg,
             avatarTintPurpleBg: avatarTintPurpleBg ?? self.avatarTintPurpleBg,
@@ -481,7 +520,13 @@ public struct FlareColors: Sendable {
             redPacketOnSurface: redPacketOnSurface ?? self.redPacketOnSurface,
             redPacketFadedInk: redPacketFadedInk ?? self.redPacketFadedInk,
             redPacketFadedMixTarget: redPacketFadedMixTarget ?? self.redPacketFadedMixTarget,
-            redPacketAccent: redPacketAccent ?? self.redPacketAccent
+            redPacketAccent: redPacketAccent ?? self.redPacketAccent,
+            chartSeries1: chartSeries1 ?? self.chartSeries1,
+            chartSeries2: chartSeries2 ?? self.chartSeries2,
+            chartSeries3: chartSeries3 ?? self.chartSeries3,
+            chartSeries4: chartSeries4 ?? self.chartSeries4,
+            chartSeries5: chartSeries5 ?? self.chartSeries5,
+            chartSeries6: chartSeries6 ?? self.chartSeries6
         )
     }
 
@@ -543,6 +588,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -563,7 +611,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let violetDark = FlareColors(
@@ -624,6 +678,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -644,7 +701,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let oceanLight = FlareColors(
@@ -705,6 +768,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -725,7 +791,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let oceanDark = FlareColors(
@@ -786,6 +858,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -806,7 +881,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let forestLight = FlareColors(
@@ -867,6 +948,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -887,7 +971,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let forestDark = FlareColors(
@@ -948,6 +1038,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -968,7 +1061,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let sunsetLight = FlareColors(
@@ -1029,6 +1128,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1049,7 +1151,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let sunsetDark = FlareColors(
@@ -1110,6 +1218,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1130,7 +1241,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let roseLight = FlareColors(
@@ -1191,6 +1308,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1211,7 +1331,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let roseDark = FlareColors(
@@ -1272,6 +1398,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1292,7 +1421,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let graphiteLight = FlareColors(
@@ -1353,6 +1488,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0824, green: 0.0706, blue: 0.1255, opacity: 0.4400),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.9137, green: 0.8353, blue: 1.0000, opacity: 1.0),
@@ -1373,7 +1511,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
     )
 
     public static let graphiteDark = FlareColors(
@@ -1434,6 +1578,9 @@ public struct FlareColors: Sendable {
         warning: Color(.sRGB, red: 0.6314, green: 0.3843, blue: 0.0275, opacity: 1.0),
         warningText: Color(.sRGB, red: 0.9843, green: 0.7490, blue: 0.1412, opacity: 1.0),
         scrim: Color(.sRGB, red: 0.0314, green: 0.0235, blue: 0.0627, opacity: 0.6000),
+        mediaStage: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.9400),
+        mediaOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.9200),
+        mediaStageShade: Color(.sRGB, red: 0.0431, green: 0.0353, blue: 0.0706, opacity: 0.5500),
         avatarTintBlueBg: Color(.sRGB, red: 0.1216, green: 0.1961, blue: 0.4000, opacity: 1.0),
         avatarTintBlueFg: Color(.sRGB, red: 0.7490, green: 0.8588, blue: 0.9961, opacity: 1.0),
         avatarTintPurpleBg: Color(.sRGB, red: 0.2275, green: 0.1451, blue: 0.4000, opacity: 1.0),
@@ -1454,7 +1601,13 @@ public struct FlareColors: Sendable {
         redPacketOnSurface: Color(.sRGB, red: 1.0000, green: 0.9608, blue: 0.9020, opacity: 1.0),
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
-        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0)
+        redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
+        chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
+        chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
+        chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
+        chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
     )
 
     public static let light = violetLight

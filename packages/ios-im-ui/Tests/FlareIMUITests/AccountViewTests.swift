@@ -351,7 +351,7 @@ final class AccountViewTests: XCTestCase {
         XCTAssertEqual(tree.findAll(StatusBannerView.self).count, 1)
     }
     func testRustWalletFixturesKeepTheDeclaredSubmitAndVisibleActions() throws {
-        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("spec/wallet-flow-vectors.json")
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("spec/wallet-flow-account-vectors.json")
         let fixtures = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: url))["cases"]?.arrayValue ?? []
         XCTAssertEqual(fixtures.count, 44)
         var recoveries = 0

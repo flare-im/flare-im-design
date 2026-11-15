@@ -7,7 +7,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-/** Generic visual wrapper over the shared upload slot. It never holds bytes or makes requests. */
+/** The words of the choose key for an upload input's kind: a picture, a document capture, else a file. */
+internal fun pluginUploadChooseText(input: PluginInput, strings: FlareStrings): String = when (input.kind) {
+    PluginInputKind.Image -> strings.pluginFormChooseImage
+    PluginInputKind.Document -> strings.pluginFormCaptureDocument
+    else -> strings.pluginFileChoose
+}
+
+/** A document input's side as the slot's title says it ("证件正面"); null for other kinds. */
+internal fun pluginDocumentSideText(input: PluginInput, strings: FlareStrings): String? =
+    if (input.kind != PluginInputKind.Document) null else when (input.side) {
+        PluginDocumentSide.Front -> strings.pluginFormDocumentFront
+        PluginDocumentSide.Back -> strings.pluginFormDocumentBack
+        PluginDocumentSide.Holding -> strings.pluginFormDocumentHolding
+        null -> null
+    }
+
+/**
+ * Generic visual wrapper over the shared upload slot. It never holds bytes or makes requests. An image input asks to
+ * choose a picture and a document input to capture its side (the host reads `input.kind` and `input.side` from the
+ * [PluginFileAction] to open its picker, camera or document capture); a file input chooses a file.
+ */
 @Composable
 internal fun PluginFileInput(input: PluginInput, state: PluginFileState, disabled: Boolean, onAction: (PluginFileActionKind) -> Unit) {
     val strings = flareStrings()
@@ -18,7 +38,7 @@ internal fun PluginFileInput(input: PluginInput, state: PluginFileState, disable
         PluginFilePhase.Failed -> FlareImageUploadState.Failed
     }
     val text = when (state.phase) {
-        PluginFilePhase.Empty -> strings.pluginFileChoose
+        PluginFilePhase.Empty -> pluginUploadChooseText(input, strings)
         PluginFilePhase.Selected -> strings.pluginFileSelected
         PluginFilePhase.Uploading -> strings.pluginFileUploading + (state.progress?.takeIf { it.isFinite() }?.let { " ${(it.coerceIn(0.0, 1.0) * 100).toInt()}%" } ?: "")
         PluginFilePhase.Uploaded -> state.error ?: strings.pluginFileUploaded
@@ -26,10 +46,14 @@ internal fun PluginFileInput(input: PluginInput, state: PluginFileState, disable
     }
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         FlareImageUploadSlot(
-            title = state.fileName ?: input.placeholder ?: input.label,
+            title = state.fileName ?: pluginDocumentSideText(input, strings) ?: input.placeholder ?: input.label,
             state = phase, statusText = text,
-            actionText = if (state.phase == PluginFilePhase.Selected) strings.pluginFileSelected else strings.pluginFileChoose, retryText = strings.retry,
-            modifier = Modifier.fillMaxWidth(), icon = "file", disabled = disabled || state.phase == PluginFilePhase.Selected,
+            actionText = if (state.phase == PluginFilePhase.Selected) strings.pluginFileSelected else pluginUploadChooseText(input, strings), retryText = strings.retry,
+            modifier = Modifier.fillMaxWidth(), icon = when (input.kind) {
+                PluginInputKind.Image -> "image"
+                PluginInputKind.Document -> "id"
+                else -> "file"
+            }, disabled = disabled || state.phase == PluginFilePhase.Selected,
             onChoose = { onAction(PluginFileActionKind.Choose) },
             onRetry = if (state.phase == PluginFilePhase.Failed) ({ onAction(PluginFileActionKind.Retry) }) else null,
             previewLabel = strings.pluginFilePreview.takeIf { state.preview }, previewLoading = state.previewLoading,

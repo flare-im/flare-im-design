@@ -10,7 +10,7 @@ import FlareAccountView from "./FlareAccountView.vue";
 import FlarePluginPage from "../FlarePluginPage.vue";
 import { flareAccountDayKey, flareAccountEntries } from "./account";
 const fixture = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/account-view-vectors.json"), "utf8"));
-const walletCases = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/wallet-flow-vectors.json"), "utf8")).cases as Array<{id: string; variant: string; locale: string; view: FlarePluginPageViewModel}>;
+const walletCases = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/wallet-flow-account-vectors.json"), "utf8")).cases as Array<{id: string; variant: string; locale: string; view: FlarePluginPageViewModel}>;
 const scopedCases = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/wallet-scoped-history-vectors.json"), "utf8")).cases as Array<{variant: string; locale: string; sourceData: {walletId: string; walletContext: string}; view: FlarePluginPageViewModel}>;
 const cashflowCases = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/wallet-cashflow-vectors.json"), "utf8")).cases as Array<{id: string; variant: string; locale: string; view: FlarePluginPageViewModel}>;
 const cashflow = (id: string, variant: string, locale = "zh-CN") => structuredClone(cashflowCases.find(item => item.id === id && item.variant === variant && item.locale === locale)!.view);

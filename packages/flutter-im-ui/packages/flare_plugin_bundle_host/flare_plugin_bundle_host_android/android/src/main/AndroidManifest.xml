@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- The kit library declares API 26; the host runs it only from there and reports no runtime below. -->
+    <uses-sdk tools:overrideLibrary="com.flare.im.ui" />
+    <!-- Whether the device is on Wi-Fi, for fetching entry bundles ahead. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+</manifest>

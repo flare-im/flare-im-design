@@ -253,6 +253,7 @@ class FlareSettingsItem {
     this.disabled = false,
     this.danger = false,
     this.badge = false,
+    this.tag,
   });
   final String key;
   final String label;
@@ -269,6 +270,10 @@ class FlareSettingsItem {
   /// A red dot before the chevron: something here is new (an update waiting in
   /// About). A toggle row draws none.
   final bool badge;
+
+  /// A short warning tag before the chevron (「需更新」 on a plugin entry this
+  /// build cannot open yet), read with the row. A toggle row draws none.
+  final String? tag;
 }
 
 class FlareSettingsSection {

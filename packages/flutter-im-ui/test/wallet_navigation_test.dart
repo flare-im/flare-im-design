@@ -448,6 +448,7 @@ void main() {
         await tester.pumpWidget(
           review.host(
             FlarePluginPage(
+              appearance: FlarePluginPageAppearance.account,
               page: pageRef,
               view: view,
               onAction: (id, value) {

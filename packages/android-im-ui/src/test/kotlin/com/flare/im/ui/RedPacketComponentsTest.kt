@@ -363,12 +363,6 @@ class RedPacketComponentsTest {
         )
     }
 
-    @Test fun payConfirmNeedsBalanceAndNothingRunning() {
-        assertTrue(redPacketPayConfirmEnabled(insufficient = false, busy = false))
-        assertFalse(redPacketPayConfirmEnabled(insufficient = true, busy = false))
-        assertFalse(redPacketPayConfirmEnabled(insufficient = false, busy = true))
-    }
-
     @Test fun englishPresetCoversTheFamily() {
         assertEquals("张三的红包", zh.packetFromSender("张三"))
         assertEquals("Red packet from Ann", en.packetFromSender("Ann"))

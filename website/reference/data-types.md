@@ -217,6 +217,7 @@ title: 数据类型
 | `detail` | `string` |  | 尾部详情文本：navigation 行的当前值，或 value 行的信息。过长时换到标签下方。 |
 | `badge` | `boolean \| number` |  | `true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。 |
 | `description` | `string` |  | 仅 Compose：标签下方说明这一行做什么的一行字（开关的后果），次要文字色，最多三行；与这一行一起朗读。 |
+| `tag` | `string` |  | 箭头左侧的简短警示标签（当前构建还打不开的插件入口上的「需更新」）。是文字，读屏随行读出；开关行不画。 |
 
 ### SettingsSection {#settings-section}
 
@@ -943,6 +944,7 @@ title: 数据类型
 | `icon` | `string` |  | Kit 图标名；不认识的回落到 plugin。 |
 | `title` | `string` |  | 插件项标题。 |
 | `order` | `number` |  | SDK 的排序键；Kit 保持给定顺序、不重排。 |
+| `upgrade` | `{ minBuild?: number } \| null` |  | SDK 的升级占位：当前构建还打不开该插件页面（已知时 `minBuild` 是第一个能打开的构建号）。flareMeMenuSections 保留这一行并加上 pluginUpgradeBadge 标签；宿主点击时打开升级提示。 |
 
 ### MeMenu {#me-menu}
 

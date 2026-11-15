@@ -134,7 +134,9 @@
           "theme-rose-light.png",
           "theme-sunset-light.png",
           "theme-violet-dark.png",
-          "theme-violet-light.png"
+          "theme-violet-light.png",
+          "plugin-blocks-light.png",
+          "plugin-blocks-dark.png"
         ],
         "linux": [
           "attachment-surface-1280-dark.png",
@@ -202,7 +204,8 @@
       "platforms": {
         "macos": [
           "core_components.png",
-          "message_status.png"
+          "message_status.png",
+          "plugin_blocks.png"
         ],
         "linux": [
           "core_components.png",
@@ -234,7 +237,9 @@
       "scope": "SwiftUI macOS host; pinned iOS device execution remains manual",
       "baselineFiles": [
         "swiftui-large-text.png",
-        "swiftui-message-meta.png"
+        "swiftui-message-meta.png",
+        "swiftui-plugin-blocks2-dark.png",
+        "swiftui-plugin-blocks2-light.png"
       ]
     }
   },

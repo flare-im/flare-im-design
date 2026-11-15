@@ -4,7 +4,9 @@ import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
+import 'flare_status_banner.dart';
 import 'flare_switch.dart';
+import 'flare_tag.dart';
 
 /// Settings list — grouped toggle / navigation / value rows. A generic settings
 /// container. Spec: Profile/SettingsList (`FlareSettingsList`).
@@ -169,6 +171,13 @@ class FlareSettingsRow extends StatelessWidget {
   static bool drawsBadge(FlareSettingsItem item) =>
       item.badge && item.kind != FlareSettingKind.toggle;
 
+  /// [item]'s tag when it draws one: every kind but a toggle, and only
+  /// non-blank words.
+  static String? tagText(FlareSettingsItem item) {
+    final tag = item.tag?.trim() ?? '';
+    return tag.isEmpty || item.kind == FlareSettingKind.toggle ? null : tag;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -197,6 +206,17 @@ class FlareSettingsRow extends StatelessWidget {
     final chevron = Icon(Icons.chevron_right, color: colors.textTertiary);
     final detail = item.detail;
     final badge = drawsBadge(item) ? const _Dot() : null;
+    final tagLabel = tagText(item);
+    final tag = tagLabel == null
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(left: FlareSizes.spacingXs),
+            child: FlareTag(
+              key: const ValueKey('flare-settings-row-tag'),
+              label: tagLabel,
+              tone: FlareStatusTone.warning,
+            ),
+          );
     Widget wrap(Widget body) {
       if (readOnly) {
         // "label, detail" as one element, with no control semantics at all.
@@ -248,6 +268,7 @@ class FlareSettingsRow extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(child: label),
+                            ?tag,
                             ?badge,
                             if (item.kind == FlareSettingKind.navigation)
                               chevron,
@@ -312,11 +333,13 @@ class FlareSettingsRow extends StatelessWidget {
                               detail,
                               maxWidth: constraints.maxWidth * 0.6,
                             ),
+                          ?tag,
                           ?badge,
                           chevron,
                         ],
                       ),
                     },
+                    if (item.kind != FlareSettingKind.navigation) ?tag,
                     if (item.kind != FlareSettingKind.navigation) ?badge,
                   ],
                 ),

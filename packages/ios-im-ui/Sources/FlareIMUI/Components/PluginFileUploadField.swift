@@ -1,6 +1,8 @@
 import SwiftUI
 
-/// Presentation composition only: the host owns picking, bytes, transfer and local preview.
+/// Presentation composition only: the host owns picking, bytes, transfer and local preview. An image input asks to
+/// choose a picture and a document input to capture its side (the host reads `input.kind` and `input.side` from the
+/// ``PluginFileAction`` to open its picker, camera or document capture); a file input chooses a file.
 struct PluginFileUploadField: View {
     let input: PluginInput
     let state: PluginFileState?
@@ -12,13 +14,32 @@ struct PluginFileUploadField: View {
     private var status: String {
         if let error = state?.error, !error.isEmpty { return error }
         switch phase {
-        case .empty: return strings.pluginFileChoose
+        case .empty: return Self.chooseText(input, strings)
         case .selected: return strings.pluginFileSelected
         case .uploading: return strings.pluginFileUploading
         case .uploaded: return state?.fileName ?? strings.pluginFileUploaded
         case .failed: return strings.pluginFileFailed
         }
     }
+    /// The words of the choose key for the input's kind.
+    static func chooseText(_ input: PluginInput, _ strings: FlareStrings) -> String {
+        switch input.kind {
+        case .image: return strings.pluginFormChooseImage
+        case .document: return strings.pluginFormCaptureDocument
+        default: return strings.pluginFileChoose
+        }
+    }
+
+    /// A document input's side, as the slot's title says it ("证件正面"); nil for other kinds.
+    static func sideText(_ input: PluginInput, _ strings: FlareStrings) -> String? {
+        guard input.kind == .document, let side = input.side else { return nil }
+        switch side {
+        case .front: return strings.pluginFormDocumentFront
+        case .back: return strings.pluginFormDocumentBack
+        case .holding: return strings.pluginFormDocumentHolding
+        }
+    }
+
     private var slotState: FlareImageUploadState {
         switch phase {
         case .empty: return .empty
@@ -29,8 +50,8 @@ struct PluginFileUploadField: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
-            ImageUploadSlotView(title: input.label, state: slotState, statusText: status,
-                actionText: strings.pluginFileChoose, retryText: strings.retry, disabled: disabled,
+            ImageUploadSlotView(title: Self.sideText(input, strings) ?? input.label, state: slotState, statusText: status,
+                actionText: Self.chooseText(input, strings), retryText: strings.retry, disabled: disabled,
                 onChoose: { onAction(.choose) }, onRetry: state?.fileName != nil ? { onAction(.retry) } : nil,
                 previewLabel: state?.preview == true ? strings.pluginFilePreview : nil,
                 previewLoading: state?.previewLoading ?? false, previewDisabled: disabled,

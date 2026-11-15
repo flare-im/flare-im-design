@@ -46,6 +46,13 @@ import SwiftUI
 ///   that acts, and closes with "副本，仅供查看".
 /// - The shell is the message's card surface: the timeline draws no bubble around it. A quoting card's quote sits
 ///   inside the shell, above the title row (``FlareMessageCardQuoteSlot``).
+/// - Upgrade required (``PluginUnavailableReason/upgradeRequired``): the title and ``FlarePluginUpgradeNotice`` (card)
+///   instead of the reason line — "更新应用后查看" and "去更新" when `upgradeStatus` says a build is offered and the host
+///   passes `onUpdate`, else only the copy.
+/// - Vocabulary 2 blocks (``PluginBlocksExtra``): a section's blocks under its collapsible label; stats; a chart; an
+///   image the host resolves (`resolveImage`, never a URL in the view); a QR code whose refresh key hands the host the
+///   query (`onQrRefresh`); a hero and a banner whose keys run like the footer keys; steps; a timeline. Fields, stats,
+///   heroes and cells with a `count` or `duration` format draw compact counts and durations in the viewer's words.
 /// Where a ``PluginView`` sits: the padding it gives itself, in every state.
 public enum PluginViewInset: String, Sendable, CaseIterable {
     /// None: the host's surface pads it.
@@ -89,11 +96,22 @@ public struct PluginView: View {
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginActionPayload) -> Void)?
     private let onOpenDetail: (() -> Void)?
+    private let upgradeStatus: PluginUpgradeStatus?
+    private let upgradeBusy: Bool
+    private let onUpdate: (() -> Void)?
+    private let resolveImage: (@Sendable (PluginImageSource) async -> URL?)?
+    private let onQrRefresh: ((PluginQrRefresh) -> Void)?
+    private var locationStates: [String: PluginLocationState] = [:]
+    private var onLocationAction: ((PluginLocationAction) -> Void)?
+    private var protectedMedia: [String: PluginProtectedMediaState] = [:]
+    private var onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?
     private let clock: PluginViewClock
     @State private var interaction = PluginChoicesInteraction()
     @State private var users: [String: PluginUser]
     @State private var confirming: PluginActionRun?
     @State private var formRun: PluginActionRun?
+    /// A page action's native target handed to the form holding its `into` input.
+    @State private var nativeRequest: PluginNativeIntoRequest?
     @State private var formSubmitted = false
     @State private var inlineForm = PluginInlineFormState()
     /// The row whose key last went out: `busyActionId` spins that row's key, not every row's.
@@ -111,6 +129,17 @@ public struct PluginView: View {
     ///   - showError: Hide only the outer banner; the original error still settles and validates an active form.
     ///   - inlineFormTitle: Optional heading immediately before an eligible inline form; also bounds it to the primary pane width.
     ///   - inlineFormDescription: Optional supporting text under that heading. Blank metadata keeps the existing form layout.
+    ///   - upgradeStatus: `update.plugin_upgrade_status` for `view.minBuild`, on an upgrade-required view.
+    ///   - onUpdate: Opens the update flow (``FlarePluginUpgradeNotice``).
+    ///   - resolveImage: The address of an image block's picture (a package asset or a private upload); nil: none.
+    ///   - onQrRefresh: A QR block's refresh key: the host runs the query and passes back a view with the fresh code.
+    ///   - locationStates: Location inputs: the host's fix, a running locate or a failure, by input id.
+    ///   - onLocationAction: A location input's locate or clear key: the host runs the page's locationOnce action into
+    ///     the input and passes its fix back in `locationStates`; on clear it drops that input's state.
+    ///   - protectedMedia: What the host has for each protected media item, by item id: the read's address (the
+    ///     server's https grant address), a running read or a failure.
+    ///   - onProtectedMediaRead: A protected media read (with its reason when the block asks one): the host runs and
+    ///     audits it, then fills `protectedMedia` with ``FlarePluginProtectedMedia/url(result:urlPath:)``.
     public init(view: PluginViewModel, icon: String? = nil, displayName: String? = nil, viewerId: String? = nil,
                 busy: Bool = false, busyActionId: String? = nil,
                 error: String? = nil, embedded: Bool = false, inset: PluginViewInset = .none,
@@ -124,11 +153,34 @@ public struct PluginView: View {
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil,
                 formErrors: [PluginFormError] = [], settleToken: Int = 0,
                 fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
-                onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil) {
+                onAction: ((String, PluginActionPayload) -> Void)? = nil, onOpenDetail: (() -> Void)? = nil,
+                upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false, onUpdate: (() -> Void)? = nil,
+                resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+                onQrRefresh: ((PluginQrRefresh) -> Void)? = nil,
+                locationStates: [String: PluginLocationState] = [:],
+                onLocationAction: ((PluginLocationAction) -> Void)? = nil,
+                protectedMedia: [String: PluginProtectedMediaState] = [:],
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
         self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
                   busyActionId: busyActionId, error: error, embedded: embedded,
                   inset: inset, actionLayout: actionLayout, showError: showError, labelRows: labelRows, inlineFormActionId: inlineFormActionId, inlineFormTitle: inlineFormTitle, inlineFormDescription: inlineFormDescription, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors,
-                  settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:])
+                  settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, onOpenDetail: onOpenDetail, clock: .system, users: [:],
+                  upgradeStatus: upgradeStatus, upgradeBusy: upgradeBusy, onUpdate: onUpdate, resolveImage: resolveImage,
+                  onQrRefresh: onQrRefresh)
+        self.locationStates = locationStates; self.onLocationAction = onLocationAction
+        self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
+    }
+
+    /// This view with the host's capability state: location inputs and protected media (how ``FlarePluginPage``
+    /// passes its own on).
+    func hostCapabilities(locationStates: [String: PluginLocationState],
+                          onLocationAction: ((PluginLocationAction) -> Void)?,
+                          protectedMedia: [String: PluginProtectedMediaState],
+                          onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?) -> PluginView {
+        var copy = self
+        copy.locationStates = locationStates; copy.onLocationAction = onLocationAction
+        copy.protectedMedia = protectedMedia; copy.onProtectedMediaRead = onProtectedMediaRead
+        return copy
     }
 
     /// The card at a fixed clock and with users already resolved — how the tests pin `now`, the zone and names.
@@ -145,7 +197,11 @@ public struct PluginView: View {
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, formErrors: [PluginFormError], settleToken: Int = 0,
          fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
          onAction: ((String, PluginActionPayload) -> Void)?, onOpenDetail: (() -> Void)?, clock: PluginViewClock,
-         users: [String: PluginUser]) {
+         users: [String: PluginUser], upgradeStatus: PluginUpgradeStatus? = nil, upgradeBusy: Bool = false,
+         onUpdate: (() -> Void)? = nil, resolveImage: (@Sendable (PluginImageSource) async -> URL?)? = nil,
+         onQrRefresh: ((PluginQrRefresh) -> Void)? = nil) {
+        self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
+        self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
         self.view = view; self.icon = icon; self.displayName = displayName; self.viewerId = viewerId
         self.busy = busy; self.busyActionId = busyActionId; self.error = error
         self.embedded = embedded; self.inset = inset; self.resolveUser = resolveUser; self.members = members
@@ -236,15 +292,16 @@ public struct PluginView: View {
                     .foregroundColor(colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if !view.available, let reason {
+            if view.upgradeRequired {
+                FlarePluginUpgradeNotice(variant: .card, status: upgradeStatus, busy: upgradeBusy, onUpdate: onUpdate)
+            } else if !view.available, let reason {
                 Text(reason)
                     .font(.system(size: FlareSizes.fontSizeMd * textScale))
                     .foregroundColor(colors.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if special {
-                ResolvedPresentationView(view: view, busy: locked, error: error, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
-                    settleToken: settleToken, resolveUser: resolveUser, onAction: locked ? nil : onAction,
+                ResolvedPresentationView(view: view, busy: locked,
                     onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
                 if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
             } else if view.available {
@@ -265,7 +322,9 @@ public struct PluginView: View {
                         }
                     PluginFormView(inputs: view.formInputs(for: action), errors: inlineForm.submitted ? formErrors : [],
                                    submitLabel: action.label, busy: locked, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
-                                   fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in
+                                   fileStates: fileStates, onFileAction: onFileAction,
+                                   locationStates: locationStates, onLocationAction: onLocationAction,
+                                   nativeRequest: nativeRequest, onSubmit: { values in
                         guard !locked, Self.inlineAction(view, id: action.id, hasAction: onAction != nil) != nil,
                               inlineForm.begin(action.id) else { return }
                         emit(PluginActionRun(action: action, payload: .empty, block: nil), formValues: values)
@@ -337,11 +396,15 @@ public struct PluginView: View {
         .flareBottomSheet(item: $formRun, title: formRun?.action.label, dismissible: !formPending) { request in
             PluginFormView(inputs: view.formInputs(for: request.action), errors: formSubmitted ? formErrors : [],
                            busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
-                           fileStates: fileStates, onFileAction: onFileAction, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
+                           fileStates: fileStates, onFileAction: onFileAction,
+                                   locationStates: locationStates, onLocationAction: onLocationAction,
+                           nativeRequest: nativeRequest, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
                            onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
         }
         .onChange(of: view) { _ in interaction.viewChanged() }
         .onChange(of: inlineAction?.id) { _ in inlineForm = PluginInlineFormState() }
+        // A native request belongs to the form it was handed to: a later form starts without it.
+        .onChange(of: formRun == nil) { closed in if closed { nativeRequest = nil } }
         // Every host signal arrives in one value (`next`), so an error set in the same update as the settle is read.
         .onChange(of: hostSignal) { next in hostChanged(to: next) }
         .task(id: PluginViewFormat.userIds(in: view)) { await resolve(PluginViewFormat.userIds(in: view)) }
@@ -426,8 +489,32 @@ public struct PluginView: View {
                                 enabled: onAction != nil && !view.readOnly && !locked, labelRows: labelRows) { key, row in
                 run(key.action, PluginActionPayload(row: PluginRowRef(key: row.key, input: key.input)))
             }
+        case .section(let section):
+            // A child's position keys its choices state apart from the top-level blocks'.
+            PluginSectionBlockView(block: section) { child, block in
+                AnyView(blockView(block, at: Self.sectionChildIndex(section: index, child: child)))
+            }
+        case .stats(let stats): PluginStatsBlockView(block: stats)
+        case .chart(let chart): PluginChartBlockView(block: chart)
+        case .image(let image): PluginImageBlockView(block: image, resolveImage: resolveImage)
+        case .qr(let qr):
+            PluginQrBlockView(block: qr, clock: clock, onRefresh: view.readOnly ? nil : onQrRefresh, disabled: locked)
+        case .hero(let hero):
+            PluginHeroBlockView(block: hero, busyActionId: busyActionId, disabled: locked,
+                                onAction: onAction == nil || view.readOnly ? nil : { run($0, .empty) })
+        case .steps(let steps): PluginStepsBlockView(block: steps)
+        case .banner(let banner):
+            PluginBannerBlockView(block: banner, disabled: locked,
+                                  onAction: onAction == nil || view.readOnly ? nil : { run($0, .empty) })
+        case .timeline(let timeline): PluginTimelineBlockView(block: timeline, clock: clock)
+        case .protectedMedia(let media):
+            PluginProtectedMediaBlockView(block: media, states: protectedMedia, busy: locked,
+                                          onRead: view.readOnly ? nil : onProtectedMediaRead)
         }
     }
+
+    /// The position a section's child keys its local state by: apart from every top-level position.
+    static func sectionChildIndex(section: Int, child: Int) -> Int { 1000 + section * 10 + child }
 
     private func detailKey(_ open: @escaping () -> Void) -> some View {
         ButtonView(label: strings.pluginViewDetail, variant: .quiet, size: .sm, disabled: locked,
@@ -489,8 +576,54 @@ public struct PluginView: View {
     /// Confirm, then collect the form, then hand the action over.
     private func run(_ action: PluginViewAction, _ payload: PluginActionPayload, block: Int? = nil) {
         guard !locked, onAction != nil else { return }
+        // A native target writing `into` an input of a form on this view runs through that input's own key, so
+        // the host's answer is written into the form's current scope (no earlier touch of the input needed).
+        if payload.row == nil, let target = action.target {
+            if takesNativeInto(target) {
+                nativeRequest = PluginNativeIntoRequest(target: target)
+                return
+            }
+            // The input belongs to another action's form that is not open (a page's capture keys beside its
+            // submit): open that form and run the target through the input's key there.
+            if formRun == nil, let holder = nativeIntoHolder(target, excluding: action.id) {
+                nativeRequest = PluginNativeIntoRequest(target: target)
+                let request = PluginActionRun(action: holder, payload: .empty, block: block)
+                if case .confirm = PluginActionFlow.start(holder) { confirming = request } else { proceed(request) }
+                return
+            }
+        }
         let request = PluginActionRun(action: action, payload: payload, block: block)
         if case .confirm = PluginActionFlow.start(action) { confirming = request } else { proceed(request) }
+    }
+
+    /// Whether a form on this view (the inline form, or the open form sheet) holds the input `target` writes
+    /// into, with the host listening for that input's key.
+    private func takesNativeInto(_ target: PluginActionTarget) -> Bool {
+        var forms: [PluginViewAction] = []
+        if let inline = inlineAction { forms.append(inline) }
+        if let open = formRun?.action { forms.append(open) }
+        return forms.contains { form in
+            view.formInputs(for: form).contains { input in
+                switch PluginFormRules.nativeIntoKey(target, input) {
+                case "file": return onFileAction != nil
+                case "location": return onLocationAction != nil
+                default: return false
+                }
+            }
+        }
+    }
+
+    /// Another action of this view whose form holds the input `target` writes into.
+    private func nativeIntoHolder(_ target: PluginActionTarget, excluding id: String) -> PluginViewAction? {
+        view.actions.first { other in
+            other.id != id && view.formInputs(for: other).contains { input in
+                switch PluginFormRules.nativeIntoKey(target, input) {
+                case "file": return onFileAction != nil
+                case "location": return onLocationAction != nil
+                default: return false
+                }
+            }
+        }
     }
 
     private func proceed(_ request: PluginActionRun) {
@@ -560,12 +693,13 @@ func pluginToneGround(_ tone: PluginTone?, _ colors: FlareColors) -> Color {
     }
 }
 
-/// Label/value rows.
+/// Label/value rows; a value with a `count` or `duration` format is written in the viewer's words.
 struct PluginFieldRows: View {
     let fields: [PluginViewField]
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -574,7 +708,7 @@ struct PluginFieldRows: View {
                 HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingMd) {
                     Text(field.label).foregroundColor(colors.textSecondary)
                         .frame(minWidth: 56, alignment: .leading)
-                    Text(field.value).foregroundColor(colors.textPrimary)
+                    Text(PluginFormatRules.text(field.value, field.format, strings)).foregroundColor(colors.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .font(.system(size: FlareSizes.fontSizeLg * textScale))
@@ -834,6 +968,13 @@ struct PluginEntriesBlockView: View {
             Text(entry.text).font(.system(size: FlareSizes.fontSizeLg * textScale))
                 .foregroundColor(colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            if let timeMs = entry.timeMs {
+                Text(PluginViewFormat.dateTime(timeMs, nowMs: PluginViewClock.system.now(), strings,
+                                               utcOffsetMinutes: nil))
+                    .font(.system(size: FlareSizes.fontSizeSm * textScale).monospacedDigit())
+                    .foregroundColor(colors.textTertiary)
+                    .lineLimit(1)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -907,9 +1048,19 @@ struct PluginRowsBlockView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             let now = clock.now()
+            let days = PluginViewFormat.rowDayHeadings(
+                PluginRowsBlock(columns: block.columns, rows: rows, groupByDay: block.groupByDay),
+                nowMs: now, strings, utcOffsetMinutes: clock.utcOffsetMinutes)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.key) { position, row in
-                    if position > 0 { PluginDivider() }
+                    if let day = days[position] {
+                        Text(day)
+                            .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .semibold))
+                            .foregroundColor(colors.textSecondary)
+                            .padding(.top, position == 0 ? 0 : FlareSizes.spacingMd)
+                            .padding(.bottom, FlareSizes.spacingXs)
+                            .accessibilityAddTraits(.isHeader)
+                    } else if position > 0 { PluginDivider() }
                     item(row, lines: PluginViewFormat.rowLines(block, row, nowMs: now, strings,
                                                                utcOffsetMinutes: clock.utcOffsetMinutes), colors)
                         .padding(.top, position == 0 ? 0 : FlareSizes.spacingSm)
@@ -1102,7 +1253,7 @@ struct PluginTimeBlockView: View {
             let now = clock.now()
             if now != nowMs { nowMs = now }
             guard let delay = PluginViewFormat.countdownDelay(atMs: block.atMs, nowMs: now) else { return }
-            try? await Task.sleep(nanoseconds: UInt64(delay) * 1_000_000)
+            await flarePluginSleep(ms: delay)
         }
     }
 }

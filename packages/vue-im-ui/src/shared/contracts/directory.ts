@@ -88,6 +88,11 @@ export interface FlareSettingsItem {
   /** There are more than `badge` (the server had more than it counted): the badge reads 99+ (spec/count-badge-vectors.json). */
   badgeMore?: boolean;
   /**
+   * A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet). It is words, so it
+   * reads with the row; a toggle row draws none.
+   */
+  tag?: string;
+  /**
    * 这一行就是另一栏正在显示的那一项。设置列表被当成导航列用时（左边四个入口、
    * 右边加载对应列表）必须标出来，否则读的人看不出左右的对应关系。
    * 与 `value`(只读信息) 和 `disabled` 都无关。

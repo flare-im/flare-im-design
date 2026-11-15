@@ -46,4 +46,4 @@ One repository-wide check remains unrelated to these wallet changes: `check-plat
 - Vue/Flutter originals: `flare-im-design/.local/wallet-flow-refinement/`.
 - SwiftUI/Compose originals: workspace `.local/wallet-flow-refinement/ios/` and `android/`.
 - Shared declarations and behavior: [plugin-components.md](plugin-components.md#钱包与资金流程的-account-布局).
-- Canonical display data: [wallet-flow-vectors.json](../spec/wallet-flow-vectors.json).
+- Canonical display data: [wallet-flow-vectors.json](../spec/wallet-flow-vectors.json) (plain blocks, Wallet 0.6.0). The account-renderer samples this page measured are kept as [wallet-flow-account-vectors.json](../spec/wallet-flow-account-vectors.json) for the `FlareAccountView` tests.

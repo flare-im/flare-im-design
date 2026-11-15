@@ -7891,6 +7891,915 @@
     ],
     "zh": "暂无数据"
   },
+  "pluginViewUnavailableUpgradeRequired": {
+    "en": "Update the app to view this",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "更新应用后查看"
+  },
+  "pluginUpgradeAction": {
+    "en": "Update",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "去更新"
+  },
+  "pluginUpgradeNotAvailable": {
+    "en": "Not supported in this version yet. It will work once a newer version is released",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "当前版本暂不支持，新版本发布后可用"
+  },
+  "pluginUpgradeBadge": {
+    "en": "Update needed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需更新"
+  },
+  "pluginUpgradeTitle": {
+    "en": "Update required",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "需要更新应用"
+  },
+  "pluginUpgradeDescription": {
+    "en": "This needs a newer version of the app",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "此内容需要更新到新版本后才能使用"
+  },
+  "pluginViewQrExpired": {
+    "en": "QR code expired",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "二维码已失效"
+  },
+  "pluginViewQrRefresh": {
+    "en": "Refresh QR code",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "刷新二维码"
+  },
+  "pluginViewStepPending": {
+    "en": "Not started",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未开始"
+  },
+  "pluginViewStepCurrent": {
+    "en": "In progress",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "进行中"
+  },
+  "pluginViewStepDone": {
+    "en": "Done",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已完成"
+  },
+  "pluginViewStepFailed": {
+    "en": "Failed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未通过"
+  },
+  "pluginViewTrendUp": {
+    "en": "Up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "上升"
+  },
+  "pluginViewTrendDown": {
+    "en": "Down",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "下降"
+  },
+  "pluginViewTrendFlat": {
+    "en": "Unchanged",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "持平"
+  },
+  "pluginViewImageUnavailable": {
+    "en": "Image unavailable",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "图片无法显示"
+  },
+  "pluginFormatSeconds": {
+    "en": "{n} s",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{n} 秒"
+  },
+  "pluginFormatCountUnits": {
+    "en": "3:K|6:M|9:B",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "4:万|8:亿"
+  },
+  "pluginFormChooseImage": {
+    "en": "Choose image",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "选择图片"
+  },
+  "pluginFormCaptureDocument": {
+    "en": "Capture document",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拍摄证件"
+  },
+  "pluginFormDocumentFront": {
+    "en": "Front",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "证件正面"
+  },
+  "pluginFormDocumentBack": {
+    "en": "Back",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "证件反面"
+  },
+  "pluginFormDocumentHolding": {
+    "en": "Holding the document",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "手持证件"
+  },
+  "capabilityConsentTitle": {
+    "en": "“{plugin}” wants to use",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "「{plugin}」想要使用"
+  },
+  "capabilityConsentPurpose": {
+    "en": "Purpose",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "用途"
+  },
+  "capabilityConsentAllowOnce": {
+    "en": "Allow once",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅本次允许"
+  },
+  "capabilityConsentAllowAlways": {
+    "en": "Always allow",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "始终允许"
+  },
+  "capabilityConsentDeny": {
+    "en": "Don't allow",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "不允许"
+  },
+  "capabilityConsentNote": {
+    "en": "You can turn this off in Settings at any time",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "可以随时在设置里撤销授权"
+  },
+  "capabilityDocumentCapture": {
+    "en": "The camera, to photograph a document",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "相机，用于拍摄证件"
+  },
+  "capabilityPaymentConfirmation": {
+    "en": "Payments, each confirmed by you",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "付款，每次付款都需你确认"
+  },
+  "capabilityLocationCoarse": {
+    "en": "Your approximate location, this time only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你的大致位置（仅本次）"
+  },
+  "capabilityLocationFine": {
+    "en": "Your precise location, this time only",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "你的精确位置（仅本次）"
+  },
+  "capabilityCamera": {
+    "en": "The camera",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "相机"
+  },
+  "capabilityMicrophone": {
+    "en": "The microphone",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "麦克风"
+  },
+  "capabilityRtcSession": {
+    "en": "Voice and video calls",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音和视频通话"
+  },
+  "capabilityGeneric": {
+    "en": "A capability of this device",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "设备上的一项能力"
+  },
+  "documentCaptureHintFront": {
+    "en": "Fit the front of the document inside the frame, sharp and without glare",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "将证件正面放入框内，保持清晰、避免反光"
+  },
+  "documentCaptureHintBack": {
+    "en": "Fit the back of the document inside the frame, sharp and without glare",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "将证件反面放入框内，保持清晰、避免反光"
+  },
+  "documentCaptureHintHolding": {
+    "en": "Hold the document in front of you so that your face and the document are both clear",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "手持证件放在胸前，脸和证件都要清晰"
+  },
+  "documentCaptureShoot": {
+    "en": "Take photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拍摄"
+  },
+  "documentCaptureRetake": {
+    "en": "Retake",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重拍"
+  },
+  "documentCaptureUse": {
+    "en": "Use photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "使用照片"
+  },
+  "documentCaptureFromAlbum": {
+    "en": "Choose from photos",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "从相册选择"
+  },
+  "documentCaptureProcessing": {
+    "en": "Processing the photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在处理照片"
+  },
+  "documentCaptureCameraUnavailable": {
+    "en": "The camera is not available. Choose a photo instead",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "相机不可用，可从相册选择"
+  },
+  "documentCaptureTooLarge": {
+    "en": "The photo is too large. Retake it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "照片太大，请重拍"
+  },
+  "documentCaptureFailed": {
+    "en": "The photo could not be processed. Retake it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "照片无法处理，请重拍"
+  },
+  "documentCaptureNotAccepted": {
+    "en": "Photos are not accepted here. Contact the provider",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这里不接受照片，请联系服务提供方"
+  },
+  "paymentConfirmationTitle": {
+    "en": "Confirm payment",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "确认付款"
+  },
+  "paymentConfirmationPayee": {
+    "en": "Payee",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收款方"
+  },
+  "paymentConfirmationItem": {
+    "en": "For",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "付款说明"
+  },
+  "paymentConfirmationOrder": {
+    "en": "Order",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "订单号"
+  },
+  "paymentConfirmationRequestedBy": {
+    "en": "Requested by “{plugin}”",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "由「{plugin}」发起"
+  },
+  "paymentConfirmationExpiresIn": {
+    "en": "Expires in {time}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{time} 后失效"
+  },
+  "paymentConfirmationExpired": {
+    "en": "This order has expired. Start again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "订单已失效，请重新发起"
+  },
+  "paymentConfirmationInvalid": {
+    "en": "The order amount cannot be read, so it cannot be paid",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "订单金额无法识别，不能付款"
+  },
+  "paymentConfirmationConfirm": {
+    "en": "Pay",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "确认付款"
+  },
+  "paymentConfirmationVerifying": {
+    "en": "Verifying",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在验证身份"
+  },
+  "pluginProtectedMediaReason": {
+    "en": "Reason for viewing",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看原因"
+  },
+  "pluginProtectedMediaNotice": {
+    "en": "Viewing protected material needs a reason and is recorded for audit.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看受保护材料需要说明原因，操作会留下审计记录。"
+  },
+  "pluginProtectedMediaOwnNotice": {
+    "en": "Only you can see this. The picture is not saved to this device.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "仅你本人可查看，图片不会保存到设备。"
+  },
+  "pluginProtectedMediaView": {
+    "en": "View",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看"
+  },
+  "pluginProtectedMediaHide": {
+    "en": "Hide",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "隐藏"
+  },
+  "pluginProtectedMediaUnavailable": {
+    "en": "Cannot be shown. Try again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "无法显示，请重试"
+  },
+  "pluginProtectedMediaNotPreviewable": {
+    "en": "This kind of file cannot be previewed here",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "此类文件不能在这里预览"
+  },
+  "pluginLocationLocate": {
+    "en": "Get location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "获取位置"
+  },
+  "pluginLocationRelocate": {
+    "en": "Locate again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新获取"
+  },
+  "pluginLocationClear": {
+    "en": "Clear",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清除"
+  },
+  "pluginLocationLocating": {
+    "en": "Getting your location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在获取位置"
+  },
+  "pluginLocationEmpty": {
+    "en": "No location yet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "尚未获取位置"
+  },
+  "pluginLocationCoarse": {
+    "en": "Approximate location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "大致位置"
+  },
+  "pluginBundleOpening": {
+    "en": "Opening…",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "正在打开…"
+  },
+  "pluginBundleUnavailable": {
+    "en": "This page can't be opened right now",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "页面暂时无法打开"
+  },
+  "pluginBundleCrashed": {
+    "en": "This page stopped unexpectedly",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "页面意外停止"
+  },
+  "pluginBundleCrashedHint": {
+    "en": "Reload it to carry on",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "重新加载后可以继续使用"
+  },
+  "pluginBundleReload": {
+    "en": "Reload",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "重新加载"
+  },
+  "pluginBundleClosed": {
+    "en": "This page has been closed",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "页面已关闭"
+  },
+  "pluginBundleExternalTitle": {
+    "en": "Open external link",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "打开外部链接"
+  },
+  "pluginBundleExternalMessage": {
+    "en": "This address will open in your browser. Make sure you trust it.",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "将在浏览器中打开以下地址，请确认来源可信。"
+  },
+  "pluginBundleExternalOpen": {
+    "en": "Open",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "打开"
+  },
+  "pluginBundleCopied": {
+    "en": "Copied",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "已复制"
+  },
+  "pluginBridgeErrorInvalidEnvelope": {
+    "en": "The request is malformed",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "请求格式不正确"
+  },
+  "pluginBridgeErrorUnsupportedBridge": {
+    "en": "This version can't run this page",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "当前版本不支持该页面"
+  },
+  "pluginBridgeErrorNotReady": {
+    "en": "The page isn't ready yet",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "页面还没准备好"
+  },
+  "pluginBridgeErrorMethodNotFound": {
+    "en": "This action isn't supported",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "不支持该操作"
+  },
+  "pluginBridgeErrorInvalidParams": {
+    "en": "The request has invalid values",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "请求参数不正确"
+  },
+  "pluginBridgeErrorPayloadTooLarge": {
+    "en": "The request is too large",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "请求内容过大"
+  },
+  "pluginBridgeErrorPermissionDenied": {
+    "en": "This action isn't allowed",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "没有权限执行该操作"
+  },
+  "pluginBridgeErrorRateLimited": {
+    "en": "Too many requests. Try again shortly",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "操作太频繁，请稍后再试"
+  },
+  "pluginBridgeErrorCancelled": {
+    "en": "Cancelled",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "已取消"
+  },
+  "pluginBridgeErrorGestureRequired": {
+    "en": "Tap the page, then try again",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "请先点按页面再试"
+  },
+  "pluginBridgeErrorQuotaExceeded": {
+    "en": "Storage is full",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "存储空间已满"
+  },
+  "pluginBridgeErrorNotFound": {
+    "en": "Couldn't find what was asked for",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "找不到要打开的内容"
+  },
+  "pluginBridgeErrorUnavailable": {
+    "en": "Not available right now. Try again later",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "暂时不可用，请稍后再试"
+  },
+  "pluginBridgeErrorTimeout": {
+    "en": "The request timed out. Try again",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "请求超时，请重试"
+  },
+  "pluginBridgeErrorOperationFailed": {
+    "en": "The action failed",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "操作失败"
+  },
+  "pluginBridgeErrorRevoked": {
+    "en": "This page has been turned off",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "页面已被停用"
+  },
+  "pluginBridgeErrorInternal": {
+    "en": "Something went wrong. Try again later",
+    "kits": [
+      "android",
+      "ios",
+      "flutter"
+    ],
+    "zh": "出现问题，请稍后再试"
+  },
+  "pluginLocationFine": {
+    "en": "Precise location",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "精确位置"
+  },
+  "pluginLocationAccuracy": {
+    "en": "Accurate to about {m} m",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "精度约 {m} 米"
+  },
   "pluginPageRefresh": {
     "en": "Refresh",
     "kits": [

@@ -316,6 +316,107 @@ class FlareStrings {
     this.accountDayFormat = 'M月d日',
     this.accountDayYearFormat = 'y年M月d日',
     this.pluginViewEmpty = '暂无数据',
+    this.pluginViewUnavailableUpgradeRequired = '更新应用后查看',
+    this.pluginUpgradeAction = '去更新',
+    this.pluginUpgradeNotAvailable = '当前版本暂不支持，新版本发布后可用',
+    this.pluginUpgradeBadge = '需更新',
+    this.pluginUpgradeTitle = '需要更新应用',
+    this.pluginUpgradeDescription = '此内容需要更新到新版本后才能使用',
+    this.pluginViewQrExpired = '二维码已失效',
+    this.pluginViewQrRefresh = '刷新二维码',
+    this.pluginViewStepPending = '未开始',
+    this.pluginViewStepCurrent = '进行中',
+    this.pluginViewStepDone = '已完成',
+    this.pluginViewStepFailed = '未通过',
+    this.pluginViewTrendUp = '上升',
+    this.pluginViewTrendDown = '下降',
+    this.pluginViewTrendFlat = '持平',
+    this.pluginViewImageUnavailable = '图片无法显示',
+    this.pluginFormatSeconds = '{n} 秒',
+    this.pluginFormatCountUnits = '4:万|8:亿',
+    this.pluginFormChooseImage = '选择图片',
+    this.pluginFormCaptureDocument = '拍摄证件',
+    this.pluginFormDocumentFront = '证件正面',
+    this.pluginFormDocumentBack = '证件反面',
+    this.pluginFormDocumentHolding = '手持证件',
+    this.capabilityConsentTitle = '「{plugin}」想要使用',
+    this.capabilityConsentPurpose = '用途',
+    this.capabilityConsentAllowOnce = '仅本次允许',
+    this.capabilityConsentAllowAlways = '始终允许',
+    this.capabilityConsentDeny = '不允许',
+    this.capabilityConsentNote = '可以随时在设置里撤销授权',
+    this.capabilityDocumentCapture = '相机，用于拍摄证件',
+    this.capabilityPaymentConfirmation = '付款，每次付款都需你确认',
+    this.capabilityLocationCoarse = '你的大致位置（仅本次）',
+    this.capabilityLocationFine = '你的精确位置（仅本次）',
+    this.capabilityCamera = '相机',
+    this.capabilityMicrophone = '麦克风',
+    this.capabilityRtcSession = '语音和视频通话',
+    this.capabilityGeneric = '设备上的一项能力',
+    this.documentCaptureHintFront = '将证件正面放入框内，保持清晰、避免反光',
+    this.documentCaptureHintBack = '将证件反面放入框内，保持清晰、避免反光',
+    this.documentCaptureHintHolding = '手持证件放在胸前，脸和证件都要清晰',
+    this.documentCaptureShoot = '拍摄',
+    this.documentCaptureRetake = '重拍',
+    this.documentCaptureUse = '使用照片',
+    this.documentCaptureFromAlbum = '从相册选择',
+    this.documentCaptureProcessing = '正在处理照片',
+    this.documentCaptureCameraUnavailable = '相机不可用，可从相册选择',
+    this.documentCaptureTooLarge = '照片太大，请重拍',
+    this.documentCaptureFailed = '照片无法处理，请重拍',
+    this.documentCaptureNotAccepted = '这里不接受照片，请联系服务提供方',
+    this.paymentConfirmationTitle = '确认付款',
+    this.paymentConfirmationPayee = '收款方',
+    this.paymentConfirmationItem = '付款说明',
+    this.paymentConfirmationOrder = '订单号',
+    this.paymentConfirmationRequestedBy = '由「{plugin}」发起',
+    this.paymentConfirmationExpiresIn = '{time} 后失效',
+    this.paymentConfirmationExpired = '订单已失效，请重新发起',
+    this.paymentConfirmationInvalid = '订单金额无法识别，不能付款',
+    this.pluginBundleOpening = '正在打开…',
+    this.pluginBundleUnavailable = '页面暂时无法打开',
+    this.pluginBundleCrashed = '页面意外停止',
+    this.pluginBundleCrashedHint = '重新加载后可以继续使用',
+    this.pluginBundleReload = '重新加载',
+    this.pluginBundleClosed = '页面已关闭',
+    this.pluginBundleExternalTitle = '打开外部链接',
+    this.pluginBundleExternalMessage = '将在浏览器中打开以下地址，请确认来源可信。',
+    this.pluginBundleExternalOpen = '打开',
+    this.pluginBundleCopied = '已复制',
+    this.pluginBridgeErrorInvalidEnvelope = '请求格式不正确',
+    this.pluginBridgeErrorUnsupportedBridge = '当前版本不支持该页面',
+    this.pluginBridgeErrorNotReady = '页面还没准备好',
+    this.pluginBridgeErrorMethodNotFound = '不支持该操作',
+    this.pluginBridgeErrorInvalidParams = '请求参数不正确',
+    this.pluginBridgeErrorPayloadTooLarge = '请求内容过大',
+    this.pluginBridgeErrorPermissionDenied = '没有权限执行该操作',
+    this.pluginBridgeErrorRateLimited = '操作太频繁，请稍后再试',
+    this.pluginBridgeErrorCancelled = '已取消',
+    this.pluginBridgeErrorGestureRequired = '请先点按页面再试',
+    this.pluginBridgeErrorQuotaExceeded = '存储空间已满',
+    this.pluginBridgeErrorNotFound = '找不到要打开的内容',
+    this.pluginBridgeErrorUnavailable = '暂时不可用，请稍后再试',
+    this.pluginBridgeErrorTimeout = '请求超时，请重试',
+    this.pluginBridgeErrorOperationFailed = '操作失败',
+    this.pluginBridgeErrorRevoked = '页面已被停用',
+    this.pluginBridgeErrorInternal = '出现问题，请稍后再试',
+    this.paymentConfirmationConfirm = '确认付款',
+    this.paymentConfirmationVerifying = '正在验证身份',
+    this.pluginProtectedMediaReason = '查看原因',
+    this.pluginProtectedMediaNotice = '查看受保护材料需要说明原因，操作会留下审计记录。',
+    this.pluginProtectedMediaOwnNotice = '仅你本人可查看，图片不会保存到设备。',
+    this.pluginProtectedMediaView = '查看',
+    this.pluginProtectedMediaHide = '隐藏',
+    this.pluginProtectedMediaUnavailable = '无法显示，请重试',
+    this.pluginProtectedMediaNotPreviewable = '此类文件不能在这里预览',
+    this.pluginLocationLocate = '获取位置',
+    this.pluginLocationRelocate = '重新获取',
+    this.pluginLocationClear = '清除',
+    this.pluginLocationLocating = '正在获取位置',
+    this.pluginLocationEmpty = '尚未获取位置',
+    this.pluginLocationCoarse = '大致位置',
+    this.pluginLocationFine = '精确位置',
+    this.pluginLocationAccuracy = '精度约 {m} 米',
     this.pluginViewVotes = '{count} 票',
     this.pluginViewRemaining = '剩余 {time}',
     this.pluginViewDateTimeFormat = 'M月d日 HH:mm',
@@ -1432,6 +1533,109 @@ class FlareStrings {
   final String accountDayFormat;
   final String accountDayYearFormat;
   final String pluginViewEmpty;
+  final String pluginViewUnavailableUpgradeRequired;
+  final String pluginUpgradeAction;
+  final String pluginUpgradeNotAvailable;
+  final String pluginUpgradeBadge;
+  final String pluginUpgradeTitle;
+  final String pluginUpgradeDescription;
+  final String pluginViewQrExpired;
+  final String pluginViewQrRefresh;
+  final String pluginViewStepPending;
+  final String pluginViewStepCurrent;
+  final String pluginViewStepDone;
+  final String pluginViewStepFailed;
+  final String pluginViewTrendUp;
+  final String pluginViewTrendDown;
+  final String pluginViewTrendFlat;
+  final String pluginViewImageUnavailable;
+  final String pluginFormatSeconds;
+  final String pluginFormatCountUnits;
+  final String pluginFormChooseImage;
+  final String pluginFormCaptureDocument;
+  final String pluginFormDocumentFront;
+  final String pluginFormDocumentBack;
+  final String pluginFormDocumentHolding;
+  final String capabilityConsentTitle;
+  final String capabilityConsentPurpose;
+  final String capabilityConsentAllowOnce;
+  final String capabilityConsentAllowAlways;
+  final String capabilityConsentDeny;
+  final String capabilityConsentNote;
+  final String capabilityDocumentCapture;
+  final String capabilityPaymentConfirmation;
+  final String capabilityLocationCoarse;
+  final String capabilityLocationFine;
+  final String capabilityCamera;
+  final String capabilityMicrophone;
+  final String capabilityRtcSession;
+  final String capabilityGeneric;
+  final String documentCaptureHintFront;
+  final String documentCaptureHintBack;
+  final String documentCaptureHintHolding;
+  final String documentCaptureShoot;
+  final String documentCaptureRetake;
+  final String documentCaptureUse;
+  final String documentCaptureFromAlbum;
+  final String documentCaptureProcessing;
+  final String documentCaptureCameraUnavailable;
+  final String documentCaptureTooLarge;
+  final String documentCaptureFailed;
+  final String documentCaptureNotAccepted;
+  final String paymentConfirmationTitle;
+  final String paymentConfirmationPayee;
+  final String paymentConfirmationItem;
+  final String paymentConfirmationOrder;
+  final String paymentConfirmationRequestedBy;
+  final String paymentConfirmationExpiresIn;
+  final String paymentConfirmationExpired;
+  final String paymentConfirmationInvalid;
+
+  // Plugin web bundle host (L3): its states, the external link confirmation, and the bridge error words.
+  final String pluginBundleOpening;
+  final String pluginBundleUnavailable;
+  final String pluginBundleCrashed;
+  final String pluginBundleCrashedHint;
+  final String pluginBundleReload;
+  final String pluginBundleClosed;
+  final String pluginBundleExternalTitle;
+  final String pluginBundleExternalMessage;
+  final String pluginBundleExternalOpen;
+  final String pluginBundleCopied;
+  final String pluginBridgeErrorInvalidEnvelope;
+  final String pluginBridgeErrorUnsupportedBridge;
+  final String pluginBridgeErrorNotReady;
+  final String pluginBridgeErrorMethodNotFound;
+  final String pluginBridgeErrorInvalidParams;
+  final String pluginBridgeErrorPayloadTooLarge;
+  final String pluginBridgeErrorPermissionDenied;
+  final String pluginBridgeErrorRateLimited;
+  final String pluginBridgeErrorCancelled;
+  final String pluginBridgeErrorGestureRequired;
+  final String pluginBridgeErrorQuotaExceeded;
+  final String pluginBridgeErrorNotFound;
+  final String pluginBridgeErrorUnavailable;
+  final String pluginBridgeErrorTimeout;
+  final String pluginBridgeErrorOperationFailed;
+  final String pluginBridgeErrorRevoked;
+  final String pluginBridgeErrorInternal;
+  final String paymentConfirmationConfirm;
+  final String paymentConfirmationVerifying;
+  final String pluginProtectedMediaReason;
+  final String pluginProtectedMediaNotice;
+  final String pluginProtectedMediaOwnNotice;
+  final String pluginProtectedMediaView;
+  final String pluginProtectedMediaHide;
+  final String pluginProtectedMediaUnavailable;
+  final String pluginProtectedMediaNotPreviewable;
+  final String pluginLocationLocate;
+  final String pluginLocationRelocate;
+  final String pluginLocationClear;
+  final String pluginLocationLocating;
+  final String pluginLocationEmpty;
+  final String pluginLocationCoarse;
+  final String pluginLocationFine;
+  final String pluginLocationAccuracy;
   final String pluginViewVotes;
   final String pluginViewRemaining;
 
@@ -2624,6 +2828,107 @@ class FlareStrings {
     String? accountDayFormat,
     String? accountDayYearFormat,
     String? pluginViewEmpty,
+    String? pluginViewUnavailableUpgradeRequired,
+    String? pluginUpgradeAction,
+    String? pluginUpgradeNotAvailable,
+    String? pluginUpgradeBadge,
+    String? pluginUpgradeTitle,
+    String? pluginUpgradeDescription,
+    String? pluginViewQrExpired,
+    String? pluginViewQrRefresh,
+    String? pluginViewStepPending,
+    String? pluginViewStepCurrent,
+    String? pluginViewStepDone,
+    String? pluginViewStepFailed,
+    String? pluginViewTrendUp,
+    String? pluginViewTrendDown,
+    String? pluginViewTrendFlat,
+    String? pluginViewImageUnavailable,
+    String? pluginFormatSeconds,
+    String? pluginFormatCountUnits,
+    String? pluginFormChooseImage,
+    String? pluginFormCaptureDocument,
+    String? pluginFormDocumentFront,
+    String? pluginFormDocumentBack,
+    String? pluginFormDocumentHolding,
+    String? capabilityConsentTitle,
+    String? capabilityConsentPurpose,
+    String? capabilityConsentAllowOnce,
+    String? capabilityConsentAllowAlways,
+    String? capabilityConsentDeny,
+    String? capabilityConsentNote,
+    String? capabilityDocumentCapture,
+    String? capabilityPaymentConfirmation,
+    String? capabilityLocationCoarse,
+    String? capabilityLocationFine,
+    String? capabilityCamera,
+    String? capabilityMicrophone,
+    String? capabilityRtcSession,
+    String? capabilityGeneric,
+    String? documentCaptureHintFront,
+    String? documentCaptureHintBack,
+    String? documentCaptureHintHolding,
+    String? documentCaptureShoot,
+    String? documentCaptureRetake,
+    String? documentCaptureUse,
+    String? documentCaptureFromAlbum,
+    String? documentCaptureProcessing,
+    String? documentCaptureCameraUnavailable,
+    String? documentCaptureTooLarge,
+    String? documentCaptureFailed,
+    String? documentCaptureNotAccepted,
+    String? paymentConfirmationTitle,
+    String? paymentConfirmationPayee,
+    String? paymentConfirmationItem,
+    String? paymentConfirmationOrder,
+    String? paymentConfirmationRequestedBy,
+    String? paymentConfirmationExpiresIn,
+    String? paymentConfirmationExpired,
+    String? paymentConfirmationInvalid,
+    String? pluginBundleOpening,
+    String? pluginBundleUnavailable,
+    String? pluginBundleCrashed,
+    String? pluginBundleCrashedHint,
+    String? pluginBundleReload,
+    String? pluginBundleClosed,
+    String? pluginBundleExternalTitle,
+    String? pluginBundleExternalMessage,
+    String? pluginBundleExternalOpen,
+    String? pluginBundleCopied,
+    String? pluginBridgeErrorInvalidEnvelope,
+    String? pluginBridgeErrorUnsupportedBridge,
+    String? pluginBridgeErrorNotReady,
+    String? pluginBridgeErrorMethodNotFound,
+    String? pluginBridgeErrorInvalidParams,
+    String? pluginBridgeErrorPayloadTooLarge,
+    String? pluginBridgeErrorPermissionDenied,
+    String? pluginBridgeErrorRateLimited,
+    String? pluginBridgeErrorCancelled,
+    String? pluginBridgeErrorGestureRequired,
+    String? pluginBridgeErrorQuotaExceeded,
+    String? pluginBridgeErrorNotFound,
+    String? pluginBridgeErrorUnavailable,
+    String? pluginBridgeErrorTimeout,
+    String? pluginBridgeErrorOperationFailed,
+    String? pluginBridgeErrorRevoked,
+    String? pluginBridgeErrorInternal,
+    String? paymentConfirmationConfirm,
+    String? paymentConfirmationVerifying,
+    String? pluginProtectedMediaReason,
+    String? pluginProtectedMediaNotice,
+    String? pluginProtectedMediaOwnNotice,
+    String? pluginProtectedMediaView,
+    String? pluginProtectedMediaHide,
+    String? pluginProtectedMediaUnavailable,
+    String? pluginProtectedMediaNotPreviewable,
+    String? pluginLocationLocate,
+    String? pluginLocationRelocate,
+    String? pluginLocationClear,
+    String? pluginLocationLocating,
+    String? pluginLocationEmpty,
+    String? pluginLocationCoarse,
+    String? pluginLocationFine,
+    String? pluginLocationAccuracy,
     String? pluginViewVotes,
     String? pluginViewRemaining,
     String? pluginViewDateTimeFormat,
@@ -3714,6 +4019,107 @@ class FlareStrings {
       accountDayFormat: accountDayFormat ?? this.accountDayFormat,
       accountDayYearFormat: accountDayYearFormat ?? this.accountDayYearFormat,
       pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
+      pluginViewUnavailableUpgradeRequired: pluginViewUnavailableUpgradeRequired ?? this.pluginViewUnavailableUpgradeRequired,
+      pluginUpgradeAction: pluginUpgradeAction ?? this.pluginUpgradeAction,
+      pluginUpgradeNotAvailable: pluginUpgradeNotAvailable ?? this.pluginUpgradeNotAvailable,
+      pluginUpgradeBadge: pluginUpgradeBadge ?? this.pluginUpgradeBadge,
+      pluginUpgradeTitle: pluginUpgradeTitle ?? this.pluginUpgradeTitle,
+      pluginUpgradeDescription: pluginUpgradeDescription ?? this.pluginUpgradeDescription,
+      pluginViewQrExpired: pluginViewQrExpired ?? this.pluginViewQrExpired,
+      pluginViewQrRefresh: pluginViewQrRefresh ?? this.pluginViewQrRefresh,
+      pluginViewStepPending: pluginViewStepPending ?? this.pluginViewStepPending,
+      pluginViewStepCurrent: pluginViewStepCurrent ?? this.pluginViewStepCurrent,
+      pluginViewStepDone: pluginViewStepDone ?? this.pluginViewStepDone,
+      pluginViewStepFailed: pluginViewStepFailed ?? this.pluginViewStepFailed,
+      pluginViewTrendUp: pluginViewTrendUp ?? this.pluginViewTrendUp,
+      pluginViewTrendDown: pluginViewTrendDown ?? this.pluginViewTrendDown,
+      pluginViewTrendFlat: pluginViewTrendFlat ?? this.pluginViewTrendFlat,
+      pluginViewImageUnavailable: pluginViewImageUnavailable ?? this.pluginViewImageUnavailable,
+      pluginFormatSeconds: pluginFormatSeconds ?? this.pluginFormatSeconds,
+      pluginFormatCountUnits: pluginFormatCountUnits ?? this.pluginFormatCountUnits,
+      pluginFormChooseImage: pluginFormChooseImage ?? this.pluginFormChooseImage,
+      pluginFormCaptureDocument: pluginFormCaptureDocument ?? this.pluginFormCaptureDocument,
+      pluginFormDocumentFront: pluginFormDocumentFront ?? this.pluginFormDocumentFront,
+      pluginFormDocumentBack: pluginFormDocumentBack ?? this.pluginFormDocumentBack,
+      pluginFormDocumentHolding: pluginFormDocumentHolding ?? this.pluginFormDocumentHolding,
+      capabilityConsentTitle: capabilityConsentTitle ?? this.capabilityConsentTitle,
+      capabilityConsentPurpose: capabilityConsentPurpose ?? this.capabilityConsentPurpose,
+      capabilityConsentAllowOnce: capabilityConsentAllowOnce ?? this.capabilityConsentAllowOnce,
+      capabilityConsentAllowAlways: capabilityConsentAllowAlways ?? this.capabilityConsentAllowAlways,
+      capabilityConsentDeny: capabilityConsentDeny ?? this.capabilityConsentDeny,
+      capabilityConsentNote: capabilityConsentNote ?? this.capabilityConsentNote,
+      capabilityDocumentCapture: capabilityDocumentCapture ?? this.capabilityDocumentCapture,
+      capabilityPaymentConfirmation: capabilityPaymentConfirmation ?? this.capabilityPaymentConfirmation,
+      capabilityLocationCoarse: capabilityLocationCoarse ?? this.capabilityLocationCoarse,
+      capabilityLocationFine: capabilityLocationFine ?? this.capabilityLocationFine,
+      capabilityCamera: capabilityCamera ?? this.capabilityCamera,
+      capabilityMicrophone: capabilityMicrophone ?? this.capabilityMicrophone,
+      capabilityRtcSession: capabilityRtcSession ?? this.capabilityRtcSession,
+      capabilityGeneric: capabilityGeneric ?? this.capabilityGeneric,
+      documentCaptureHintFront: documentCaptureHintFront ?? this.documentCaptureHintFront,
+      documentCaptureHintBack: documentCaptureHintBack ?? this.documentCaptureHintBack,
+      documentCaptureHintHolding: documentCaptureHintHolding ?? this.documentCaptureHintHolding,
+      documentCaptureShoot: documentCaptureShoot ?? this.documentCaptureShoot,
+      documentCaptureRetake: documentCaptureRetake ?? this.documentCaptureRetake,
+      documentCaptureUse: documentCaptureUse ?? this.documentCaptureUse,
+      documentCaptureFromAlbum: documentCaptureFromAlbum ?? this.documentCaptureFromAlbum,
+      documentCaptureProcessing: documentCaptureProcessing ?? this.documentCaptureProcessing,
+      documentCaptureCameraUnavailable: documentCaptureCameraUnavailable ?? this.documentCaptureCameraUnavailable,
+      documentCaptureTooLarge: documentCaptureTooLarge ?? this.documentCaptureTooLarge,
+      documentCaptureFailed: documentCaptureFailed ?? this.documentCaptureFailed,
+      documentCaptureNotAccepted: documentCaptureNotAccepted ?? this.documentCaptureNotAccepted,
+      paymentConfirmationTitle: paymentConfirmationTitle ?? this.paymentConfirmationTitle,
+      paymentConfirmationPayee: paymentConfirmationPayee ?? this.paymentConfirmationPayee,
+      paymentConfirmationItem: paymentConfirmationItem ?? this.paymentConfirmationItem,
+      paymentConfirmationOrder: paymentConfirmationOrder ?? this.paymentConfirmationOrder,
+      paymentConfirmationRequestedBy: paymentConfirmationRequestedBy ?? this.paymentConfirmationRequestedBy,
+      paymentConfirmationExpiresIn: paymentConfirmationExpiresIn ?? this.paymentConfirmationExpiresIn,
+      paymentConfirmationExpired: paymentConfirmationExpired ?? this.paymentConfirmationExpired,
+      paymentConfirmationInvalid: paymentConfirmationInvalid ?? this.paymentConfirmationInvalid,
+      pluginBundleOpening: pluginBundleOpening ?? this.pluginBundleOpening,
+      pluginBundleUnavailable: pluginBundleUnavailable ?? this.pluginBundleUnavailable,
+      pluginBundleCrashed: pluginBundleCrashed ?? this.pluginBundleCrashed,
+      pluginBundleCrashedHint: pluginBundleCrashedHint ?? this.pluginBundleCrashedHint,
+      pluginBundleReload: pluginBundleReload ?? this.pluginBundleReload,
+      pluginBundleClosed: pluginBundleClosed ?? this.pluginBundleClosed,
+      pluginBundleExternalTitle: pluginBundleExternalTitle ?? this.pluginBundleExternalTitle,
+      pluginBundleExternalMessage: pluginBundleExternalMessage ?? this.pluginBundleExternalMessage,
+      pluginBundleExternalOpen: pluginBundleExternalOpen ?? this.pluginBundleExternalOpen,
+      pluginBundleCopied: pluginBundleCopied ?? this.pluginBundleCopied,
+      pluginBridgeErrorInvalidEnvelope: pluginBridgeErrorInvalidEnvelope ?? this.pluginBridgeErrorInvalidEnvelope,
+      pluginBridgeErrorUnsupportedBridge: pluginBridgeErrorUnsupportedBridge ?? this.pluginBridgeErrorUnsupportedBridge,
+      pluginBridgeErrorNotReady: pluginBridgeErrorNotReady ?? this.pluginBridgeErrorNotReady,
+      pluginBridgeErrorMethodNotFound: pluginBridgeErrorMethodNotFound ?? this.pluginBridgeErrorMethodNotFound,
+      pluginBridgeErrorInvalidParams: pluginBridgeErrorInvalidParams ?? this.pluginBridgeErrorInvalidParams,
+      pluginBridgeErrorPayloadTooLarge: pluginBridgeErrorPayloadTooLarge ?? this.pluginBridgeErrorPayloadTooLarge,
+      pluginBridgeErrorPermissionDenied: pluginBridgeErrorPermissionDenied ?? this.pluginBridgeErrorPermissionDenied,
+      pluginBridgeErrorRateLimited: pluginBridgeErrorRateLimited ?? this.pluginBridgeErrorRateLimited,
+      pluginBridgeErrorCancelled: pluginBridgeErrorCancelled ?? this.pluginBridgeErrorCancelled,
+      pluginBridgeErrorGestureRequired: pluginBridgeErrorGestureRequired ?? this.pluginBridgeErrorGestureRequired,
+      pluginBridgeErrorQuotaExceeded: pluginBridgeErrorQuotaExceeded ?? this.pluginBridgeErrorQuotaExceeded,
+      pluginBridgeErrorNotFound: pluginBridgeErrorNotFound ?? this.pluginBridgeErrorNotFound,
+      pluginBridgeErrorUnavailable: pluginBridgeErrorUnavailable ?? this.pluginBridgeErrorUnavailable,
+      pluginBridgeErrorTimeout: pluginBridgeErrorTimeout ?? this.pluginBridgeErrorTimeout,
+      pluginBridgeErrorOperationFailed: pluginBridgeErrorOperationFailed ?? this.pluginBridgeErrorOperationFailed,
+      pluginBridgeErrorRevoked: pluginBridgeErrorRevoked ?? this.pluginBridgeErrorRevoked,
+      pluginBridgeErrorInternal: pluginBridgeErrorInternal ?? this.pluginBridgeErrorInternal,
+      paymentConfirmationConfirm: paymentConfirmationConfirm ?? this.paymentConfirmationConfirm,
+      paymentConfirmationVerifying: paymentConfirmationVerifying ?? this.paymentConfirmationVerifying,
+      pluginProtectedMediaReason: pluginProtectedMediaReason ?? this.pluginProtectedMediaReason,
+      pluginProtectedMediaNotice: pluginProtectedMediaNotice ?? this.pluginProtectedMediaNotice,
+      pluginProtectedMediaOwnNotice: pluginProtectedMediaOwnNotice ?? this.pluginProtectedMediaOwnNotice,
+      pluginProtectedMediaView: pluginProtectedMediaView ?? this.pluginProtectedMediaView,
+      pluginProtectedMediaHide: pluginProtectedMediaHide ?? this.pluginProtectedMediaHide,
+      pluginProtectedMediaUnavailable: pluginProtectedMediaUnavailable ?? this.pluginProtectedMediaUnavailable,
+      pluginProtectedMediaNotPreviewable: pluginProtectedMediaNotPreviewable ?? this.pluginProtectedMediaNotPreviewable,
+      pluginLocationLocate: pluginLocationLocate ?? this.pluginLocationLocate,
+      pluginLocationRelocate: pluginLocationRelocate ?? this.pluginLocationRelocate,
+      pluginLocationClear: pluginLocationClear ?? this.pluginLocationClear,
+      pluginLocationLocating: pluginLocationLocating ?? this.pluginLocationLocating,
+      pluginLocationEmpty: pluginLocationEmpty ?? this.pluginLocationEmpty,
+      pluginLocationCoarse: pluginLocationCoarse ?? this.pluginLocationCoarse,
+      pluginLocationFine: pluginLocationFine ?? this.pluginLocationFine,
+      pluginLocationAccuracy: pluginLocationAccuracy ?? this.pluginLocationAccuracy,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat:

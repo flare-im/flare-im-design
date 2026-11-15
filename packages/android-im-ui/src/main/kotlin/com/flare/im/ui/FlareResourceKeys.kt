@@ -870,6 +870,107 @@ internal val flareStringKeys: Set<String> = setOf(
     "pluginViewUnavailableIncompatibleVersion",
     "pluginViewUnavailableCatalogUnreachable",
     "pluginViewUnavailableUnboundCopy",
+    "pluginViewUnavailableUpgradeRequired",
+    "pluginUpgradeAction",
+    "pluginUpgradeNotAvailable",
+    "pluginUpgradeBadge",
+    "pluginUpgradeTitle",
+    "pluginUpgradeDescription",
+    "pluginViewQrExpired",
+    "pluginViewQrRefresh",
+    "pluginViewStepPending",
+    "pluginViewStepCurrent",
+    "pluginViewStepDone",
+    "pluginViewStepFailed",
+    "pluginViewTrendUp",
+    "pluginViewTrendDown",
+    "pluginViewTrendFlat",
+    "pluginViewImageUnavailable",
+    "pluginFormatSeconds",
+    "pluginFormatCountUnits",
+    "pluginFormChooseImage",
+    "pluginFormCaptureDocument",
+    "pluginFormDocumentFront",
+    "pluginFormDocumentBack",
+    "pluginFormDocumentHolding",
+    "capabilityConsentTitle",
+    "capabilityConsentPurpose",
+    "capabilityConsentAllowOnce",
+    "capabilityConsentAllowAlways",
+    "capabilityConsentDeny",
+    "capabilityConsentNote",
+    "capabilityDocumentCapture",
+    "capabilityPaymentConfirmation",
+    "capabilityLocationCoarse",
+    "capabilityLocationFine",
+    "pluginBundleOpening",
+    "pluginBundleUnavailable",
+    "pluginBundleCrashed",
+    "pluginBundleCrashedHint",
+    "pluginBundleReload",
+    "pluginBundleClosed",
+    "pluginBundleExternalTitle",
+    "pluginBundleExternalMessage",
+    "pluginBundleExternalOpen",
+    "pluginBundleCopied",
+    "pluginBridgeErrorInvalidEnvelope",
+    "pluginBridgeErrorUnsupportedBridge",
+    "pluginBridgeErrorNotReady",
+    "pluginBridgeErrorMethodNotFound",
+    "pluginBridgeErrorInvalidParams",
+    "pluginBridgeErrorPayloadTooLarge",
+    "pluginBridgeErrorPermissionDenied",
+    "pluginBridgeErrorRateLimited",
+    "pluginBridgeErrorCancelled",
+    "pluginBridgeErrorGestureRequired",
+    "pluginBridgeErrorQuotaExceeded",
+    "pluginBridgeErrorNotFound",
+    "pluginBridgeErrorUnavailable",
+    "pluginBridgeErrorTimeout",
+    "pluginBridgeErrorOperationFailed",
+    "pluginBridgeErrorRevoked",
+    "pluginBridgeErrorInternal",
+    "capabilityCamera",
+    "capabilityMicrophone",
+    "capabilityRtcSession",
+    "capabilityGeneric",
+    "documentCaptureHintFront",
+    "documentCaptureHintBack",
+    "documentCaptureHintHolding",
+    "documentCaptureShoot",
+    "documentCaptureRetake",
+    "documentCaptureUse",
+    "documentCaptureFromAlbum",
+    "documentCaptureProcessing",
+    "documentCaptureCameraUnavailable",
+    "documentCaptureTooLarge",
+    "documentCaptureFailed",
+    "documentCaptureNotAccepted",
+    "paymentConfirmationTitle",
+    "paymentConfirmationPayee",
+    "paymentConfirmationItem",
+    "paymentConfirmationOrder",
+    "paymentConfirmationRequestedBy",
+    "paymentConfirmationExpiresIn",
+    "paymentConfirmationExpired",
+    "paymentConfirmationInvalid",
+    "paymentConfirmationConfirm",
+    "paymentConfirmationVerifying",
+    "pluginProtectedMediaReason",
+    "pluginProtectedMediaNotice",
+    "pluginProtectedMediaOwnNotice",
+    "pluginProtectedMediaView",
+    "pluginProtectedMediaHide",
+    "pluginProtectedMediaUnavailable",
+    "pluginProtectedMediaNotPreviewable",
+    "pluginLocationLocate",
+    "pluginLocationRelocate",
+    "pluginLocationClear",
+    "pluginLocationLocating",
+    "pluginLocationEmpty",
+    "pluginLocationCoarse",
+    "pluginLocationFine",
+    "pluginLocationAccuracy",
     "packetView",
     "packetRefunded",
     "packetBadgeLucky",
@@ -1846,6 +1947,107 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "pluginViewUnavailableIncompatibleVersion" -> this.pluginViewUnavailableIncompatibleVersion
     "pluginViewUnavailableCatalogUnreachable" -> this.pluginViewUnavailableCatalogUnreachable
     "pluginViewUnavailableUnboundCopy" -> this.pluginViewUnavailableUnboundCopy
+    "pluginViewUnavailableUpgradeRequired" -> this.pluginViewUnavailableUpgradeRequired
+    "pluginUpgradeAction" -> this.pluginUpgradeAction
+    "pluginUpgradeNotAvailable" -> this.pluginUpgradeNotAvailable
+    "pluginUpgradeBadge" -> this.pluginUpgradeBadge
+    "pluginUpgradeTitle" -> this.pluginUpgradeTitle
+    "pluginUpgradeDescription" -> this.pluginUpgradeDescription
+    "pluginViewQrExpired" -> this.pluginViewQrExpired
+    "pluginViewQrRefresh" -> this.pluginViewQrRefresh
+    "pluginViewStepPending" -> this.pluginViewStepPending
+    "pluginViewStepCurrent" -> this.pluginViewStepCurrent
+    "pluginViewStepDone" -> this.pluginViewStepDone
+    "pluginViewStepFailed" -> this.pluginViewStepFailed
+    "pluginViewTrendUp" -> this.pluginViewTrendUp
+    "pluginViewTrendDown" -> this.pluginViewTrendDown
+    "pluginViewTrendFlat" -> this.pluginViewTrendFlat
+    "pluginViewImageUnavailable" -> this.pluginViewImageUnavailable
+    "pluginFormatSeconds" -> this.pluginFormatSeconds
+    "pluginFormatCountUnits" -> this.pluginFormatCountUnits
+    "pluginFormChooseImage" -> this.pluginFormChooseImage
+    "pluginFormCaptureDocument" -> this.pluginFormCaptureDocument
+    "pluginFormDocumentFront" -> this.pluginFormDocumentFront
+    "pluginFormDocumentBack" -> this.pluginFormDocumentBack
+    "pluginFormDocumentHolding" -> this.pluginFormDocumentHolding
+    "capabilityConsentTitle" -> this.capabilityConsentTitle
+    "capabilityConsentPurpose" -> this.capabilityConsentPurpose
+    "capabilityConsentAllowOnce" -> this.capabilityConsentAllowOnce
+    "capabilityConsentAllowAlways" -> this.capabilityConsentAllowAlways
+    "capabilityConsentDeny" -> this.capabilityConsentDeny
+    "capabilityConsentNote" -> this.capabilityConsentNote
+    "capabilityDocumentCapture" -> this.capabilityDocumentCapture
+    "capabilityPaymentConfirmation" -> this.capabilityPaymentConfirmation
+    "capabilityLocationCoarse" -> this.capabilityLocationCoarse
+    "capabilityLocationFine" -> this.capabilityLocationFine
+    "pluginBundleOpening" -> this.pluginBundleOpening
+    "pluginBundleUnavailable" -> this.pluginBundleUnavailable
+    "pluginBundleCrashed" -> this.pluginBundleCrashed
+    "pluginBundleCrashedHint" -> this.pluginBundleCrashedHint
+    "pluginBundleReload" -> this.pluginBundleReload
+    "pluginBundleClosed" -> this.pluginBundleClosed
+    "pluginBundleExternalTitle" -> this.pluginBundleExternalTitle
+    "pluginBundleExternalMessage" -> this.pluginBundleExternalMessage
+    "pluginBundleExternalOpen" -> this.pluginBundleExternalOpen
+    "pluginBundleCopied" -> this.pluginBundleCopied
+    "pluginBridgeErrorInvalidEnvelope" -> this.pluginBridgeErrorInvalidEnvelope
+    "pluginBridgeErrorUnsupportedBridge" -> this.pluginBridgeErrorUnsupportedBridge
+    "pluginBridgeErrorNotReady" -> this.pluginBridgeErrorNotReady
+    "pluginBridgeErrorMethodNotFound" -> this.pluginBridgeErrorMethodNotFound
+    "pluginBridgeErrorInvalidParams" -> this.pluginBridgeErrorInvalidParams
+    "pluginBridgeErrorPayloadTooLarge" -> this.pluginBridgeErrorPayloadTooLarge
+    "pluginBridgeErrorPermissionDenied" -> this.pluginBridgeErrorPermissionDenied
+    "pluginBridgeErrorRateLimited" -> this.pluginBridgeErrorRateLimited
+    "pluginBridgeErrorCancelled" -> this.pluginBridgeErrorCancelled
+    "pluginBridgeErrorGestureRequired" -> this.pluginBridgeErrorGestureRequired
+    "pluginBridgeErrorQuotaExceeded" -> this.pluginBridgeErrorQuotaExceeded
+    "pluginBridgeErrorNotFound" -> this.pluginBridgeErrorNotFound
+    "pluginBridgeErrorUnavailable" -> this.pluginBridgeErrorUnavailable
+    "pluginBridgeErrorTimeout" -> this.pluginBridgeErrorTimeout
+    "pluginBridgeErrorOperationFailed" -> this.pluginBridgeErrorOperationFailed
+    "pluginBridgeErrorRevoked" -> this.pluginBridgeErrorRevoked
+    "pluginBridgeErrorInternal" -> this.pluginBridgeErrorInternal
+    "capabilityCamera" -> this.capabilityCamera
+    "capabilityMicrophone" -> this.capabilityMicrophone
+    "capabilityRtcSession" -> this.capabilityRtcSession
+    "capabilityGeneric" -> this.capabilityGeneric
+    "documentCaptureHintFront" -> this.documentCaptureHintFront
+    "documentCaptureHintBack" -> this.documentCaptureHintBack
+    "documentCaptureHintHolding" -> this.documentCaptureHintHolding
+    "documentCaptureShoot" -> this.documentCaptureShoot
+    "documentCaptureRetake" -> this.documentCaptureRetake
+    "documentCaptureUse" -> this.documentCaptureUse
+    "documentCaptureFromAlbum" -> this.documentCaptureFromAlbum
+    "documentCaptureProcessing" -> this.documentCaptureProcessing
+    "documentCaptureCameraUnavailable" -> this.documentCaptureCameraUnavailable
+    "documentCaptureTooLarge" -> this.documentCaptureTooLarge
+    "documentCaptureFailed" -> this.documentCaptureFailed
+    "documentCaptureNotAccepted" -> this.documentCaptureNotAccepted
+    "paymentConfirmationTitle" -> this.paymentConfirmationTitle
+    "paymentConfirmationPayee" -> this.paymentConfirmationPayee
+    "paymentConfirmationItem" -> this.paymentConfirmationItem
+    "paymentConfirmationOrder" -> this.paymentConfirmationOrder
+    "paymentConfirmationRequestedBy" -> this.paymentConfirmationRequestedBy
+    "paymentConfirmationExpiresIn" -> this.paymentConfirmationExpiresIn
+    "paymentConfirmationExpired" -> this.paymentConfirmationExpired
+    "paymentConfirmationInvalid" -> this.paymentConfirmationInvalid
+    "paymentConfirmationConfirm" -> this.paymentConfirmationConfirm
+    "paymentConfirmationVerifying" -> this.paymentConfirmationVerifying
+    "pluginProtectedMediaReason" -> this.pluginProtectedMediaReason
+    "pluginProtectedMediaNotice" -> this.pluginProtectedMediaNotice
+    "pluginProtectedMediaOwnNotice" -> this.pluginProtectedMediaOwnNotice
+    "pluginProtectedMediaView" -> this.pluginProtectedMediaView
+    "pluginProtectedMediaHide" -> this.pluginProtectedMediaHide
+    "pluginProtectedMediaUnavailable" -> this.pluginProtectedMediaUnavailable
+    "pluginProtectedMediaNotPreviewable" -> this.pluginProtectedMediaNotPreviewable
+    "pluginLocationLocate" -> this.pluginLocationLocate
+    "pluginLocationRelocate" -> this.pluginLocationRelocate
+    "pluginLocationClear" -> this.pluginLocationClear
+    "pluginLocationLocating" -> this.pluginLocationLocating
+    "pluginLocationEmpty" -> this.pluginLocationEmpty
+    "pluginLocationCoarse" -> this.pluginLocationCoarse
+    "pluginLocationFine" -> this.pluginLocationFine
+    "pluginLocationAccuracy" -> this.pluginLocationAccuracy
     "packetView" -> this.packetView
     "packetRefunded" -> this.packetRefunded
     "packetBadgeLucky" -> this.packetBadgeLucky
@@ -2016,6 +2218,9 @@ internal val flareColorKeys: Set<String> = setOf(
     "warning",
     "warningText",
     "scrim",
+    "mediaStage",
+    "mediaOnStage",
+    "mediaStageShade",
     "avatarTintBlueBg",
     "avatarTintBlueFg",
     "avatarTintPurpleBg",
@@ -2037,6 +2242,12 @@ internal val flareColorKeys: Set<String> = setOf(
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "chartSeries1",
+    "chartSeries2",
+    "chartSeries3",
+    "chartSeries4",
+    "chartSeries5",
+    "chartSeries6",
 )
 
 /** These colours with the fields [values] names replaced. */
@@ -2098,6 +2309,9 @@ internal fun FlareColors.applying(values: Map<String, Color>): FlareColors = cop
     warning = values["warning"] ?: this.warning,
     warningText = values["warningText"] ?: this.warningText,
     scrim = values["scrim"] ?: this.scrim,
+    mediaStage = values["mediaStage"] ?: this.mediaStage,
+    mediaOnStage = values["mediaOnStage"] ?: this.mediaOnStage,
+    mediaStageShade = values["mediaStageShade"] ?: this.mediaStageShade,
     avatarTintBlueBg = values["avatarTintBlueBg"] ?: this.avatarTintBlueBg,
     avatarTintBlueFg = values["avatarTintBlueFg"] ?: this.avatarTintBlueFg,
     avatarTintPurpleBg = values["avatarTintPurpleBg"] ?: this.avatarTintPurpleBg,
@@ -2119,4 +2333,10 @@ internal fun FlareColors.applying(values: Map<String, Color>): FlareColors = cop
     redPacketFadedInk = values["redPacketFadedInk"] ?: this.redPacketFadedInk,
     redPacketFadedMixTarget = values["redPacketFadedMixTarget"] ?: this.redPacketFadedMixTarget,
     redPacketAccent = values["redPacketAccent"] ?: this.redPacketAccent,
+    chartSeries1 = values["chartSeries1"] ?: this.chartSeries1,
+    chartSeries2 = values["chartSeries2"] ?: this.chartSeries2,
+    chartSeries3 = values["chartSeries3"] ?: this.chartSeries3,
+    chartSeries4 = values["chartSeries4"] ?: this.chartSeries4,
+    chartSeries5 = values["chartSeries5"] ?: this.chartSeries5,
+    chartSeries6 = values["chartSeries6"] ?: this.chartSeries6,
 )

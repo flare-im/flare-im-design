@@ -122,6 +122,7 @@ Widget host(
   ),
   home: Scaffold(
     body: FlarePluginPage(
+      appearance: FlarePluginPageAppearance.account,
       page: const FlarePluginPageRef(pluginId: 'test.wallet', page: 'wallet'),
       view: view,
       busyActionId: busy,
@@ -359,7 +360,7 @@ void main() {
   FlarePluginPageViewModel sharedFixture(String id) {
     final vectors =
         jsonDecode(
-              File('../../spec/wallet-flow-vectors.json').readAsStringSync(),
+              File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
             )
             as Map;
     final item = (vectors['cases'] as List).cast<Map>().singleWhere(

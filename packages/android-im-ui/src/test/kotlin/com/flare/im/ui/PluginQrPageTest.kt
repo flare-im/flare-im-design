@@ -23,8 +23,11 @@ class PluginQrPageTest {
     }
 
     @Test fun qrPresentationPreservesFieldsAndDerivesWindowHintsFromTtl() {
-        assertTrue(hasResolvedPresentation(page().view))
-        assertTrue(pluginPresentationKeepsFields("flare.qr"))
+        // The code is drawn above the plain view, which keeps its fields: flare.qr is no compiled-in renderer.
+        assertFalse(hasResolvedPresentation(page().view))
+        assertEquals("0000000000000000000000", pluginQrPresentationProps(page().view)?.get("token"))
+        assertNull(pluginQrPresentationProps(page(renderer = "unknown").view))
+        assertNull(pluginQrPresentationProps(page().view.copy(available = false)))
         assertEquals(PluginSurfaceHints(true, true), pluginPageSurfaceHints(page()))
         assertEquals(PluginSurfaceHints(false, true), pluginPageSurfaceHints(page(ttlMs = null)))
         assertEquals(PluginSurfaceHints(), pluginPageSurfaceHints(page(renderer = "unknown")))

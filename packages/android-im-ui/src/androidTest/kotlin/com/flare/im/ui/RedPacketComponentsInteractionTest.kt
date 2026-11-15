@@ -457,21 +457,6 @@ class RedPacketComponentsInteractionTest {
         assertFillIs(zh.packetSubmit, red, "$mode, enabled with the field focused")
     }
 
-    /** The pay sheet's confirm keeps its red fill when enough balance arrives and it becomes enabled. */
-    @Test fun thePayConfirmKeepsItsRedFillWhenItBecomesEnabled() {
-        val insufficient = mutableStateOf(true)
-        content {
-            RedPacketPayConfirm(amount = "¥1.88", methodLabel = "Wallet", insufficient = insufficient.value,
-                onConfirm = {}, onCancel = {})
-        }
-        val red = FlareColors.resolve(FlareBrandTheme.Violet, isSystemDark()).redPacketEnd
-        compose.onNodeWithText(zh.packetPayConfirm).assertIsNotEnabled()
-        assertFillIs(zh.packetPayConfirm, red, "inert")
-        compose.runOnIdle { insufficient.value = false }
-        compose.onNodeWithText(zh.packetPayConfirm).assertIsEnabled()
-        assertFillIs(zh.packetPayConfirm, red, "enabled")
-    }
-
     /**
      * The kit button underneath: a fill drawn before the dimming layer survives the button turning enabled. A plain
      * `Modifier.alpha` drops its layer at 1, and dropping it left the fill undrawn.
@@ -502,38 +487,5 @@ class RedPacketComponentsInteractionTest {
         val close = abs(got.red - expected.red) < 0.04f && abs(got.green - expected.green) < 0.04f &&
             abs(got.blue - expected.blue) < 0.04f
         assertTrue("$where: the fill is $got, not the red packet's $expected", close)
-    }
-
-    // MARK: Pay confirm
-
-    @Test fun payConfirmNeedsEnoughBalance() {
-        val shown = mutableStateOf(true)
-        val events = mutableListOf<String>()
-        content {
-            if (shown.value) {
-                RedPacketPayConfirm(amount = "¥5.00", methodLabel = "Wallet (¥3.00)", insufficient = true,
-                    onConfirm = { events += "confirm" }, onCancel = { events += "cancel"; shown.value = false })
-            }
-        }
-        compose.onNodeWithText("¥5.00").assertIsDisplayed()
-        compose.onNodeWithText(zh.packetInsufficient).assertIsDisplayed()
-        compose.onNodeWithText(zh.packetPayConfirm).assertIsNotEnabled()
-        compose.onNodeWithText(zh.cancel).assertIsEnabled().assertHeightIsAtLeast(FlareSizes.touchTarget).performClick()
-        compose.runOnIdle { assertEquals(listOf("cancel"), events) }
-        compose.onNodeWithText("¥5.00").assertDoesNotExist()
-    }
-
-    @Test fun payConfirmConfirmsAndLocksWhileBusy() {
-        val busy = mutableStateOf(false)
-        val events = mutableListOf<String>()
-        content {
-            RedPacketPayConfirm(amount = "¥5.00", methodLabel = "Wallet (¥30.00)", busy = busy.value,
-                onConfirm = { events += "confirm"; busy.value = true }, onCancel = { events += "cancel" })
-        }
-        compose.onNodeWithText(zh.packetInsufficient).assertDoesNotExist()
-        compose.onNodeWithText(zh.packetPayConfirm).assertIsEnabled().performClick()
-        compose.onNodeWithText(zh.packetPayConfirm).assertIsNotEnabled()
-        compose.onNodeWithText(zh.cancel).assertIsNotEnabled().performClick()
-        compose.runOnIdle { assertEquals(listOf("confirm"), events) }
     }
 }

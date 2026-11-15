@@ -12,7 +12,7 @@ final class WalletVisualSnapshotTests: XCTestCase {
         }
         var root = URL(fileURLWithPath: #filePath)
         for _ in 0..<5 { root.deleteLastPathComponent() }
-        let table = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-flow-vectors.json")))
+        let table = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-flow-account-vectors.json")))
         let cards = try JSONDecoder().decode(PluginJSONValue.self, from: Data(contentsOf: root.appendingPathComponent("spec/wallet-card-vectors.json")))
         let fixtures = (table["cases"]?.arrayValue ?? []) + (cards["cases"]?.arrayValue ?? [])
         let directory = URL(fileURLWithPath: output)
@@ -30,7 +30,7 @@ final class WalletVisualSnapshotTests: XCTestCase {
             let fixture = try XCTUnwrap(fixtures.first { $0["id"]?.stringValue == id && $0["locale"]?.stringValue == "zh-CN" })
             let model = try PluginVectors.decode(PluginViewModel.self, fixture["view"])
             let page = PluginPageRef(pluginId: "flare.wallet", page: try XCTUnwrap(fixture["page"]?.stringValue))
-            let content = FlarePluginPage(page: page, view: .init(view: model), onBack: {}, onRefresh: {}, onAction: { _, _ in })
+            let content = FlarePluginPage(page: page, view: .init(view: model), onBack: {}, onRefresh: {}, onAction: { _, _ in }, appearance: .account)
                 .environment(\.colorScheme, scheme).environment(\.locale, Locale(identifier: "zh-CN"))
             let size = NSSize(width: width, height: 950)
             _ = NSApplication.shared

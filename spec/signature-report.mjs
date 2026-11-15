@@ -8,7 +8,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
 const roots = {
   vueExports: vueExportMap(join(here, "../packages/vue-im-ui/src")),
-  flutter: join(here, "../packages/flutter-im-ui/lib"),
+  flutter: [
+    join(here, "../packages/flutter-im-ui/lib"),
+    join(here, "../packages/flutter-im-ui/packages/flare_plugin_bundle_host/flare_plugin_bundle_host/lib"),
+  ],
   ios: join(here, "../packages/ios-im-ui/Sources"),
   compose: join(here, "../packages/android-im-ui/src/main"),
 };

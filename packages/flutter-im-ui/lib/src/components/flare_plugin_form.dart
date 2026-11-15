@@ -12,6 +12,7 @@ import 'flare_button.dart';
 import 'flare_contact_picker.dart';
 import 'flare_date_picker.dart';
 import 'flare_form_field.dart';
+import 'flare_icon.dart';
 import 'flare_icon_button.dart';
 import 'flare_input.dart';
 import 'flare_radio_group.dart';
@@ -49,6 +50,8 @@ class FlarePluginForm extends StatefulWidget {
     this.onCancel,
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
   });
 
   final List<FlarePluginInput> inputs;
@@ -85,11 +88,21 @@ class FlarePluginForm extends StatefulWidget {
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
 
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id. The host drops an input's state on [FlarePluginLocationActionKind.clear].
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's key: `locate` runs the page's locationOnce action into
+  /// the input; `clear` empties it. Without it the locate key is disabled.
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
+
   @override
-  State<FlarePluginForm> createState() => _FlarePluginFormState();
+  State<FlarePluginForm> createState() => FlarePluginFormState();
 }
 
-class _FlarePluginFormState extends State<FlarePluginForm> {
+/// The form's state. [nativeInto] lets the view run a page action's native
+/// target through the input it writes into.
+class FlarePluginFormState extends State<FlarePluginForm> {
   final Map<String, Object?> _draft = {};
   final Set<String> _edited = {};
   final Set<String> _editedSinceErrors = {};
@@ -128,7 +141,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
   }
 
   bool get _filesPending =>
-      _visible.where((i) => i.kind == FlarePluginInputKind.file).any((input) {
+      _visible.where((i) => flarePluginIsUpload(i.kind)).any((input) {
         final state = _fileState(input);
         return state.phase != FlarePluginFilePhase.empty &&
             (state.phase != FlarePluginFilePhase.uploaded ||
@@ -176,10 +189,78 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     widget.onFileAction?.call(event);
   }
 
-  void _applyFiles() {
+  /// A page action's native [target] writing `into` one of this form's
+  /// inputs: run it through that input's own key, so the host gets the
+  /// form's scope with it and its answer lands in this form, even before the
+  /// viewer touched the input. False when no visible input here takes it (or
+  /// the host has no handler for that key): the action then goes out as
+  /// itself.
+  bool nativeInto(FlarePluginActionTarget? target) {
+    if (widget.busy) return false;
+    final input = _visible
+        .where(
+          (candidate) => flarePluginNativeIntoKey(target, candidate) != null,
+        )
+        .firstOrNull;
+    if (input == null) return false;
+    if (flarePluginNativeIntoKey(target, input) == 'location') {
+      if (widget.onLocationAction == null) return false;
+      _locationAction(input, FlarePluginLocationActionKind.locate);
+      return true;
+    }
+    if (widget.onFileAction == null) return false;
+    _fileAction(
+      input,
+      _fileState(input).phase == FlarePluginFilePhase.empty
+          ? FlarePluginFileActionKind.choose
+          : FlarePluginFileActionKind.replace,
+    );
+    return true;
+  }
+
+  /// The host's fix is the input's value; one of another precision is never
+  /// taken.
+  void _applyLocations() {
     for (final input in _visible.where(
-      (i) => i.kind == FlarePluginInputKind.file,
+      (i) => i.kind == FlarePluginInputKind.location,
     )) {
+      final fix = FlarePluginLocationValue.of(
+        widget.locationStates[input.id]?.value,
+        input.precision,
+      );
+      if (fix == null) continue;
+      if (FlarePluginLocationValue.of(_draft[input.id], input.precision) == fix)
+        continue;
+      _draft[input.id] = fix.toJson();
+      _editedSinceErrors.add(input.id);
+    }
+  }
+
+  void _locationAction(
+    FlarePluginInput input,
+    FlarePluginLocationActionKind action,
+  ) {
+    if (widget.busy || !_visible.contains(input)) return;
+    if (action == FlarePluginLocationActionKind.clear) {
+      setState(() {
+        _draft[input.id] = null;
+        _editedSinceErrors.add(input.id);
+      });
+    } else if (widget.locationStates[input.id]?.locating == true) {
+      return;
+    }
+    widget.onLocationAction?.call(
+      FlarePluginLocationAction(
+        action: action,
+        inputId: input.id,
+        input: input,
+        formValues: flarePluginFormValues(widget.inputs, _draft),
+      ),
+    );
+  }
+
+  void _applyFiles() {
+    for (final input in _visible.where((i) => flarePluginIsUpload(i.kind))) {
       final state = widget.fileStates[input.id];
       if (state?.scope != _fileScope ||
           state?.generation != (_fileGenerations[input.id] ?? 0))
@@ -214,6 +295,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     super.didUpdateWidget(old);
     if (_signatureOf(widget) != _signature) _reset();
     _applyFiles();
+    _applyLocations();
     if (old.membersRevision != widget.membersRevision) {
       _selectedMembers.clear();
       for (final input in widget.inputs.where(
@@ -270,7 +352,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     final emit = widget.onFileAction;
     final events = [
       for (final input in widget.inputs.where(
-        (i) => i.kind == FlarePluginInputKind.file,
+        (i) => flarePluginIsUpload(i.kind),
       ))
         _advanceFile(input, FlarePluginFileActionKind.invalidate),
     ];
@@ -336,7 +418,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       final emit = widget.onFileAction;
       final events = [
         for (final input in widget.inputs.where(
-          (i) => i.kind == FlarePluginInputKind.file,
+          (i) => flarePluginIsUpload(i.kind),
         ))
           _advanceFile(input, FlarePluginFileActionKind.invalidate),
       ];
@@ -359,6 +441,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
       switch (input.kind) {
         case FlarePluginInputKind.password:
         case FlarePluginInputKind.text:
+        case FlarePluginInputKind.money:
           _text[input.id] = TextEditingController(text: '${value ?? ''}');
         case FlarePluginInputKind.number:
           _text[input.id] = TextEditingController(
@@ -386,6 +469,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     _edited.clear();
     _editedSinceErrors.clear();
     _attempted = false;
+    _applyLocations();
   }
 
   void _set(String id, Object? value) {
@@ -409,7 +493,7 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
         _editedSinceErrors.add(input.id);
       }
       for (final input in dependents) {
-        if (input.kind == FlarePluginInputKind.file)
+        if (flarePluginIsUpload(input.kind))
           events.add(_advanceFile(input, FlarePluginFileActionKind.invalidate));
       }
     });
@@ -586,18 +670,37 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
     );
     switch (input.kind) {
       case FlarePluginInputKind.file:
+      case FlarePluginInputKind.image:
+      case FlarePluginInputKind.document:
         final file = _fileState(input);
         final policy = input.file;
         final max = policy?.maxBytes ?? 0;
         final size = max >= 1048576
             ? '${(max / 1048576).toStringAsFixed(max % 1048576 == 0 ? 0 : 1)} MiB'
             : '${(max / 1024).ceil()} KiB';
+        // A document input names the side it takes after its label.
+        final side = switch (input.side) {
+          FlarePluginDocumentSide.front =>
+            ' · ${strings.pluginFormDocumentFront}',
+          FlarePluginDocumentSide.back =>
+            ' · ${strings.pluginFormDocumentBack}',
+          FlarePluginDocumentSide.holding =>
+            ' · ${strings.pluginFormDocumentHolding}',
+          null => '',
+        };
         final hint = policy == null
             ? strings.pluginFileChoose
             : '${policy.accept.map((mime) => mime.split('/').last.toUpperCase()).join(', ')} · ≤ $size';
         return wrap(
           FlareFileUpload(
-            title: '${input.label}${input.required ? ' *' : ''}',
+            title: '${input.label}$side${input.required ? ' *' : ''}',
+            pickLabel: switch (input.kind) {
+              FlarePluginInputKind.image => strings.pluginFormChooseImage,
+              FlarePluginInputKind.document =>
+                strings.pluginFormCaptureDocument,
+              _ => null,
+            },
+            icon: input.kind == FlarePluginInputKind.file ? 'file' : 'image',
             state: FlareImageUploadState.values.byName(file.phase.name),
             fileName: file.fileName,
             progress: file.progress,
@@ -620,6 +723,109 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
           ),
           labelled: false,
         );
+      case FlarePluginInputKind.location:
+        final state = widget.locationStates[input.id];
+        final fix = FlarePluginLocationValue.of(
+          _draft[input.id],
+          input.precision,
+        );
+        final locating = state?.locating == true;
+        return KeyedSubtree(
+          key: ValueKey('flare-plugin-input-${input.id}'),
+          child: FlareFormField(
+            label: input.label,
+            required: input.required,
+            error: state?.error ?? error,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FlareSizes.touchTarget,
+              ),
+              child: Row(
+                children: [
+                  const FlareIcon('location'),
+                  const SizedBox(width: FlareSizes.spacingSm),
+                  Expanded(
+                    child: Semantics(
+                      liveRegion: true,
+                      child: locating
+                          ? Text(
+                              strings.pluginLocationLocating,
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: FlareSizes.fontSizeMd,
+                              ),
+                            )
+                          : fix == null
+                          ? Text(
+                              strings.pluginLocationEmpty,
+                              key: const ValueKey(
+                                'flare-plugin-location-empty',
+                              ),
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: FlareSizes.fontSizeMd,
+                              ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fix.text,
+                                  key: const ValueKey(
+                                    'flare-plugin-location-place',
+                                  ),
+                                  style: TextStyle(
+                                    color: colors.textPrimary,
+                                    fontSize: FlareSizes.fontSizeLg,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  '${fix.precision == FlarePluginLocationPrecision.fine ? strings.pluginLocationFine : strings.pluginLocationCoarse}'
+                                  ' · ${strings.pluginLocationAccuracy.replaceAll('{m}', '${fix.accuracyM}')}',
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: FlareSizes.fontSizeSm,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  if (fix != null && !locating)
+                    FlareButton(
+                      key: const ValueKey('flare-plugin-location-clear'),
+                      size: FlareControlSize.sm,
+                      variant: FlareButtonVariant.quiet,
+                      label: strings.pluginLocationClear,
+                      disabled: disabled,
+                      onPressed: () => _locationAction(
+                        input,
+                        FlarePluginLocationActionKind.clear,
+                      ),
+                    ),
+                  const SizedBox(width: FlareSizes.spacingXs),
+                  FlareButton(
+                    key: const ValueKey('flare-plugin-location-locate'),
+                    size: FlareControlSize.sm,
+                    variant: FlareButtonVariant.secondary,
+                    label: fix == null
+                        ? strings.pluginLocationLocate
+                        : strings.pluginLocationRelocate,
+                    loading: locating,
+                    disabled: disabled || widget.onLocationAction == null,
+                    onPressed: () => _locationAction(
+                      input,
+                      FlarePluginLocationActionKind.locate,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       case FlarePluginInputKind.password:
       case FlarePluginInputKind.text:
         return wrap(
@@ -630,6 +836,51 @@ class _FlarePluginFormState extends State<FlarePluginForm> {
             placeholder: input.placeholder,
             disabled: disabled,
             onChanged: (v) => _set(input.id, v),
+          ),
+        );
+      case FlarePluginInputKind.money:
+        final currency = input.money?.currency;
+        final scale = flarePluginMoneyScale(input);
+        return wrap(
+          Row(
+            children: [
+              Expanded(
+                child: FlareInput(
+                  key: ValueKey('flare-plugin-money-${input.id}'),
+                  controller: _text[input.id],
+                  semanticLabel: input.label,
+                  placeholder:
+                      input.placeholder ??
+                      (scale == 0 ? '0' : '0.${'0' * scale}'),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: scale > 0,
+                  ),
+                  disabled: disabled || currency == null,
+                  // The locale's decimal separator is kept as "." (spec
+                  // moneyInput.typed).
+                  onChanged: (v) => _set(
+                    input.id,
+                    flarePluginMoneyTyped(
+                      v,
+                      flarePluginDecimalSeparator(
+                        Localizations.maybeLocaleOf(context)?.languageCode,
+                        Localizations.maybeLocaleOf(context)?.countryCode,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (currency != null) ...[
+                const SizedBox(width: FlareSizes.spacingSm),
+                Text(
+                  currency,
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeLg,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
           ),
         );
       case FlarePluginInputKind.textarea:

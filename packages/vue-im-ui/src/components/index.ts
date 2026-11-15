@@ -114,7 +114,11 @@ export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue
 export { default as FlareRedPacketOpenSheet } from "./messages/FlareRedPacketOpenSheet.vue";
 export { default as FlareRedPacketDetail } from "./messages/FlareRedPacketDetail.vue";
 export { default as FlareRedPacketComposer } from "./messages/FlareRedPacketComposer.vue";
-export { default as FlareRedPacketPayConfirm } from "./messages/FlareRedPacketPayConfirm.vue";
+// Plugin host capabilities (design 7): the consent, the document capture and the payment confirmation the host shows
+// for the engine's capability requests.
+export { default as FlareCapabilityConsent } from "./messages/FlareCapabilityConsent.vue";
+export { default as FlareDocumentCapture } from "./messages/FlareDocumentCapture.vue";
+export { default as FlarePaymentConfirmation } from "./messages/FlarePaymentConfirmation.vue";
 export type {
   FlareRedPacketCardState,
   FlareRedPacketOpenState,
@@ -334,7 +338,20 @@ export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
 export { default as FlarePluginAdminList } from "./messages/FlarePluginAdminList.vue";
 export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
+export { default as FlarePluginUpgradeNotice } from "./messages/FlarePluginUpgradeNotice.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
+// Plugin web bundles (design 8.4 to 8.6): the sandboxed frame, its envelope relay and the ui.* requests the host draws.
+export { default as FlarePluginBundleHost } from "./plugin/FlarePluginBundleHost.vue";
+export {
+  FLARE_PLUGIN_BUNDLE_SANDBOX, FLARE_PLUGIN_BRIDGE_ERROR_CODES, flarePluginBridgeErrorKey, flarePluginBundleExternalUrl,
+  flarePluginBundleMessage, flarePluginBundleAnswer, flarePluginBundleEvent, flarePluginBundleHostResponse,
+  createFlarePluginBundleGesture,
+} from "./plugin/pluginBundleHost";
+export type {
+  FlarePluginBundleBridge, FlarePluginBundleBridgeEvent, FlarePluginBundleEnvelope, FlarePluginBundleHostRequest,
+  FlarePluginBundleHostError, FlarePluginBundleAnswer, FlarePluginBundleTheme, FlarePluginBundlePresentation,
+  FlarePluginBridgeErrorCode,
+} from "./plugin/pluginBundleHost";
 export { default as FlareSchemaForm } from "./form/FlareSchemaForm.vue";
 
 export { default as FlareAccountView } from "./messages/account/FlareAccountView.vue";

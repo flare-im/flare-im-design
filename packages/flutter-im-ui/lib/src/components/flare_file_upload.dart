@@ -26,8 +26,17 @@ class FlareFileUpload extends StatelessWidget {
     this.onReplace,
     this.onRemove,
     this.onPreview,
+    this.pickLabel,
+    this.icon = 'file',
   });
   final String title;
+
+  /// The choose key's label; the kit's "选择文件" when null (an image input
+  /// says "选择图片", a document input "拍摄证件").
+  final String? pickLabel;
+
+  /// The slot's icon name.
+  final String icon;
   final FlareImageUploadState state;
   final String? fileName, error, policyHint;
   final double? progress;
@@ -72,8 +81,8 @@ class FlareFileUpload extends StatelessWidget {
           title: title,
           state: state,
           statusText: status,
-          icon: 'file',
-          pickLabel: strings.pluginFileChoose,
+          icon: icon,
+          pickLabel: pickLabel ?? strings.pluginFileChoose,
           progress: progress,
           previewHeight: FlareSizes.touchTargetMin * 2.5,
           disabled: disabled,

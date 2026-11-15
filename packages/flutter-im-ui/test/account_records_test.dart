@@ -102,6 +102,7 @@ Widget page(
   ValueChanged<Map<String, Object?>>? onFilter,
   FlarePluginPageActionCallback? onAction,
 }) => FlarePluginPage(
+  appearance: FlarePluginPageAppearance.account,
   page: const FlarePluginPageRef(pluginId: 'fixture', page: 'records'),
   view: view,
   filters: filters,
@@ -308,6 +309,7 @@ void main() {
             builder: (context, setState) {
               rebuild = setState;
               return FlarePluginPage(
+                appearance: FlarePluginPageAppearance.account,
                 page: const FlarePluginPageRef(
                   pluginId: 'fixture',
                   page: 'records',
@@ -360,6 +362,7 @@ void main() {
             builder: (context, setState) {
               rebuild = setState;
               return FlarePluginPage(
+                appearance: FlarePluginPageAppearance.account,
                 page: const FlarePluginPageRef(
                   pluginId: 'fixture',
                   page: 'records',
@@ -417,6 +420,7 @@ void main() {
       await tester.pumpWidget(
         host(
           FlarePluginPage(
+            appearance: FlarePluginPageAppearance.account,
             page: const FlarePluginPageRef(
               pluginId: 'fixture',
               page: 'records',
@@ -457,6 +461,7 @@ void main() {
             builder: (context, setState) {
               rebuild = setState;
               return FlarePluginPage(
+                appearance: FlarePluginPageAppearance.account,
                 page: const FlarePluginPageRef(
                   pluginId: 'fixture',
                   page: 'records',

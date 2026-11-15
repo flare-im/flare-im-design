@@ -4,7 +4,7 @@ import { useFlareI18nProvider } from "../../../packages/vue-im-ui/src/shared/i18
 import { useViewportProvider } from "../../../packages/vue-im-ui/src/composables/useViewport";
 import type { FlarePluginPageViewModel } from "../../../packages/vue-im-ui/src/shared/contracts/plugin-ui";
 import type { FlarePluginPageActionPayload } from "../../../packages/vue-im-ui/src/shared/contracts/plugin-ui";
-import vectors from "../../../spec/wallet-flow-vectors.json";
+import vectors from "../../../spec/wallet-flow-account-vectors.json";
 import cards from "../../../spec/wallet-card-vectors.json";
 
 let app: App | undefined;

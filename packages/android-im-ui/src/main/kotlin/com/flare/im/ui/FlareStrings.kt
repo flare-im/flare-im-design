@@ -2082,6 +2082,210 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["pluginViewUnavailableCatalogUnreachable"] as? String) ?: "暂时无法加载，请稍后再试"
     val pluginViewUnavailableUnboundCopy: String
         get() = (overrides["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
+    // Vocabulary 2: the upgrade notice, the new blocks' copy, the count and duration formats, image and document inputs.
+    val pluginViewUnavailableUpgradeRequired: String
+        get() = (overrides["pluginViewUnavailableUpgradeRequired"] as? String) ?: "更新应用后查看"
+    val pluginUpgradeAction: String
+        get() = (overrides["pluginUpgradeAction"] as? String) ?: "去更新"
+    val pluginUpgradeNotAvailable: String
+        get() = (overrides["pluginUpgradeNotAvailable"] as? String) ?: "当前版本暂不支持，新版本发布后可用"
+    val pluginUpgradeBadge: String
+        get() = (overrides["pluginUpgradeBadge"] as? String) ?: "需更新"
+    val pluginUpgradeTitle: String
+        get() = (overrides["pluginUpgradeTitle"] as? String) ?: "需要更新应用"
+    val pluginUpgradeDescription: String
+        get() = (overrides["pluginUpgradeDescription"] as? String) ?: "此内容需要更新到新版本后才能使用"
+    val pluginViewQrExpired: String
+        get() = (overrides["pluginViewQrExpired"] as? String) ?: "二维码已失效"
+    val pluginViewQrRefresh: String
+        get() = (overrides["pluginViewQrRefresh"] as? String) ?: "刷新二维码"
+    val pluginViewStepPending: String
+        get() = (overrides["pluginViewStepPending"] as? String) ?: "未开始"
+    val pluginViewStepCurrent: String
+        get() = (overrides["pluginViewStepCurrent"] as? String) ?: "进行中"
+    val pluginViewStepDone: String
+        get() = (overrides["pluginViewStepDone"] as? String) ?: "已完成"
+    val pluginViewStepFailed: String
+        get() = (overrides["pluginViewStepFailed"] as? String) ?: "未通过"
+    val pluginViewTrendUp: String
+        get() = (overrides["pluginViewTrendUp"] as? String) ?: "上升"
+    val pluginViewTrendDown: String
+        get() = (overrides["pluginViewTrendDown"] as? String) ?: "下降"
+    val pluginViewTrendFlat: String
+        get() = (overrides["pluginViewTrendFlat"] as? String) ?: "持平"
+    val pluginViewImageUnavailable: String
+        get() = (overrides["pluginViewImageUnavailable"] as? String) ?: "图片无法显示"
+    val pluginFormatSeconds: String
+        get() = (overrides["pluginFormatSeconds"] as? String) ?: "{n} 秒"
+    val pluginFormatCountUnits: String
+        get() = (overrides["pluginFormatCountUnits"] as? String) ?: "4:万|8:亿"
+    val pluginFormChooseImage: String
+        get() = (overrides["pluginFormChooseImage"] as? String) ?: "选择图片"
+    val pluginFormCaptureDocument: String
+        get() = (overrides["pluginFormCaptureDocument"] as? String) ?: "拍摄证件"
+    val pluginFormDocumentFront: String
+        get() = (overrides["pluginFormDocumentFront"] as? String) ?: "证件正面"
+    val pluginFormDocumentBack: String
+        get() = (overrides["pluginFormDocumentBack"] as? String) ?: "证件反面"
+    val pluginFormDocumentHolding: String
+        get() = (overrides["pluginFormDocumentHolding"] as? String) ?: "手持证件"
+    val capabilityConsentTitle: String
+        get() = (overrides["capabilityConsentTitle"] as? String) ?: "「{plugin}」想要使用"
+    val capabilityConsentPurpose: String
+        get() = (overrides["capabilityConsentPurpose"] as? String) ?: "用途"
+    val capabilityConsentAllowOnce: String
+        get() = (overrides["capabilityConsentAllowOnce"] as? String) ?: "仅本次允许"
+    val capabilityConsentAllowAlways: String
+        get() = (overrides["capabilityConsentAllowAlways"] as? String) ?: "始终允许"
+    val capabilityConsentDeny: String
+        get() = (overrides["capabilityConsentDeny"] as? String) ?: "不允许"
+    val capabilityConsentNote: String
+        get() = (overrides["capabilityConsentNote"] as? String) ?: "可以随时在设置里撤销授权"
+    val capabilityDocumentCapture: String
+        get() = (overrides["capabilityDocumentCapture"] as? String) ?: "相机，用于拍摄证件"
+    val capabilityPaymentConfirmation: String
+        get() = (overrides["capabilityPaymentConfirmation"] as? String) ?: "付款，每次付款都需你确认"
+    val capabilityLocationCoarse: String
+        get() = (overrides["capabilityLocationCoarse"] as? String) ?: "你的大致位置（仅本次）"
+    val capabilityLocationFine: String
+        get() = (overrides["capabilityLocationFine"] as? String) ?: "你的精确位置（仅本次）"
+    // 插件 Web 包宿主（设计 8.4）与桥错误码（8.6）
+    val pluginBundleOpening: String
+        get() = (overrides["pluginBundleOpening"] as? String) ?: "正在打开…"
+    val pluginBundleUnavailable: String
+        get() = (overrides["pluginBundleUnavailable"] as? String) ?: "页面暂时无法打开"
+    val pluginBundleCrashed: String
+        get() = (overrides["pluginBundleCrashed"] as? String) ?: "页面意外停止"
+    val pluginBundleCrashedHint: String
+        get() = (overrides["pluginBundleCrashedHint"] as? String) ?: "重新加载后可以继续使用"
+    val pluginBundleReload: String
+        get() = (overrides["pluginBundleReload"] as? String) ?: "重新加载"
+    val pluginBundleClosed: String
+        get() = (overrides["pluginBundleClosed"] as? String) ?: "页面已关闭"
+    val pluginBundleExternalTitle: String
+        get() = (overrides["pluginBundleExternalTitle"] as? String) ?: "打开外部链接"
+    val pluginBundleExternalMessage: String
+        get() = (overrides["pluginBundleExternalMessage"] as? String) ?: "将在浏览器中打开以下地址，请确认来源可信。"
+    val pluginBundleExternalOpen: String
+        get() = (overrides["pluginBundleExternalOpen"] as? String) ?: "打开"
+    val pluginBundleCopied: String
+        get() = (overrides["pluginBundleCopied"] as? String) ?: "已复制"
+    val pluginBridgeErrorInvalidEnvelope: String
+        get() = (overrides["pluginBridgeErrorInvalidEnvelope"] as? String) ?: "请求格式不正确"
+    val pluginBridgeErrorUnsupportedBridge: String
+        get() = (overrides["pluginBridgeErrorUnsupportedBridge"] as? String) ?: "当前版本不支持该页面"
+    val pluginBridgeErrorNotReady: String
+        get() = (overrides["pluginBridgeErrorNotReady"] as? String) ?: "页面还没准备好"
+    val pluginBridgeErrorMethodNotFound: String
+        get() = (overrides["pluginBridgeErrorMethodNotFound"] as? String) ?: "不支持该操作"
+    val pluginBridgeErrorInvalidParams: String
+        get() = (overrides["pluginBridgeErrorInvalidParams"] as? String) ?: "请求参数不正确"
+    val pluginBridgeErrorPayloadTooLarge: String
+        get() = (overrides["pluginBridgeErrorPayloadTooLarge"] as? String) ?: "请求内容过大"
+    val pluginBridgeErrorPermissionDenied: String
+        get() = (overrides["pluginBridgeErrorPermissionDenied"] as? String) ?: "没有权限执行该操作"
+    val pluginBridgeErrorRateLimited: String
+        get() = (overrides["pluginBridgeErrorRateLimited"] as? String) ?: "操作太频繁，请稍后再试"
+    val pluginBridgeErrorCancelled: String
+        get() = (overrides["pluginBridgeErrorCancelled"] as? String) ?: "已取消"
+    val pluginBridgeErrorGestureRequired: String
+        get() = (overrides["pluginBridgeErrorGestureRequired"] as? String) ?: "请先点按页面再试"
+    val pluginBridgeErrorQuotaExceeded: String
+        get() = (overrides["pluginBridgeErrorQuotaExceeded"] as? String) ?: "存储空间已满"
+    val pluginBridgeErrorNotFound: String
+        get() = (overrides["pluginBridgeErrorNotFound"] as? String) ?: "找不到要打开的内容"
+    val pluginBridgeErrorUnavailable: String
+        get() = (overrides["pluginBridgeErrorUnavailable"] as? String) ?: "暂时不可用，请稍后再试"
+    val pluginBridgeErrorTimeout: String
+        get() = (overrides["pluginBridgeErrorTimeout"] as? String) ?: "请求超时，请重试"
+    val pluginBridgeErrorOperationFailed: String
+        get() = (overrides["pluginBridgeErrorOperationFailed"] as? String) ?: "操作失败"
+    val pluginBridgeErrorRevoked: String
+        get() = (overrides["pluginBridgeErrorRevoked"] as? String) ?: "页面已被停用"
+    val pluginBridgeErrorInternal: String
+        get() = (overrides["pluginBridgeErrorInternal"] as? String) ?: "出现问题，请稍后再试"
+    val capabilityCamera: String
+        get() = (overrides["capabilityCamera"] as? String) ?: "相机"
+    val capabilityMicrophone: String
+        get() = (overrides["capabilityMicrophone"] as? String) ?: "麦克风"
+    val capabilityRtcSession: String
+        get() = (overrides["capabilityRtcSession"] as? String) ?: "语音和视频通话"
+    val capabilityGeneric: String
+        get() = (overrides["capabilityGeneric"] as? String) ?: "设备上的一项能力"
+    val documentCaptureHintFront: String
+        get() = (overrides["documentCaptureHintFront"] as? String) ?: "将证件正面放入框内，保持清晰、避免反光"
+    val documentCaptureHintBack: String
+        get() = (overrides["documentCaptureHintBack"] as? String) ?: "将证件反面放入框内，保持清晰、避免反光"
+    val documentCaptureHintHolding: String
+        get() = (overrides["documentCaptureHintHolding"] as? String) ?: "手持证件放在胸前，脸和证件都要清晰"
+    val documentCaptureShoot: String
+        get() = (overrides["documentCaptureShoot"] as? String) ?: "拍摄"
+    val documentCaptureRetake: String
+        get() = (overrides["documentCaptureRetake"] as? String) ?: "重拍"
+    val documentCaptureUse: String
+        get() = (overrides["documentCaptureUse"] as? String) ?: "使用照片"
+    val documentCaptureFromAlbum: String
+        get() = (overrides["documentCaptureFromAlbum"] as? String) ?: "从相册选择"
+    val documentCaptureProcessing: String
+        get() = (overrides["documentCaptureProcessing"] as? String) ?: "正在处理照片"
+    val documentCaptureCameraUnavailable: String
+        get() = (overrides["documentCaptureCameraUnavailable"] as? String) ?: "相机不可用，可从相册选择"
+    val documentCaptureTooLarge: String
+        get() = (overrides["documentCaptureTooLarge"] as? String) ?: "照片太大，请重拍"
+    val documentCaptureFailed: String
+        get() = (overrides["documentCaptureFailed"] as? String) ?: "照片无法处理，请重拍"
+    val documentCaptureNotAccepted: String
+        get() = (overrides["documentCaptureNotAccepted"] as? String) ?: "这里不接受照片，请联系服务提供方"
+    val paymentConfirmationTitle: String
+        get() = (overrides["paymentConfirmationTitle"] as? String) ?: "确认付款"
+    val paymentConfirmationPayee: String
+        get() = (overrides["paymentConfirmationPayee"] as? String) ?: "收款方"
+    val paymentConfirmationItem: String
+        get() = (overrides["paymentConfirmationItem"] as? String) ?: "付款说明"
+    val paymentConfirmationOrder: String
+        get() = (overrides["paymentConfirmationOrder"] as? String) ?: "订单号"
+    val paymentConfirmationRequestedBy: String
+        get() = (overrides["paymentConfirmationRequestedBy"] as? String) ?: "由「{plugin}」发起"
+    val paymentConfirmationExpiresIn: String
+        get() = (overrides["paymentConfirmationExpiresIn"] as? String) ?: "{time} 后失效"
+    val paymentConfirmationExpired: String
+        get() = (overrides["paymentConfirmationExpired"] as? String) ?: "订单已失效，请重新发起"
+    val paymentConfirmationInvalid: String
+        get() = (overrides["paymentConfirmationInvalid"] as? String) ?: "订单金额无法识别，不能付款"
+    val paymentConfirmationConfirm: String
+        get() = (overrides["paymentConfirmationConfirm"] as? String) ?: "确认付款"
+    val paymentConfirmationVerifying: String
+        get() = (overrides["paymentConfirmationVerifying"] as? String) ?: "正在验证身份"
+    val pluginProtectedMediaReason: String
+        get() = (overrides["pluginProtectedMediaReason"] as? String) ?: "查看原因"
+    val pluginProtectedMediaNotice: String
+        get() = (overrides["pluginProtectedMediaNotice"] as? String) ?: "查看受保护材料需要说明原因，操作会留下审计记录。"
+    val pluginProtectedMediaOwnNotice: String
+        get() = (overrides["pluginProtectedMediaOwnNotice"] as? String) ?: "仅你本人可查看，图片不会保存到设备。"
+    val pluginProtectedMediaView: String
+        get() = (overrides["pluginProtectedMediaView"] as? String) ?: "查看"
+    val pluginProtectedMediaHide: String
+        get() = (overrides["pluginProtectedMediaHide"] as? String) ?: "隐藏"
+    val pluginProtectedMediaUnavailable: String
+        get() = (overrides["pluginProtectedMediaUnavailable"] as? String) ?: "无法显示，请重试"
+    val pluginProtectedMediaNotPreviewable: String
+        get() = (overrides["pluginProtectedMediaNotPreviewable"] as? String) ?: "此类文件不能在这里预览"
+    val pluginLocationLocate: String
+        get() = (overrides["pluginLocationLocate"] as? String) ?: "获取位置"
+    val pluginLocationRelocate: String
+        get() = (overrides["pluginLocationRelocate"] as? String) ?: "重新获取"
+    val pluginLocationClear: String
+        get() = (overrides["pluginLocationClear"] as? String) ?: "清除"
+    val pluginLocationLocating: String
+        get() = (overrides["pluginLocationLocating"] as? String) ?: "正在获取位置"
+    val pluginLocationEmpty: String
+        get() = (overrides["pluginLocationEmpty"] as? String) ?: "尚未获取位置"
+    val pluginLocationCoarse: String
+        get() = (overrides["pluginLocationCoarse"] as? String) ?: "大致位置"
+    val pluginLocationFine: String
+        get() = (overrides["pluginLocationFine"] as? String) ?: "精确位置"
+    val pluginLocationAccuracy: String
+        get() = (overrides["pluginLocationAccuracy"] as? String) ?: "精度约 {m} 米"
     // 红包第五版卡片与详情（spec/red-packet-vectors.json）
     val packetView: String
         get() = (overrides["packetView"] as? String) ?: "查看红包"
@@ -6044,6 +6248,310 @@ class FlareStringsBuilder internal constructor() {
     var pluginViewUnavailableUnboundCopy: String
         get() = (values["pluginViewUnavailableUnboundCopy"] as? String) ?: "副本，仅供查看"
         set(value) { values["pluginViewUnavailableUnboundCopy"] = value }
+    var pluginViewUnavailableUpgradeRequired: String
+        get() = (values["pluginViewUnavailableUpgradeRequired"] as? String) ?: "更新应用后查看"
+        set(value) { values["pluginViewUnavailableUpgradeRequired"] = value }
+    var pluginUpgradeAction: String
+        get() = (values["pluginUpgradeAction"] as? String) ?: "去更新"
+        set(value) { values["pluginUpgradeAction"] = value }
+    var pluginUpgradeNotAvailable: String
+        get() = (values["pluginUpgradeNotAvailable"] as? String) ?: "当前版本暂不支持，新版本发布后可用"
+        set(value) { values["pluginUpgradeNotAvailable"] = value }
+    var pluginUpgradeBadge: String
+        get() = (values["pluginUpgradeBadge"] as? String) ?: "需更新"
+        set(value) { values["pluginUpgradeBadge"] = value }
+    var pluginUpgradeTitle: String
+        get() = (values["pluginUpgradeTitle"] as? String) ?: "需要更新应用"
+        set(value) { values["pluginUpgradeTitle"] = value }
+    var pluginUpgradeDescription: String
+        get() = (values["pluginUpgradeDescription"] as? String) ?: "此内容需要更新到新版本后才能使用"
+        set(value) { values["pluginUpgradeDescription"] = value }
+    var pluginViewQrExpired: String
+        get() = (values["pluginViewQrExpired"] as? String) ?: "二维码已失效"
+        set(value) { values["pluginViewQrExpired"] = value }
+    var pluginViewQrRefresh: String
+        get() = (values["pluginViewQrRefresh"] as? String) ?: "刷新二维码"
+        set(value) { values["pluginViewQrRefresh"] = value }
+    var pluginViewStepPending: String
+        get() = (values["pluginViewStepPending"] as? String) ?: "未开始"
+        set(value) { values["pluginViewStepPending"] = value }
+    var pluginViewStepCurrent: String
+        get() = (values["pluginViewStepCurrent"] as? String) ?: "进行中"
+        set(value) { values["pluginViewStepCurrent"] = value }
+    var pluginViewStepDone: String
+        get() = (values["pluginViewStepDone"] as? String) ?: "已完成"
+        set(value) { values["pluginViewStepDone"] = value }
+    var pluginViewStepFailed: String
+        get() = (values["pluginViewStepFailed"] as? String) ?: "未通过"
+        set(value) { values["pluginViewStepFailed"] = value }
+    var pluginViewTrendUp: String
+        get() = (values["pluginViewTrendUp"] as? String) ?: "上升"
+        set(value) { values["pluginViewTrendUp"] = value }
+    var pluginViewTrendDown: String
+        get() = (values["pluginViewTrendDown"] as? String) ?: "下降"
+        set(value) { values["pluginViewTrendDown"] = value }
+    var pluginViewTrendFlat: String
+        get() = (values["pluginViewTrendFlat"] as? String) ?: "持平"
+        set(value) { values["pluginViewTrendFlat"] = value }
+    var pluginViewImageUnavailable: String
+        get() = (values["pluginViewImageUnavailable"] as? String) ?: "图片无法显示"
+        set(value) { values["pluginViewImageUnavailable"] = value }
+    var pluginFormatSeconds: String
+        get() = (values["pluginFormatSeconds"] as? String) ?: "{n} 秒"
+        set(value) { values["pluginFormatSeconds"] = value }
+    var pluginFormatCountUnits: String
+        get() = (values["pluginFormatCountUnits"] as? String) ?: "4:万|8:亿"
+        set(value) { values["pluginFormatCountUnits"] = value }
+    var pluginFormChooseImage: String
+        get() = (values["pluginFormChooseImage"] as? String) ?: "选择图片"
+        set(value) { values["pluginFormChooseImage"] = value }
+    var pluginFormCaptureDocument: String
+        get() = (values["pluginFormCaptureDocument"] as? String) ?: "拍摄证件"
+        set(value) { values["pluginFormCaptureDocument"] = value }
+    var pluginFormDocumentFront: String
+        get() = (values["pluginFormDocumentFront"] as? String) ?: "证件正面"
+        set(value) { values["pluginFormDocumentFront"] = value }
+    var pluginFormDocumentBack: String
+        get() = (values["pluginFormDocumentBack"] as? String) ?: "证件反面"
+        set(value) { values["pluginFormDocumentBack"] = value }
+    var pluginFormDocumentHolding: String
+        get() = (values["pluginFormDocumentHolding"] as? String) ?: "手持证件"
+        set(value) { values["pluginFormDocumentHolding"] = value }
+    var capabilityConsentTitle: String
+        get() = (values["capabilityConsentTitle"] as? String) ?: "「{plugin}」想要使用"
+        set(value) { values["capabilityConsentTitle"] = value }
+    var capabilityConsentPurpose: String
+        get() = (values["capabilityConsentPurpose"] as? String) ?: "用途"
+        set(value) { values["capabilityConsentPurpose"] = value }
+    var capabilityConsentAllowOnce: String
+        get() = (values["capabilityConsentAllowOnce"] as? String) ?: "仅本次允许"
+        set(value) { values["capabilityConsentAllowOnce"] = value }
+    var capabilityConsentAllowAlways: String
+        get() = (values["capabilityConsentAllowAlways"] as? String) ?: "始终允许"
+        set(value) { values["capabilityConsentAllowAlways"] = value }
+    var capabilityConsentDeny: String
+        get() = (values["capabilityConsentDeny"] as? String) ?: "不允许"
+        set(value) { values["capabilityConsentDeny"] = value }
+    var capabilityConsentNote: String
+        get() = (values["capabilityConsentNote"] as? String) ?: "可以随时在设置里撤销授权"
+        set(value) { values["capabilityConsentNote"] = value }
+    var capabilityDocumentCapture: String
+        get() = (values["capabilityDocumentCapture"] as? String) ?: "相机，用于拍摄证件"
+        set(value) { values["capabilityDocumentCapture"] = value }
+    var capabilityPaymentConfirmation: String
+        get() = (values["capabilityPaymentConfirmation"] as? String) ?: "付款，每次付款都需你确认"
+        set(value) { values["capabilityPaymentConfirmation"] = value }
+    var capabilityLocationCoarse: String
+        get() = (values["capabilityLocationCoarse"] as? String) ?: "你的大致位置（仅本次）"
+        set(value) { values["capabilityLocationCoarse"] = value }
+    var capabilityLocationFine: String
+        get() = (values["capabilityLocationFine"] as? String) ?: "你的精确位置（仅本次）"
+        set(value) { values["capabilityLocationFine"] = value }
+    // 插件 Web 包宿主（设计 8.4）与桥错误码（8.6）
+    var pluginBundleOpening: String
+        get() = (values["pluginBundleOpening"] as? String) ?: "正在打开…"
+        set(value) { values["pluginBundleOpening"] = value }
+    var pluginBundleUnavailable: String
+        get() = (values["pluginBundleUnavailable"] as? String) ?: "页面暂时无法打开"
+        set(value) { values["pluginBundleUnavailable"] = value }
+    var pluginBundleCrashed: String
+        get() = (values["pluginBundleCrashed"] as? String) ?: "页面意外停止"
+        set(value) { values["pluginBundleCrashed"] = value }
+    var pluginBundleCrashedHint: String
+        get() = (values["pluginBundleCrashedHint"] as? String) ?: "重新加载后可以继续使用"
+        set(value) { values["pluginBundleCrashedHint"] = value }
+    var pluginBundleReload: String
+        get() = (values["pluginBundleReload"] as? String) ?: "重新加载"
+        set(value) { values["pluginBundleReload"] = value }
+    var pluginBundleClosed: String
+        get() = (values["pluginBundleClosed"] as? String) ?: "页面已关闭"
+        set(value) { values["pluginBundleClosed"] = value }
+    var pluginBundleExternalTitle: String
+        get() = (values["pluginBundleExternalTitle"] as? String) ?: "打开外部链接"
+        set(value) { values["pluginBundleExternalTitle"] = value }
+    var pluginBundleExternalMessage: String
+        get() = (values["pluginBundleExternalMessage"] as? String) ?: "将在浏览器中打开以下地址，请确认来源可信。"
+        set(value) { values["pluginBundleExternalMessage"] = value }
+    var pluginBundleExternalOpen: String
+        get() = (values["pluginBundleExternalOpen"] as? String) ?: "打开"
+        set(value) { values["pluginBundleExternalOpen"] = value }
+    var pluginBundleCopied: String
+        get() = (values["pluginBundleCopied"] as? String) ?: "已复制"
+        set(value) { values["pluginBundleCopied"] = value }
+    var pluginBridgeErrorInvalidEnvelope: String
+        get() = (values["pluginBridgeErrorInvalidEnvelope"] as? String) ?: "请求格式不正确"
+        set(value) { values["pluginBridgeErrorInvalidEnvelope"] = value }
+    var pluginBridgeErrorUnsupportedBridge: String
+        get() = (values["pluginBridgeErrorUnsupportedBridge"] as? String) ?: "当前版本不支持该页面"
+        set(value) { values["pluginBridgeErrorUnsupportedBridge"] = value }
+    var pluginBridgeErrorNotReady: String
+        get() = (values["pluginBridgeErrorNotReady"] as? String) ?: "页面还没准备好"
+        set(value) { values["pluginBridgeErrorNotReady"] = value }
+    var pluginBridgeErrorMethodNotFound: String
+        get() = (values["pluginBridgeErrorMethodNotFound"] as? String) ?: "不支持该操作"
+        set(value) { values["pluginBridgeErrorMethodNotFound"] = value }
+    var pluginBridgeErrorInvalidParams: String
+        get() = (values["pluginBridgeErrorInvalidParams"] as? String) ?: "请求参数不正确"
+        set(value) { values["pluginBridgeErrorInvalidParams"] = value }
+    var pluginBridgeErrorPayloadTooLarge: String
+        get() = (values["pluginBridgeErrorPayloadTooLarge"] as? String) ?: "请求内容过大"
+        set(value) { values["pluginBridgeErrorPayloadTooLarge"] = value }
+    var pluginBridgeErrorPermissionDenied: String
+        get() = (values["pluginBridgeErrorPermissionDenied"] as? String) ?: "没有权限执行该操作"
+        set(value) { values["pluginBridgeErrorPermissionDenied"] = value }
+    var pluginBridgeErrorRateLimited: String
+        get() = (values["pluginBridgeErrorRateLimited"] as? String) ?: "操作太频繁，请稍后再试"
+        set(value) { values["pluginBridgeErrorRateLimited"] = value }
+    var pluginBridgeErrorCancelled: String
+        get() = (values["pluginBridgeErrorCancelled"] as? String) ?: "已取消"
+        set(value) { values["pluginBridgeErrorCancelled"] = value }
+    var pluginBridgeErrorGestureRequired: String
+        get() = (values["pluginBridgeErrorGestureRequired"] as? String) ?: "请先点按页面再试"
+        set(value) { values["pluginBridgeErrorGestureRequired"] = value }
+    var pluginBridgeErrorQuotaExceeded: String
+        get() = (values["pluginBridgeErrorQuotaExceeded"] as? String) ?: "存储空间已满"
+        set(value) { values["pluginBridgeErrorQuotaExceeded"] = value }
+    var pluginBridgeErrorNotFound: String
+        get() = (values["pluginBridgeErrorNotFound"] as? String) ?: "找不到要打开的内容"
+        set(value) { values["pluginBridgeErrorNotFound"] = value }
+    var pluginBridgeErrorUnavailable: String
+        get() = (values["pluginBridgeErrorUnavailable"] as? String) ?: "暂时不可用，请稍后再试"
+        set(value) { values["pluginBridgeErrorUnavailable"] = value }
+    var pluginBridgeErrorTimeout: String
+        get() = (values["pluginBridgeErrorTimeout"] as? String) ?: "请求超时，请重试"
+        set(value) { values["pluginBridgeErrorTimeout"] = value }
+    var pluginBridgeErrorOperationFailed: String
+        get() = (values["pluginBridgeErrorOperationFailed"] as? String) ?: "操作失败"
+        set(value) { values["pluginBridgeErrorOperationFailed"] = value }
+    var pluginBridgeErrorRevoked: String
+        get() = (values["pluginBridgeErrorRevoked"] as? String) ?: "页面已被停用"
+        set(value) { values["pluginBridgeErrorRevoked"] = value }
+    var pluginBridgeErrorInternal: String
+        get() = (values["pluginBridgeErrorInternal"] as? String) ?: "出现问题，请稍后再试"
+        set(value) { values["pluginBridgeErrorInternal"] = value }
+    var capabilityCamera: String
+        get() = (values["capabilityCamera"] as? String) ?: "相机"
+        set(value) { values["capabilityCamera"] = value }
+    var capabilityMicrophone: String
+        get() = (values["capabilityMicrophone"] as? String) ?: "麦克风"
+        set(value) { values["capabilityMicrophone"] = value }
+    var capabilityRtcSession: String
+        get() = (values["capabilityRtcSession"] as? String) ?: "语音和视频通话"
+        set(value) { values["capabilityRtcSession"] = value }
+    var capabilityGeneric: String
+        get() = (values["capabilityGeneric"] as? String) ?: "设备上的一项能力"
+        set(value) { values["capabilityGeneric"] = value }
+    var documentCaptureHintFront: String
+        get() = (values["documentCaptureHintFront"] as? String) ?: "将证件正面放入框内，保持清晰、避免反光"
+        set(value) { values["documentCaptureHintFront"] = value }
+    var documentCaptureHintBack: String
+        get() = (values["documentCaptureHintBack"] as? String) ?: "将证件反面放入框内，保持清晰、避免反光"
+        set(value) { values["documentCaptureHintBack"] = value }
+    var documentCaptureHintHolding: String
+        get() = (values["documentCaptureHintHolding"] as? String) ?: "手持证件放在胸前，脸和证件都要清晰"
+        set(value) { values["documentCaptureHintHolding"] = value }
+    var documentCaptureShoot: String
+        get() = (values["documentCaptureShoot"] as? String) ?: "拍摄"
+        set(value) { values["documentCaptureShoot"] = value }
+    var documentCaptureRetake: String
+        get() = (values["documentCaptureRetake"] as? String) ?: "重拍"
+        set(value) { values["documentCaptureRetake"] = value }
+    var documentCaptureUse: String
+        get() = (values["documentCaptureUse"] as? String) ?: "使用照片"
+        set(value) { values["documentCaptureUse"] = value }
+    var documentCaptureFromAlbum: String
+        get() = (values["documentCaptureFromAlbum"] as? String) ?: "从相册选择"
+        set(value) { values["documentCaptureFromAlbum"] = value }
+    var documentCaptureProcessing: String
+        get() = (values["documentCaptureProcessing"] as? String) ?: "正在处理照片"
+        set(value) { values["documentCaptureProcessing"] = value }
+    var documentCaptureCameraUnavailable: String
+        get() = (values["documentCaptureCameraUnavailable"] as? String) ?: "相机不可用，可从相册选择"
+        set(value) { values["documentCaptureCameraUnavailable"] = value }
+    var documentCaptureTooLarge: String
+        get() = (values["documentCaptureTooLarge"] as? String) ?: "照片太大，请重拍"
+        set(value) { values["documentCaptureTooLarge"] = value }
+    var documentCaptureFailed: String
+        get() = (values["documentCaptureFailed"] as? String) ?: "照片无法处理，请重拍"
+        set(value) { values["documentCaptureFailed"] = value }
+    var documentCaptureNotAccepted: String
+        get() = (values["documentCaptureNotAccepted"] as? String) ?: "这里不接受照片，请联系服务提供方"
+        set(value) { values["documentCaptureNotAccepted"] = value }
+    var paymentConfirmationTitle: String
+        get() = (values["paymentConfirmationTitle"] as? String) ?: "确认付款"
+        set(value) { values["paymentConfirmationTitle"] = value }
+    var paymentConfirmationPayee: String
+        get() = (values["paymentConfirmationPayee"] as? String) ?: "收款方"
+        set(value) { values["paymentConfirmationPayee"] = value }
+    var paymentConfirmationItem: String
+        get() = (values["paymentConfirmationItem"] as? String) ?: "付款说明"
+        set(value) { values["paymentConfirmationItem"] = value }
+    var paymentConfirmationOrder: String
+        get() = (values["paymentConfirmationOrder"] as? String) ?: "订单号"
+        set(value) { values["paymentConfirmationOrder"] = value }
+    var paymentConfirmationRequestedBy: String
+        get() = (values["paymentConfirmationRequestedBy"] as? String) ?: "由「{plugin}」发起"
+        set(value) { values["paymentConfirmationRequestedBy"] = value }
+    var paymentConfirmationExpiresIn: String
+        get() = (values["paymentConfirmationExpiresIn"] as? String) ?: "{time} 后失效"
+        set(value) { values["paymentConfirmationExpiresIn"] = value }
+    var paymentConfirmationExpired: String
+        get() = (values["paymentConfirmationExpired"] as? String) ?: "订单已失效，请重新发起"
+        set(value) { values["paymentConfirmationExpired"] = value }
+    var paymentConfirmationInvalid: String
+        get() = (values["paymentConfirmationInvalid"] as? String) ?: "订单金额无法识别，不能付款"
+        set(value) { values["paymentConfirmationInvalid"] = value }
+    var paymentConfirmationConfirm: String
+        get() = (values["paymentConfirmationConfirm"] as? String) ?: "确认付款"
+        set(value) { values["paymentConfirmationConfirm"] = value }
+    var paymentConfirmationVerifying: String
+        get() = (values["paymentConfirmationVerifying"] as? String) ?: "正在验证身份"
+        set(value) { values["paymentConfirmationVerifying"] = value }
+    var pluginProtectedMediaReason: String
+        get() = (values["pluginProtectedMediaReason"] as? String) ?: "查看原因"
+        set(value) { values["pluginProtectedMediaReason"] = value }
+    var pluginProtectedMediaNotice: String
+        get() = (values["pluginProtectedMediaNotice"] as? String) ?: "查看受保护材料需要说明原因，操作会留下审计记录。"
+        set(value) { values["pluginProtectedMediaNotice"] = value }
+    var pluginProtectedMediaOwnNotice: String
+        get() = (values["pluginProtectedMediaOwnNotice"] as? String) ?: "仅你本人可查看，图片不会保存到设备。"
+        set(value) { values["pluginProtectedMediaOwnNotice"] = value }
+    var pluginProtectedMediaView: String
+        get() = (values["pluginProtectedMediaView"] as? String) ?: "查看"
+        set(value) { values["pluginProtectedMediaView"] = value }
+    var pluginProtectedMediaHide: String
+        get() = (values["pluginProtectedMediaHide"] as? String) ?: "隐藏"
+        set(value) { values["pluginProtectedMediaHide"] = value }
+    var pluginProtectedMediaUnavailable: String
+        get() = (values["pluginProtectedMediaUnavailable"] as? String) ?: "无法显示，请重试"
+        set(value) { values["pluginProtectedMediaUnavailable"] = value }
+    var pluginProtectedMediaNotPreviewable: String
+        get() = (values["pluginProtectedMediaNotPreviewable"] as? String) ?: "此类文件不能在这里预览"
+        set(value) { values["pluginProtectedMediaNotPreviewable"] = value }
+    var pluginLocationLocate: String
+        get() = (values["pluginLocationLocate"] as? String) ?: "获取位置"
+        set(value) { values["pluginLocationLocate"] = value }
+    var pluginLocationRelocate: String
+        get() = (values["pluginLocationRelocate"] as? String) ?: "重新获取"
+        set(value) { values["pluginLocationRelocate"] = value }
+    var pluginLocationClear: String
+        get() = (values["pluginLocationClear"] as? String) ?: "清除"
+        set(value) { values["pluginLocationClear"] = value }
+    var pluginLocationLocating: String
+        get() = (values["pluginLocationLocating"] as? String) ?: "正在获取位置"
+        set(value) { values["pluginLocationLocating"] = value }
+    var pluginLocationEmpty: String
+        get() = (values["pluginLocationEmpty"] as? String) ?: "尚未获取位置"
+        set(value) { values["pluginLocationEmpty"] = value }
+    var pluginLocationCoarse: String
+        get() = (values["pluginLocationCoarse"] as? String) ?: "大致位置"
+        set(value) { values["pluginLocationCoarse"] = value }
+    var pluginLocationFine: String
+        get() = (values["pluginLocationFine"] as? String) ?: "精确位置"
+        set(value) { values["pluginLocationFine"] = value }
+    var pluginLocationAccuracy: String
+        get() = (values["pluginLocationAccuracy"] as? String) ?: "精度约 {m} 米"
+        set(value) { values["pluginLocationAccuracy"] = value }
     // 红包第五版卡片与详情（spec/red-packet-vectors.json）
     var packetView: String
         get() = (values["packetView"] as? String) ?: "查看红包"

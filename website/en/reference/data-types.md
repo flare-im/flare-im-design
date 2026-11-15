@@ -217,6 +217,7 @@ title: Data Types
 | `detail` | `string` |  | Trailing detail text: the current value of a navigation row, or the information of a value row. Long text stacks under the label. |
 | `badge` | `boolean \| number` |  | `true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither. |
 | `description` | `string` |  | Compose only: a line under the label that says what the row does (a switch's consequence), in the secondary text colour on up to three lines; read with the row. |
+| `tag` | `string` |  | A short warning tag before the chevron ("Update needed" on a plugin entry this build cannot open yet). It is words, read with the row; a toggle row draws none. |
 
 ### SettingsSection {#settings-section}
 
@@ -943,6 +944,7 @@ title: Data Types
 | `icon` | `string` |  | A kit icon name; another name falls back to plugin. |
 | `title` | `string` |  | A plugin item's title. |
 | `order` | `number` |  | The SDK's sort key; the kit keeps the given order and does not re-sort. |
+| `upgrade` | `{ minBuild?: number } \| null` |  | The SDK's upgrade placeholder: this build cannot open the plugin's page yet (`minBuild`, when known, is the first build that can). flareMeMenuSections keeps the row and gives it the pluginUpgradeBadge tag; the host opens its upgrade notice. |
 
 ### MeMenu {#me-menu}
 

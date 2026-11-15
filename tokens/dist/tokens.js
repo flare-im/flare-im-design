@@ -83,6 +83,11 @@ export const flareDesignTokens = {
     "warning": "#B45309",
     "warningText": "#B45309",
     "scrim": "rgba(21, 18, 32, 0.44)",
+    "media": {
+      "stage": "rgba(11, 9, 18, 0.94)",
+      "onStage": "rgba(255, 255, 255, 0.92)",
+      "stageShade": "rgba(11, 9, 18, 0.55)"
+    },
     "avatarTint": {
       "blue": {
         "bg": "#DBEAFE",
@@ -119,6 +124,14 @@ export const flareDesignTokens = {
       "fadedInk": "#5C140E",
       "fadedMixTarget": "#FFFFFF",
       "accent": "#C8291F"
+    },
+    "chart": {
+      "series1": "#2A78D6",
+      "series2": "#EB6834",
+      "series3": "#1BAF7A",
+      "series4": "#EDA100",
+      "series5": "#E87BA4",
+      "series6": "#6250D6"
     }
   },
   "dark": {
@@ -204,6 +217,11 @@ export const flareDesignTokens = {
       "warning": "#A16207",
       "warningText": "#FBBF24",
       "scrim": "rgba(8, 6, 16, 0.6)",
+      "media": {
+        "stage": "rgba(11, 9, 18, 0.94)",
+        "onStage": "rgba(255, 255, 255, 0.92)",
+        "stageShade": "rgba(11, 9, 18, 0.55)"
+      },
       "avatarTint": {
         "blue": {
           "bg": "#1F3266",
@@ -234,6 +252,14 @@ export const flareDesignTokens = {
         "fadedInk": "#FBE3DE",
         "fadedMixTarget": "#2A1513",
         "accent": "#FF7B6B"
+      },
+      "chart": {
+        "series1": "#3987E5",
+        "series2": "#D95926",
+        "series3": "#199E70",
+        "series4": "#C98500",
+        "series5": "#D55181",
+        "series6": "#9085E9"
       }
     },
     "shadows": {
@@ -543,6 +569,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -579,6 +610,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -665,6 +704,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -701,6 +745,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -790,6 +842,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -826,6 +883,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -912,6 +977,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -948,6 +1018,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1037,6 +1115,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1073,6 +1156,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1159,6 +1250,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1195,6 +1291,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1284,6 +1388,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1320,6 +1429,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1406,6 +1523,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1442,6 +1564,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1531,6 +1661,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1567,6 +1702,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1653,6 +1796,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1689,6 +1837,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }
@@ -1778,6 +1934,11 @@ export const flareDesignTokens = {
           "warning": "#B45309",
           "warningText": "#B45309",
           "scrim": "rgba(21, 18, 32, 0.44)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#DBEAFE",
@@ -1814,6 +1975,14 @@ export const flareDesignTokens = {
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
             "accent": "#C8291F"
+          },
+          "chart": {
+            "series1": "#2A78D6",
+            "series2": "#EB6834",
+            "series3": "#1BAF7A",
+            "series4": "#EDA100",
+            "series5": "#E87BA4",
+            "series6": "#6250D6"
           }
         }
       },
@@ -1900,6 +2069,11 @@ export const flareDesignTokens = {
           "warning": "#A16207",
           "warningText": "#FBBF24",
           "scrim": "rgba(8, 6, 16, 0.6)",
+          "media": {
+            "stage": "rgba(11, 9, 18, 0.94)",
+            "onStage": "rgba(255, 255, 255, 0.92)",
+            "stageShade": "rgba(11, 9, 18, 0.55)"
+          },
           "avatarTint": {
             "blue": {
               "bg": "#1F3266",
@@ -1936,6 +2110,14 @@ export const flareDesignTokens = {
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
             "accent": "#FF7B6B"
+          },
+          "chart": {
+            "series1": "#3987E5",
+            "series2": "#D95926",
+            "series3": "#199E70",
+            "series4": "#C98500",
+            "series5": "#D55181",
+            "series6": "#9085E9"
           }
         }
       }

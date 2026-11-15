@@ -23,6 +23,38 @@ export interface FlarePluginAction {
   form?: ReadonlyArray<string>;
   /** `menu`: the action lives in the card's ⋯ menu (it arrives in view.menuActions). */
   placement?: "menu";
+  /**
+   * Where the action goes, as the view gives it (flare-plugin-protocol UiActionTarget). The kit reads a native
+   * target's `into`: a page action writing into one of the form's own inputs runs through that input's key
+   * ({@link flarePluginNativeIntoKey}), so the host's answer lands in the form's current scope.
+   */
+  target?: FlarePluginActionTarget;
+}
+
+/** An action's target (flare-plugin-protocol UiActionTarget); the kit only reads a native target. */
+export type FlarePluginActionTarget =
+  | { kind: "native"; capability: string; params?: Record<string, unknown>; into?: string }
+  | { kind: "operation"; operation: string }
+  | { kind: "page"; page: string; pluginId?: string };
+
+/** Host capabilities that write a file into an upload input (file, image, document). */
+export const FLARE_PLUGIN_UPLOAD_CAPABILITIES: ReadonlyArray<string> = ["documentCapture", "selectImage", "camera", "selectFile"];
+
+/**
+ * Which key of `input` a native action target runs through when it names that input as `into`: the input's own
+ * file key (`file`: a choose, or a replace when it already holds one) for an upload capability into an upload
+ * input, its locate key (`location`) for `locationOnce` into a location input, and nothing otherwise (the action
+ * goes out as itself).
+ */
+export function flarePluginNativeIntoKey(
+  target: FlarePluginActionTarget | undefined,
+  input: Pick<FlarePluginInput, "id" | "kind">,
+): "file" | "location" | undefined {
+  if (target?.kind !== "native" || !target.into || target.into !== input.id) return undefined;
+  if (target.capability === "locationOnce") return input.kind === "location" ? "location" : undefined;
+  return FLARE_PLUGIN_UPLOAD_CAPABILITIES.includes(target.capability) && flarePluginIsUpload(input.kind)
+    ? "file"
+    : undefined;
 }
 
 /**
@@ -34,7 +66,15 @@ export type FlarePluginFormat =
   | { kind: "enum"; raw: string }
   | { kind: "person"; userId: string }
   | { kind: "reference"; id: string; labelled: boolean }
-  | { kind: "time"; atMs: number };
+  | { kind: "time"; atMs: number }
+  /** The value in percent (a ratio already multiplied by 100); the text is already "12.5%". */
+  | { kind: "percent"; percent: number; decimals: number }
+  /** Milliseconds: the kit writes them in the viewer's language (flarePluginDurationText). */
+  | { kind: "duration"; ms: number }
+  /** A count: the kit writes it compact in the viewer's language (flarePluginCompactCount). */
+  | { kind: "count"; count: number }
+  /** A size in bytes; the text is already "1.5 MB". */
+  | { kind: "bytes"; bytes: number };
 
 export interface FlarePluginField {
   label: string;
@@ -98,6 +138,8 @@ export interface FlarePluginEntry {
   group?: FlarePluginEntryGroup;
   /** Drawn after the name and the me tag, before the text. */
   badge?: FlarePluginBadge;
+  /** When it happened (epoch ms), drawn after the text (flarePluginDateTime). */
+  timeMs?: number;
 }
 export interface FlarePluginEntriesBlock {
   kind: "entries";
@@ -178,6 +220,8 @@ export interface FlarePluginRowsBlock {
   filters?: ReadonlyArray<string>;
   /** `cards`: one card per row where the host draws the table layout; a plugin page's list ignores it. */
   presentation?: "table" | "cards";
+  /** A page list puts its rows under day headings by the first time column (flarePluginRowDayHeadings). */
+  groupByDay?: boolean;
 }
 /** One item of a protected media block; nothing about its content is in the view. */
 export interface FlarePluginProtectedItem {
@@ -186,7 +230,10 @@ export interface FlarePluginProtectedItem {
   mediaType?: string;
   input: unknown;
 }
-/** Private material read one item at a time, with a stated reason, through `action`. Vue console only. */
+/**
+ * Private material read one item at a time through `action`: with a stated reason when `reasonInput` is declared (a
+ * console), with one tap on the owner's own page (no `reasonInput`; the operation is owner-scoped).
+ */
 export interface FlarePluginProtectedMediaBlock {
   kind: "protected-media";
   label?: string;
@@ -198,7 +245,10 @@ export interface FlarePluginProtectedMediaBlock {
   urlPath: string;
   emptyText?: string;
 }
-/** What the host has for an item. `url` is what the host fetched: a blob:, https: or data:image address. */
+/**
+ * What the host has for an item. `url` is the read's address: the server's short-lived https address (`?grant=`), or
+ * what the host fetched (blob:, data:image). The kit never caches it.
+ */
 export interface FlarePluginProtectedMediaState {
   url?: string;
   loading?: boolean;
@@ -213,6 +263,122 @@ export interface FlarePluginProtectedMediaRead {
   /** The action's form values: the item and, when the operation takes it as input, the reason. */
   formValues: Record<string, unknown>;
 }
+/** Blocks under a heading, collapsible (vocabulary 2). Never holds a section, rows or protected media. */
+export interface FlarePluginSectionBlock {
+  kind: "section";
+  label?: string;
+  collapsed: boolean;
+  blocks: ReadonlyArray<FlarePluginBlock>;
+}
+export type FlarePluginTrendDirection = "up" | "down" | "flat";
+/** How a figure moved: the text as sent and its direction. */
+export interface FlarePluginTrend {
+  text: string;
+  direction: FlarePluginTrendDirection;
+}
+export interface FlarePluginStat {
+  label: string;
+  /** The plain text, whatever `format` says. */
+  value: string;
+  format?: FlarePluginFormat;
+  trend?: FlarePluginTrend;
+  tone?: FlarePluginTone;
+}
+/** 2 to 6 figures side by side. */
+export interface FlarePluginStatsBlock {
+  kind: "stats";
+  items: ReadonlyArray<FlarePluginStat>;
+}
+export type FlarePluginChartKind = "bar" | "line" | "donut";
+export interface FlarePluginChartPoint {
+  label: string;
+  value: number;
+  /** The value as text, through the block's format. */
+  text: string;
+}
+export interface FlarePluginChartSeries {
+  label?: string;
+  points: ReadonlyArray<FlarePluginChartPoint>;
+}
+/** Up to 3 series (one for a donut) of up to 60 points, drawn from kit tokens with no chart library. */
+export interface FlarePluginChartBlock {
+  kind: "chart";
+  chartKind: FlarePluginChartKind;
+  series: ReadonlyArray<FlarePluginChartSeries>;
+  /** Shown instead of a chart when no series has a point. */
+  emptyText?: string;
+}
+export type FlarePluginImageAspect = "1:1" | "4:3" | "16:9" | "3:4";
+/** A picture: a package asset, or a privately uploaded file of the plugin. The host turns either into an address. */
+export interface FlarePluginImageBlock {
+  kind: "image";
+  asset?: string;
+  fileId?: string;
+  aspect: FlarePluginImageAspect;
+  alt: string;
+}
+/** What `resolveImage` is asked for. */
+export interface FlarePluginImageSource {
+  asset?: string;
+  fileId?: string;
+}
+/** A QR code of `value`; `refreshOperation` (a query) returns a fresh one, read at the block's own paths. */
+export interface FlarePluginQrBlock {
+  kind: "qr";
+  value: string;
+  label?: string;
+  caption?: string;
+  refreshOperation?: string;
+  valuePath: string;
+  expiresAtPath?: string;
+  expiresAtMs?: number;
+}
+/** What `qrRefresh` carries: the host runs the query and passes back a view with the fresh code. */
+export interface FlarePluginQrRefresh {
+  operation: string;
+  valuePath: string;
+  expiresAtPath?: string;
+}
+export type FlarePluginHeroTone = "neutral" | "positive" | "warning" | "brand";
+/** The page's lead figure (one per document): a balance, an amount, with up to 3 owned actions. */
+export interface FlarePluginHeroBlock {
+  kind: "hero";
+  label?: string;
+  value: string;
+  /** The value is an amount. */
+  amount: boolean;
+  format?: FlarePluginFormat;
+  subtitle?: string;
+  tone: FlarePluginHeroTone;
+  actions?: ReadonlyArray<FlarePluginAction>;
+  /** The viewer may hide the value: the hero offers an eye toggle and draws dots while hidden. */
+  maskable?: boolean;
+}
+export type FlarePluginStepState = "pending" | "current" | "done" | "failed";
+export interface FlarePluginStepsBlock {
+  kind: "steps";
+  items: ReadonlyArray<{ label: string; state: FlarePluginStepState }>;
+}
+export type FlarePluginBannerTone = "info" | "success" | "warning" | "danger";
+/** A prominent notice (at most 2 per document) with an optional owned action. */
+export interface FlarePluginBannerBlock {
+  kind: "banner";
+  tone: FlarePluginBannerTone;
+  text: string;
+  action?: FlarePluginAction;
+}
+export interface FlarePluginTimelineItem {
+  atMs: number;
+  title: string;
+  detail?: string;
+  status?: FlarePluginBadge;
+}
+/** Up to 50 dated items, newest as the plugin ordered them. */
+export interface FlarePluginTimelineBlock {
+  kind: "timeline";
+  items: ReadonlyArray<FlarePluginTimelineItem>;
+  emptyText?: string;
+}
 export type FlarePluginBlock =
   | FlarePluginTextBlock
   | FlarePluginFieldsBlock
@@ -225,7 +391,16 @@ export type FlarePluginBlock =
   | FlarePluginDividerBlock
   | FlarePluginNoteBlock
   | FlarePluginRowsBlock
-  | FlarePluginProtectedMediaBlock;
+  | FlarePluginProtectedMediaBlock
+  | FlarePluginSectionBlock
+  | FlarePluginStatsBlock
+  | FlarePluginChartBlock
+  | FlarePluginImageBlock
+  | FlarePluginQrBlock
+  | FlarePluginHeroBlock
+  | FlarePluginStepsBlock
+  | FlarePluginBannerBlock
+  | FlarePluginTimelineBlock;
 
 export type FlarePluginInputKind =
   | "file"
@@ -237,7 +412,26 @@ export type FlarePluginInputKind =
   | "select"
   | "datetime"
   | "options"
-  | "members";
+  | "members"
+  | "money"
+  | "image"
+  | "document"
+  | "location";
+/** The amount rules of a money input, read by the core SDK: no paths are left. */
+export interface FlarePluginMoneyRules {
+  currency?: string;
+  /** Fraction digits the amount may have; 2 when absent. */
+  scale?: number;
+  /** Bounds as decimal strings. */
+  min?: string;
+  max?: string;
+}
+/** A money input's value: a decimal string without sign or exponent, and the currency. */
+export interface FlarePluginMoneyValue {
+  amount: string;
+  currency: string;
+}
+export type FlarePluginDocumentSide = "front" | "back" | "holding";
 export interface FlarePluginInput {
   id: string;
   kind: FlarePluginInputKind;
@@ -252,8 +446,19 @@ export interface FlarePluginInput {
   choices?: ReadonlyArray<{ value: string; label: string }>;
   /** The host loads the choices, with the viewer's own permission, on `referenceLoad`. */
   reference?: FlarePluginReference;
+  /** file, image and document: what may be uploaded and how. */
   file?: FlarePluginFilePolicy;
+  /** money only. */
+  money?: FlarePluginMoneyRules;
+  /** document only: which side of the document. */
+  side?: FlarePluginDocumentSide;
+  /** location only: how precise a fix the input takes (its locationOnce writes one of this precision). */
+  precision?: FlarePluginLocationPrecision;
   showWhen?: FlarePluginInputCondition;
+}
+/** Inputs whose value is an uploaded file's `{fileId}`: file, image and document. */
+export function flarePluginIsUpload(kind: FlarePluginInputKind | string): boolean {
+  return kind === "file" || kind === "image" || kind === "document";
 }
 /** Declarative form dependency; only an earlier unconditional select controls it. */
 export interface FlarePluginInputCondition { field: string; anyOf: ReadonlyArray<string> }
@@ -388,7 +593,9 @@ export type FlarePluginUnavailableReason =
   | "unsupported_platform"
   | "incompatible_version"
   | "catalog_unreachable"
-  | "unbound_copy";
+  | "unbound_copy"
+  /** This build cannot draw it; `minBuild` names the first one that can, when known (FlarePluginUpgradeNotice). */
+  | "upgrade_required";
 
 export interface FlarePluginPresentation {
   renderer: string;
@@ -401,6 +608,8 @@ export interface FlarePluginViewModel {
   available: boolean;
   /** Why it is unavailable; unbound_copy keeps it available but read-only (a forwarded or forged copy). */
   unavailableReason?: FlarePluginUnavailableReason;
+  /** upgrade_required: the first build that draws it, when the plugin declared one. */
+  minBuild?: number;
   title: string;
   fields: ReadonlyArray<FlarePluginField>;
   actions: ReadonlyArray<FlarePluginAction>;
@@ -480,6 +689,10 @@ export interface FlarePluginStrings {
   tooManyItems: string;
   duplicateItem: string;
   invalid: string;
+  /** "{n} 秒": the smallest unit of a duration. */
+  seconds?: string;
+  /** The count format's compact units, `exponent:suffix` pairs joined by `|` ("4:万|8:亿"). */
+  countUnits?: string;
 }
 
 const MONTHS = [
@@ -497,6 +710,20 @@ const MONTHS = [
   "Dec",
 ];
 const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** The widest instant a kit draws, in ms either side of the epoch: the `Date` range (spec blocks2.instants). */
+export const FLARE_PLUGIN_MAX_INSTANT_MS = 8_640_000_000_000_000;
+
+/** `ms` when it is a finite instant within the `Date` range, else undefined: plugin data never throws in a view. */
+export function flarePluginInstant(ms: unknown): number | undefined {
+  return typeof ms === "number" && Number.isFinite(ms) && Math.abs(ms) <= FLARE_PLUGIN_MAX_INSTANT_MS ? ms : undefined;
+}
+
+/** The `datetime` attribute of an instant, or undefined outside the `Date` range. */
+export function flarePluginIsoTime(ms: unknown): string | undefined {
+  const at = flarePluginInstant(ms);
+  return at === undefined ? undefined : new Date(at).toISOString();
+}
 
 interface WallClock {
   year: number;
@@ -576,6 +803,49 @@ export function flarePluginDateTime(
     at.year === now.year ? strings.dateTime : strings.dateTimeYear,
     at,
   );
+}
+
+/** What a hidden value reads as (a maskable hero). */
+export const FLARE_PLUGIN_MASKED_VALUE = "••••";
+
+/** The date part of a date-time pattern ("M月d日 HH:mm" → "M月d日"). */
+function datePattern(pattern: string): string {
+  return pattern.replace(/[\s,]*HH:mm[\s,]*/, " ").replace(/[\s,]+$/, "").trim();
+}
+
+/**
+ * The day headings of a page list grouped by day (spec rules.rowsGroupByDay): one per row, present on the first row
+ * of each day — "today", "yesterday", else the date (the year only outside the current one) — by the row's first
+ * time column; a row without a time starts no group.
+ */
+export function flarePluginRowDayHeadings(
+  block: Pick<FlarePluginRowsBlock, "columns" | "rows" | "groupByDay">,
+  nowMs: number,
+  strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
+  labels: { today: string; yesterday: string },
+  utcOffsetMinutes?: number,
+): ReadonlyArray<string | undefined> {
+  const column = block.columns.findIndex((c) => c.format === "time");
+  if (!block.groupByDay || column < 0) return block.rows.map(() => undefined);
+  const key = (c: WallClock) => `${c.year}-${c.month}-${c.day}`;
+  const now = wallClock(nowMs, utcOffsetMinutes);
+  const today = key(now);
+  const yesterday = key(wallClock(nowMs - 86_400_000, utcOffsetMinutes));
+  let previous: string | undefined;
+  return block.rows.map((row) => {
+    const ms = row.cells[column]?.timeMs;
+    if (typeof ms !== "number") return undefined;
+    const at = wallClock(ms, utcOffsetMinutes);
+    const day = key(at);
+    if (day === previous) return undefined;
+    previous = day;
+    if (day === today) return labels.today;
+    if (day === yesterday) return labels.yesterday;
+    return flarePluginRenderPattern(
+      datePattern(at.year === now.year ? strings.dateTime : strings.dateTimeYear),
+      at,
+    );
+  });
 }
 
 /** A time block's text: an instant, a range on one day ("…14:00–15:00") or across days ("… – …"). */
@@ -677,11 +947,32 @@ export function flarePluginReferenceParents(
   return parents;
 }
 
-/** The address of `url` the kit may draw: what the host fetched, never a page or a script. */
+/**
+ * A Tauri desktop host's local file address, as `convertFileSrc` writes it: `asset://localhost/<path>` (macOS, Linux)
+ * or `http://asset.localhost/<path>` (Windows). The webview serves these only inside the app's asset scope, so they
+ * read a file the host chose; any other host, a port or credentials is not one.
+ */
+export function flareIsTauriAssetAddress(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.username || parsed.password || parsed.port) return false;
+  return (parsed.protocol === "asset:" && parsed.hostname === "localhost")
+    || ((parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname === "asset.localhost");
+}
+
+/**
+ * The address of `url` the kit may draw: what the host fetched (blob:, https:, data:image) or a Tauri host's local
+ * file address ({@link flareIsTauriAssetAddress}), never a page or a script.
+ */
 export function flarePluginProtectedMediaSource(
   url: string | undefined,
 ): string | undefined {
-  return url && /^(blob:|https:|data:image\/)/.test(url) ? url : undefined;
+  if (!url) return undefined;
+  return /^(blob:|https:|data:image\/)/.test(url) || flareIsTauriAssetAddress(url) ? url : undefined;
 }
 
 /** The address at `urlPath` (a JSON pointer) of a protected media action's result. */
@@ -722,7 +1013,8 @@ export function flarePluginFormatText(
   format: FlarePluginFormat | undefined,
   context: {
     nowMs: number;
-    strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">;
+    strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear"> &
+      Partial<Pick<FlarePluginStrings, "days" | "hours" | "minutes" | "seconds" | "countUnits">>;
     unavailable: string;
     assetScale?: (assetId: string) => number | undefined;
     utcOffsetMinutes?: number;
@@ -745,9 +1037,256 @@ export function flarePluginFormatText(
         ? text
         : flarePluginMoneyText(format.minor, scale);
     }
+    case "count":
+      return context.strings.countUnits !== undefined && Number.isFinite(format.count)
+        ? flarePluginCompactCount(format.count, context.strings.countUnits)
+        : text;
+    case "duration": {
+      const { days, hours, minutes, seconds } = context.strings;
+      return days && hours && minutes && seconds && Number.isFinite(format.ms)
+        ? flarePluginDurationText(format.ms, { days, hours, minutes, seconds })
+        : text;
+    }
     default:
       return text;
   }
+}
+
+/**
+ * A count written compact (spec formats2.count): the largest unit of `units` ("4:万|8:亿", "3:K|6:M|9:B": exponent and
+ * suffix pairs) the count reaches, with one decimal cut (never rounded up) and a trailing ".0" dropped; below every
+ * unit, the count itself.
+ */
+export function flarePluginCompactCount(count: number, units: string): string {
+  const whole = Math.trunc(count);
+  const sign = whole < 0 ? "-" : "";
+  const n = Math.abs(whole);
+  const parsed = units
+    .split("|")
+    .map((pair) => {
+      const at = pair.indexOf(":");
+      return { exponent: Number(pair.slice(0, at)), suffix: pair.slice(at + 1) };
+    })
+    .filter((unit) => Number.isInteger(unit.exponent) && unit.exponent > 0 && unit.suffix)
+    .sort((a, b) => b.exponent - a.exponent);
+  const unit = parsed.find((candidate) => n >= 10 ** candidate.exponent);
+  if (!unit) return `${sign}${n}`;
+  const tenths = Math.floor((n * 10) / 10 ** unit.exponent);
+  const text = tenths % 10 === 0 ? String(tenths / 10) : `${Math.floor(tenths / 10)}.${tenths % 10}`;
+  return `${sign}${text}${unit.suffix}`;
+}
+
+/**
+ * A duration in the viewer's words (spec formats2.duration): whole seconds; under a minute the seconds alone, else
+ * the largest unit that is not zero and, when it is not zero, the next one ("2 小时 5 分钟", "1 天").
+ */
+export function flarePluginDurationText(
+  ms: number,
+  units: { days: string; hours: string; minutes: string; seconds: string },
+): string {
+  const total = Math.floor(Math.max(0, ms) / 1000);
+  const unit = (template: string, n: number) => template.replace("{n}", String(n));
+  if (total < 60) return unit(units.seconds, total);
+  const parts: [number, string][] = [
+    [Math.floor(total / 86_400), units.days],
+    [Math.floor((total % 86_400) / 3_600), units.hours],
+    [Math.floor((total % 3_600) / 60), units.minutes],
+    [total % 60, units.seconds],
+  ];
+  const first = parts.findIndex(([n]) => n > 0);
+  const [n, template] = parts[first];
+  const next = parts[first + 1];
+  return unit(template, n) + (next && next[0] > 0 ? ` ${unit(next[1], next[0])}` : "");
+}
+
+// ── vocabulary 2 blocks ─────────────────────────────────────────────────────
+
+const STEP_STATES: ReadonlySet<string> = new Set(["pending", "current", "done", "failed"]);
+/** A step's state as drawn: one of the four, anything else pending (spec blocks2.steps). */
+export function flarePluginStepState(state: unknown): FlarePluginStepState {
+  return typeof state === "string" && STEP_STATES.has(state) ? (state as FlarePluginStepState) : "pending";
+}
+
+/** A trend's direction as drawn: up, down, anything else flat. */
+export function flarePluginTrendDirection(direction: unknown): FlarePluginTrendDirection {
+  return direction === "up" || direction === "down" ? direction : "flat";
+}
+
+/** A banner's tone as drawn: one of the four, anything else info. */
+export function flarePluginBannerTone(tone: unknown): FlarePluginBannerTone {
+  return tone === "success" || tone === "warning" || tone === "danger" ? tone : "info";
+}
+
+/** A hero's tone as drawn: one of the four, anything else neutral. */
+export function flarePluginHeroTone(tone: unknown): FlarePluginHeroTone {
+  return tone === "positive" || tone === "warning" || tone === "brand" ? tone : "neutral";
+}
+
+/** Width over height of an image block's aspect; an unknown one is square. */
+export function flarePluginImageRatio(aspect: unknown): number {
+  switch (aspect) {
+    case "4:3":
+      return 4 / 3;
+    case "16:9":
+      return 16 / 9;
+    case "3:4":
+      return 3 / 4;
+    default:
+      return 1;
+  }
+}
+
+/** Whether a QR code has expired: it names an expiry and that instant has come (spec blocks2.qr). */
+export function flarePluginQrExpired(block: Pick<FlarePluginQrBlock, "expiresAtMs">, nowMs: number): boolean {
+  return typeof block.expiresAtMs === "number" && block.expiresAtMs <= nowMs;
+}
+
+/** How long until the code expires, to draw it again then; null without an expiry or once expired. */
+export function flarePluginQrRefreshMs(block: Pick<FlarePluginQrBlock, "expiresAtMs">, nowMs: number): number | null {
+  return typeof block.expiresAtMs === "number" && block.expiresAtMs > nowMs ? block.expiresAtMs - nowMs : null;
+}
+
+/**
+ * A donut's slices (spec blocks2.donut): every point with a positive finite value, its start and sweep as fractions
+ * of the sum of those values, in point order; nothing when no value is positive.
+ */
+export function flarePluginDonutSlices(
+  points: ReadonlyArray<Pick<FlarePluginChartPoint, "value">>,
+): { index: number; start: number; sweep: number }[] {
+  const shown = points
+    .map((point, index) => ({ index, value: point.value }))
+    .filter((point) => Number.isFinite(point.value) && point.value > 0);
+  const total = shown.reduce((sum, point) => sum + point.value, 0);
+  if (!(total > 0)) return [];
+  let start = 0;
+  return shown.map((point) => {
+    const sweep = point.value / total;
+    const slice = { index: point.index, start, sweep };
+    start += sweep;
+    return slice;
+  });
+}
+
+/** Whether a chart has anything to draw: some series has a point. */
+export function flarePluginChartHasPoints(block: Pick<FlarePluginChartBlock, "series">): boolean {
+  return block.series.some((series) => series.points.length > 0);
+}
+
+/**
+ * The blocks in reading order with every section's children after it (spec blocks2.flatten): what the kit walks to
+ * find users, rows and the first rows block. `section` is the index of the section a child belongs to.
+ */
+export function flarePluginFlatBlocks(
+  blocks: ReadonlyArray<FlarePluginBlock>,
+): { block: FlarePluginBlock; section?: number }[] {
+  const out: { block: FlarePluginBlock; section?: number }[] = [];
+  for (const block of blocks) {
+    out.push({ block });
+    if (block.kind === "section") {
+      const at = out.length - 1;
+      for (const child of block.blocks ?? []) if (child.kind !== "section") out.push({ block: child, section: at });
+    }
+  }
+  return out;
+}
+
+// ── the upgrade notice ──────────────────────────────────────────────────────
+
+/** What the engine's update.plugin_upgrade_status answers for a placeholder's minBuild. */
+export interface FlarePluginUpgradeStatus {
+  /** A build at least `minBuild` is offered to this device. */
+  available: boolean;
+  build?: number;
+}
+/** Where an upgrade notice sits: a message card's line, a "+" or "Me" entry's mark, or a whole page. */
+export type FlarePluginUpgradeVariant = "card" | "entry" | "page";
+/**
+ * What an upgrade notice offers (spec upgradeNotice): `update` — the host has a newer build for this device and an
+ * update handler, so the notice shows the update key; `notAvailable` — no build for this device yet (also while it is
+ * still rolling out elsewhere), only the copy; `description` — the status is not known yet, or there is no handler.
+ */
+export function flarePluginUpgradeMode(
+  status: FlarePluginUpgradeStatus | null | undefined,
+  canUpdate: boolean,
+): "update" | "notAvailable" | "description" {
+  if (status?.available) return canUpdate ? "update" : "description";
+  return status ? "notAvailable" : "description";
+}
+
+// ── money input ─────────────────────────────────────────────────────────────
+
+/** Fraction digits of a money input: its scale, 2 when absent. */
+export function flarePluginMoneyScale(input: Pick<FlarePluginInput, "money">): number {
+  const scale = input.money?.scale;
+  return typeof scale === "number" && Number.isInteger(scale) && scale >= 0 && scale <= 18 ? scale : 2;
+}
+
+/**
+ * What a money field holds once typed (spec moneyInput.typed): the locale's decimal separator, when it is not ".",
+ * becomes "." so a comma-decimal keypad (de-DE, fr-FR) enters fractions; the protocol only reads ".".
+ */
+export function flarePluginMoneyTyped(text: string, decimalSeparator: string): string {
+  return !decimalSeparator || decimalSeparator === "." ? text : text.split(decimalSeparator).join(".");
+}
+
+/** The decimal separator of `locale` (the runtime's when absent; "." when it cannot be read). */
+export function flarePluginDecimalSeparator(locale?: string): string {
+  try {
+    return new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => part.type === "decimal")?.value ?? ".";
+  } catch {
+    return ".";
+  }
+}
+
+/**
+ * The amount typed, as the protocol writes decimals (spec moneyInput.normalize): spaces gone, leading zeros of the
+ * whole part dropped (one kept), a leading "." gets a "0", a trailing "." goes. Anything else is left as typed for
+ * the check to refuse.
+ */
+export function flarePluginMoneyAmount(typed: string): string {
+  let text = typed.replace(/\s+/g, "");
+  if (text.startsWith(".")) text = `0${text}`;
+  if (text.endsWith(".")) text = text.slice(0, -1);
+  const at = text.indexOf(".");
+  const whole = at < 0 ? text : text.slice(0, at);
+  const rest = at < 0 ? "" : text.slice(at);
+  const trimmed = /^\d+$/.test(whole) ? whole.replace(/^0+(?=\d)/, "") : whole;
+  return `${trimmed}${rest}`;
+}
+
+/** A decimal the protocol accepts: no sign or exponent, no leading zero, ≤30 whole and ≤`scale` fraction digits. */
+export function flarePluginIsDecimal(amount: string, scale: number): boolean {
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(amount);
+  if (!match) return false;
+  const [, whole, fraction] = match;
+  return whole.length <= 30 && (whole === "0" || !whole.startsWith("0")) && (fraction === undefined || fraction.length <= scale);
+}
+
+/** The order of two decimals {@link flarePluginIsDecimal} accepts: -1, 0 or 1. */
+export function flarePluginCompareDecimal(a: string, b: string): number {
+  const split = (s: string) => {
+    const at = s.indexOf(".");
+    return at < 0 ? [s, ""] : [s.slice(0, at), s.slice(at + 1).replace(/0+$/, "")];
+  };
+  const [aw, af] = split(a);
+  const [bw, bf] = split(b);
+  if (aw.length !== bw.length) return aw.length < bw.length ? -1 : 1;
+  if (aw !== bw) return aw < bw ? -1 : 1;
+  const width = Math.max(af.length, bf.length);
+  const ap = af.padEnd(width, "0");
+  const bp = bf.padEnd(width, "0");
+  return ap === bp ? 0 : ap < bp ? -1 : 1;
+}
+
+/** The light check of a money draft (spec moneyInput.check): what the core SDK will say about the amount. */
+export function flarePluginCheckMoney(input: FlarePluginInput, draft: unknown): FlarePluginFormIssue | null {
+  const amount = flarePluginMoneyAmount(typeof draft === "string" ? draft : "");
+  if (!amount) return input.required ? "required" : null;
+  if (!flarePluginIsDecimal(amount, flarePluginMoneyScale(input)) || !input.money?.currency) return "invalidType";
+  const { min, max } = input.money;
+  if (min !== undefined && flarePluginCompareDecimal(amount, min) < 0) return "outOfRange";
+  if (max !== undefined && flarePluginCompareDecimal(amount, max) > 0) return "outOfRange";
+  return null;
 }
 
 /** The next page's cursor of a detail view, or undefined on the last page (absent or blank). */
@@ -993,6 +1532,67 @@ export function flarePluginMinRows(input: FlarePluginInput): number {
 }
 
 /** The editable draft of one input: `values[id]`, else its default. */
+export type FlarePluginLocationPrecision = "coarse" | "fine";
+/**
+ * A location input's value (flare-plugin-protocol UiLocationValue): what the engine writes into the input when the
+ * viewer's one-time location (locationOnce) completes, already truncated to the input's precision.
+ */
+export interface FlarePluginLocationValue {
+  latitude: number;
+  longitude: number;
+  accuracyM: number;
+  precision: FlarePluginLocationPrecision;
+}
+/** What a location input shows while the host locates: the host's state by input id. */
+export interface FlarePluginLocationState {
+  /** The fix the engine wrote (`{kind: "input", input, value}`). */
+  value?: FlarePluginLocationValue;
+  locating?: boolean;
+  error?: string;
+}
+/** A location input's key: `locate` asks the host to run the page's locationOnce action into this input. */
+export interface FlarePluginLocationAction {
+  action: "locate" | "clear";
+  inputId: string;
+  input: FlarePluginInput;
+  formValues: Record<string, unknown>;
+}
+
+const LOCATION_RULES: Record<FlarePluginLocationPrecision, { places: number; floorM: number }> = {
+  coarse: { places: 2, floorM: 1000 },
+  fine: { places: 5, floorM: 1 },
+};
+const placesOf = (n: number) => {
+  const text = String(Math.abs(n));
+  if (/e/i.test(text)) return 99;
+  const dot = text.indexOf(".");
+  return dot < 0 ? 0 : text.length - dot - 1;
+};
+/**
+ * `value` as a location of `precision` (UiLocationValue::fits): the same precision, a point on the globe, no more
+ * decimal places than the precision allows (2 coarse, 5 fine) and a whole accuracy of at least its floor (1000 m
+ * coarse, 1 m fine). Anything else is null.
+ */
+export function flarePluginLocationValue(value: unknown, precision: FlarePluginLocationPrecision | undefined): FlarePluginLocationValue | null {
+  if (!value || typeof value !== "object" || Array.isArray(value) || !precision) return null;
+  const v = value as Record<string, unknown>;
+  const { latitude, longitude, accuracyM } = v;
+  if (v.precision !== precision) return null;
+  if (typeof latitude !== "number" || typeof longitude !== "number" || typeof accuracyM !== "number") return null;
+  if (![latitude, longitude, accuracyM].every(Number.isFinite)) return null;
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+  const rules = LOCATION_RULES[precision];
+  if (placesOf(latitude) > rules.places || placesOf(longitude) > rules.places) return null;
+  if (!Number.isInteger(accuracyM) || accuracyM < rules.floorM) return null;
+  return { latitude, longitude, accuracyM, precision };
+}
+/** The fix as a location input shows it: "31.23°N, 121.47°E" with the hemisphere letters, the digits as given. */
+export function flarePluginLocationText(value: FlarePluginLocationValue): string {
+  const lat = `${Math.abs(value.latitude)}°${value.latitude < 0 ? "S" : "N"}`;
+  const lng = `${Math.abs(value.longitude)}°${value.longitude < 0 ? "W" : "E"}`;
+  return `${lat}, ${lng}`;
+}
+
 export function flarePluginDraftValue(
   input: FlarePluginInput,
   values: Record<string, unknown> | undefined,
@@ -1000,7 +1600,17 @@ export function flarePluginDraftValue(
   const raw = values && input.id in values ? values[input.id] : input.default;
   switch (input.kind) {
     case "file":
+    case "image":
+    case "document":
       return flarePluginFileValue(raw) ? { fileId: raw.fileId } : null;
+    case "location":
+      return flarePluginLocationValue(raw, input.precision);
+    case "money":
+      // The draft is the amount as typed; the currency comes from the input.
+      if (typeof raw === "string") return raw;
+      return raw && typeof raw === "object" && typeof (raw as FlarePluginMoneyValue).amount === "string"
+        ? (raw as FlarePluginMoneyValue).amount
+        : "";
     case "password":
       return "";
     case "toggle":
@@ -1051,7 +1661,13 @@ export function flarePluginCheckInput(
   const limit = flarePluginMaxLength(input);
   switch (input.kind) {
     case "file":
+    case "image":
+    case "document":
       return draft == null ? (input.required ? "required" : null) : flarePluginFileValue(draft) ? null : "invalidType";
+    case "location":
+      return draft == null ? (input.required ? "required" : null) : flarePluginLocationValue(draft, input.precision) ? null : "invalidType";
+    case "money":
+      return flarePluginCheckMoney(input, draft);
     case "password":
     case "text":
     case "textarea": {
@@ -1105,8 +1721,21 @@ export function flarePluginFormValues(
     const value = draft[input.id];
     switch (input.kind) {
       case "file":
+      case "image":
+      case "document":
         if (flarePluginFileValue(value)) out[input.id] = { fileId: value.fileId };
         break;
+      case "location": {
+        const fix = flarePluginLocationValue(value, input.precision);
+        if (fix) out[input.id] = fix;
+        break;
+      }
+      case "money": {
+        const amount = flarePluginMoneyAmount(typeof value === "string" ? value : "");
+        const currency = input.money?.currency;
+        if (amount && currency) out[input.id] = { amount, currency } satisfies FlarePluginMoneyValue;
+        break;
+      }
       case "password":
         if (typeof value === "string" && value) out[input.id] = value;
         break;

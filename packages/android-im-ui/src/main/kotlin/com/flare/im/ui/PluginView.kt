@@ -71,6 +71,13 @@ internal fun pluginInlineFormHeading(value: String?): String? = value?.trim()?.t
  *
  * No plugin code, path or URL is executed: actions go out as opaque ids with the viewer's selection or form values
  * ([onAction] (id, payload)) and the host invokes them.
+ * - Upgrade required ([PluginUnavailableReason.UpgradeRequired]): the title and [FlarePluginUpgradeNotice] (card) instead
+ *   of the reason line — "更新应用后查看" and "去更新" when [upgradeStatus] says a build is offered and the host passes
+ *   [onUpdate], else only the copy.
+ * - Vocabulary 2 blocks (PluginBlocksExtra.kt): a section's blocks under its collapsible label; stats; a chart; an image
+ *   the host resolves ([resolveImage], never a URL in the view); a QR code whose refresh key hands the host the query
+ *   ([onQrRefresh]); a hero and a banner whose keys run like the footer keys; steps; a timeline. Fields, stats, heroes
+ *   and cells with a `count` or `duration` format draw compact counts and durations in the viewer's words.
  * - Shell: card width `componentRichCardWidth` (within the parent), radius lg, a hairline border and the card shadow; the
  *   title row carries [icon] (a kit icon name). [embedded] drops the shell and the title row (the detail sheet);
  *   [inset] [PluginViewInset.Sheet] pads the view like [PluginForm] (spacing md on top, lg at the sides, xl at the
@@ -150,11 +157,31 @@ fun PluginView(
     membersRevision: Int = 0,
     onInteractionChanged: ((Boolean) -> Unit)? = null,
     onOpenDetail: (() -> Unit)? = null,
+    /** `update.plugin_upgrade_status` for `view.minBuild`, on an upgrade-required view ([FlarePluginUpgradeNotice]). */
+    upgradeStatus: PluginUpgradeStatus? = null,
+    /** The update flow is opening. */
+    upgradeBusy: Boolean = false,
+    /** Opens the update flow; without it the notice shows only its copy. */
+    onUpdate: (() -> Unit)? = null,
+    /** The address of an image block's picture (a package asset or a private upload); null: none. Never in the view. */
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    /** A QR block's refresh key: the host runs the query and passes back a view with the fresh code. */
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) = PluginViewContent(
     view = view, icon = icon, busy = busy, busyActionId = busyActionId, error = error, embedded = embedded, inset = inset,
     resolveUser = resolveUser, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  formErrors = formErrors, settleToken = settleToken, displayName = displayName,
     viewerId = viewerId, quote = quote, onAction = onAction, onOpenDetail = onOpenDetail, list = null, actionLayout = actionLayout, showError = showError, labelRows = labelRows, inlineFormActionId = inlineFormActionId, inlineFormTitle = inlineFormTitle, inlineFormDescription = inlineFormDescription,
     fileStates = fileStates, onFileAction = onFileAction, onInteractionChanged = onInteractionChanged,
+    upgradeStatus = upgradeStatus, upgradeBusy = upgradeBusy, onUpdate = onUpdate, resolveImage = resolveImage, onQrRefresh = onQrRefresh,
+    locationStates = locationStates, onLocationAction = onLocationAction, protectedMedia = protectedMedia, onProtectedMediaRead = onProtectedMediaRead,
 )
 
 /**
@@ -205,6 +232,19 @@ internal fun PluginViewContent(
     encodeQr: (suspend (String) -> String)? = null,
     qrReceivedAtNanos: Long? = null,
     onInteractionChanged: ((Boolean) -> Unit)? = null,
+    upgradeStatus: PluginUpgradeStatus? = null,
+    upgradeBusy: Boolean = false,
+    onUpdate: (() -> Unit)? = null,
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) {
     // A read-only copy acts on nothing, whatever the host passed.
     val onAction = onAction.takeUnless { PluginViewFormat.readOnly(view) }
@@ -218,10 +258,13 @@ internal fun PluginViewContent(
     var users by remember { mutableStateOf<Map<String, PluginUser>>(emptyMap()) }
     var confirming by remember { mutableStateOf<PluginActionRun?>(null) }
     var formRun by remember { mutableStateOf<PluginActionRun?>(null) }
+    // A page action's native target handed to the form holding its `into` input.
+    var nativeRequest by remember { mutableStateOf<PluginNativeIntoRequest?>(null) }
     var formSubmitted by remember { mutableStateOf(false) }
+    // A native request belongs to the form it was handed to: a form opened later starts without it.
+    LaunchedEffect(formRun == null) { if (formRun == null) nativeRequest = null }
     val inlineAction = pluginInlineFormAction(view, inlineFormActionId, onAction != null)
-    var presentationInteraction by remember { mutableStateOf(false) }
-    SideEffect { onInteractionChanged?.invoke(confirming != null || formRun != null || inlineAction != null || menuOpen || presentationInteraction) }
+    SideEffect { onInteractionChanged?.invoke(confirming != null || formRun != null || inlineAction != null || menuOpen) }
     var inlineForm by remember(inlineAction?.id) { mutableStateOf(PluginInlineFormState()) }
     // The rows action last handed over, as (action id, row key): only that row's key spins while the action runs.
     var rowRun by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -276,12 +319,47 @@ internal fun PluginViewContent(
     /** Confirm, then collect the form, then hand the action over. */
     fun run(action: PluginViewAction, payload: PluginActionPayload, block: Int? = null) {
         if (locked || emitAction == null) return
+        // A native target writing `into` an input of a form on this view (the inline form or the open form sheet)
+        // runs through that input's own key, so the host's answer is written into the form's current scope.
+        val target = action.target
+        if (payload.row == null && target != null) {
+            val forms = listOfNotNull(inlineAction, formRun?.action)
+            val takes = forms.any { form ->
+                view.formInputs(form).any { input ->
+                    when (pluginNativeIntoKey(target, input)) {
+                        "file" -> onFileAction != null
+                        "location" -> onLocationAction != null
+                        else -> false
+                    }
+                }
+            }
+            if (takes) {
+                nativeRequest = PluginNativeIntoRequest(target)
+                return
+            }
+            // The input belongs to another action's form that is not open (a page's capture keys beside its submit):
+            // open that form and run the target through the input's key there, so the answer lands in its scope.
+            val holder = if (formRun == null) view.actions.firstOrNull { other ->
+                other.id != action.id && view.formInputs(other).any { input ->
+                    when (pluginNativeIntoKey(target, input)) {
+                        "file" -> onFileAction != null
+                        "location" -> onLocationAction != null
+                        else -> false
+                    }
+                }
+            } else null
+            if (holder != null) {
+                nativeRequest = PluginNativeIntoRequest(target)
+                advance(PluginActionRun(holder, PluginActionPayload.Empty, block).start())
+                return
+            }
+        }
         advance(PluginActionRun(action, payload, block).start())
     }
 
     val keys = PluginViewFormat.keys(view, embedded).filter { it.id != inlineAction?.id }
     val detailKey = PluginViewFormat.detailKey(view, embedded, onOpenDetail != null, busy, busyActionId)
-    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure.takeIf { showError && inlineAction == null }, strings).toMutableList().apply {
+    val parts = pluginViewParts(view, embedded, quote != null, reasonLine, keys, detailKey, failure.takeIf { showError && inlineAction == null }, strings, nowMs).toMutableList().apply {
         if (inlineAction != null) {
             val footer = indexOfFirst { it is PluginViewPart.Keys || it is PluginViewPart.Error }
             add(if (footer < 0) size else footer, PluginViewPart.InlineForm)
@@ -294,6 +372,62 @@ internal fun PluginViewContent(
     }
     val formTitle = pluginInlineFormHeading(inlineFormTitle)
     val formDescription = pluginInlineFormHeading(inlineFormDescription)
+
+    /** One block: a top-level one at its position, or a section's child at [PluginView]'s child position. */
+    @Composable
+    fun drawBlock(index: Int, block: PluginBlock) {
+        when (block) {
+            is PluginTextBlock -> PluginTextBlockView(block)
+            is PluginFieldsBlock -> PluginFieldRows(block.fields)
+            is PluginChoicesBlock -> {
+                val interactive = onAction != null && interaction.isInteractive(block, index, locked)
+                PluginChoicesBlockView(
+                    block = block,
+                    shown = interaction.shown(block, index),
+                    interactive = interactive,
+                    held = if (interactive) block.options.filter { interaction.capped(block, index, it.index) }.map { it.index }.toSet() else emptySet(),
+                    submitEnabled = interaction.submitEnabled(block, index),
+                    submitLoading = block.action != null && block.action.id == busyActionId,
+                    onPick = { option ->
+                        val action = block.action
+                        if (action != null) {
+                            val (next, selection) = interaction.tap(block, index, option, locked)
+                            interaction = next
+                            if (selection != null) run(action, PluginActionPayload(selection = selection), index)
+                        }
+                    },
+                    onSubmit = {
+                        val action = block.action
+                        val selection = interaction.submission(block, index, locked)
+                        if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
+                    },
+                )
+            }
+            is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
+            is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
+            is PluginStatusBlock -> PluginStatusBlockView(block)
+            is PluginProgressBlock -> PluginProgressBlockView(block)
+            is PluginTimeBlock -> PluginTimeBlockView(block)
+            is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
+            is PluginNoteBlock -> PluginNoteBlockView(block)
+            is PluginSectionBlock -> PluginSectionBlockView(block) { child, item -> drawBlock(pluginSectionChildIndex(index, child), item) }
+            is PluginStatsBlock -> PluginStatsBlockView(block)
+            is PluginChartBlock -> PluginChartBlockView(block)
+            is PluginImageBlock -> PluginImageBlockView(block, resolveImage)
+            is PluginQrBlock -> PluginQrBlockView(block, onQrRefresh.takeUnless { PluginViewFormat.readOnly(view) }, locked)
+            is PluginHeroBlock -> PluginHeroBlockView(block, busyActionId, locked,
+                if (onAction == null) null else ({ action: PluginViewAction -> run(action, PluginActionPayload.Empty) }))
+            is PluginStepsBlock -> PluginStepsBlockView(block)
+            is PluginBannerBlock -> PluginBannerBlockView(block, locked,
+                if (onAction == null) null else ({ action: PluginViewAction -> run(action, PluginActionPayload.Empty) }))
+            is PluginTimelineBlock -> PluginTimelineBlockView(block)
+            is PluginProtectedMediaBlock -> PluginProtectedMediaBlockView(block, protectedMedia, locked,
+                onProtectedMediaRead.takeUnless { PluginViewFormat.readOnly(view) })
+            // Rows are drawn row by row (PluginViewPart.Row).
+            is PluginRowsBlock -> Unit
+            else -> Unit
+        }
+    }
 
     val drawPart: @Composable (PluginViewPart) -> Unit = { part ->
         when (part) {
@@ -308,6 +442,8 @@ internal fun PluginViewContent(
                 PluginForm(inputs = view.formInputs(action), errors = if (inlineForm.submitted) formErrors else emptyList(),
                     submitLabel = action.label, busy = locked, error = failure, members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,  embedded = true,
                     fileStates = fileStates, onFileAction = onFileAction,
+                    locationStates = locationStates, onLocationAction = onLocationAction,
+                    nativeRequest = nativeRequest,
                     onSubmit = { values ->
                         if (!locked && pluginInlineFormAction(view, action.id, emitAction != null) != null) {
                             val next = inlineForm.begin()
@@ -356,44 +492,8 @@ internal fun PluginViewContent(
                 fontSize = if (part.quiet) FlareSizes.fontSizeSm else FlareSizes.fontSizeMd,
             )
             is PluginViewPart.Fields -> PluginFieldRows(part.fields)
-            is PluginViewPart.Block -> when (val block = part.block) {
-                is PluginTextBlock -> PluginTextBlockView(block)
-                is PluginFieldsBlock -> PluginFieldRows(block.fields)
-                is PluginChoicesBlock -> {
-                    val index = part.index
-                    val interactive = onAction != null && interaction.isInteractive(block, index, locked)
-                    PluginChoicesBlockView(
-                        block = block,
-                        shown = interaction.shown(block, index),
-                        interactive = interactive,
-                        held = if (interactive) block.options.filter { interaction.capped(block, index, it.index) }.map { it.index }.toSet() else emptySet(),
-                        submitEnabled = interaction.submitEnabled(block, index),
-                        submitLoading = block.action != null && block.action.id == busyActionId,
-                        onPick = { option ->
-                            val action = block.action
-                            if (action != null) {
-                                val (next, selection) = interaction.tap(block, index, option, locked)
-                                interaction = next
-                                if (selection != null) run(action, PluginActionPayload(selection = selection), index)
-                            }
-                        },
-                        onSubmit = {
-                            val action = block.action
-                            val selection = interaction.submission(block, index, locked)
-                            if (action != null && selection != null) run(action, PluginActionPayload(selection = selection), index)
-                        },
-                    )
-                }
-                is PluginEntriesBlock -> PluginEntriesBlockView(block, users, viewerId, onOpenDetail)
-                is PluginPeopleBlock -> PluginPeopleBlockView(block, users)
-                is PluginStatusBlock -> PluginStatusBlockView(block)
-                is PluginProgressBlock -> PluginProgressBlockView(block)
-                is PluginTimeBlock -> PluginTimeBlockView(block)
-                is PluginDividerBlock -> Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
-                is PluginNoteBlock -> PluginNoteBlockView(block)
-                // Rows are drawn row by row (PluginViewPart.Row).
-                is PluginRowsBlock -> Unit
-            }
+            is PluginViewPart.Block -> drawBlock(part.index, part.block)
+            PluginViewPart.Upgrade -> FlarePluginUpgradeNotice(FlarePluginUpgradeVariant.Card, status = upgradeStatus, busy = upgradeBusy, onUpdate = onUpdate)
             is PluginViewPart.Row -> PluginRowItem(
                 block = part.rows,
                 row = part.row,
@@ -405,6 +505,10 @@ internal fun PluginViewContent(
                 onRun = { action, bound -> run(action, PluginActionPayload(row = PluginActionRow(part.row.key, bound.input))) },
             )
             is PluginViewPart.RowsEmpty -> Text(part.text, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+            is PluginViewPart.RowDay -> Text(
+                part.text, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth().semantics { heading() },
+            )
             is PluginViewPart.Keys -> Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
                 if (!embedded) Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
                 val keys: @Composable () -> Unit = {
@@ -439,12 +543,12 @@ internal fun PluginViewContent(
         }
     }
 
+    // A scan code page (`flare.qr`): the code goes above the plain view, which keeps its fields, blocks and actions.
+    val qrProps = pluginQrPresentationProps(view)
     if (hasResolvedPresentation(view)) {
         val content: @Composable () -> Unit = {
             quote?.invoke()
-            ResolvedPresentation(view, locked, failure, formErrors, members, settleToken, resolveUser,
-                onAction.takeUnless { locked }, { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } },
-                membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision, encodeQr = encodeQr, qrReceivedAtNanos = qrReceivedAtNanos, onInteractionChanged = { presentationInteraction = it })
+            ResolvedPresentation(view, locked) { id -> view.actions.firstOrNull { it.id == id }?.let { run(it, PluginActionPayload.Empty) } }
             if (PluginViewFormat.readOnly(view) && reasonLine != null) Text(reasonLine, color = colors.textTertiary)
         }
         if (list == null) Column(Modifier.fillMaxWidth().padding(pluginViewInsetPadding(inset))) { content() }
@@ -465,6 +569,9 @@ internal fun PluginViewContent(
             .border(1.dp, colors.borderSecondary.copy(alpha = colors.borderSecondary.alpha * 0.6f), shape)
             .padding(FlareSizes.spacingMd)
         Column(shell) {
+            qrProps?.let { props ->
+                Box(Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacingMd)) { PluginQrPresentation(props, qrReceivedAtNanos, encodeQr) }
+            }
             parts.forEachIndexed { i, part ->
                 key(part.key) {
                     Box(Modifier.then(if (actionLayout == PluginViewActionLayout.Compact) Modifier else Modifier.fillMaxWidth()).padding(top = pluginPartGap(parts.getOrNull(i - 1), part))) { drawPart(part) }
@@ -474,6 +581,11 @@ internal fun PluginViewContent(
     } else {
         LazyColumn(Modifier.fillMaxSize(), state = list.state, contentPadding = list.contentPadding) {
             list.header(this)
+            qrProps?.let { props ->
+                item(key = "presentation.qr") {
+                    Box(Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacingMd)) { PluginQrPresentation(props, qrReceivedAtNanos, encodeQr) }
+                }
+            }
             // Keys come from the parts, whose rows are each drawn once: a lazy list rejects a repeated key.
             itemsIndexed(parts, key = { _, part -> part.key }) { i, part ->
                 Box(Modifier.fillMaxWidth().pluginPanel(colors.bgPrimary, i == 0, i == parts.lastIndex, pluginPartGap(parts.getOrNull(i - 1), part))) {
@@ -506,6 +618,8 @@ internal fun PluginViewContent(
                     error = if (formSubmitted) failure else null,
                     members = members, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
                     fileStates = fileStates, onFileAction = onFileAction,
+                    locationStates = locationStates, onLocationAction = onLocationAction,
+                    nativeRequest = nativeRequest,
                     onSubmit = { values -> formSubmitted = true; advance(request.submitted(values)) },
                     onCancel = { if (!formPending) { formRun = null; formSubmitted = false } },
                 )
@@ -573,12 +687,23 @@ internal sealed interface PluginViewPart {
 
     data class RowsEmpty(val index: Int, val text: String) : PluginViewPart { override val key: String get() = "e$index" }
 
+    /** The day heading before the row at [position] of the rows block at [index] (rules.rowsGroupByDay). */
+    data class RowDay(val index: Int, val position: Int, val text: String) : PluginViewPart {
+        override val key: String get() = "d$index:$position"
+    }
+
     data class Keys(val actions: List<PluginViewAction>) : PluginViewPart { override val key: String get() = "keys" }
 
     data class DetailKey(val enabled: Boolean) : PluginViewPart { override val key: String get() = "detail" }
 
     data class Error(val text: String) : PluginViewPart { override val key: String get() = "error" }
+
+    /** The upgrade notice of a view this build cannot draw ([FlarePluginUpgradeNotice], card). */
+    data object Upgrade : PluginViewPart { override val key: String get() = "upgrade" }
 }
+
+/** The position a section's child keys its local state by: apart from every top-level position. */
+internal fun pluginSectionChildIndex(section: Int, child: Int): Int = 1000 + section * 10 + child
 
 /**
  * What a view draws, in order: on a card the quote and the title row; an unavailable view's title and reason; then the
@@ -594,20 +719,27 @@ internal fun pluginViewParts(
     detailKey: Boolean?,
     failure: String?,
     strings: FlareStrings,
+    nowMs: Long = FlareServerClock.nowMs(),
 ): List<PluginViewPart> = buildList {
     if (!embedded && quote) add(PluginViewPart.Quote)
     if (!embedded) add(PluginViewPart.TitleRow)
     // No title row: an unavailable embedded view still says what it was.
     PluginViewFormat.unavailableLine(view, embedded)?.let { add(PluginViewPart.Line("unavailable", it, quiet = false)) }
-    // Why it is unavailable, under the title.
-    if (!view.available && reasonLine != null) add(PluginViewPart.Line("reason", reasonLine, quiet = false))
+    // Why it is unavailable, under the title; a view this build cannot draw says how to get one that can.
+    if (view.upgradeRequired) add(PluginViewPart.Upgrade)
+    else if (!view.available && reasonLine != null) add(PluginViewPart.Line("reason", reasonLine, quiet = false))
     if (view.available) {
         if (view.fields.isNotEmpty()) add(PluginViewPart.Fields(view.fields))
         view.blocks.forEachIndexed { index, block ->
             if (block is PluginRowsBlock) {
                 val rows = PluginViewFormat.rowsOnce(block.rows)
                 if (rows.isEmpty()) PluginViewFormat.rowsEmpty(block, strings)?.let { add(PluginViewPart.RowsEmpty(index, it)) }
-                rows.forEachIndexed { position, row -> add(PluginViewPart.Row(index, block, row, first = position == 0)) }
+                val days = PluginViewFormat.rowDayHeadings(block.copy(rows = rows), nowMs, strings, null)
+                rows.forEachIndexed { position, row ->
+                    val day = days[position]
+                    if (day != null) add(PluginViewPart.RowDay(index, position, day))
+                    add(PluginViewPart.Row(index, block, row, first = position == 0 || day != null))
+                }
             } else {
                 add(PluginViewPart.Block(index, block))
             }
@@ -653,6 +785,7 @@ private fun PluginActionFooter(trailingDetail: Boolean, compact: Boolean = false
 /** The space above a part: none for the first, none between the rows of one block (a hairline divides them), md otherwise. */
 internal fun pluginPartGap(previous: PluginViewPart?, part: PluginViewPart): Dp = when {
     previous == null -> 0.dp
+    previous is PluginViewPart.RowDay -> FlareSizes.spacingXs
     part is PluginViewPart.Row && !part.first -> 0.dp
     else -> FlareSizes.spacingMd
 }
@@ -757,14 +890,16 @@ internal fun PluginBadgeTag(badge: PluginBadge, modifier: Modifier = Modifier) {
     )
 }
 
+/** Label/value rows; a value with a `count` or `duration` format is written in the viewer's words. */
 @Composable
 private fun PluginFieldRows(fields: List<PluginViewField>) {
     val colors = flareColors()
+    val strings = flareStrings()
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
         fields.forEach { field ->
             Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 Text(field.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.widthIn(min = 56.dp))
-                Text(field.value, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
+                Text(PluginFormatRules.text(field.value, field.format, strings), color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -921,6 +1056,12 @@ private fun PluginEntriesBlockView(block: PluginEntriesBlock, users: Map<String,
                     )
                     PluginEntryPart.Badge -> entry.badge?.let { PluginBadgeTag(it) }
                     PluginEntryPart.Text -> Text(entry.text, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, modifier = Modifier.weight(1f))
+                }
+                entry.timeMs?.let { timeMs ->
+                    Text(
+                        PluginViewFormat.dateTime(timeMs, FlareServerClock.nowMs(), strings, null),
+                        color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 1,
+                    )
                 }
             }
         }

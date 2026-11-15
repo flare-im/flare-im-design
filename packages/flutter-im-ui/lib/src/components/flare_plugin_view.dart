@@ -15,7 +15,10 @@ import 'flare_button.dart';
 import 'flare_icon.dart';
 import 'flare_icon_button.dart';
 import 'flare_message_card_shell.dart';
+import 'flare_plugin_blocks_extra.dart';
 import 'flare_plugin_form.dart';
+import 'flare_plugin_protected_media.dart';
+import 'flare_plugin_upgrade_notice.dart';
 import 'flare_scene_panels.dart';
 import 'flare_status_banner.dart';
 import 'flare_tag.dart';
@@ -85,9 +88,18 @@ class FlarePluginView extends StatefulWidget {
     this.formErrors = const [],
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
+    this.protectedMedia = const {},
+    this.onProtectedMediaRead,
     this.settleToken = 0,
     this.onAction,
     this.onOpenDetail,
+    this.resolveImage,
+    this.onQrRefresh,
+    this.upgradeStatus,
+    this.onUpdate,
+    this.upgradeBusy = false,
   });
 
   final FlarePluginViewModel view;
@@ -162,6 +174,23 @@ class FlarePluginView extends StatefulWidget {
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
 
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id ([FlarePluginForm.locationStates]).
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's locate or clear key: the host runs the page's
+  /// locationOnce action into the input ([FlarePluginForm.onLocationAction]).
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
+
+  /// What the host has for each protected media item, by item id: the read's
+  /// address (the server's https grant address), a running read or a failure.
+  final Map<String, FlarePluginProtectedMediaState> protectedMedia;
+
+  /// A protected media read (with its reason when the block asks one): the
+  /// host runs and audits it, then fills [protectedMedia] with
+  /// [flarePluginProtectedMediaUrl] of the result.
+  final ValueChanged<FlarePluginProtectedMediaRead>? onProtectedMediaRead;
+
   /// The host's settle signal: incremented once per finished action, after
   /// that result's [error] / [formErrors] are set. Every change settles the
   /// optimistic choice and a submitted form (spec rules.settle).
@@ -172,6 +201,27 @@ class FlarePluginView extends StatefulWidget {
   /// under the action keys when the view has a detail no entries block offers
   /// (spec rules.detailKey). Without it the card offers no view details key.
   final VoidCallback? onOpenDetail;
+
+  /// Image blocks: turns the block's asset path or private file id into what
+  /// the host fetched. Without it an image block keeps its frame and says the
+  /// image is unavailable.
+  final FlarePluginImageResolver? resolveImage;
+
+  /// An expired QR code with a refresh query asks the host for a fresh one:
+  /// the host runs the query and passes back a view. Without it no refresh
+  /// key is drawn.
+  final ValueChanged<FlarePluginQrRefresh>? onQrRefresh;
+
+  /// [FlarePluginUnavailableReason.upgradeRequired]: the engine's
+  /// update.plugin_upgrade_status for the view's minBuild.
+  final FlarePluginUpgradeStatus? upgradeStatus;
+
+  /// [FlarePluginUnavailableReason.upgradeRequired]: opens the update flow;
+  /// without it the notice has no update key.
+  final VoidCallback? onUpdate;
+
+  /// The update flow is opening.
+  final bool upgradeBusy;
 
   /// The view details key (a test hook).
   static const Key detailKey = ValueKey('flare-plugin-detail-key');
@@ -212,6 +262,9 @@ class _FormState {
 
 class _FlarePluginViewState extends State<FlarePluginView> {
   final Map<String, FlarePluginUser?> _users = {};
+
+  /// A section's fold the reader chose, by its index in the flat blocks.
+  final Map<int, bool> _folded = {};
   final Map<int, List<int>> _drafts = {};
   _Pending? _pending;
 
@@ -230,6 +283,22 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   final ValueNotifier<bool> _formBusy = ValueNotifier(false);
   String? _inlineSubmitted;
   int _inlineRevision = 0;
+
+  // The forms on this view: a page action whose native target writes into
+  // one of their inputs runs through it. The inline form's key changes with
+  // its action and revision, like the value key it replaced.
+  GlobalKey<FlarePluginFormState>? _inlineFormKey;
+  String _inlineFormKeyId = '';
+  GlobalKey<FlarePluginFormState>? _sheetFormKey;
+  GlobalKey<FlarePluginFormState> _inlineKey(String id) {
+    if (_inlineFormKey == null || _inlineFormKeyId != id) {
+      _inlineFormKeyId = id;
+      _inlineFormKey = GlobalKey<FlarePluginFormState>(
+        debugLabel: 'flare-plugin-inline-form:$id',
+      );
+    }
+    return _inlineFormKey!;
+  }
 
   bool get _locked =>
       widget.busy || widget.busyActionId != null || _inlineSubmitted != null;
@@ -309,7 +378,9 @@ class _FlarePluginViewState extends State<FlarePluginView> {
   }
 
   Iterable<String> _userIds() sync* {
-    for (final block in widget.view.blocks) {
+    for (final (:block, section: _) in flarePluginFlatBlocks(
+      widget.view.blocks,
+    )) {
       if (block is FlarePluginPeopleBlock) {
         for (final group in block.groups) {
           yield* group.userIds;
@@ -324,6 +395,30 @@ class _FlarePluginViewState extends State<FlarePluginView> {
 
   FlarePluginUser _userOf(String userId) =>
       _users[userId] ?? FlarePluginUser(name: flarePluginFallbackName(userId));
+
+  // ── vocabulary 2: sections and QR refresh ──────────────────────────────
+  /// Whether the section at [index] of [flat] is folded: the reader's choice,
+  /// else what the plugin declared; a section without a label never is.
+  bool _sectionCollapsed(
+    List<({FlarePluginBlock block, int? section})> flat,
+    int index,
+  ) {
+    final block = flat[index].block;
+    if (block is! FlarePluginSectionBlock || (block.label ?? '').isEmpty) {
+      return false;
+    }
+    return _folded[index] ?? block.collapsed;
+  }
+
+  void _refreshQr(FlarePluginQrBlock block) {
+    final operation = block.refreshOperation;
+    if (_locked || operation == null) return;
+    widget.onQrRefresh?.call((
+      operation: operation,
+      valuePath: block.valuePath,
+      expiresAtPath: block.expiresAtPath,
+    ));
+  }
 
   // ── choices ────────────────────────────────────────────────────────────
   List<int> _viewSelection(FlarePluginChoicesBlock block) => [
@@ -449,6 +544,28 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     VoidCallback? before,
   }) async {
     if (_locked || widget.onAction == null) return;
+    // A native target writing `into` an input of a form on this view runs
+    // through that input's own key, so the host's answer is written into the
+    // form's current scope (no earlier touch of the input needed).
+    final target = action.target;
+    if (payload.row == null &&
+        target?.kind == 'native' &&
+        target?.into != null &&
+        ((_inlineFormKey?.currentState?.nativeInto(target) ?? false) ||
+            (_sheetFormKey?.currentState?.nativeInto(target) ?? false))) {
+      return;
+    }
+    // The input belongs to another action's form that is not open (a page's
+    // capture keys beside its submit): open that form and run the target
+    // through the input's key there, so the answer lands in the form.
+    final holder = payload.row == null && _formAction == null
+        ? _nativeIntoHolder(target, action.id)
+        : null;
+    if (holder != null) {
+      _openForm(holder, const FlarePluginActionPayload(), before);
+      _runInOpenedForm(target!, holder.id, 30);
+      return;
+    }
     final confirm = action.confirm;
     if (confirm != null && confirm.isNotEmpty) {
       widget.onInteractionChanged?.call(true);
@@ -467,6 +584,51 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     }
     before?.call();
     widget.onAction?.call(action.id, payload);
+  }
+
+  /// Another action of this view, asking no confirmation, whose form holds
+  /// the input [target] writes into (and the host has that input's key).
+  FlarePluginAction? _nativeIntoHolder(
+    FlarePluginActionTarget? target,
+    String excluding,
+  ) {
+    if (target?.kind != 'native' || target?.into == null) return null;
+    return widget.view.actions
+        .where(
+          (other) =>
+              other.id != excluding &&
+              (other.confirm == null || other.confirm!.isEmpty) &&
+              _formInputs(other).any((input) {
+                switch (flarePluginNativeIntoKey(target, input)) {
+                  case 'file':
+                    return widget.onFileAction != null;
+                  case 'location':
+                    return widget.onLocationAction != null;
+                  default:
+                    return false;
+                }
+              }),
+        )
+        .firstOrNull;
+  }
+
+  /// Runs [target] through the form opened for it once the form is built; a
+  /// form closed (or another opened) meanwhile drops it.
+  void _runInOpenedForm(
+    FlarePluginActionTarget target,
+    String formActionId,
+    int frames,
+  ) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _formAction?.id != formActionId) return;
+      final form = _sheetFormKey?.currentState;
+      if (form != null) {
+        form.nativeInto(target);
+      } else if (frames > 0) {
+        _runInOpenedForm(target, formActionId, frames - 1);
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   List<FlarePluginInput> _formInputs(FlarePluginAction action) => [
@@ -524,6 +686,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     _formSubmitted = false;
     _syncForm();
     final inputs = _formInputs(action);
+    _sheetFormKey = GlobalKey<FlarePluginFormState>();
     FlareBottomSheet.show<void>(
       context,
       title: action.label,
@@ -533,8 +696,11 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         return ValueListenableBuilder<_FormState>(
           valueListenable: _form,
           builder: (context, state, _) => FlarePluginForm(
+            key: _sheetFormKey,
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
+            locationStates: widget.locationStates,
+            onLocationAction: widget.onLocationAction,
             inputs: inputs,
             errors: state.errors,
             busy: state.busy,
@@ -600,17 +766,6 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         fileStates: widget.fileStates,
         onFileAction: widget.onFileAction,
         busy: _locked,
-        error: widget.error,
-        formErrors: widget.formErrors,
-        settleToken: widget.settleToken,
-        members: widget.members,
-        membersLoading: widget.membersLoading,
-        membersRevision: widget.membersRevision,
-        membersError: widget.membersError,
-        onMemberSearch: widget.onMemberSearch,
-        onMembersRetry: widget.onMembersRetry,
-        resolveUser: widget.resolveUser,
-        onAction: _locked ? null : widget.onAction,
         onRequest: (id) {
           final action = widget.view.actions
               .where((a) => a.id == id)
@@ -702,14 +857,29 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         ),
       );
     }
-    if (!view.available && reason != null) {
+    if (!view.available &&
+        view.unavailableReason ==
+            FlarePluginUnavailableReason.upgradeRequired) {
+      // A contribution this build cannot draw: the line and, when a newer
+      // build is offered, the update key.
+      children.add(
+        FlarePluginUpgradeNotice(
+          status: widget.upgradeStatus,
+          onUpdate: widget.onUpdate,
+          busy: widget.upgradeBusy,
+        ),
+      );
+    } else if (!view.available && reason != null) {
       children.add(_reasonLine(colors, reason, secondary: true));
     }
     if (view.available) {
       if (view.fields.isNotEmpty)
         children.add(_FieldsList(fields: view.fields));
-      for (var i = 0; i < view.blocks.length; i += 1) {
-        final block = view.blocks[i];
+      final flat = flarePluginFlatBlocks(view.blocks);
+      for (var i = 0; i < flat.length; i += 1) {
+        final (:block, :section) = flat[i];
+        // The children of a folded section are not drawn.
+        if (section != null && _sectionCollapsed(flat, section)) continue;
         children.add(
           KeyedSubtree(
             key: ValueKey('flare-plugin-block-$i'),
@@ -756,6 +926,52 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 busyActionId: widget.busyActionId,
                 rowInFlight: _rowInFlight,
                 onAction: (action, row, input) => _runRow(action, row, input),
+              ),
+              FlarePluginSectionBlock() => FlarePluginSectionHeader(
+                block: block,
+                collapsed: _sectionCollapsed(flat, i),
+                onToggle: () =>
+                    setState(() => _folded[i] = !_sectionCollapsed(flat, i)),
+              ),
+              FlarePluginStatsBlock() => FlarePluginStatsView(block: block),
+              FlarePluginChartBlock() => FlarePluginChartView(block: block),
+              FlarePluginImageBlock() => FlarePluginImageView(
+                block: block,
+                resolve: widget.resolveImage,
+              ),
+              FlarePluginQrBlock() => FlarePluginQrView(
+                block: block,
+                busy: _locked,
+                onRefresh: widget.onQrRefresh == null || readOnly
+                    ? null
+                    : () => _refreshQr(block),
+              ),
+              FlarePluginHeroBlock() => FlarePluginHeroView(
+                block: block,
+                busy: _locked,
+                busyActionId: widget.busyActionId,
+                onAction: readOnly || widget.onAction == null
+                    ? null
+                    : (action) =>
+                          _run(action, const FlarePluginActionPayload()),
+              ),
+              FlarePluginStepsBlock() => FlarePluginStepsView(block: block),
+              FlarePluginBannerBlock() => FlarePluginBannerView(
+                block: block,
+                busy: _locked,
+                onAction: readOnly || widget.onAction == null
+                    ? null
+                    : (action) =>
+                          _run(action, const FlarePluginActionPayload()),
+              ),
+              FlarePluginTimelineBlock() => FlarePluginTimelineView(
+                block: block,
+              ),
+              FlarePluginProtectedMediaBlock() => FlarePluginProtectedMediaView(
+                block: block,
+                states: widget.protectedMedia,
+                busy: _locked,
+                onRead: readOnly ? null : widget.onProtectedMediaRead,
               ),
             },
           ),
@@ -807,9 +1023,9 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                     FlarePluginForm(
                       fileStates: widget.fileStates,
                       onFileAction: widget.onFileAction,
-                      key: ValueKey(
-                        'flare-plugin-inline-form:${inlineAction.id}:$_inlineRevision',
-                      ),
+                      locationStates: widget.locationStates,
+                      onLocationAction: widget.onLocationAction,
+                      key: _inlineKey('${inlineAction.id}:$_inlineRevision'),
                       inputs: _formInputs(inlineAction),
                       embedded: true,
                       submitLabel: inlineAction.label,
@@ -1169,7 +1385,11 @@ class _FieldsList extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    fields[i].value,
+                    flarePluginFormatText(
+                      fields[i].value,
+                      fields[i].format,
+                      FlareStrings.of(context),
+                    ),
                     style: TextStyle(
                       fontSize: FlareSizes.fontSizeMd,
                       color: colors.textPrimary,
@@ -1732,6 +1952,18 @@ class _EntriesBlock extends StatelessWidget {
               ),
             ),
           ),
+          if (entry.timeMs case final timeMs?) ...[
+            const SizedBox(width: FlareSizes.spacingXs),
+            Text(
+              flarePluginDateTime(timeMs, flarePluginNowMs(), strings),
+              key: ValueKey('flare-plugin-entry-time-$position'),
+              style: TextStyle(
+                fontSize: FlareSizes.fontSizeSm,
+                color: colors.textTertiary,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1786,12 +2018,40 @@ class _RowsBlock extends StatelessWidget {
       );
     }
     final nowMs = flarePluginNowMs();
+    final days = flarePluginRowDayHeadings(
+      FlarePluginRowsBlock(
+        columns: block.columns,
+        rows: rows,
+        groupByDay: block.groupByDay,
+      ),
+      nowMs,
+      strings,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < rows.length; i += 1) ...[
-          if (i > 0)
+          if (days[i] case final day?)
+            Padding(
+              key: ValueKey('flare-plugin-row-day-$i'),
+              padding: EdgeInsets.only(
+                top: i == 0 ? 0 : FlareSizes.spacingMd,
+                bottom: FlareSizes.spacingXs,
+              ),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  day,
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeSm,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else if (i > 0)
             Divider(height: 1, thickness: 1, color: colors.borderSecondary),
           _item(
             colors,

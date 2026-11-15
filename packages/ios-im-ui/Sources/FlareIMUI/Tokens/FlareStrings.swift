@@ -984,6 +984,107 @@ public struct FlareStrings: Sendable {
         pluginViewUnavailableIncompatibleVersion: String = "请更新应用后查看",
         pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试",
         pluginViewUnavailableUnboundCopy: String = "副本，仅供查看",
+        pluginViewUnavailableUpgradeRequired: String = "更新应用后查看",
+        pluginUpgradeAction: String = "去更新",
+        pluginUpgradeNotAvailable: String = "当前版本暂不支持，新版本发布后可用",
+        pluginUpgradeBadge: String = "需更新",
+        pluginUpgradeTitle: String = "需要更新应用",
+        pluginUpgradeDescription: String = "此内容需要更新到新版本后才能使用",
+        pluginViewQrExpired: String = "二维码已失效",
+        pluginViewQrRefresh: String = "刷新二维码",
+        pluginViewStepPending: String = "未开始",
+        pluginViewStepCurrent: String = "进行中",
+        pluginViewStepDone: String = "已完成",
+        pluginViewStepFailed: String = "未通过",
+        pluginViewTrendUp: String = "上升",
+        pluginViewTrendDown: String = "下降",
+        pluginViewTrendFlat: String = "持平",
+        pluginViewImageUnavailable: String = "图片无法显示",
+        pluginFormatSeconds: String = "{n} 秒",
+        pluginFormatCountUnits: String = "4:万|8:亿",
+        pluginFormChooseImage: String = "选择图片",
+        pluginFormCaptureDocument: String = "拍摄证件",
+        pluginFormDocumentFront: String = "证件正面",
+        pluginFormDocumentBack: String = "证件反面",
+        pluginFormDocumentHolding: String = "手持证件",
+        capabilityConsentTitle: String = "「{plugin}」想要使用",
+        capabilityConsentPurpose: String = "用途",
+        capabilityConsentAllowOnce: String = "仅本次允许",
+        capabilityConsentAllowAlways: String = "始终允许",
+        capabilityConsentDeny: String = "不允许",
+        capabilityConsentNote: String = "可以随时在设置里撤销授权",
+        capabilityDocumentCapture: String = "相机，用于拍摄证件",
+        capabilityPaymentConfirmation: String = "付款，每次付款都需你确认",
+        capabilityLocationCoarse: String = "你的大致位置（仅本次）",
+        capabilityLocationFine: String = "你的精确位置（仅本次）",
+        capabilityCamera: String = "相机",
+        capabilityMicrophone: String = "麦克风",
+        capabilityRtcSession: String = "语音和视频通话",
+        capabilityGeneric: String = "设备上的一项能力",
+        documentCaptureHintFront: String = "将证件正面放入框内，保持清晰、避免反光",
+        documentCaptureHintBack: String = "将证件反面放入框内，保持清晰、避免反光",
+        documentCaptureHintHolding: String = "手持证件放在胸前，脸和证件都要清晰",
+        documentCaptureShoot: String = "拍摄",
+        documentCaptureRetake: String = "重拍",
+        documentCaptureUse: String = "使用照片",
+        documentCaptureFromAlbum: String = "从相册选择",
+        documentCaptureProcessing: String = "正在处理照片",
+        documentCaptureCameraUnavailable: String = "相机不可用，可从相册选择",
+        documentCaptureTooLarge: String = "照片太大，请重拍",
+        documentCaptureFailed: String = "照片无法处理，请重拍",
+        documentCaptureNotAccepted: String = "这里不接受照片，请联系服务提供方",
+        paymentConfirmationTitle: String = "确认付款",
+        paymentConfirmationPayee: String = "收款方",
+        paymentConfirmationItem: String = "付款说明",
+        paymentConfirmationOrder: String = "订单号",
+        paymentConfirmationRequestedBy: String = "由「{plugin}」发起",
+        paymentConfirmationExpiresIn: String = "{time} 后失效",
+        paymentConfirmationExpired: String = "订单已失效，请重新发起",
+        paymentConfirmationInvalid: String = "订单金额无法识别，不能付款",
+        paymentConfirmationConfirm: String = "确认付款",
+        paymentConfirmationVerifying: String = "正在验证身份",
+        pluginProtectedMediaReason: String = "查看原因",
+        pluginProtectedMediaNotice: String = "查看受保护材料需要说明原因，操作会留下审计记录。",
+        pluginProtectedMediaOwnNotice: String = "仅你本人可查看，图片不会保存到设备。",
+        pluginProtectedMediaView: String = "查看",
+        pluginProtectedMediaHide: String = "隐藏",
+        pluginProtectedMediaUnavailable: String = "无法显示，请重试",
+        pluginProtectedMediaNotPreviewable: String = "此类文件不能在这里预览",
+        pluginLocationLocate: String = "获取位置",
+        pluginLocationRelocate: String = "重新获取",
+        pluginLocationClear: String = "清除",
+        pluginLocationLocating: String = "正在获取位置",
+        pluginLocationEmpty: String = "尚未获取位置",
+        pluginLocationCoarse: String = "大致位置",
+        pluginBundleOpening: String = "正在打开…",
+        pluginBundleUnavailable: String = "页面暂时无法打开",
+        pluginBundleCrashed: String = "页面意外停止",
+        pluginBundleCrashedHint: String = "重新加载后可以继续使用",
+        pluginBundleReload: String = "重新加载",
+        pluginBundleClosed: String = "页面已关闭",
+        pluginBundleExternalTitle: String = "打开外部链接",
+        pluginBundleExternalMessage: String = "将在浏览器中打开以下地址，请确认来源可信。",
+        pluginBundleExternalOpen: String = "打开",
+        pluginBundleCopied: String = "已复制",
+        pluginBridgeErrorInvalidEnvelope: String = "请求格式不正确",
+        pluginBridgeErrorUnsupportedBridge: String = "当前版本不支持该页面",
+        pluginBridgeErrorNotReady: String = "页面还没准备好",
+        pluginBridgeErrorMethodNotFound: String = "不支持该操作",
+        pluginBridgeErrorInvalidParams: String = "请求参数不正确",
+        pluginBridgeErrorPayloadTooLarge: String = "请求内容过大",
+        pluginBridgeErrorPermissionDenied: String = "没有权限执行该操作",
+        pluginBridgeErrorRateLimited: String = "操作太频繁，请稍后再试",
+        pluginBridgeErrorCancelled: String = "已取消",
+        pluginBridgeErrorGestureRequired: String = "请先点按页面再试",
+        pluginBridgeErrorQuotaExceeded: String = "存储空间已满",
+        pluginBridgeErrorNotFound: String = "找不到要打开的内容",
+        pluginBridgeErrorUnavailable: String = "暂时不可用，请稍后再试",
+        pluginBridgeErrorTimeout: String = "请求超时，请重试",
+        pluginBridgeErrorOperationFailed: String = "操作失败",
+        pluginBridgeErrorRevoked: String = "页面已被停用",
+        pluginBridgeErrorInternal: String = "出现问题，请稍后再试",
+        pluginLocationFine: String = "精确位置",
+        pluginLocationAccuracy: String = "精度约 {m} 米",
         pluginPageRefresh: String = "刷新",
         pluginViewMaxSelections: String = "最多选 {n} 项",
         pluginViewAll: String = "全部",
@@ -1963,6 +2064,107 @@ public struct FlareStrings: Sendable {
             pluginViewUnavailableIncompatibleVersion: pluginViewUnavailableIncompatibleVersion,
             pluginViewUnavailableCatalogUnreachable: pluginViewUnavailableCatalogUnreachable,
             pluginViewUnavailableUnboundCopy: pluginViewUnavailableUnboundCopy,
+            pluginViewUnavailableUpgradeRequired: pluginViewUnavailableUpgradeRequired,
+            pluginUpgradeAction: pluginUpgradeAction,
+            pluginUpgradeNotAvailable: pluginUpgradeNotAvailable,
+            pluginUpgradeBadge: pluginUpgradeBadge,
+            pluginUpgradeTitle: pluginUpgradeTitle,
+            pluginUpgradeDescription: pluginUpgradeDescription,
+            pluginViewQrExpired: pluginViewQrExpired,
+            pluginViewQrRefresh: pluginViewQrRefresh,
+            pluginViewStepPending: pluginViewStepPending,
+            pluginViewStepCurrent: pluginViewStepCurrent,
+            pluginViewStepDone: pluginViewStepDone,
+            pluginViewStepFailed: pluginViewStepFailed,
+            pluginViewTrendUp: pluginViewTrendUp,
+            pluginViewTrendDown: pluginViewTrendDown,
+            pluginViewTrendFlat: pluginViewTrendFlat,
+            pluginViewImageUnavailable: pluginViewImageUnavailable,
+            pluginFormatSeconds: pluginFormatSeconds,
+            pluginFormatCountUnits: pluginFormatCountUnits,
+            pluginFormChooseImage: pluginFormChooseImage,
+            pluginFormCaptureDocument: pluginFormCaptureDocument,
+            pluginFormDocumentFront: pluginFormDocumentFront,
+            pluginFormDocumentBack: pluginFormDocumentBack,
+            pluginFormDocumentHolding: pluginFormDocumentHolding,
+            capabilityConsentTitle: capabilityConsentTitle,
+            capabilityConsentPurpose: capabilityConsentPurpose,
+            capabilityConsentAllowOnce: capabilityConsentAllowOnce,
+            capabilityConsentAllowAlways: capabilityConsentAllowAlways,
+            capabilityConsentDeny: capabilityConsentDeny,
+            capabilityConsentNote: capabilityConsentNote,
+            capabilityDocumentCapture: capabilityDocumentCapture,
+            capabilityPaymentConfirmation: capabilityPaymentConfirmation,
+            capabilityLocationCoarse: capabilityLocationCoarse,
+            capabilityLocationFine: capabilityLocationFine,
+            capabilityCamera: capabilityCamera,
+            capabilityMicrophone: capabilityMicrophone,
+            capabilityRtcSession: capabilityRtcSession,
+            capabilityGeneric: capabilityGeneric,
+            documentCaptureHintFront: documentCaptureHintFront,
+            documentCaptureHintBack: documentCaptureHintBack,
+            documentCaptureHintHolding: documentCaptureHintHolding,
+            documentCaptureShoot: documentCaptureShoot,
+            documentCaptureRetake: documentCaptureRetake,
+            documentCaptureUse: documentCaptureUse,
+            documentCaptureFromAlbum: documentCaptureFromAlbum,
+            documentCaptureProcessing: documentCaptureProcessing,
+            documentCaptureCameraUnavailable: documentCaptureCameraUnavailable,
+            documentCaptureTooLarge: documentCaptureTooLarge,
+            documentCaptureFailed: documentCaptureFailed,
+            documentCaptureNotAccepted: documentCaptureNotAccepted,
+            paymentConfirmationTitle: paymentConfirmationTitle,
+            paymentConfirmationPayee: paymentConfirmationPayee,
+            paymentConfirmationItem: paymentConfirmationItem,
+            paymentConfirmationOrder: paymentConfirmationOrder,
+            paymentConfirmationRequestedBy: paymentConfirmationRequestedBy,
+            paymentConfirmationExpiresIn: paymentConfirmationExpiresIn,
+            paymentConfirmationExpired: paymentConfirmationExpired,
+            paymentConfirmationInvalid: paymentConfirmationInvalid,
+            paymentConfirmationConfirm: paymentConfirmationConfirm,
+            paymentConfirmationVerifying: paymentConfirmationVerifying,
+            pluginProtectedMediaReason: pluginProtectedMediaReason,
+            pluginProtectedMediaNotice: pluginProtectedMediaNotice,
+            pluginProtectedMediaOwnNotice: pluginProtectedMediaOwnNotice,
+            pluginProtectedMediaView: pluginProtectedMediaView,
+            pluginProtectedMediaHide: pluginProtectedMediaHide,
+            pluginProtectedMediaUnavailable: pluginProtectedMediaUnavailable,
+            pluginProtectedMediaNotPreviewable: pluginProtectedMediaNotPreviewable,
+            pluginLocationLocate: pluginLocationLocate,
+            pluginLocationRelocate: pluginLocationRelocate,
+            pluginLocationClear: pluginLocationClear,
+            pluginLocationLocating: pluginLocationLocating,
+            pluginLocationEmpty: pluginLocationEmpty,
+            pluginLocationCoarse: pluginLocationCoarse,
+            pluginBundleOpening: pluginBundleOpening,
+            pluginBundleUnavailable: pluginBundleUnavailable,
+            pluginBundleCrashed: pluginBundleCrashed,
+            pluginBundleCrashedHint: pluginBundleCrashedHint,
+            pluginBundleReload: pluginBundleReload,
+            pluginBundleClosed: pluginBundleClosed,
+            pluginBundleExternalTitle: pluginBundleExternalTitle,
+            pluginBundleExternalMessage: pluginBundleExternalMessage,
+            pluginBundleExternalOpen: pluginBundleExternalOpen,
+            pluginBundleCopied: pluginBundleCopied,
+            pluginBridgeErrorInvalidEnvelope: pluginBridgeErrorInvalidEnvelope,
+            pluginBridgeErrorUnsupportedBridge: pluginBridgeErrorUnsupportedBridge,
+            pluginBridgeErrorNotReady: pluginBridgeErrorNotReady,
+            pluginBridgeErrorMethodNotFound: pluginBridgeErrorMethodNotFound,
+            pluginBridgeErrorInvalidParams: pluginBridgeErrorInvalidParams,
+            pluginBridgeErrorPayloadTooLarge: pluginBridgeErrorPayloadTooLarge,
+            pluginBridgeErrorPermissionDenied: pluginBridgeErrorPermissionDenied,
+            pluginBridgeErrorRateLimited: pluginBridgeErrorRateLimited,
+            pluginBridgeErrorCancelled: pluginBridgeErrorCancelled,
+            pluginBridgeErrorGestureRequired: pluginBridgeErrorGestureRequired,
+            pluginBridgeErrorQuotaExceeded: pluginBridgeErrorQuotaExceeded,
+            pluginBridgeErrorNotFound: pluginBridgeErrorNotFound,
+            pluginBridgeErrorUnavailable: pluginBridgeErrorUnavailable,
+            pluginBridgeErrorTimeout: pluginBridgeErrorTimeout,
+            pluginBridgeErrorOperationFailed: pluginBridgeErrorOperationFailed,
+            pluginBridgeErrorRevoked: pluginBridgeErrorRevoked,
+            pluginBridgeErrorInternal: pluginBridgeErrorInternal,
+            pluginLocationFine: pluginLocationFine,
+            pluginLocationAccuracy: pluginLocationAccuracy,
             pluginPageRefresh: pluginPageRefresh,
             pluginViewMaxSelections: pluginViewMaxSelections,
             pluginViewAll: pluginViewAll,
@@ -3330,6 +3532,110 @@ public struct FlareStringsTable: Sendable {
     public var pluginViewUnavailableIncompatibleVersion: String
     public var pluginViewUnavailableCatalogUnreachable: String
     public var pluginViewUnavailableUnboundCopy: String
+    /// Vocabulary 2: the upgrade notice, the new blocks' copy, the count and duration formats, image and document inputs.
+    public var pluginViewUnavailableUpgradeRequired: String
+    public var pluginUpgradeAction: String
+    public var pluginUpgradeNotAvailable: String
+    public var pluginUpgradeBadge: String
+    public var pluginUpgradeTitle: String
+    public var pluginUpgradeDescription: String
+    public var pluginViewQrExpired: String
+    public var pluginViewQrRefresh: String
+    public var pluginViewStepPending: String
+    public var pluginViewStepCurrent: String
+    public var pluginViewStepDone: String
+    public var pluginViewStepFailed: String
+    public var pluginViewTrendUp: String
+    public var pluginViewTrendDown: String
+    public var pluginViewTrendFlat: String
+    public var pluginViewImageUnavailable: String
+    public var pluginFormatSeconds: String
+    public var pluginFormatCountUnits: String
+    public var pluginFormChooseImage: String
+    public var pluginFormCaptureDocument: String
+    public var pluginFormDocumentFront: String
+    public var pluginFormDocumentBack: String
+    public var pluginFormDocumentHolding: String
+    public var capabilityConsentTitle: String
+    public var capabilityConsentPurpose: String
+    public var capabilityConsentAllowOnce: String
+    public var capabilityConsentAllowAlways: String
+    public var capabilityConsentDeny: String
+    public var capabilityConsentNote: String
+    public var capabilityDocumentCapture: String
+    public var capabilityPaymentConfirmation: String
+    public var capabilityLocationCoarse: String
+    public var capabilityLocationFine: String
+    public var capabilityCamera: String
+    public var capabilityMicrophone: String
+    public var capabilityRtcSession: String
+    public var capabilityGeneric: String
+    public var documentCaptureHintFront: String
+    public var documentCaptureHintBack: String
+    public var documentCaptureHintHolding: String
+    public var documentCaptureShoot: String
+    public var documentCaptureRetake: String
+    public var documentCaptureUse: String
+    public var documentCaptureFromAlbum: String
+    public var documentCaptureProcessing: String
+    public var documentCaptureCameraUnavailable: String
+    public var documentCaptureTooLarge: String
+    public var documentCaptureFailed: String
+    public var documentCaptureNotAccepted: String
+    public var paymentConfirmationTitle: String
+    public var paymentConfirmationPayee: String
+    public var paymentConfirmationItem: String
+    public var paymentConfirmationOrder: String
+    public var paymentConfirmationRequestedBy: String
+    public var paymentConfirmationExpiresIn: String
+    public var paymentConfirmationExpired: String
+    public var paymentConfirmationInvalid: String
+    public var paymentConfirmationConfirm: String
+    public var paymentConfirmationVerifying: String
+    public var pluginProtectedMediaReason: String
+    public var pluginProtectedMediaNotice: String
+    public var pluginProtectedMediaOwnNotice: String
+    public var pluginProtectedMediaView: String
+    public var pluginProtectedMediaHide: String
+    public var pluginProtectedMediaUnavailable: String
+    public var pluginProtectedMediaNotPreviewable: String
+    public var pluginLocationLocate: String
+    public var pluginLocationRelocate: String
+    public var pluginLocationClear: String
+    public var pluginLocationLocating: String
+    public var pluginLocationEmpty: String
+    public var pluginLocationCoarse: String
+    // Web bundle host (FlarePluginBundleHost): its own states, the external link confirmation, and the bridge
+    // error codes' words (`plugin.bridge.<code>`, FlareStrings.pluginBridgeMessage(forKey:)).
+    public var pluginBundleOpening: String
+    public var pluginBundleUnavailable: String
+    public var pluginBundleCrashed: String
+    public var pluginBundleCrashedHint: String
+    public var pluginBundleReload: String
+    public var pluginBundleClosed: String
+    public var pluginBundleExternalTitle: String
+    public var pluginBundleExternalMessage: String
+    public var pluginBundleExternalOpen: String
+    public var pluginBundleCopied: String
+    public var pluginBridgeErrorInvalidEnvelope: String
+    public var pluginBridgeErrorUnsupportedBridge: String
+    public var pluginBridgeErrorNotReady: String
+    public var pluginBridgeErrorMethodNotFound: String
+    public var pluginBridgeErrorInvalidParams: String
+    public var pluginBridgeErrorPayloadTooLarge: String
+    public var pluginBridgeErrorPermissionDenied: String
+    public var pluginBridgeErrorRateLimited: String
+    public var pluginBridgeErrorCancelled: String
+    public var pluginBridgeErrorGestureRequired: String
+    public var pluginBridgeErrorQuotaExceeded: String
+    public var pluginBridgeErrorNotFound: String
+    public var pluginBridgeErrorUnavailable: String
+    public var pluginBridgeErrorTimeout: String
+    public var pluginBridgeErrorOperationFailed: String
+    public var pluginBridgeErrorRevoked: String
+    public var pluginBridgeErrorInternal: String
+    public var pluginLocationFine: String
+    public var pluginLocationAccuracy: String
     /// The refresh key in a plugin page's header on a pointer device.
     public var pluginPageRefresh: String
     /// A multiple choice's limit, leading its footer (`{n}`).

@@ -10,7 +10,8 @@ class MeMenuVectorsTest {
 
     private fun menu(raw: Map<*, *>): FlareMeMenu = FlareMeMenu(
         items = raw.items("items").map { item ->
-            FlareMeMenuItem(kind = item.str("kind")!!, id = item.str("id")!!, icon = item.str("icon"), title = item.str("title"), order = item.int("order") ?: 0)
+            FlareMeMenuItem(kind = item.str("kind")!!, id = item.str("id")!!, icon = item.str("icon"), title = item.str("title"), order = item.int("order") ?: 0,
+                upgrade = (item["upgrade"] as? Map<*, *>)?.let { FlareMeMenuUpgrade((it["minBuild"] as? Number)?.toLong()) })
         },
         complete = raw.bool("complete") ?: false,
     )
@@ -28,7 +29,7 @@ class MeMenuVectorsTest {
             val expected = (case["expect"] as List<*>).map { section ->
                 (section as Map<*, *>).items("items").map { item ->
                     SettingsItem(key = item.str("key")!!, label = item.str("label")!!, icon = item.str("icon"),
-                        kind = FlareSettingKind.Navigation, detail = item.str("detail"))
+                        kind = FlareSettingKind.Navigation, detail = item.str("detail"), tag = item.str("tag"))
                 }
             }
             assertEquals(expected, sections.map { it.items }, case.str("id"))
@@ -45,6 +46,19 @@ class MeMenuVectorsTest {
             parsed,
         )
         assertEquals(FlareMeMenu(emptyList(), complete = false), FlareMeMenu.parse("not json"))
+    }
+
+    @Test fun theMenuReadsTheUpgradePlaceholderAndTheRowDrawsItsTag() {
+        val parsed = FlareMeMenu.parse(
+            """{"items":[{"kind":"plugin","id":"plugin:w","title":"钱包","upgrade":{"minBuild":41020}},""" +
+                """{"kind":"plugin","id":"plugin:r","title":"红包","upgrade":null},{"kind":"plugin","id":"plugin:t","title":"任务","upgrade":{}}],"complete":true}""",
+        )
+        assertEquals(FlareMeMenuUpgrade(41020), parsed.items[0].upgrade)
+        assertEquals(null, parsed.items[1].upgrade)
+        assertEquals(FlareMeMenuUpgrade(null), parsed.items[2].upgrade)
+        assertEquals("需更新", settingsRowTag(SettingsItem("n", "n", tag = " 需更新 ")))
+        assertEquals(null, settingsRowTag(SettingsItem("t", "t", kind = FlareSettingKind.Toggle, tag = "需更新")))
+        assertEquals(null, settingsRowTag(SettingsItem("b", "b", tag = "  ")))
     }
 
     @Test fun unknownIconNamesFallBackToThePluginGlyph() {

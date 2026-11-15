@@ -13,12 +13,17 @@ public struct FlareMeMenuItem: Sendable, Equatable, Decodable {
     public let icon: String?
     public let title: String?
     public let order: Int
+    /// The SDK's upgrade placeholder (`upgrade: {minBuild?}`): this build cannot open the plugin's page yet. The row
+    /// keeps its place and label and carries the 「需更新」 tag; the host opens its upgrade notice. `minBuild` when known.
+    public let upgrade: FlareMeMenuUpgrade?
 
-    public init(kind: FlareMeMenuItemKind, id: String, icon: String? = nil, title: String? = nil, order: Int = 0) {
+    public init(kind: FlareMeMenuItemKind, id: String, icon: String? = nil, title: String? = nil, order: Int = 0,
+                upgrade: FlareMeMenuUpgrade? = nil) {
         self.kind = kind; self.id = id; self.icon = icon; self.title = title; self.order = order
+        self.upgrade = upgrade
     }
 
-    private enum CodingKeys: String, CodingKey { case kind, id, icon, title, order }
+    private enum CodingKeys: String, CodingKey { case kind, id, icon, title, order, upgrade }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -27,7 +32,14 @@ public struct FlareMeMenuItem: Sendable, Equatable, Decodable {
         icon = try c.decodeIfPresent(String.self, forKey: .icon)
         title = try c.decodeIfPresent(String.self, forKey: .title)
         order = (try? c.decodeIfPresent(Int.self, forKey: .order)) ?? 0
+        upgrade = try? c.decodeIfPresent(FlareMeMenuUpgrade.self, forKey: .upgrade)
     }
+}
+
+/// A 我 page item this build cannot open yet: the first build that can, when the catalog says.
+public struct FlareMeMenuUpgrade: Sendable, Equatable, Decodable {
+    public let minBuild: Int64?
+    public init(minBuild: Int64? = nil) { self.minBuild = minBuild }
 }
 
 /// The social SDK's `features.meMenu` result: the items in the SDK's order, and whether the list is complete
@@ -82,6 +94,7 @@ private func flareMeMenuBuiltinLabel(_ id: String, _ strings: FlareStrings) -> S
 /// - An item's detail is `summaries[id]` trimmed, when not empty: a plugin item's `features.meMenuSummary` text, or the
 ///   host's subtitle for a built-in page (what 我的邀请 holds).
 /// - The icon goes through ``flareIconNameOrFallback(_:)``; an item without one draws `plugin`.
+/// - A plugin item with `upgrade` (a build too old for its page) carries the tag `pluginUpgradeBadge` (「需更新」).
 /// - Of two items with one id the first is kept. Every row is a navigation row keyed by the item's id.
 ///
 /// The host still dispatches by key (its own route for a built-in item, ``FlarePluginPage`` for a plugin item) and
@@ -104,8 +117,9 @@ public func flareMeMenuSections(_ menu: FlareMeMenu, labels: [String: String] = 
         }
         let summary = summaries[item.id]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let detail: String? = summary.isEmpty ? nil : summary
+        let tag: String? = item.kind == .plugin && item.upgrade != nil ? strings.pluginUpgradeBadge : nil
         let row = FlareSettingsItem(key: item.id, label: label, icon: flareIconNameOrFallback(item.icon) ?? "plugin",
-                                    kind: .navigation, detail: detail)
+                                    kind: .navigation, detail: detail, tag: tag)
         if item.kind == .builtin, item.id == "settings" { settings.append(row) } else { main.append(row) }
     }
     return [main, settings].filter { !$0.isEmpty }.map { FlareSettingsSection(items: $0) }

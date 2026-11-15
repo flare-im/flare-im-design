@@ -21,11 +21,17 @@ import {
   flarePluginMinRows,
   flarePluginReferenceParents,
   flarePluginFileValue,
+  flarePluginIsUpload,
   flarePluginNewFileScope,
   flarePluginVisibleInputs,
   type FlarePluginFileAction,
   type FlarePluginFileActionKind,
   type FlarePluginFileState,
+  type FlarePluginLocationAction,
+  type FlarePluginLocationState,
+  type FlarePluginActionTarget,
+  flarePluginNativeIntoKey,
+  flarePluginLocationValue,
   type FlarePluginFormError,
   type FlarePluginInput,
   type FlarePluginMember,
@@ -71,6 +77,8 @@ const props = withDefaults(
     onMemberSearch?: (query: string) => void;
     onMembersRetry?: () => void;
     fileStates?: Record<string, FlarePluginFileState>;
+    /** Location inputs: what the host has for each (the engine's fix, a running locate, a failure), by input id. */
+    locationStates?: Record<string, FlarePluginLocationState>;
   }>(),
   {
     values: undefined,
@@ -93,6 +101,8 @@ const emit = defineEmits<{
   /** A reference request or selected-value update; hosts may retain the same directory's options. */
   (e: "reference-load", request: FlarePluginReferenceRequest): void;
   (e: "file-action", request: FlarePluginFileAction): void;
+  /** A location input's key: `locate` runs the page's locationOnce action into it; `clear` empties it. */
+  (e: "location-action", request: FlarePluginLocationAction): void;
 }>();
 const { t } = useFlareI18nOptional();
 const slots = useSlots();
@@ -143,12 +153,12 @@ function fileState(input: FlarePluginInput): FlarePluginFileState {
     ...(flarePluginFileValue(value) ? { value } : {}) };
 }
 const filesPending = computed(() => visibleInputs.value.some((input) => {
-  if (input.kind !== "file") return false;
+  if (!flarePluginIsUpload(input.kind)) return false;
   const state = fileState(input);
   return state.phase !== "empty" && (state.phase !== "uploaded" || !flarePluginFileValue(state.value ?? draft[input.id]));
 }));
 function fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind): void {
-  if (input.kind !== "file" || (action !== "invalidate" && (props.busy || !visibleInputs.value.includes(input)))) return;
+  if (!flarePluginIsUpload(input.kind) || (action !== "invalidate" && (props.busy || !visibleInputs.value.includes(input)))) return;
   if (action !== "preview") {
     fileGenerations[input.id] = (fileGenerations[input.id] ?? 0) + 1;
     draft[input.id] = null;
@@ -159,11 +169,36 @@ function fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind):
   emit("file-action", { action, inputId: input.id, input, scope: fileScope.value,
     generation: fileGenerations[input.id] ?? 0, formValues: flarePluginFormValues(props.inputs, draft) });
 }
+function locationState(input: FlarePluginInput): FlarePluginLocationState {
+  return props.locationStates?.[input.id] ?? {};
+}
+function locationAction(input: FlarePluginInput, action: "locate" | "clear"): void {
+  if (input.kind !== "location" || props.busy || !visibleInputs.value.includes(input)) return;
+  if (action === "clear") {
+    draft[input.id] = null;
+    editedSinceErrors.add(input.id);
+  } else if (locationState(input).locating) return;
+  emit("location-action", { action, inputId: input.id, input, formValues: flarePluginFormValues(props.inputs, draft) });
+}
+// The host's fix, once it arrives, is the input's value; a fix of another precision is never taken. The host drops
+// its state on `clear`, so a fix it still holds is the input's value again after a reset.
+function applyLocationFixes(): void {
+  for (const input of visibleInputs.value) {
+    if (input.kind !== "location") continue;
+    const fix = flarePluginLocationValue(props.locationStates?.[input.id]?.value, input.precision);
+    if (!fix) continue;
+    const current = draft[input.id] as Record<string, unknown> | null | undefined;
+    if (current && JSON.stringify(current) === JSON.stringify(fix)) continue;
+    draft[input.id] = fix;
+    editedSinceErrors.add(input.id);
+  }
+}
+watch(() => props.locationStates, applyLocationFixes, { deep: true });
 const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
 /** A new form (other inputs or initial values, compared by content): start over from them. */
 function reset(): void {
-  if (fileScope.value) for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate");
+  if (fileScope.value) for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate");
   fileScope.value = flarePluginNewFileScope();
   for (const id of Object.keys(fileGenerations)) delete fileGenerations[id];
   for (const id of Object.keys(localFiles)) delete localFiles[id];
@@ -202,6 +237,7 @@ function reset(): void {
   edited.clear();
   editedSinceErrors.clear();
   attempted.value = false;
+  applyLocationFixes();
 }
 watch(
   () =>
@@ -215,7 +251,7 @@ watch(
 );
 watch(() => props.fileStates, () => {
   for (const input of visibleInputs.value) {
-    if (input.kind !== "file") continue;
+    if (!flarePluginIsUpload(input.kind)) continue;
     const state = props.fileStates?.[input.id];
     if (state?.scope !== fileScope.value || state.generation !== (fileGenerations[input.id] ?? 0)) continue;
     const value = state.phase === "uploaded" && flarePluginFileValue(state.value) ? { fileId: state.value.fileId } : undefined;
@@ -227,7 +263,7 @@ watch(() => props.fileStates, () => {
       ...(value ? { value } : {}), fileName: state.fileName, error: state.error, preview: false };
   }
 }, { deep: true });
-onBeforeUnmount(() => { for (const input of props.inputs) if (input.kind === "file") fileAction(input, "invalidate"); });
+onBeforeUnmount(() => { for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate"); });
 watch(
   () => JSON.stringify(props.errors),
   () => editedSinceErrors.clear(),
@@ -291,7 +327,7 @@ function set(id: string, value: unknown): void {
     edited.delete(dependent.id);
     editedSinceErrors.add(dependent.id);
   }
-  for (const dependent of dependents) if (dependent.kind === "file") fileAction(dependent, "invalidate");
+  for (const dependent of dependents) if (flarePluginIsUpload(dependent.kind)) fileAction(dependent, "invalidate");
 }
 
 /** The text under an input: the host's first error for it, else the client's issue once it may show. */
@@ -479,6 +515,9 @@ const fieldState: PluginFormInputState = {
   get fileEnabled() { return !!instance?.vnode.props?.onFileAction; },
   fileState,
   fileAction,
+  get locationEnabled() { return !!instance?.vnode.props?.onLocationAction; },
+  locationState,
+  locationAction,
   get selectionLabels() {
     return props.selectionLabels;
   },
@@ -521,7 +560,25 @@ const invalid = computed(() =>
   filesPending.value || visibleInputs.value.some((input) => !!errorText(input)),
 );
 defineOptions({ inheritAttrs: false });
-defineExpose({ submit });
+/**
+ * A page action's native target writing `into` one of this form's inputs: run it through that input's own key, so
+ * the host gets the form's scope with it and its answer lands in this form. False when no visible input here
+ * takes it (or the host has no handler for that key): the action then goes out as itself.
+ */
+function nativeInto(target: FlarePluginActionTarget | undefined): boolean {
+  if (props.busy) return false;
+  const input = visibleInputs.value.find((candidate) => flarePluginNativeIntoKey(target, candidate));
+  if (!input) return false;
+  if (flarePluginNativeIntoKey(target, input) === "location") {
+    if (!instance?.vnode.props?.onLocationAction) return false;
+    locationAction(input, "locate");
+    return true;
+  }
+  if (!instance?.vnode.props?.onFileAction) return false;
+  fileAction(input, fileState(input).phase === "empty" ? "choose" : "replace");
+  return true;
+}
+defineExpose({ submit, nativeInto });
 </script>
 
 <template>

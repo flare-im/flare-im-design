@@ -283,6 +283,9 @@ final class PluginViewVectorsTests: XCTestCase {
         case .rows(let rows):
             shown += try PluginVectors.checkRows(rows, fact, clock: PluginViewClock(nowMs: nowMs, utcOffsetMinutes: zone),
                                                  strings: s, id: id)
+        case .section, .stats, .chart, .image, .qr, .hero, .steps, .banner, .timeline, .protectedMedia:
+            // Vocabulary 2 blocks have their facts in blocks2 (PluginViewV2Tests); no v1 view carries them.
+            XCTFail("\(id): a vocabulary 2 block in a v1 view")
         }
         return shown
     }
@@ -297,7 +300,7 @@ final class PluginViewVectorsTests: XCTestCase {
         XCTAssertEqual(view.blocks, [.divider, .rows(PluginRowsBlock(columns: [], rows: []))],
                        "a kind the kit does not know is skipped; rows are a page's list")
         XCTAssertEqual(view.inputs.map(\.id), ["y"])
-        XCTAssertEqual(view.actions, [PluginViewAction(id: "a", label: "A")])
+        XCTAssertEqual(view.actions, [PluginViewAction(id: "a", label: "A", target: PluginActionTarget(kind: "operation"))])
         let v1 = PluginViewModel(available: true, title: "Wallet", fields: [PluginViewField(label: "CNY", value: "9")])
         let encoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode(v1)) as? [String: Any]
         XCTAssertEqual(Set(encoded?.keys.map { $0 } ?? []), ["available", "title", "fields", "actions"],

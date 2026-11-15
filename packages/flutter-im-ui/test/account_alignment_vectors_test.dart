@@ -41,6 +41,7 @@ void main() {
                     ? flareStringsEnglish
                     : const FlareStrings(),
                 child: FlarePluginPage(
+                  appearance: FlarePluginPageAppearance.account,
                   page: ref,
                   view: view,
                   onBack: () {},

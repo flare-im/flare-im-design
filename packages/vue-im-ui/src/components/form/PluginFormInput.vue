@@ -3,7 +3,7 @@ import type {
   SchemaSelection,
   SchemaSelectionLabels,
 } from "./schema-selections";
-import type { FlarePluginInput, FlarePluginFileActionKind, FlarePluginFileState } from "../../shared/contracts/plugin-ui";
+import type { FlarePluginInput, FlarePluginFileActionKind, FlarePluginFileState, FlarePluginLocationState } from "../../shared/contracts/plugin-ui";
 export interface PluginFormInputState {
   presentation: "form" | "filters";
   selectPresentation: "radio" | "dropdown";
@@ -11,6 +11,10 @@ export interface PluginFormInputState {
   fileEnabled: boolean;
   fileState(input: FlarePluginInput): FlarePluginFileState;
   fileAction(input: FlarePluginInput, action: FlarePluginFileActionKind): void;
+  /** Whether the host listens for location keys (`locationAction`). */
+  locationEnabled: boolean;
+  locationState(input: FlarePluginInput): FlarePluginLocationState;
+  locationAction(input: FlarePluginInput, action: "locate" | "clear"): void;
   selectionLabels?: SchemaSelectionLabels;
   draft: Record<string, unknown>;
   numberText: Record<string, string>;
@@ -39,6 +43,7 @@ import { NDatePicker, NSelect } from "naive-ui";
 import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
+import FlareIcon from "../general/FlareIcon.vue";
 import FlareInput from "../general/FlareInput.vue";
 import FlareFormField from "./FlareFormField.vue";
 import FlareTextarea from "./FlareTextarea.vue";
@@ -52,8 +57,14 @@ import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
   flarePluginCounter,
+  flarePluginIsUpload,
   flarePluginMaxItems,
   flarePluginMinRows,
+  flarePluginMoneyScale,
+  flarePluginMoneyTyped,
+  flarePluginDecimalSeparator,
+  flarePluginLocationText,
+  flarePluginLocationValue,
 } from "../../shared/contracts/plugin-ui";
 const props = defineProps<{
   input: FlarePluginInput;
@@ -70,8 +81,34 @@ function setCustomValue(value: unknown): void {
   if (!customDisabled.value) props.state.set(props.input.id, value);
 }
 const { t } = useFlareI18nOptional();
+/** The keyboard's decimal separator follows the device language, not the kit's (spec moneyInput.typed). */
+const decimalSeparator = flarePluginDecimalSeparator(typeof navigator === "undefined" ? undefined : navigator.language);
 const removeIcon = flareIcons.close;
 const addIcon = flareIcons.add;
+/** The upload's title: an image or document input names what it takes (the side of a document). */
+function uploadTitle(input: FlarePluginInput): string {
+  const side = input.kind === "document" && input.side ? ` · ${t(`pluginForm.documentSide.${input.side}`)}` : "";
+  return `${input.label}${side}${input.required ? " *" : ""}`;
+}
+function uploadPickLabel(input: FlarePluginInput): string {
+  if (input.kind === "image") return t("pluginForm.chooseImage");
+  if (input.kind === "document") return t("pluginForm.captureDocument");
+  return t("pluginFileChoose");
+}
+/** A location input's fix as drawn: the place, then the precision and accuracy (null: none yet). */
+function locationLines(input: FlarePluginInput): { place: string; detail: string } | null {
+  const fix = flarePluginLocationValue(props.state.draft[input.id], input.precision);
+  if (!fix) return null;
+  return {
+    place: flarePluginLocationText(fix),
+    detail: `${t(`pluginForm.location.${fix.precision}`)} · ${t("pluginForm.location.accuracy", { m: fix.accuracyM })}`,
+  };
+}
+/** "0.00" for a money input of scale 2: the shape of the amount it takes. */
+function moneyPlaceholder(input: FlarePluginInput): string {
+  const scale = flarePluginMoneyScale(input);
+  return input.placeholder || (scale ? `0.${"0".repeat(scale)}` : "0");
+}
 function filePolicyHint(input: FlarePluginInput): string {
   const policy = input.file;
   if (!policy) return t("pluginFileChoose");
@@ -102,20 +139,62 @@ function filePolicyHint(input: FlarePluginInput): string {
     </template>
   </FlareFormField>
   <FlareFormField
-    v-else-if="input.kind === 'file'"
+    v-else-if="input.kind === 'location'"
+    :native="native"
+    :label="input.label"
+    :required="input.required"
+    :error="state.locationState(input).error || state.errorText(input)"
+    :data-input-id="input.id"
+    data-input-kind="location"
+  >
+    <div class="flare-plugin-form__location" :aria-busy="state.locationState(input).locating || undefined">
+      <span class="flare-plugin-form__location-icon" aria-hidden="true"><FlareIcon name="location" /></span>
+      <div class="flare-plugin-form__location-text" role="status">
+        <template v-if="state.locationState(input).locating">{{ t("pluginForm.location.locating") }}</template>
+        <template v-else-if="locationLines(input)">
+          <span class="flare-plugin-form__location-place" data-location-place="true">{{ locationLines(input)!.place }}</span>
+          <span class="flare-plugin-form__location-detail">{{ locationLines(input)!.detail }}</span>
+        </template>
+        <span v-else class="flare-plugin-form__location-detail" data-location-empty="true">{{ t("pluginForm.location.empty") }}</span>
+      </div>
+      <div class="flare-plugin-form__location-keys">
+        <FlareButton
+          v-if="locationLines(input) && !state.locationState(input).locating"
+          size="sm"
+          variant="quiet"
+          :label="t('pluginForm.location.clear')"
+          :disabled="state.busy"
+          data-location-clear="true"
+          @click="state.locationAction(input, 'clear')"
+        />
+        <FlareButton
+          size="sm"
+          variant="secondary"
+          :label="locationLines(input) ? t('pluginForm.location.relocate') : t('pluginForm.location.locate')"
+          :loading="state.locationState(input).locating"
+          :disabled="state.busy || !state.locationEnabled"
+          data-location-locate="true"
+          @click="state.locationAction(input, 'locate')"
+        />
+      </div>
+    </div>
+  </FlareFormField>
+  <FlareFormField
+    v-else-if="flarePluginIsUpload(input.kind)"
     :error="state.errorText(input)"
     :data-input-id="input.id"
+    :data-input-kind="input.kind"
   >
     <FlareFileUpload
       host-picker
-      :title="`${input.label}${input.required ? ' *' : ''}`"
+      :title="uploadTitle(input)"
       :state="state.fileState(input).phase"
       :file-name="state.fileState(input).fileName"
-      :image="!!input.file?.accept.every((mime) => mime.startsWith('image/'))"
+      :image="input.kind !== 'file' || !!input.file?.accept.every((mime) => mime.startsWith('image/'))"
       :accept="input.file?.accept.join(',')"
       :progress="state.fileState(input).progress"
       :status-text="state.fileState(input).error || (state.fileState(input).phase === 'empty' ? filePolicyHint(input) : t(`pluginFile${state.fileState(input).phase[0].toUpperCase()}${state.fileState(input).phase.slice(1)}`))"
-      :pick-label="t('pluginFileChoose')"
+      :pick-label="uploadPickLabel(input)"
       :replace-label="t('pluginFileReplace')"
       :retry-label="t('common.retry')"
       :cancel-label="t('common.cancel')"
@@ -198,6 +277,27 @@ function filePolicyHint(input: FlarePluginInput): string {
       :disabled="state.busy"
       @update:model-value="(v: string) => state.set(input.id, v)"
     />
+  </FlareFormField>
+  <FlareFormField
+    :native="native"
+    v-else-if="input.kind === 'money'"
+    :label="input.label"
+    :label-placement="state.presentation === 'filters' ? 'left' : undefined"
+    :required="input.required"
+    :error="state.errorText(input)"
+    :data-input-id="input.id"
+  >
+    <div class="flare-plugin-form__money" data-money-input="true">
+      <FlareInput
+        :model-value="String(state.draft[input.id] ?? '')"
+        :placeholder="moneyPlaceholder(input)"
+        inputmode="decimal"
+        autocomplete="off"
+        :disabled="state.busy || !input.money?.currency"
+        @update:model-value="(v: string) => state.set(input.id, flarePluginMoneyTyped(v, decimalSeparator))"
+      />
+      <span v-if="input.money?.currency" class="flare-plugin-form__currency" data-money-currency="true">{{ input.money.currency }}</span>
+    </div>
   </FlareFormField>
   <FlareFormField
     :native="native"
@@ -467,6 +567,35 @@ function filePolicyHint(input: FlarePluginInput): string {
   flex: 1;
   min-width: 0;
 }
+.flare-plugin-form__money {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  width: 100%;
+  min-width: 0;
+}
+.flare-plugin-form__money > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.flare-plugin-form__currency {
+  flex: none;
+  color: var(--flare-color-text-secondary);
+  font-size: var(--flare-size-font-size-lg);
+}
+.flare-plugin-form__location {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--flare-size-layout-touch-target);
+}
+.flare-plugin-form__location-icon { display: inline-flex; flex: none; color: var(--flare-color-text-secondary); }
+.flare-plugin-form__location-text { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.flare-plugin-form__location-place { font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-primary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.flare-plugin-form__location-detail { font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.flare-plugin-form__location-keys { display: flex; flex: none; gap: var(--flare-size-spacing-xs); }
 .flare-plugin-form__members {
   display: flex;
   flex-wrap: wrap;

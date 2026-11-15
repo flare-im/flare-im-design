@@ -130,6 +130,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     // Animated webp (emoji packs / stickers) via ImageDecoderDecoder (API 28+).
     implementation("io.coil-kt:coil-gif:2.7.0")
+    // Plugin web bundles (PluginBundleHost.kt): the origin-bound web message listener and the WebView version.
+    implementation("androidx.webkit:webkit:1.15.0")
 
     testImplementation(kotlin("test"))
     androidTestImplementation(composeBom)

@@ -1,0 +1,18 @@
+{
+  "$comment": "Which key of a form input a page action's native target runs through when its `into` names that input (flarePluginNativeIntoKey on every kit): `file` (the input's own choose, or replace when it holds a file) for an upload capability into a file, image or document input, `location` (its locate key) for locationOnce into a location input, null otherwise, when the action goes out as itself. Running through the input's key gives the host the form's scope, so the engine's answer lands in the form without the viewer touching the input first.",
+  "cases": [
+    {"target": {"kind": "native", "capability": "documentCapture", "params": {"side": "front"}, "into": "front"}, "input": {"id": "front", "kind": "document"}, "key": "file"},
+    {"target": {"kind": "native", "capability": "selectImage", "into": "photo"}, "input": {"id": "photo", "kind": "image"}, "key": "file"},
+    {"target": {"kind": "native", "capability": "camera", "into": "photo"}, "input": {"id": "photo", "kind": "image"}, "key": "file"},
+    {"target": {"kind": "native", "capability": "selectFile", "into": "proof"}, "input": {"id": "proof", "kind": "file"}, "key": "file"},
+    {"target": {"kind": "native", "capability": "locationOnce", "params": {"precision": "coarse"}, "into": "area"}, "input": {"id": "area", "kind": "location"}, "key": "location"},
+    {"target": {"kind": "native", "capability": "locationOnce", "params": {"precision": "coarse"}, "into": "front"}, "input": {"id": "front", "kind": "document"}, "key": null},
+    {"target": {"kind": "native", "capability": "documentCapture", "params": {"side": "front"}, "into": "area"}, "input": {"id": "area", "kind": "location"}, "key": null},
+    {"target": {"kind": "native", "capability": "documentCapture", "params": {"side": "front"}, "into": "note"}, "input": {"id": "note", "kind": "text"}, "key": null},
+    {"target": {"kind": "native", "capability": "clipboardWrite", "into": "note"}, "input": {"id": "note", "kind": "text"}, "key": null},
+    {"target": {"kind": "native", "capability": "documentCapture", "params": {"side": "front"}, "into": "back"}, "input": {"id": "front", "kind": "document"}, "key": null},
+    {"target": {"kind": "native", "capability": "documentCapture", "params": {"side": "front"}}, "input": {"id": "front", "kind": "document"}, "key": null},
+    {"target": {"kind": "operation", "operation": "example.poll.submit"}, "input": {"id": "front", "kind": "document"}, "key": null},
+    {"target": null, "input": {"id": "front", "kind": "document"}, "key": null}
+  ]
+}

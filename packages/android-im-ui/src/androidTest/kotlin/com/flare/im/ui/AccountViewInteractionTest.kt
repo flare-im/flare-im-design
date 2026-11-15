@@ -33,7 +33,7 @@ class AccountViewInteractionTest {
             CompositionLocalProvider(LocalDensity provides Density(density.density / if (wide) 3f else 1f, 1f)) {
                 FlareThemeProvider(mode = if (wide) FlareThemeMode.Dark else FlareThemeMode.Light) {
                     Box(Modifier.width(if (wide) 1100.dp else 390.dp)) {
-                        FlarePluginPage(page = cases[selected.value].first, view = cases[selected.value].second,
+                        FlarePluginPage(page = cases[selected.value].first, view = cases[selected.value].second, appearance = FlarePluginPageAppearance.Account,
                             onFilter = {}, onRefresh = {}, onLoadMore = {}, onAction = { _, _ -> })
                     }
                 }
@@ -55,7 +55,7 @@ class AccountViewInteractionTest {
         val changed = mutableListOf<Map<String, Any?>>()
         val opened = mutableListOf<PluginPageActionPayload>()
         compose.setContent { FlareThemeProvider(mode = FlareThemeMode.Light) { Box(Modifier.width(320.dp)) {
-            FlarePluginPage(page = ref, view = recordPage(), filters = mapOf("status" to "pending"),
+            FlarePluginPage(page = ref, view = recordPage(), filters = mapOf("status" to "pending"), appearance = FlarePluginPageAppearance.Account,
                 onFilter = { changed += it }, onAction = { _, payload -> opened += payload })
         } } }
         compose.onNodeWithText("业务类型").assertIsDisplayed()
@@ -76,7 +76,7 @@ class AccountViewInteractionTest {
         val refreshing = mutableStateOf(false)
         var pages = 0
         var retries = 0
-        compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = recordPage(),
+        compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = recordPage(), appearance = FlarePluginPageAppearance.Account,
             pagingToken = token.value, refreshing = refreshing.value, error = "同一分页错误",
             busyActionId = "financial", actionError = "支付待确认", settleToken = 0,
             onLoadMore = { pages++; token.value++ }, onRefresh = { retries++ }) } }
@@ -272,12 +272,12 @@ class AccountViewInteractionTest {
         }
     }
     @Test fun realWalletFlowsShowTheirFormsWithoutOpeningASheet() {
-        val current = mutableStateOf(fixture("wallet-flow-vectors.json", "recharge"))
+        val current = mutableStateOf(fixture("wallet-flow-account-vectors.json", "recharge"))
         compose.setContent { FlareThemeProvider(mode = FlareThemeMode.Light) {
             FlarePluginPage(page = current.value.first, view = current.value.second, onAction = { _, _ -> })
         } }
         for ((id, submit) in listOf("recharge" to "提交充值申请", "withdrawal" to "核对提现", "payout_profiles" to "保存收款资料")) {
-            compose.runOnIdle { current.value = fixture("wallet-flow-vectors.json", id) }
+            compose.runOnIdle { current.value = fixture("wallet-flow-account-vectors.json", id) }
             list().performScrollToIndex(0)
             compose.onAllNodes(hasSetTextAction()).onFirst().assertExists()
             compose.onAllNodesWithText(submit).assertCountEquals(1)

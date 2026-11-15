@@ -299,7 +299,7 @@ class AccountViewTest {
         assertEquals(AccountLayout.Ledger, accountPresentation(view()).layout)
     }
     @Test fun rustWalletFixturesKeepTheDeclaredSubmitAndVisibleActions() {
-        val fixtures = SpecTables.table("wallet-flow-vectors.json").items("cases")
+        val fixtures = SpecTables.table("wallet-flow-account-vectors.json").items("cases")
         assertEquals(44, fixtures.size)
         var recoveries = 0
         fixtures.forEach { fixture ->

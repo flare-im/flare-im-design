@@ -14,6 +14,8 @@ import 'flare_button.dart';
 import 'flare_empty_state.dart';
 import 'flare_filter_tabs.dart';
 import 'flare_icon_button.dart';
+import 'flare_plugin_blocks_extra.dart';
+import 'flare_plugin_upgrade_notice.dart';
 import 'flare_plugin_view.dart';
 import 'flare_screen.dart';
 import 'flare_status_banner.dart';
@@ -69,6 +71,10 @@ class FlarePluginPage extends StatefulWidget {
     this.formErrors = const [],
     this.fileStates = const {},
     this.onFileAction,
+    this.locationStates = const {},
+    this.onLocationAction,
+    this.protectedMedia = const {},
+    this.onProtectedMediaRead,
     this.members = const [],
     this.membersLoading = false,
     this.membersRevision = 0,
@@ -82,7 +88,30 @@ class FlarePluginPage extends StatefulWidget {
     this.onLoadMore,
     this.onFilter,
     this.onAction,
+    this.resolveImage,
+    this.onQrRefresh,
+    this.upgradeStatus,
+    this.onUpdate,
+    this.upgradeBusy = false,
   });
+
+  /// Image blocks: what the host fetched for an asset path or private file id
+  /// (FlarePluginView.resolveImage).
+  final FlarePluginImageResolver? resolveImage;
+
+  /// An expired QR code on the page asks for a fresh one
+  /// (FlarePluginView.onQrRefresh).
+  final ValueChanged<FlarePluginQrRefresh>? onQrRefresh;
+
+  /// An upgrade_required page: update.plugin_upgrade_status for its minBuild.
+  final FlarePluginUpgradeStatus? upgradeStatus;
+
+  /// An upgrade_required page: opens the update flow; without it the page has
+  /// no update key.
+  final VoidCallback? onUpdate;
+
+  /// The update flow is opening.
+  final bool upgradeBusy;
 
   /// The page shown; every page action carries it.
   final FlarePluginPageRef page;
@@ -138,6 +167,23 @@ class FlarePluginPage extends StatefulWidget {
   final List<FlarePluginFormError> formErrors;
   final Map<String, FlarePluginFileState> fileStates;
   final ValueChanged<FlarePluginFileAction>? onFileAction;
+
+  /// Location inputs: the host's fix, a running locate or a failure, by input
+  /// id ([FlarePluginForm.locationStates]).
+  final Map<String, FlarePluginLocationState> locationStates;
+
+  /// A location input's locate or clear key: the host runs the page's
+  /// locationOnce action into the input ([FlarePluginForm.onLocationAction]).
+  final ValueChanged<FlarePluginLocationAction>? onLocationAction;
+
+  /// What the host has for each protected media item, by item id: the read's
+  /// address (the server's https grant address), a running read or a failure.
+  final Map<String, FlarePluginProtectedMediaState> protectedMedia;
+
+  /// A protected media read (with its reason when the block asks one): the
+  /// host runs and audits it, then fills [protectedMedia] with
+  /// [flarePluginProtectedMediaUrl] of the result.
+  final ValueChanged<FlarePluginProtectedMediaRead>? onProtectedMediaRead;
   final List<FlarePluginMember> members;
 
   /// Server member-search state; without onMemberSearch the picker filters locally.
@@ -351,6 +397,17 @@ class _FlarePluginPageState extends State<FlarePluginPage> with WidgetsBindingOb
           ],
         ),
       ),
+      FlarePluginPageState.unavailable
+          when view?.unavailableReason ==
+              FlarePluginUnavailableReason.upgradeRequired =>
+        FlarePluginUpgradeNotice(
+          key: FlarePluginPage.unavailableKey,
+          variant: FlarePluginUpgradeVariant.page,
+          title: view!.title.isEmpty ? null : view.title,
+          status: widget.upgradeStatus,
+          onUpdate: widget.onUpdate,
+          busy: widget.upgradeBusy,
+        ),
       FlarePluginPageState.unavailable => Semantics(
         liveRegion: true,
         child: FlareEmptyState(
@@ -478,8 +535,9 @@ class _FlarePluginPageState extends State<FlarePluginPage> with WidgetsBindingOb
         if (filters.isNotEmpty) const SizedBox(height: FlareSizes.spacingSm),
         if (widget.providerName?.isNotEmpty == true) Text(strings.scanProvidedBy.replaceAll('{name}', widget.providerName!)),
         if (view.presentation?['renderer'] == 'flare.qr') _qr(view),
-        if (widget.appearance == FlarePluginPageAppearance.account ||
-            view.presentation?['renderer'] == 'account')
+        // The host picks the account layout; a view no longer selects it
+        // through a renderer (vocabulary 2 draws accounts from blocks).
+        if (widget.appearance == FlarePluginPageAppearance.account)
           FlareAccountView(
             fileStates: widget.fileStates,
             onFileAction: widget.onFileAction,
@@ -500,7 +558,11 @@ class _FlarePluginPageState extends State<FlarePluginPage> with WidgetsBindingOb
           FlarePluginView(
             onInteractionChanged: (active) => _interacting = active,
             fileStates: widget.fileStates,
+            protectedMedia: widget.protectedMedia,
+            onProtectedMediaRead: widget.onProtectedMediaRead,
             onFileAction: widget.onFileAction,
+            locationStates: widget.locationStates,
+            onLocationAction: widget.onLocationAction,
             view: view,
             embedded: true,
             resolveUser: widget.resolveUser,
@@ -515,6 +577,8 @@ class _FlarePluginPageState extends State<FlarePluginPage> with WidgetsBindingOb
             onMemberSearch: widget.onMemberSearch,
             onMembersRetry: widget.onMembersRetry,
             settleToken: widget.settleToken,
+            resolveImage: widget.resolveImage,
+            onQrRefresh: widget.onQrRefresh,
             onAction: widget.onAction == null ? null : _runAction,
           ),
         if (cursor != null) ...[

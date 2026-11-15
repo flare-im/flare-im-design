@@ -9,7 +9,11 @@ const spec = JSON.parse(readFileSync(join(root, "spec/components.json"), "utf8")
 const vueExports = vueExportMap(join(root, "packages/vue-im-ui/src"));
 const roots = {
   vueExports,
-  flutter: join(root, "packages/flutter-im-ui/lib"),
+  // The kit, then the federated plugin packages beside it (the web bundle host).
+  flutter: [
+    join(root, "packages/flutter-im-ui/lib"),
+    join(root, "packages/flutter-im-ui/packages/flare_plugin_bundle_host/flare_plugin_bundle_host/lib"),
+  ],
   ios: join(root, "packages/ios-im-ui/Sources"),
   compose: join(root, "packages/android-im-ui/src/main"),
 };
@@ -25,6 +29,10 @@ function dartExportClosure(entry, seen = new Set()) {
   return seen;
 }
 const flutterExports = dartExportClosure(flutterFacadePath);
+// A component in its own Flutter package is reached from that package's library, not from flare_im_ui.
+function flutterPackageFacade(packageName) {
+  return join(root, "packages/flutter-im-ui/packages", packageName, packageName, "lib", `${packageName}.dart`);
+}
 const errors = [];
 let checked = 0;
 
@@ -42,8 +50,11 @@ for (const component of spec.components) {
       errors.push(`${component.name}/vue: ${contract.symbol} is not reachable from the component facade`);
     }
     if (platform === "flutter") {
-      const exportPath = relative(join(root, "packages/flutter-im-ui/lib"), surface.file).replaceAll("\\", "/");
-      if (!flutterExports.has(surface.file)) errors.push(`${component.name}/flutter: ${exportPath} is not reachable from flare_im_ui.dart`);
+      const ownPackage = contract.package && contract.package !== "flare_im_ui" ? contract.package : null;
+      const facade = ownPackage ? flutterPackageFacade(ownPackage) : flutterFacadePath;
+      const reachable = ownPackage ? dartExportClosure(facade) : flutterExports;
+      const exportPath = relative(dirname(facade), surface.file).replaceAll("\\", "/");
+      if (!reachable.has(surface.file)) errors.push(`${component.name}/flutter: ${exportPath} is not reachable from ${ownPackage ?? "flare_im_ui"}.dart`);
     }
     if (platform === "compose" && new RegExp(`\\b(?:private|internal)\\s+(?:fun|class|object)\\s+${contract.symbol}\\b`).test(source)) {
       errors.push(`${component.name}/compose: ${contract.symbol} is private/internal`);

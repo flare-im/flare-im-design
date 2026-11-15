@@ -14,6 +14,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const spec = JSON.parse(readFileSync(join(here, "components.json"), "utf8"));
 const vueRoot = join(here, "../packages/vue-im-ui/src");
 const flutterRoot = join(here, "../packages/flutter-im-ui/lib");
+// Flutter components that carry native code live in workspace packages beside the kit (the plugin web bundle host).
+const flutterRoots = [flutterRoot, join(here, "../packages/flutter-im-ui/packages/flare_plugin_bundle_host/flare_plugin_bundle_host/lib")];
 const iosRoot = join(here, "../packages/ios-im-ui/Sources");
 const composeRoot = join(here, "../packages/android-im-ui/src/main");
 
@@ -21,7 +23,7 @@ const errors = [];
 const coverage = {}; // platform -> 未实现的组件名列表
 const platforms = ["vue", "flutter", "ios", "compose"];
 const vueExports = vueExportMap(vueRoot);
-const signatureRoots = { vueExports, flutter: flutterRoot, ios: iosRoot, compose: composeRoot };
+const signatureRoots = { vueExports, flutter: flutterRoots, ios: iosRoot, compose: composeRoot };
 
 // ── Vue 事件面提取 ────────────────────────────────────────────────────────
 // 契约里的 events 曾经声明过实现里根本不存在的事件（MessageActionSheet 声明
@@ -133,7 +135,7 @@ for (const c of spec.components) {
     let found = false;
     try {
       const out = execSync(
-        `grep -rlE "class ${fsym}\\b" "${flutterRoot}" --include=*.dart`,
+        `grep -rlE "class ${fsym}\\b" ${flutterRoots.map((r) => `"${r}"`).join(" ")} --include=*.dart`,
         { encoding: "utf8" },
       );
       found = out.trim().length > 0;

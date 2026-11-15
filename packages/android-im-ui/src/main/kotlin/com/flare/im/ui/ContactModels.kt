@@ -94,6 +94,8 @@ data class SettingsItem(
      * colour on up to three lines; read together with the row. Compose only for now.
      */
     val description: String? = null,
+    /** A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet), read with the row. A toggle row draws none. */
+    val tag: String? = null,
 )
 
 data class SettingsSection(

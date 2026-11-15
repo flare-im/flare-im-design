@@ -19,6 +19,11 @@ export interface FlareMeMenuItem {
   /** A plugin item's title. */
   title?: string | null;
   order?: number;
+  /**
+   * The SDK's upgrade placeholder: this build cannot open the plugin's page yet (`minBuild` is the first build that
+   * can). The row keeps its place and label and carries the 「需更新」 tag; the host opens its upgrade notice.
+   */
+  upgrade?: { minBuild?: number | null } | null;
 }
 
 /** The `features.meMenu` result. */
@@ -76,6 +81,7 @@ export function flareMeMenuSections(
     } else continue;
     const detail = summaryOf(summaries, item.id);
     if (detail) row.detail = detail;
+    if (item.kind === "plugin" && item.upgrade) row.tag = resolveFlareMessage(locale, "pluginUpgrade.badge");
     seen.add(item.id);
     // Every entry carries a glyph: an item without a usable name draws the fallback too.
     row.icon = flareIconNameOrFallback(item.icon) ?? FLARE_ICON_FALLBACK;

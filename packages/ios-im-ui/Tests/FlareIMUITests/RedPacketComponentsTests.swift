@@ -686,47 +686,6 @@ final class RedPacketComponentsTests: XCTestCase {
                        FlareColors.of(.light, brand: .violet).primaryText)
     }
 
-    // MARK: Pay confirm
-
-    @MainActor
-    func testPayConfirmNeedsEnoughBalance() throws {
-        var events: [String] = []
-        let view = try RedPacketPayConfirmView(amount: "¥5.00", methodLabel: "Wallet (¥3.00)", insufficient: true,
-                                               onConfirm: { events.append("confirm") },
-                                               onCancel: { events.append("cancel") }).inspect()
-        XCTAssertNoThrow(try view.find(text: "¥5.00"))
-        XCTAssertNoThrow(try view.find(text: "Wallet (¥3.00)"))
-        XCTAssertNoThrow(try view.find(text: zh.packetInsufficient))
-        let confirm = try view.find(button: zh.packetPayConfirm)
-        XCTAssertTrue(confirm.isDisabled())
-        XCTAssertThrowsError(try confirm.tap())
-        try view.find(button: zh.cancel).tap()
-        XCTAssertEqual(events, ["cancel"])
-    }
-
-    @MainActor
-    func testPayConfirmConfirmsAndLocksWhileBusy() throws {
-        var events: [String] = []
-        let ready = try RedPacketPayConfirmView(amount: "¥5.00", methodLabel: "Wallet (¥30.00)",
-                                                onConfirm: { events.append("confirm") }, onCancel: {}).inspect()
-        XCTAssertThrowsError(try ready.find(text: zh.packetInsufficient))
-        try ready.find(button: zh.packetPayConfirm).tap()
-        XCTAssertEqual(events, ["confirm"])
-        let busy = try RedPacketPayConfirmView(amount: "¥5.00", methodLabel: "Wallet", busy: true,
-                                               onConfirm: { events.append("again") },
-                                               onCancel: { events.append("cancel") }).inspect()
-        for label in [zh.packetPayConfirm, zh.cancel] {
-            let button = try busy.find(button: label)
-            XCTAssertTrue(button.isDisabled(), label)
-            XCTAssertThrowsError(try button.tap(), label)
-        }
-        XCTAssertEqual(try busy.find(button: zh.packetPayConfirm).accessibilityValue().string(), zh.packetBusy)
-        XCTAssertEqual(events, ["confirm"])
-        XCTAssertTrue(RedPacketPayConfirmView.confirmEnabled(insufficient: false, busy: false, handled: true))
-        XCTAssertFalse(RedPacketPayConfirmView.confirmEnabled(insufficient: true, busy: false, handled: true))
-        XCTAssertFalse(RedPacketPayConfirmView.confirmEnabled(insufficient: false, busy: true, handled: true))
-    }
-
     // MARK: Copy
 
     func testEnglishPresetCoversTheFamily() {

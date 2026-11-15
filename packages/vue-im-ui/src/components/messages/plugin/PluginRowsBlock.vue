@@ -13,6 +13,7 @@ import { flareServerNowMs } from "../../../shared/server-clock";
 import {
   flarePluginBadgeTone,
   flarePluginDateTime,
+  flarePluginRowDayHeadings,
   flarePluginRowLines,
   flarePluginRowTexts,
   flarePluginRowsOnce,
@@ -120,9 +121,18 @@ const rowActions = (row: FlarePluginRow) =>
   });
 
 // ── list ─────────────────────────────────────────────────────────────────
+const dayHeadings = computed(() =>
+  flarePluginRowDayHeadings(
+    { columns: props.block.columns, rows: rows.value, groupByDay: props.block.groupByDay },
+    nowMs,
+    props.strings,
+    { today: t("account.today"), yesterday: t("account.yesterday") },
+  ),
+);
 const items = computed(() =>
-  rows.value.map((row) => ({
+  rows.value.map((row, index) => ({
     row,
+    day: dayHeadings.value[index],
     ...flarePluginRowLines(props.block, row, nowMs, props.strings),
     details: flarePluginRowTexts(
       props.block,
@@ -281,9 +291,14 @@ function onRowClick(record: Record<string, unknown>): void {
     :class="{ 'has-labels': labelRows }"
   >
     <ul v-if="items.length" class="flare-plugin-rows__list">
+      <template v-for="item in items" :key="item.row.key">
       <li
-        v-for="item in items"
-        :key="item.row.key"
+        v-if="item.day"
+        class="flare-plugin-rows__day"
+        role="presentation"
+        data-row-day="true"
+      >{{ item.day }}</li>
+      <li
         class="flare-plugin-rows__item"
         :data-row-key="item.row.key"
       >
@@ -338,6 +353,7 @@ function onRowClick(record: Record<string, unknown>): void {
           />
         </div>
       </li>
+      </template>
     </ul>
     <p v-else class="flare-plugin-rows__empty" data-rows-empty="true">
       {{ block.emptyText || t("pluginView.empty") }}
@@ -577,6 +593,15 @@ function onRowClick(record: Record<string, unknown>): void {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+.flare-plugin-rows__day {
+  padding-block: var(--flare-size-spacing-sm) var(--flare-size-spacing-xs);
+  font-size: var(--flare-size-font-size-sm);
+  font-weight: var(--flare-size-font-weight-semibold);
+  color: var(--flare-color-text-secondary);
+}
+.flare-plugin-rows__day:first-child {
+  padding-top: 0;
 }
 .flare-plugin-rows__item {
   display: flex;

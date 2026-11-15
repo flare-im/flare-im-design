@@ -151,6 +151,10 @@ internal fun pluginPageRefreshInterval(previous: Long?, view: PluginPageViewMode
  * - Refresh: pull down on touch, or the header's refresh key on a fine pointer, on a loaded page only; the indicator
  *   stays while [refreshing].
  *
+ * - Upgrade required ([PluginUnavailableReason.UpgradeRequired]): the whole page is [FlarePluginUpgradeNotice] (page)
+ *   with the page's title, and the update key when [upgradeStatus] says a build is offered and [onUpdate] is set.
+ * - Image and QR blocks: [resolveImage] and [onQrRefresh] go to the view ([PluginView]).
+ *
  * The host fetches everything — refresh, retry, load more and filter are requests; the kit calls nothing — and the kit
  * draws nothing the view does not declare. The page is a lazy list, so long ledgers stay cheap.
  */
@@ -197,6 +201,21 @@ fun FlarePluginPage(
     automaticRefreshing: Boolean = false,
     onAutoRefresh: (() -> Unit)? = null,
     onAction: ((String, PluginPageActionPayload) -> Unit)? = null,
+    /** `update.plugin_upgrade_status` for the page's `minBuild`, on an upgrade-required page. */
+    upgradeStatus: PluginUpgradeStatus? = null,
+    upgradeBusy: Boolean = false,
+    /** Opens the update flow ([FlarePluginUpgradeNotice]). */
+    onUpdate: (() -> Unit)? = null,
+    resolveImage: (suspend (PluginImageSource) -> String?)? = null,
+    onQrRefresh: ((PluginQrRefresh) -> Unit)? = null,
+    /** Location inputs: the host's fix, a running locate or a failure, by input id. */
+    locationStates: Map<String, PluginLocationState> = emptyMap(),
+    /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
+    onLocationAction: ((PluginLocationAction) -> Unit)? = null,
+    /** What the host has for each protected media item, by item id (the read's https grant address). */
+    protectedMedia: Map<String, PluginProtectedMediaState> = emptyMap(),
+    /** A protected media read: the host runs and audits it, then fills [protectedMedia] ([FlarePluginProtectedMedia.url]). */
+    onProtectedMediaRead: ((PluginProtectedMediaRead) -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -239,7 +258,7 @@ fun FlarePluginPage(
     val padding = PaddingValues(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacingMd, bottom = FlareSizes.spacingXl)
     FlareScreen(
         title = heading.ifEmpty { null },
-        surface = if (appearance == FlarePluginPageAppearance.Account || view?.view?.presentation?.get("renderer") == "account") FlareScreenSurface.Surface else FlareScreenSurface.Canvas,
+        surface = if (appearance == FlarePluginPageAppearance.Account) FlareScreenSurface.Surface else FlareScreenSurface.Canvas,
         onBack = onBack,
         scroll = false,
         contentMaxWidth = contentMaxWidth,
@@ -276,7 +295,9 @@ fun FlarePluginPage(
                     }
                     PluginPagePhase.Unavailable -> view?.let { shown ->
                         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(padding)) {
-                            EmptyState(
+                            if (shown.view.upgradeRequired) FlarePluginUpgradeNotice(
+                                FlarePluginUpgradeVariant.Page, title = heading, status = upgradeStatus, busy = upgradeBusy, onUpdate = onUpdate,
+                            ) else EmptyState(
                                 title = pluginPageUnavailableText(shown.view, strings),
                                 icon = "info",
                                 actions = if (!pluginPageUnavailableRetry(shown.view)) null else ({
@@ -324,7 +345,7 @@ fun FlarePluginPage(
                             },
                         )
                         val actions = pluginDetailActionState(busyActionId, actionError, formErrors, members, settleToken)
-                        if (appearance == FlarePluginPageAppearance.Account || loaded.view.presentation?.get("renderer") == "account") {
+                        if (appearance == FlarePluginPageAppearance.Account) {
                             AccountViewContent(loaded.view, actions.busyActionId, actions.error, actions.formErrors,
                                 actions.members, actions.settleToken, onAction?.let { emit ->
                                     { id, payload -> emit(id, PluginPageActionPayload.of(page, loaded, payload)) }
@@ -344,6 +365,8 @@ fun FlarePluginPage(
                             encodeQr = encodePluginCode?.let { encode -> { token -> encode(page.pluginId, token) } },
                             qrReceivedAtNanos = loaded.receivedAtNanos,
                             onInteractionChanged = { interactionActive = it },
+                            resolveImage = resolveImage, onQrRefresh = onQrRefresh,
+                            locationStates = locationStates, onLocationAction = onLocationAction, protectedMedia = protectedMedia, onProtectedMediaRead = onProtectedMediaRead,
                         )
                     }
                 }

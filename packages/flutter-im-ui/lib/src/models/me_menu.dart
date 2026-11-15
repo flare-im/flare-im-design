@@ -16,6 +16,7 @@ class FlareMeMenuItem {
     this.icon,
     this.title,
     this.order = 0,
+    this.upgrade,
   });
 
   /// Reads one SDK item; null for a kind the kit does not know.
@@ -34,6 +35,14 @@ class FlareMeMenuItem {
       icon: json['icon'] is String ? json['icon']! as String : null,
       title: json['title'] is String ? json['title']! as String : null,
       order: order is num ? order.toInt() : 0,
+      upgrade: switch (json['upgrade']) {
+        final Map<Object?, Object?> raw => FlareMeMenuUpgrade(
+          minBuild: raw['minBuild'] is num
+              ? (raw['minBuild']! as num).toInt()
+              : null,
+        ),
+        _ => null,
+      },
     );
   }
 
@@ -51,6 +60,19 @@ class FlareMeMenuItem {
 
   /// The SDK's sort key. The kit keeps the given order and never re-sorts.
   final int order;
+
+  /// The SDK's upgrade placeholder (`upgrade: {minBuild?}`): this build cannot
+  /// open the plugin's page yet. The row keeps its place and label and carries
+  /// the 「需更新」 tag; the host opens its upgrade notice.
+  final FlareMeMenuUpgrade? upgrade;
+}
+
+/// A 我 page item this build cannot open yet: the first build that can, when
+/// the catalog says.
+@immutable
+class FlareMeMenuUpgrade {
+  const FlareMeMenuUpgrade({this.minBuild});
+  final int? minBuild;
 }
 
 /// The social SDK's `features.meMenu` result: the items in the SDK's order,
@@ -141,6 +163,7 @@ List<FlareSettingsSection> flareMeMenuSections(
             label: title.isEmpty ? strings.meMenuPluginFallback : title,
             icon: icon,
             detail: detail,
+            tag: item.upgrade == null ? null : strings.pluginUpgradeBadge,
           ),
         );
     }
