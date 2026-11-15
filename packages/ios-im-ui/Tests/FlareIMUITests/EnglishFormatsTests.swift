@@ -73,6 +73,8 @@ final class EnglishFormatsTests: XCTestCase {
         case "previewForwardCount": return s.previewForwardCount(a.int(0))
         case "previewImageGroupCount": return s.previewImageGroupCount(a.int(0))
         case "systemEventGroupProfileUpdatedNamed": return s.systemEventGroupProfileUpdatedNamed(a.text(0))
+        case "inAppNotificationCount": return s.inAppNotificationCount(a.int(0))
+        case "quietHoursNextDay": return s.quietHoursNextDay(a.text(0))
         default: return nil
         }
     }

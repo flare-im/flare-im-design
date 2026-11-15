@@ -34,6 +34,8 @@ export 'src/models/draft_autosave.dart';
 export 'src/models/connection_refresh.dart';
 export 'src/models/url_safety.dart';
 export 'src/models/connection_notice.dart';
+export 'src/models/in_app_notification.dart';
+export 'src/models/notification_alert.dart';
 export 'src/models/access_diagnostics.dart';
 export 'src/models/update_prompt.dart';
 export 'src/models/resource_overlay.dart';
@@ -208,6 +210,10 @@ export 'src/components/flare_scene_panels.dart';
 export 'src/components/flare_call_device_picker.dart';
 
 export 'src/components/flare_permission_prompt.dart';
+export 'src/components/flare_notification_delivery_settings.dart';
+export 'src/components/flare_notification_alert_settings.dart';
+export 'src/components/flare_in_app_notification_banner.dart';
+export 'src/components/flare_in_app_notification_host.dart';
 export 'src/components/flare_conversation_action_sheet.dart';
 export 'src/components/flare_conversation_batch_toolbar.dart';
 

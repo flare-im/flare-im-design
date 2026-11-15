@@ -89,11 +89,18 @@ data class SettingsItem(
     val danger: Boolean = false,
     /** A red dot before the chevron: something here is new (an update waiting in About). A toggle row draws none. */
     val badge: Boolean = false,
+    /**
+     * A line under the label that says what the row does (a switch's consequence, a hint), in the secondary text
+     * colour on up to three lines; read together with the row. Compose only for now.
+     */
+    val description: String? = null,
 )
 
 data class SettingsSection(
     val title: String? = null,
     val items: List<SettingsItem>,
+    /** A note under the section's card: what the rows do, or where else to change them. */
+    val footer: String? = null,
 )
 
 /** A grouped emoji reaction on a message. */

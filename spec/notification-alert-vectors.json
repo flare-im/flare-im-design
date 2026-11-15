@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "note": "The rules behind NotificationAlertSettings: how its rows read a person's notification preferences (quiet hours, preview, behaviour while another device is in use) and what a weekday pick writes back. The value is the protocol's own shape: minutes after midnight in device local time, and weekdays as bits (bit 0 Monday … bit 6 Sunday, 0 every day). The four kits run this table against their helpers (Vue notification-alert contract, Flutter, SwiftUI and Compose NotificationAlertSettings helpers).",
+  "rules": {
+    "rows": "Three sections: quiet hours (the switch, and while it is on start, end, repeat and the allow-mentions switch), preview, and the other-device behaviour. Rows are keyed as below so a settings page keeps its own rows on other keys.",
+    "time": "A minute of the day reads HH:mm, 24-hour, zero-padded; minutes are taken modulo 1440.",
+    "end": "The end reads as the next day when it is not after the start (end < start crosses midnight, end == start is the whole day).",
+    "weekdays": "0 and 127 both mean every day. Turning a day on or off starts from all seven days when the mask is 0; a result with all seven days is written 0; a pick that would leave no day changes nothing.",
+    "summary": "Every day, Weekdays (Monday to Friday), Weekends (Saturday and Sunday), otherwise the days in week order joined by the kit's list separator."
+  },
+  "rows": [
+    { "quietHoursEnabled": false, "sections": [["quietHours"], ["notificationPreview"], ["multiDevice"]] },
+    { "quietHoursEnabled": true, "sections": [["quietHours", "quietHoursStart", "quietHoursEnd", "quietHoursRepeat", "quietHoursAllowMentions"], ["notificationPreview"], ["multiDevice"]] }
+  ],
+  "time": [
+    { "minute": 0, "text": "00:00" },
+    { "minute": 485, "text": "08:05" },
+    { "minute": 1320, "text": "22:00" },
+    { "minute": 1439, "text": "23:59" },
+    { "minute": 1440, "text": "00:00" }
+  ],
+  "end": [
+    { "start": 1320, "end": 480, "nextDay": true, "zh": "次日 08:00", "en": "08:00 next day" },
+    { "start": 480, "end": 1320, "nextDay": false, "zh": "22:00", "en": "22:00" },
+    { "start": 600, "end": 600, "nextDay": true, "zh": "次日 10:00", "en": "10:00 next day" }
+  ],
+  "weekdayToggle": [
+    { "mask": 0, "day": 6, "on": false, "result": 63 },
+    { "mask": 63, "day": 6, "on": true, "result": 0 },
+    { "mask": 127, "day": 0, "on": false, "result": 126 },
+    { "mask": 1, "day": 0, "on": false, "result": 1 },
+    { "mask": 31, "day": 2, "on": true, "result": 31 },
+    { "mask": 31, "day": 5, "on": true, "result": 63 },
+    { "mask": 0, "day": 3, "on": true, "result": 0 }
+  ],
+  "weekdayOn": [
+    { "mask": 0, "day": 3, "on": true },
+    { "mask": 21, "day": 1, "on": false },
+    { "mask": 21, "day": 4, "on": true }
+  ],
+  "summary": [
+    { "mask": 0, "kind": "everyDay", "zh": "每天", "en": "Every day" },
+    { "mask": 127, "kind": "everyDay", "zh": "每天", "en": "Every day" },
+    { "mask": 31, "kind": "weekdays", "zh": "工作日", "en": "Weekdays" },
+    { "mask": 96, "kind": "weekends", "zh": "周末", "en": "Weekends" },
+    { "mask": 21, "kind": "days", "zh": "周一、周三、周五", "en": "Monday, Wednesday, Friday" },
+    { "mask": 64, "kind": "days", "zh": "周日", "en": "Sunday" }
+  ]
+}

@@ -113,3 +113,6 @@ String _groupDetailMembersTitleEnglish(int count) => 'Members ($count)';
 String _profilePanelEditProfileEnglish(String name) => '$name, edit profile';
 String _momentReplyToCommentEnglish(String name, String text) =>
     'Reply to $name: $text';
+String _inAppNotificationCountEnglish(int count) =>
+    _english(count, '[{count} message]', '[{count} messages]');
+String _quietHoursNextDayEnglish(String time) => '$time next day';

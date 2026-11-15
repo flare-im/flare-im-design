@@ -6,10 +6,18 @@
 import type { FlareIconName } from '../icons';
 
 export type PermissionKind = 'microphone' | 'camera' | 'notifications' | 'storage' | 'photos' | 'contacts' | 'location' | 'screen';
-export type PermissionState = 'undetermined' | 'denied' | 'restricted' | 'unavailable';
+/**
+ * `granted` lets a host bind the platform's permission status directly: the prompt renders nothing for it.
+ */
+export type PermissionState = 'undetermined' | 'denied' | 'restricted' | 'unavailable' | 'granted';
+/**
+ * `inline` sits in the page (a card, or the compact strip); `sheet` hosts the prompt in the kit bottom sheet,
+ * which follows BottomSheet `auto` (a sheet on the phone form factor, a centered Modal elsewhere).
+ */
+export type PermissionPresentation = 'inline' | 'sheet';
 
 export const permissionKinds: readonly PermissionKind[] = ['microphone', 'camera', 'notifications', 'storage', 'photos', 'contacts', 'location', 'screen'];
-export const permissionStates: readonly PermissionState[] = ['undetermined', 'denied', 'restricted', 'unavailable'];
+export const permissionStates: readonly PermissionState[] = ['undetermined', 'denied', 'restricted', 'unavailable', 'granted'];
 
 /** Kit icon per kind; the same semantic names resolve on iOS / Flutter / Compose. */
 export const permissionIcon: Record<PermissionKind, FlareIconName> = {
@@ -18,8 +26,17 @@ export const permissionIcon: Record<PermissionKind, FlareIconName> = {
 };
 /** State glyph so status never relies on colour alone. */
 export const permissionStateIcon: Record<PermissionState, FlareIconName> = {
-  undetermined: 'info', denied: 'error', restricted: 'lock', unavailable: 'warning',
+  undetermined: 'info', denied: 'error', restricted: 'lock', unavailable: 'warning', granted: 'success',
 };
+
+/**
+ * Whether the prompt draws anything. Nothing for `granted`. A soft-ask is an invitation the person can act on,
+ * so it shows only while the permission can be asked for (`undetermined`) or turned on in settings (`denied`).
+ */
+export function permissionPromptShows(state: PermissionState, softAsk = false): boolean {
+  if (state === 'granted') return false;
+  return !softAsk || state === 'undetermined' || state === 'denied';
+}
 
 export interface PermissionActionOptions { hasRequest: boolean; hasOpenSettings: boolean; hasDismiss: boolean; busy?: boolean }
 export interface PermissionActions {
@@ -27,7 +44,7 @@ export interface PermissionActions {
   request: boolean;
   /** Visible only while denied and the host supplied a handler. */
   openSettings: boolean;
-  /** Visible whenever the host supplied a handler (any state). */
+  /** Visible whenever the host supplied a handler and the prompt shows. */
   dismiss: boolean;
   /** false while busy: visible actions stay rendered but disabled. */
   enabled: boolean;
@@ -37,7 +54,7 @@ export function permissionActions(state: PermissionState, opts: PermissionAction
   return {
     request: state === 'undetermined' && opts.hasRequest,
     openSettings: state === 'denied' && opts.hasOpenSettings,
-    dismiss: opts.hasDismiss,
+    dismiss: state !== 'granted' && opts.hasDismiss,
     enabled: !opts.busy,
   };
 }
@@ -51,7 +68,10 @@ const kindVerb: Record<PermissionKind, string> = {
   microphone: '使用麦克风', camera: '使用摄像头', notifications: '发送通知', storage: '访问存储空间', photos: '访问相册', contacts: '访问通讯录', location: '获取位置信息', screen: '录制屏幕内容',
 };
 
-/** Default copy; `featureLabel` (e.g. "发送语音消息") is embedded in the description. */
+/**
+ * Default copy; `featureLabel` (e.g. "发送语音消息") is embedded in the description. `granted` has nothing to
+ * explain: an empty description and no primary action.
+ */
 export function defaultPermissionCopy(kind: PermissionKind, state: PermissionState, featureLabel?: string): PermissionCopy {
   const feature = featureLabel?.trim() || '此功能';
   const verb = kindVerb[kind];
@@ -65,7 +85,17 @@ export function defaultPermissionCopy(kind: PermissionKind, state: PermissionSta
       return { title, description: `${verb}的权限受设备或组织策略限制，${feature}暂不可用。`, primaryLabel: '' };
     case 'unavailable':
       return { title, description: `当前设备或运行环境不支持${verb}，${feature}暂不可用。`, primaryLabel: '' };
+    case 'granted':
+      return { title, description: '', primaryLabel: '' };
   }
+}
+
+/**
+ * Whether a soft-ask has copy of its own for `kind` (the notifications kind does). Any other kind keeps its default
+ * copy in a soft-ask; only the state chip goes and the dismiss key reads "Not now".
+ */
+export function permissionSoftAskHasOwnCopy(kind: PermissionKind): boolean {
+  return kind === 'notifications';
 }
 
 export function defaultPermissionStateLabel(state: PermissionState): string {
@@ -74,5 +104,6 @@ export function defaultPermissionStateLabel(state: PermissionState): string {
     case 'denied': return '已拒绝';
     case 'restricted': return '受限制';
     case 'unavailable': return '不可用';
+    case 'granted': return '已允许';
   }
 }

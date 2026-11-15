@@ -6,6 +6,7 @@ import {
   FLARE_MESSAGE_LIST_NEWER_WITHIN_PX,
   FLARE_MESSAGE_LIST_OLDER_WITHIN_PX,
   flareMessageListEdge,
+  flareMessageListFillsViewport,
   flareMessageListLatestEntry,
   flareMessageListRequests,
   flareMessageListWindowReplaced,
@@ -38,6 +39,7 @@ const table = JSON.parse(
     within: number;
     cases: Array<{ id: string; steps: Array<{ do: string; fromBottom?: number; reports: boolean | null }> }>;
   };
+  fill: { cases: Array<{ id: string; fromTop: number | null; fromBottom: number | null; expected: boolean }> };
 };
 
 /** One step of an `atBottom` case on the list's report: what it tells the host after the step. */
@@ -65,6 +67,7 @@ describe("the two ends of the message list", () => {
     expect(table.windows.cases.length).toBeGreaterThanOrEqual(17);
     expect(FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX).toBe(table.atBottom.within);
     expect(table.atBottom.cases.length).toBeGreaterThanOrEqual(18);
+    expect(table.fill.cases.length).toBeGreaterThanOrEqual(7);
   });
 
   for (const vector of table.edges) {
@@ -95,6 +98,12 @@ describe("the two ends of the message list", () => {
     it(`at the bottom: ${vector.id}`, () => {
       const report = new FlareMessageListBottomReport();
       expect(vector.steps.map((step) => bottomStep(report, step))).toEqual(vector.steps.map((step) => step.reports));
+    });
+  }
+
+  for (const vector of table.fill.cases) {
+    it(`fills the viewport: ${vector.id}`, () => {
+      expect(flareMessageListFillsViewport(vector)).toBe(vector.expected);
     });
   }
 });

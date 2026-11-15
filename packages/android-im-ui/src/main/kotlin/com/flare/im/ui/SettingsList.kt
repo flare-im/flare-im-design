@@ -106,6 +106,21 @@ private fun SettingsSectionContent(
             SettingsRow(item = item, onToggle = onToggle, onSelect = onSelect)
         }
     }
+    SettingsSectionFooter(section.footer)
+}
+
+/** The note under a section's card, in the section title's quiet colour. */
+@Composable
+internal fun SettingsSectionFooter(text: String?) {
+    if (text.isNullOrEmpty()) return
+    Text(
+        text,
+        color = flareColors().textTertiary,
+        fontSize = FlareSizes.fontSizeSm,
+        lineHeight = FlareSizes.fontSizeSm * FlareSizes.lineHeightNormal,
+        modifier = Modifier.padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacingXs,
+            bottom = FlareSizes.spacingSm),
+    )
 }
 
 /** Values longer than this many characters go under the label (Vue `FlareSettingsRow`). */
@@ -151,6 +166,8 @@ private fun SettingsRowDot() {
  *
  * A short value stays end-aligned on one line and truncates; a value longer than 16 characters (a group
  * announcement) goes under the label on up to three lines in the secondary text colour ([settingsRowStacked]).
+ * A [SettingsItem.description] goes under the label in a smaller size (a switch's title, explanation and switch);
+ * the end of the row stays centred beside both lines.
  *
  * Shared by [SettingsList] and [ProfilePanel] so the two can't drift — previously `ProfilePanel`
  * re-implemented this row and silently dropped `kind` and `detail`, rendering every entry as a bare
@@ -191,31 +208,59 @@ fun SettingsRow(
                     if (settingsRowDrawsBadge(item)) SettingsRowDot()
                     if (settingsRowHasChevron(item.kind)) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
                 }
+                item.description?.let { SettingsRowDescription(it) }
                 Text(item.detail.orEmpty(), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
+        } else if (item.description != null) {
+            // The explanation goes under the label; the switch or value stays centred at the end.
+            Column(Modifier.weight(1f).padding(end = FlareSizes.spacingSm), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                Text(item.label, color = labelColor, fontSize = FlareSizes.fontSizeLg.value.sp)
+                SettingsRowDescription(item.description)
+            }
+            SettingsRowTrailing(item)
         } else {
             Text(item.label, color = labelColor, fontSize = FlareSizes.fontSizeLg.value.sp, modifier = Modifier.weight(1f))
-            when (item.kind) {
-                FlareSettingKind.Toggle -> FlareSwitchTrack(item.value, size = FlareControlSize.Sm)
-                // A short value stays end-aligned on one line (at most 16 characters; a longer one stacks).
-                // An action's optional detail reads the same way; neither draws a chevron.
-                FlareSettingKind.Value, FlareSettingKind.Action -> {
-                    item.detail?.let { d ->
-                        Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (settingsRowDrawsBadge(item)) SettingsRowDot()
-                }
-                FlareSettingKind.Navigation -> {
-                    item.detail?.let { d ->
-                        Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Spacer(Modifier.width(6.dp))
-                    }
-                    if (settingsRowDrawsBadge(item)) SettingsRowDot()
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
-                }
+            SettingsRowTrailing(item)
+        }
+    }
+}
+
+/** The line under a row's label ([SettingsItem.description]), in the secondary colour on up to three lines. */
+@Composable
+private fun SettingsRowDescription(text: String) {
+    Text(
+        text,
+        color = flareColors().textSecondary,
+        fontSize = FlareSizes.fontSizeSm,
+        lineHeight = FlareSizes.fontSizeSm * FlareSizes.lineHeightNormal,
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** The end of an unstacked row, drawn into the row: the switch, the value, or the value and the chevron. */
+@Composable
+private fun SettingsRowTrailing(item: SettingsItem) {
+    val colors = flareColors()
+    when (item.kind) {
+        FlareSettingKind.Toggle -> FlareSwitchTrack(item.value, size = FlareControlSize.Sm)
+        // A short value stays end-aligned on one line (at most 16 characters; a longer one stacks).
+        // An action's optional detail reads the same way; neither draws a chevron.
+        FlareSettingKind.Value, FlareSettingKind.Action -> {
+            item.detail?.let { d ->
+                Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
+            if (settingsRowDrawsBadge(item)) SettingsRowDot()
+        }
+        FlareSettingKind.Navigation -> {
+            item.detail?.let { d ->
+                Text(d, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd.value.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Spacer(Modifier.width(6.dp))
+            }
+            if (settingsRowDrawsBadge(item)) SettingsRowDot()
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = colors.textTertiary)
         }
     }
 }

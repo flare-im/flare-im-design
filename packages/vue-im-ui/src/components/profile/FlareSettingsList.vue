@@ -35,6 +35,7 @@ const emit = defineEmits<{
           @select="(i: FlareSettingsItem) => emit('select', i)"
         />
       </div>
+      <p v-if="section.footer" class="flare-settings__footer">{{ section.footer }}</p>
     </div>
   </div>
 </template>
@@ -52,6 +53,14 @@ const emit = defineEmits<{
 .flare-settings__title {
   padding: 4px 8px 8px; font-size: 12px; letter-spacing: 0.02em;
   color: var(--flare-color-text-tertiary);
+}
+.flare-settings__footer {
+  margin: 0;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-sm) 0;
+  font-size: var(--flare-size-font-size-sm);
+  line-height: var(--flare-size-line-height-normal);
+  color: var(--flare-color-text-tertiary);
+  overflow-wrap: anywhere;
 }
 /* iOS-style grouped card — rows float together on one elevated surface. */
 .flare-settings__group {

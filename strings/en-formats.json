@@ -451,6 +451,59 @@
       ]
     },
     {
+      "field": "permissionStateLabel",
+      "args": [
+        {
+          "state": "granted"
+        }
+      ],
+      "en": "Allowed",
+      "zh": "已允许",
+      "kits": [
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "field": "inAppNotificationCount",
+      "args": [
+        3
+      ],
+      "en": "[3 messages]",
+      "zh": "[3条]",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "inAppNotificationCount",
+      "args": [
+        1
+      ],
+      "en": "[1 message]",
+      "zh": "[1条]",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
+      "field": "quietHoursNextDay",
+      "args": [
+        "08:00"
+      ],
+      "en": "08:00 next day",
+      "zh": "次日 08:00",
+      "kits": [
+        "android",
+        "flutter",
+        "ios"
+      ]
+    },
+    {
       "field": "messageImageGroupLabel",
       "args": [
         1

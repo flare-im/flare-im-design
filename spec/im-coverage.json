@@ -9,6 +9,8 @@
       "components": [
         "StatusBanner",
         "ConnectionNotice",
+        "InAppNotificationHost",
+        "InAppNotificationBanner",
         "AccessDiagnostics",
         "UpdatePrompt",
         "ProgressBar",
@@ -186,6 +188,7 @@
       "components": [
         "DeviceSessions",
         "NotificationPreferences",
+        "NotificationAlertSettings",
         "SettingsList",
         "Switch",
         "RadioGroup",

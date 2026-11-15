@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "note": "The queue behind the in-app new-message banner: what shows, what waits and when the visible banner's timer starts over, for the items a host feeds in (the engine's `notification.present` with surface `inApp`) and the clears it forwards (`notification.clear`). The four kits run this table against their own presenter (Vue createFlareInAppNotifications, Flutter FlareInAppNotifications, SwiftUI FlareInAppNotifications, Compose FlareInAppNotifications); InAppNotificationHost draws what the presenter shows and owns the timer. Items are written `<collapseId>/<body>`.",
+  "limits": {
+    "durationMs": 4000,
+    "pendingLimit": 3
+  },
+  "rules": {
+    "present": "Nothing showing: the item shows at once. The visible banner has the same collapse id: the item replaces it in place. A waiting item has the same collapse id: the item replaces it where it waits. Otherwise the item waits at the end; beyond pendingLimit waiting items the oldest waiting one is dropped, so the newest win.",
+    "dismiss": "The visible banner goes and the first waiting item shows; with nothing waiting nothing shows.",
+    "clear": "Waiting items with the given collapse ids go, and when the visible banner has one of them it goes as dismiss says. No ids, nothing goes.",
+    "clearAll": "Everything goes: the visible banner and every waiting item (the engine's notification.clear with all).",
+    "restart": "true when the step showed a banner or replaced the visible one: the host starts the visible banner's durationMs over. The timer also stops while the banner is touched, hovered or focused and starts over when that ends."
+  },
+  "cases": [
+    {
+      "name": "a banner shows at once",
+      "steps": [
+        { "op": "present", "item": "c:a/hello", "current": "c:a/hello", "pending": [], "restart": true }
+      ]
+    },
+    {
+      "name": "a newer item of the same conversation replaces the visible banner in place",
+      "steps": [
+        { "op": "present", "item": "c:a/hello", "current": "c:a/hello", "pending": [], "restart": true },
+        { "op": "present", "item": "c:a/are you there", "current": "c:a/are you there", "pending": [], "restart": true }
+      ]
+    },
+    {
+      "name": "other conversations wait in order",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "present", "item": "c:c/1", "current": "c:a/1", "pending": ["c:b/1", "c:c/1"], "restart": false }
+      ]
+    },
+    {
+      "name": "beyond the limit the oldest waiting item is dropped",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "present", "item": "c:c/1", "current": "c:a/1", "pending": ["c:b/1", "c:c/1"], "restart": false },
+        { "op": "present", "item": "c:d/1", "current": "c:a/1", "pending": ["c:b/1", "c:c/1", "c:d/1"], "restart": false },
+        { "op": "present", "item": "c:e/1", "current": "c:a/1", "pending": ["c:c/1", "c:d/1", "c:e/1"], "restart": false }
+      ]
+    },
+    {
+      "name": "a waiting item is refreshed where it waits",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "present", "item": "c:c/1", "current": "c:a/1", "pending": ["c:b/1", "c:c/1"], "restart": false },
+        { "op": "present", "item": "c:b/2", "current": "c:a/1", "pending": ["c:b/2", "c:c/1"], "restart": false }
+      ]
+    },
+    {
+      "name": "dismiss shows the next waiting item",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "dismiss", "current": "c:b/1", "pending": [], "restart": true },
+        { "op": "dismiss", "current": null, "pending": [], "restart": false },
+        { "op": "dismiss", "current": null, "pending": [], "restart": false }
+      ]
+    },
+    {
+      "name": "clear takes the named conversations away",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "present", "item": "c:c/1", "current": "c:a/1", "pending": ["c:b/1", "c:c/1"], "restart": false },
+        { "op": "clear", "collapseIds": ["c:c"], "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "clear", "collapseIds": ["c:a", "c:z"], "current": "c:b/1", "pending": [], "restart": true },
+        { "op": "clear", "collapseIds": [], "current": "c:b/1", "pending": [], "restart": false }
+      ]
+    },
+    {
+      "name": "clearAll takes everything away",
+      "steps": [
+        { "op": "present", "item": "c:a/1", "current": "c:a/1", "pending": [], "restart": true },
+        { "op": "present", "item": "c:b/1", "current": "c:a/1", "pending": ["c:b/1"], "restart": false },
+        { "op": "clearAll", "current": null, "pending": [], "restart": false },
+        { "op": "present", "item": "c:b/2", "current": "c:b/2", "pending": [], "restart": true }
+      ]
+    }
+  ]
+}

@@ -288,9 +288,28 @@ public struct SettingsListView: View {
                 .flareGroupedCard(colors, dark: dark)
                 .padding(.horizontal, FlareSizes.spacingMd)
                 .padding(.bottom, FlareSizes.spacingSm)
+                if let footer = section.footer, !footer.isEmpty {
+                    FlareSettingsSectionFooter(text: footer, colors: colors)
+                }
             }
         }
         .padding(.vertical, FlareSizes.spacingSm)
+    }
+}
+
+/// The note under a section's card, in the section title's quiet colour.
+struct FlareSettingsSectionFooter: View {
+    let text: String
+    let colors: FlareColors
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: FlareSizes.fontSizeSm))
+            .foregroundColor(colors.textTertiary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, FlareSizes.spacingLg)
+            .padding(.bottom, FlareSizes.spacingSm)
     }
 }
 

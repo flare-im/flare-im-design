@@ -69,6 +69,7 @@ extension FlareStrings {
             case .denied: return "Denied"
             case .restricted: return "Restricted"
             case .unavailable: return "Unavailable"
+            case .granted: return "Allowed"
             }
         }
         s.messageImageGroupLabel = { englishCount($0, "{count} image", "{count} images") }
@@ -95,6 +96,8 @@ extension FlareStrings {
         s.previewImageGroupCount = { "[Album] \($0)" }
         s.systemEventGroupProfileUpdatedNamed = { "Group renamed to \($0)" }
         s.displayNameMembersMore = { names, _, others in names + englishCount(others, " and {count} other", " and {count} others") }
+        s.inAppNotificationCount = { englishCount($0, "[{count} message]", "[{count} messages]") }
+        s.quietHoursNextDay = { "\($0) next day" }
         return s
     }
 }

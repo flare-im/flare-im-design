@@ -19,7 +19,7 @@ export const flareDesignTokens = {
     },
     "message": {
       "incoming": {
-        "background": "#F1F2F5",
+        "background": "#ECEEF2",
         "foreground": "#20232D",
         "border": "#E3E5EB"
       },
@@ -140,7 +140,7 @@ export const flareDesignTokens = {
       },
       "message": {
         "incoming": {
-          "background": "#292D37",
+          "background": "#2E323C",
           "foreground": "rgba(255, 255, 255, 0.94)",
           "border": "rgba(255, 255, 255, 0.10)"
         },
@@ -479,7 +479,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -601,7 +601,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -726,7 +726,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -848,7 +848,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -973,7 +973,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1022,14 +1022,14 @@ export const flareDesignTokens = {
           "primary": "#15803D",
           "primaryActive": "#14532D",
           "primaryHover": "#166534",
-          "primaryText": "#15803D",
+          "primaryText": "#166534",
           "robot": "#64748B",
           "success": "#16A34A",
           "successText": "#15803D",
           "text": {
             "disabled": "#B7BDC8",
-            "link": "#15803D",
-            "linkHover": "#166534",
+            "link": "#166534",
+            "linkHover": "#14532D",
             "primary": "#20232D",
             "secondary": "#5C6371",
             "tertiary": "#5F6776"
@@ -1095,7 +1095,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -1220,7 +1220,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1269,14 +1269,14 @@ export const flareDesignTokens = {
           "primary": "#C2410C",
           "primaryActive": "#7C2D12",
           "primaryHover": "#9A3412",
-          "primaryText": "#C2410C",
+          "primaryText": "#9A3412",
           "robot": "#64748B",
           "success": "#16A34A",
           "successText": "#15803D",
           "text": {
             "disabled": "#B7BDC8",
-            "link": "#C2410C",
-            "linkHover": "#9A3412",
+            "link": "#9A3412",
+            "linkHover": "#7C2D12",
             "primary": "#20232D",
             "secondary": "#5C6371",
             "tertiary": "#5F6776"
@@ -1342,7 +1342,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -1467,7 +1467,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1589,7 +1589,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },
@@ -1714,7 +1714,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#F1F2F5",
+              "background": "#ECEEF2",
               "foreground": "#20232D",
               "border": "#E3E5EB"
             },
@@ -1836,7 +1836,7 @@ export const flareDesignTokens = {
           },
           "message": {
             "incoming": {
-              "background": "#292D37",
+              "background": "#2E323C",
               "foreground": "rgba(255, 255, 255, 0.94)",
               "border": "rgba(255, 255, 255, 0.10)"
             },

@@ -123,8 +123,10 @@ public struct FlareSettingsSection: Identifiable {
     public let id = UUID()
     public let title: String?
     public let items: [FlareSettingsItem]
-    public init(title: String? = nil, items: [FlareSettingsItem]) {
-        self.title = title; self.items = items
+    /// A note under the section's card: what the rows do, or where else to change them.
+    public let footer: String?
+    public init(title: String? = nil, items: [FlareSettingsItem], footer: String? = nil) {
+        self.title = title; self.items = items; self.footer = footer
     }
 }
 

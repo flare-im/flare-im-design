@@ -23,13 +23,17 @@ FlareMessageData _message(String id) => FlareMessageData(
   content: FlareTextContent('message $id'),
 );
 
-/// Every ring drawn anywhere in the tree. A plain thread of text draws no other
-/// shadow, so this is the mark and nothing else.
+/// The ring is a hard-edged shadow (no blur); the incoming bubble's own
+/// elevation (shadows.sm) is blurred, so it is not a mark.
+bool _isRing(BoxShadow shadow) => shadow.blurRadius == 0;
+
+/// Every ring drawn anywhere in the tree.
 List<BoxShadow> _marks(WidgetTester tester) => tester
     .widgetList<DecoratedBox>(find.byType(DecoratedBox))
     .map((box) => box.decoration)
     .whereType<BoxDecoration>()
     .expand((decoration) => decoration.boxShadow ?? const <BoxShadow>[])
+    .where(_isRing)
     .toList();
 
 bool _marksRow(WidgetTester tester, String text) => tester
@@ -38,7 +42,7 @@ bool _marksRow(WidgetTester tester, String text) => tester
     )
     .map((box) => box.decoration)
     .whereType<BoxDecoration>()
-    .any((decoration) => (decoration.boxShadow ?? const []).isNotEmpty);
+    .any((decoration) => (decoration.boxShadow ?? const []).any(_isRing));
 
 /// Pumps frames — without advancing the clock, so the window does not run down —
 /// until the mark appears. The mark is drawn by the row itself, so it can only

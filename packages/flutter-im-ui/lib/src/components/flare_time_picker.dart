@@ -45,6 +45,37 @@ class FlareTimePicker extends StatefulWidget {
   /// Flutter idiom replacing the Vue v-model; emits the chosen `"HH:mm"`.
   final void Function(String)? onChanged;
 
+  /// Presents the hour and minute sheet without the field, starting from
+  /// [value] (`"HH:mm"`), and resolves to the picked `"HH:mm"`, or null when it
+  /// was cancelled. A settings row that shows a time opens its picker through
+  /// this (NotificationAlertSettings' Starts and Ends).
+  static Future<String?> show(
+    BuildContext context, {
+    required String value,
+    String? title,
+    int minuteStep = 5,
+    String? cancelLabel,
+    String? confirmLabel,
+  }) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      useRootNavigator: true,
+      barrierColor: colors.scrim,
+      isScrollControlled: true,
+      builder: (ctx) => _TimeSheet(
+        value: value,
+        title: title,
+        minuteStep: minuteStep,
+        cancelLabel: cancelLabel ?? strings.cancel,
+        confirmLabel: confirmLabel ?? strings.confirm,
+        colors: colors,
+      ),
+    );
+  }
+
   @override
   State<FlareTimePicker> createState() => _FlareTimePickerState();
 }
@@ -77,21 +108,13 @@ class _FlareTimePickerState extends State<FlareTimePicker> {
   Future<void> _openSheet() async {
     if (widget.disabled) return;
     setState(() => _open = true);
-    final colors = FlareColors.of(context);
-    final picked = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      useRootNavigator: true,
-      barrierColor: FlareColors.of(context).scrim,
-      isScrollControlled: true,
-      builder: (ctx) => _TimeSheet(
-        value: widget.value,
-        title: widget.title ?? widget.placeholder,
-        minuteStep: widget.minuteStep,
-        cancelLabel: _cancelLabel,
-        confirmLabel: _confirmLabel,
-        colors: colors,
-      ),
+    final picked = await FlareTimePicker.show(
+      context,
+      value: widget.value,
+      title: widget.title ?? widget.placeholder,
+      minuteStep: widget.minuteStep,
+      cancelLabel: _cancelLabel,
+      confirmLabel: _confirmLabel,
     );
     if (mounted) setState(() => _open = false);
     if (picked != null) widget.onChanged?.call(picked);

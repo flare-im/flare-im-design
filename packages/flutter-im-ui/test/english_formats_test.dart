@@ -90,6 +90,8 @@ final Map<String, _Call> _calls = {
   'profilePanelEditProfile': (s, a) => s.profilePanelEditProfile(_s(a[0])),
   'momentReplyToComment': (s, a) =>
       s.momentReplyToComment(_s(a[0]), _s(a[1])),
+  'inAppNotificationCount': (s, a) => s.inAppNotificationCount(_i(a[0])),
+  'quietHoursNextDay': (s, a) => s.quietHoursNextDay(_s(a[0])),
 };
 
 void main() {

@@ -13,8 +13,11 @@ import { expect, test } from "@playwright/test";
  * 色差却掉到 1.05:1,气泡在页面上几乎消失。所以这里向上找第一层不透明的祖先,量的是真实入眼的对比。
  */
 
-/** WCAG 相对亮度;两张相邻的面之间 1.1:1 已经是肉眼能分辨的最低一档(iMessage 的灰泡约 1.12)。 */
-const MIN_SURFACE_RATIO = 1.1;
+/**
+ * WCAG 相对亮度。1.1:1 是肉眼能分辨的最低一档,但同一个人连发几条时,气泡之间那条缝在 1.05~1.12
+ * 之间几乎看不出来,几条连成一片;进来的一条现在比画布深一档(浅 1.16 / 暗 1.22),门槛跟着抬到 1.15。
+ */
+const MIN_SURFACE_RATIO = 1.15;
 
 function luminance(rgb: string): number {
   const [r, g, b] = rgb.match(/[\d.]+/g)!.slice(0, 3).map(Number);

@@ -49,6 +49,7 @@ Conversation · Message · Reply · Reaction · Thread · Forward · Search · C
 | Presence and typing | IM UI | Supported | Supported | Supported | Supported |
 | Read receipts | IM UI | Supported | Supported | Supported | Supported |
 | In-app notifications | Patterns | Supported | Supported | Supported | Supported |
+| Notification access | IM UI | Supported | Supported | Supported | Supported |
 | Custom navigation | AppKit | Supported | Supported | Supported | Supported |
 | Custom message actions | AppKit | Supported | Supported | Supported | Supported |
 | Poll task and event messages | IM UI | Supported | Supported | Supported | Supported |

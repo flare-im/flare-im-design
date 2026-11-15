@@ -65,6 +65,18 @@ export function flareMessageListRequests(
   };
 }
 
+/**
+ * Whether a window overflows the viewport by no more than the paging distance (`fill`): `fromTop + fromBottom` is that
+ * overflow wherever the reader is. Such a window cannot be scrolled far enough to move either end into or out of reach
+ * (one that fits does not scroll at all), so the list asks for its pages by itself until it overflows, or there is
+ * nothing more. A missing report (null) decides nothing.
+ */
+export function flareMessageListFillsViewport(viewport: { fromTop: number | null; fromBottom: number | null }): boolean {
+  const { fromTop, fromBottom } = viewport;
+  if (fromTop === null || fromBottom === null) return false;
+  return fromTop + fromBottom <= Math.min(FLARE_MESSAGE_LIST_OLDER_WITHIN_PX, FLARE_MESSAGE_LIST_NEWER_WITHIN_PX);
+}
+
 /** What the list knows about one change of its window besides the rows. */
 export interface FlareMessageListWindowChange {
   /** The reader asked for the latest messages (the back-to-latest key) and the host has not answered yet. */

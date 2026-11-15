@@ -6,9 +6,42 @@
 
 ### 设计系统与跨端组件
 
+- **消息列表：对方的消息在四端都和聊天底色分得开**（Token 与四端 Kit）。
+  - 原生三端的时间线铺的是 `bg.secondary`（#F7F8FA），对方气泡（#F1F2F5）在上面只有 1.05:1，同一个人连发的几条连成一片。四端现在都铺 `bg.primary`，和 Vue 原本一样（`--flare-component-chat-window-bg`）；`message.incoming.background` 加深一档：亮色 #ECEEF2、暗色 #2E323C（在底色上 1.16:1 与 1.22:1）。`spec/message-surface-vectors.json` 的 `palette.canvas` 写明底色和下限 1.15:1，原生三端按每个品牌、两种模式检查，网页端的气泡门禁在页面里实测。
+  - 对方气泡的阴影四端都引用小阴影 token（`shadows.sm`）；原先 SwiftUI 是手写的晕影、Compose 是 2dp 投影、Flutter 没有。
+  - 输入区顶部的分隔线（`border.primary`）四端都画，和 Vue 原本一样：时间线和手机形态的输入条现在是同一种底色，没有这条线时输入框看起来像时间线的一部分。
+  - Forest 与 Sunset 亮色：`primaryText` 和 `text.link` 各调深一档（#166534 与 #9A3412；链接悬停 #14532D 与 #7C2D12），对方气泡加深后，里面的链接和 @ 提及仍有 4.5:1。Forest 原来就只有 4.48:1。
+  - 跨端视觉契约新增 `MessageList.canvas`、`MessageBubble.incomingShadow` 与 `Composer.topEdge`。
+
+- **消息列表：从消息上开始拖也能滚动，不满一屏的窗口自己补页**（四端 Kit）。
+  - SwiftUI：iOS 18 起，每行上的右滑回复手势会让滚动视图的拖动起不来，手指落在消息上时列表不动，刚进会话的几秒里尤其常见。iOS 18 及以上，右滑改为 UIKit 拖动手势，只在以横向为主的拖动上开始（`FlareSwipeReply.claims`，与规则同一个 1.25 倍判据），并与滚动同时识别。Flutter 与 Compose 没有这个冲突；两端的测试现在从消息行上开始竖向拖动，并检查列表确实滚动了。
+  - 放得下一屏、或只比一屏多出不到 160 点翻页距离的窗口，滚不到能请求更早消息的位置（放得下的根本没有滚动事件），于是首屏约一屏时永远不再加载。四端现在在这种窗口布局之后自己请求，直到超出这段距离或没有更多，每个窗口一次，带不回新行的一页不会再请求（`spec/message-list-paging-vectors.json` 的 `fill`）。被替换的窗口仍等读者先动。
+  - Compose：新页落进滚不动的列表后，为保持阅读位置的那次回滚没有消耗任何距离，列表随即不再读取布局，下一页再也不会请求；另外某一端「已请求」的标记由一个可能晚于新页布局才运行的副作用清除，请求因此被挡掉。标记改为在组合提交时清除。
+  - SwiftUI：首行到顶部的距离被夹到 0，新页落地后仍放得下一屏的窗口上报值不变；现在某一端加载结束后列表会再判断一次。
+
+- **输入框：只剩发送键时它留在行尾**（四端 Kit）。
+  - 没有提供任何工具键时（输入框菜单失败关闭，或宿主关掉了全部工具），手机形态的工具行把发送键单独摆在中间（SwiftUI、Flutter、Compose）或行首（Vue）。现在它和有工具时一样留在行尾。
+
 - **SwiftUI：真机主线程栈不再溢出**（iOS Kit）。
-  - `FlareStrings`（近千个字段，约 16 KB）与 `FlareBrandTheme`（约 1.3 KB）被每个组件经 `@Environment` 读取，而 `@Environment` 按值内联存放：一屏嵌套的组件超过了真机 1 MB 的主线程栈（模拟器是 8 MB），Debug 构建在登录页和打开会话时闪退。
+  - `FlareStrings`（约一千个字段，约 16 KB）与 `FlareBrandTheme`（约 1.3 KB）被每个组件经 `@Environment` 读取，而 `@Environment` 按值内联存放：一屏嵌套的组件超过了真机 1 MB 的主线程栈（模拟器是 8 MB），Debug 构建在登录页和打开会话时闪退。
   - 两者改为引用存储、写时复制。`FlareStrings` 只占一个指针：字段在 `FlareStringsTable` 里，经动态成员读写，`strings.send`、`strings.send = "Send"` 与初始化写法都不变；在 `extension FlareStrings` 里引用字段要写 `self.send`。`FlareBrandTheme` 仍有 `name`、`light`、`dark`，两套色板放在引用后面。
+
+- **通知送达：轻询问与送达设置**（契约与四端 Kit）。
+  - `PermissionPrompt` 新增 `softAsk`：宿主在自选时机展示的非阻断询问。不画状态标签，关闭键为「以后再说」；通知类有自己的文案：系统还能询问时为「开启通知」，被关闭后为「前往设置」并说明在哪里打开。只在 undetermined 或 denied 时出现。
+  - 权限状态新增 `granted`，提示什么都不画，宿主可原样绑定平台状态。`permissionActions` 对它不给关闭键；`permissionPromptShows(state, softAsk)` 判断是否绘制，原生三端另有 `defaultPermissionSoftAskCopy`。
+  - 提示的面板形态：Vue 与 Compose 用 `presentation="sheet"`（Vue 另有 `open`），SwiftUI 用 `.flarePermissionPrompt(isPresented:kind:state:softAsk:…)`，Flutter 用 `FlarePermissionPrompt.show(context, …)`，结果为 `FlarePermissionChoice`。SwiftUI、Flutter 与 Compose 上按键后面板先关闭，面板消失后宿主才收到选择，系统权限弹窗独占屏幕；Compose 的面板提示自行关闭，仍在组合中也不再出现。Flutter 的 `dismissText` 改为可选，缺省取词表。
+  - 新组件 `NotificationDeliverySettings`（Vue、Flutter `FlareNotificationDeliverySettings`，SwiftUI `NotificationDeliverySettingsView`，Compose `NotificationDeliverySettings`）：「新消息通知」行（已开启、已关闭、未开启；`statusAction`），传了 `background` 时还有「后台接收消息」行（不受限制、已优化、受限制），其引导在 kit 底部弹层里给出电池设置（`openBatterySettings`）和宿主提供的自启动入口（`vendorActions`，宿主不给文案时显示「自启动管理」）。
+  - 分组形态把这一组放进本身就是一个列表的设置页（Vue `#section`，Flutter `sectionBuilder`，SwiftUI 与 Compose `sectionContent`）：设置页拿到作为一个设置分组的这一组和 `select`，后者执行这一组的行，设置页自己的行仍归它处理。
+  - 设置分组新增 `footer`，四端都画在卡片下方。
+  - 仅 Compose：`NotificationDeliverySettings` 新增常驻连接开关（`residentMode`、`onResidentModeChange`；行 `residentConnection`「后台保持连接」，说明在标题下方），开关打开且电池使用不是不受限制时还有「关闭电池优化」行（`residentBattery`，执行 `onOpenBatterySettings`）。宿主只在没有配置推送通道的构建里传 `residentMode`。分组形态的 `select` 会翻转这个开关，所以设置页的开关事件也先交给 `select`。Compose 的 `SettingsItem` 新增 `description`，画在标签下方。其他端都不需要：只有 Android 有常驻连接模式。
+  - 文案进统一词表，中英都有。
+
+- **应用内新消息横幅与个人通知偏好**（契约与四端 Kit）。
+  - 新组件 `InAppNotificationBanner`（Vue、Flutter `FlareInAppNotificationBanner`，SwiftUI `InAppNotificationBannerView`，Compose `InAppNotificationBanner`）：应用开着、停在别的页面时到达新消息的顶部横幅。头像或首字、标题与单行省略的正文，多于一条时显示 Kit 的「[3条]」/「[3 messages]」，mentions（「[有人@我]」）与 urgent（「[加急]」）频道带标签和强调色。轻点上报 `open(conversationId, messageId)`；向上轻扫、关闭键或 Escape 上报 `dismiss`。辅助技术把它读作一个带关闭操作的按钮。
+  - 新组件 `InAppNotificationHost`（Vue、Flutter `FlareInAppNotificationHost`，SwiftUI 与 Compose `InAppNotificationHost`）及其呈现器（Vue 为 `./composables` 的 `createFlareInAppNotifications()`，Flutter、SwiftUI、Compose 为 `FlareInAppNotifications`）。应用把引擎的 `notification.present`（surface 为 `inApp`）与 `notification.clear` 送进呈现器；宿主在顶部居中一次显示一条，合并键相同的原位替换，其他最多排三条（超出时先丢最早排队的），每条 4 秒后收起，按住（Web 上还有悬停与聚焦）时停止计时。每条横幅播报一次；减少动态效果时淡入淡出而不滑动。原生端读屏运行时横幅一直保留到被关闭（Compose 遵循系统推荐的无障碍超时）。
+  - 新组件 `NotificationAlertSettings`（Vue、Flutter `FlareNotificationAlertSettings`，SwiftUI `NotificationAlertSettingsView`，Compose `NotificationAlertSettings`）：勿扰时段（开关、开始时间、不晚于开始时显示为次日的结束时间、重复、@我照常提醒）、通知预览（发送者和内容、仅发送者、不显示）与其他设备活跃时的提醒方式（稍后提醒、立即提醒、只更新角标），每组带说明。接收与协议同形的值（`FlareNotificationAlertPreferences`），经 `change` 报出完整的新值；`disabled` 让宿主保存时各行不接受操作，已经打开的选择面板照常完成。与 NotificationDeliverySettings 一样有分组形态（Vue `#sections`，Flutter `sectionsBuilder`，SwiftUI 与 Compose `sectionContent`），其 `select` 与 `toggle` 执行这一组的行。它是独立组件：NotificationPreferences 仍是宿主定义的开关列表。
+  - 选择器取自 Kit：时间打开 TimePicker 的面板（Flutter 新增 `FlareTimePicker.show(context, value:, title:, minuteStep:)`；Vue、SwiftUI、Compose 在内部共用该面板），星期打开至少保留一天的开关面板，两个选项打开竖排 RadioGroup 的面板。
+  - 规则在 `spec/in-app-notification-vectors.json` 与 `spec/notification-alert-vectors.json`，四端共跑。文案进统一词表，中英都有（`inAppNotificationCount` 与 `quietHoursNextDay` 为新增的函数字段）。
 
 - **资源包折进四端 Kit**（更新中心的 L2 层）。
   - Vue `applyFlareResourceOverlay(packs)`（`./i18n`、包根）接收 `update.get_resources` 的结果：文案走 `registerFlareMessages`，颜色写 CSS 变量和 Naive 主题，表情进运行时目录。Flutter、SwiftUI、Compose 构造 `FlareResourceOverlay`，文案和颜色走现有的 scope、environment 或 CompositionLocal。

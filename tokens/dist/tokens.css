@@ -11,7 +11,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #7C3AED;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #6D28D9;
@@ -256,7 +256,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #A78BFA;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #6D28D9;
@@ -337,7 +337,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #7C3AED;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #6D28D9;
@@ -418,7 +418,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #2563EB;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #1D4ED8;
@@ -499,7 +499,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #16A34A;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #15803D;
@@ -532,13 +532,13 @@
   --flare-color-primary: #15803D;
   --flare-color-primary-active: #14532D;
   --flare-color-primary-hover: #166534;
-  --flare-color-primary-text: #15803D;
+  --flare-color-primary-text: #166534;
   --flare-color-robot: #64748B;
   --flare-color-success: #16A34A;
   --flare-color-success-text: #15803D;
   --flare-color-text-disabled: #B7BDC8;
-  --flare-color-text-link: #15803D;
-  --flare-color-text-link-hover: #166534;
+  --flare-color-text-link: #166534;
+  --flare-color-text-link-hover: #14532D;
   --flare-color-text-primary: #20232D;
   --flare-color-text-secondary: #5C6371;
   --flare-color-text-tertiary: #5F6776;
@@ -580,7 +580,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #EA580C;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #C2410C;
@@ -613,13 +613,13 @@
   --flare-color-primary: #C2410C;
   --flare-color-primary-active: #7C2D12;
   --flare-color-primary-hover: #9A3412;
-  --flare-color-primary-text: #C2410C;
+  --flare-color-primary-text: #9A3412;
   --flare-color-robot: #64748B;
   --flare-color-success: #16A34A;
   --flare-color-success-text: #15803D;
   --flare-color-text-disabled: #B7BDC8;
-  --flare-color-text-link: #C2410C;
-  --flare-color-text-link-hover: #9A3412;
+  --flare-color-text-link: #9A3412;
+  --flare-color-text-link-hover: #7C2D12;
   --flare-color-text-primary: #20232D;
   --flare-color-text-secondary: #5C6371;
   --flare-color-text-tertiary: #5F6776;
@@ -661,7 +661,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #E11D48;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #BE123C;
@@ -742,7 +742,7 @@
   --flare-color-border-primary: #E3E5EB;
   --flare-color-border-secondary: #ECEEF2;
   --flare-color-border-selected: #64748B;
-  --flare-color-message-incoming-background: #F1F2F5;
+  --flare-color-message-incoming-background: #ECEEF2;
   --flare-color-message-incoming-foreground: #20232D;
   --flare-color-message-incoming-border: #E3E5EB;
   --flare-color-message-outgoing-background: #475569;
@@ -823,7 +823,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #A78BFA;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #5B21B6;
@@ -904,7 +904,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #60A5FA;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #1E40AF;
@@ -985,7 +985,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #4ADE80;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #166534;
@@ -1066,7 +1066,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #FB923C;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #9A3412;
@@ -1147,7 +1147,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #FB7185;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #9F1239;
@@ -1228,7 +1228,7 @@
   --flare-color-border-primary: rgba(255, 255, 255, 0.10);
   --flare-color-border-secondary: rgba(255, 255, 255, 0.08);
   --flare-color-border-selected: #94A3B8;
-  --flare-color-message-incoming-background: #292D37;
+  --flare-color-message-incoming-background: #2E323C;
   --flare-color-message-incoming-foreground: rgba(255, 255, 255, 0.94);
   --flare-color-message-incoming-border: rgba(255, 255, 255, 0.10);
   --flare-color-message-outgoing-background: #475569;

@@ -520,9 +520,9 @@ private fun MessageSurfaceBody(
         return
     }
 
-    // Flare thread grammar: radius 16 with a 4dp tail on the last of a run; received = a tertiary surface with a
-    // restrained lift, no outline; outgoing uses message semantics; a failed outgoing bubble is the failure surface
-    // with its red edge (spec/message-surface-vectors.json `palette`).
+    // Flare thread grammar: radius 16 with a 4dp tail on the last of a run; received = message.incoming, a step darker
+    // than the chat canvas, with the small shadow token and no outline; outgoing uses message semantics; a failed outgoing
+    // bubble is the failure surface with its red edge (spec/message-surface-vectors.json `palette`).
     val chrome = messageSurfaceChrome(surface, tail)
     val shape = RoundedCornerShape(
         topStart = FlareSizes.radiusBubble, topEnd = FlareSizes.radiusBubble,
@@ -548,10 +548,11 @@ private fun MessageSurfaceBody(
         Box(
             Modifier.widthIn(max = maxWidth)
                 .then(Modifier.locateMark(message.id, shape, colors.primary))
-                .then(if (!self && chrome.shadow) Modifier.shadow(2.dp, shape, clip = false) else Modifier)
+                // The incoming bubble as every kit draws it: a fill a step darker than the chat canvas (bg.primary) under
+                // the small shadow token, so the bubble and the gap between two of them read without a hairline. The failure
+                // surface alone keeps an edge.
+                .then(if (!self && chrome.shadow) Modifier.shadow(flareShadowElevation(flareShadows().sm), shape, clip = false) else Modifier)
                 .clip(shape)
-                // Fill only: the incoming surface is a tertiary tone the chat canvas never uses, so the bubble reads as its
-                // own surface without a hairline around it. The failure surface alone keeps an edge.
                 .background(palette.background)
                 .then(palette.edge?.let { Modifier.border(1.dp, it, shape) } ?: Modifier)
                 .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),

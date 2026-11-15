@@ -34,7 +34,7 @@
       "colors": {
         "message": {
           "incoming": {
-            "background": "#F1F2F5",
+            "background": "#ECEEF2",
             "foreground": "#20232D",
             "border": "#E3E5EB"
           },
@@ -60,7 +60,7 @@
       "colors": {
         "message": {
           "incoming": {
-            "background": "#292D37",
+            "background": "#2E323C",
             "foreground": "rgba(255, 255, 255, 0.94)",
             "border": "rgba(255, 255, 255, 0.10)"
           },
@@ -177,12 +177,12 @@
           "primary": "#15803D",
           "primaryHover": "#166534",
           "primaryActive": "#14532D",
-          "primaryText": "#15803D",
+          "primaryText": "#166534",
           "focusRing": "rgba(22, 163, 74, 0.34)",
           "pinned": "#15803D",
           "bg": { "selected": "#F0FDF4" },
           "border": { "selected": "#16A34A" },
-          "text": { "link": "#15803D", "linkHover": "#166534" },
+          "text": { "link": "#166534", "linkHover": "#14532D" },
           "message": {
             "outgoing": { "background": "#15803D", "foreground": "#FFFFFF", "border": "#166534" },
             "selected": { "background": "#F0FDF4", "border": "#16A34A" },
@@ -220,12 +220,12 @@
           "primary": "#C2410C",
           "primaryHover": "#9A3412",
           "primaryActive": "#7C2D12",
-          "primaryText": "#C2410C",
+          "primaryText": "#9A3412",
           "focusRing": "rgba(234, 88, 12, 0.34)",
           "pinned": "#C2410C",
           "bg": { "selected": "#FFF7ED" },
           "border": { "selected": "#EA580C" },
-          "text": { "link": "#C2410C", "linkHover": "#9A3412" },
+          "text": { "link": "#9A3412", "linkHover": "#7C2D12" },
           "message": {
             "outgoing": { "background": "#C2410C", "foreground": "#FFFFFF", "border": "#9A3412" },
             "selected": { "background": "#FFF7ED", "border": "#EA580C" },

@@ -53,11 +53,11 @@ class FlareSettingsList extends StatelessWidget {
             ),
           // Rows float together on one elevated grouped card.
           Container(
-            margin: const EdgeInsets.fromLTRB(
+            margin: EdgeInsets.fromLTRB(
               FlareSizes.spacingMd,
               0,
               FlareSizes.spacingMd,
-              FlareSizes.spacingLg,
+              _hasFooter(section) ? FlareSizes.spacingXs : FlareSizes.spacingLg,
             ),
             decoration: BoxDecoration(
               color: colors.bgElevated,
@@ -97,10 +97,40 @@ class FlareSettingsList extends StatelessWidget {
               ],
             ),
           ),
+          if (_hasFooter(section)) _SectionFooter(text: section.footer!),
         ],
       ],
     );
   }
+
+  static bool _hasFooter(FlareSettingsSection section) =>
+      section.footer?.isNotEmpty ?? false;
+}
+
+/// The note under a settings section's card, in the section title's quiet
+/// colour.
+class _SectionFooter extends StatelessWidget {
+  const _SectionFooter({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      FlareSizes.spacingLg,
+      0,
+      FlareSizes.spacingLg,
+      FlareSizes.spacingLg,
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        color: FlareColors.of(context).textTertiary,
+        fontSize: FlareSizes.fontSizeSm,
+        height: FlareSizes.lineHeightNormal,
+      ),
+    ),
+  );
 }
 
 /// One settings row — the single source of truth for how a [FlareSettingsItem]

@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.ui.graphics.luminance
 import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -215,6 +216,21 @@ class MessageSurfaceVectorsTest {
                 assertEquals(token(expected.str("background"), colors), got.background, "${tone.wire} background")
                 assertEquals(token(expected.str("foreground"), colors), got.foreground, "${tone.wire} foreground")
                 assertEquals(token(expected.str("edge"), colors), got.edge, "${tone.wire} edge")
+            }
+        }
+    }
+
+    /** The chat canvas (`palette.canvas`): the incoming bubble stands off bg.primary in every brand and both modes. */
+    @Test fun theIncomingBubbleStandsOffTheChatCanvas() {
+        val canvas = SpecTables.table("message-surface-vectors.json").obj("palette")!!.obj("canvas")!!
+        assertEquals("bg.primary", canvas.str("background"))
+        val minimum = (canvas["minIncomingContrast"] as Number).toDouble()
+        for (brand in FlareBrandTheme.entries) {
+            for (dark in listOf(false, true)) {
+                val colors = FlareColors.resolve(brand, dark)
+                val (a, b) = colors.messageIncomingBackground.luminance().toDouble() to colors.bgPrimary.luminance().toDouble()
+                val ratio = (maxOf(a, b) + 0.05) / (minOf(a, b) + 0.05)
+                assertTrue(ratio >= minimum, "$brand dark=$dark: $ratio")
             }
         }
     }

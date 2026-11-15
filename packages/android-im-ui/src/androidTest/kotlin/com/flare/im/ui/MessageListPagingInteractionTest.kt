@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -62,5 +65,32 @@ class MessageListPagingInteractionTest {
         } }
         compose.onNodeWithText("加载失败").assertExists()
         compose.onNodeWithText(strings.messageListLoadNewer).assertExists()
+    }
+
+    // `fill`: rows that fit the viewport do not scroll at all, so without the list asking the window never grows.
+    @Test fun aWindowThatFitsAsksForOlderPagesByItself() {
+        val asked = mutableListOf<String>()
+        var messages by mutableStateOf((29..30).map(::message))
+        var loading by mutableStateOf(false)
+        compose.setContent { MaterialTheme {
+            Box(Modifier.fillMaxWidth().height(320.dp)) {
+                MessageList(
+                    messages = messages, currentUserId = "me", conversationId = "c1",
+                    hasOlder = true, loadingOlder = loading, onLoadOlder = { asked += "older" },
+                )
+            }
+        } }
+        compose.runOnIdle { assertEquals(listOf("older"), asked) }
+        // A page that brings no rows does not ask again.
+        loading = true
+        compose.waitForIdle()
+        loading = false
+        compose.runOnIdle { assertEquals(listOf("older"), asked) }
+        // One that lands and still fits asks for the next.
+        messages = (28..30).map(::message)
+        compose.runOnIdle { assertEquals(listOf("older", "older"), asked) }
+        // A long window leaves the next page to the reader's scroll.
+        messages = (1..30).map(::message)
+        compose.runOnIdle { assertEquals(listOf("older", "older"), asked) }
     }
 }

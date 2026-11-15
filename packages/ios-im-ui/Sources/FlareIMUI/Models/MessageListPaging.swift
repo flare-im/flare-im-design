@@ -55,6 +55,14 @@ enum FlareMessageListPaging {
         return Requests(older: asks(older, fromTop, olderWithin), newer: asks(newer, fromBottom, newerWithin))
     }
 
+    /// Whether a window overflows the viewport by no more than the paging distance (`fill`): `fromTop + fromBottom` is
+    /// that overflow wherever the reader is. Such a window cannot be scrolled far enough to move either report, so the
+    /// list asks for its pages by itself until it overflows, or there is nothing more. A missing report decides nothing.
+    static func fillsViewport(fromTop: CGFloat?, fromBottom: CGFloat?) -> Bool {
+        guard let fromTop, let fromBottom else { return false }
+        return fromTop + fromBottom <= min(olderWithin, newerWithin)
+    }
+
     /// The floating key at the bottom: whether it shows, the count it carries, and what a tap does.
     struct LatestEntry: Equatable {
         enum Action: Equatable { case jumpToLatest, scrollToBottom }

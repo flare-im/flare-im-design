@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   permissionActions, defaultPermissionCopy, defaultPermissionStateLabel, permissionIcon, permissionStateIcon,
-  permissionKinds, permissionStates,
+  permissionKinds, permissionPromptShows, permissionSoftAskHasOwnCopy, permissionStates,
 } from './permission-prompt';
 
 const all = { hasRequest: true, hasOpenSettings: true, hasDismiss: true };
@@ -15,7 +15,7 @@ describe('permissionActions', () => {
           kind, state,
           request: state === 'undetermined',
           openSettings: state === 'denied',
-          dismiss: true,
+          dismiss: state !== 'granted',
           enabled: true,
         });
       }
@@ -36,6 +36,21 @@ describe('permissionActions', () => {
   });
 });
 
+describe('permissionPromptShows', () => {
+  it('draws nothing once granted, so a host binds the platform status as it is', () => {
+    expect(permissionPromptShows('granted')).toBe(false);
+    expect(permissionPromptShows('granted', true)).toBe(false);
+    expect(permissionActions('granted', all)).toEqual({ request: false, openSettings: false, dismiss: false, enabled: true });
+  });
+  it('a soft-ask shows only while the person can act on it', () => {
+    expect(permissionStates.filter((state) => permissionPromptShows(state, true))).toEqual(['undetermined', 'denied']);
+    expect(permissionStates.filter((state) => permissionPromptShows(state))).toEqual(['undetermined', 'denied', 'restricted', 'unavailable']);
+  });
+  it('only the notifications kind has soft-ask copy of its own', () => {
+    expect(permissionKinds.filter(permissionSoftAskHasOwnCopy)).toEqual(['notifications']);
+  });
+});
+
 describe('screen capture', () => {
   it('is a first-class kind so screen sharing has a permission home', () => {
     expect(permissionKinds).toContain('screen');
@@ -47,12 +62,12 @@ describe('screen capture', () => {
 });
 
 describe('defaultPermissionCopy', () => {
-  it('has a title and description for all 8 kinds x 4 states, primary label only where an action exists', () => {
+  it('has a title for all 8 kinds x 5 states, a description wherever there is something to explain, a primary label only where an action exists', () => {
     for (const kind of permissionKinds) {
       for (const state of permissionStates) {
         const c = defaultPermissionCopy(kind, state);
         expect(c.title.length).toBeGreaterThan(0);
-        expect(c.description.length).toBeGreaterThan(0);
+        expect(c.description.length > 0).toBe(state !== 'granted');
         expect(c.primaryLabel.length > 0).toBe(state === 'undetermined' || state === 'denied');
         expect(defaultPermissionStateLabel(state).length).toBeGreaterThan(0);
         expect(permissionIcon[kind]).toBeTruthy();

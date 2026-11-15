@@ -2,12 +2,23 @@
 // Unified "permission missing / denied" panel. The host owns the actual
 // permission state and the request / openSettings side effects; this view only
 // explains the requirement and dispatches. Spec: General/PermissionPrompt.
-import { computed, getCurrentInstance } from 'vue';
+//
+// `softAsk` is the non-blocking invitation a host shows at a moment it picks (the
+// first visit to the conversation list, say): no state chip, a "Not now" key, and
+// for the notifications kind copy of its own — "Turn on notifications" while the
+// system can still ask, "Open Settings" once it was turned off. It shows only while
+// the person can act on it. `granted` renders nothing, so a host binds the
+// platform's status as it is. `presentation="sheet"` hosts the prompt in the kit
+// bottom sheet (BottomSheet auto: a sheet on the phone, a Modal elsewhere), where
+// closing it by the scrim, Escape or back is a dismiss.
+import { computed, getCurrentInstance, type FunctionalComponent } from 'vue';
 import FlareIcon from './FlareIcon.vue';
 import FlareButton from './FlareButton.vue';
+import FlareBottomSheet from './FlareBottomSheet.vue';
 import {
-  defaultPermissionCopy, defaultPermissionStateLabel, permissionActions, permissionIcon, permissionStateIcon,
-  type PermissionKind, type PermissionState,
+  defaultPermissionCopy, defaultPermissionStateLabel, permissionActions, permissionIcon, permissionPromptShows,
+  permissionSoftAskHasOwnCopy, permissionStateIcon,
+  type PermissionKind, type PermissionPresentation, type PermissionState,
 } from '../../shared/contracts/permission-prompt';
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 
@@ -21,17 +32,20 @@ const props = withDefaults(defineProps<{
   busy?: boolean;
   /** Inline single-row mode for placing above a composer; default is a card. */
   compact?: boolean;
+  /** The non-blocking invitation: no state chip, "Not now", shown only while the person can act. */
+  softAsk?: boolean;
+  /** `inline` sits in the page; `sheet` hosts the prompt in the kit bottom sheet. */
+  presentation?: PermissionPresentation;
+  /** Sheet presentation only: whether the sheet is open. */
+  open?: boolean;
   title?: string;
   description?: string;
   stateText?: string;
   requestText?: string;
   openSettingsText?: string;
   dismissText?: string;
-}>(), { busy: false, compact: false });
+}>(), { busy: false, compact: false, softAsk: false, presentation: 'inline', open: true });
 const { t } = useFlareI18n();
-const strings = computed(() => ({
-  dismissText: props.dismissText ?? t("permissionPrompt.dismiss"),
-}));
 
 const emit = defineEmits<{ request: []; openSettings: []; dismiss: [] }>();
 
@@ -41,69 +55,99 @@ function hasListener(name: 'onRequest' | 'onOpenSettings' | 'onDismiss'): boolea
   return !!instance?.vnode.props?.[name];
 }
 
+const shows = computed(() => permissionPromptShows(props.state, props.softAsk));
+const sheet = computed(() => props.presentation === 'sheet');
+const ownSoftAsk = computed(() => props.softAsk && permissionSoftAskHasOwnCopy(props.kind));
 const copy = computed(() => defaultPermissionCopy(props.kind, props.state, props.featureLabel));
-const title = computed(() => props.title ?? copy.value.title);
-const description = computed(() => props.description ?? copy.value.description);
+const title = computed(() => props.title ?? (ownSoftAsk.value ? t("permissionPrompt.softAsk.notificationsTitle") : copy.value.title));
+const description = computed(() => {
+  if (props.description !== undefined) return props.description;
+  if (!ownSoftAsk.value) return copy.value.description;
+  return props.state === 'denied' ? t("permissionPrompt.softAsk.notificationsDeniedBody") : t("permissionPrompt.softAsk.notificationsBody");
+});
 const stateText = computed(() => props.stateText ?? defaultPermissionStateLabel(props.state));
-const requestText = computed(() => props.requestText ?? copy.value.primaryLabel);
-const openSettingsText = computed(() => props.openSettingsText ?? copy.value.primaryLabel);
+const requestText = computed(() => props.requestText ?? (ownSoftAsk.value ? t("permissionPrompt.softAsk.notificationsAction") : copy.value.primaryLabel));
+const openSettingsText = computed(() => props.openSettingsText ?? (props.softAsk ? t("permissionPrompt.openSettings") : copy.value.primaryLabel));
+const dismissText = computed(() => props.dismissText ?? (props.softAsk ? t("permissionPrompt.notNow") : t("permissionPrompt.dismiss")));
 const actions = () => permissionActions(props.state, {
   hasRequest: hasListener('onRequest'), hasOpenSettings: hasListener('onOpenSettings'), hasDismiss: hasListener('onDismiss'), busy: props.busy,
 });
-function onEscape() { if (!props.busy && hasListener('onDismiss')) emit('dismiss'); }
+const buttonSize = computed(() => (props.compact && !sheet.value ? 'md' : 'lg'));
+
+/** The inline presentation: the prompt itself, with no surface around it. */
+const InlineSurface: FunctionalComponent = (_, { slots }) => slots.default?.();
+InlineSurface.inheritAttrs = false;
+const surface = computed(() => (sheet.value ? FlareBottomSheet : InlineSurface));
+// The prompt draws its own heading, so the sheet keeps the title as its accessible name only.
+const surfaceProps = computed(() => (sheet.value
+  ? { open: props.open && shows.value, title: title.value, titleHidden: true, dismissible: !props.busy && hasListener('onDismiss') }
+  : {}));
+function onSurfaceClose() { if (!props.busy && hasListener('onDismiss')) emit('dismiss'); }
+// On a sheet the surface owns Escape (and closes as a dismiss); handling it here too would dismiss twice.
+function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss')) emit('dismiss'); }
 </script>
 
 <template>
-  <section
-    class="flare-permission-prompt"
-    :class="[`flare-permission-prompt--${state}`, { 'flare-permission-prompt--compact': compact }]"
-    role="region"
-    :aria-label="title"
-    :aria-busy="busy"
-    tabindex="-1"
-    @keydown.escape.prevent="onEscape"
-  >
-    <span class="flare-permission-prompt__icon" aria-hidden="true">
-      <FlareIcon :name="permissionIcon[kind]" :size="compact ? 20 : 26" />
-    </span>
-    <div class="flare-permission-prompt__body">
-      <div class="flare-permission-prompt__heading">
-        <h3 class="flare-permission-prompt__title">{{ title }}</h3>
-        <span class="flare-permission-prompt__state" role="status">
-          <FlareIcon :name="permissionStateIcon[state]" :size="14" />
-          <span>{{ stateText }}</span>
-        </span>
+  <component :is="surface" v-bind="surfaceProps" @close="onSurfaceClose">
+    <section
+      v-if="shows"
+      class="flare-permission-prompt"
+      :class="[`flare-permission-prompt--${state}`, {
+        'flare-permission-prompt--compact': compact && !sheet,
+        'flare-permission-prompt--sheet': sheet,
+        'flare-permission-prompt--soft-ask': softAsk,
+      }]"
+      role="region"
+      :aria-label="title"
+      :aria-busy="busy"
+      tabindex="-1"
+      @keydown.escape.prevent="onEscape"
+    >
+      <span class="flare-permission-prompt__icon" aria-hidden="true">
+        <FlareIcon :name="permissionIcon[kind]" :size="compact && !sheet ? 20 : 26" />
+      </span>
+      <div class="flare-permission-prompt__body">
+        <div class="flare-permission-prompt__heading">
+          <h3 class="flare-permission-prompt__title">{{ title }}</h3>
+          <span v-if="!softAsk" class="flare-permission-prompt__state" role="status">
+            <FlareIcon :name="permissionStateIcon[state]" :size="14" />
+            <span>{{ stateText }}</span>
+          </span>
+        </div>
+        <p class="flare-permission-prompt__description">{{ description }}</p>
+        <p v-if="detail" class="flare-permission-prompt__detail">{{ detail }}</p>
       </div>
-      <p class="flare-permission-prompt__description">{{ description }}</p>
-      <p v-if="detail" class="flare-permission-prompt__detail">{{ detail }}</p>
-    </div>
-    <div v-if="actions().request || actions().openSettings || actions().dismiss" class="flare-permission-prompt__actions">
-      <FlareButton
-        v-if="actions().request"
-        :label="requestText"
-        variant="primary"
-        :size="compact ? 'md' : 'lg'"
-        :loading="busy"
-        @click="emit('request')"
-      />
-      <FlareButton
-        v-if="actions().openSettings"
-        :label="openSettingsText"
-        variant="primary"
-        :size="compact ? 'md' : 'lg'"
-        :loading="busy"
-        @click="emit('openSettings')"
-      />
-      <FlareButton
-        v-if="actions().dismiss"
-        :label="strings.dismissText"
-        variant="secondary"
-        :size="compact ? 'md' : 'lg'"
-        :disabled="busy"
-        @click="emit('dismiss')"
-      />
-    </div>
-  </section>
+      <div v-if="actions().request || actions().openSettings || actions().dismiss" class="flare-permission-prompt__actions">
+        <FlareButton
+          v-if="actions().request"
+          :label="requestText"
+          variant="primary"
+          :size="buttonSize"
+          :block="sheet"
+          :loading="busy"
+          @click="emit('request')"
+        />
+        <FlareButton
+          v-if="actions().openSettings"
+          :label="openSettingsText"
+          variant="primary"
+          :size="buttonSize"
+          :block="sheet"
+          :loading="busy"
+          @click="emit('openSettings')"
+        />
+        <FlareButton
+          v-if="actions().dismiss"
+          :label="dismissText"
+          variant="secondary"
+          :size="buttonSize"
+          :block="sheet"
+          :disabled="busy"
+          @click="emit('dismiss')"
+        />
+      </div>
+    </section>
+  </component>
 </template>
 
 <style scoped>
@@ -193,5 +237,22 @@ function onEscape() { if (!props.busy && hasListener('onDismiss')) emit('dismiss
 @media (max-width: 480px) {
   .flare-permission-prompt--compact { grid-template-columns: auto minmax(0, 1fr); }
   .flare-permission-prompt--compact .flare-permission-prompt__actions { grid-column: 2; }
+}
+
+/* Sheet: the sheet is the surface. One centered column, full-width keys with the action first. */
+.flare-permission-prompt--sheet {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl);
+  border-radius: 0;
+  background: transparent;
+}
+.flare-permission-prompt--sheet .flare-permission-prompt__heading { justify-content: center; }
+.flare-permission-prompt--sheet .flare-permission-prompt__actions {
+  grid-column: 1;
+  justify-self: stretch;
+  flex-direction: column;
+  margin-top: var(--flare-size-spacing-sm);
 }
 </style>

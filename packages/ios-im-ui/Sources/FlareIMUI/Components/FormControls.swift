@@ -423,8 +423,9 @@ public struct TimePickerView: View {
 
 /// Bottom-sheet body for `TimePickerView`: a titled header with 取消/确定 plus a native
 /// 24-hour wheel `DatePicker`. Seeds a temp `Date` from the "HH:mm" value (minute snapped to
-/// `minuteStep` where practical) and, on 确定, formats it back to "HH:mm".
-private struct TimePickerSheet: View {
+/// `minuteStep` where practical) and, on 确定, formats it back to "HH:mm". Also the time picker
+/// of ``NotificationAlertSettingsView``'s Starts and Ends rows.
+struct TimePickerSheet: View {
     @Binding var value: String
     let minuteStep: Int
     let title: String
@@ -434,6 +435,11 @@ private struct TimePickerSheet: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @State private var temp = Date()
+
+    init(value: Binding<String>, minuteStep: Int, title: String, cancelLabel: String, confirmLabel: String) {
+        self._value = value; self.minuteStep = minuteStep; self.title = title
+        self.cancelLabel = cancelLabel; self.confirmLabel = confirmLabel
+    }
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)

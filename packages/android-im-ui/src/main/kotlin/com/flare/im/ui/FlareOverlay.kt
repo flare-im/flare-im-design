@@ -82,6 +82,13 @@ internal enum class FlareOverlaySurfaceKind { Sheet, Modal, Drawer }
  */
 internal val LocalFlareOverlaySurface = staticCompositionLocalOf<FlareOverlaySurfaceKind?> { null }
 
+/**
+ * Closes the enclosing kit overlay once its content is done with it (a choice was made), whether or not the overlay
+ * is dismissible: the surface leaves with its exit animation (at once under reduced motion) and the overlay's
+ * onClose runs when it is gone, as for the scrim. Null outside every overlay.
+ */
+internal val LocalFlareOverlayFinish = staticCompositionLocalOf<(() -> Unit)?> { null }
+
 /** True below a [FlarePlatformProvider]: the host declared its capabilities rather than falling back. */
 internal val LocalFlarePlatformInstalled = staticCompositionLocalOf { false }
 
@@ -214,7 +221,8 @@ internal data class FlareOverlayBounds(val width: Dp, val height: Dp)
  * reduced motion), and a host that keeps it composed after onClose sees it come back. While [dismissible], a tap
  * on the scrim closes it and system back / Escape either close it or, with [onBack], step back; while not, they
  * are swallowed. [scrimLabel] names the scrim's close action for TalkBack (null leaves it unannounced).
- * [surface] draws the panel inside [bounds] and gets the animated close.
+ * [surface] draws the panel inside [bounds] and gets the animated close; content that is done with the overlay
+ * closes it through [LocalFlareOverlayFinish], which no lock holds back.
  */
 @Composable
 internal fun FlareOverlayScaffold(
@@ -239,11 +247,15 @@ internal fun FlareOverlayScaffold(
     val shown = remember { MutableTransitionState(reducedMotion) }
     var closing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { shown.targetState = true }
-    val close: () -> Unit = {
-        if (currentDismissible && !closing) {
-            if (reducedMotion) currentOnClose() else { closing = true; shown.targetState = false }
+    // Remembered, so the content's local below stays one value for the life of the overlay.
+    val finish: () -> Unit = remember(reducedMotion) {
+        {
+            if (!closing) {
+                if (reducedMotion) currentOnClose() else { closing = true; shown.targetState = false }
+            }
         }
     }
+    val close: () -> Unit = { if (currentDismissible) finish() }
     val currentClose by rememberUpdatedState(close)
     if (closing && shown.isIdle && !shown.currentState) {
         LaunchedEffect(Unit) {
@@ -327,7 +339,7 @@ internal fun FlareOverlayScaffold(
                     val bounds = FlareOverlayBounds(maxWidth, maxHeight)
                     AnimatedVisibility(visibleState = shown, enter = enter, exit = exit) {
                         FlareOverlayFocusScope(focusKey) {
-                            CompositionLocalProvider(LocalFlareOverlaySurface provides kind) {
+                            CompositionLocalProvider(LocalFlareOverlaySurface provides kind, LocalFlareOverlayFinish provides finish) {
                                 surface(close, bounds)
                             }
                         }

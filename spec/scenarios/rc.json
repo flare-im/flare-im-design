@@ -192,6 +192,46 @@
       "accessibilityExpectation": "denial reason and settings path are named"
     },
     {
+      "id": "notification-soft-ask-denied",
+      "component": "PermissionPrompt",
+      "variant": "softAsk",
+      "state": "denied",
+      "theme": "light",
+      "content": "notifications",
+      "interaction": "openSettings",
+      "accessibilityExpectation": "the invitation names where to turn notifications on and offers Not now"
+    },
+    {
+      "id": "notification-delivery-restricted",
+      "component": "NotificationDeliverySettings",
+      "variant": "android",
+      "state": "restricted",
+      "theme": "dark",
+      "content": "notifications off, background restricted, one auto-start page",
+      "interaction": "openBatterySettings",
+      "accessibilityExpectation": "each row reads its label and value; the guide is a named sheet"
+    },
+    {
+      "id": "in-app-banner-mention-queued",
+      "component": "InAppNotificationHost",
+      "variant": "mentions",
+      "state": "queued",
+      "theme": "light",
+      "content": "a mention banner with [3条] showing, two other conversations waiting",
+      "interaction": "open",
+      "accessibilityExpectation": "the banner is announced once as a new message with its tag and count; focus keeps it on screen"
+    },
+    {
+      "id": "notification-alert-quiet-hours-overnight",
+      "component": "NotificationAlertSettings",
+      "variant": "sections",
+      "state": "crossesMidnight",
+      "theme": "dark",
+      "content": "quiet hours on from 22:00 to 08:00 the next day on weekdays, mentions allowed, name-only preview, after a delay",
+      "interaction": "change",
+      "accessibilityExpectation": "each switch reads its state, each picker row its value, and the footers follow their rows"
+    },
+    {
       "id": "failure-media-unavailable",
       "component": "UnknownMessage",
       "variant": "media",

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,28 @@ void main() {
         );
       });
     }
+
+    test('the incoming bubble stands off the chat canvas', () {
+      // `palette.canvas`: bg.primary is the surface every kit lays the
+      // timeline on; the incoming bubble stands off it in every brand and
+      // both modes, or a run from one sender reads as one block.
+      final canvas = palette['canvas'] as Map<String, dynamic>;
+      expect(canvas['background'], 'bg.primary');
+      final minimum = (canvas['minIncomingContrast'] as num).toDouble();
+      for (final brand in FlareBrandTheme.values) {
+        for (final brightness in Brightness.values) {
+          final colors = FlareColors.resolve(brightness, brand: brand);
+          final a = colors.messageIncomingBackground.computeLuminance();
+          final b = colors.bgPrimary.computeLuminance();
+          final ratio = (max(a, b) + 0.05) / (min(a, b) + 0.05);
+          expect(
+            ratio,
+            greaterThanOrEqualTo(minimum),
+            reason: '$brand $brightness',
+          );
+        }
+      }
+    });
 
     test('each tone paints the table\'s tokens', () {
       for (final colors in [

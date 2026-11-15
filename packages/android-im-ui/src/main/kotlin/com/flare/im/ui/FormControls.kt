@@ -345,17 +345,6 @@ fun TimePicker(
     val trigFont = when (size) { FlareControlSize.Sm -> 13; FlareControlSize.Md -> 14; FlareControlSize.Lg -> 15 }
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     var open by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val step = minuteStep.coerceIn(1, 30)
-    val hours = (0..23).toList()
-    val mins = (0 until 60 step step).toList()
-
-    fun pad(n: Int) = n.toString().padStart(2, '0')
-    val parsed = value.split(":")
-    val curH = parsed.getOrNull(0)?.toIntOrNull() ?: 0
-    val curM = parsed.getOrNull(1)?.toIntOrNull() ?: 0
-    var th by remember(value, open) { mutableIntStateOf(curH) }
-    var tm by remember(value, open) { mutableIntStateOf(curM) }
 
     Row(
         Modifier.height(trigH.dp).clip(shape).background(colors.bgSecondary)
@@ -375,42 +364,81 @@ fun TimePicker(
     }
 
     if (open) {
-        ModalBottomSheet(
-            onDismissRequest = { open = false },
-            sheetState = sheetState,
-            containerColor = colors.bgPrimary,
+        TimePickerSheet(
+            value = value,
+            title = title ?: placeholder,
+            minuteStep = minuteStep,
+            cancelLabel = cancelLabel,
+            confirmLabel = confirmLabel,
+            onDismiss = { open = false },
+            onConfirm = { picked ->
+                onChange?.invoke(picked)
+                open = false
+            },
+        )
+    }
+}
+
+/**
+ * The hour and minute sheet of [TimePicker] without its field: starts from [value] ("HH:mm"), [onConfirm] gets the
+ * picked "HH:mm", [onDismiss] runs for Cancel, the scrim and back. NotificationAlertSettings opens its times through
+ * it. Spec: Form/TimePicker.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun TimePickerSheet(
+    value: String,
+    title: String?,
+    minuteStep: Int,
+    cancelLabel: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    val colors = flareColors()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val step = minuteStep.coerceIn(1, 30)
+    val hours = (0..23).toList()
+    val mins = (0 until 60 step step).toList()
+
+    fun pad(n: Int) = n.toString().padStart(2, '0')
+    val parsed = value.split(":")
+    val curH = parsed.getOrNull(0)?.toIntOrNull() ?: 0
+    val curM = parsed.getOrNull(1)?.toIntOrNull() ?: 0
+    var th by remember(value) { mutableIntStateOf(curH) }
+    var tm by remember(value) { mutableIntStateOf(curM) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = colors.bgPrimary,
+    ) {
+        if (title != null) {
+            Text(title, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2xs), textAlign = TextAlign.Center)
+        }
+        Row(
+            Modifier.fillMaxWidth().height(232.dp).padding(horizontal = FlareSizes.spacing2xl),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            val heading = title ?: placeholder
-            if (heading != null) {
-                Text(heading, color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2xs), textAlign = TextAlign.Center)
+            TimeColumn(hours, th, colors) { th = it }
+            Text(":", color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp,
+                modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))
+            TimeColumn(mins, tm, colors) { tm = it }
+        }
+        Row(
+            Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
+        ) {
+            Box(Modifier.weight(1f)) {
+                Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = onDismiss)
             }
-            Row(
-                Modifier.fillMaxWidth().height(232.dp).padding(horizontal = FlareSizes.spacing2xl),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TimeColumn(hours, th, colors) { th = it }
-                Text(":", color = colors.textTertiary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp,
-                    modifier = Modifier.padding(horizontal = FlareSizes.spacingMd))
-                TimeColumn(mins, tm, colors) { tm = it }
-            }
-            Row(
-                Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
-                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
-            ) {
-                Box(Modifier.weight(1f)) {
-                    Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, block = true, onClick = { open = false })
-                }
-                Box(Modifier.weight(1f)) {
-                    Button(
-                        label = confirmLabel, variant = FlareButtonVariant.Primary, block = true,
-                        onClick = {
-                            onChange?.invoke("${pad(th)}:${pad(tm)}")
-                            open = false
-                        },
-                    )
-                }
+            Box(Modifier.weight(1f)) {
+                Button(
+                    label = confirmLabel, variant = FlareButtonVariant.Primary, block = true,
+                    onClick = { onConfirm("${pad(th)}:${pad(tm)}") },
+                )
             }
         }
     }

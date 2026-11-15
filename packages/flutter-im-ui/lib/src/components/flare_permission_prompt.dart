@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_bottom_sheet.dart';
 import 'flare_icon.dart';
 import '../models/directory_data.dart';
 import 'flare_button.dart';
@@ -19,7 +20,39 @@ enum FlarePermissionKind {
 }
 
 /// Host-reported permission state; the widget never queries the platform.
-enum FlarePermissionState { undetermined, denied, restricted, unavailable }
+/// [granted] lets a host bind the platform's permission status directly: the
+/// prompt renders nothing for it.
+enum FlarePermissionState {
+  undetermined,
+  denied,
+  restricted,
+  unavailable,
+  granted,
+}
+
+/// What the person chose on a prompt presented with
+/// [FlarePermissionPrompt.show].
+enum FlarePermissionChoice { request, openSettings, dismiss }
+
+/// Whether the prompt draws anything. Nothing for
+/// [FlarePermissionState.granted]. A soft-ask is an invitation the person can
+/// act on, so it shows only while the permission can be asked for or turned
+/// on in settings.
+bool permissionPromptShows(
+  FlarePermissionState state, {
+  bool softAsk = false,
+}) {
+  switch (state) {
+    case FlarePermissionState.granted:
+      return false;
+    case FlarePermissionState.undetermined:
+    case FlarePermissionState.denied:
+      return true;
+    case FlarePermissionState.restricted:
+    case FlarePermissionState.unavailable:
+      return !softAsk;
+  }
+}
 
 /// Action visibility computed from state + which callbacks the host supplied.
 @immutable
@@ -37,7 +70,7 @@ class FlarePermissionActions {
   /// Visible only while denied and the host supplied a handler.
   final bool openSettings;
 
-  /// Visible whenever the host supplied a handler (any state).
+  /// Visible whenever the host supplied a handler and the prompt shows.
   final bool dismiss;
 
   /// false while busy: visible actions stay rendered but disabled.
@@ -53,7 +86,7 @@ FlarePermissionActions permissionActions(
 }) => FlarePermissionActions(
   request: state == FlarePermissionState.undetermined && hasRequest,
   openSettings: state == FlarePermissionState.denied && hasOpenSettings,
-  dismiss: hasDismiss,
+  dismiss: state != FlarePermissionState.granted && hasDismiss,
   enabled: !busy,
 );
 
@@ -143,6 +176,8 @@ String permissionStateIconName(FlarePermissionState state) {
       return 'lock';
     case FlarePermissionState.unavailable:
       return 'warning';
+    case FlarePermissionState.granted:
+      return 'success';
   }
 }
 
@@ -150,7 +185,8 @@ String permissionStateIconName(FlarePermissionState state) {
 ///
 /// `strings` defaults to the kit's own copy; the widget passes the ambient
 /// [FlareStrings] so a host that overrides them at the root gets translated
-/// defaults here too.
+/// defaults here too. [FlarePermissionState.granted] has nothing to explain:
+/// an empty description and no primary action.
 FlarePermissionCopy defaultPermissionCopy(
   FlarePermissionKind kind,
   FlarePermissionState state, {
@@ -187,7 +223,49 @@ FlarePermissionCopy defaultPermissionCopy(
         description: strings.permissionUnavailableDescription(feature, verb),
         primaryLabel: '',
       );
+    case FlarePermissionState.granted:
+      return FlarePermissionCopy(
+        title: title,
+        description: '',
+        primaryLabel: '',
+      );
   }
+}
+
+/// The copy of a soft-ask (`FlarePermissionPrompt(softAsk: true)`). The
+/// notifications kind has its own: an invitation titled for new messages,
+/// "Turn on notifications" while the system can still ask and, once
+/// notifications were turned off, "Open Settings" with where to turn them back
+/// on. Any other kind keeps [defaultPermissionCopy].
+FlarePermissionCopy defaultPermissionSoftAskCopy(
+  FlarePermissionKind kind,
+  FlarePermissionState state, {
+  String? featureLabel,
+  FlareStrings strings = const FlareStrings(),
+}) {
+  if (kind == FlarePermissionKind.notifications) {
+    final title = strings.permissionSoftAskNotificationsTitle;
+    if (state == FlarePermissionState.undetermined) {
+      return FlarePermissionCopy(
+        title: title,
+        description: strings.permissionSoftAskNotificationsBody,
+        primaryLabel: strings.permissionSoftAskNotificationsAction,
+      );
+    }
+    if (state == FlarePermissionState.denied) {
+      return FlarePermissionCopy(
+        title: title,
+        description: strings.permissionSoftAskNotificationsDeniedBody,
+        primaryLabel: strings.permissionOpenSettings,
+      );
+    }
+  }
+  return defaultPermissionCopy(
+    kind,
+    state,
+    featureLabel: featureLabel,
+    strings: strings,
+  );
 }
 
 String defaultPermissionStateLabel(
@@ -203,6 +281,8 @@ String defaultPermissionStateLabel(
       return strings.permissionStateRestricted;
     case FlarePermissionState.unavailable:
       return strings.permissionStateUnavailable;
+    case FlarePermissionState.granted:
+      return strings.permissionStateGranted;
   }
 }
 
@@ -210,6 +290,14 @@ String defaultPermissionStateLabel(
 /// permission state and the request / openSettings side effects; this widget
 /// only explains and dispatches. Spec: General/PermissionPrompt
 /// (`FlarePermissionPrompt`).
+///
+/// [softAsk] is the non-blocking invitation a host shows at a moment it picks
+/// (the first visit to the conversation list, say): no state chip, a "Not now"
+/// dismiss and, for the notifications kind, copy of its own
+/// ([defaultPermissionSoftAskCopy]). It shows only while the person can act on
+/// it ([permissionPromptShows]); [FlarePermissionState.granted] renders
+/// nothing, so a host binds the platform's status as it is. To ask in a kit
+/// bottom sheet, use [FlarePermissionPrompt.show].
 class FlarePermissionPrompt extends StatelessWidget {
   const FlarePermissionPrompt({
     super.key,
@@ -219,12 +307,13 @@ class FlarePermissionPrompt extends StatelessWidget {
     this.detail,
     this.busy = false,
     this.compact = false,
+    this.softAsk = false,
     this.title,
     this.description,
     this.stateText,
     this.requestText,
     this.openSettingsText,
-    this.dismissText = '知道了',
+    this.dismissText,
     this.onRequest,
     this.onOpenSettings,
     this.onDismiss,
@@ -242,13 +331,93 @@ class FlarePermissionPrompt extends StatelessWidget {
 
   /// Inline single-row mode for placing above a composer; default is a card.
   final bool compact;
+
+  /// The non-blocking invitation: no state chip, "Not now", shown only while
+  /// the person can act on it.
+  final bool softAsk;
   final String? title, description, stateText, requestText, openSettingsText;
-  final String dismissText;
+
+  /// Defaults to [FlareStrings.permissionNotNow] on a soft-ask and
+  /// [FlareStrings.permissionDismiss] otherwise.
+  final String? dismissText;
   final VoidCallback? onRequest, onOpenSettings, onDismiss;
+
+  /// Asks in a kit bottom sheet — the sheet form of the prompt, usually a
+  /// soft-ask at a moment the host picks. It follows [FlareBottomSheet.show]
+  /// `auto`: a bottom sheet on the phone form factor, a centered FlareModal
+  /// elsewhere.
+  ///
+  /// Resolves with the key the person pressed once the sheet is gone, so the
+  /// system's own permission dialog then has the screen to itself; closing it
+  /// by the scrim, a drag, Escape or back is [FlarePermissionChoice.dismiss].
+  /// Resolves null at once, showing nothing, while the prompt would not show
+  /// ([permissionPromptShows]). [request] and [openSettings] say which keys
+  /// the host offers.
+  static Future<FlarePermissionChoice?> show(
+    BuildContext context, {
+    required FlarePermissionKind kind,
+    required FlarePermissionState state,
+    bool softAsk = false,
+    String? featureLabel,
+    String? detail,
+    String? title,
+    String? description,
+    String? requestText,
+    String? openSettingsText,
+    String? dismissText,
+    bool request = true,
+    bool openSettings = true,
+  }) async {
+    if (!permissionPromptShows(state, softAsk: softAsk)) return null;
+    final strings = FlareStrings.of(context);
+    final copy = softAsk
+        ? defaultPermissionSoftAskCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          )
+        : defaultPermissionCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          );
+    final choice = await FlareBottomSheet.show<FlarePermissionChoice>(
+      context,
+      title: title ?? copy.title,
+      // The prompt draws its own heading; the sheet keeps the title as its
+      // accessible name only.
+      titleHidden: true,
+      builder: (sheet) => _FlarePermissionSheetBody(
+        kind: kind,
+        state: state,
+        softAsk: softAsk,
+        featureLabel: featureLabel,
+        detail: detail,
+        title: title,
+        description: description,
+        requestText: requestText,
+        openSettingsText: openSettingsText,
+        dismissText: dismissText,
+        onRequest: request
+            ? () => Navigator.of(sheet).pop(FlarePermissionChoice.request)
+            : null,
+        onOpenSettings: openSettings
+            ? () =>
+                  Navigator.of(sheet).pop(FlarePermissionChoice.openSettings)
+            : null,
+        onDismiss: () =>
+            Navigator.of(sheet).pop(FlarePermissionChoice.dismiss),
+      ),
+    );
+    return choice ?? FlarePermissionChoice.dismiss;
+  }
 
   Color _tone(FlareColors colors) {
     switch (state) {
       case FlarePermissionState.undetermined:
+      case FlarePermissionState.granted:
         return colors.info;
       case FlarePermissionState.denied:
         return colors.error;
@@ -261,14 +430,24 @@ class FlarePermissionPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!permissionPromptShows(state, softAsk: softAsk)) {
+      return const SizedBox.shrink();
+    }
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    final copy = defaultPermissionCopy(
-      kind,
-      state,
-      featureLabel: featureLabel,
-      strings: strings,
-    );
+    final copy = softAsk
+        ? defaultPermissionSoftAskCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          )
+        : defaultPermissionCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          );
     final actions = permissionActions(
       state,
       hasRequest: onRequest != null,
@@ -278,22 +457,8 @@ class FlarePermissionPrompt extends StatelessWidget {
     );
     final tone = _tone(colors);
     final resolvedTitle = title ?? copy.title;
-    final iconSize = compact ? 32.0 : 44.0;
 
-    final icon = Container(
-      width: iconSize,
-      height: iconSize,
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.12),
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: FlareIcon(
-        permissionIconName(kind),
-        size: compact ? 20 : 26,
-        color: colors.primaryText,
-      ),
-    );
+    final icon = _PermissionIcon(kind: kind, compact: compact);
 
     final heading = Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -308,36 +473,39 @@ class FlarePermissionPrompt extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        Semantics(
-          liveRegion: true,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: tone.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FlareIcon(
-                  permissionStateIconName(state),
-                  size: 14,
-                  color: tone,
-                ),
-                const SizedBox(width: FlareSizes.spacingXs),
-                Text(
-                  stateText ??
-                      defaultPermissionStateLabel(state, strings: strings),
-                  style: TextStyle(
+        // A soft-ask is an invitation, not a status report: it carries no
+        // state chip.
+        if (!softAsk)
+          Semantics(
+            liveRegion: true,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: tone.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FlareIcon(
+                    permissionStateIconName(state),
+                    size: 14,
                     color: tone,
-                    fontSize: FlareSizes.fontSizeXs,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
-              ],
+                  const SizedBox(width: FlareSizes.spacingXs),
+                  Text(
+                    stateText ??
+                        defaultPermissionStateLabel(state, strings: strings),
+                    style: TextStyle(
+                      color: tone,
+                      fontSize: FlareSizes.fontSizeXs,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
 
@@ -391,7 +559,12 @@ class FlarePermissionPrompt extends StatelessWidget {
               borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             ),
           ),
-          child: Text(dismissText),
+          child: Text(
+            dismissText ??
+                (softAsk
+                    ? strings.permissionNotNow
+                    : strings.permissionDismiss),
+          ),
         ),
     ];
     final actionRow = buttons.isEmpty
@@ -493,4 +666,166 @@ class FlarePermissionPrompt extends StatelessWidget {
       onPressed: onPressed,
     ),
   );
+}
+
+/// The kind's glyph on a tinted disc.
+class _PermissionIcon extends StatelessWidget {
+  const _PermissionIcon({required this.kind, required this.compact});
+  final FlarePermissionKind kind;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final side = compact ? 32.0 : 44.0;
+    return Container(
+      width: side,
+      height: side,
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: FlareIcon(
+        permissionIconName(kind),
+        size: compact ? 20 : 26,
+        color: colors.primaryText,
+      ),
+    );
+  }
+}
+
+/// The prompt as the body of a kit sheet ([FlarePermissionPrompt.show]): icon,
+/// heading and explanation in one centered column, then full-width keys with
+/// the action first and "Not now" under it.
+class _FlarePermissionSheetBody extends StatelessWidget {
+  const _FlarePermissionSheetBody({
+    required this.kind,
+    required this.state,
+    required this.softAsk,
+    required this.featureLabel,
+    required this.detail,
+    required this.title,
+    required this.description,
+    required this.requestText,
+    required this.openSettingsText,
+    required this.dismissText,
+    required this.onRequest,
+    required this.onOpenSettings,
+    required this.onDismiss,
+  });
+
+  final FlarePermissionKind kind;
+  final FlarePermissionState state;
+  final bool softAsk;
+  final String? featureLabel, detail, title, description;
+  final String? requestText, openSettingsText, dismissText;
+  final VoidCallback? onRequest, onOpenSettings, onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final copy = softAsk
+        ? defaultPermissionSoftAskCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          )
+        : defaultPermissionCopy(
+            kind,
+            state,
+            featureLabel: featureLabel,
+            strings: strings,
+          );
+    final actions = permissionActions(
+      state,
+      hasRequest: onRequest != null,
+      hasOpenSettings: onOpenSettings != null,
+      hasDismiss: onDismiss != null,
+    );
+    final detail = this.detail;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        FlareSizes.spacingLg,
+        FlareSizes.spacingSm,
+        FlareSizes.spacingLg,
+        FlareSizes.spacingXl,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(child: _PermissionIcon(kind: kind, compact: false)),
+          const SizedBox(height: FlareSizes.spacingMd),
+          Semantics(
+            header: true,
+            child: Text(
+              title ?? copy.title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: FlareSizes.fontSizeXl,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: FlareSizes.spacingXs),
+          Text(
+            description ?? copy.description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: FlareSizes.fontSizeMd,
+              height: FlareSizes.lineHeightNormal,
+            ),
+          ),
+          if (detail != null && detail.isNotEmpty) ...[
+            const SizedBox(height: FlareSizes.spacingXs),
+            Text(
+              detail,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textTertiary,
+                fontSize: FlareSizes.fontSizeSm,
+                height: FlareSizes.lineHeightNormal,
+              ),
+            ),
+          ],
+          const SizedBox(height: FlareSizes.spacingLg),
+          if (actions.request) ...[
+            FlareButton(
+              label: requestText ?? copy.primaryLabel,
+              size: FlareControlSize.lg,
+              block: true,
+              onPressed: onRequest,
+            ),
+            const SizedBox(height: FlareSizes.spacingSm),
+          ],
+          if (actions.openSettings) ...[
+            FlareButton(
+              label: openSettingsText ?? copy.primaryLabel,
+              size: FlareControlSize.lg,
+              block: true,
+              onPressed: onOpenSettings,
+            ),
+            const SizedBox(height: FlareSizes.spacingSm),
+          ],
+          if (actions.dismiss)
+            FlareButton(
+              label:
+                  dismissText ??
+                  (softAsk
+                      ? strings.permissionNotNow
+                      : strings.permissionDismiss),
+              variant: FlareButtonVariant.secondary,
+              size: FlareControlSize.lg,
+              block: true,
+              onPressed: onDismiss,
+            ),
+        ],
+      ),
+    );
+  }
 }
