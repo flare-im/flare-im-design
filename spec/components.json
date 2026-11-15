@@ -18498,6 +18498,7 @@
         "referenceLoad",
         "memberSearch",
         "membersRetry",
+        "fileAction",
         "locationAction"
       ],
       "eventPlatforms": {
@@ -18512,6 +18513,16 @@
         ],
         "referenceLoad": [
           "vue"
+        ],
+        "memberSearch": [
+          "flutter",
+          "ios",
+          "compose"
+        ],
+        "membersRetry": [
+          "flutter",
+          "ios",
+          "compose"
         ]
       },
       "platforms": {
@@ -18700,7 +18711,9 @@
         "close",
         "action",
         "loadMore",
-        "protectedMediaRead"
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "eventPlatforms": {
         "close": [
@@ -18709,6 +18722,12 @@
         ],
         "protectedMediaRead": [
           "vue"
+        ],
+        "memberSearch": [
+          "compose"
+        ],
+        "membersRetry": [
+          "compose"
         ]
       },
       "platforms": {

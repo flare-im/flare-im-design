@@ -11560,6 +11560,7 @@
         "referenceLoad",
         "memberSearch",
         "membersRetry",
+        "fileAction",
         "locationAction"
       ],
       "states": [
@@ -11577,6 +11578,7 @@
         "referenceLoad",
         "memberSearch",
         "membersRetry",
+        "fileAction",
         "locationAction"
       ],
       "accessibility": "accessibility-contract",
@@ -11619,7 +11621,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginForm",
-      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore referenceload membersearch membersretry locationaction supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 kit 底部面板或嵌入页面。"
+      "searchText": "pluginform message im-ui stable message editing invalid busy error submit cancel selectionsearch selectionretry selectionmore referenceload membersearch membersretry fileaction locationaction supportsconfiguration plugin form — the resolved inputs of a plugin action (text, textarea, number, toggle, select, datetime, options, members) with light client checks and the host's errors; rendered in a kit sheet or embedded in a page. 插件表单 —— 插件动作的解析后输入（文本、多行、数字、开关、单选、日期时间、选项列表、成员），客户端轻校验加宿主错误；可放入 kit 底部面板或嵌入页面。"
     },
     {
       "name": "PluginDetailSheet",
@@ -11685,7 +11687,9 @@
         "close",
         "action",
         "loadMore",
-        "protectedMediaRead"
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "states": [
         "loading",
@@ -11697,7 +11701,9 @@
         "close",
         "action",
         "loadMore",
-        "protectedMediaRead"
+        "protectedMediaRead",
+        "memberSearch",
+        "membersRetry"
       ],
       "accessibility": "accessibility-contract",
       "responsive": "application-layout-vectors",
@@ -11739,7 +11745,7 @@
         "gallery": false
       },
       "sourceOfTruth": "spec/components.json#PluginDetailSheet",
-      "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore protectedmediaread supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
+      "searchText": "plugindetailsheet message im-ui stable message loading error loaded retry close action loadmore protectedmediaread membersearch membersretry supportsconfiguration plugin detail — the \"see all\" view of a plugin card in the kit bottom sheet: loading, an error with retry, then the detail view as an embedded pluginview. 插件详情 —— 插件卡片「查看全部」的视图，放在 kit 底部面板：加载中、出错可重试，然后以内嵌 pluginview 渲染 detail 视图。"
     },
     {
       "name": "PluginPage",
