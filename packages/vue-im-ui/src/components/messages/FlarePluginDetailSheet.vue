@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
+import FlareDrawer from "../general/FlareDrawer.vue";
+import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import FlareButton from "../general/FlareButton.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import FlarePluginView from "./FlarePluginView.vue";
@@ -34,6 +36,8 @@ const props = withDefaults(
     resolveUser?: FlarePluginResolveUser;
     /** The viewer's user id: their rows in grouped entries carry the "me" tag. */
     viewerId?: string;
+    /** `page`: a right-side drawer on desktop for long record browsing; phones keep the bottom sheet. */
+    presentation?: "auto" | "page";
     busyActionId?: string;
     /** The record's own actions, drawn at the bottom of the sheet or drawer; each emits `action` with an empty payload. */
     actions?: readonly FlarePluginAction[];
@@ -62,7 +66,7 @@ const props = withDefaults(
   }>(),
   {
     title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
-    actions: () => [],
+    actions: () => [], presentation: "auto",
     actionError: undefined, errorPresentation: "inline", formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
     assetScale: undefined, protectedMedia: undefined,
   },
@@ -77,6 +81,9 @@ const emit = defineEmits<{
   protectedMediaRead: [read: FlarePluginProtectedMediaRead];
 }>();
 const { t } = useFlareI18nOptional();
+const platform = useFlarePlatformSafe();
+// The drawer is the desktop form of the page presentation; a phone keeps the bottom sheet.
+const drawer = computed(() => props.presentation === "page" && !platform.capabilities.value.bottomSheet);
 const heading = computed(() => props.view?.title || props.title);
 const state = computed(() => (props.loading ? "loading" : props.error ? "error" : props.view ? "loaded" : "loading"));
 
@@ -91,7 +98,8 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
 </script>
 
 <template>
-  <FlareBottomSheet show-close :open="open" :title="heading" max-height="80vh" @close="emit('close')">
+  <component :is="drawer ? FlareDrawer : FlareBottomSheet" :open="open" :title="heading"
+    v-bind="drawer ? { showClose: true } : { showClose: true, maxHeight: '80vh' }" @close="emit('close')">
     <div class="flare-plugin-detail" :data-state="state" :aria-busy="state === 'loading'">
       <FlareEmptyState v-if="state === 'loading'" :title="t('pluginView.loading')" loading />
       <div v-else-if="state === 'error'" class="flare-plugin-detail__error">
@@ -145,7 +153,7 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
         <slot name="footer" />
       </footer>
     </div>
-  </FlareBottomSheet>
+  </component>
 </template>
 
 <style scoped>
