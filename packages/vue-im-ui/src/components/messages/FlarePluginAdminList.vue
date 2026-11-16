@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { useSlots } from "vue";
+import { computed, useSlots } from "vue";
 import PluginRowsBlock from "./plugin/PluginRowsBlock.vue";
+import PluginSimpleBlock from "./plugin/PluginSimpleBlock.vue";
+import PluginTextBlock from "./plugin/PluginTextBlock.vue";
 import type { FlareAdminPagination } from "../data/admin-list";
 import type {
   FlarePluginAction,
+  FlarePluginBlock,
   FlarePluginRow,
   FlarePluginRowsBlock,
   FlarePluginStrings,
@@ -22,6 +25,10 @@ defineProps<{
   error?: string;
   filtersInvalid?: boolean;
   pagination?: FlareAdminPagination;
+  /** Explanations drawn in the list's "?" help popover. */
+  help?: readonly FlarePluginBlock[];
+  /** Warnings drawn in the list notice, two lines each with an expand key. */
+  notices?: readonly FlarePluginBlock[];
 }>();
 const emit = defineEmits<{
   search: [];
@@ -35,6 +42,8 @@ const visibleColumnKeys = defineModel<string[] | null>("visibleColumnKeys", {
   default: null,
 });
 const slots = useSlots();
+// A host's own help / notice slots stay; the declared blocks follow them.
+const passthrough = computed(() => Object.keys(slots).filter((name) => name !== "help" && name !== "notice"));
 </script>
 
 <template>
@@ -59,8 +68,22 @@ const slots = useSlots();
     @open-row="emit('openRow', $event)"
     @load-more="emit('loadMore', $event)"
   >
-    <template v-for="(_, name) in slots" :key="name" #[name]
+    <template v-for="name in passthrough" :key="name" #[name]
       ><slot :name="name"
     /></template>
+    <template v-if="slots.help || help?.length" #help>
+      <slot name="help" />
+      <template v-for="(block, index) in help ?? []" :key="index">
+        <PluginTextBlock v-if="block.kind === 'text'" :block="block" />
+        <PluginSimpleBlock v-else-if="block.kind === 'note'" :block="block" />
+      </template>
+    </template>
+    <template v-if="slots.notice || notices?.length" #notice>
+      <slot name="notice" />
+      <template v-for="(block, index) in notices ?? []" :key="index">
+        <PluginSimpleBlock v-if="block.kind === 'note'" :block="block" :clamp="2" />
+        <PluginTextBlock v-else-if="block.kind === 'text'" :block="block" :clamp="2" />
+      </template>
+    </template>
   </PluginRowsBlock>
 </template>

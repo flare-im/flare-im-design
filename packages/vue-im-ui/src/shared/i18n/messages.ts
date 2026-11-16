@@ -501,6 +501,9 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       confirm: "确定",
       cancel: "取消",
     },
+    plugin: {
+      admin: { help: "说明", expand: "展开", collapse: "收起" },
+    },
     pluginView: {
       referenceUnavailable: "暂不可用",
       protectedMedia: {
@@ -2341,6 +2344,9 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       selfSuffix: " (me)",
       confirm: "Done",
       cancel: "Cancel",
+    },
+    plugin: {
+      admin: { help: "About", expand: "Expand", collapse: "Collapse" },
     },
     pluginView: {
       referenceUnavailable: "Unavailable",

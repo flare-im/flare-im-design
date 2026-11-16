@@ -9,6 +9,7 @@ import {
   shallowReactive,
   watch,
 } from "vue";
+import FlareAdminHelp from "../data/FlareAdminHelp.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
@@ -122,6 +123,11 @@ const props = withDefaults(
     errorPresentation?: "inline" | "external";
     /** Render persistent plugin guidance as ordinary text in message-owning hosts. */
     notePresentation?: "tinted" | "plain";
+    /**
+     * `message` is the timeline card (default). `admin` moves the explanations that lead a page into the admin
+     * help popover (flow layout: the page head) and the warnings into the list notice, clamped to two lines.
+     */
+    presentation?: "message" | "admin";
     /** No card shell or title row (detail sheet, admin page). */
     embedded?: boolean;
     /**
@@ -198,6 +204,7 @@ const props = withDefaults(
     inset: "none",
     rowsLayout: "table",
     contentLayout: "flow",
+    presentation: "message",
     actionsPlacement: "footer",
     actionLayout: "inline",
     labelRows: false,
@@ -887,6 +894,37 @@ const firstRowsIndex = computed(
 const actionsInRows = computed(
   () => props.actionsPlacement === "rows" && firstRowsIndex.value >= 0,
 );
+// Admin presentation: which explanation blocks leave the page body, and where they go. A list page sends the
+// ones before its first rows to the rows slot (help / notices); any other page gathers its calm notes and text
+// into the page-head help. Warnings stay in place (flow) or go to the notice (list); nothing is dropped.
+const isLoudNote = (block: FlarePluginBlock) =>
+  block.kind === "note" && (block.tone === "warning" || block.tone === "danger");
+const adminLayout = computed(() => {
+  const out = {
+    hidden: new Set<number>(),
+    help: [] as FlarePluginBlock[],
+    notices: [] as FlarePluginBlock[],
+    header: [] as FlarePluginBlock[],
+  };
+  if (props.presentation !== "admin") return out;
+  const list = props.contentLayout === "list" && firstRowsIndex.value >= 0;
+  for (const { block, index, section } of items.value) {
+    if (section !== undefined) continue;
+    if (list && index >= firstRowsIndex.value) break;
+    if (block.kind !== "note" && block.kind !== "text") continue;
+    const loud = isLoudNote(block);
+    if (list) {
+      out.hidden.add(index);
+      (loud ? out.notices : out.help).push(block);
+    } else if (!loud) {
+      out.hidden.add(index);
+      out.header.push(block);
+    }
+  }
+  return out;
+});
+const adminClamp = (block: FlarePluginBlock) =>
+  props.presentation === "admin" && isLoudNote(block) ? 2 : undefined;
 function runPageAction(action: FlarePluginAction): void {
   const declared = footerActions.value.find(
     (candidate) => candidate.id === action.id,
@@ -1024,6 +1062,20 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
     </p>
     <FlarePluginQr v-if="view.available && view.presentation?.renderer === 'flare.qr'" :token="typeof view.presentation.props.token === 'string' ? view.presentation.props.token : undefined" :ttl-ms="typeof view.presentation.props.ttlMs === 'number' ? view.presentation.props.ttlMs : undefined" :caption="typeof view.presentation.props.caption === 'string' ? view.presentation.props.caption : undefined" :encode-qr="encodeQr" />
     <template v-if="view.available && !specialPresentation">
+      <div
+        v-if="adminLayout.header.length"
+        class="flare-plugin-view__help"
+        data-admin-help="true"
+      >
+        <FlareAdminHelp :label="t('plugin.admin.help')">
+          <div class="flare-plugin-view__help-body">
+            <template v-for="(helpBlock, helpIndex) in adminLayout.header" :key="helpIndex">
+              <PluginTextBlock v-if="helpBlock.kind === 'text'" :block="helpBlock" />
+              <PluginSimpleBlock v-else-if="helpBlock.kind === 'note'" :block="helpBlock" />
+            </template>
+          </div>
+        </FlareAdminHelp>
+      </div>
       <dl v-if="view.fields.length" class="flare-plugin-view__fields">
         <div v-for="(field, index) in shownFields" :key="index">
           <dt>{{ field.label }}</dt>
@@ -1036,7 +1088,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         </div>
       </dl>
       <template v-for="{ block, index, section } in items" :key="index">
-        <template v-if="section === undefined || !sectionCollapsed(section)">
+        <template v-if="(section === undefined || !sectionCollapsed(section)) && !adminLayout.hidden.has(index)">
         <PluginTextBlock
           v-if="block.kind === 'text'"
           :block="block"
@@ -1092,6 +1144,8 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
               actionsInRows && index === firstRowsIndex ? footerActions : []
             "
             :run-action="runPageAction"
+            :help="adminLayout.help"
+            :notices="adminLayout.notices"
             :open-row="openRow"
             :load-more="(cursor: string) => loadRowsMore(cursor, block)"
           >
@@ -1192,7 +1246,8 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
             block.kind === 'note'
           "
           :block="shownBlock(block)"
-          :note-presentation="notePresentation"
+          :note-presentation="presentation === 'admin' ? 'tinted' : notePresentation"
+          :clamp="adminClamp(block)"
           :data-block="block.kind"
         />
         </template>
@@ -1405,6 +1460,14 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
 }
 .flare-plugin-view__rows {
   display: contents;
+}
+.flare-plugin-view__help {
+  display: flex;
+  justify-content: flex-end;
+}
+.flare-plugin-view__help-body {
+  display: grid;
+  gap: var(--flare-size-spacing-sm);
 }
 .flare-plugin-view.is-list-layout {
   display: flex;

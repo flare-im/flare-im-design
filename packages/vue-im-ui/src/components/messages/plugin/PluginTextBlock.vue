@@ -5,15 +5,17 @@ import type { FlarePluginTextBlock } from "../../../shared/contracts/plugin-ui";
 
 // Text cut at `maxLines`, with "expand" when it overflows: measured where there is layout, and known
 // without it when the text has more lines than the cap.
-const props = defineProps<{ block: FlarePluginTextBlock }>();
+const props = defineProps<{ block: FlarePluginTextBlock; clamp?: number }>();
 const { t } = useFlareI18nOptional();
 
 const expanded = ref(false);
 const measured = ref(false);
 const el = ref<HTMLElement | null>(null);
-const clamp = computed(() => (props.block.maxLines && !expanded.value ? props.block.maxLines : undefined));
+// A host-given `clamp` (admin pages) wins over the block's own maxLines.
+const cap = computed(() => props.clamp ?? props.block.maxLines);
+const lines = computed(() => (cap.value && !expanded.value ? cap.value : undefined));
 const overflows = computed(() => {
-  const max = props.block.maxLines;
+  const max = cap.value;
   if (!max) return false;
   return measured.value || props.block.text.split("\n").length > max;
 });
@@ -21,7 +23,7 @@ const overflows = computed(() => {
 let observer: ResizeObserver | undefined;
 function measure(): void {
   const node = el.value;
-  if (!node || expanded.value || !props.block.maxLines) return;
+  if (!node || expanded.value || !cap.value) return;
   measured.value = node.scrollHeight > node.clientHeight + 1;
 }
 onMounted(() => {
@@ -41,8 +43,8 @@ watch(() => props.block.text, () => { expanded.value = false; void nextTick(meas
       ref="el"
       class="flare-plugin-text__body"
       :class="`is-${block.style ?? 'body'}`"
-      :style="clamp ? { '-webkit-line-clamp': String(clamp), 'line-clamp': String(clamp) } : undefined"
-      :data-clamped="clamp ? 'true' : undefined"
+      :style="lines ? { '-webkit-line-clamp': String(lines), 'line-clamp': String(lines) } : undefined"
+      :data-clamped="lines ? 'true' : undefined"
     >{{ block.text }}</p>
     <button
       v-if="overflows"

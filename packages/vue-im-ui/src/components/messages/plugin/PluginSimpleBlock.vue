@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import type {
@@ -11,22 +13,49 @@ import type {
 
 // The blocks without state of their own: fields (label/value rows), status (a kit Tag), progress (a bar
 // and value/total), divider and note (a tinted line in the *Text tone).
-defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlock | FlarePluginProgressBlock | FlarePluginDividerBlock | FlarePluginNoteBlock; notePresentation?: "tinted" | "plain" }>();
-const clamp = (n: number) => Math.min(100, Math.max(0, n));
+// `clamp` cuts a note at that many lines with an expand key (admin pages keep warnings short).
+defineOptions({ inheritAttrs: false });
+const props = defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlock | FlarePluginProgressBlock | FlarePluginDividerBlock | FlarePluginNoteBlock; notePresentation?: "tinted" | "plain"; clamp?: number }>();
+const pct = (n: number) => Math.min(100, Math.max(0, n));
+const { t } = useFlareI18nOptional();
+const expanded = ref(false);
+const measured = ref(false);
+const el = ref<HTMLElement | null>(null);
+const lines = computed(() => (props.block.kind === "note" && props.clamp ? props.clamp : undefined));
+const overflows = computed(() => {
+  const max = lines.value;
+  if (!max || props.block.kind !== "note") return false;
+  return measured.value || props.block.text.split("\n").length > max;
+});
+let observer: ResizeObserver | undefined;
+function measure(): void {
+  const node = el.value;
+  if (!node || expanded.value || !lines.value) return;
+  measured.value = node.scrollHeight > node.clientHeight + 1;
+}
+onMounted(() => {
+  measure();
+  if (typeof ResizeObserver !== "undefined" && el.value) {
+    observer = new ResizeObserver(measure);
+    observer.observe(el.value);
+  }
+});
+onBeforeUnmount(() => observer?.disconnect());
+watch(() => (props.block.kind === "note" ? props.block.text : ""), () => { expanded.value = false; measured.value = false; void nextTick(measure); });
 </script>
 
 <template>
-  <dl v-if="block.kind === 'fields'" class="flare-plugin-fields">
+  <dl v-if="block.kind === 'fields'" v-bind="$attrs" class="flare-plugin-fields">
     <div v-for="(field, index) in block.fields" :key="index" class="flare-plugin-fields__row">
       <dt>{{ field.label }}</dt>
       <dd><FlareUserIdentity v-if="field.user" :user="field.user" /><template v-else>{{ field.value }}</template></dd>
     </div>
   </dl>
-  <div v-else-if="block.kind === 'status'" class="flare-plugin-status">
+  <div v-else-if="block.kind === 'status'" v-bind="$attrs" class="flare-plugin-status">
     <span v-if="block.label" class="flare-plugin-status__label">{{ block.label }}</span>
     <FlareTag :label="block.text" :tone="block.tone" :data-status-tone="block.tone" />
   </div>
-  <div v-else-if="block.kind === 'progress'" class="flare-plugin-progress">
+  <div v-else-if="block.kind === 'progress'" v-bind="$attrs" class="flare-plugin-progress">
     <div class="flare-plugin-progress__head">
       <span v-if="block.label" class="flare-plugin-progress__label">{{ block.label }}</span>
       <span class="flare-plugin-progress__value" data-progress-text="true">{{ block.value }}/{{ block.total }}</span>
@@ -40,11 +69,31 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
       :aria-valuemax="block.total"
       :aria-valuetext="`${block.value}/${block.total}`"
     >
-      <span class="flare-plugin-progress__fill" :style="{ width: `${clamp(block.percent)}%` }" data-progress-fill="true" />
+      <span class="flare-plugin-progress__fill" :style="{ width: `${pct(block.percent)}%` }" data-progress-fill="true" />
     </div>
   </div>
-  <hr v-else-if="block.kind === 'divider'" class="flare-plugin-divider" />
-  <p v-else-if="block.kind === 'note'" class="flare-plugin-note" :class="notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
+  <hr v-else-if="block.kind === 'divider'" v-bind="$attrs" class="flare-plugin-divider" />
+  <div v-else-if="block.kind === 'note' && lines" class="flare-plugin-note-clamp">
+    <p
+      ref="el"
+      v-bind="$attrs"
+      class="flare-plugin-note"
+      :class="[notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`, { 'is-clamped': !expanded }]"
+      :style="{ '--flare-clamp-lines': String(lines) }"
+      :data-note-tone="block.tone ?? 'neutral'"
+    >{{ block.text }}</p>
+    <button
+      v-if="overflows"
+      type="button"
+      class="flare-plugin-note__toggle"
+      :aria-expanded="expanded"
+      data-note-toggle="true"
+      @click="expanded = !expanded"
+    >
+      {{ expanded ? t("plugin.admin.collapse") : t("plugin.admin.expand") }}
+    </button>
+  </div>
+  <p v-else-if="block.kind === 'note'" v-bind="$attrs" class="flare-plugin-note" :class="notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
 </template>
 
 <style scoped>
@@ -74,6 +123,21 @@ const clamp = (n: number) => Math.min(100, Math.max(0, n));
   color: var(--flare-plugin-note-ink);
   background: var(--flare-plugin-note-surface);
 }
+.flare-plugin-note-clamp { display: grid; justify-items: start; gap: var(--flare-size-spacing-3xs); min-width: 0; }
+.flare-plugin-note-clamp > .flare-plugin-note { max-width: 100%; box-sizing: border-box; }
+.flare-plugin-note.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--flare-clamp-lines); line-clamp: var(--flare-clamp-lines); overflow: hidden; }
+.flare-plugin-note__toggle {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--flare-size-font-size-md);
+  color: var(--flare-color-primary-text);
+  cursor: pointer;
+}
+.flare-plugin-note__toggle::after { content: ""; position: absolute; inset: calc(var(--flare-size-spacing-md) * -1) calc(var(--flare-size-spacing-sm) * -1); }
+.flare-plugin-note__toggle:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .flare-plugin-note.is-neutral { --flare-plugin-note-ink: var(--flare-color-text-secondary); --flare-plugin-note-surface: var(--flare-color-bg-tertiary); }
 .flare-plugin-note.is-info { --flare-plugin-note-ink: var(--flare-color-info-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-info) 6%, var(--flare-color-bg-primary)); }
 .flare-plugin-note.is-success { --flare-plugin-note-ink: var(--flare-color-success-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-success) 6%, var(--flare-color-bg-primary)); }
