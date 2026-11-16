@@ -7,6 +7,7 @@ import FlarePluginView from "./FlarePluginView.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { usePluginPaging } from "./plugin/pluginPaging";
 import {
+  type FlarePluginAction,
   type FlarePluginActionPayload,
   type FlarePluginFormError,
   type FlarePluginMember,
@@ -34,6 +35,8 @@ const props = withDefaults(
     /** The viewer's user id: their rows in grouped entries carry the "me" tag. */
     viewerId?: string;
     busyActionId?: string;
+    /** The record's own actions, drawn at the bottom of the sheet or drawer; each emits `action` with an empty payload. */
+    actions?: readonly FlarePluginAction[];
     /** Failure of an action run from the detail, shown inside the sheet (the view's error), never on the card. */
     actionError?: string;
     /** Keep action failure/settlement state while the host presents its own notification. */
@@ -59,6 +62,7 @@ const props = withDefaults(
   }>(),
   {
     title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
+    actions: () => [],
     actionError: undefined, errorPresentation: "inline", formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
     assetScale: undefined, protectedMedia: undefined,
   },
@@ -124,7 +128,22 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
           @click="loadMore"
         />
       </div>
-      <footer v-if="state === 'loaded' && $slots.footer" class="flare-plugin-detail__footer"><slot name="footer" /></footer>
+      <footer v-if="state === 'loaded' && (actions.length || $slots.footer)" class="flare-plugin-detail__footer">
+        <div v-if="actions.length" class="flare-plugin-detail__actions" data-detail-actions="true">
+          <FlareButton
+            v-for="action in actions"
+            :key="action.id"
+            size="sm"
+            :variant="action.style === 'danger' ? 'danger' : action.style === 'primary' ? 'primary' : 'secondary'"
+            :label="action.label"
+            :loading="busyActionId === action.id"
+            :disabled="Boolean(busyActionId)"
+            :data-action-id="action.id"
+            @click="emit('action', action.id, {})"
+          />
+        </div>
+        <slot name="footer" />
+      </footer>
     </div>
   </FlareBottomSheet>
 </template>
@@ -132,6 +151,7 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
 <style scoped>
 .flare-plugin-detail { box-sizing: border-box; width: 100%; min-height: 0; padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl); overflow-y: auto; }
 .flare-plugin-detail__footer { position: sticky; bottom: 0; padding-block: var(--flare-size-spacing-md); background: var(--flare-color-bg-primary); border-top: 1px solid var(--flare-color-border-secondary); }
+.flare-plugin-detail__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--flare-size-spacing-sm); }
 .flare-plugin-detail__more { padding-top: var(--flare-size-spacing-md); }
 .flare-plugin-detail__error { display: grid; justify-items: center; gap: var(--flare-size-spacing-md); padding: var(--flare-size-spacing-xl) 0; text-align: center; }
 .flare-plugin-detail__error p { margin: 0; font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-secondary); }

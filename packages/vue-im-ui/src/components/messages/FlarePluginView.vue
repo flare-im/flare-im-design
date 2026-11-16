@@ -11,6 +11,7 @@ import {
   watch,
 } from "vue";
 import FlareAdminHelp from "../data/FlareAdminHelp.vue";
+import FlareAdminSection from "../data/FlareAdminSection.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
@@ -910,9 +911,24 @@ const adminLayout = computed(() => {
     hidden: new Set<number>(),
     help: [] as FlarePluginBlock[],
     notices: [] as FlarePluginBlock[],
+    sections: new Map<number, string>(),
     header: [] as FlarePluginBlock[],
   };
   if (props.presentation !== "admin") return out;
+  // A flow page: a title line straight above a fields block becomes that block's section title.
+  if (props.contentLayout === "flow") {
+    const all = items.value;
+    all.forEach((item, at) => {
+      const next = all[at + 1];
+      if (
+        item.section === undefined && item.block.kind === "text" && item.block.style === "title" &&
+        next?.block.kind === "fields" && next.section === undefined
+      ) {
+        out.hidden.add(item.index);
+        out.sections.set(next.index, item.block.text);
+      }
+    });
+  }
   const list =
     props.contentLayout === "list" && firstRowsIndex.value >= 0 && !!slots.rows;
   let contentStarted = false;
@@ -941,6 +957,9 @@ const adminLayout = computed(() => {
   }
   return out;
 });
+// Admin flow page: sections, a primary save with secondary companions, md text, a readable line width.
+const adminFlow = computed(() => props.presentation === "admin" && props.contentLayout === "flow");
+const adminPrimaryId = computed(() => footerActions.value.find((action) => action.style === "primary")?.id);
 const adminClamp = (block: FlarePluginBlock) =>
   props.presentation === "admin" && isLoudNote(block) ? 2 : undefined;
 function runPageAction(action: FlarePluginAction): void {
@@ -957,6 +976,10 @@ function loadRowsMore(cursor: string, block: FlarePluginRowsBlock): void {
   if (!locked.value && cursor === block.nextCursor)
     emit("loadMore", cursor, block.source);
 }
+const footerVariant = (action: FlarePluginAction) =>
+  adminFlow.value && action.style !== "danger"
+    ? action.id === adminPrimaryId.value ? "primary" : "secondary"
+    : variantOf(action);
 const variantOf = (action: FlarePluginAction) =>
   action.style === "danger"
     ? "danger"
@@ -978,6 +1001,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
       'is-inset-sheet': inset === 'sheet',
       'is-inset-sheet-top': inset === 'sheetTop',
       'is-unavailable': !view.available,
+      'is-admin-flow': adminFlow,
     }"
     :aria-label="view.title || undefined"
     :aria-busy="busy || Boolean(busyActionId)"
@@ -1257,6 +1281,12 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :strings="strings"
           data-block="timeline"
         />
+        <FlareAdminSection
+          v-else-if="block.kind === 'fields' && adminLayout.sections.has(index)"
+          :title="adminLayout.sections.get(index) ?? ''"
+        >
+          <PluginSimpleBlock :block="shownBlock(block)" data-block="fields" />
+        </FlareAdminSection>
         <PluginSimpleBlock
           v-else-if="
             block.kind === 'fields' ||
@@ -1330,9 +1360,9 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
             v-for="action in footerActions"
             :key="action.id"
             :label="action.label"
-            :variant="variantOf(action)"
+            :variant="footerVariant(action)"
             size="sm"
-            :appearance="actionLayout === 'compact' ? 'default' : 'text'"
+            :appearance="adminFlow ? 'default' : actionLayout === 'compact' ? 'default' : 'text'"
             :loading="busyActionId === action.id"
             :disabled="locked"
             :data-action-id="action.id"
@@ -1458,6 +1488,13 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   box-shadow: none;
   color: var(--flare-color-text-primary);
   overflow-wrap: anywhere;
+}
+.flare-plugin-view.is-admin-flow {
+  --flare-plugin-body-size: var(--flare-size-font-size-md);
+}
+.flare-plugin-view.is-admin-flow [data-block="text"],
+.flare-plugin-view.is-admin-flow [data-block="note"] {
+  max-width: 72ch;
 }
 .flare-plugin-view.is-presentation {
   grid-template-columns: minmax(0, 1fr);

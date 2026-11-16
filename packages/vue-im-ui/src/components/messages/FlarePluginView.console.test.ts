@@ -190,3 +190,48 @@ describe("protected media on the owner's page", () => {
     expect(wrapper.text()).toContain("Only you can see this");
   });
 });
+
+describe("admin flow layout", () => {
+  it("admin flow renders sections and a primary save", async () => {
+    const wrapper = render({
+      presentation: "admin",
+      contentLayout: "flow",
+      view: view({
+        blocks: [
+          { kind: "text", text: "Basics", style: "title" },
+          { kind: "fields", fields: [{ label: "Name", value: "Alpha" }] },
+          { kind: "text", text: "Limits", style: "title" },
+          { kind: "fields", fields: [{ label: "Max", value: "10" }] },
+        ],
+        actions: [
+          { id: "save", label: "Save", style: "primary" },
+          { id: "reset", label: "Reset" },
+        ],
+      }),
+    });
+    await flushPromises();
+    expect(wrapper.findAll(".flare-admin-section")).toHaveLength(2);
+    expect(wrapper.find(".flare-plugin-view").classes()).toContain("is-admin-flow");
+    const save = wrapper.find("[data-action-id=save]");
+    const reset = wrapper.find("[data-action-id=reset]");
+    expect(save.classes()).toContain("flare-button--primary");
+    expect(reset.classes()).toContain("flare-button--secondary");
+    expect(wrapper.find(".flare-plugin-view__footer .is-text").exists()).toBe(false);
+  });
+
+  it("keeps the message presentation as it was", async () => {
+    const wrapper = render({
+      view: view({
+        blocks: [
+          { kind: "text", text: "Basics", style: "title" },
+          { kind: "fields", fields: [{ label: "Name", value: "Alpha" }] },
+        ],
+        actions: [{ id: "save", label: "Save", style: "primary" }, { id: "reset", label: "Reset" }],
+      }),
+    });
+    await flushPromises();
+    expect(wrapper.findAll(".flare-admin-section")).toHaveLength(0);
+    expect(wrapper.find(".flare-plugin-view").classes()).not.toContain("is-admin-flow");
+    expect(wrapper.find("[data-action-id=reset]").classes()).toContain("is-text");
+  });
+});
