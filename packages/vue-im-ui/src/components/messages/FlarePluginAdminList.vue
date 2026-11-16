@@ -25,6 +25,8 @@ defineProps<{
   error?: string;
   filtersInvalid?: boolean;
   pagination?: FlareAdminPagination;
+  /** Formats a time column's epoch milliseconds; absent keeps the default. */
+  formatTime?: (ms: number) => string;
   /** Explanations drawn in the list's "?" help popover. */
   help?: readonly FlarePluginBlock[];
   /** Warnings drawn in the list notice, two lines each with an expand key. */
@@ -60,6 +62,7 @@ const passthrough = computed(() => Object.keys(slots).filter((name) => name !== 
     :error="error"
     :filters-invalid="filtersInvalid"
     :pagination="pagination"
+    :format-time="formatTime"
     v-model:visible-column-keys="visibleColumnKeys"
     @search="emit('search')"
     @reset="emit('reset')"

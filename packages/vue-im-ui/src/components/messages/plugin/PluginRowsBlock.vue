@@ -45,6 +45,8 @@ const props = withDefaults(
     error?: string;
     filtersInvalid?: boolean;
     pagination?: FlareAdminPagination;
+    /** Formats a time column's epoch milliseconds; absent keeps the default "M月d日 HH:mm". */
+    formatTime?: (ms: number) => string;
   }>(),
   { busyActionId: undefined, busyRow: null, layout: "table", labelRows: false },
 );
@@ -262,7 +264,8 @@ const tableRows = computed(() =>
       const cell = row.cells[index];
       record[`c${index}`] =
         column.format === "time" && typeof cell?.timeMs === "number"
-          ? flarePluginDateTime(cell.timeMs, nowMs, props.strings)
+          ? (props.formatTime?.(cell.timeMs) ??
+            flarePluginDateTime(cell.timeMs, nowMs, props.strings))
           : (cell?.text ?? "");
     });
     return record;

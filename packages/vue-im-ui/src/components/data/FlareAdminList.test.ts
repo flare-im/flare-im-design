@@ -661,4 +661,30 @@ describe("resource card layout", () => {
     expect(toolbar.text()).toContain("Create user");
     expect(toolbar.findComponent(NPopover).exists()).toBe(false);
   });
+  it("batch bar shows only with a selection", async () => {
+    const { list, set } = setup(
+      {
+        selectable: true,
+        rows: [
+          { id: "1", name: "Alice" },
+          { id: "2", name: "Bob" },
+        ],
+      },
+      { batch: () => h(NButton, null, () => "Remove selected") },
+    );
+    expect(list.find(".flare-admin-list__batch").exists()).toBe(false);
+    expect(list.text()).not.toContain("Remove selected");
+    expect(list.text()).toContain("Create user");
+    await set({ checkedRowKeys: ["1", "2"] });
+    const bar = list.get(".flare-admin-list__batch");
+    expect(bar.text()).toContain("已选 2 项");
+    expect(bar.text()).toContain("Remove selected");
+    expect(list.text()).not.toContain("Create user");
+    const clear = bar
+      .findAllComponents(NButton)
+      .find((button) => button.text() === "取消选择");
+    expect(clear).toBeDefined();
+    await clear!.trigger("click");
+    expect(list.emitted("update:checkedRowKeys")).toEqual([[[]]]);
+  });
 });

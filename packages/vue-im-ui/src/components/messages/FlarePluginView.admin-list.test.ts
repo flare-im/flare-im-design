@@ -334,4 +334,45 @@ describe("PluginView admin rows / one command pipeline", () => {
       /\.is-list-layout\s*>\s*\*\s*\{[^}]*flex:\s*1\b/,
     );
   });
+
+  it("format time hook", () => {
+    const timed: FlarePluginViewModel = {
+      available: true,
+      title: "Records",
+      fields: [],
+      inputs: [],
+      actions: [],
+      blocks: [
+        {
+          kind: "rows",
+          source: "records.list",
+          columns: [
+            { label: "Name", format: "text" },
+            { label: "Created", format: "time" },
+          ],
+          rows: [
+            {
+              key: "r1",
+              cells: [{ text: "First record" }, { text: "", timeMs: 1700000000000 }],
+            },
+          ],
+        },
+      ],
+    };
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          useFlareI18nProvider("en-US");
+          return () =>
+            h(FlarePluginView as never, {
+              view: timed,
+              embedded: true,
+              formatTime: (ms: number) => "T" + ms,
+            });
+        },
+      }),
+      { attachTo: document.body },
+    );
+    expect(wrapper.text()).toContain("T1700000000000");
+  });
 });

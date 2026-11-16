@@ -143,10 +143,13 @@ const slots = useSlots();
 const instance = getCurrentInstance();
 const fieldsId = `flare-admin-filters-${useId()}`;
 const compact = computed(() => width.value > 0 && width.value < 600);
+// The batch bar replaces the toolbar's actions while rows are selected.
+const batchActive = computed(() => checkedRowKeys.value.length > 0);
 // A content page has no column chooser; draw the toolbar only when it holds something.
 const toolbarVisible = computed(
   () =>
     props.layout !== "content" ||
+    batchActive.value ||
     ["actions", "tools", "help"].some(
       (name) => flattenQueryFields(slots[name]?.() ?? []).length > 0,
     ),
@@ -555,7 +558,24 @@ function onQueryKey(event: KeyboardEvent) {
       role="group"
       :aria-label="t('dataTable.actions')"
     >
-      <FlareAdminActions class="flare-admin-list__actions"
+      <FlareAdminActions
+        v-if="batchActive"
+        class="flare-admin-list__actions flare-admin-list__batch"
+      >
+        <NText strong class="flare-admin-list__batch-count">{{
+          t("dataTable.selected", { count: checkedRowKeys.length })
+        }}</NText>
+        <slot name="batch" />
+        <NButton
+          text
+          size="small"
+          type="primary"
+          :disabled="selectionLocked"
+          @click="checkedRowKeys = []"
+          >{{ t("dataTable.clearSelection") }}</NButton
+        >
+      </FlareAdminActions>
+      <FlareAdminActions v-else class="flare-admin-list__actions"
         ><slot name="actions"
       /></FlareAdminActions>
       <div class="flare-admin-list__settings">

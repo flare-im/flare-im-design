@@ -145,6 +145,8 @@ const props = withDefaults(
     actionsPlacement?: "footer" | "rows";
     /** Visual grouping only; forms, confirmations and action guards keep the same runner. */
     actionLayout?: "inline" | "compact" | "list";
+    /** Formats a rows block's time columns (epoch milliseconds); absent keeps the default. */
+    formatTime?: (ms: number) => string;
     /** In list rows, pair secondary values with their declared column labels. */
     labelRows?: boolean;
     /** A page may expose one eligible, non-sensitive action form directly in the document. */
@@ -1152,6 +1154,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
             :block="block"
             :shown-block="shownRows(block)"
             :strings="strings"
+            :format-time="formatTime"
             :busy="locked"
             :busy-action-id="busyActionId"
             :busy-row="rowInFlight"
@@ -1169,6 +1172,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
               :block="shownRows(block)"
               :label-rows="labelRows"
               :strings="strings"
+              :format-time="formatTime"
               :busy="locked"
               :busy-action-id="busyActionId"
               :busy-row="rowInFlight"
