@@ -4,6 +4,7 @@ import FlareUserIdentity from "../data/FlareUserIdentity.vue";
 import {
   computed,
   getCurrentInstance,
+  useSlots,
   reactive,
   ref,
   shallowReactive,
@@ -894,9 +895,12 @@ const firstRowsIndex = computed(
 const actionsInRows = computed(
   () => props.actionsPlacement === "rows" && firstRowsIndex.value >= 0,
 );
-// Admin presentation: which explanation blocks leave the page body, and where they go. A list page sends the
-// ones before its first rows to the rows slot (help / notices); any other page gathers its calm notes and text
-// into the page-head help. Warnings stay in place (flow) or go to the notice (list); nothing is dropped.
+// Admin presentation: which explanation blocks leave the page body, and where they go. A list page that has a
+// `rows` slot sends the ones before its first rows there (help / notices); without the slot nothing moves, so
+// no text can vanish. Any other page gathers its long calm notes and its leading body text into the page-head
+// help; short label-like notes, headings, text after content and warnings stay in place.
+const slots = useSlots();
+const ADMIN_NOTE_HELP_MIN = 30;
 const isLoudNote = (block: FlarePluginBlock) =>
   block.kind === "note" && (block.tone === "warning" || block.tone === "danger");
 const adminLayout = computed(() => {
@@ -907,16 +911,28 @@ const adminLayout = computed(() => {
     header: [] as FlarePluginBlock[],
   };
   if (props.presentation !== "admin") return out;
-  const list = props.contentLayout === "list" && firstRowsIndex.value >= 0;
+  const list =
+    props.contentLayout === "list" && firstRowsIndex.value >= 0 && !!slots.rows;
+  let contentStarted = false;
   for (const { block, index, section } of items.value) {
     if (section !== undefined) continue;
     if (list && index >= firstRowsIndex.value) break;
-    if (block.kind !== "note" && block.kind !== "text") continue;
+    if (block.kind !== "note" && block.kind !== "text") {
+      if (block.kind !== "divider") contentStarted = true;
+      continue;
+    }
     const loud = isLoudNote(block);
     if (list) {
       out.hidden.add(index);
       (loud ? out.notices : out.help).push(block);
-    } else if (!loud) {
+      continue;
+    }
+    const style = block.kind === "text" ? (block.style as string | undefined) : undefined;
+    const toHelp =
+      block.kind === "note"
+        ? !loud && block.text.length > ADMIN_NOTE_HELP_MIN
+        : !contentStarted && style !== "title" && style !== "heading";
+    if (toHelp) {
       out.hidden.add(index);
       out.header.push(block);
     }

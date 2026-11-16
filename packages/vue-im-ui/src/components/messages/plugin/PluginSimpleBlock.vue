@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed } from "vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
+import { useClampedText } from "./useClampedText";
 import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import type {
@@ -18,30 +19,8 @@ defineOptions({ inheritAttrs: false });
 const props = defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlock | FlarePluginProgressBlock | FlarePluginDividerBlock | FlarePluginNoteBlock; notePresentation?: "tinted" | "plain"; clamp?: number }>();
 const pct = (n: number) => Math.min(100, Math.max(0, n));
 const { t } = useFlareI18nOptional();
-const expanded = ref(false);
-const measured = ref(false);
-const el = ref<HTMLElement | null>(null);
-const lines = computed(() => (props.block.kind === "note" && props.clamp ? props.clamp : undefined));
-const overflows = computed(() => {
-  const max = lines.value;
-  if (!max || props.block.kind !== "note") return false;
-  return measured.value || props.block.text.split("\n").length > max;
-});
-let observer: ResizeObserver | undefined;
-function measure(): void {
-  const node = el.value;
-  if (!node || expanded.value || !lines.value) return;
-  measured.value = node.scrollHeight > node.clientHeight + 1;
-}
-onMounted(() => {
-  measure();
-  if (typeof ResizeObserver !== "undefined" && el.value) {
-    observer = new ResizeObserver(measure);
-    observer.observe(el.value);
-  }
-});
-onBeforeUnmount(() => observer?.disconnect());
-watch(() => (props.block.kind === "note" ? props.block.text : ""), () => { expanded.value = false; measured.value = false; void nextTick(measure); });
+const cap = computed(() => (props.block.kind === "note" ? props.clamp : undefined));
+const { el, expanded, lines, overflows, toggle } = useClampedText(cap, () => (props.block.kind === "note" ? props.block.text : ""));
 </script>
 
 <template>
@@ -73,13 +52,13 @@ watch(() => (props.block.kind === "note" ? props.block.text : ""), () => { expan
     </div>
   </div>
   <hr v-else-if="block.kind === 'divider'" v-bind="$attrs" class="flare-plugin-divider" />
-  <div v-else-if="block.kind === 'note' && lines" class="flare-plugin-note-clamp">
+  <div v-else-if="block.kind === 'note' && cap" class="flare-plugin-note-clamp">
     <p
       ref="el"
       v-bind="$attrs"
       class="flare-plugin-note"
-      :class="[notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`, { 'is-clamped': !expanded }]"
-      :style="{ '--flare-clamp-lines': String(lines) }"
+      :class="[notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`, { 'is-clamped': !!lines }]"
+      :style="{ '--flare-clamp-lines': String(cap) }"
       :data-note-tone="block.tone ?? 'neutral'"
     >{{ block.text }}</p>
     <button
@@ -88,7 +67,7 @@ watch(() => (props.block.kind === "note" ? props.block.text : ""), () => { expan
       class="flare-plugin-note__toggle"
       :aria-expanded="expanded"
       data-note-toggle="true"
-      @click="expanded = !expanded"
+      @click="toggle"
     >
       {{ expanded ? t("plugin.admin.collapse") : t("plugin.admin.expand") }}
     </button>
