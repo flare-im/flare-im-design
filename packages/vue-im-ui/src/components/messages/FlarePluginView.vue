@@ -915,6 +915,9 @@ const adminLayout = computed(() => {
     header: [] as FlarePluginBlock[],
   };
   if (props.presentation !== "admin") return out;
+  // A host without a list presenter has no help/notices destination for leading explanations.
+  // Keep that fallback list's content inline, as the list contract requires.
+  if (props.contentLayout === "list" && !slots.rows) return out;
   // A flow page: a title line straight above a fields block becomes that block's section title.
   if (props.contentLayout === "flow") {
     const all = items.value;
