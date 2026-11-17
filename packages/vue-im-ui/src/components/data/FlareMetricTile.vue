@@ -39,6 +39,8 @@ const props = withDefaults(defineProps<{
   appearance?: "card" | "plain";
   /** BCP-47 tag for the digits. Default: the kit's language. */
   locale?: string;
+  /** Make the whole tile a button that emits `select`, e.g. to open the list behind the number. */
+  actionable?: boolean;
 }>(), {
   unit: undefined,
   caption: undefined,
@@ -51,7 +53,9 @@ const props = withDefaults(defineProps<{
   loading: false,
   appearance: "card",
   locale: undefined,
+  actionable: false,
 });
+const emit = defineEmits<{ select: [] }>();
 
 const { t } = useFlareI18nOptional();
 const kitLocale = useFlareLocaleOptional();
@@ -93,12 +97,15 @@ const deltaSpoken = computed(() => {
 </script>
 
 <template>
-  <div
+  <component
+    :is="actionable ? 'button' : 'div'"
     class="flare-metric-tile"
-    :class="`flare-metric-tile--${appearance}`"
-    role="group"
+    :class="[`flare-metric-tile--${appearance}`, { 'flare-metric-tile--actionable': actionable }]"
+    :type="actionable ? 'button' : undefined"
+    :role="actionable ? undefined : 'group'"
     :aria-labelledby="labelId"
     :aria-busy="loading || undefined"
+    @click="actionable && emit('select')"
   >
     <p :id="labelId" class="flare-metric-tile__label">{{ label }}</p>
     <p class="flare-metric-tile__value">
@@ -130,7 +137,7 @@ const deltaSpoken = computed(() => {
       </span>
       <span v-if="caption" class="flare-metric-tile__caption">{{ caption }}</span>
     </p>
-  </div>
+  </component>
 </template>
 
 <style scoped>
@@ -149,6 +156,24 @@ const deltaSpoken = computed(() => {
   background: var(--flare-color-bg-primary);
 }
 .flare-metric-tile p { margin: 0; }
+/* An actionable tile is a real button reset to the tile's own look: native Enter and Space, a focus ring, no chrome. */
+.flare-metric-tile--actionable {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.flare-metric-tile--plain.flare-metric-tile--actionable {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.flare-metric-tile--actionable:hover { background: var(--flare-color-bg-secondary); }
+.flare-metric-tile--actionable:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: 2px;
+}
 .flare-metric-tile__label {
   overflow: hidden;
   color: var(--flare-color-text-secondary);

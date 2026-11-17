@@ -26,6 +26,18 @@
 
 业务页的`PolicyCard`／`PolicyGrid`仅适配插槽和属性，不再维护第二份卡片CSS。权限、继承、开关事件、确认、保存锁及未知结果由原业务控制器拥有。
 
+## 继承字段
+
+`FlareAdminInheritField`（`@flare-im/vue-ui/admin`）表示“跟随默认值，或使用自己的值”这一类设置。属性 `label`、`inherited`、`inheritedValue`、`disabled`，`v-model:inherited` 在右侧开关（“使用默认”）切换时更新。
+
+- 继承时显示只读文字“默认：{值}”，默认插槽不渲染；关闭后默认插槽（接收 `{ disabled }`）放自定义值的输入。
+- 开关的 `aria-label` 为“{label} · 使用默认”；`extra` 插槽放在开关右侧，例如多语言入口。
+- 窄屏下开关行换行，不出现横向滚动。值、保存、确认与默认值的含义仍归宿主。
+
+## 可点击的指标卡
+
+`FlareMetricTile` 的 `actionable` 为 true 时，根元素是 `<button type="button">`，可聚焦，点击与回车都会发出 `select`，可访问名称仍由 `label` 给出；默认 false 时保持 `role="group"`。用于“点数字进入对应列表”，跳转由宿主决定。
+
 ## 当前采用
 
 Console的系统配置、功能开关与通知页面。系统配置将应用／登录和域名分成页签，`display-directive="show"`保留未保存草稿；简单设置标签桌面同行、手机在上。继承值只读展示，自定义复用相同原输入和继承事件，多语言入口不再产生大段空白。功能开关采用紧凑小卡片，通知保留原密度；两者复用共享卡片，继承、抽屉、确认及控制器不变。

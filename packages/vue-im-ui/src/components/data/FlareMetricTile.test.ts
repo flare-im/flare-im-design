@@ -102,6 +102,30 @@ describe("FlareMetricTile", () => {
   });
 });
 
+describe("FlareMetricTile as a button", () => {
+  it("an actionable tile is a button that emits select", async () => {
+    const tile = mountTile({ label: "待处理", value: 3, actionable: true });
+    const button = tile.get("button.flare-metric-tile");
+    expect(button.attributes("type")).toBe("button");
+    expect(button.attributes("role")).toBeUndefined();
+    expect(tile.get(`#${button.attributes("aria-labelledby")}`).text()).toBe("待处理");
+    await button.trigger("click");
+    expect(tile.emitted("select")).toHaveLength(1);
+    // A button's Enter arrives as a click in a browser; the handler is the click.
+    await button.trigger("keydown", { key: "Enter" });
+    await button.trigger("click");
+    expect(tile.emitted("select")).toHaveLength(2);
+  });
+
+  it("a plain tile stays a group with no button", async () => {
+    const tile = mountTile({ label: "待处理", value: 3 });
+    expect(tile.find("button").exists()).toBe(false);
+    expect(tile.get("[role=group]").exists()).toBe(true);
+    await tile.trigger("click");
+    expect(tile.emitted("select")).toBeUndefined();
+  });
+});
+
 describe("FlareMetricTile in dark mode", () => {
   it("paints only with theme tokens, each of which dark mode redefines", () => {
     const source = readFileSync(resolve(__dirname, "FlareMetricTile.vue"), "utf8");

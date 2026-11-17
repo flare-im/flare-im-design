@@ -42,6 +42,7 @@ export type {
 } from "./components/composer/FlareComposerActionPanel.vue";
 export { default as FlareAdminForm } from "./components/form/FlareAdminForm.vue";
 export { default as FlareAdminModal } from "./components/form/FlareAdminModal.vue";
+export { default as FlareAdminInheritField } from "./components/form/FlareAdminInheritField.vue";
 export { default as FlareAdminFormGrid } from "./components/form/FlareAdminFormGrid.vue";
 export type {
   FlareAdminColumn,
@@ -67,6 +68,8 @@ export type {
   FlareDataTablePagination,
 } from "./components/data/data-table";
 export { default as FlareButton } from "./components/general/FlareButton.vue";
+export { default as FlareTag } from "./components/general/FlareTag.vue";
+export { default as FlareCodeBlock } from "./components/data/FlareCodeBlock.vue";
 export { default as FlareDrawer } from "./components/general/FlareDrawer.vue";
 export { default as FlareDangerConfirm } from "./components/scenes/FlareDangerConfirm.vue";
 export { default as FlareAdminPopconfirm } from "./components/scenes/FlareAdminPopconfirm.vue";

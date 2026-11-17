@@ -356,6 +356,10 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       clear: "清除",
       clearLabel: "清除最近搜索",
     },
+    inheritField: {
+      useDefault: "使用默认",
+      defaultValue: "默认：{value}",
+    },
     metricTile: {
       empty: "暂无数据",
       loading: "正在加载",
@@ -2200,6 +2204,10 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       title: "Recent searches",
       clear: "Clear",
       clearLabel: "Clear recent searches",
+    },
+    inheritField: {
+      useDefault: "Use default",
+      defaultValue: "Default: {value}",
     },
     metricTile: {
       empty: "No data",
