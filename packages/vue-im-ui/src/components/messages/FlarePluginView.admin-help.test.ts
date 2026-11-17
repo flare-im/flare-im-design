@@ -20,7 +20,8 @@ const rows: FlarePluginBlock = {
   kind: "rows",
   source: "records.list",
   columns: [{ label: "Name", format: "text" }],
-  rows: [{ key: "r1", cells: [{ text: "First record" }] }],
+  rows: [{ key: "r1", cells: [{ text: "First record" }], actions: [] }],
+  actions: [],
 };
 const info: FlarePluginBlock = { kind: "note", text: "Info explanation long enough to belong in help", tone: "info" };
 const body: FlarePluginBlock = { kind: "text", text: "Plain explanation" };
@@ -117,7 +118,8 @@ describe("FlarePluginView admin presentation", () => {
     // The long info note moved into the help; the label-like note, the heading and the warning stay inline.
     const notes = wrapper.findAll('[data-block="note"]');
     expect(notes.map((note) => note.text())).toEqual(["Keywords:", "Careful with this"]);
-    expect(wrapper.get('[data-block="text"]').text()).toBe("Section heading");
+    // The heading now belongs to the fields section, with real heading semantics.
+    expect(wrapper.get('.flare-admin-section__title').text()).toBe("Section heading");
     const warn = notes[1];
     expect(warn.classes()).toContain("is-clamped");
     expect(warn.attributes("style")).toContain("--flare-clamp-lines: 2");

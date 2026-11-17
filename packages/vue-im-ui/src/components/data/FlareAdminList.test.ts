@@ -682,7 +682,7 @@ describe("resource card layout", () => {
     expect(list.text()).not.toContain("Create user");
     const clear = bar
       .findAllComponents(NButton)
-      .find((button) => button.text() === "取消选择");
+      .find((button: { text(): string }) => button.text() === "取消选择");
     expect(clear).toBeDefined();
     await clear!.trigger("click");
     expect(list.emitted("update:checkedRowKeys")).toEqual([[[]]]);

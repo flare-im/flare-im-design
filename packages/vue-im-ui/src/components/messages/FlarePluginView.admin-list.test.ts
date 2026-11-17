@@ -354,8 +354,10 @@ describe("PluginView admin rows / one command pipeline", () => {
             {
               key: "r1",
               cells: [{ text: "First record" }, { text: "", timeMs: 1700000000000 }],
+              actions: [],
             },
           ],
+          actions: [],
         },
       ],
     };

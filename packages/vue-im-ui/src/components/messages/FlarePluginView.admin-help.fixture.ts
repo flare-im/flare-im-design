@@ -42,6 +42,7 @@ export const groupSigninBlocks: FlarePluginBlock[] = [
       { label: "本群能否签到", format: "text" },
     ],
     emptyText: "还没有单独设置的群，所有群都按应用的设置",
-    rows: [{ key: "g1", cells: [{ text: "g1" }, { text: "允许" }] }],
+    rows: [{ key: "g1", cells: [{ text: "g1" }, { text: "允许" }], actions: [] }],
+    actions: [],
   } as FlarePluginBlock,
 ];

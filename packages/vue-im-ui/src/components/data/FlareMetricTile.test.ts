@@ -120,7 +120,7 @@ describe("FlareMetricTile as a button", () => {
   it("a plain tile stays a group with no button", async () => {
     const tile = mountTile({ label: "待处理", value: 3 });
     expect(tile.find("button").exists()).toBe(false);
-    expect(tile.get("[role=group]").exists()).toBe(true);
+    expect(tile.find("[role=group]").exists()).toBe(true);
     await tile.trigger("click");
     expect(tile.emitted("select")).toBeUndefined();
   });
