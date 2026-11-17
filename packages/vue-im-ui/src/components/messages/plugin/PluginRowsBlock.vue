@@ -6,6 +6,9 @@ import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareDataTable from "../../data/FlareDataTable.vue";
 import FlareAdminCardGrid from "../../data/FlareAdminCardGrid.vue";
 import FlareAdminPolicyCard from "../../data/FlareAdminPolicyCard.vue";
+import FlareAdminRowActions, {
+  type FlareAdminRowAction,
+} from "../../data/FlareAdminRowActions.vue";
 import FlareButton from "../../general/FlareButton.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
@@ -90,6 +93,7 @@ const tableProps = computed(() =>
         errorPresentation: "neutral" as const,
         pagination: props.pagination,
         filtersInvalid: props.filtersInvalid,
+        rowActionsWidth: actionsWidth.value,
         layout:
           props.block.presentation === "cards"
             ? ("cards" as const)
@@ -121,6 +125,45 @@ const rowActions = (row: FlarePluginRow) =>
     const action = actionOf(ra.id);
     return action ? [{ action, input: ra.input }] : [];
   });
+
+// ── admin row actions: the console's rule (spec 5.1), at most three on the
+// row and the rest under "more"; the detail key stands apart ───────────────
+const ROW_ACTIONS_MAX = 3;
+/** `entries` (a row's actions) as the kit's admin row actions; the one in flight spins. */
+function adminActions(
+  row: FlarePluginRow,
+  entries: readonly { action: FlarePluginAction }[],
+  disabled: boolean,
+): FlareAdminRowAction[] {
+  return entries.map(({ action }) => ({
+    key: action.id,
+    label: action.label,
+    danger: action.style === "danger",
+    disabled,
+    loading: spins(row, action),
+  }));
+}
+/** The row's first cell: names its "more" menu apart from the other rows'. */
+const rowName = (row: FlarePluginRow) =>
+  flarePluginRowTexts(props.block, row, nowMs, props.strings)[0] ?? "";
+/** Runs the row action `key` names, as a click on its own key would. */
+function selectRowAction(row: FlarePluginRow, key: string): void {
+  const entry = rowActions(row).find((candidate) => candidate.action.id === key);
+  if (entry) emit("rowAction", entry.action, row, entry.input);
+}
+/** The action column fits the most keys a row shows: its detail and at most three more. */
+const actionsWidth = computed(() => {
+  const most = rows.value.reduce(
+    (widest, row) =>
+      Math.max(
+        widest,
+        (row.detailInput !== undefined ? 1 : 0) +
+          Math.min(rowActions(row).length, ROW_ACTIONS_MAX),
+      ),
+    0,
+  );
+  return most <= 2 ? 140 : most === 3 ? 200 : 240;
+});
 
 // ── list ─────────────────────────────────────────────────────────────────
 const dayHeadings = computed(() =>
@@ -389,17 +432,12 @@ function onRowClick(record: Record<string, unknown>): void {
             data-row-detail="true"
             @click="emit('openRow', card.row)"
           />
-          <FlareButton
-            v-for="entry in card.actions"
-            :key="entry.action.id"
-            size="sm"
-            appearance="text"
-            :variant="variantOf(entry.action)"
-            :label="entry.action.label"
-            :loading="spins(card.row, entry.action)"
-            :disabled="busy"
-            :data-row-action="entry.action.id"
-            @click="emit('rowAction', entry.action, card.row, entry.input)"
+          <FlareAdminRowActions
+            v-if="card.actions.length"
+            :actions="adminActions(card.row, card.actions, busy)"
+            :max="ROW_ACTIONS_MAX"
+            :label="card.title"
+            @select="(key: string) => selectRowAction(card.row, key)"
           />
         </template>
       </FlareAdminPolicyCard>
@@ -460,17 +498,21 @@ function onRowClick(record: Record<string, unknown>): void {
               data-row-detail="true"
               @click="card.open"
             />
-            <FlareButton
-              v-for="entry in card.actions"
-              :key="entry.action.id"
-              size="sm"
-              appearance="text"
-              :variant="variantOf(entry.action)"
-              :label="entry.action.label"
-              :loading="spins(card.row, entry.action)"
-              :disabled="'disabled' in item ? item.disabled : true"
-              :data-row-action="entry.action.id"
-              @click="entry.run"
+            <FlareAdminRowActions
+              v-if="card.actions.length"
+              :actions="
+                adminActions(
+                  card.row,
+                  card.actions,
+                  'disabled' in item ? !!item.disabled : true,
+                )
+              "
+              :max="ROW_ACTIONS_MAX"
+              :label="card.title"
+              @select="
+                (key: string) =>
+                  card.actions.find((entry) => entry.action.id === key)?.run()
+              "
             />
           </template>
         </FlareAdminPolicyCard>
@@ -521,28 +563,21 @@ function onRowClick(record: Record<string, unknown>): void {
           data-row-detail="true"
           @click="onRowClick(row)"
         />
-        <template
-          v-for="entry in rowActions(byKey.get(String(row.id))!)"
-          :key="entry.action.id"
-        >
-          <FlareButton
-            size="sm"
-            appearance="text"
-            :variant="variantOf(entry.action)"
-            :label="entry.action.label"
-            :loading="spins(byKey.get(String(row.id))!, entry.action)"
-            :disabled="busy"
-            :data-row-action="entry.action.id"
-            @click="
-              emit(
-                'rowAction',
-                entry.action,
-                byKey.get(String(row.id))!,
-                entry.input,
-              )
-            "
-          />
-        </template>
+        <FlareAdminRowActions
+          v-if="rowActions(byKey.get(String(row.id))!).length"
+          :actions="
+            adminActions(
+              byKey.get(String(row.id))!,
+              rowActions(byKey.get(String(row.id))!),
+              busy,
+            )
+          "
+          :max="ROW_ACTIONS_MAX"
+          :label="rowName(byKey.get(String(row.id))!)"
+          @select="
+            (key: string) => selectRowAction(byKey.get(String(row.id))!, key)
+          "
+        />
       </template>
     </component>
     <FlareButton

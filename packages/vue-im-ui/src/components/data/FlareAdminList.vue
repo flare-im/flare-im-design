@@ -87,6 +87,8 @@ const props = withDefaults(
     collapseText?: string;
     settingsText?: string;
     emptyText?: string;
+    /** Width of the `row-actions` column, for hosts whose rows show more than two keys. */
+    rowActionsWidth?: number;
   }>(),
   {
     loading: false,
@@ -98,6 +100,7 @@ const props = withDefaults(
     layout: "table",
     surface: "panel",
     controlsSurface: "inherit",
+    rowActionsWidth: 140,
   },
 );
 const emit = defineEmits<{
@@ -203,7 +206,7 @@ const tableColumns = computed<DataTableColumns>(() => {
     base.push({
       key: actionKey,
       title: t("dataTable.actions"),
-      width: 140,
+      width: props.rowActionsWidth,
       render: (row, index) =>
         h(FlareAdminActions, { label: t("dataTable.actions") }, () =>
           slots["row-actions"]?.({ row, index }),
@@ -256,7 +259,8 @@ const scrollX = computed(() =>
   shownColumns.value.reduce(
     (sum, column) =>
       sum + (Number(column.width) || Number(column.minWidth) || 160),
-    (props.selectable ? 44 : 0) + (slots["row-actions"] ? 140 : 0),
+    (props.selectable ? 44 : 0) +
+      (slots["row-actions"] ? props.rowActionsWidth : 0),
   ),
 );
 const selectionHandler = computed(() => {

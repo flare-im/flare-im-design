@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import { NButton, NDropdown } from "naive-ui";
 import FlareAdminRowActions from "./FlareAdminRowActions.vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
@@ -53,6 +53,46 @@ describe("FlareAdminRowActions", () => {
     const marked = list.findAll(".flare-admin-row-actions__danger");
     expect(marked).toHaveLength(1);
     expect(marked[0].text()).toBe("Action 2");
+  });
+  it("the more trigger is a menu button that says whose actions it holds", async () => {
+    const { list } = setup({ actions: actions(5), label: "Order 42" });
+    const trigger = list.get("[data-row-action-more]");
+    expect(trigger.attributes("aria-haspopup")).toBe("menu");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
+    // The visible word stays inside the name.
+    expect(trigger.attributes("aria-label")).toBe("「Order 42」的更多操作");
+    list.findComponent(NDropdown).vm.$emit("update:show", true);
+    await nextTick();
+    expect(list.get("[data-row-action-more]").attributes("aria-expanded")).toBe("true");
+    list.findComponent(NDropdown).vm.$emit("update:show", false);
+    await nextTick();
+    expect(list.get("[data-row-action-more]").attributes("aria-expanded")).toBe("false");
+    // Without a row name the visible word names it.
+    const { list: plain } = setup({ actions: actions(5) });
+    expect(plain.get("[data-row-action-more]").attributes("aria-label")).toBeUndefined();
+  });
+  it("an action in flight spins where it is drawn", () => {
+    const inline = setup({ actions: actions(5, { loading: true }) }).list;
+    expect(inline.findAllComponents(NButton)[1].props("loading")).toBe(true);
+    expect(inline.findAllComponents(NButton)[0].props("loading")).toBeFalsy();
+    const more = inline.findAllComponents(NButton).find((key) => key.attributes("data-row-action-more") !== undefined)!;
+    expect(more.props("loading")).toBe(false);
+    // In the menu, "more" spins and is not opened meanwhile.
+    const folded = setup({
+      actions: actions(5).map((action, index) => (index === 3 ? { ...action, loading: true } : action)),
+    }).list;
+    const busy = folded.findAllComponents(NButton).find((key) => key.attributes("data-row-action-more") !== undefined)!;
+    expect(busy.props("loading")).toBe(true);
+    expect(busy.attributes("disabled")).toBeDefined();
+    expect(folded.findComponent(NDropdown).props("disabled")).toBe(true);
+  });
+  it("a menu of disabled actions is not offered", () => {
+    const { list } = setup({
+      actions: actions(5).map((action, index) => (index >= 2 ? { ...action, disabled: true } : action)),
+    });
+    expect(list.get("[data-row-action-more]").attributes("disabled")).toBeDefined();
+    const open = setup({ actions: actions(5) }).list;
+    expect(open.get("[data-row-action-more]").attributes("disabled")).toBeUndefined();
   });
   it("select emits key", async () => {
     const { list } = setup({ actions: actions(5) });

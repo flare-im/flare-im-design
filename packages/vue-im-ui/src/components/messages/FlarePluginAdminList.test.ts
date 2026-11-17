@@ -5,12 +5,14 @@ import { defineComponent, h, nextTick, reactive, toRaw } from "vue";
 import {
   NButton,
   NDataTable,
+  NDropdown,
   NForm,
   NFormItem,
   NInput,
   NPagination,
 } from "naive-ui";
 import FlareAdminList from "../data/FlareAdminList.vue";
+import FlareAdminRowActions from "../data/FlareAdminRowActions.vue";
 import FlarePluginAdminList from "./FlarePluginAdminList.vue";
 import FlareButton from "../general/FlareButton.vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
@@ -135,6 +137,21 @@ function cardBlock(): FlarePluginRowsBlock {
   };
 }
 
+/** The select handler of the row actions holding `key`, as the render that drew it bound it. */
+function capturedAction(wrapper: ReturnType<typeof mount>, key: string) {
+  const actions = wrapper
+    .findAllComponents(FlareAdminRowActions)
+    .find((found) =>
+      (found.props("actions") as readonly { key: string }[]).some(
+        (action) => action.key === key,
+      ),
+    )!;
+  expect(actions).toBeDefined();
+  const select = actions.vm.$.vnode.props?.onSelect as (key: string) => void;
+  expect(typeof select).toBe("function");
+  return () => select(key);
+}
+
 function capturedClick(wrapper: ReturnType<typeof mount>, attribute: string) {
   const button = wrapper
     .findAllComponents(FlareButton)
@@ -187,7 +204,7 @@ describe("FlarePluginAdminList / native operational list adapter", () => {
   it("keeps card action inputs and confirmation metadata exact and rejects stale callbacks", async () => {
     const current = cardBlock();
     const { wrapper, adapter, state } = setup({ block: current });
-    const click = capturedClick(wrapper, "data-row-action");
+    const click = capturedAction(wrapper, "edit");
     const detail = capturedClick(wrapper, "data-row-detail");
     click();
     expect(adapter.emitted("rowAction")?.[0]).toEqual([
@@ -221,7 +238,7 @@ describe("FlarePluginAdminList / native operational list adapter", () => {
     detail();
     expect(adapter.emitted("rowAction")).toHaveLength(1);
     expect(adapter.emitted("openRow")).toHaveLength(1);
-    const currentClick = capturedClick(wrapper, "data-row-action");
+    const currentClick = capturedAction(wrapper, "edit");
     state.block = { ...(state.block as FlarePluginRowsBlock), actions: [] };
     await nextTick();
     currentClick();
@@ -234,7 +251,7 @@ describe("FlarePluginAdminList / native operational list adapter", () => {
       block: current,
       pagination: undefined,
     });
-    const action = capturedClick(wrapper, "data-row-action");
+    const action = capturedAction(wrapper, "edit");
     const detail = capturedClick(wrapper, "data-row-detail");
     const more = capturedClick(wrapper, "data-rows-load-more");
     expect(wrapper.findAll("[data-rows-load-more]")).toHaveLength(1);
@@ -276,6 +293,108 @@ describe("FlarePluginAdminList / native operational list adapter", () => {
     expect(wrapper.find("[data-rows-load-more]").exists()).toBe(false);
     previousMore();
     expect(adapter.emitted("loadMore")).toHaveLength(1);
+  });
+
+  it("folds a row's actions past three into more, keeps the detail apart and spins the one in flight", async () => {
+    const ids = ["publish", "edit", "simulate", "pause", "resume", "end", "disable", "inherit"];
+    const inputs = ids.map((id) => ({ id: "m1", action: id }));
+    const many: FlarePluginRowsBlock = {
+      ...block,
+      actions: ids.map((id) => ({
+        id,
+        label: `Do ${id}`,
+        form: [],
+        ...(id === "end" ? { style: "danger" as const } : {}),
+      })),
+      rows: [
+        {
+          ...block.rows[0],
+          actions: ids.map((id, index) => ({ id, input: inputs[index] })),
+        },
+        { ...block.rows[1], actions: [{ id: "edit", input: { id: "r2" } }] },
+      ],
+    };
+    const { wrapper, adapter, list, state } = setup({ block: many });
+    const first = wrapper.findAllComponents(FlareAdminRowActions)[0];
+    expect(first.props("max")).toBe(3);
+    expect(first.props("label")).toBe("Full untruncated record name");
+    // Two keys on the row and "more" for the other six; the detail key is
+    // its own and is not counted.
+    expect(first.findAll("[data-row-action]").map((key) => key.text())).toEqual([
+      "Do publish",
+      "Do edit",
+    ]);
+    const menu = first.getComponent(NDropdown);
+    expect(menu.props("options")).toHaveLength(6);
+    const trigger = first.get("[data-row-action-more]");
+    expect(trigger.attributes("aria-haspopup")).toBe("menu");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
+    expect(trigger.attributes("aria-label")).toBe(
+      "More actions for Full untruncated record name",
+    );
+    expect(
+      (first.props("actions") as readonly { key: string; danger?: boolean }[]).find(
+        (action) => action.key === "end",
+      )?.danger,
+    ).toBe(true);
+    expect(wrapper.findAll("[data-row-detail]")).toHaveLength(1);
+    // A row with one action shows it alone; the column fits the widest row.
+    const second = wrapper.findAllComponents(FlareAdminRowActions)[1];
+    expect(second.findAll("[data-row-action]")).toHaveLength(1);
+    expect(second.find("[data-row-action-more]").exists()).toBe(false);
+    expect(list.props("rowActionsWidth")).toBe(240);
+    // A key in the menu runs its action with the row's exact input.
+    menu.vm.$emit("select", "disable");
+    expect(adapter.emitted("rowAction")?.[0]).toEqual([
+      many.actions[6],
+      many.rows[0],
+      inputs[6],
+    ]);
+    expect(toRaw(adapter.emitted("rowAction")![0][2])).toBe(inputs[6]);
+    await first.get('[data-row-action="edit"]').trigger("click");
+    expect(adapter.emitted("rowAction")?.[1]?.[2]).toEqual(inputs[1]);
+    // The action in flight spins where it is drawn: its key, or "more".
+    state.busyActionId = "edit";
+    state.busyRow = "r1";
+    await nextTick();
+    expect(
+      wrapper.findAllComponents(FlareAdminRowActions)[0].findAllComponents(NButton)[1].props("loading"),
+    ).toBe(true);
+    state.busyActionId = "end";
+    await nextTick();
+    const busyMore = wrapper.findAllComponents(FlareAdminRowActions)[0];
+    expect(busyMore.get("[data-row-action-more]").attributes("disabled")).toBeDefined();
+    expect(
+      busyMore.findAllComponents(NButton).find((key) => key.attributes("data-row-action-more") !== undefined)!.props("loading"),
+    ).toBe(true);
+    // Only the row in flight spins.
+    expect(
+      wrapper.findAllComponents(FlareAdminRowActions)[1].findAllComponents(NButton)[0].props("loading"),
+    ).toBe(false);
+  });
+
+  it("folds card actions past three into more as well", () => {
+    const ids = ["publish", "edit", "pause", "end"];
+    const cards: FlarePluginRowsBlock = {
+      ...cardBlock(),
+      actions: ids.map((id) => ({ id, label: `Do ${id}`, form: [] })),
+      rows: [
+        {
+          ...block.rows[0],
+          actions: ids.map((id) => ({ id, input: { id: "r1", action: id } })),
+        },
+      ],
+    };
+    const { wrapper, adapter } = setup({ block: cards });
+    const actions = wrapper.getComponent(FlareAdminRowActions);
+    expect(actions.findAll("[data-row-action]").map((key) => key.text())).toEqual([
+      "Do publish",
+      "Do edit",
+    ]);
+    expect(actions.getComponent(NDropdown).props("options")).toHaveLength(2);
+    expect(wrapper.findAll("[data-row-detail]")).toHaveLength(1);
+    actions.getComponent(NDropdown).vm.$emit("select", "end");
+    expect(adapter.emitted("rowAction")?.[0]?.[2]).toEqual({ id: "r1", action: "end" });
   });
 
   it("reuses one native query, action toolbar, column chooser and complete identity/time table", () => {
