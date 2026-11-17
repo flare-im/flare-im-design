@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
       :aria-label="title"
     >
       <strong>{{ title }}</strong>
-      <span>{{ description }}</span>
+      <span class="flare-admin-popconfirm__description">{{ description }}</span>
       <strong v-if="target" class="flare-admin-popconfirm__target">{{
         target
       }}</strong>
@@ -267,6 +267,9 @@ onBeforeUnmount(() => {
   gap: var(--flare-size-spacing-sm);
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.flare-admin-popconfirm__description {
+  white-space: pre-line;
 }
 .flare-admin-popconfirm__target {
   font-weight: var(--flare-font-weight-medium, 500);

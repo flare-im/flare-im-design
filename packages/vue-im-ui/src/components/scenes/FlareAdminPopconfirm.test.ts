@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { readFileSync } from "node:fs";
 import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NPopconfirm, NInput } from "naive-ui";
@@ -187,5 +188,19 @@ describe("FlareAdminPopconfirm", () => {
     expect(event.defaultPrevented).toBe(false);
     expect(host.emitted("cancel")).toBeUndefined();
     expect(host.emitted("confirm")).toBeUndefined();
+  });
+  it("keeps line breaks in the description", async () => {
+    await setup({ description: "first line\nsecond line" });
+    const description = document.querySelector(
+      ".flare-admin-popconfirm__description",
+    );
+    expect(description?.textContent).toBe("first line\nsecond line");
+    const source = readFileSync(
+      new URL("./FlareAdminPopconfirm.vue", import.meta.url),
+      "utf8",
+    );
+    expect(source).toMatch(
+      /\.flare-admin-popconfirm__description\s*\{[^}]*white-space:\s*pre-line/,
+    );
   });
 });
