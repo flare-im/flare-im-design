@@ -108,13 +108,39 @@ describe("FlareMetricTile as a button", () => {
     const button = tile.get("button.flare-metric-tile");
     expect(button.attributes("type")).toBe("button");
     expect(button.attributes("role")).toBeUndefined();
-    expect(tile.get(`#${button.attributes("aria-labelledby")}`).text()).toBe("待处理");
     await button.trigger("click");
     expect(tile.emitted("select")).toHaveLength(1);
     // A button's Enter arrives as a click in a browser; the handler is the click.
     await button.trigger("keydown", { key: "Enter" });
     await button.trigger("click");
     expect(tile.emitted("select")).toHaveLength(2);
+  });
+
+  it("names the button by its label and its number, and describes it by the change and caption", () => {
+    const tile = mountTile({ label: "待审申请", value: 12, unit: "条", delta: 3, caption: "今日", actionable: true });
+    const button = tile.get("button.flare-metric-tile");
+    const text = (ids: string | undefined) =>
+      (ids ?? "").split(" ").map((id) => tile.get(`[id="${id}"]`).text().replace(/\s+/g, " ").trim());
+    // A screen reader announces "待审申请 12 条, button", then the change.
+    const [name, value] = text(button.attributes("aria-labelledby"));
+    expect(name).toBe("待审申请");
+    expect(value).toMatch(/^12\s?条$/);
+    const described = text(button.attributes("aria-describedby"));
+    expect(described).toHaveLength(1);
+    expect(described[0]).toContain("增加 3");
+    expect(described[0]).toContain("今日");
+    // A button holds phrasing content only: no paragraph inside it.
+    expect(button.findAll("p")).toHaveLength(0);
+    for (const part of ["label", "value", "foot"]) expect(button.get(`.flare-metric-tile__${part}`).element.tagName).toBe("SPAN");
+    // No data, or still loading, is said in the name instead of a number.
+    const empty = mountTile({ label: "待审申请", value: null, actionable: true }).get("button");
+    const emptyIds = empty.attributes("aria-labelledby")!.split(" ");
+    expect(empty.get(`[id="${emptyIds[1]}"]`).text()).toContain("暂无数据");
+    expect(empty.attributes("aria-describedby")).toBeUndefined();
+    // A plain tile keeps its paragraphs and its label-only group name.
+    const plain = mountTile({ label: "待审申请", value: 12 });
+    expect(plain.findAll("p")).toHaveLength(2);
+    expect(plain.get("[role=group]").attributes("aria-labelledby")?.split(" ")).toHaveLength(1);
   });
 
   it("a plain tile stays a group with no button", async () => {

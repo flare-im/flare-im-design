@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<{
   appearance?: "card" | "plain";
   /** BCP-47 tag for the digits. Default: the kit's language. */
   locale?: string;
-  /** Make the whole tile a button that emits `select`, e.g. to open the list behind the number. */
+  /** Make the whole tile a button that emits `select`, e.g. to open the list behind the number. Its name is the label and the value; the change and caption describe it. */
   actionable?: boolean;
 }>(), {
   unit: undefined,
@@ -61,6 +61,10 @@ const { t } = useFlareI18nOptional();
 const kitLocale = useFlareLocaleOptional();
 const locale = computed(() => props.locale ?? kitLocale.value);
 const labelId = `flare-metric-tile-${useId()}`;
+const valueId = `${labelId}-value`;
+const footId = `${labelId}-foot`;
+// A button holds phrasing content only, so its lines are spans; a group keeps paragraphs.
+const line = computed(() => (props.actionable ? "span" : "p"));
 
 const empty = computed(() => props.value == null || props.value === "" || (typeof props.value === "number" && !isReading(props.value)));
 const valueText = computed(() => {
@@ -70,6 +74,7 @@ const valueText = computed(() => {
 
 const writtenTrend = computed(() => Boolean(props.trendText?.trim()));
 const hasDelta = computed(() => writtenTrend.value || isReading(props.delta));
+const hasFoot = computed(() => !props.loading && (hasDelta.value || Boolean(props.caption)));
 const trend = computed<"up" | "down" | "flat">(() => {
   if (writtenTrend.value) return props.trendDirection;
   const delta = props.delta ?? 0;
@@ -103,12 +108,13 @@ const deltaSpoken = computed(() => {
     :class="[`flare-metric-tile--${appearance}`, { 'flare-metric-tile--actionable': actionable }]"
     :type="actionable ? 'button' : undefined"
     :role="actionable ? undefined : 'group'"
-    :aria-labelledby="labelId"
+    :aria-labelledby="actionable ? `${labelId} ${valueId}` : labelId"
+    :aria-describedby="actionable && hasFoot ? footId : undefined"
     :aria-busy="loading || undefined"
     @click="actionable && emit('select')"
   >
-    <p :id="labelId" class="flare-metric-tile__label">{{ label }}</p>
-    <p class="flare-metric-tile__value">
+    <component :is="line" :id="labelId" class="flare-metric-tile__label">{{ label }}</component>
+    <component :is="line" :id="valueId" class="flare-metric-tile__value">
       <template v-if="loading">
         <span class="flare-metric-tile__placeholder" aria-hidden="true"></span>
         <span class="flare-metric-tile__spoken">{{ t("metricTile.loading") }}</span>
@@ -121,8 +127,8 @@ const deltaSpoken = computed(() => {
         <span class="flare-metric-tile__number">{{ valueText }}</span>
         <span v-if="unit" class="flare-metric-tile__unit">{{ unit }}</span>
       </template>
-    </p>
-    <p v-if="!loading && (hasDelta || caption)" class="flare-metric-tile__foot">
+    </component>
+    <component :is="line" v-if="hasFoot" :id="footId" class="flare-metric-tile__foot">
       <span
         v-if="hasDelta"
         class="flare-metric-tile__delta"
@@ -136,7 +142,7 @@ const deltaSpoken = computed(() => {
         <span class="flare-metric-tile__spoken">{{ deltaSpoken }}</span>
       </span>
       <span v-if="caption" class="flare-metric-tile__caption">{{ caption }}</span>
-    </p>
+    </component>
   </component>
 </template>
 
