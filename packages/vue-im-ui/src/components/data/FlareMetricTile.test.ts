@@ -27,6 +27,7 @@ describe("FlareMetricTile", () => {
     expect(tone(90).attributes("data-tone")).toBe("error");
     expect(tone(95, false).attributes("data-tone")).toBeUndefined();
     expect(spoken(mountTile({ label: "用户", value: 92, usage: true }))).toContain("即将用尽");
+    expect(spoken(mountTile({ label: "Users", value: 75, usage: true }, "en-US"))).toContain("near the limit");
   });
 
   it("is a group named by its label, with the value formatted in the kit's language", () => {

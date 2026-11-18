@@ -2218,6 +2218,8 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       increase: "up {value}",
       decrease: "down {value}",
       unchanged: "unchanged",
+      nearLimit: "near the limit",
+      overLimit: "almost used up",
     },
     chartCard: {
       empty: "No data yet",
@@ -2257,8 +2259,6 @@ export const flareMessages: Record<string, FlareMessageTree> = {
       perPage: "{size} per page",
       pageSize: "Rows per page",
       pagination: "Pagination",
-      nearLimit: "near the limit",
-      overLimit: "almost used up",
       previous: "Previous page",
       next: "Next page",
       pageOf: "Page {page} of {pages}",
