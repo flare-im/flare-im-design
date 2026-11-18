@@ -675,6 +675,7 @@ title: 数据类型
 | `style` | [`PluginActionStyle`](/reference/data-types#plugin-action-style) |  | primary 或 danger；不传为次要。 |
 | `confirm` | `string` |  | 先在 Kit 的 DangerConfirm 里确认的文案。 |
 | `form` | `string[]` |  | 先用 PluginForm 收集的输入 id。 |
+| `values` | `Record<string, unknown>` |  | 管理页动作按页面数据绑定好的输入；视图把它作为 payload 的 input 发回（Vue）。 |
 
 ### PluginBlock {#plugin-block}
 
@@ -786,6 +787,7 @@ title: 数据类型
 | `selection` | `number[]` |  | 选中的选项下标（choices），升序。 |
 | `formValues` | `Record<string, unknown>` |  | 按输入 id 的表单提交值。 |
 | `row` | `{key, input}` |  | 行动作所在的行。 |
+| `input` | `Record<string, unknown>` |  | 页面动作的 values（Vue 管理页）。 |
 
 ### PluginBadge {#plugin-badge}
 

@@ -675,6 +675,7 @@ title: Data Types
 | `style` | [`PluginActionStyle`](/en/reference/data-types#plugin-action-style) |  | primary or danger; secondary when absent. |
 | `confirm` | `string` |  | Asked first in the kit DangerConfirm. |
 | `form` | `string[]` |  | Input ids collected first in PluginForm. |
+| `values` | `Record<string, unknown>` |  | An admin page action's input bound over the page data; the view sends it back as the payload's input (Vue). |
 
 ### PluginBlock {#plugin-block}
 
@@ -786,6 +787,7 @@ title: Data Types
 | `selection` | `number[]` |  | Chosen option indices (choices), ascending. |
 | `formValues` | `Record<string, unknown>` |  | Submitted form values by input id. |
 | `row` | `{key, input}` |  | The row of a rows action. |
+| `input` | `Record<string, unknown>` |  | A page action's values (Vue admin pages). |
 
 ### PluginBadge {#plugin-badge}
 

@@ -126,3 +126,30 @@ it("opens a row's form from the values the view resolved for that row", async ()
     { row: { key: "g2", input }, formValues: { label: "验收 g2", amount: "50" } },
   ]);
 });
+
+it("sends a page action's bound values as its input, with and without a form", async () => {
+  const values = { missionId: "m1", baseRevision: null };
+  const view: FlarePluginViewModel = {
+    available: true,
+    title: "任务",
+    fields: [],
+    inputs: [{ id: "name", kind: "text", label: "名称" }],
+    actions: [
+      { id: "basics", label: "基本信息", form: ["name"], values },
+      { id: "publish", label: "发布", values },
+      { id: "add", label: "新建" },
+    ],
+  };
+  const wrapper = mount(FlarePluginView, { props: { view, embedded: true }, attachTo: document.body });
+  hosts.push(wrapper);
+  await wrapper.get('button[data-action-id="publish"]').trigger("click");
+  await wrapper.get('button[data-action-id="add"]').trigger("click");
+  await wrapper.get('button[data-action-id="basics"]').trigger("click");
+  await flushPromises();
+  wrapper.findComponent(FlarePluginForm).vm.$emit("submit", { name: "签到" });
+  expect(wrapper.emitted("action")).toEqual([
+    ["publish", { input: values }],
+    ["add", {}],
+    ["basics", { input: values, formValues: { name: "签到" } }],
+  ]);
+});

@@ -2888,6 +2888,15 @@
             "en": "Input ids collected first in PluginForm.",
             "zh": "先用 PluginForm 收集的输入 id。"
           }
+        },
+        {
+          "name": "values",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "An admin page action's input bound over the page data; the view sends it back as the payload's input (Vue).",
+            "zh": "管理页动作按页面数据绑定好的输入；视图把它作为 payload 的 input 发回（Vue）。"
+          }
         }
       ]
     },
@@ -3357,6 +3366,15 @@
           "description": {
             "en": "The row of a rows action.",
             "zh": "行动作所在的行。"
+          }
+        },
+        {
+          "name": "input",
+          "type": "Record<string, unknown>",
+          "required": false,
+          "description": {
+            "en": "A page action's values (Vue admin pages).",
+            "zh": "页面动作的 values（Vue 管理页）。"
           }
         }
       ],

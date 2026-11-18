@@ -21,6 +21,8 @@ export interface FlarePluginAction {
   confirm?: string;
   /** Input ids collected first in PluginForm. */
   form?: ReadonlyArray<string>;
+  /** An admin page action's input bound over the page data; the view sends it as the payload's `input`. */
+  values?: Record<string, unknown>;
   /** `menu`: the action lives in the card's ⋯ menu (it arrives in view.menuActions). */
   placement?: "menu";
   /**
@@ -580,6 +582,8 @@ export interface FlarePluginActionPayload {
   formValues?: Record<string, unknown>;
   /** The row of a rows action. */
   row?: { key: string; input: unknown };
+  /** A page action's `values`: its input bound over the page data. */
+  input?: Record<string, unknown>;
 }
 /** How a Vue PluginView draws a rows block: the kit DataTable (console admin lists) or a list (plugin pages). */
 /** Explicit account layouts: wallet cards use row display amounts, flow fields are labeled data, and legacy/ledger fields keep their headline semantics. */

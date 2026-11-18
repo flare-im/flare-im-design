@@ -731,6 +731,8 @@ function run(
   initialValues?: Record<string, unknown>,
 ): void {
   if (locked.value) return;
+  // A page action sends back the input the view bound for it; a row's comes with the row.
+  if (!payload.row && action.values) payload = { ...payload, input: action.values };
   // A native target writing `into` an input of a form on this view runs through that input's own key, so the
   // host's answer is written into the form's current scope (no earlier touch of the input needed).
   if (
@@ -820,7 +822,7 @@ function submitInlineForm(values: Record<string, unknown>): void {
     return;
   inlineAttempted.value = true;
   inlinePending.value = true;
-  dispatchForm(action, {}, values);
+  dispatchForm(action, action.values ? { input: action.values } : {}, values);
 }
 function closeForm(): void {
   if (formBusy.value) return;
