@@ -17,6 +17,10 @@ const props = {
   ],
 };
 describe("FlareAdminEntitySelect", () => {
+  it("lets the menu grow to its content instead of the trigger's width", () => {
+    const select = mount(Select, { props }).getComponent(NSelect);
+    expect(select.props("consistentMenuWidth")).toBe(false);
+  });
   it("Escape dismisses an open directory menu without closing its parent edit modal", async () => {
     let closes = 0;
     const host = mount(

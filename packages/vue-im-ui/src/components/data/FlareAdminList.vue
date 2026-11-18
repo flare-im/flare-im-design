@@ -86,6 +86,8 @@ const props = withDefaults(
     expandText?: string;
     collapseText?: string;
     settingsText?: string;
+    /** Name of the help trigger; default describes a list, other pages pass their own. */
+    helpText?: string;
     emptyText?: string;
     /** Width of the `row-actions` column, for hosts whose rows show more than two keys. */
     rowActionsWidth?: number;
@@ -584,7 +586,7 @@ function onQueryKey(event: KeyboardEvent) {
       /></FlareAdminActions>
       <div class="flare-admin-list__settings">
         <slot name="tools" />
-        <FlareAdminHelp v-if="slots.help" :label="t('dataTable.help')">
+        <FlareAdminHelp v-if="slots.help" :label="helpText ?? t('dataTable.help')">
           <slot name="help" />
         </FlareAdminHelp>
         <NPopover

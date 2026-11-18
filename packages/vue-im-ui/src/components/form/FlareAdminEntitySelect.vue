@@ -196,7 +196,8 @@ function select(value: string | number | Array<string | number> | null) {
       :max-tag-count="'responsive'"
       :render-label="renderLabel"
       :reset-menu-on-options-change="false"
-      :consistent-menu-width="true"
+      :consistent-menu-width="false"
+      :menu-props="{ style: { minWidth: 'min(20rem, calc(100vw - 24px))', maxWidth: 'calc(100vw - 24px)' } }"
       size="small"
       filterable
       :remote="remote"

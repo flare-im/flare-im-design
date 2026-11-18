@@ -226,6 +226,12 @@ describe("FlareAdminList / Naive UI composition", () => {
       expect(close).toHaveBeenCalledOnce();
     },
   );
+  it("names the help trigger by the host's label, else as a list's", () => {
+    const help = { help: () => "About this page" };
+    const trigger = (props = {}) => setup(props, help).list.get(".flare-admin-help button").text();
+    expect(trigger()).toBe("列表说明");
+    expect(trigger({ helpText: "页面说明" })).toBe("页面说明");
+  });
   it("labels bounded loaded snapshots without claiming an authoritative server-wide total", () => {
     const { list } = setup({
       pagination: { page: 1, pageSize: 10, total: 40, totalKind: "loaded" },

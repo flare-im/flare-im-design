@@ -35,7 +35,7 @@ beforeEach(() => {
       }),
     },
     window: {
-      location: { href: "http://localhost:1430/chat" },
+      location: { href: "http://localhost:1430/chat", protocol: "http:" },
       setTimeout() {},
     },
     fetch: async (url: string) => {
@@ -48,7 +48,6 @@ beforeEach(() => {
 describe("private administrative attachment download", () => {
   it.each([
     "javascript:alert(1)",
-    "http://objects.test/file",
     "https://user:secret@objects.test/file",
     "https://objects.test/file#fragment",
   ])("refuses %s before fetching", async (url) => {
@@ -62,6 +61,18 @@ describe("private administrative attachment download", () => {
     ).rejects.toThrow();
     expect(fetches).toEqual([]);
     expect(clicks).toEqual([]);
+  });
+  it("allows http only when the page itself is http", async () => {
+    const url = "http://objects.test/file";
+    const run = () =>
+      downloadAuthorizedAttachment(url, "f.txt", new AbortController().signal, () => true);
+    await expect(run()).rejects.toThrow(); // page is http://localhost: fetch offline error, but it was attempted
+    expect(fetches).toEqual([url]);
+    fetches.length = 0;
+    (globalThis as any).window.location.href = "https://console.test/chat";
+    (globalThis as any).window.location.protocol = "https:";
+    await expect(run()).rejects.toThrow("Attachment unavailable");
+    expect(fetches).toEqual([]);
   });
   it("does not fall back to opening an unauthorized or non-CORS URL", async () => {
     await expect(

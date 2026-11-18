@@ -20,6 +20,15 @@ function mountTile(props: Record<string, unknown>, locale: FlareLocale = "zh-CN"
 const spoken = (tile: ReturnType<typeof mountTile>) => tile.findAll(".flare-metric-tile__spoken").map((node) => node.text());
 
 describe("FlareMetricTile", () => {
+  it("tones a usage share: warning from 70, error from 90, spoken too", () => {
+    const tone = (value: number, usage = true) => mountTile({ label: "用户", value, unit: "%", usage }).get(".flare-metric-tile");
+    expect(tone(69).attributes("data-tone")).toBeUndefined();
+    expect(tone(70).attributes("data-tone")).toBe("warning");
+    expect(tone(90).attributes("data-tone")).toBe("error");
+    expect(tone(95, false).attributes("data-tone")).toBeUndefined();
+    expect(spoken(mountTile({ label: "用户", value: 92, usage: true }))).toContain("即将用尽");
+  });
+
   it("is a group named by its label, with the value formatted in the kit's language", () => {
     const tile = mountTile({ label: "用户总数", value: 12480, unit: "人", caption: "上限 20,000" });
     const group = tile.get("[role=group]");

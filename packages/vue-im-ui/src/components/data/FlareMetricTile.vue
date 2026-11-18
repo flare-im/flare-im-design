@@ -39,6 +39,8 @@ const props = withDefaults(defineProps<{
   appearance?: "card" | "plain";
   /** BCP-47 tag for the digits. Default: the kit's language. */
   locale?: string;
+  /** A share of a limit: warning from 70, error from 90. Only for a value that is a percentage. */
+  usage?: boolean;
   /** Make the whole tile a button that emits `select`, e.g. to open the list behind the number. Its name is the label and the value; the change and caption describe it. */
   actionable?: boolean;
 }>(), {
@@ -54,6 +56,7 @@ const props = withDefaults(defineProps<{
   appearance: "card",
   locale: undefined,
   actionable: false,
+  usage: false,
 });
 const emit = defineEmits<{ select: [] }>();
 
@@ -72,6 +75,10 @@ const valueText = computed(() => {
   return props.value ?? "";
 });
 
+const level = computed(() => {
+  const v = props.usage && typeof props.value === "number" ? props.value : 0;
+  return v >= 90 ? "error" : v >= 70 ? "warning" : undefined;
+});
 const writtenTrend = computed(() => Boolean(props.trendText?.trim()));
 const hasDelta = computed(() => writtenTrend.value || isReading(props.delta));
 const hasFoot = computed(() => !props.loading && (hasDelta.value || Boolean(props.caption)));
@@ -106,6 +113,7 @@ const deltaSpoken = computed(() => {
     :is="actionable ? 'button' : 'div'"
     class="flare-metric-tile"
     :class="[`flare-metric-tile--${appearance}`, { 'flare-metric-tile--actionable': actionable }]"
+    :data-tone="level"
     :type="actionable ? 'button' : undefined"
     :role="actionable ? undefined : 'group'"
     :aria-labelledby="actionable ? `${labelId} ${valueId}` : labelId"
@@ -126,6 +134,7 @@ const deltaSpoken = computed(() => {
       <template v-else>
         <span class="flare-metric-tile__number">{{ valueText }}</span>
         <span v-if="unit" class="flare-metric-tile__unit">{{ unit }}</span>
+        <span v-if="level" class="flare-metric-tile__spoken">{{ t(level === "error" ? "metricTile.overLimit" : "metricTile.nearLimit") }}</span>
       </template>
     </component>
     <component :is="line" v-if="hasFoot" :id="footId" class="flare-metric-tile__foot">
@@ -205,6 +214,8 @@ const deltaSpoken = computed(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.flare-metric-tile[data-tone="warning"] .flare-metric-tile__number { color: var(--flare-color-warning-text); }
+.flare-metric-tile[data-tone="error"] .flare-metric-tile__number { color: var(--flare-color-error-text); }
 .flare-metric-tile__unit {
   flex: none;
   color: var(--flare-color-text-secondary);

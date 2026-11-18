@@ -24,7 +24,9 @@ export async function downloadAuthorizedAttachment(
 ): Promise<void> {
   const parsed = new URL(url);
   if (
-    parsed.protocol !== "https:" ||
+    // Same scheme as the page: a plain-http console may read http addresses, an https one never downgrades.
+    (parsed.protocol !== "https:" &&
+      !(parsed.protocol === "http:" && window.location.protocol === "http:")) ||
     parsed.username ||
     parsed.password ||
     parsed.hash ||
