@@ -153,3 +153,23 @@ it("sends a page action's bound values as its input, with and without a form", a
     ["basics", { input: values, formValues: { name: "签到" } }],
   ]);
 });
+
+it("sends a page action's bound values from its inline form", async () => {
+  const values = { missionId: "m1", baseRevision: null };
+  const sent: unknown[] = [];
+  const view: FlarePluginViewModel = {
+    available: true,
+    title: "任务",
+    fields: [],
+    inputs: [{ id: "name", kind: "text", label: "名称" }],
+    actions: [{ id: "basics", label: "保存", form: ["name"], values }],
+  };
+  const wrapper = mount(FlarePluginView, {
+    props: { view, embedded: true, inlineFormActionId: "basics", onAction: (...args: unknown[]) => sent.push(args) },
+    attachTo: document.body,
+  });
+  hosts.push(wrapper);
+  wrapper.getComponent(FlarePluginForm).vm.$emit("submit", { name: "签到" });
+  await flushPromises();
+  expect(sent).toEqual([["basics", { input: values, formValues: { name: "签到" } }]]);
+});
