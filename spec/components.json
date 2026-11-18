@@ -3021,7 +3021,7 @@
         },
         {
           "name": "rows",
-          "type": "{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}",
+          "type": "{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input, values?}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}",
           "required": false,
           "description": {
             "en": "Rows of a plugin page (a list on every kit: badge and first cell, the other cells, action keys; once per key; they page with the page) or of a Vue console table. filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to action forms (flarePluginFilterInputs).",

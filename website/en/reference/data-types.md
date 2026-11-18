@@ -694,7 +694,7 @@ title: Data Types
 | `progress` | `{label?, value, total, percent}` |  | A bar with value/total. |
 | `time` | `{label?, atMs, endMs?, countdown}` |  | An instant or range, optionally counting down. |
 | `note` | `{text, tone?}` |  | A tinted note. |
-| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | Rows of a plugin page (a list on every kit: badge and first cell, the other cells, action keys; once per key; they page with the page) or of a Vue console table. filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to action forms (flarePluginFilterInputs). |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input, values?}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | Rows of a plugin page (a list on every kit: badge and first cell, the other cells, action keys; once per key; they page with the page) or of a Vue console table. filters lists the ids of the view's inputs shown as the page's filters (absent: every input); the other inputs belong to action forms (flarePluginFilterInputs). |
 
 ### PluginChoice {#plugin-choice}
 

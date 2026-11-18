@@ -79,3 +79,50 @@ it("keeps the selected row and balance visible without adding context to the com
     { row: { key: "a", input }, formValues: { amount: "5" } },
   ]);
 });
+it("opens a row's form from the values the view resolved for that row", async () => {
+  const action = { id: "setGroup", label: "设置", form: ["label", "amount"] };
+  const input = { conversationId: "g2", expectedRevision: 4 };
+  const view: FlarePluginViewModel = {
+    available: true,
+    title: "群签到",
+    fields: [],
+    actions: [],
+    inputs: [
+      { id: "label", kind: "text", label: "备注名" },
+      { id: "amount", kind: "text", label: "每次奖励金额" },
+    ],
+    blocks: [
+      {
+        kind: "rows",
+        source: "groups",
+        columns: [{ label: "群", format: "text" }],
+        actions: [action],
+        rows: [
+          {
+            key: "g2",
+            cells: [{ text: "验收 g2" }],
+            actions: [{ id: "setGroup", input, values: { label: "验收 g2", amount: "50" } }],
+          },
+        ],
+      },
+    ],
+  };
+  const wrapper = mount(FlarePluginView, {
+    props: { view, embedded: true },
+    attachTo: document.body,
+    slots: {
+      rows: ({ run, block }: any) =>
+        h("button", { onClick: () => run(action, block.rows[0], input) }, "Open"),
+    },
+  });
+  hosts.push(wrapper);
+  await wrapper.get("button").trigger("click");
+  await flushPromises();
+  const form = wrapper.findComponent(FlarePluginForm);
+  expect(form.props("values")).toEqual({ label: "验收 g2", amount: "50" });
+  form.vm.$emit("submit", { label: "验收 g2", amount: "50" });
+  expect(wrapper.emitted("action")?.[0]).toEqual([
+    "setGroup",
+    { row: { key: "g2", input }, formValues: { label: "验收 g2", amount: "50" } },
+  ]);
+});

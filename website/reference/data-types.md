@@ -694,7 +694,7 @@ title: 数据类型
 | `progress` | `{label?, value, total, percent}` |  | 进度条加 value/total。 |
 | `time` | `{label?, atMs, endMs?, countdown}` |  | 时间点或区间，可倒计时。 |
 | `note` | `{text, tone?}` |  | 带色调的提示。 |
-| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | 插件页面的行（四端都是列表：徽标与第一格、其余单元格、动作键；同一 key 只画一次；随页分页）或 Vue 控制台表格的行。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归动作表单（flarePluginFilterInputs）。 |
+| `rows` | `{source, columns: {label, format}[], rows: {key, cells: {text, timeMs?}[], actions: {id, input, values?}[], detailInput?, badge?: PluginBadge}[], nextCursor?, actions: PluginAction[], emptyText?, filters?: string[]}` |  | 插件页面的行（四端都是列表：徽标与第一格、其余单元格、动作键；同一 key 只画一次；随页分页）或 Vue 控制台表格的行。filters 列出作为页面筛选项的输入 id（不带时为全部输入）；其余输入归动作表单（flarePluginFilterInputs）。 |
 
 ### PluginChoice {#plugin-choice}
 

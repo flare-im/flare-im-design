@@ -199,7 +199,8 @@ export interface FlarePluginRowCell {
 export interface FlarePluginRow {
   key: string;
   cells: ReadonlyArray<FlarePluginRowCell>;
-  actions: ReadonlyArray<{ id: string; input: unknown }>;
+  /** `values`: what the action's form starts from on this row, by input id. */
+  actions: ReadonlyArray<{ id: string; input: unknown; values?: Record<string, unknown> }>;
   detailInput?: unknown;
   /** Leads the row: the first line of a list item, the first cell of a table row. */
   badge?: FlarePluginBadge;

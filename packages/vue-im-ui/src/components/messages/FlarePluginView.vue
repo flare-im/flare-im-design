@@ -743,19 +743,18 @@ function run(
   const proceed = () => {
     if (action.form?.length) {
       formRowContext.value = null;
+      let rowValues: Record<string, unknown> | undefined;
       if (payload.row) {
         for (const block of props.view.blocks ?? []) {
           if (block.kind !== "rows") continue;
           const row = block.rows.find((row) => row.key === payload.row?.key);
-          if (
-            !row ||
-            !row.actions.some(
-              (a) =>
-                a.id === action.id &&
-                JSON.stringify(a.input) === JSON.stringify(payload.row?.input),
-            )
-          )
-            continue;
+          const bound = row?.actions.find(
+            (a) =>
+              a.id === action.id &&
+              JSON.stringify(a.input) === JSON.stringify(payload.row?.input),
+          );
+          if (!row || !bound) continue;
+          rowValues = bound.values;
           formRowContext.value = {
             kind: "fields",
             fields: row.cells.map((cell, index) =>
@@ -771,7 +770,9 @@ function run(
         }
       }
       formSubmitted.value = false;
-      const initial = props.formInitialValues?.(action.id, payload.row);
+      // The row's own values (resolved per row by the view); the host's win.
+      const hostInitial = props.formInitialValues?.(action.id, payload.row);
+      const initial = rowValues ? { ...rowValues, ...hostInitial } : hostInitial;
       formBaselineValues.value = initialValues ? initial : undefined;
       formValues.value = initialValues
         ? { ...initial, ...initialValues }
