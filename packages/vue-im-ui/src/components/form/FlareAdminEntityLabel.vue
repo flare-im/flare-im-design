@@ -59,11 +59,12 @@ defineProps<{
   white-space: nowrap;
 }
 .flare-admin-entity-label__name {
-  flex: 1;
-}
-.flare-admin-entity-label__description {
   flex: 0 1 auto;
-  max-width: 45%;
+  max-width: 55%;
+}
+/* The login takes the rest of the row, so a long name no longer pushes it into an ellipsis. */
+.flare-admin-entity-label__description {
+  flex: 1 1 auto;
   color: var(--flare-color-text-secondary);
   font-size: var(--flare-size-font-size-xs, 11px);
 }

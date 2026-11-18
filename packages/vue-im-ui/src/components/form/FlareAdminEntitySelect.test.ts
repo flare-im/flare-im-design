@@ -5,6 +5,7 @@ import { NSelect, NAvatar } from "naive-ui";
 import Select from "./FlareAdminEntitySelect.vue";
 import FlareModal from "../general/FlareModal.vue";
 import { h, nextTick } from "vue";
+import { readFileSync } from "node:fs";
 const props = {
   label: "User",
   placeholder: "Search accounts",
@@ -227,4 +228,16 @@ it("can suppress the clear action without changing the selected value", async ()
   input.vm.$emit("update:value", null);
   expect(wrapper.emitted("update:value")?.[0]).toEqual([""]);
   wrapper.unmount();
+});
+
+it("lets the secondary login fill the option row instead of capping it", () => {
+  const css = readFileSync(
+    "src/components/form/FlareAdminEntityLabel.vue",
+    "utf8",
+  );
+  const rule = css.slice(
+    css.lastIndexOf(".flare-admin-entity-label__description {"),
+  );
+  expect(rule.slice(0, rule.indexOf("}"))).toMatch(/flex: 1 1 auto/);
+  expect(rule.slice(0, rule.indexOf("}"))).not.toMatch(/max-width/);
 });
