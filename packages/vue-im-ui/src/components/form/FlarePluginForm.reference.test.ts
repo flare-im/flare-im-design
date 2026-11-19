@@ -143,6 +143,33 @@ describe("reference inputs", () => {
     expect(submits).toHaveLength(1);
   });
 
+  it("calls a prefilled value unavailable only once the first read answered without it", async () => {
+    const labels = { placeholder: "Choose", empty: "None", more: "More", retry: "Retry", unavailable: "Gone" };
+    const state = reactive<{ selections: Record<string, SchemaSelection> }>({
+      selections: { pick: { options: [], loading: true } },
+    });
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          useFlareI18nProvider("en-US");
+          return () =>
+            h(FlarePluginForm as never, {
+              inputs: [pick()],
+              values: { pick: "cny" },
+              selections: state.selections,
+              selectionLabels: labels,
+            });
+        },
+      }),
+    );
+    const shown = () =>
+      wrapper.findComponent(FlareAdminEntitySelect).props("options") as { value: string; label: string }[];
+    expect(shown()).toEqual([{ value: "cny", label: "Choose", disabled: true }]);
+    state.selections = { pick: { options: [{ value: "usd", label: "Dollar" }] } };
+    await flushPromises();
+    expect(shown()).toContainEqual({ value: "cny", label: "Gone", disabled: true });
+  });
+
   it("holds a required one back", async () => {
     const { wrapper, submits } = render([pick({ required: true })]);
     (

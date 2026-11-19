@@ -414,7 +414,10 @@ function directoryOptions(input: FlarePluginInput) {
     )
       options.push({
         value,
-        label: props.selectionLabels?.unavailable || input.label,
+        // Unavailable only once the read has answered without it (as FlareSchemaForm).
+        label: selection?.loading
+          ? props.selectionLabels?.loading || props.selectionLabels?.placeholder || input.label
+          : props.selectionLabels?.unavailable || input.label,
         disabled: true,
       });
   return options;
