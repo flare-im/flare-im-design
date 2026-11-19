@@ -12,7 +12,7 @@ import {
   type FlarePluginProtectedMediaState,
 } from "../../../shared/contracts/plugin-ui";
 
-// Private material, one item at a time: nothing is fetched until the viewer asks. A block that declares
+// Private material is fetched by the host after it authorizes and audits the read. A block that declares
 // `reasonInput` (a console reviewing someone else's material) first asks why; the owner's own page declares
 // none, so one tap reads (spec/capability-ui-vectors.json protectedMediaReason). The host runs the action, which
 // authorizes and audits the read, and hands the address back in `states`: the server's short-lived https address
@@ -34,6 +34,7 @@ const reasonInputs = computed<FlarePluginInput[]>(() => [
 const sourceOf = (item: FlarePluginProtectedItem) => flarePluginProtectedMediaSource(props.states[item.id]?.url);
 const isImage = (item: FlarePluginProtectedItem) => !item.mediaType || item.mediaType.startsWith("image/");
 const asksReason = computed(() => Boolean(props.block.reasonInput));
+const inline = computed(() => props.block.inlinePreview === true);
 function request(item: FlarePluginProtectedItem): void {
   if (asksReason.value) reading.value = item;
   else emit("read", item, "");
@@ -55,7 +56,7 @@ function submit(values: Record<string, unknown>): void {
         <div class="flare-plugin-media__head">
           <span class="flare-plugin-media__name">{{ item.label }}</span>
           <FlareButton
-            v-if="block.action && !sourceOf(item)"
+            v-if="!inline && block.action && !sourceOf(item)"
             size="sm"
             variant="secondary"
             :label="block.action.label"
@@ -65,6 +66,9 @@ function submit(values: Record<string, unknown>): void {
             @click="request(item)"
           />
         </div>
+        <p v-if="inline && states[item.id]?.loading" class="flare-plugin-media__notice" role="status">
+          {{ t("pluginView.loading") }}
+        </p>
         <template v-if="sourceOf(item)">
           <img
             v-if="isImage(item)"
@@ -83,7 +87,7 @@ function submit(values: Record<string, unknown>): void {
       </li>
     </ul>
     <p v-else class="flare-plugin-media__empty" data-media-empty="true">{{ block.emptyText || t("pluginView.empty") }}</p>
-    <p class="flare-plugin-media__notice">{{ asksReason ? t("pluginView.protectedMedia.notice") : t("pluginView.protectedMedia.ownNotice") }}</p>
+    <p v-if="!inline" class="flare-plugin-media__notice">{{ asksReason ? t("pluginView.protectedMedia.notice") : t("pluginView.protectedMedia.ownNotice") }}</p>
     <FlareBottomSheet :open="Boolean(reading)" :title="block.action?.label" @close="reading = null">
       <FlarePluginForm v-if="reading" :inputs="reasonInputs" :submit-label="block.action?.label" @submit="submit" @cancel="reading = null" />
     </FlareBottomSheet>

@@ -142,6 +142,16 @@ describe("protected media", () => {
     expect(reads).toEqual([]);
   });
 
+  it("renders host-loaded previews inline with no media buttons or prompt", () => {
+    const wrapper = render({
+      view: view({ blocks: [{ ...block, inlinePreview: true }] }),
+      protectedMedia: { m1: { url: "blob:https://console/1" } },
+    });
+    expect(wrapper.find("[data-media-image]").attributes("src")).toBe("blob:https://console/1");
+    expect(wrapper.find("[data-media-read]").exists()).toBe(false);
+    expect(document.body.querySelector("textarea")).toBeNull();
+  });
+
   it("shows what the host fetched, and only an address it may draw", () => {
     const states = (url: string): Record<string, FlarePluginProtectedMediaState> => ({ m1: { url } });
     const shown = render({ view: view({ blocks: [block] }), protectedMedia: states("blob:https://console/1") });

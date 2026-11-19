@@ -239,6 +239,8 @@ export interface FlarePluginProtectedItem {
  */
 export interface FlarePluginProtectedMediaBlock {
   kind: "protected-media";
+  /** Host-owned display mode for previews loaded through an audited action. */
+  inlinePreview?: boolean;
   label?: string;
   items: ReadonlyArray<FlarePluginProtectedItem>;
   action?: FlarePluginAction;
