@@ -433,8 +433,10 @@ function setNumber(id: string, text: string): void {
 // ── datetime: the kit's date and time pickers in the device zone; a value once both are set ──
 function setDatePart(id: string, part: "date" | "time", value: string): void {
   const parts = { ...(dateParts[id] ?? { date: "", time: "" }), [part]: value };
-  // A date alone is 00:00 that day, shown in the time field, never a silent "no value".
+  // A date alone is 00:00 that day, shown in the time field, never a silent "no value"; clearing the date
+  // clears that time too.
   if (parts.date && !parts.time) parts.time = "00:00";
+  if (part === "date" && !value) parts.time = "";
   dateParts[id] = parts;
   const [y, m, d] = parts.date.split("-").map(Number);
   const [hh, mm] = parts.time.split(":").map(Number);

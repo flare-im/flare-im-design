@@ -12,7 +12,7 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-it("saves a date picked without a time as 00:00 that day, shows that time, and clears with the date", async () => {
+it("saves a date picked without a time as 00:00 that day, shows that time, and clears both with the date", async () => {
   const submits: Record<string, unknown>[] = [];
   const wrapper = mount(
     defineComponent({
@@ -40,6 +40,7 @@ it("saves a date picked without a time as 00:00 that day, shows that time, and c
 
   wrapper.findComponent(FlareDatePicker).vm.$emit("update:modelValue", "");
   await flushPromises();
+  expect(wrapper.findComponent(FlareTimePicker).props("modelValue")).toBe("");
   form().submit();
   expect(submits[2]).toEqual({});
 });
