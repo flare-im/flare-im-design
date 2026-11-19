@@ -17,6 +17,7 @@ defineProps<{
   block: FlarePluginRowsBlock;
   strings: FlarePluginStrings;
   label?: string;
+  detailLabel?: string;
   /** Keep the list controls and render the host's content slot in place of the table. */
   content?: boolean;
   searchText?: string;
@@ -56,6 +57,7 @@ const passthrough = computed(() => Object.keys(slots).filter((name) => name !== 
     :block="block"
     :strings="strings"
     :admin-label="label"
+    :detail-label="detailLabel"
     layout="admin-list"
     :admin-content="content"
     :search-text="searchText"

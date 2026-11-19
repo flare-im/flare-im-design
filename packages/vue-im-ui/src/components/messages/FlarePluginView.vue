@@ -176,6 +176,8 @@ const props = withDefaults(
     ) => Record<string, unknown> | undefined;
     /** Lets a host name the form submit button independently of its opening action. */
     formSubmitLabel?: (actionId: string) => string | undefined;
+    /** Host presentation for one action form, with the same declared input IDs. */
+    actionFormInput?: (actionId: string, input: FlarePluginInput) => FlarePluginInput;
     formSelections?: Record<string, SchemaSelection>;
     formChangeActions?: ReadonlyArray<string>;
     selectionLabels?: SchemaSelectionLabels;
@@ -685,12 +687,14 @@ const formSubmitted = ref(false);
 const inlineAttempted = ref(false),
   inlineRevision = ref(0);
 const inlineInitialValues = ref<Record<string, unknown>>();
-const inlineInputs = computed(
-  () =>
-    inlineFormAction.value?.form?.flatMap(
-      (id) => props.view.inputs?.find((input) => input.id === id) ?? [],
-    ) ?? [],
-);
+function actionInput(actionId: string, id: string): FlarePluginInput[] {
+  const input = props.view.inputs?.find((input) => input.id === id);
+  return input ? [props.actionFormInput?.(actionId, input) ?? input] : [];
+}
+const inlineInputs = computed(() => {
+  const action = inlineFormAction.value;
+  return action?.form?.flatMap((id) => actionInput(action.id, id)) ?? [];
+});
 watch(
   () => inlineFormAction.value?.id,
   (id) => {
@@ -708,9 +712,7 @@ const formBaselineValues = ref<Record<string, unknown> | undefined>();
 const formInputs = computed<FlarePluginInput[]>(() => {
   const action = formAction.value;
   if (!action?.form) return [];
-  return action.form
-    .map((id) => props.view.inputs?.find((input) => input.id === id))
-    .filter((input): input is FlarePluginInput => Boolean(input));
+  return action.form.flatMap((id) => actionInput(action.id, id));
 });
 const formBusy = computed(
   () =>

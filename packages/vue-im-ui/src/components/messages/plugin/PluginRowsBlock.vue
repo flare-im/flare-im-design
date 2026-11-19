@@ -43,6 +43,7 @@ const props = withDefaults(
     layout?: FlarePluginRowsLayout | "admin-list";
     labelRows?: boolean;
     adminLabel?: string;
+    detailLabel?: string;
     adminContent?: boolean;
     searchText?: string;
     loading?: boolean;
@@ -431,7 +432,7 @@ function onRowClick(record: Record<string, unknown>): void {
             size="sm"
             appearance="text"
             variant="secondary"
-            :label="t('pluginView.detail')"
+            :label="detailLabel ?? t('pluginView.detail')"
             :disabled="busy"
             data-row-detail="true"
             @click="emit('openRow', card.row)"
@@ -497,7 +498,7 @@ function onRowClick(record: Record<string, unknown>): void {
               size="sm"
               appearance="text"
               variant="secondary"
-              :label="t('pluginView.detail')"
+              :label="detailLabel ?? t('pluginView.detail')"
               :disabled="'disabled' in item ? item.disabled : true"
               data-row-detail="true"
               @click="card.open"
@@ -562,7 +563,7 @@ function onRowClick(record: Record<string, unknown>): void {
           size="sm"
           appearance="text"
           variant="secondary"
-          :label="t('pluginView.detail')"
+          :label="detailLabel ?? t('pluginView.detail')"
           :disabled="busy"
           data-row-detail="true"
           @click="onRowClick(row)"
