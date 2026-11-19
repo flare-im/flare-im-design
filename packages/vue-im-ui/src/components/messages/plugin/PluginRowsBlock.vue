@@ -43,6 +43,8 @@ const props = withDefaults(
     layout?: FlarePluginRowsLayout | "admin-list";
     labelRows?: boolean;
     adminLabel?: string;
+    adminContent?: boolean;
+    searchText?: string;
     loading?: boolean;
     disabled?: boolean;
     error?: string;
@@ -79,6 +81,7 @@ const controlSlots = computed(() =>
     "error-actions",
     "notice",
     "help",
+    "content",
   ].filter((name) => !!slots[name]),
 );
 const { t } = useFlareI18nOptional();
@@ -93,11 +96,12 @@ const tableProps = computed(() =>
         errorPresentation: "neutral" as const,
         pagination: props.pagination,
         filtersInvalid: props.filtersInvalid,
+        searchText: props.searchText,
         rowActionsWidth: actionsWidth.value,
         layout:
-          props.block.presentation === "cards"
-            ? ("cards" as const)
-            : ("table" as const),
+          props.adminContent ? ("content" as const)
+            : props.block.presentation === "cards" ? ("cards" as const)
+              : ("table" as const),
       }
     : {
         density: "compact" as const,
@@ -517,11 +521,11 @@ function onRowClick(record: Record<string, unknown>): void {
           </template>
         </FlareAdminPolicyCard>
       </template>
-      <template v-if="layout === 'admin-list' && !pagination" #footer-summary>
+      <template v-if="layout === 'admin-list' && !adminContent && !pagination" #footer-summary>
         {{ t("dataTable.loadedItems", { count: rows.length }) }}
       </template>
       <template
-        v-if="layout === 'admin-list' && !pagination && block.nextCursor"
+        v-if="layout === 'admin-list' && !adminContent && !pagination && block.nextCursor"
         #footer-extra
       >
         <FlareButton

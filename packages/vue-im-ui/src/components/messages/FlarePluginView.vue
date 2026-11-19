@@ -174,6 +174,8 @@ const props = withDefaults(
       actionId: string,
       row?: { key: string; input: unknown },
     ) => Record<string, unknown> | undefined;
+    /** Lets a host name the form submit button independently of its opening action. */
+    formSubmitLabel?: (actionId: string) => string | undefined;
     formSelections?: Record<string, SchemaSelection>;
     formChangeActions?: ReadonlyArray<string>;
     selectionLabels?: SchemaSelectionLabels;
@@ -1338,7 +1340,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :select-presentation="actionsPlacement === 'rows' ? 'dropdown' : undefined"
           :values="inlineInitialValues"
           :require-change="formChangeActions?.includes(inlineFormAction.id)"
-          :submit-label="inlineFormAction.label"
+          :submit-label="formSubmitLabel?.(inlineFormAction.id) ?? inlineFormAction.label"
           :selections="formSelections"
           :selection-labels="selectionLabels"
           :errors="inlineAttempted ? formErrors : []"
@@ -1445,6 +1447,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :location-states="locationStates"
           :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
         :inputs="formInputs"
+        :submit-label="formSubmitLabel?.(formAction.id)"
         :select-presentation="actionsPlacement === 'rows' ? 'dropdown' : undefined"
         :values="formValues"
         :baseline-values="formBaselineValues"

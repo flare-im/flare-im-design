@@ -103,6 +103,7 @@ function setup(extra: Record<string, unknown> = {}) {
             actions: () => h(NButton, {}, () => "Create record"),
             tools: () => h(NButton, {}, () => "Export records"),
             "error-actions": () => h(NButton, {}, () => "Retry reading"),
+            ...(state.content ? { content: () => h("p", {}, "Rule diagram") } : {}),
           });
       },
     }),
@@ -163,6 +164,15 @@ function capturedClick(wrapper: ReturnType<typeof mount>, attribute: string) {
 }
 
 describe("FlarePluginAdminList / native operational list adapter", () => {
+  it("keeps the query and actions when a host supplies the body", () => {
+    const { wrapper } = setup({ content: true, searchText: "Run", pagination: undefined });
+    expect(wrapper.text()).toContain("Rule diagram");
+    expect(wrapper.text()).toContain("Run");
+    expect(wrapper.text()).toContain("Create record");
+    expect(wrapper.findComponent(NDataTable).exists()).toBe(false);
+    expect(wrapper.text()).not.toContain("Loaded");
+  });
+
   it("keeps explicit cards inside the shared query, toolbar, error and numbered paging container", async () => {
     const { wrapper, list, adapter } = setup({
       block: cardBlock(),
