@@ -143,7 +143,7 @@ describe("reference inputs", () => {
     expect(submits).toHaveLength(1);
   });
 
-  it("calls a prefilled value unavailable only once the first read answered without it", async () => {
+  it("calls a prefilled value unavailable only once a read answered without it, never while it loads or failed", async () => {
     const labels = { placeholder: "Choose", empty: "None", more: "More", retry: "Retry", unavailable: "Gone" };
     const state = reactive<{ selections: Record<string, SchemaSelection> }>({
       selections: { pick: { options: [], loading: true } },
@@ -165,6 +165,14 @@ describe("reference inputs", () => {
     const shown = () =>
       wrapper.findComponent(FlareAdminEntitySelect).props("options") as { value: string; label: string }[];
     expect(shown()).toEqual([{ value: "cny", label: "Choose", disabled: true }]);
+    // A failed read has not said the value is gone: the field shows the read's error.
+    state.selections = { pick: { options: [], error: "Read failed" } };
+    await flushPromises();
+    expect(shown()).toEqual([{ value: "cny", label: "Choose", disabled: true }]);
+    (wrapper.findComponent(FlarePluginForm).vm as unknown as { submit(): void }).submit();
+    await flushPromises();
+    expect(wrapper.text()).toContain("Read failed");
+    expect(wrapper.text()).not.toContain("Gone");
     state.selections = { pick: { options: [{ value: "usd", label: "Dollar" }] } };
     await flushPromises();
     expect(shown()).toContainEqual({ value: "cny", label: "Gone", disabled: true });

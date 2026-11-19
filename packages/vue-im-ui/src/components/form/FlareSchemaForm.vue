@@ -156,11 +156,13 @@ function selectionOptions(field: SchemaField) {
   )
     list.unshift({
       value: current,
-      label: state.loading
-        ? (props.selectionLabels?.loading ??
-          props.selectionLabels?.placeholder ??
-          field.title)
-        : (props.selectionLabels?.unavailable ?? "Unavailable selection"),
+      // Unavailable only once a read has answered without it; loading or failed, that is not known.
+      label:
+        state.loading || state.error
+          ? ((state.loading ? props.selectionLabels?.loading : undefined) ??
+            props.selectionLabels?.placeholder ??
+            field.title)
+          : (props.selectionLabels?.unavailable ?? "Unavailable selection"),
       disabled: true,
     });
   return list;

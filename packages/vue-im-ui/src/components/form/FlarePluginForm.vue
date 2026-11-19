@@ -414,9 +414,9 @@ function directoryOptions(input: FlarePluginInput) {
     )
       options.push({
         value,
-        // Unavailable only once the read has answered without it (as FlareSchemaForm).
-        label: selection?.loading
-          ? props.selectionLabels?.loading || props.selectionLabels?.placeholder || input.label
+        // Unavailable only once a read has answered without it; loading or failed, that is not known.
+        label: selection?.loading || selection?.error
+          ? (selection.loading && props.selectionLabels?.loading) || props.selectionLabels?.placeholder || input.label
           : props.selectionLabels?.unavailable || input.label,
         disabled: true,
       });

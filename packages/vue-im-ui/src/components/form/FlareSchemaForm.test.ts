@@ -321,6 +321,8 @@ describe("dynamic schema selections", () => {
         },
       },
     });
+    // A failed read has not said the stored value is gone.
+    expect(input.props("options")[0]).toMatchObject({ value: "old", label: "选择" });
     input.vm.$emit("update:value", "cash");
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
     await wrapper.setProps({
@@ -331,6 +333,7 @@ describe("dynamic schema selections", () => {
         },
       },
     });
+    expect(input.props("options")[0]).toMatchObject({ value: "old", label: "原选择失效" });
     input.vm.$emit("update:value", "cash");
     expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([
       { asset: "cash" },
