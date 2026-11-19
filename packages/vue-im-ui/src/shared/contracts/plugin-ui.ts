@@ -1025,11 +1025,12 @@ export function flarePluginFormatText(
     unavailable: string;
     assetScale?: (assetId: string) => number | undefined;
     utcOffsetMinutes?: number;
+    formatTime?: (ms: number) => string;
   },
 ): string {
   switch (format?.kind) {
     case "time":
-      return flarePluginDateTime(
+      return context.formatTime?.(format.atMs) ?? flarePluginDateTime(
         format.atMs,
         context.nowMs,
         context.strings,
@@ -1409,11 +1410,12 @@ export function flarePluginRowTexts(
   nowMs: number,
   strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
   utcOffsetMinutes?: number,
+  formatTime?: (ms: number) => string,
 ): string[] {
   return block.columns.map((column, index) => {
     const cell = row.cells[index];
     if (column.format === "time" && typeof cell?.timeMs === "number")
-      return flarePluginDateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes);
+      return formatTime?.(cell.timeMs) ?? flarePluginDateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes);
     return cell?.text ?? "";
   });
 }
@@ -1423,6 +1425,7 @@ export function flarePluginRowLines(
   nowMs: number,
   strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
   utcOffsetMinutes?: number,
+  formatTime?: (ms: number) => string,
 ): { primary: string; secondary: string | null } {
   const texts = flarePluginRowTexts(
     block,
@@ -1430,6 +1433,7 @@ export function flarePluginRowLines(
     nowMs,
     strings,
     utcOffsetMinutes,
+    formatTime,
   );
   const rest = texts.slice(1).filter((text) => text.trim());
   return {

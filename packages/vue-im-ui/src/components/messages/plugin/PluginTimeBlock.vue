@@ -11,10 +11,20 @@ import { flareServerNowMs } from "../../../shared/server-clock";
 // An instant or a range in the device's zone, optionally counting down to `atMs`: every second under an
 // hour, every minute otherwise, and "closed" once it has passed (spec/plugin-view-vectors.json → time,
 // countdown). `atMs` is the server's clock, so now is the server's too (spec/server-clock-vectors.json).
-const props = defineProps<{ block: FlarePluginTimeBlock; strings: FlarePluginStrings }>();
+const props = defineProps<{
+  block: FlarePluginTimeBlock;
+  strings: FlarePluginStrings;
+  formatTime?: (ms: number) => string;
+}>();
 
 const now = ref(flareServerNowMs());
-const text = computed(() => flarePluginTimeText(props.block.atMs, props.block.endMs, now.value, props.strings));
+const text = computed(() => {
+  const { atMs, endMs } = props.block;
+  if (!props.formatTime) return flarePluginTimeText(atMs, endMs, now.value, props.strings);
+  return endMs == null
+    ? props.formatTime(atMs)
+    : `${props.formatTime(atMs)} – ${props.formatTime(endMs)}`;
+});
 const countdown = computed(() => (props.block.countdown ? flarePluginCountdown(props.block.atMs, now.value, props.strings) : null));
 
 let timer: ReturnType<typeof setTimeout> | undefined;

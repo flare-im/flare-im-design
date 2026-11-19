@@ -146,7 +146,7 @@ const props = withDefaults(
     actionsPlacement?: "footer" | "rows";
     /** Visual grouping only; forms, confirmations and action guards keep the same runner. */
     actionLayout?: "inline" | "compact" | "list";
-    /** Formats a rows block's time columns (epoch milliseconds); absent keeps the default. */
+    /** Formats timestamps (epoch milliseconds); absent keeps the kit's default. */
     formatTime?: (ms: number) => string;
     /** In list rows, pair secondary values with their declared column labels. */
     labelRows?: boolean;
@@ -491,6 +491,7 @@ const formatContext = computed(() => ({
   strings: strings.value,
   unavailable: t("pluginView.referenceUnavailable"),
   assetScale: props.assetScale,
+  formatTime: props.formatTime,
 }));
 const identityOf = (format: FlarePluginFormat | undefined) => {
   if (format?.kind !== "person") return undefined;
@@ -767,7 +768,9 @@ function run(
               shownField({
                 label: block.columns[index]?.label ?? "",
                 value: cell.text,
-                format: cell.format,
+                format: block.columns[index]?.format === "time" && typeof cell.timeMs === "number"
+                  ? { kind: "time", atMs: cell.timeMs }
+                  : cell.format,
                 user: cell.user,
               }),
             ),
@@ -1165,7 +1168,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :block="block"
           :user-of="userOf"
           :viewer-id="viewerId"
-          :time-text="(ms: number) => flarePluginDateTime(ms, formatContext.nowMs, strings)"
+          :time-text="formatTime ?? ((ms: number) => flarePluginDateTime(ms, formatContext.nowMs, strings))"
           data-block="entries"
           @see-all="emit('openDetail')"
         />
@@ -1179,6 +1182,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           v-else-if="block.kind === 'time'"
           :block="block"
           :strings="strings"
+          :format-time="formatTime"
           data-block="time"
         />
         <!-- Host business presenters keep the same form, confirmation and action pipeline. -->
@@ -1289,6 +1293,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           v-else-if="block.kind === 'timeline'"
           :block="block"
           :strings="strings"
+          :format-time="formatTime"
           data-block="timeline"
         />
         <FlareAdminSection

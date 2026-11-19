@@ -14,6 +14,7 @@ afterEach(() => {
 it("keeps the selected row and balance visible without adding context to the command", async () => {
   const action = { id: "adjust", label: "Adjust", form: ["amount"] };
   const input = { walletId: "wallet-a", expectedRevision: "2" };
+  const createdAt = 1795061271232;
   const view: FlarePluginViewModel = {
     available: true,
     title: "Wallets",
@@ -27,6 +28,7 @@ it("keeps the selected row and balance visible without adding context to the com
         columns: [
           { label: "Wallet", format: "text" },
           { label: "Balance", format: "text" },
+          { label: "Created", format: "time" },
         ],
         actions: [action],
         rows: [
@@ -43,6 +45,7 @@ it("keeps the selected row and balance visible without adding context to the com
                   scale: 2,
                 },
               },
+              { text: String(createdAt), timeMs: createdAt },
             ],
             actions: [{ id: "adjust", input }],
           },
@@ -51,7 +54,11 @@ it("keeps the selected row and balance visible without adding context to the com
     ],
   };
   const wrapper = mount(FlarePluginView, {
-    props: { view, embedded: true },
+    props: {
+      view,
+      embedded: true,
+      formatTime: (ms) => (ms === createdAt ? "2026/11/19 12:07:51" : "Unexpected timestamp"),
+    },
     attachTo: document.body,
     slots: {
       rows: ({ run, block }: any) =>
@@ -68,6 +75,8 @@ it("keeps the selected row and balance visible without adding context to the com
   const context = document.querySelector('[data-row-form-context="true"]')!;
   expect(context.textContent).toContain("Primary");
   expect(context.textContent).toContain("12.34");
+  expect(context.textContent).toContain("2026/11/19 12:07:51");
+  expect(context.textContent).not.toContain(String(createdAt));
   const updated = structuredClone(view);
   (updated.blocks![0] as any).rows[0].cells[1].text = "99.99";
   await wrapper.setProps({ view: updated });

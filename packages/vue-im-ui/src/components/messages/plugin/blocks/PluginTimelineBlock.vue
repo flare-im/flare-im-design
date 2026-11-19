@@ -14,14 +14,21 @@ import {
 
 // Dated items (vocabulary 2): each its time (as plugin time blocks write it), title, detail and status tag, on a
 // rail, in the plugin's order. No item: the empty text.
-const props = defineProps<{ block: FlarePluginTimelineBlock; strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear"> }>();
+const props = defineProps<{
+  block: FlarePluginTimelineBlock;
+  strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">;
+  formatTime?: (ms: number) => string;
+}>();
 const { t } = useFlareI18nOptional();
 const items = computed(() => {
   const now = flareServerNowMs();
   // An item whose instant no kit can draw is left out, as in every kit.
   return props.block.items
     .filter((item) => flarePluginInstant(item.atMs) !== undefined)
-    .map((item) => ({ ...item, time: flarePluginDateTime(item.atMs, now, props.strings) }));
+    .map((item) => ({
+      ...item,
+      time: props.formatTime?.(item.atMs) ?? flarePluginDateTime(item.atMs, now, props.strings),
+    }));
 });
 </script>
 

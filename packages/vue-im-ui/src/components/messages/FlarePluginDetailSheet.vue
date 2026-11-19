@@ -63,6 +63,8 @@ const props = withDefaults(
     assetScale?: (assetId: string) => number | undefined;
     /** What the host has for each protected media item of the detail (PluginView protectedMedia). */
     protectedMedia?: Record<string, FlarePluginProtectedMediaState>;
+    /** Share the host's display format with the list that opened this detail. */
+    formatTime?: (ms: number) => string;
   }>(),
   {
     title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
@@ -121,6 +123,7 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
         :settle-token="settleToken"
         :asset-scale="assetScale"
         :protected-media="protectedMedia"
+        :format-time="formatTime"
         @action="(id: string, payload: FlarePluginActionPayload) => emit('action', id, payload)"
         @protected-media-read="(read: FlarePluginProtectedMediaRead) => emit('protectedMediaRead', read)"
       />

@@ -150,7 +150,7 @@ function adminActions(
 }
 /** The row's first cell: names its "more" menu apart from the other rows'. */
 const rowName = (row: FlarePluginRow) =>
-  flarePluginRowTexts(props.block, row, nowMs, props.strings)[0] ?? "";
+  flarePluginRowTexts(props.block, row, nowMs, props.strings, undefined, props.formatTime)[0] ?? "";
 /** Runs the row action `key` names, as a click on its own key would. */
 function selectRowAction(row: FlarePluginRow, key: string): void {
   const entry = rowActions(row).find((candidate) => candidate.action.id === key);
@@ -183,12 +183,14 @@ const items = computed(() =>
   rows.value.map((row, index) => ({
     row,
     day: dayHeadings.value[index],
-    ...flarePluginRowLines(props.block, row, nowMs, props.strings),
+    ...flarePluginRowLines(props.block, row, nowMs, props.strings, undefined, props.formatTime),
     details: flarePluginRowTexts(
       props.block,
       row,
       nowMs,
       props.strings,
+      undefined,
+      props.formatTime,
     ).flatMap((value, index) =>
       index > 0 && value.trim()
         ? [{ label: props.block.columns[index]?.label ?? "", value }]
@@ -223,6 +225,8 @@ const cards = computed(() =>
           row,
           nowMs,
           props.strings,
+          undefined,
+          props.formatTime,
         );
         return {
           row,
