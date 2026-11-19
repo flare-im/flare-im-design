@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NPopover } from "naive-ui";
 import { TimeOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
@@ -32,6 +32,7 @@ const asSheet = computed(() => adaptive.isH5.value);
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+const pop = ref<HTMLElement | null>(null);
 
 // The columns are created each time the picker opens, so they start from the current value.
 function show(): void {
@@ -48,7 +49,9 @@ function confirm(next: string): void {
 // another trigger stops propagation). Escape closes the popover.
 function onDocPointer(e: MouseEvent): void {
   if (asSheet.value || !open.value) return;
-  if (root.value && !root.value.contains(e.target as Node)) open.value = false;
+  const target = e.target as Node;
+  // The panel is drawn outside the root (teleported), so a click in it is not outside.
+  if (root.value && !root.value.contains(target) && !pop.value?.contains(target)) open.value = false;
 }
 // 用掉 Escape 就要 preventDefault:下面可能还有一层上下文层(多选工具条)在听同一下键。
 // 键盘监听挂在捕获阶段:弹层放在 Drawer / Modal 里时,面的冒泡监听比这里先注册,
@@ -74,17 +77,19 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="flare-tp" :class="[`flare-tp--${rsize}`, { 'is-open': open, 'is-disabled': disabled }]">
-    <button type="button" class="flare-tp__trigger" :disabled="disabled" @click.stop="show">
-      <n-icon aria-hidden="true" :size="16" :component="TimeOutline" class="flare-tp__clock" />
-      <span class="flare-tp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
-    </button>
-
-    <!-- Desktop: anchored popover -->
-    <transition v-if="!asSheet" name="flare-tp-pop">
-      <div v-if="open" class="flare-tp__pop" @click.stop>
+    <!-- Desktop: an anchored popover. Naive draws it outside any dialog's overflow and flips it
+         above the trigger when there is no room below. -->
+    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :style="{ boxShadow: 'none' }">
+      <template #trigger>
+        <button type="button" class="flare-tp__trigger" :disabled="disabled" @click.stop="show">
+          <n-icon aria-hidden="true" :size="16" :component="TimeOutline" class="flare-tp__clock" />
+          <span class="flare-tp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
+        </button>
+      </template>
+      <div ref="pop" class="flare-tp__pop" @click.stop>
         <FlareTimeChoice :value="value" :minute-step="minuteStep" @confirm="confirm" @cancel="close" />
       </div>
-    </transition>
+    </NPopover>
 
     <!-- Phone / native app: bottom sheet -->
     <FlareBottomSheet v-if="asSheet" :open="open" :title="title || placeholder || undefined" max-height="82vh" @close="close">
@@ -122,17 +127,10 @@ onBeforeUnmount(() => {
 
 /* Popover (desktop) */
 .flare-tp__pop {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);
   box-shadow: var(--flare-shadow-lg);
   overflow: hidden;
 }
-
-.flare-tp-pop-enter-active, .flare-tp-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
-.flare-tp-pop-enter-from, .flare-tp-pop-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>

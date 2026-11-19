@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NPopover } from "naive-ui";
 import { CalendarOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
@@ -39,6 +39,7 @@ const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getD
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+const pop = ref<HTMLElement | null>(null);
 const viewY = ref(now.getFullYear());
 const viewM = ref(now.getMonth());
 
@@ -70,7 +71,9 @@ function goToday(): void {
 // Outside-click (capture phase) + Escape for the desktop popover only.
 function onDocPointer(e: MouseEvent): void {
   if (asSheet.value || !open.value) return;
-  if (root.value && !root.value.contains(e.target as Node)) open.value = false;
+  const target = e.target as Node;
+  // The panel is drawn outside the root (teleported), so a click in it is not outside.
+  if (root.value && !root.value.contains(target) && !pop.value?.contains(target)) open.value = false;
 }
 // 用掉 Escape 就要 preventDefault:下面可能还有一层上下文层(多选工具条)在听同一下键。
 // 键盘监听挂在捕获阶段:弹层放在 Drawer / Modal 里时,面的冒泡监听比这里先注册,
@@ -96,20 +99,22 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="flare-dp" :class="[`flare-dp--${rsize}`, { 'is-open': open, 'is-disabled': disabled }]">
-    <button type="button" class="flare-dp__trigger" :disabled="disabled" @click.stop="show">
-      <n-icon aria-hidden="true" :size="16" :component="CalendarOutline" class="flare-dp__icon" />
-      <span class="flare-dp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
-    </button>
-
-    <!-- Desktop: anchored popover -->
-    <transition v-if="!asSheet" name="flare-dp-pop">
-      <div v-if="open" class="flare-dp__pop" @click.stop>
+    <!-- Desktop: an anchored popover. Naive draws it outside any dialog's overflow and flips it
+         above the trigger when there is no room below. -->
+    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :style="{ boxShadow: 'none' }">
+      <template #trigger>
+        <button type="button" class="flare-dp__trigger" :disabled="disabled" @click.stop="show">
+          <n-icon aria-hidden="true" :size="16" :component="CalendarOutline" class="flare-dp__icon" />
+          <span class="flare-dp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
+        </button>
+      </template>
+      <div ref="pop" class="flare-dp__pop" @click.stop>
         <FlareCalendarBody
           :year="viewY" :month="viewM" :selected="value" :today="todayStr" :min="min" :max="max" :locale="locale"
           @pick="pick" @nav="nav" @today="goToday" @cancel="close"
         />
       </div>
-    </transition>
+    </NPopover>
 
     <!-- Phone / native app: bottom sheet -->
     <FlareBottomSheet v-if="asSheet" :open="open" :title="title || placeholder || undefined" max-height="80vh" @close="close">
@@ -151,17 +156,10 @@ onBeforeUnmount(() => {
 .flare-dp__value.is-placeholder { color: var(--flare-color-text-tertiary); }
 
 .flare-dp__pop {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-primary);
   border: 1px solid var(--flare-color-border-primary);
   box-shadow: var(--flare-shadow-lg);
 }
 .flare-dp__sheet { padding: 2px 6px 6px; }
-
-.flare-dp-pop-enter-active, .flare-dp-pop-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
-.flare-dp-pop-enter-from, .flare-dp-pop-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>

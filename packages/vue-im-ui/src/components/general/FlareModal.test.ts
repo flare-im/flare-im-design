@@ -156,10 +156,11 @@ describe("FlareModal closing", () => {
     const trigger = surface().querySelector<HTMLButtonElement>("button.flare-dp__trigger")!;
     trigger.click();
     await nextTick();
-    expect(surface().querySelector(".flare-dp__pop")).not.toBeNull();
+    expect(document.querySelector(".flare-dp__pop")).not.toBeNull();
     pressEscape(trigger);
     await nextTick();
-    expect(surface().querySelector(".flare-dp__pop")).toBeNull();
+    // The panel is a Naive popover drawn into the body; it leaves with its transition.
+    expect(surface().querySelector(".flare-dp.is-open")).toBeNull();
     expect(events).toEqual([]);
     pressEscape(trigger);
     await nextTick();
