@@ -5,6 +5,7 @@ import { TimeOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
+import { useFlareAnchoredPanel } from "../../shared/useAnchoredPanel";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareTimeChoice from "./FlareTimeChoice.vue";
 
@@ -33,16 +34,23 @@ const asSheet = computed(() => adaptive.isH5.value);
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
 const pop = ref<HTMLElement | null>(null);
+const panel = useFlareAnchoredPanel(pop, () => open.value && !asSheet.value, () => root.value?.querySelector<HTMLElement>(".flare-tp__trigger"), [
+  ".flare-tp__cell.is-selected",
+]);
 
 // The columns are created each time the picker opens, so they start from the current value.
 function show(): void {
   if (props.disabled) return;
   open.value = true;
 }
-function close(): void { open.value = false; }
+function close(): void {
+  panel.returnFocus();
+  open.value = false;
+}
 function confirm(next: string): void {
   value.value = next;
   emit("change", next);
+  panel.returnFocus();
   open.value = false;
 }
 // Outside-click for the DESKTOP popover only (capture phase → still fires when
@@ -60,6 +68,7 @@ function onDocPointer(e: MouseEvent): void {
 function onDocKey(e: KeyboardEvent): void {
   if (e.key === "Escape" && !asSheet.value && open.value) {
     e.preventDefault();
+    panel.returnFocus();
     open.value = false;
   }
 }
@@ -79,14 +88,14 @@ onBeforeUnmount(() => {
   <div ref="root" class="flare-tp" :class="[`flare-tp--${rsize}`, { 'is-open': open, 'is-disabled': disabled }]">
     <!-- Desktop: an anchored popover. Naive draws it outside any dialog's overflow and flips it
          above the trigger when there is no room below. -->
-    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :style="{ boxShadow: 'none' }">
+    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :animated="!panel.reduceMotion.value" :style="{ boxShadow: 'none' }">
       <template #trigger>
         <button type="button" class="flare-tp__trigger" :disabled="disabled" @click.stop="show">
           <n-icon aria-hidden="true" :size="16" :component="TimeOutline" class="flare-tp__clock" />
           <span class="flare-tp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
         </button>
       </template>
-      <div ref="pop" class="flare-tp__pop" @click.stop>
+      <div ref="pop" class="flare-tp__pop" @click.stop @keydown="panel.onKeydown">
         <FlareTimeChoice :value="value" :minute-step="minuteStep" @confirm="confirm" @cancel="close" />
       </div>
     </NPopover>

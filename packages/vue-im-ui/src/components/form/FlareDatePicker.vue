@@ -5,6 +5,7 @@ import { CalendarOutline } from "../../shared/icon-glyphs";
 import type { FlareControlSize } from "../../shared/contracts";
 import { useFlareConfig } from "../../shared/useFlareConfig";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
+import { useFlareAnchoredPanel } from "../../shared/useAnchoredPanel";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareCalendarBody from "./FlareCalendarBody.vue";
 
@@ -40,6 +41,10 @@ const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getD
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
 const pop = ref<HTMLElement | null>(null);
+const panel = useFlareAnchoredPanel(pop, () => open.value && !asSheet.value, () => root.value?.querySelector<HTMLElement>(".flare-dp__trigger"), [
+  ".flare-cal__day.is-selected:not(:disabled)",
+  ".flare-cal__day.is-today:not(:disabled)",
+]);
 const viewY = ref(now.getFullYear());
 const viewM = ref(now.getMonth());
 
@@ -52,7 +57,10 @@ function show(): void {
   }
   open.value = true;
 }
-function close(): void { open.value = false; }
+function close(): void {
+  panel.returnFocus();
+  open.value = false;
+}
 function nav(delta: number): void {
   const m = viewM.value + delta;
   viewY.value += Math.floor(m / 12);
@@ -61,6 +69,7 @@ function nav(delta: number): void {
 function pick(dateStr: string): void {
   value.value = dateStr;
   emit("change", dateStr);
+  panel.returnFocus();
   open.value = false;
 }
 function goToday(): void {
@@ -82,6 +91,7 @@ function onDocPointer(e: MouseEvent): void {
 function onDocKey(e: KeyboardEvent): void {
   if (e.key === "Escape" && !asSheet.value && open.value) {
     e.preventDefault();
+    panel.returnFocus();
     open.value = false;
   }
 }
@@ -101,14 +111,14 @@ onBeforeUnmount(() => {
   <div ref="root" class="flare-dp" :class="[`flare-dp--${rsize}`, { 'is-open': open, 'is-disabled': disabled }]">
     <!-- Desktop: an anchored popover. Naive draws it outside any dialog's overflow and flips it
          above the trigger when there is no room below. -->
-    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :style="{ boxShadow: 'none' }">
+    <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :animated="!panel.reduceMotion.value" :style="{ boxShadow: 'none' }">
       <template #trigger>
         <button type="button" class="flare-dp__trigger" :disabled="disabled" @click.stop="show">
           <n-icon aria-hidden="true" :size="16" :component="CalendarOutline" class="flare-dp__icon" />
           <span class="flare-dp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
         </button>
       </template>
-      <div ref="pop" class="flare-dp__pop" @click.stop>
+      <div ref="pop" class="flare-dp__pop" @click.stop @keydown="panel.onKeydown">
         <FlareCalendarBody
           :year="viewY" :month="viewM" :selected="value" :today="todayStr" :min="min" :max="max" :locale="locale"
           @pick="pick" @nav="nav" @today="goToday" @cancel="close"
