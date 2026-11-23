@@ -58,6 +58,7 @@ assets/emoji-sticker/**/*.webp
 # be part of the candidate fingerprint — tooling/release-candidate.mjs hashes
 # `git ls-files --others --exclude-standard`, which honours this rule.
 artifacts/
+/.local/
 
 # 示例应用的构建产物（tokens/dist 是有意入库的生成物，这里不是）
 examples/*/dist/
