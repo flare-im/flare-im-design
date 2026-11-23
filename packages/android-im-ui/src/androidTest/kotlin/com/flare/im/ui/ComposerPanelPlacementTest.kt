@@ -21,6 +21,8 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isSelectable
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -48,10 +50,12 @@ class ComposerPanelPlacementTest {
     @Test fun phonePanelsStayBelowTheEditorAndToolsAndAreMutuallyExclusive() {
         compose.setContent { MaterialTheme { subject() } }
         val editor = compose.onNode(hasSetTextAction(), useUnmergedTree = true)
-        val emoji = compose.onNodeWithContentDescription(strings.composerEmoji)
+        // The open panel's emoji tab reads the same name; the composer's key is the toggle.
+        val emoji = compose.onNode(hasContentDescription(strings.composerEmoji) and isToggleable())
         val mention = compose.onNodeWithContentDescription(strings.composerMention)
         val more = compose.onNodeWithContentDescription(strings.composerMore)
-        val picker = compose.onNode(hasText(strings.emojiStickerPickerEmoji) or hasContentDescription(strings.emojiStickerPickerLoading))
+        // The picker's emoji tab is a named glyph tab now, not a text label.
+        val picker = compose.onNode((hasContentDescription(strings.emojiStickerPickerEmoji) and isSelectable()) or hasContentDescription(strings.emojiStickerPickerLoading))
         val candidate = compose.onNodeWithText(member.name)
         val tile = compose.onNodeWithText(action.label!!)
 
@@ -151,7 +155,7 @@ class ComposerPanelPlacementTest {
         compose.onNode(hasSetTextAction() and hasText("@As"), useUnmergedTree = true).assertIsFocused()
         assertTrue(imeVisible())
 
-        compose.onNodeWithContentDescription(strings.composerEmoji).performClick().assertIsOn()
+        compose.onNode(hasContentDescription(strings.composerEmoji) and isToggleable()).performClick().assertIsOn()
         compose.waitUntil(timeoutMillis = 10_000) { !imeVisible() }
     }
 

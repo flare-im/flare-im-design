@@ -46,17 +46,10 @@ final class MediaDownloadRevealTests: XCTestCase {
                        "a host that cannot show the file keeps the download")
     }
 
-    func testTheSizeLineKeepsSizeAndTypeAndSaysWhereTheFileStands() {
-        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: "TXT", state: nil, strings: s), "8.5 KB · TXT")
-        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: nil, state: FlareMediaDownloadState(status: .failed),
-                                                strings: s), "8.5 KB")
-        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: "TXT", state: Self.downloading, strings: s),
-                       "8.5 KB · TXT · \(s.downloading) 42%")
-        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: "TXT",
-                                                state: FlareMediaDownloadState(status: .downloading), strings: s),
-                       "8.5 KB · TXT · \(s.downloading)")
-        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: "TXT", state: Self.saved, strings: s),
-                       "8.5 KB · TXT · \(s.downloaded)")
+    func testTheSizeLineContainsOnlyFileDetails() {
+        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: "TXT"), "8.5 KB · TXT")
+        XCTAssertEqual(FileMessageView.subtitle(size: "8.5 KB", ext: nil), "8.5 KB")
+        XCTAssertEqual(FileMessageView.subtitle(size: "", ext: "TXT"), "TXT")
     }
 
     @MainActor
@@ -79,14 +72,14 @@ final class MediaDownloadRevealTests: XCTestCase {
         XCTAssertThrowsError(try button(busy, s.showInFolder))
         let progress = try busy.inspect().find(where: { try $0.accessibilityLabel().string() == self.s.downloading })
         XCTAssertEqual(try progress.accessibilityValue().string(), "42%")
-        XCTAssertNoThrow(try busy.inspect().find(text: "8.5 KB · TXT · \(s.downloading) 42%"))
+        XCTAssertNoThrow(try busy.inspect().find(text: "8.5 KB · TXT"))
 
         let done = card(Self.saved)
         XCTAssertThrowsError(try button(done, s.download), "never a spent download key")
         let folder = try button(done, s.showInFolder)
         XCTAssertEqual(try folder.labelView().find(ViewType.Image.self).actualImage().name(), flareIconMap["folder"])
         try folder.tap()
-        XCTAssertNoThrow(try done.inspect().find(text: "8.5 KB · TXT · \(s.downloaded)"))
+        XCTAssertNoThrow(try done.inspect().find(text: "8.5 KB · TXT"))
 
         // The card itself still opens the file.
         try done.inspect().find(ViewType.Button.self, where: { (try? $0.find(text: self.file.name)) != nil }).tap()
@@ -178,7 +171,7 @@ final class MediaDownloadRevealTests: XCTestCase {
     }
 
     @MainActor
-    func testTheGalleryFollowsAnImageMessagesStateButNotAnAlbums() throws {
+    func testTheGalleryFollowsEachPicturesOwnDownloadState() throws {
         var calls: [String] = []
         let album = FlareImageGroupContent(images: [FlareImageContent(url: "https://cdn.example/a0.jpg"),
                                                     FlareImageContent(url: "https://cdn.example/a1.jpg")])
@@ -191,15 +184,21 @@ final class MediaDownloadRevealTests: XCTestCase {
         let presentation = try XCTUnwrap(media.viewer.presentation)
         guard case let .gallery(images, index) = presentation.kind else { return XCTFail("a gallery, not \(presentation.kind)") }
         XCTAssertEqual(index, 0)
-        XCTAssertEqual(images.map(\.downloadId), ["m1", nil, nil], "an album's state would stand for all its pictures")
-        XCTAssertEqual(images.map { $0.onReveal != nil }, [true, false, false])
+        XCTAssertEqual(images.map(\.downloadId), ["m1", "m2#image:0", "m2#image:1"])
+        XCTAssertTrue(images.allSatisfy { $0.onReveal != nil })
 
         media.downloads.update(["m1": Self.saved, "m2": Self.saved])
         let viewer = FlareMediaViewer(presentation: presentation, onClose: {}, downloads: media.downloads)
         try button(viewer, s.showInFolder).tap()
         let albumPicture = FlareImageGalleryViewer(images: images, startIndex: 1, onClose: {}, states: media.downloads.states)
         try button(albumPicture, s.download).tap()
-        XCTAssertEqual(calls, ["reveal:m1", "download:m2"])
+
+        let states = ["m2#image:0": Self.saved]
+        let savedPicture = FlareImageGalleryViewer(images: images, startIndex: 1, onClose: {}, states: states)
+        let unsavedPicture = FlareImageGalleryViewer(images: images, startIndex: 2, onClose: {}, states: states)
+        try button(savedPicture, s.showInFolder).tap()
+        XCTAssertNoThrow(try button(unsavedPicture, s.download))
+        XCTAssertEqual(calls, ["reveal:m1", "download:m2", "reveal:m2"])
     }
 
     @MainActor

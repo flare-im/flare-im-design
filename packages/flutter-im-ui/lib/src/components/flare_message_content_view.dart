@@ -13,6 +13,7 @@ import '../platform/flare_platform.dart';
 import '../models/message_content.dart';
 import 'flare_media_image.dart';
 import 'flare_message_card_shell.dart';
+import 'flare_storage_usage.dart' show formatBytes;
 import '../models/message_data.dart';
 import '../models/message_surface.dart';
 import '../models/url_safety.dart';
@@ -453,11 +454,12 @@ class FlareMessageContentView extends StatelessWidget {
     ),
     FlareVideoContent c => FlareVideoMessage(
       poster: c.poster,
+      localVideoPath: c.localPath,
       duration: _duration(c.durationSec),
     ),
     FlareFileContent c => FlareFileMessage(
       name: c.name,
-      size: _bytes(c.sizeBytes),
+      size: formatBytes(c.sizeBytes) ?? '',
       ext: _ext(c.name),
     ),
     _ => null,
@@ -563,26 +565,27 @@ class FlareMessageContentView extends StatelessWidget {
       ),
       FlareVideoContent c => FlareVideoMessage(
         poster: c.poster,
+        localVideoPath: c.localPath,
         duration: _duration(c.durationSec),
         // No address yet (the media is still being resolved): nothing plays.
         onPlay: c.url.trim().isEmpty && (c.localPath?.trim().isEmpty ?? true)
             ? action(c)
             : action(c) ??
-            () {
-              // A video and a voice message never talk over each other.
-              if (media != null) unawaited(media.stopVoice());
-              flarePresentVideo(
-                context,
-                c,
-                onDownload: onMediaDownload == null
-                    ? null
-                    : () => onMediaDownload!(c),
-                onReveal: onMediaReveal == null
-                    ? null
-                    : () => onMediaReveal!(c),
-                downloadState: _liveState(context),
-              );
-            },
+                  () {
+                    // A video and a voice message never talk over each other.
+                    if (media != null) unawaited(media.stopVoice());
+                    flarePresentVideo(
+                      context,
+                      c,
+                      onDownload: onMediaDownload == null
+                          ? null
+                          : () => onMediaDownload!(c),
+                      onReveal: onMediaReveal == null
+                          ? null
+                          : () => onMediaReveal!(c),
+                      downloadState: _liveState(context),
+                    );
+                  },
       ),
       FlareAudioContent c => FlareVoicePlaybackMessage(
         content: c,
@@ -591,7 +594,7 @@ class FlareMessageContentView extends StatelessWidget {
       ),
       FlareFileContent c => FlareFileMessage(
         name: c.name,
-        size: _bytes(c.sizeBytes),
+        size: formatBytes(c.sizeBytes) ?? '',
         ext: _ext(c.name),
         downloadState: mediaState,
         onOpen: action(c) ?? (onOpenFile == null ? null : () => onOpenFile!(c)),
@@ -697,7 +700,9 @@ class FlareMessageContentView extends StatelessWidget {
   /// The coordinate a location card draws. The wire writes an absent
   /// coordinate as 0, 0: that pair is "no coordinate", not a place to open.
   static (double?, double?) _coordinate(FlareLocationContent c) =>
-      c.latitude == 0 && c.longitude == 0 ? (null, null) : (c.latitude, c.longitude);
+      c.latitude == 0 && c.longitude == 0
+      ? (null, null)
+      : (c.latitude, c.longitude);
 
   /// What a location tap does: the host's [onLocationOpen], then the media
   /// handler, then the platform's default map link through [onOpenLink].
@@ -730,12 +735,6 @@ class FlareMessageContentView extends StatelessWidget {
       caseSensitive: false,
     ).firstMatch(name);
     return match?.group(1)!.toUpperCase();
-  }
-
-  static String _bytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
   }
 }
 

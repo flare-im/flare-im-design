@@ -138,7 +138,7 @@ function browserScroller(root: HTMLElement, observers: Set<Observer>) {
       write(edge === "top" ? 0 : max());
     },
     inView(n: number) {
-      const row = scroller.querySelector<HTMLElement>(`[data-message-id="m${n}"]`);
+      const row = scroller.querySelector<HTMLElement>(`[data-message-id="srv-${n}"]`);
       if (!row) return false;
       const box = row.getBoundingClientRect();
       return box.top >= 0 && box.bottom <= height();
@@ -216,7 +216,7 @@ async function run(vector: Case, swapLeaves: "top" | "end") {
   await nextTick();
   await wait(FRAME_MS);
   expect(await list.scrollToMessage(`m${vector.locate}`)).toBe(true);
-  const marked = host.find(`[data-message-id="m${vector.locate}"]`).classes().includes("message-row--locating");
+  const marked = host.find(`[data-message-id="srv-${vector.locate}"]`).classes().includes("message-row--locating");
   // (5) A page of older rows lands while the locate is still moving.
   if (vector.pageLands) {
     await wait(2 * FRAME_MS);

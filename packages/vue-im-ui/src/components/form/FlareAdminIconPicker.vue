@@ -59,7 +59,7 @@ function choose(key: string | null) {
         :aria-expanded="open && !disabled"
       >
         <template v-if="selected" #icon
-          ><NIcon :component="toRaw(selected.component)" /></template
+          ><NIcon aria-hidden="true" :component="toRaw(selected.component)" /></template
         >{{ selected?.label || t("iconPicker.default") }}
       </NButton></template
     >
@@ -88,7 +88,7 @@ function choose(key: string | null) {
           class="flare-admin-icon-picker__option"
           @click="choose(option.value)"
         >
-          <NIcon :component="toRaw(option.component)" :size="22" /><span>{{
+          <NIcon aria-hidden="true" :component="toRaw(option.component)" :size="22" /><span>{{
             option.label
           }}</span>
         </NButton>

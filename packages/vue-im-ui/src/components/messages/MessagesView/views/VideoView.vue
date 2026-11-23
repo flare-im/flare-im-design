@@ -67,21 +67,24 @@ const videoRequest = computed(() =>
     fileName: readString(payload.value, "fileName", "title"),
   }),
 );
-const coverRequest = computed(() =>
-  buildMediaResolveRequest({
+const resolvedVideo = useResolvedMediaUrl(videoRequest);
+const videoUrl = computed(() => resolvedVideo.url.value);
+const coverRequest = computed(() => {
+  const url = readString(cover.value, "url", "localPreviewUrl", "downloadUrl") ||
+    readString(payload.value, "coverUrl", "thumbnailUrl");
+  // A local video can provide its poster without fetching the uploaded cover.
+  if (videoUrl.value.startsWith("blob:") && !/^(blob:|data:)/.test(url)) return null;
+  return buildMediaResolveRequest({
     kind: "videoCover",
     messageId: props.messageId,
-    url: readString(cover.value, "url", "localPreviewUrl", "downloadUrl") ||
-      readString(payload.value, "coverUrl", "thumbnailUrl"),
+    url,
     id: coverId.value,
     localPath: readMediaLocalPath(cover.value, payload.value),
     mimeType: readString(cover.value, "mimeType"),
     fileName: readString(payload.value, "fileName", "title"),
-  }),
-);
-const resolvedVideo = useResolvedMediaUrl(videoRequest);
+  });
+});
 const resolvedPoster = useResolvedMediaUrl(coverRequest);
-const videoUrl = computed(() => resolvedVideo.url.value);
 // Nothing to play and nothing still resolving: the video says it is not available rather than a dead play key.
 const unavailable = computed(() => !videoUrl.value && !resolvedVideo.loading.value);
 const posterUrl = computed(() => resolvedPoster.url.value);
@@ -149,7 +152,7 @@ function capturePosterFromVideo(src: string): Promise<string> {
     video.muted = true;
     video.playsInline = true;
     video.preload = "metadata";
-    video.addEventListener("error", () => fail(new Error("video poster load failed")), { once: true });
+    video.addEventListener("error", () => fail(new DOMException("video poster load failed", "NotReadableError")), { once: true });
     video.addEventListener("loadedmetadata", () => {
       const duration = Number.isFinite(video.duration) ? video.duration : 0;
       const target = duration > 0.4 ? 0.2 : 0;
@@ -187,8 +190,10 @@ watch(
         if (canceled) return;
         generatedPosterUrl.value = poster;
       })
-      .catch(() => {
-        if (canceled) return;
+      .catch((error: unknown) => {
+        if (!canceled && error instanceof DOMException && error.name === "NotReadableError") {
+          resolvedVideo.fallbackFromLocal(nextVideoUrl);
+        }
       })
       .finally(() => {
         if (!canceled) generatingPoster.value = false;
@@ -221,6 +226,7 @@ watch(
       :downloading="mediaState === 'downloading'"
       :saved="saved"
       v-on="playerListeners"
+      @load-error="resolvedVideo.fallbackFromLocal"
     />
   </div>
 </template>

@@ -36,6 +36,27 @@ describe("FlareSegmentedControl", () => {
     expect(wrapper.findAll('[role="tab"]')[0].attributes("aria-selected")).toBe("true");
   });
 
+  it("keeps long translated labels available and navigates with the keyboard", async () => {
+    const labels = ["Normal red packet", "Lucky red packet", "Exclusive red packet"];
+    const wrapper = mount(FlareSegmentedControl, { props: { options: labels }, attachTo: document.body });
+    const tabs = wrapper.findAll('[role="tab"]');
+    expect(tabs.map(tab => tab.attributes("title"))).toEqual(labels);
+    await tabs[0].trigger("keydown", { key: "ArrowRight" });
+    expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([1]);
+    expect(document.activeElement).toBe(tabs[1].element);
+    await tabs[1].trigger("keydown", { key: "End" });
+    expect(wrapper.emitted("update:modelValue")?.[1]).toEqual([2]);
+    expect(document.activeElement).toBe(tabs[2].element);
+    wrapper.unmount();
+  });
+
+  it("keeps arrow navigation in reading order in RTL", async () => {
+    const wrapper = mount(FlareSegmentedControl, { props: { options }, attrs: { dir: "rtl" } });
+    await wrapper.findAll('[role="tab"]')[0].trigger("keydown", { key: "ArrowRight" });
+    expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([2]);
+    wrapper.unmount();
+  });
+
   it("draws nothing but the list when there are no options", () => {
     const wrapper = mount(FlareSegmentedControl, { props: { options: [] } });
     expect(wrapper.findAll('[role="tab"]')).toHaveLength(0);

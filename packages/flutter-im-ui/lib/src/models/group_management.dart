@@ -107,8 +107,13 @@ class FlareMemberActions {
       other.canRequestFriend == canRequestFriend;
 
   @override
-  int get hashCode =>
-      Object.hash(canRemove, canMute, canChangeRole, canTransferOwner, canRequestFriend);
+  int get hashCode => Object.hash(
+    canRemove,
+    canMute,
+    canChangeRole,
+    canTransferOwner,
+    canRequestFriend,
+  );
 }
 
 /// The management entries of a group page, in display order; identical on all

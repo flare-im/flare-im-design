@@ -27,8 +27,7 @@ const List<String> _englishMonths = [
   'December',
 ];
 
-String _imagePreviewPositionEnglish(int index, int count) =>
-    '$index of $count';
+String _imagePreviewPositionEnglish(int index, int count) => '$index of $count';
 String _readTabEnglish(int count) => 'Read ($count)';
 String _unreadTabEnglish(int count) => 'Unread ($count)';
 String _viewAllEnglish(int total) => 'View all $total';

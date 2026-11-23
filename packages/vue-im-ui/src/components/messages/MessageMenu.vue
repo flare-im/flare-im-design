@@ -22,6 +22,7 @@ const props = withDefaults(
     presentation: MessageMenuPresentation;
     enableContextMenu?: boolean;
     suppressMenu?: boolean;
+    hasReactions?: boolean;
     menuConfig?: MessageMenuConfig;
     dropdownPlacement?: "bottom-start" | "right-start";
     /** Actions the surrounding surface already shows as its own controls. */
@@ -34,6 +35,7 @@ const props = withDefaults(
     actions: () => [],
     enableContextMenu: false,
     suppressMenu: false,
+    hasReactions: false,
     dropdownPlacement: "bottom-start",
   },
 );
@@ -213,7 +215,7 @@ defineExpose({ openMenu });
     <slot />
   </template>
   <template v-else>
-    <div ref="anchorRef" class="message-menu-anchor" @contextmenu="onContextMenu">
+    <div ref="anchorRef" class="message-menu-anchor" :class="{ 'has-reactions': hasReactions }" @contextmenu="onContextMenu">
       <slot />
     </div>
     <FlareBottomSheet

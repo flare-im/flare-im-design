@@ -23,10 +23,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.focusable
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,19 +97,26 @@ internal fun redPacketOpenHeadline(
 internal fun redPacketOpenHint(state: FlareRedPacketOpenState, message: String?, strings: FlareStrings): String? =
     if (state == FlareRedPacketOpenState.Error) message?.takeIf { it.isNotEmpty() } ?: strings.packetOpenFailed else null
 
-/** The open button is there while there is something to open. */
-internal fun redPacketOpenShowsButton(state: FlareRedPacketOpenState): Boolean =
+/** The open button is there while there is something to open; [reviewOnError] turns an error's retry into the result key. */
+internal fun redPacketOpenShowsButton(state: FlareRedPacketOpenState, reviewOnError: Boolean = false): Boolean =
     state == FlareRedPacketOpenState.Ready || state == FlareRedPacketOpenState.Opening ||
-        state == FlareRedPacketOpenState.Error
+        (state == FlareRedPacketOpenState.Error && !reviewOnError)
 
 /**
  * The details key (spec/red-packet-vectors.json `openSheet`, `openSheetRefunded`): a finished, expired or refunded
  * packet leads to its details when the personal layer says the viewer may see them ([canViewDetails]); a not-eligible
  * viewer never gets one — the server returns them no amounts or records.
  */
-internal fun redPacketOpenShowsDetails(state: FlareRedPacketOpenState, canViewDetails: Boolean = true): Boolean =
-    canViewDetails && (state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired ||
-        state == FlareRedPacketOpenState.Refunded)
+internal fun redPacketOpenShowsDetails(state: FlareRedPacketOpenState, canViewDetails: Boolean = true, reviewOnError: Boolean = false): Boolean =
+    (reviewOnError && state == FlareRedPacketOpenState.Error) ||
+        (canViewDetails && (state == FlareRedPacketOpenState.Finished || state == FlareRedPacketOpenState.Expired ||
+            state == FlareRedPacketOpenState.Refunded))
+
+/** §12.12: while the claim runs the layer stays — the scrim, back, Escape and the close key do nothing. */
+internal fun redPacketOpenDismissible(state: FlareRedPacketOpenState): Boolean = state != FlareRedPacketOpenState.Opening
+
+/** 4.5: Enter or Space on the layer opens the packet, the same as 開 (only while 開 is there and idle). */
+internal fun redPacketOpenKey(key: Key): Boolean = key == Key.Enter || key == Key.NumPadEnter || key == Key.Spacebar
 
 /** The envelope's width: the token, never closer than an extra-large gutter to the window's sides. */
 internal fun redPacketEnvelopeWidth(window: Dp): Dp =
@@ -108,15 +128,16 @@ internal fun redPacketEnvelopeWidth(window: Dp): Dp =
  *
  * Composing it shows it, in its own full-display dialog window; the host removes it in [onClose], which a tap on the
  * scrim, system back, Escape and the close button all reach (after the exit animation; at once under reduced
- * motion).
+ * motion) — except while [FlareRedPacketOpenState.Opening], when none of them closes it (§12.12). The layer takes the
+ * keyboard focus on open: Enter or Space opens the packet like 開.
  *
  * - Copy: [FlareRedPacketOpenState.Finished] says the packet ran out, [FlareRedPacketOpenState.Expired] that it is
  *   past its lifetime, [FlareRedPacketOpenState.Refunded] that it went back to its sender,
  *   [FlareRedPacketOpenState.NotEligible] that this viewer cannot open it; the host's [message]
  *   (for instance "only they can open it") replaces each. Under [FlareRedPacketOpenState.Error] the message, or the
  *   kit's retry copy, shows under the blessing.
- * - Motion: while opening the button turns about its vertical axis. With animations removed (animator duration
- *   scale 0) it does not turn and says the claim is in progress instead.
+ * - Motion: while opening the button turns about its vertical axis, a turn per 0.8 s. With animations removed
+ *   (animator duration scale 0) it does not turn and spins a progress ring instead.
  * - The host formats names and passes the avatar URL; the layer requests nothing.
  */
 @Composable
@@ -132,6 +153,11 @@ fun RedPacketOpenSheet(
     onViewDetails: (() -> Unit)? = null,
     /** From the personal layer: a finished or expired sheet offers the details key only when true. */
     canViewDetails: Boolean = true,
+    /**
+     * The claim may have landed though it failed here: the error state offers the result (onViewDetails) instead of
+     * another try (4.5).
+     */
+    reviewOnError: Boolean = false,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -139,9 +165,9 @@ fun RedPacketOpenSheet(
     FlareOverlayScaffold(
         kind = FlareOverlaySurfaceKind.Modal,
         onClose = onClose,
-        dismissible = true,
+        dismissible = redPacketOpenDismissible(state),
         scrim = colors.scrim,
-        // The close button under the envelope is the layer's close control; the scrim stays unannounced.
+        // The close key at the envelope's top trailing corner is the layer's close control; the scrim stays unannounced.
         scrimLabel = null,
         contentAlignment = Alignment.Center,
         enter = if (reducedMotion) EnterTransition.None
@@ -151,10 +177,21 @@ fun RedPacketOpenSheet(
         else fadeOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) +
             scaleOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing), targetScale = 0.9f),
     ) { close, bounds ->
-        Column(
-            Modifier.semantics { paneTitle = strings.packetFromSender(senderName) },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXl),
+        val keys = remember { FocusRequester() }
+        var keysFocused by remember { mutableStateOf(false) }
+        val canOpen = redPacketOpenShowsButton(state, reviewOnError) && state != FlareRedPacketOpenState.Opening && onOpen != null
+        LaunchedEffect(Unit) { runCatching { keys.requestFocus() } }
+        Box(
+            Modifier.semantics { paneTitle = strings.packetFromSender(senderName) }
+                // Only while the layer itself holds focus: a focused key (close, the result key) keeps its own Enter.
+                .onFocusChanged { keysFocused = it.isFocused }
+                .focusRequester(keys)
+                .onKeyEvent { event ->
+                    if (!keysFocused || !redPacketOpenKey(event.key)) return@onKeyEvent false
+                    if (event.type == KeyEventType.KeyUp && canOpen) onOpen?.invoke()
+                    true
+                }
+                .focusable(),
         ) {
             RedPacketEnvelope(
                 width = redPacketEnvelopeWidth(bounds.width),
@@ -166,14 +203,19 @@ fun RedPacketOpenSheet(
                 message = message,
                 reducedMotion = reducedMotion,
                 onOpen = onOpen,
-                onViewDetails = onViewDetails.takeIf { redPacketOpenShowsDetails(state, canViewDetails) },
+                onViewDetails = onViewDetails.takeIf { redPacketOpenShowsDetails(state, canViewDetails, reviewOnError) },
+                reviewOnError = reviewOnError,
             )
-            FlareIconControl(label = strings.close, onClick = close) {
-                Box(
-                    Modifier.size(FlareSizes.iconSizeXl)
-                        .border(RedPacketMetrics.ringWidth, colors.redPacketOnSurface.copy(alpha = 0.85f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) { FlareIcon("close", size = FlareSizes.iconSizeSm, tint = colors.redPacketOnSurface) }
+            // 4.5: a close key of component.redPacketCloseSize at the envelope's top trailing corner (a 48 target),
+            // spoken "close"; it waits while the claim runs.
+            Box(Modifier.align(Alignment.TopEnd).padding(FlareSizes.spacingXs)) {
+                FlareIconControl(label = strings.close, onClick = close, enabled = redPacketOpenDismissible(state)) {
+                    Box(
+                        Modifier.size(FlareSizes.componentRedPacketCloseSize)
+                            .border(RedPacketMetrics.ringWidth, colors.redPacketOnSurface.copy(alpha = 0.85f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) { FlareIcon("close", size = FlareSizes.iconSizeSm, tint = colors.redPacketOnSurface) }
+                }
             }
         }
     }
@@ -191,20 +233,21 @@ private fun RedPacketEnvelope(
     reducedMotion: Boolean,
     onOpen: (() -> Unit)?,
     onViewDetails: (() -> Unit)?,
+    reviewOnError: Boolean = false,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val shape = RoundedCornerShape(FlareSizes.radiusXl)
+    val shape = RoundedCornerShape(FlareSizes.radius2xl)
     val minHeight = FlareSizes.componentRedPacketEnvelopeMinHeight
     val flapHeight = minHeight * RedPacketMetrics.flapShare
     val coin = FlareSizes.componentRedPacketOpenButtonSize
     val curve = width * RedPacketMetrics.flapCurve
-    val showsCoin = redPacketOpenShowsButton(state)
+    val showsCoin = redPacketOpenShowsButton(state, reviewOnError)
     val hint = redPacketOpenHint(state, message, strings)
     // The flap, the lower body and the button on the flap's edge. The button is placed last, so it is drawn
     // and hit above both halves it straddles.
     Layout(
-        modifier = Modifier.shadow(FlareSizes.spacingXl, shape, clip = false)
+        modifier = Modifier.shadow(flareShadowElevation(flareShadows().xl), shape, clip = false)
             .clip(shape)
             .background(redPacketBodyBrush(colors))
             // A tap on the envelope itself never reaches the scrim behind it.
@@ -213,7 +256,7 @@ private fun RedPacketEnvelope(
             Column(
                 Modifier.fillMaxWidth()
                     .heightIn(min = flapHeight)
-                    .shadow(FlareSizes.spacingSm, RedPacketFlapShape(curve), clip = false)
+                    .shadow(flareShadowElevation(flareShadows().md), RedPacketFlapShape(curve), clip = false)
                     .background(redPacketFlapBrush(colors), RedPacketFlapShape(curve))
                     .padding(
                         start = FlareSizes.spacingXl, end = FlareSizes.spacingXl, top = FlareSizes.spacing2xl * 2,
@@ -227,25 +270,26 @@ private fun RedPacketEnvelope(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
                 ) {
-                    Avatar(userId = senderName, displayName = senderName, size = FlareSizes.iconSizeXl, avatarUrl = senderAvatar)
+                    // 4.5: avatar 56, "X's red packet" 15/600.
+                    Avatar(userId = senderName, displayName = senderName, size = FlareSizes.componentRedPacketDetailAvatarSize, avatarUrl = senderAvatar)
                     Text(
-                        strings.packetFromSender(senderName), color = colors.redPacketGold, fontSize = FlareSizes.fontSize2xl,
-                        fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        strings.packetFromSender(senderName), color = colors.redPacketGold, fontSize = FlareSizes.fontSizeXl,
+                        fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 }
                 if (!kindLabel.isNullOrEmpty()) {
                     Text(
-                        kindLabel, color = colors.redPacketEnd, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.Medium,
+                        kindLabel, color = colors.redPacketEnd, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.Medium,
                         modifier = Modifier.clip(CircleShape).background(colors.redPacketGold)
                             .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing3xs),
                     )
                 }
-                // A long notice (a host's message, a failure) wraps at the kit's body line height, three lines at most.
+                // 4.5: the blessing (or why there is nothing to open) 20/600, two lines at most.
                 Text(
                     redPacketOpenHeadline(state, blessing, message, strings), color = colors.redPacketGold,
-                    fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center,
-                    lineHeight = FlareSizes.fontSize5xl * FlareSizes.lineHeightNormal,
-                    maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = FlareSizes.spacingSm),
+                    fontSize = FlareSizes.fontSize4xl, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center,
+                    lineHeight = FlareSizes.fontSize4xl * FlareSizes.lineHeightNormal,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = FlareSizes.spacingSm),
                 )
                 if (hint != null) {
                     Text(
@@ -268,7 +312,7 @@ private fun RedPacketEnvelope(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
                     ) {
-                        Text(strings.packetViewDetails, color = colors.redPacketGold, fontSize = FlareSizes.fontSizeLg)
+                        Text(if (reviewOnError && state == FlareRedPacketOpenState.Error) strings.packetViewResult else strings.packetViewDetails, color = colors.redPacketGold, fontSize = FlareSizes.fontSizeLg)
                         FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.redPacketGold)
                     }
                 }
@@ -316,25 +360,21 @@ private fun RedPacketOpenButton(opening: Boolean, reducedMotion: Boolean, onOpen
                 rotationY = rotation.value
                 cameraDistance = 12f * density
             }
-            .shadow(FlareSizes.spacingXs, CircleShape, clip = false)
+            .shadow(flareShadowElevation(flareShadows().sm), CircleShape, clip = false)
             .clip(CircleShape)
             .background(redPacketCoinBrush(colors))
             .border(FlareSizes.spacing3xs, colors.redPacketGoldDeep, CircleShape)
             .semantics(mergeDescendants = true) {
                 contentDescription = label
-                // With animations removed the progress is the button's own text; otherwise it is its state.
-                if (opening && !reducedMotion) stateDescription = strings.packetBusy
+                if (opening) stateDescription = strings.packetBusy
             }
             .clickable(enabled = !opening && onOpen != null, role = Role.Button) { if (!opening) onOpen?.invoke() },
         contentAlignment = Alignment.Center,
     ) {
         if (opening && reducedMotion) {
-            // Animations removed: the claim's progress in words instead of the turning coin.
-            Text(
-                strings.packetBusy, color = colors.redPacketEnd, fontSize = FlareSizes.fontSizeMd,
-                fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 2,
-                modifier = Modifier.padding(FlareSizes.spacingSm),
-            )
+            // Animations removed (§7): a progress ring on the still coin instead of the turning one.
+            CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeLg).clearAndSetSemantics {}, color = colors.redPacketEnd,
+                strokeWidth = FlareSizes.spacing3xs)
         } else {
             Text(
                 label, color = colors.redPacketEnd, fontSize = (coin.value * RedPacketMetrics.openGlyphShare).sp,

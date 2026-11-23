@@ -1,17 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/flare_strings.dart';
+import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_button.dart';
 import 'flare_icon.dart';
+import 'flare_icon_button.dart';
+import 'flare_input.dart';
+import 'flare_status_banner.dart';
 import 'icon_control.dart';
+
+/// A standalone card, or the full-height editor of a page or a drawer.
+enum FlareMomentComposerLayout { card, page }
 
 /// The moment composer card: a cancel/post header, a multi-line text field, a
 /// 4-column image grid with removable thumbnails and an add tile, and
 /// location / visibility rows. Post is disabled until there is text or at least
 /// one image. Spec: Moments/Composer (`FlareMomentComposer`).
+///
+/// [FlareMomentComposerLayout.page] fills its box: the header stays on top,
+/// the field takes focus and grows from three to eight lines, and the rest
+/// scrolls. [submitError] (the host's publish failure) shows above the field
+/// with Retry. [images] replaces the built-in grid (a `FlareMediaUpload`
+/// with per-file states). With [onLocationChanged] the location row edits in
+/// place: Enter or ✓ keeps it, Escape or ✕ leaves it; posting keeps an open
+/// edit first.
 class FlareMomentComposer extends StatefulWidget {
   const FlareMomentComposer({
     super.key,
+    this.layout = FlareMomentComposerLayout.card,
+    this.submitError,
+    this.imagesSlot,
+    this.onLocationChanged,
+    this.locationPlaceholder,
     this.images = const [],
     this.maxImages = 9,
     this.location,
@@ -46,6 +68,17 @@ class FlareMomentComposer extends StatefulWidget {
   final String postLabel;
   final String locationLabel;
   final String visibilityLabel;
+  final FlareMomentComposerLayout layout;
+  final String? submitError;
+
+  /// Replaces the built-in thumbnail grid.
+  final Widget? imagesSlot;
+
+  /// Edits the location in place and reports the trimmed value.
+  final ValueChanged<String>? onLocationChanged;
+
+  /// The in-place location field's hint; [locationLabel] when null.
+  final String? locationPlaceholder;
 
   @override
   State<FlareMomentComposer> createState() => _FlareMomentComposerState();
@@ -53,20 +86,59 @@ class FlareMomentComposer extends StatefulWidget {
 
 class _FlareMomentComposerState extends State<FlareMomentComposer> {
   final _controller = TextEditingController();
+  final _location = TextEditingController();
+  final _locationRow = FocusNode(debugLabel: 'moment location');
+  bool _editingLocation = false;
 
   @override
   void dispose() {
     _controller.dispose();
+    _location.dispose();
+    _locationRow.dispose();
     super.dispose();
   }
 
   bool get _canPost =>
       _controller.text.trim().isNotEmpty || widget.images.isNotEmpty;
 
+  void _editLocation() {
+    if (widget.busy) return;
+    if (widget.onLocationChanged == null) {
+      widget.onPickLocation?.call();
+      return;
+    }
+    _location.text = widget.location ?? '';
+    setState(() => _editingLocation = true);
+  }
+
+  void _closeLocation() {
+    setState(() => _editingLocation = false);
+    _locationRow.requestFocus();
+  }
+
+  void _confirmLocation({bool restoreFocus = true}) {
+    if (widget.busy || !_editingLocation) return;
+    widget.onLocationChanged?.call(_location.text.trim());
+    if (restoreFocus) {
+      _closeLocation();
+    } else {
+      setState(() => _editingLocation = false);
+    }
+  }
+
+  void _submit() {
+    if (widget.busy || !_canPost) return;
+    _confirmLocation(restoreFocus: false);
+    widget.onSubmit?.call(_controller.text.trim());
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final canPost = _canPost && !widget.busy;
+    if (widget.layout == FlareMomentComposerLayout.page) {
+      return _page(colors, canPost);
+    }
 
     return Container(
       width: 360,
@@ -87,49 +159,177 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _header(colors, canPost),
-          Padding(
-            padding: const EdgeInsets.all(FlareSizes.spacingLg),
-            child: TextField(
-              controller: _controller,
-              onChanged: (_) => setState(() {}),
-              maxLines: 4,
-              minLines: 4,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.55,
-                color: colors.textPrimary,
-              ),
-              decoration: InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: widget.placeholder,
-                hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
-              ),
+          TextField(
+            controller: _controller,
+            onChanged: (_) => setState(() {}),
+            maxLines: 4,
+            minLines: 4,
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.55,
+              color: colors.textPrimary,
             ),
+            decoration: _textDecoration(colors),
           ),
-          if (widget.images.isNotEmpty ||
-              widget.images.length < widget.maxImages)
-            _grid(colors),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: colors.borderPrimary)),
+          ?_images(colors),
+          _rows(colors),
+        ],
+      ),
+    );
+  }
+
+  Widget? _images(FlareColors colors) {
+    final slot = widget.imagesSlot;
+    if (slot != null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+          FlareSizes.spacing2md,
+          0,
+          FlareSizes.spacing2md,
+          12,
+        ),
+        child: slot,
+      );
+    }
+    if (widget.images.isNotEmpty || widget.images.length < widget.maxImages) {
+      return _grid(colors);
+    }
+    return null;
+  }
+
+  Widget _rows(FlareColors colors) {
+    final strings = FlareStrings.of(context);
+    final location = widget.location;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: colors.borderPrimary)),
+      ),
+      child: Column(
+        children: [
+          if (_editingLocation)
+            CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape):
+                    _closeLocation,
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacing2md,
+                  vertical: FlareSizes.spacingXs,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FlareInput(
+                        controller: _location,
+                        size: FlareControlSize.sm,
+                        clearable: true,
+                        autofocus: true,
+                        disabled: widget.busy,
+                        semanticLabel: strings.pickLocation,
+                        placeholder:
+                            widget.locationPlaceholder ?? widget.locationLabel,
+                        onSubmitted: (_) => _confirmLocation(),
+                      ),
+                    ),
+                    FlareIconButton(
+                      icon: 'check',
+                      size: FlareControlSize.sm,
+                      semanticLabel: strings.confirm,
+                      disabled: widget.busy,
+                      onPressed: _confirmLocation,
+                    ),
+                    FlareIconButton(
+                      icon: 'close',
+                      size: FlareControlSize.sm,
+                      semanticLabel: strings.cancel,
+                      disabled: widget.busy,
+                      onPressed: _closeLocation,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Focus(
+              focusNode: _locationRow,
+              skipTraversal: true,
+              child: _row(
+                colors,
+                Icons.location_on_outlined,
+                location == null || location.isEmpty
+                    ? widget.locationLabel
+                    : location,
+                widget.busy ||
+                        (widget.onLocationChanged == null &&
+                            widget.onPickLocation == null)
+                    ? null
+                    : _editLocation,
+              ),
             ),
-            child: Column(
-              children: [
-                _row(
-                  colors,
-                  Icons.location_on_outlined,
-                  widget.location ?? widget.locationLabel,
-                  widget.onPickLocation,
-                ),
-                Divider(height: 1, thickness: 1, color: colors.borderPrimary),
-                _row(
-                  colors,
-                  Icons.public,
-                  widget.visibility ?? widget.visibilityLabel,
-                  widget.onPickVisibility,
-                ),
-              ],
+          Divider(height: 1, thickness: 1, color: colors.borderPrimary),
+          _row(
+            colors,
+            Icons.public,
+            widget.visibility ?? widget.visibilityLabel,
+            widget.busy ? null : widget.onPickVisibility,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The editor of a page or a drawer: the header on top, the rest scrolls.
+  Widget _page(FlareColors colors, bool canPost) {
+    final error = widget.submitError;
+    return Material(
+      color: colors.bgPrimary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _header(colors, canPost),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (error != null && error.isNotEmpty && !widget.busy)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        FlareSizes.spacingLg,
+                        FlareSizes.spacingMd,
+                        FlareSizes.spacingLg,
+                        0,
+                      ),
+                      child: FlareStatusBanner(
+                        text: error,
+                        tone: FlareStatusTone.danger,
+                        dot: false,
+                        actionText: _canPost
+                            ? FlareStrings.of(context).retry
+                            : null,
+                        onAction: _submit,
+                      ),
+                    ),
+                  TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    enabled: !widget.busy,
+                    onChanged: (_) => setState(() {}),
+                    minLines: 3,
+                    maxLines: 8,
+                    keyboardType: TextInputType.multiline,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.55,
+                      color: colors.textPrimary,
+                    ),
+                    decoration: _textDecoration(colors),
+                  ),
+                  ?_images(colors),
+                  _rows(colors),
+                ],
+              ),
             ),
           ),
         ],
@@ -137,11 +337,27 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
     );
   }
 
+  /// Vue `__text`: the field pads itself, and focus is a 2px rule along its
+  /// bottom edge.
+  InputDecoration _textDecoration(FlareColors colors) => InputDecoration(
+    isDense: true,
+    contentPadding: const EdgeInsets.all(FlareSizes.spacing2md),
+    border: InputBorder.none,
+    enabledBorder: InputBorder.none,
+    disabledBorder: InputBorder.none,
+    focusedBorder: UnderlineInputBorder(
+      borderSide: BorderSide(color: colors.borderSelected, width: 2),
+    ),
+    hintText: widget.placeholder,
+    hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
+  );
+
+  // Vue `__head`: a small ghost cancel key and a small primary post key.
   Widget _header(FlareColors colors, bool canPost) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: FlareSizes.spacing2md,
-        vertical: 12,
+        vertical: FlareSizes.spacingSm,
       ),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colors.borderPrimary)),
@@ -149,40 +365,18 @@ class _FlareMomentComposerState extends State<FlareMomentComposer> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: widget.onCancel,
-            behavior: HitTestBehavior.opaque,
-            child: Text(
-              widget.cancelLabel,
-              style: TextStyle(color: colors.textSecondary, fontSize: 14),
-            ),
+          FlareButton(
+            variant: FlareButtonVariant.ghost,
+            size: FlareControlSize.sm,
+            label: widget.cancelLabel,
+            disabled: widget.busy,
+            onPressed: widget.onCancel,
           ),
-          GestureDetector(
-            onTap: canPost
-                ? () => widget.onSubmit?.call(_controller.text.trim())
-                : null,
-            behavior: HitTestBehavior.opaque,
-            child: Opacity(
-              opacity: canPost ? 1 : 0.45,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
-                ),
-                child: Text(
-                  widget.postLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+          FlareButton(
+            size: FlareControlSize.sm,
+            label: widget.postLabel,
+            disabled: !canPost,
+            onPressed: _submit,
           ),
         ],
       ),

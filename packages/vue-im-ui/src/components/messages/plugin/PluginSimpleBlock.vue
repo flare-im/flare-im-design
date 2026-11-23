@@ -2,8 +2,10 @@
 import { computed } from "vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 import { useClampedText } from "./useClampedText";
-import FlareUserIdentity from "../../data/FlareUserIdentity.vue";
 import FlareTag from "../../general/FlareTag.vue";
+import PluginFieldList from "./PluginFieldList.vue";
+import { flarePluginStatusDraw } from "../../../shared/contracts/plugin-experience";
+import { useFlarePluginWarnScope } from "./warnScope";
 import type {
   FlarePluginDividerBlock,
   FlarePluginFieldsBlock,
@@ -20,19 +22,24 @@ const props = defineProps<{ block: FlarePluginFieldsBlock | FlarePluginStatusBlo
 const pct = (n: number) => Math.min(100, Math.max(0, n));
 const { t } = useFlareI18nOptional();
 const cap = computed(() => (props.block.kind === "note" ? props.clamp : undefined));
+const warnAt = useFlarePluginWarnScope();
+const status = computed(() => (props.block.kind === "status" ? flarePluginStatusDraw(props.block, warnAt(`status:${props.block.label ?? ""}`)) : undefined));
+/** R1: an info note explains (caption 12, text.secondary, no tinted strip); admin pages keep it tinted. */
+const noteClass = computed(() => props.block.kind !== "note" ? "" : props.notePresentation === "plain" ? "is-plain" : props.block.tone === "info" && props.notePresentation !== "tinted" ? "is-caption" : `is-${props.block.tone ?? "neutral"}`);
 const { el, expanded, lines, overflows, toggle } = useClampedText(cap, () => (props.block.kind === "note" ? props.block.text : ""));
 </script>
 
 <template>
-  <dl v-if="block.kind === 'fields'" v-bind="$attrs" class="flare-plugin-fields">
-    <div v-for="(field, index) in block.fields" :key="index" class="flare-plugin-fields__row">
-      <dt>{{ field.label }}</dt>
-      <dd><FlareUserIdentity v-if="field.user" :user="field.user" /><template v-else>{{ field.value }}</template></dd>
-    </div>
-  </dl>
-  <div v-else-if="block.kind === 'status'" v-bind="$attrs" class="flare-plugin-status">
+  <PluginFieldList v-if="block.kind === 'fields'" v-bind="$attrs" :fields="block.fields" />
+  <div v-else-if="block.kind === 'status' && status" v-bind="$attrs" class="flare-plugin-status">
     <span v-if="block.label" class="flare-plugin-status__label">{{ block.label }}</span>
-    <FlareTag :label="block.text" :tone="block.tone" :data-status-tone="block.tone" />
+    <FlareTag
+      :label="status.unknown ? t('pluginView.unknownStatus') : block.text"
+      :tone="status.tone"
+      :data-status-tone="status.tone"
+      :data-unknown="status.unknown ? 'true' : undefined"
+      data-status-tag="true"
+    />
   </div>
   <div v-else-if="block.kind === 'progress'" v-bind="$attrs" class="flare-plugin-progress">
     <div class="flare-plugin-progress__head">
@@ -57,7 +64,7 @@ const { el, expanded, lines, overflows, toggle } = useClampedText(cap, () => (pr
       ref="el"
       v-bind="$attrs"
       class="flare-plugin-note"
-      :class="[notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`, { 'is-clamped': !!lines }]"
+      :class="[noteClass, { 'is-clamped': !!lines }]"
       :style="{ '--flare-clamp-lines': String(cap) }"
       :data-note-tone="block.tone ?? 'neutral'"
     >{{ block.text }}</p>
@@ -72,14 +79,10 @@ const { el, expanded, lines, overflows, toggle } = useClampedText(cap, () => (pr
       {{ expanded ? t("plugin.admin.collapse") : t("plugin.admin.expand") }}
     </button>
   </div>
-  <p v-else-if="block.kind === 'note'" v-bind="$attrs" class="flare-plugin-note" :class="notePresentation === 'plain' ? 'is-plain' : `is-${block.tone ?? 'neutral'}`" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
+  <p v-else-if="block.kind === 'note'" v-bind="$attrs" class="flare-plugin-note" :class="noteClass" :data-note-tone="block.tone ?? 'neutral'">{{ block.text }}</p>
 </template>
 
 <style scoped>
-.flare-plugin-fields { display: grid; gap: var(--flare-size-spacing-xs); margin: 0; font-size: var(--flare-size-font-size-md); }
-.flare-plugin-fields__row { display: grid; grid-template-columns: minmax(4em, 1fr) minmax(0, 2fr); gap: var(--flare-size-spacing-md); }
-.flare-plugin-fields dt { color: var(--flare-color-text-secondary); }
-.flare-plugin-fields dd { margin: 0; color: var(--flare-color-text-primary); overflow-wrap: anywhere; }
 .flare-plugin-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; font-size: var(--flare-size-font-size-md); }
 .flare-plugin-status__label { color: var(--flare-color-text-secondary); }
 /* A status may explain why an action is unavailable. Keep its complete text;
@@ -123,6 +126,7 @@ const { el, expanded, lines, overflows, toggle } = useClampedText(cap, () => (pr
 .flare-plugin-note.is-warning { --flare-plugin-note-ink: var(--flare-color-warning-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-warning) 6%, var(--flare-color-bg-primary)); }
 .flare-plugin-note.is-danger { --flare-plugin-note-ink: var(--flare-color-error-text); --flare-plugin-note-surface: color-mix(in srgb, var(--flare-color-error) 6%, var(--flare-color-bg-primary)); }
 .flare-plugin-note.is-plain { padding: 0; border-radius: 0; color: var(--flare-color-text-secondary); background: none; }
+.flare-plugin-note.is-caption { padding: 0; border-radius: 0; font-size: var(--flare-size-font-size-sm); line-height: var(--flare-size-line-height-normal); color: var(--flare-color-text-secondary); background: none; }
 @media (prefers-reduced-motion: reduce) {
   .flare-plugin-progress__fill { transition: none; }
 }

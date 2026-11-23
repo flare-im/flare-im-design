@@ -136,7 +136,7 @@ const edges = useFlareScrollEdges(actions, () => props.floating);
           aria-keyshortcuts="Escape"
           @click="emit('exit')"
         >
-          <n-icon aria-hidden="true" :size="18" :component="flareIcons.close" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.close" />
         </button>
       </span>
     </div>

@@ -7,6 +7,8 @@ import {defineComponent,h} from 'vue';
 import {useFlareI18nProvider} from '../../../shared/i18n/useFlareI18n';
 import FlarePluginView from '../FlarePluginView.vue';
 import FlareRedPacketCard from '../FlareRedPacketCard.vue';
+import FlareRedPacketReview from '../FlareRedPacketReview.vue';
+import FlareResolvedPresentation from './FlareResolvedPresentation.vue';
 import type {FlarePluginViewModel} from '../../../shared/contracts/plugin-ui';
 import {provideFlareMessageQuote} from '../../../shared/message-renderers';
 const fixtures=JSON.parse(readFileSync(resolve(__dirname,'../../../../../../spec/financial-presentation-vectors.json'),'utf8')) as Record<string,FlarePluginViewModel>;
@@ -73,5 +75,28 @@ describe('resolved red packet Kit composition',()=>{
   const w=mountView(view);
   expect(w.findComponent(FlareRedPacketCard).exists()).toBe(false);
   expect(w.get('[data-block="text"]').text()).toBe('Declarative body');
+ });
+});
+describe('redPacket.review renderer',()=>{
+ const review=(actions:FlarePluginViewModel['actions'],bound:Record<string,string>):FlarePluginViewModel=>({available:true,title:'',fields:[],actions,
+  presentation:{renderer:'redPacket.review',props:{amount:'¥26.64',kindLabel:'拼手气红包 · 3 个',blessing:'恭喜发财',brandName:1},actions:bound}});
+ function mountReview(view:FlarePluginViewModel,busy=false){const root=mount(defineComponent({setup(){useFlareI18nProvider('zh-CN');return()=>h(FlareResolvedPresentation,{view,busy});}}));mounted.push(root);return root.getComponent(FlareResolvedPresentation);}
+ it('draws the review from its props and sends only the bound submit action',async()=>{
+  const w=mountReview(review([{id:'commit',label:'发红包',style:'primary'}],{submit:'commit'}));
+  expect(w.findComponent(FlareRedPacketCard).exists()).toBe(false);
+  const r=w.getComponent(FlareRedPacketReview);
+  expect(r.props()).toMatchObject({amount:'¥26.64',kindLabel:'拼手气红包 · 3 个',blessing:'恭喜发财',submitLabel:'发红包'});
+  await r.get('[data-review-submit]').trigger('click');
+  expect(w.emitted('request')).toEqual([['commit']]);
+ });
+ it('reads props defensively and asks nothing without a bound action or while busy',async()=>{
+  const view=review([],{});view.presentation!.props={amount:3,blessing:null};
+  const w=mountReview(view);
+  expect(w.get('[data-review-amount]').text()).toBe('');
+  await w.get('[data-review-submit]').trigger('click');
+  expect(w.emitted('request')).toBeUndefined();
+  const busy=mountReview(review([{id:'commit',label:'发红包'}],{submit:'commit'}),true);
+  await busy.get('[data-review-submit]').trigger('click');
+  expect(busy.emitted('request')).toBeUndefined();
  });
 });

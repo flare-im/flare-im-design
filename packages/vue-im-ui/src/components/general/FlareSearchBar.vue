@@ -8,6 +8,7 @@ const props = withDefaults(
     placeholder?: string;
     loading?: boolean;
     autofocus?: boolean;
+    dismissesKeyboardOnOutsideTap?: boolean;
     /** Entry mode: the same bar without a text field (no caret, no clear). With an `activate` listener it is one button that opens search; without one it only displays. */
     readOnly?: boolean;
     /**
@@ -25,8 +26,10 @@ const props = withDefaults(
      * 这个控件自己画不画一块面。
      */
     appearance?: "filled" | "quiet";
+    /** Compact list search; touch devices retain the minimum touch target. */
+    density?: "normal" | "compact";
   }>(),
-  { modelValue: "", loading: false, autofocus: false, readOnly: false, debounce: 300, appearance: "filled" },
+  { modelValue: "", loading: false, autofocus: false, readOnly: false, debounce: 300, appearance: "filled", density: "normal" },
 );
 const { t } = useFlareI18n();
 const strings = computed(() => ({
@@ -54,8 +57,15 @@ const canCancel = computed(() => Boolean(instance?.vnode.props?.onCancel));
 // The autofocus attribute is ignored for fields inserted after the page loaded (a panel that opens
 // later), so focus it when it mounts.
 const input = ref<HTMLInputElement | null>(null);
+const searchRow = ref<HTMLElement | null>(null);
+function onOutsideTap(event: MouseEvent): void {
+  const field = input.value;
+  if (props.dismissesKeyboardOnOutsideTap && field && document.activeElement === field &&
+      searchRow.value && !event.composedPath().includes(searchRow.value)) field.blur();
+}
 onMounted(() => {
   if (props.autofocus && !props.readOnly) input.value?.focus({ preventScroll: true });
+  document.addEventListener("click", onOutsideTap, true);
 });
 /** Put the caret back in the field (a host that just acted on something outside it). Nothing to focus in entry mode. */
 function focus(): void { input.value?.focus({ preventScroll: true }); }
@@ -73,7 +83,10 @@ function scheduleSearch(query: string): void {
   if (props.debounce <= 0) { emit("search", query); return; }
   pending = setTimeout(() => { pending = null; emit("search", query); }, props.debounce);
 }
-onBeforeUnmount(cancelPending);
+onBeforeUnmount(() => {
+  cancelPending();
+  document.removeEventListener("click", onOutsideTap, true);
+});
 
 // An IME's half-typed text is not a query: pinyin that has not become characters yet would be searched
 // for after the pause. The model still follows every keystroke; the search waits for the composition.
@@ -103,6 +116,7 @@ function submit(event: KeyboardEvent) {
   if (event.isComposing || event.keyCode === 229) return;
   // Return means now: whatever was waiting for the typing to settle happens at once.
   cancelPending();
+  if (props.dismissesKeyboardOnOutsideTap) input.value?.blur();
   emit("submit");
   if (searches.value) emit("search", props.modelValue);
 }
@@ -118,15 +132,15 @@ function cancel() {
     v-if="readOnly"
     :type="canActivate ? 'button' : undefined"
     class="flare-search is-entry"
-    :class="{ 'is-interactive': canActivate, 'is-quiet': appearance === 'quiet' }"
+    :class="{ 'is-interactive': canActivate, 'is-quiet': appearance === 'quiet', 'is-compact': density === 'compact' }"
     :aria-label="canActivate ? strings.entry : undefined"
     @click="canActivate && emit('activate')"
   >
     <span class="flare-search__ico" aria-hidden="true"><FlareIcon name="search" :size="16" /></span>
     <span class="flare-search__text" :class="{ 'is-placeholder': !modelValue }">{{ modelValue || strings.entry }}</span>
   </component>
-  <div v-else class="flare-search-row" :class="{ 'has-cancel': canCancel }">
-  <div class="flare-search" :class="{ 'is-quiet': appearance === 'quiet' }">
+  <div v-else ref="searchRow" class="flare-search-row" :class="{ 'has-cancel': canCancel }">
+  <div class="flare-search" :class="{ 'is-quiet': appearance === 'quiet', 'is-compact': density === 'compact' }">
     <span class="flare-search__ico" aria-hidden="true"><FlareIcon name="search" :size="16" /></span>
     <input
       ref="input"
@@ -136,13 +150,16 @@ function cancel() {
       :placeholder="strings.placeholder"
       :aria-label="strings.placeholder"
       :autofocus="autofocus"
+      spellcheck="false"
+      autocorrect="off"
+      autocapitalize="off"
       @input="onInput"
       @compositionend="onCompositionEnd"
       @keydown.enter.prevent="submit"
     />
     <span v-if="loading" class="flare-search__spin" role="status" :aria-label="t('common.loading')" />
     <button v-else-if="modelValue" type="button" class="flare-search__clear" :aria-label="strings.clear" @click="clear">
-      <FlareIcon name="close" :size="14" aria-hidden="true" />
+      <FlareIcon name="close" size="sm" aria-hidden="true" />
     </button>
   </div>
   <!-- Leaving search is its own key, beside the field, where a phone keyboard cannot hide it. -->
@@ -164,17 +181,26 @@ function cancel() {
   cursor: pointer;
 }
 .flare-search {
+  --flare-search-control-height: var(--flare-size-layout-touch-target);
   box-sizing: border-box;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--flare-size-spacing-sm);
   width: 100%;
-  min-height: var(--flare-size-layout-touch-target);
+  min-height: var(--flare-search-control-height);
   padding: 0 var(--flare-size-spacing-md);
   border: 1px solid transparent;
   border-radius: var(--flare-size-radius-lg);
   background: var(--flare-color-bg-secondary);
+}
+.flare-search.is-compact {
+  --flare-search-control-height: var(--flare-size-layout-control-height-md);
+}
+@media (pointer: coarse) {
+  .flare-search.is-compact {
+    --flare-search-control-height: var(--flare-size-layout-touch-target-min);
+  }
 }
 /* 聚焦时把这块面本身的边描出来,不再在它外面再套一圈 2px 的光环 —— 一条整宽的搜索框
    被「1px 实色描边 + 2px 外发光」框住时,屏幕上最重的东西变成了那个框而不是里面的字。
@@ -228,8 +254,9 @@ function cancel() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--flare-size-layout-touch-target);
-  height: var(--flare-size-layout-touch-target);
+  width: var(--flare-search-control-height);
+  height: var(--flare-search-control-height);
+  margin-block: -1px;
   margin-right: calc(-1 * var(--flare-size-spacing-md));
   padding: 0;
   border: 0;

@@ -72,13 +72,11 @@ public extension View {
 
 private struct FlareThemeScheme: ViewModifier {
     let mode: FlareThemeMode
+    @Environment(\.colorScheme) private var inheritedScheme
 
     func body(content: Content) -> some View {
-        switch mode {
-        case .system: content
-        case .light: content.environment(\.colorScheme, .light)
-        case .dark: content.environment(\.colorScheme, .dark)
-        }
+        // A stable modifier keeps the existing NavigationStack when the scheme changes.
+        content.environment(\.colorScheme, mode.colorScheme ?? inheritedScheme)
     }
 }
 
@@ -119,6 +117,8 @@ public struct FlareColors: Sendable {
     public let messageReactionBackground: Color
     public let messageReactionSelected: Color
     public let error: Color
+    public let errorHover: Color
+    public let errorActive: Color
     public let errorText: Color
     public let focusRing: Color
     public let important: Color
@@ -165,12 +165,31 @@ public struct FlareColors: Sendable {
     public let redPacketFadedInk: Color
     public let redPacketFadedMixTarget: Color
     public let redPacketAccent: Color
+    public let redPacketEndHover: Color
+    public let redPacketEndActive: Color
     public let chartSeries1: Color
     public let chartSeries2: Color
     public let chartSeries3: Color
     public let chartSeries4: Color
     public let chartSeries5: Color
     public let chartSeries6: Color
+    public let callStage: Color
+    public let callStageTint: Color
+    public let callOnStage: Color
+    public let callOnStageSecondary: Color
+    public let callControl: Color
+    public let callControlHover: Color
+    public let callControlActive: Color
+    public let callOnControlActive: Color
+    public let callHangup: Color
+    public let callHangupPressed: Color
+    public let callAccept: Color
+    public let callAcceptPressed: Color
+    public let callSpeaking: Color
+    public let callTile: Color
+    public let callChip: Color
+    public let callPopover: Color
+    public let callErrorText: Color
 
     public init(
         bgDisabled: Color,
@@ -208,6 +227,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color,
         messageReactionSelected: Color,
         error: Color,
+        errorHover: Color,
+        errorActive: Color,
         errorText: Color,
         focusRing: Color,
         important: Color,
@@ -254,12 +275,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color,
         redPacketFadedMixTarget: Color,
         redPacketAccent: Color,
+        redPacketEndHover: Color,
+        redPacketEndActive: Color,
         chartSeries1: Color,
         chartSeries2: Color,
         chartSeries3: Color,
         chartSeries4: Color,
         chartSeries5: Color,
-        chartSeries6: Color
+        chartSeries6: Color,
+        callStage: Color,
+        callStageTint: Color,
+        callOnStage: Color,
+        callOnStageSecondary: Color,
+        callControl: Color,
+        callControlHover: Color,
+        callControlActive: Color,
+        callOnControlActive: Color,
+        callHangup: Color,
+        callHangupPressed: Color,
+        callAccept: Color,
+        callAcceptPressed: Color,
+        callSpeaking: Color,
+        callTile: Color,
+        callChip: Color,
+        callPopover: Color,
+        callErrorText: Color
     ) {
         self.bgDisabled = bgDisabled
         self.bgElevated = bgElevated
@@ -296,6 +336,8 @@ public struct FlareColors: Sendable {
         self.messageReactionBackground = messageReactionBackground
         self.messageReactionSelected = messageReactionSelected
         self.error = error
+        self.errorHover = errorHover
+        self.errorActive = errorActive
         self.errorText = errorText
         self.focusRing = focusRing
         self.important = important
@@ -342,12 +384,31 @@ public struct FlareColors: Sendable {
         self.redPacketFadedInk = redPacketFadedInk
         self.redPacketFadedMixTarget = redPacketFadedMixTarget
         self.redPacketAccent = redPacketAccent
+        self.redPacketEndHover = redPacketEndHover
+        self.redPacketEndActive = redPacketEndActive
         self.chartSeries1 = chartSeries1
         self.chartSeries2 = chartSeries2
         self.chartSeries3 = chartSeries3
         self.chartSeries4 = chartSeries4
         self.chartSeries5 = chartSeries5
         self.chartSeries6 = chartSeries6
+        self.callStage = callStage
+        self.callStageTint = callStageTint
+        self.callOnStage = callOnStage
+        self.callOnStageSecondary = callOnStageSecondary
+        self.callControl = callControl
+        self.callControlHover = callControlHover
+        self.callControlActive = callControlActive
+        self.callOnControlActive = callOnControlActive
+        self.callHangup = callHangup
+        self.callHangupPressed = callHangupPressed
+        self.callAccept = callAccept
+        self.callAcceptPressed = callAcceptPressed
+        self.callSpeaking = callSpeaking
+        self.callTile = callTile
+        self.callChip = callChip
+        self.callPopover = callPopover
+        self.callErrorText = callErrorText
     }
 
     public func copy(
@@ -386,6 +447,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color? = nil,
         messageReactionSelected: Color? = nil,
         error: Color? = nil,
+        errorHover: Color? = nil,
+        errorActive: Color? = nil,
         errorText: Color? = nil,
         focusRing: Color? = nil,
         important: Color? = nil,
@@ -432,12 +495,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color? = nil,
         redPacketFadedMixTarget: Color? = nil,
         redPacketAccent: Color? = nil,
+        redPacketEndHover: Color? = nil,
+        redPacketEndActive: Color? = nil,
         chartSeries1: Color? = nil,
         chartSeries2: Color? = nil,
         chartSeries3: Color? = nil,
         chartSeries4: Color? = nil,
         chartSeries5: Color? = nil,
-        chartSeries6: Color? = nil
+        chartSeries6: Color? = nil,
+        callStage: Color? = nil,
+        callStageTint: Color? = nil,
+        callOnStage: Color? = nil,
+        callOnStageSecondary: Color? = nil,
+        callControl: Color? = nil,
+        callControlHover: Color? = nil,
+        callControlActive: Color? = nil,
+        callOnControlActive: Color? = nil,
+        callHangup: Color? = nil,
+        callHangupPressed: Color? = nil,
+        callAccept: Color? = nil,
+        callAcceptPressed: Color? = nil,
+        callSpeaking: Color? = nil,
+        callTile: Color? = nil,
+        callChip: Color? = nil,
+        callPopover: Color? = nil,
+        callErrorText: Color? = nil
     ) -> FlareColors {
         FlareColors(
             bgDisabled: bgDisabled ?? self.bgDisabled,
@@ -475,6 +557,8 @@ public struct FlareColors: Sendable {
             messageReactionBackground: messageReactionBackground ?? self.messageReactionBackground,
             messageReactionSelected: messageReactionSelected ?? self.messageReactionSelected,
             error: error ?? self.error,
+            errorHover: errorHover ?? self.errorHover,
+            errorActive: errorActive ?? self.errorActive,
             errorText: errorText ?? self.errorText,
             focusRing: focusRing ?? self.focusRing,
             important: important ?? self.important,
@@ -521,12 +605,31 @@ public struct FlareColors: Sendable {
             redPacketFadedInk: redPacketFadedInk ?? self.redPacketFadedInk,
             redPacketFadedMixTarget: redPacketFadedMixTarget ?? self.redPacketFadedMixTarget,
             redPacketAccent: redPacketAccent ?? self.redPacketAccent,
+            redPacketEndHover: redPacketEndHover ?? self.redPacketEndHover,
+            redPacketEndActive: redPacketEndActive ?? self.redPacketEndActive,
             chartSeries1: chartSeries1 ?? self.chartSeries1,
             chartSeries2: chartSeries2 ?? self.chartSeries2,
             chartSeries3: chartSeries3 ?? self.chartSeries3,
             chartSeries4: chartSeries4 ?? self.chartSeries4,
             chartSeries5: chartSeries5 ?? self.chartSeries5,
-            chartSeries6: chartSeries6 ?? self.chartSeries6
+            chartSeries6: chartSeries6 ?? self.chartSeries6,
+            callStage: callStage ?? self.callStage,
+            callStageTint: callStageTint ?? self.callStageTint,
+            callOnStage: callOnStage ?? self.callOnStage,
+            callOnStageSecondary: callOnStageSecondary ?? self.callOnStageSecondary,
+            callControl: callControl ?? self.callControl,
+            callControlHover: callControlHover ?? self.callControlHover,
+            callControlActive: callControlActive ?? self.callControlActive,
+            callOnControlActive: callOnControlActive ?? self.callOnControlActive,
+            callHangup: callHangup ?? self.callHangup,
+            callHangupPressed: callHangupPressed ?? self.callHangupPressed,
+            callAccept: callAccept ?? self.callAccept,
+            callAcceptPressed: callAcceptPressed ?? self.callAcceptPressed,
+            callSpeaking: callSpeaking ?? self.callSpeaking,
+            callTile: callTile ?? self.callTile,
+            callChip: callChip ?? self.callChip,
+            callPopover: callPopover ?? self.callPopover,
+            callErrorText: callErrorText ?? self.callErrorText
         )
     }
 
@@ -566,6 +669,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 0.9294, green: 0.9137, blue: 0.9961, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.4275, green: 0.1569, blue: 0.8510, opacity: 0.3400),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -612,12 +717,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let violetDark = FlareColors(
@@ -656,6 +780,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.5451, green: 0.3608, blue: 0.9647, opacity: 0.3000),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.7686, green: 0.7098, blue: 0.9922, opacity: 0.4200),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -702,12 +828,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let oceanLight = FlareColors(
@@ -746,6 +891,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 0.8588, green: 0.9176, blue: 0.9961, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.1451, green: 0.3882, blue: 0.9216, opacity: 0.3400),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -792,12 +939,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let oceanDark = FlareColors(
@@ -836,6 +1002,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.2314, green: 0.5098, blue: 0.9647, opacity: 0.3000),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.5765, green: 0.7725, blue: 0.9922, opacity: 0.4200),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -882,12 +1050,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let forestLight = FlareColors(
@@ -926,6 +1113,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 0.8627, green: 0.9882, blue: 0.9059, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 0.3400),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -972,12 +1161,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let forestDark = FlareColors(
@@ -1016,6 +1224,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 0.2800),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.5255, green: 0.9373, blue: 0.6745, opacity: 0.4000),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -1062,12 +1272,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let sunsetLight = FlareColors(
@@ -1106,6 +1335,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 1.0000, green: 0.9294, blue: 0.8353, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.9176, green: 0.3451, blue: 0.0471, opacity: 0.3400),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -1152,12 +1383,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let sunsetDark = FlareColors(
@@ -1196,6 +1446,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.9765, green: 0.4510, blue: 0.0863, opacity: 0.2800),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.9922, green: 0.7294, blue: 0.4549, opacity: 0.4000),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -1242,12 +1494,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let roseLight = FlareColors(
@@ -1286,6 +1557,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 1.0000, green: 0.8941, blue: 0.9020, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.8824, green: 0.1137, blue: 0.2824, opacity: 0.3200),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -1332,12 +1605,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let roseDark = FlareColors(
@@ -1376,6 +1668,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.9569, green: 0.2471, blue: 0.3686, opacity: 0.2800),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.9922, green: 0.6431, blue: 0.6863, opacity: 0.4000),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -1422,12 +1716,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let graphiteLight = FlareColors(
@@ -1466,6 +1779,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 0.9451, green: 0.9490, blue: 0.9608, opacity: 1.0),
         messageReactionSelected: Color(.sRGB, red: 0.8863, green: 0.9098, blue: 0.9412, opacity: 1.0),
         error: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.7373, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.6980, green: 0.1412, blue: 0.1412, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.7765, green: 0.1569, blue: 0.1569, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.2784, green: 0.3333, blue: 0.4118, opacity: 0.3400),
         important: Color(.sRGB, red: 0.7059, green: 0.3255, blue: 0.0353, opacity: 1.0),
@@ -1512,12 +1827,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.3608, green: 0.0784, blue: 0.0549, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 0.7843, green: 0.1608, blue: 0.1216, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.1647, green: 0.4706, blue: 0.8392, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.9216, green: 0.4078, blue: 0.2039, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.1059, green: 0.6863, blue: 0.4784, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.9294, green: 0.6314, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.9098, green: 0.4824, blue: 0.6431, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.3843, green: 0.3137, blue: 0.8392, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let graphiteDark = FlareColors(
@@ -1556,6 +1890,8 @@ public struct FlareColors: Sendable {
         messageReactionBackground: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0800),
         messageReactionSelected: Color(.sRGB, red: 0.5804, green: 0.6392, blue: 0.7216, opacity: 0.2800),
         error: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        errorHover: Color(.sRGB, red: 0.8196, green: 0.1412, blue: 0.1412, opacity: 1.0),
+        errorActive: Color(.sRGB, red: 0.7765, green: 0.1333, blue: 0.1333, opacity: 1.0),
         errorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0),
         focusRing: Color(.sRGB, red: 0.7961, green: 0.8353, blue: 0.8824, opacity: 0.3800),
         important: Color(.sRGB, red: 0.8510, green: 0.4667, blue: 0.0235, opacity: 1.0),
@@ -1602,12 +1938,31 @@ public struct FlareColors: Sendable {
         redPacketFadedInk: Color(.sRGB, red: 0.9843, green: 0.8902, blue: 0.8706, opacity: 1.0),
         redPacketFadedMixTarget: Color(.sRGB, red: 0.1647, green: 0.0824, blue: 0.0745, opacity: 1.0),
         redPacketAccent: Color(.sRGB, red: 1.0000, green: 0.4824, blue: 0.4196, opacity: 1.0),
+        redPacketEndHover: Color(.sRGB, red: 0.7059, green: 0.1451, blue: 0.1098, opacity: 1.0),
+        redPacketEndActive: Color(.sRGB, red: 0.6275, green: 0.1294, blue: 0.0980, opacity: 1.0),
         chartSeries1: Color(.sRGB, red: 0.2235, green: 0.5294, blue: 0.8980, opacity: 1.0),
         chartSeries2: Color(.sRGB, red: 0.8510, green: 0.3490, blue: 0.1490, opacity: 1.0),
         chartSeries3: Color(.sRGB, red: 0.0980, green: 0.6196, blue: 0.4392, opacity: 1.0),
         chartSeries4: Color(.sRGB, red: 0.7882, green: 0.5216, blue: 0.0000, opacity: 1.0),
         chartSeries5: Color(.sRGB, red: 0.8353, green: 0.3176, blue: 0.5059, opacity: 1.0),
-        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0)
+        chartSeries6: Color(.sRGB, red: 0.5647, green: 0.5216, blue: 0.9137, opacity: 1.0),
+        callStage: Color(.sRGB, red: 0.0902, green: 0.0824, blue: 0.1137, opacity: 1.0),
+        callStageTint: Color(.sRGB, red: 0.1686, green: 0.1373, blue: 0.2510, opacity: 1.0),
+        callOnStage: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnStageSecondary: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7200),
+        callControl: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.1400),
+        callControlHover: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2200),
+        callControlActive: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1.0),
+        callOnControlActive: Color(.sRGB, red: 0.0902, green: 0.0745, blue: 0.1098, opacity: 1.0),
+        callHangup: Color(.sRGB, red: 0.8627, green: 0.1490, blue: 0.1490, opacity: 1.0),
+        callHangupPressed: Color(.sRGB, red: 0.7255, green: 0.1098, blue: 0.1098, opacity: 1.0),
+        callAccept: Color(.sRGB, red: 0.0863, green: 0.6392, blue: 0.2902, opacity: 1.0),
+        callAcceptPressed: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1.0),
+        callSpeaking: Color(.sRGB, red: 0.2039, green: 0.8196, blue: 0.4980, opacity: 1.0),
+        callTile: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.0600),
+        callChip: Color(.sRGB, red: 0.0000, green: 0.0000, blue: 0.0000, opacity: 0.4200),
+        callPopover: Color(.sRGB, red: 0.1333, green: 0.1373, blue: 0.1686, opacity: 1.0),
+        callErrorText: Color(.sRGB, red: 0.9725, green: 0.4431, blue: 0.4431, opacity: 1.0)
     )
 
     public static let light = violetLight
@@ -1650,6 +2005,7 @@ public enum FlareSizes {
     public static let fontSize5xl: CGFloat = 24.0
     public static let fontSizeAuthTitle: CGFloat = 28.0
     public static let fontSizeAuthHeadline: CGFloat = 36.0
+    public static let iconSizeXs: CGFloat = 14.0
     public static let iconSizeLg: CGFloat = 24.0
     public static let iconSizeMd: CGFloat = 20.0
     public static let iconSizeSm: CGFloat = 16.0
@@ -1683,6 +2039,11 @@ public enum FlareSizes {
     public static let sessionItemHeight: CGFloat = 72.0
     public static let touchTarget: CGFloat = 48.0
     public static let touchTargetMin: CGFloat = 44.0
+    public static let conversationRowDesktopHeight: CGFloat = 64.0
+    public static let conversationRowMobileHeight: CGFloat = 68.0
+    public static let messageTimelinePaddingTop: CGFloat = 12.0
+    public static let messageTimelinePaddingBottom: CGFloat = 12.0
+    public static let readableWidth: CGFloat = 680.0
     public static let lineHeightNone: CGFloat = 1.0
     public static let lineHeightTight: CGFloat = 1.2
     public static let lineHeightSnug: CGFloat = 1.4
@@ -1721,8 +2082,8 @@ public enum FlareSizes {
     public static let componentIconButtonSideMd: CGFloat = 38.0
     public static let componentIconButtonSideLg: CGFloat = 46.0
     public static let componentIconButtonGlyphSm: CGFloat = 16.0
-    public static let componentIconButtonGlyphMd: CGFloat = 19.0
-    public static let componentIconButtonGlyphLg: CGFloat = 22.0
+    public static let componentIconButtonGlyphMd: CGFloat = 20.0
+    public static let componentIconButtonGlyphLg: CGFloat = 24.0
     public static let componentRadioIndicator: CGFloat = 18.0
     public static let componentRadioDot: CGFloat = 9.0
     public static let componentBubblePaddingX: CGFloat = 14.0
@@ -1756,6 +2117,62 @@ public enum FlareSizes {
     public static let componentRedPacketDetailHeaderHeight: CGFloat = 72.0
     public static let componentRedPacketFadedMix: CGFloat = 0.4
     public static let componentCallPreviewWidth: CGFloat = 112.0
+    public static let componentMessageRowPaddingBlock: CGFloat = 2.0
+    public static let componentMessageGroupStartPadding: CGFloat = 4.0
+    public static let componentMessageGroupGap: CGFloat = 6.0
+    public static let componentMessageBubblePaddingBlockCompact: CGFloat = 8.0
+    public static let componentRedPacketDetailAmountFontSize: CGFloat = 32.0
+    public static let componentQrCardWidth: CGFloat = 320.0
+    public static let componentQrCodeSize: CGFloat = 220.0
+    public static let componentCallControlSize: CGFloat = 56.0
+    public static let componentCallHangupSize: CGFloat = 64.0
+    public static let componentCallAvatarSize: CGFloat = 96.0
+    public static let componentCallAvatarSizeWindow: CGFloat = 80.0
+    public static let componentCallTileAvatar: CGFloat = 56.0
+    public static let componentCallDockHeight: CGFloat = 56.0
+    public static let componentCallWindowAudioWidth: CGFloat = 400.0
+    public static let componentCallWindowAudioHeight: CGFloat = 560.0
+    public static let componentCallWindowVideoWidth: CGFloat = 720.0
+    public static let componentCallWindowVideoHeight: CGFloat = 540.0
+    public static let componentCallIncomingBannerWidth: CGFloat = 360.0
+    public static let componentAmountHeroFontSize: CGFloat = 32.0
+    public static let componentResultIconSize: CGFloat = 56.0
+    public static let componentDocumentFrameRatio: CGFloat = 1.586
+    public static let componentCaptureShutterSize: CGFloat = 72.0
+    public static let componentCapturePreviewWidth: CGFloat = 560.0
+    public static let componentDocumentSlotHeight: CGFloat = 112.0
+    public static let componentFormColumnWidth: CGFloat = 560.0
+    public static let componentActionMinWidth: CGFloat = 120.0
+    public static let componentRedPacketAmountFontSizeWide: CGFloat = 36.0
+    public static let componentSkeletonCardHeight: CGFloat = 160.0
+    public static let componentDocumentThumbHeight: CGFloat = 72.0
+    public static let componentRedPacketFormRowHeight: CGFloat = 56.0
+    public static let componentPinCellWidth: CGFloat = 44.0
+    public static let componentPinCellHeight: CGFloat = 52.0
+    public static let componentPaymentDialogWidth: CGFloat = 400.0
+    public static let componentRedPacketArchCompactHeight: CGFloat = 32.0
+    public static let componentRedPacketDetailAvatarSize: CGFloat = 56.0
+    public static let componentRedPacketClaimRowHeight: CGFloat = 64.0
+    public static let componentCallIncomingBannerHeight: CGFloat = 88.0
+    public static let componentCallIncomingBannerAvatar: CGFloat = 48.0
+    public static let componentCallFailedActionWidth: CGFloat = 160.0
+    public static let componentCallDevicePanelWidth: CGFloat = 280.0
+    public static let componentCallStripTileHeight: CGFloat = 96.0
+    public static let componentRedPacketCloseSize: CGFloat = 36.0
+    public static let componentAccountSetupActionWidth: CGFloat = 200.0
+    public static let componentRecordRowHeight: CGFloat = 64.0
+    public static let componentPinCellMinWidth: CGFloat = 36.0
+    public static let componentCallDockAvatarSize: CGFloat = 40.0
+    public static let componentCallDockKeySize: CGFloat = 36.0
+    public static let componentFocusRingWidth: CGFloat = 2.0
+    public static let componentFocusRingOffset: CGFloat = 3.0
+    public static let componentCallDockNameMaxWidth: CGFloat = 140.0
+    public static let componentRecordIconSize: CGFloat = 36.0
+    public static let componentCaptureFrameStroke: CGFloat = 3.0
+    public static let componentCapturePreviewRatio: CGFloat = 1.6
+    public static let componentPressScale: CGFloat = 0.98
+    public static let componentResultActionWidth: CGFloat = 240.0
+    public static let componentEmptyStateIconSize: CGFloat = 44.0
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).
@@ -1764,6 +2181,7 @@ public enum FlareOpacity {
     public static let muted: Double = 0.7
     public static let tintWeak: Double = 0.1
     public static let tintStrong: Double = 0.24
+    public static let dim: Double = 0.4
 }
 
 public struct FlareShadowLayer: Sendable {
@@ -1810,4 +2228,6 @@ public enum FlareMotion {
     public static var slowAnimation: Animation { .timingCurve(0.22, 1, 0.36, 1, duration: 0.260) }
     public static let spring: Double = 0.360
     public static var springAnimation: Animation { .timingCurve(0.34, 1.4, 0.5, 1, duration: 0.360) }
+    public static let refreshLoop: Double = 1.200
+    public static var refreshLoopAnimation: Animation { .timingCurve(0, 0, 1, 1, duration: 1.200) }
 }

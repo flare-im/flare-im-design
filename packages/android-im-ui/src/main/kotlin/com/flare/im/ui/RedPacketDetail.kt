@@ -1,6 +1,7 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -83,9 +86,6 @@ data class FlareRedPacketClaim(
     val best: Boolean = false,
 )
 
-/** The symbols the kits share (spec/red-packet-vectors.json `amount.symbols`); any other currency is written by its code. */
-private val redPacketCurrencySymbols = mapOf("CNY" to "¥", "JPY" to "¥", "USD" to "$", "EUR" to "€", "GBP" to "£", "HKD" to "HK$")
-
 /**
  * A minor-unit amount as text with exactly [exponent] fraction digits, leading zeros folded, no grouping — by string
  * arithmetic, never floating point (spec/red-packet-vectors.json `amount.rule`). Null for anything but ASCII digits.
@@ -98,12 +98,9 @@ fun flareRedPacketAmountText(minor: String?, exponent: Int): String? {
     return padded.dropLast(exponent) + "." + padded.takeLast(exponent)
 }
 
-/** [flareRedPacketAmountText] with the currency: its symbol when the kits share one, else "{CODE} {text}". */
-fun flareRedPacketMoney(minor: String?, exponent: Int, currency: String): String? {
-    val text = flareRedPacketAmountText(minor, exponent) ?: return null
-    val code = currency.trim().uppercase(java.util.Locale.ROOT)
-    return redPacketCurrencySymbols[code]?.let { it + text } ?: "$code $text"
-}
+/** [flareRedPacketAmountText] with the currency, by the kit's one amount formatter ([FlarePaymentRules.amountText], R10). */
+fun flareRedPacketMoney(minor: String?, exponent: Int, currency: String): String? =
+    flareRedPacketAmountText(minor, exponent)?.let { FlarePaymentRules.amountText(it, currency) }
 
 /** What [RedPacketDetail] draws for one viewer (spec/red-packet-vectors.json `detail`). */
 internal data class RedPacketDetailPresentation(
@@ -204,9 +201,10 @@ internal object RedPacketDetailFormat {
  * minor units with the currency's exponent ([flareRedPacketMoney]); times in the device zone.
  *
  * It is a page, not an overlay: the host puts it on its navigation stack inside [FlareScreen] (which scrolls). With
- * [onBack] the page draws its own red title bar — a light back key and [title] (the kit's `packetDetailTitle` by
- * default) — in one piece with the arc below; its colour runs up under the status bar when the page is laid out edge to
- * edge, and system back steps back.
+ * [onBack] the page draws a neutral header — the back key and [title] (the kit's `packetDetailTitle` by default) — and
+ * the [RedPacketArch] under it (4.6 of docs/plugin-experience.md); system back steps back. [nowMs] is the host's
+ * server-corrected clock for the refund copy. A claimer's amount is followed by "saved to your wallet" with a success
+ * icon; [onDeposited] makes that line a key to the wallet.
  */
 @Composable
 fun RedPacketDetail(
@@ -218,37 +216,38 @@ fun RedPacketDetail(
     claims: List<FlareRedPacketClaim> = emptyList(),
     title: String? = null,
     onBack: (() -> Unit)? = null,
+    /** The host's server-corrected now; absent, the kit's server clock when the details arrived. */
+    nowMs: Long? = null,
+    /** "Saved to your wallet" opens the wallet. */
+    onDeposited: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
-    val now = remember(details) { FlareServerClock.nowMs() }
+    val now = nowMs ?: remember(details) { FlareServerClock.nowMs() }
     val shown = RedPacketDetailFormat.presentation(details, designatedName, now, strings)
     val badge = redPacketCardBadge(details.kind, null, strings).badge
     FlareNativeBackEffect(enabled = onBack != null) { onBack?.invoke() }
-    Column(modifier.fillMaxWidth().background(colors.bgPrimary)) {
-        // Bar and arc are one shape and one gradient, so there is no seam between them.
-        Column(
-            Modifier.fillMaxWidth()
-                .background(redPacketCoverBrush(colors), RedPacketFlapShape(FlareSizes.componentRedPacketDetailHeaderHeight * 0.4f)),
-        ) {
-            if (onBack != null) {
-                Box(
-                    Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
-                        .heightIn(min = FlareSizes.headerHeight).padding(horizontal = FlareSizes.spacingXs),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        title ?: strings.packetDetailTitle, color = colors.redPacketOnSurface, fontSize = FlareSizes.fontSize2xl,
-                        fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = FlareSizes.touchTarget).semantics { heading() },
-                    )
-                    FlareIconControl(label = strings.back, onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                        FlareIcon("back", size = FlareSizes.iconSizeLg, tint = colors.redPacketOnSurface)
-                    }
+    // 4.6: a wide window keeps the detail in a column of layout.detailPaneMaxWidth, centred, the arch following it.
+    Box(modifier.fillMaxWidth().background(colors.bgPrimary), contentAlignment = Alignment.TopCenter) {
+    Column(Modifier.widthIn(max = FlareSizes.detailPaneMaxWidth).fillMaxWidth()) {
+        // 4.6: a neutral header, the arch under it.
+        if (onBack != null) {
+            Box(
+                Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
+                    .heightIn(min = FlareSizes.headerHeight).padding(horizontal = FlareSizes.spacingXs),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    title ?: strings.packetDetailTitle, color = colors.textPrimary, fontSize = FlareSizes.fontSize2xl,
+                    fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = FlareSizes.touchTarget).semantics { heading() },
+                )
+                FlareIconControl(label = strings.back, onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
+                    FlareIcon("back", size = FlareSizes.iconSizeLg, tint = colors.textPrimary)
                 }
             }
-            Spacer(Modifier.fillMaxWidth().height(FlareSizes.componentRedPacketDetailHeaderHeight))
         }
+        RedPacketArch()
         Column(
             Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacing2xl),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -259,7 +258,7 @@ fun RedPacketDetail(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
-                Avatar(userId = senderName, displayName = senderName, size = FlareSizes.iconSizeXl, avatarUrl = senderAvatar)
+                Avatar(userId = senderName, displayName = senderName, size = FlareSizes.componentRedPacketDetailAvatarSize, avatarUrl = senderAvatar)
                 Text(
                     strings.packetFromSender(senderName), color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl,
                     fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -267,8 +266,9 @@ fun RedPacketDetail(
                 )
                 if (badge != null) {
                     Text(
-                        badge, color = colors.redPacketGold, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusXs)).background(colors.redPacketEnd)
+                        // Vue `.flare-rp-detail__kind`: a quiet tag, secondary ink on bg.secondary.
+                        badge, color = colors.textSecondary, fontSize = FlareSizes.fontSizeXs, fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusXs)).background(colors.bgSecondary)
                             .padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacing3xs),
                     )
                 }
@@ -282,15 +282,25 @@ fun RedPacketDetail(
             }
             shown.amount?.let { amount ->
                 Text(
-                    amount, color = colors.textPrimary, fontSize = FlareSizes.componentRedPacketAmountFontSize.value.sp,
-                    fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.padding(top = FlareSizes.spacingMd),
+                    amount, color = colors.textPrimary, fontSize = FlareSizes.componentRedPacketDetailAmountFontSize.value.sp,
+                    fontWeight = FontWeight.Bold, style = FlareTabularFigures, maxLines = 1, modifier = Modifier.padding(top = FlareSizes.spacingMd),
                 )
-                if (shown.deposited) Text(strings.packetDeposited, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+                if (shown.deposited) Row(
+                    Modifier.heightIn(min = FlareSizes.touchTargetMin)
+                        .then(if (onDeposited != null) Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button) { onDeposited() } else Modifier)
+                        .semantics(mergeDescendants = true) {},
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
+                ) {
+                    FlareIcon("success", size = FlareSizes.iconSizeSm, tint = colors.successText)
+                    Text(strings.packetDeposited, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
+                    if (onDeposited != null) FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.textTertiary)
+                }
             }
         }
         shown.summary?.let { summary ->
             Text(
-                summary, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd,
+                summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd,
                 modifier = Modifier.padding(top = FlareSizes.spacing2xl).fillMaxWidth().background(colors.bgSecondary)
                     .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
             )
@@ -327,6 +337,7 @@ fun RedPacketDetail(
             )
         }
     }
+    }
 }
 
 @Composable
@@ -334,9 +345,9 @@ private fun RedPacketClaimRow(claim: FlareRedPacketClaim, time: String, amount: 
     val colors = flareColors()
     val strings = flareStrings()
     Row(
-        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.componentRedPacketClaimRowHeight)
             .semantics(mergeDescendants = true) {}
-            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
@@ -348,10 +359,12 @@ private fun RedPacketClaimRow(claim: FlareRedPacketClaim, time: String, amount: 
             Text(time, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm, maxLines = 1)
         }
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
-            Text(amount, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.Medium, maxLines = 1)
+            Text(amount, color = colors.textPrimary, fontSize = FlareSizes.fontSize2xl, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                style = FlareTabularFigures)
             if (claim.best) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
-                    FlareIcon("star", size = FlareSizes.iconSizeSm, tint = colors.warningText)
+                    // 4.6: star 12 in warning; the label keeps the readable warning ink.
+                    FlareIcon("star", size = 12.dp, tint = colors.warningText)
                     Text(strings.packetBestLuck, color = colors.warningText, fontSize = FlareSizes.fontSizeSm)
                 }
             }

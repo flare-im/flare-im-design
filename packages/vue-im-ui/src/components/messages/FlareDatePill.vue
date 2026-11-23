@@ -17,7 +17,7 @@ defineProps<{
 .flare-date-pill {
   display: flex;
   justify-content: center;
-  padding: 4px 0;
+  padding: var(--flare-size-spacing-3xs) 0;
   pointer-events: none;
 }
 .flare-date-pill.is-floating {
@@ -28,7 +28,7 @@ defineProps<{
 /* A quiet day marker: the timeline's content outranks it. Only the floating (sticky) chip,
    which sits over scrolled messages, needs a surface of its own. */
 .flare-date-pill__chip {
-  padding: 3px 12px;
+  padding: var(--flare-size-spacing-3xs) var(--flare-size-spacing-2sm);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 500;

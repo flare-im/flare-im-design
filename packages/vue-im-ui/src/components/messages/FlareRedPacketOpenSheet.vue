@@ -37,6 +37,8 @@ const props = withDefaults(
      * notEligible sheet never offers it — the server returns nothing to a non-designated viewer.
      */
     canViewDetails?: boolean;
+    /** The host can re-read the result after an opening error without issuing another claim. */
+    reviewOnError?: boolean;
   }>(),
   { state: "ready", canViewDetails: true },
 );
@@ -56,7 +58,7 @@ const opening = computed(() => props.state === "opening");
 // pressed again after a failed attempt (error).
 const keys = computed(() => flareRedPacketOpenSheetKeys(props.state, props.canViewDetails));
 const showsCoin = computed(() => keys.value.coin);
-const showsDetails = computed(() => keys.value.details);
+const showsDetails = computed(() => keys.value.details || (props.reviewOnError === true && props.state === "error" && props.canViewDetails));
 const headline = computed(() => {
   switch (props.state) {
     case "finished":
@@ -75,8 +77,9 @@ const coinLabel = computed(() => t("redPacket.openAction"));
 // One ideograph fills the coin; a word ("Open") is set smaller so it stays inside it.
 const coinWord = computed(() => coinLabel.value.length > 2);
 
+// §12.12: while the host claims, nothing closes the sheet (Esc, back, scrim, close key).
 function requestClose(): void {
-  emit("close");
+  if (!opening.value) emit("close");
 }
 function pressCoin(): void {
   if (props.state !== "opening") emit("open");
@@ -87,6 +90,7 @@ const { overlayContainer } = useFlareModalSurface({
   open: () => props.open,
   surface: surfaceEl,
   nativeBack: () => Boolean(instance?.vnode.props?.onClose),
+  dismissible: () => !opening.value,
   onRequestClose: requestClose,
 });
 </script>
@@ -107,11 +111,23 @@ const { overlayContainer } = useFlareModalSurface({
           data-flare-presentation="dialog"
           :data-state="state"
           @click.stop
+          @keydown.enter.self.prevent="showsCoin && pressCoin()"
         >
           <div class="flare-rp-open__envelope">
+            <!-- §4.5: the close key sits in the envelope's top trailing corner, first in the focus order. -->
+            <FlareIconButton
+              class="flare-rp-open__close"
+              data-flare-overlay-chrome
+              :icon="flareIcons.close"
+              :ariaLabel="t('common.close')"
+              :disabled="opening"
+              tint="var(--flare-color-red-packet-gold)"
+              background="color-mix(in srgb, var(--flare-color-red-packet-end) 40%, transparent)"
+              @click="requestClose"
+            />
             <div class="flare-rp-open__cover">
               <div class="flare-rp-open__sender">
-                <FlareAvatar :name="senderName" :avatar-url="senderAvatar" :size="28" />
+                <FlareAvatar :name="senderName" :avatar-url="senderAvatar" :size="56" />
                 <span class="flare-rp-open__sender-name">{{ title }}</span>
               </div>
               <span v-if="kindLabel" class="flare-rp-open__kind">{{ kindLabel }}</span>
@@ -129,23 +145,15 @@ const { overlayContainer } = useFlareModalSurface({
               @click="pressCoin"
             >
               <span class="flare-rp-open__coin-glyph" aria-hidden="true">{{ coinLabel }}</span>
-              <span class="flare-rp-open__coin-busy" aria-hidden="true">{{ t("redPacket.busy") }}</span>
+              <span class="flare-rp-open__coin-spinner" aria-hidden="true" />
             </button>
             <div class="flare-rp-open__foot">
               <button v-if="showsDetails" type="button" class="flare-rp-open__details" @click="emit('viewDetails')">
-                <span>{{ t("redPacket.viewDetails") }}</span>
-                <n-icon aria-hidden="true" :component="flareIcons['chevron-right']" />
+                <span>{{ reviewOnError && state === "error" ? t("redPacket.viewResult") : t("redPacket.viewDetails") }}</span>
+                <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="flareIcons['chevron-right']" />
               </button>
             </div>
           </div>
-          <FlareIconButton
-            class="flare-rp-open__close"
-            :icon="flareIcons.close"
-            :ariaLabel="t('common.close')"
-            tint="var(--flare-color-red-packet-gold)"
-            background="color-mix(in srgb, var(--flare-color-red-packet-end) 40%, transparent)"
-            @click="requestClose"
-          />
         </div>
       </div>
     </transition>
@@ -165,7 +173,7 @@ const { overlayContainer } = useFlareModalSurface({
   background: var(--flare-color-scrim);
   overflow-y: auto;
 }
-/* The dialog is the envelope plus the close key under it: both stay inside the focus trap. */
+/* The dialog is the envelope; its close key (top trailing corner) stays inside the focus trap. */
 .flare-rp-open {
   display: flex;
   flex-direction: column;
@@ -183,11 +191,20 @@ const { overlayContainer } = useFlareModalSurface({
   min-height: var(--flare-size-component-red-packet-envelope-min-height);
   display: flex;
   flex-direction: column;
-  border-radius: var(--flare-size-radius-xl);
+  border-radius: var(--flare-size-radius-2xl);
   overflow: hidden;
   color: var(--flare-color-red-packet-on-surface);
   background: var(--flare-color-red-packet-end);
   box-shadow: var(--flare-shadow-xl);
+}
+/* 36 visible (component.redPacketCloseSize); the button's ::after keeps the target at 44+. */
+.flare-rp-open__envelope .flare-rp-open__close {
+  position: absolute;
+  top: var(--flare-size-spacing-sm);
+  inset-inline-end: var(--flare-size-spacing-sm);
+  z-index: 2;
+  width: var(--flare-size-component-red-packet-close-size);
+  height: var(--flare-size-component-red-packet-close-size);
 }
 /* The flap: a shallow ellipse over the pocket. Deeper red at the top, where the small sender line sits,
    so white keeps its contrast; the blessing below is large text in gold. */
@@ -203,11 +220,12 @@ const { overlayContainer } = useFlareModalSurface({
   text-align: center;
   background: linear-gradient(180deg, var(--flare-color-red-packet-end) 0%, var(--flare-color-red-packet-middle) 100%);
   border-radius: 0 0 50% 50% / 0 0 var(--flare-size-spacing-2xl) var(--flare-size-spacing-2xl);
-  box-shadow: 0 3px 8px color-mix(in srgb, #000 22%, transparent);
+  box-shadow: var(--flare-shadow-sm);
   z-index: 1;
 }
 .flare-rp-open__sender {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--flare-size-spacing-sm);
   max-width: 100%;
@@ -218,29 +236,35 @@ const { overlayContainer } = useFlareModalSurface({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--flare-size-font-size-2xl);
+  font-size: var(--flare-size-font-size-xl);
   font-weight: var(--flare-size-font-weight-semibold);
-  color: #fff;
+  color: var(--flare-color-red-packet-on-surface);
 }
 .flare-rp-open__kind {
   padding: var(--flare-size-spacing-3xs) var(--flare-size-spacing-sm);
   border-radius: var(--flare-size-radius-full);
   font-size: var(--flare-size-font-size-sm);
   color: var(--flare-color-red-packet-gold);
-  background: color-mix(in srgb, #000 16%, transparent);
+  background: color-mix(in srgb, var(--flare-color-red-packet-end-active) 70%, transparent);
 }
 .flare-rp-open__headline {
   margin: var(--flare-size-spacing-sm) 0 0;
-  font-size: var(--flare-size-font-size-5xl);
+  font-size: var(--flare-size-font-size-4xl);
   line-height: var(--flare-size-line-height-snug);
   font-weight: var(--flare-size-font-weight-semibold);
   color: var(--flare-color-red-packet-gold);
   overflow-wrap: anywhere;
+  /* §4.5: the blessing 20/600, at most two lines. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 .flare-rp-open__error {
   margin: 0;
   font-size: var(--flare-size-font-size-lg);
-  color: #fff;
+  color: var(--flare-color-red-packet-on-surface);
 }
 /* A host notice (not eligible, a failed claim) can run long: body line spacing, at most three lines. */
 .flare-rp-open__headline.is-notice,
@@ -270,7 +294,7 @@ const { overlayContainer } = useFlareModalSurface({
   justify-content: center;
   color: var(--flare-color-red-packet-end);
   background: radial-gradient(circle at 50% 36%, var(--flare-color-red-packet-gold) 0%, var(--flare-color-red-packet-gold-deep) 78%);
-  box-shadow: 0 6px 16px color-mix(in srgb, #000 28%, transparent),
+  box-shadow: var(--flare-shadow-md),
     inset 0 0 0 3px color-mix(in srgb, var(--flare-color-red-packet-gold) 70%, transparent);
   transition: transform var(--flare-transition-fast);
 }
@@ -284,9 +308,19 @@ const { overlayContainer } = useFlareModalSurface({
   line-height: 1;
 }
 .flare-rp-open__coin.is-word .flare-rp-open__coin-glyph { font-size: var(--flare-size-font-size-3xl); }
-.flare-rp-open__coin-busy { display: none; font-size: var(--flare-size-font-size-sm); font-weight: var(--flare-size-font-weight-semibold); }
+/* Reduced motion's progress: a ring in place of the flip (§7). */
+.flare-rp-open__coin-spinner {
+  display: none;
+  width: calc(var(--coin) * 0.3);
+  height: calc(var(--coin) * 0.3);
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: flare-rp-coin-spin 0.8s linear infinite;
+}
+@keyframes flare-rp-coin-spin { to { transform: rotate(360deg); } }
 /* Opening: the coin turns on its vertical axis until the host settles the state. */
-.is-opening .flare-rp-open__coin { animation: flare-rp-coin-flip 0.9s linear infinite; }
+.is-opening .flare-rp-open__coin { animation: flare-rp-coin-flip 0.8s linear infinite; }
 @keyframes flare-rp-coin-flip {
   from { transform: perspective(600px) rotateY(0deg); }
   to { transform: perspective(600px) rotateY(360deg); }
@@ -313,7 +347,7 @@ const { overlayContainer } = useFlareModalSurface({
   font-size: var(--flare-size-font-size-lg);
   color: var(--flare-color-red-packet-gold);
 }
-.flare-rp-open__details:hover { background: color-mix(in srgb, #000 12%, transparent); }
+.flare-rp-open__details:hover { background: color-mix(in srgb, var(--flare-color-red-packet-end-active) 60%, transparent); }
 .flare-rp-open__details:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 
 .flare-rp-open-fade-enter-active,
@@ -325,11 +359,11 @@ const { overlayContainer } = useFlareModalSurface({
 .flare-rp-open-fade-enter-from .flare-rp-open,
 .flare-rp-open-fade-leave-to .flare-rp-open { transform: scale(0.9); }
 
-/* Reduced motion: no flip and no pop-in — the coin says it is working in words instead. */
+/* Reduced motion: no flip and no pop-in — a spinner in the coin says it is working instead. */
 @media (prefers-reduced-motion: reduce) {
   .is-opening .flare-rp-open__coin { animation: none; }
   .is-opening .flare-rp-open__coin-glyph { display: none; }
-  .is-opening .flare-rp-open__coin-busy { display: inline; }
+  .is-opening .flare-rp-open__coin-spinner { display: inline-block; }
   .flare-rp-open__coin { transition: none; }
   .flare-rp-open__coin:hover:not(:disabled),
   .flare-rp-open__coin:active:not(:disabled) { transform: none; }

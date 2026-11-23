@@ -31,7 +31,11 @@ class FlareIconControl extends StatelessWidget {
     this.alignment = Alignment.center,
     this.minWidth = FlareSizes.touchTarget,
     this.minHeight = FlareSizes.touchTarget,
+    this.focusNode,
   });
+
+  /// Lets the owner put focus back on the control (a menu it opened closed).
+  final FocusNode? focusNode;
 
   /// The accessible name: what happens when the control is activated.
   final String label;
@@ -68,6 +72,7 @@ class FlareIconControl extends StatelessWidget {
       inMutuallyExclusiveGroup: inMutuallyExclusiveGroup,
       label: label,
       child: FocusableActionDetector(
+        focusNode: focusNode,
         enabled: active,
         mouseCursor: active
             ? SystemMouseCursors.click

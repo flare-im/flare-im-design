@@ -11,6 +11,10 @@ export type FlareMediaKind =
 export interface FlareMediaResolveRequest {
   kind: FlareMediaKind;
   messageId?: string;
+  /** Zero-based position of an image in a message containing an album. */
+  mediaIndex?: number;
+  /** Set when a local preview could not be loaded and the uploaded copy is needed instead. */
+  skipLocalPreview?: boolean;
   fileId?: string;
   url?: string;
   localPath?: string;

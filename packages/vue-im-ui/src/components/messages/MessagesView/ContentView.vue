@@ -86,6 +86,8 @@ const emit = defineEmits<{
   (event: "cardOpen", userId: string): void;
   /** A tapped location card. Without a listener the card links to the web map itself. */
   (event: "locationOpen", location: FlareLocationValue): void;
+  /** A file card's body was opened. Without a listener, or while selecting, the body only displays. */
+  (event: "openFile"): void;
 }>();
 
 // A poll or a task is a control only while the host takes its intent: forward a listener only when this view has one.
@@ -104,6 +106,10 @@ const locationListeners = computed(() =>
   instance?.vnode.props?.onLocationOpen
     ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", location) }
     : {},
+);
+// A file card's body opens the file only while the host takes the intent and the row is not being selected.
+const fileListeners = computed(() =>
+  instance?.vnode.props?.onOpenFile && !props.selectionMode ? { openFile: () => emit("openFile") } : {},
 );
 
 const decoded = computed(() => normalizeToContentElem(props.content));
@@ -218,6 +224,7 @@ const fallbackType = computed(() => String(decoded.value?.contentType ?? ""));
       v-bind="viewProps"
       :media-action="mediaAction"
       :media-state="mediaState"
+      v-on="fileListeners"
       @media-action="emit('media-action', $event)"
     />
     <LocationView v-else-if="viewType === 'location' && viewProps" v-bind="viewProps" v-on="locationListeners" />

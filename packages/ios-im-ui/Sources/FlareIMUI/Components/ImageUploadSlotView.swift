@@ -44,8 +44,8 @@ public struct ImageUploadSlotView: View {
     private var previewMode: Bool { state == .uploaded && previewLabel?.isEmpty == false }
     private var tint: Color {
         switch state {
-        case .uploaded: return colors.success
-        case .failed: return colors.error
+        case .uploaded: return colors.successText
+        case .failed: return colors.errorText
         default: return colors.textSecondary
         }
     }
@@ -88,7 +88,7 @@ public struct ImageUploadSlotView: View {
                         .font(.system(size: detailSize)).foregroundColor(tint)
                 }
             }
-            if state == .uploading || previewLoading { ProgressView().tint(colors.primary).accessibilityLabel(strings.loading) }
+            if state == .uploading || previewLoading { ProgressView().tint(colors.primaryText).accessibilityLabel(strings.loading) }
             if preview != nil || state == .uploading || previewLoading {
                 VStack { Spacer(minLength: 0)
                     Text(previewMode ? "\(statusText) · \(previewLabel ?? "")" : statusText).font(.system(size: detailSize)).foregroundColor(tint)
@@ -103,7 +103,7 @@ public struct ImageUploadSlotView: View {
         .background(colors.bgSecondary)
         .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusLg))
         .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
-            .stroke(focused ? colors.primary : state == .failed ? colors.error : colors.borderPrimary, lineWidth: 1))
+            .stroke(focused ? colors.borderSelected : state == .failed ? colors.error : colors.borderPrimary, lineWidth: 1))
         .contentShape(Rectangle())
     }
 }

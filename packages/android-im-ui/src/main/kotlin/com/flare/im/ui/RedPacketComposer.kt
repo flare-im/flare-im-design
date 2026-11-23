@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -48,6 +49,18 @@ import androidx.compose.ui.unit.sp
  * member. The host offers the kinds the conversation allows (a direct chat only has [Normal]).
  */
 enum class FlareRedPacketKind { Lucky, Normal, Exclusive }
+
+/**
+ * Which part of the composer an error belongs to (RedPacketComposer `errorField` / `focusField`): a field row gets the
+ * failed background and the caption under it; [Form] puts the error in a banner above the cards.
+ */
+enum class FlareRedPacketField(val wire: String) {
+    Amount("amount"), Count("count"), Recipient("recipient"), Greeting("greeting"), Form("form");
+
+    companion object {
+        fun fromWire(value: String?): FlareRedPacketField? = entries.firstOrNull { it.wire == value }
+    }
+}
 
 private val redPacketDecimalPoints = setOf('.', '．', '。')
 
@@ -117,6 +130,21 @@ internal fun sanitizeRedPacketCount(text: String): Int {
     return digits.toString().toIntOrNull() ?: 0
 }
 
+// shortcut: §4.2's 24-character greeting has no token or contract field; move it there once one exists.
+internal const val RED_PACKET_GREETING_MAX = 24
+
+/** §4.2: the greeting keeps at most [RED_PACKET_GREETING_MAX] characters (code points, as the core counts them). */
+internal fun redPacketGreeting(text: String): String =
+    if (text.codePointCount(0, text.length) <= RED_PACKET_GREETING_MAX) text
+    else text.substring(0, text.offsetByCodePoints(0, RED_PACKET_GREETING_MAX))
+
+/**
+ * §4.2: the submit key waits on a zero total or a field error. The total is the host's formatted text, so zero is read
+ * from the raw [amount] it is built from: empty or equal to 0 makes every kind's total 0.
+ */
+internal fun redPacketComposerBlocked(kinds: List<FlareRedPacketKind>, amount: String, exponent: Int, locked: Boolean, fieldError: Boolean): Boolean =
+    locked || kinds.isEmpty() || fieldError || amount.isBlank() || flareRedPacketAmountMinor(amount, exponent) == "0"
+
 /** What the count field shows for [count]: nothing for 0. */
 internal fun redPacketCountText(count: Int): String = if (count > 0) count.toString() else ""
 
@@ -163,7 +191,9 @@ internal fun redPacketKindLabel(kind: FlareRedPacketKind, strings: FlareStrings)
  *   recipient row (the host's member picker) for exclusive. A direct chat ([kinds] exactly normal) sends one share:
  *   no count row, and the label is the amount.
  * - The greeting's placeholder is the default greeting the packet carries when nothing is typed.
- * - The submit button is the kit [Button] re-tinted with the deep red. [busy] locks every field and the button.
+ * - The submit button is the kit [Button] re-tinted with the deep red; it waits while the amount is empty or 0 and
+ *   while a row shows an error ([redPacketComposerBlocked]). The greeting keeps 24 characters. [busy] locks every field
+ *   and the button.
  *   [locked] (a sent command whose result is still being checked) makes the form read-only and the button inert
  *   without progress; TalkBack reads the fields and the kind switch as disabled. The host usually explains why in a
  *   status banner above. Place it on the canvas surface: the field groups are drawn on the primary background.
@@ -190,22 +220,49 @@ fun RedPacketComposer(
     onGreetingChange: ((String) -> Unit)? = null,
     onSubmit: (() -> Unit)? = null,
     recipient: (@Composable () -> Unit)? = null,
+    /** Which part [error] belongs to: a row (its caption and failed background) or the form (a banner); absent: the form. */
+    errorField: FlareRedPacketField? = null,
+    /** Moves focus to this field whenever it changes. */
+    focusField: FlareRedPacketField? = null,
+    /** The currency's symbol before the amount ("¥"); none when absent. */
+    currencySymbol: String? = null,
+    /** A group's member count: "本群共 n 人" under the count row (groups only). */
+    memberCount: Int? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
     val shown = redPacketShownKind(kind, kinds)
-    val editable = !busy && !locked
+    val amountFocus = remember { FocusRequester() }
+    val countFocus = remember { FocusRequester() }
+    val greetingFocus = remember { FocusRequester() }
+    LaunchedEffect(focusField) {
+        when (focusField) {
+            FlareRedPacketField.Amount -> amountFocus
+            FlareRedPacketField.Count -> countFocus
+            FlareRedPacketField.Greeting -> greetingFocus
+            else -> null
+        }?.let { runCatching { it.requestFocus() } }
+    }
+    val fieldError = error?.takeIf { it.isNotEmpty() && errorField != null && errorField != FlareRedPacketField.Form }
+    val formError = error?.takeIf { it.isNotEmpty() && fieldError == null }
+    fun rowError(field: FlareRedPacketField) = fieldError?.takeIf { errorField == field }
+    val editable = !busy && !locked && kinds.isNotEmpty()
     val exponent = flareRedPacketExponent(currencyExponent)
     // A currency with fewer decimals (the host switched currency) trims what was typed for the old one.
     LaunchedEffect(exponent) {
         val next = sanitizeRedPacketAmount(amount, exponent)
         if (next != amount) onAmountChange?.invoke(next)
     }
+    Column(modifier.fillMaxWidth()) {
+    // 4.2: the arch runs the page's full width right under the header, never clipped inside a card.
+    RedPacketArch(compact = true)
     Column(
-        modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
+        Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
     ) {
+        // A service failure above the cards; the values stay.
+        formError?.let { Box(Modifier.fillMaxWidth()) { StatusBanner(text = it, tone = FlareStatusTone.Danger) } }
         if (kinds.size > 1) {
             val shownLabel = redPacketKindLabel(shown, strings)
             SegmentedControl(
@@ -247,6 +304,12 @@ fun RedPacketComposer(
                 keyboardType = if (exponent > 0) KeyboardType.Decimal else KeyboardType.Number,
                 enabled = editable,
                 onValueChange = { onAmountChange?.invoke(sanitizeRedPacketAmount(it, exponent)) },
+                focus = amountFocus,
+                error = rowError(FlareRedPacketField.Amount),
+                amount = true,
+                prefix = currencySymbol,
+                // 4.2: a lucky packet's total leads with its 「拼」 badge.
+                badge = strings.packetBadgeLuckyShort.takeIf { shown == FlareRedPacketKind.Lucky },
             )
             if (redPacketShowsCount(shown, kinds)) {
                 RedPacketFieldDivider()
@@ -254,45 +317,68 @@ fun RedPacketComposer(
                     label = strings.packetFieldCount,
                     value = redPacketCountText(count),
                     placeholder = strings.packetCountPlaceholder,
+                    // 4.2: the count reads with its unit after it ("个"; none in English).
+                    suffix = strings.packetCountUnit.takeIf { it.isNotEmpty() },
                     keyboardType = KeyboardType.Number,
                     enabled = editable,
                     onValueChange = { onCountChange?.invoke(sanitizeRedPacketCount(it)) },
+                    focus = countFocus,
+                    error = rowError(FlareRedPacketField.Count),
                 )
             }
             if (shown == FlareRedPacketKind.Exclusive) {
                 RedPacketFieldDivider()
+                val recipientError = rowError(FlareRedPacketField.Recipient)
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget).padding(horizontal = FlareSizes.spacingLg),
+                    Modifier.fillMaxWidth().heightIn(min = FlareSizes.componentRedPacketFormRowHeight)
+                        .background(if (recipientError != null) colors.messageFailedBackground else androidx.compose.ui.graphics.Color.Transparent)
+                        .padding(horizontal = FlareSizes.spacingLg),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
                 ) {
                     Text(strings.packetFieldRecipient, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl)
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { recipient?.invoke() }
                 }
+                recipientError?.let { RedPacketRowError(it) }
             }
         }
+        memberCount?.takeIf { it > 0 && !redPacketDirect(kinds) }?.let { count ->
+            Text(strings.packetGroupMembers.replace("{count}", count.toString()), color = colors.textTertiary,
+                fontSize = FlareTextRoles.Caption.fontSize, modifier = Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg))
+        }
         RedPacketFieldGroup {
-            RedPacketGreetingField(greeting, enabled = editable, onValueChange = { onGreetingChange?.invoke(it) })
+            RedPacketGreetingField(greeting, enabled = editable, onValueChange = { onGreetingChange?.invoke(redPacketGreeting(it)) }, focus = greetingFocus)
+            rowError(FlareRedPacketField.Greeting)?.let { RedPacketRowError(it) }
         }
         Text(
-            total, color = colors.textPrimary, fontSize = FlareSizes.componentRedPacketAmountFontSize.value.sp,
-            fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.padding(top = FlareSizes.spacingLg),
+            total, color = colors.textPrimary,
+            fontSize = (if (flareCompactOverlays()) FlareSizes.componentRedPacketAmountFontSize else FlareSizes.componentRedPacketAmountFontSizeWide).value.sp,
+            fontWeight = FontWeight.SemiBold, style = FlareTabularFigures, maxLines = 1, modifier = Modifier.padding(top = FlareSizes.spacingLg),
         )
-        if (!error.isNullOrEmpty()) {
-            Text(
-                error, color = colors.errorText, fontSize = FlareSizes.fontSizeMd, textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
         Box(Modifier.padding(top = FlareSizes.spacingSm).fillMaxWidth()) {
             RedPacketMoneyTint {
                 Button(
                     label = submitLabel ?: strings.packetSubmit, variant = FlareButtonVariant.Primary,
-                    size = FlareControlSize.Lg, loading = busy, disabled = locked, block = true, onClick = onSubmit,
+                    size = FlareControlSize.Lg, loading = busy, block = true, onClick = onSubmit,
+                    disabled = redPacketComposerBlocked(kinds, amount, exponent, locked, fieldError != null),
                 )
             }
         }
+        Text(strings.packetRefundNotice, color = colors.textTertiary, fontSize = FlareTextRoles.Caption.fontSize, textAlign = TextAlign.Center)
     }
+    }
+}
+
+/** A row's error under it (4.2): the caption in the error ink, announced politely. */
+@Composable
+private fun RedPacketRowError(text: String) {
+    val colors = flareColors()
+    Text(
+        text, color = colors.errorText, fontSize = FlareTextRoles.Caption.fontSize,
+        modifier = Modifier.fillMaxWidth().background(colors.messageFailedBackground)
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingXs)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+    )
 }
 
 @Composable
@@ -321,46 +407,77 @@ private fun RedPacketFieldRow(
     keyboardType: KeyboardType,
     enabled: Boolean,
     onValueChange: (String) -> Unit,
+    focus: FocusRequester = remember { FocusRequester() },
+    error: String? = null,
+    /** The amount: 18/600 tabular figures (4.2). */
+    amount: Boolean = false,
+    /** Drawn before the value (the currency symbol). */
+    prefix: String? = null,
+    /** A small badge before the label (the lucky packet's 「拼」). */
+    badge: String? = null,
+    /** Drawn after the value (the count's unit). */
+    suffix: String? = null,
 ) {
     val colors = flareColors()
-    val focus = remember { FocusRequester() }
     Row(
-        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.componentRedPacketFormRowHeight)
+            .background(if (error != null) colors.messageFailedBackground else androidx.compose.ui.graphics.Color.Transparent)
             .pointerInput(enabled) { detectTapGestures { if (enabled) runCatching { focus.requestFocus() } } }
             .padding(horizontal = FlareSizes.spacingLg),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
+        badge?.let {
+            // Vue `.flare-rp-composer__badge`: the accent on its weak tint, sm semibold, radius sm.
+            Text(it, color = colors.redPacketAccent, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clip(RoundedCornerShape(FlareSizes.radiusSm))
+                    .background(colors.redPacketAccent.copy(alpha = FlareOpacity.tintWeak))
+                    .padding(horizontal = FlareSizes.spacing2xs).clearAndSetSemantics {})
+        }
         Text(label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, modifier = Modifier.clearAndSetSemantics {})
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             enabled = enabled,
             singleLine = true,
-            textStyle = TextStyle(color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, textAlign = TextAlign.End),
+            textStyle = TextStyle(color = colors.textPrimary, fontSize = if (amount) FlareSizes.fontSize3xl else FlareSizes.fontSizeXl,
+                fontWeight = if (amount) FontWeight.SemiBold else null, fontFeatureSettings = if (amount) "tnum" else null, textAlign = TextAlign.End),
             cursorBrush = SolidColor(colors.primary),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
-            modifier = Modifier.weight(1f).focusRequester(focus).semantics { contentDescription = label },
+            modifier = Modifier.weight(1f).focusRequester(focus).semantics {
+                contentDescription = label
+                error?.let { this.error(it) }
+            },
             decorationBox = { inner ->
-                Box(contentAlignment = Alignment.CenterEnd) {
-                    if (value.isEmpty()) {
-                        Text(placeholder, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXl, textAlign = TextAlign.End,
-                            modifier = Modifier.clearAndSetSemantics {})
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
+                    prefix?.let {
+                        Text(it, color = colors.textPrimary, fontSize = if (amount) FlareSizes.fontSize3xl else FlareSizes.fontSizeXl,
+                            fontWeight = if (amount) FontWeight.SemiBold else null, modifier = Modifier.padding(end = FlareSizes.spacing3xs).clearAndSetSemantics {})
                     }
-                    inner()
+                    Box(Modifier.weight(1f, fill = false), contentAlignment = Alignment.CenterEnd) {
+                        if (value.isEmpty()) {
+                            Text(placeholder, color = colors.textTertiary, fontSize = FlareSizes.fontSizeXl, textAlign = TextAlign.End,
+                                modifier = Modifier.clearAndSetSemantics {})
+                        }
+                        inner()
+                    }
+                    suffix?.let {
+                        Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl,
+                            modifier = Modifier.padding(start = FlareSizes.spacing3xs).clearAndSetSemantics {})
+                    }
                 }
             },
         )
     }
+    error?.let { RedPacketRowError(it) }
 }
 
 @Composable
-private fun RedPacketGreetingField(value: String, enabled: Boolean, onValueChange: (String) -> Unit) {
+private fun RedPacketGreetingField(value: String, enabled: Boolean, onValueChange: (String) -> Unit, focus: FocusRequester = remember { FocusRequester() }) {
     val colors = flareColors()
     val strings = flareStrings()
-    val focus = remember { FocusRequester() }
     Box(
-        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.componentRedPacketFormRowHeight)
             .pointerInput(enabled) { detectTapGestures { if (enabled) runCatching { focus.requestFocus() } } }
             .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
         contentAlignment = Alignment.CenterStart,

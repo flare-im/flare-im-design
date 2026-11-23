@@ -117,7 +117,9 @@ void main() {
         final made = calls.sublist(before);
         if (step.containsKey('asks')) {
           expect(
-            [for (final c in made) [c.column.name, c.cursor]],
+            [
+              for (final c in made) [c.column.name, c.cursor],
+            ],
             step['asks'],
             reason: '$at asks',
           );
@@ -203,7 +205,9 @@ void main() {
       await tester.tap(find.byKey(FlareReadReceiptSheet.retryKey));
       await tester.pump();
       expect(
-        [for (final c in calls.sublist(asked)) [c.column.name, c.cursor]],
+        [
+          for (final c in calls.sublist(asked)) [c.column.name, c.cursor],
+        ],
         [
           ['read', null],
           ['unread', null],

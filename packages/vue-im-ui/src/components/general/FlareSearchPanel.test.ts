@@ -32,6 +32,27 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe("FlareSearchPanel", () => {
+  it("reaches settled results with arrows, returns to the field, and leaves composing or stale input alone", async () => {
+    const state = reactive({ snapshot: {
+      criteria: { query: '发版', filterId: 'all' }, state: 'success',
+      groups: [{ kind: 'message', label: 'Messages', items: [{ id: 'm', kind: 'message', title: '发版' }] }],
+    } as FlareSearchSnapshot });
+    const { host } = mountPanel(state);
+    const input = host.get('input[type=search]');
+    const row = host.get('button.flare-search-row');
+    (input.element as HTMLInputElement).focus();
+    await input.trigger('keydown', { key: 'ArrowDown', isComposing: true });
+    expect(document.activeElement).toBe(input.element);
+    await input.trigger('keydown', { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(row.element);
+    await row.trigger('keydown', { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(input.element);
+    await input.setValue('另一条');
+    await input.trigger('keydown', { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(input.element);
+    host.unmount();
+  });
+
   it("is composed from the search bar and filter tabs, and rests idle with nothing chosen", () => {
     const state = reactive({ snapshot: { criteria: { query: "", filterId: "all" }, state: "idle", groups: [] } as FlareSearchSnapshot });
     const { host, searches } = mountPanel(state);

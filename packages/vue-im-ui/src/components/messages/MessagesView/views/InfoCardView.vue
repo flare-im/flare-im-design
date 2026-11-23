@@ -32,7 +32,7 @@ const subtitle = computed(() => {
   <div class="im-rich-message-card im-rich-message-card--compact im-info-card">
     <header class="im-rich-message-card__header">
       <span class="im-rich-message-card__icon" aria-hidden="true">
-        <n-icon aria-hidden="true" :component="TextOutline" />
+        <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="TextOutline" />
       </span>
       <div class="im-rich-message-card__main">
         <span class="im-rich-message-card__kicker">{{ nestedKey }}</span>

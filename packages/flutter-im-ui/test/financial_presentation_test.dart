@@ -120,6 +120,38 @@ void main() {
       expect(find.text('Declarative body'), findsOneWidget);
     },
   );
+  testWidgets('redPacket.review draws the review and submits its action', (
+    tester,
+  ) async {
+    final events = <String>[];
+    final view = FlarePluginViewModel.fromJson({
+      'available': true,
+      'title': '发红包',
+      'fields': [],
+      'actions': [
+        {'id': 'commit', 'label': '发红包'},
+      ],
+      'presentation': {
+        'renderer': 'redPacket.review',
+        'props': {
+          'amount': '26.64',
+          'currency': 'CNY',
+          'kindLabel': '拼手气红包 · 3 个',
+          'blessing': '恭喜发财，大吉大利',
+        },
+        'actions': {'submit': 'commit'},
+      },
+    });
+    expect(flareHasResolvedPresentation(view), isTrue);
+    await tester.pumpWidget(
+      host(FlarePluginView(view: view, onAction: (id, _) => events.add(id))),
+    );
+    expect(find.byType(FlareRedPacketReview), findsOneWidget);
+    expect(find.text('¥26.64'), findsOneWidget);
+    expect(find.text('拼手气红包 · 3 个'), findsOneWidget);
+    await tester.tap(find.byKey(FlareRedPacketReview.submitKey));
+    expect(events, ['commit']);
+  });
   test('page decode retains the presentation just like card decode', () {
     final page = FlarePluginPageViewModel.fromJson(fixture('payment'));
     expect(page.presentation?['renderer'], 'payment.confirm');

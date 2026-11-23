@@ -75,39 +75,39 @@ final class MessagePreviewVectorsTests: XCTestCase {
     /// Chinese is the kit's default copy; a host that speaks English overrides the same fields.
     private func strings(_ locale: String) -> FlareStrings {
         guard locale != "zh-CN" else { return FlareStrings() }
-        return FlareStrings(
-            previewMessage: "[Message]",
-            previewRichText: "[Rich text]",
-            previewGif: "[GIF]",
-            previewImage: "[Image]",
-            previewVideo: "[Video]",
-            previewAudio: "[Voice]",
-            previewFile: "[File]",
-            previewFileNamed: { "[File] \($0)" },
-            previewLocation: "[Location]",
-            previewLocationNamed: { "[Location] \($0)" },
-            previewCard: "[Contact]",
-            previewCardNamed: { "[Contact] \($0)" },
-            previewSticker: "[Sticker]",
-            previewEmoji: "[Emoji]",
-            previewQuote: "[Quote]",
-            previewLink: "[Link]",
-            previewForward: "[Forward]",
-            previewForwardCount: { "[Forward] \($0) messages" },
-            previewThread: "[Thread]",
-            previewMiniProgram: "[Mini Program]",
-            previewImageGroup: "[Album]",
-            previewImageGroupCount: { "[Album] \($0)" },
-            previewSystem: "[System]",
-            previewNotification: "[Notification]",
-            previewVote: "[Poll]",
-            previewTask: "[Task]",
-            previewSchedule: "[Schedule]",
-            previewAnnouncement: "[Announcement]",
-            previewCustom: "[Custom]",
-            previewPlaceholder: "[Placeholder]",
-            previewUnknown: "[Unknown]"
-        )
+        return FlareStrings { copy in
+            copy.previewMessage = "[Message]"
+            copy.previewRichText = "[Rich text]"
+            copy.previewGif = "[GIF]"
+            copy.previewImage = "[Image]"
+            copy.previewVideo = "[Video]"
+            copy.previewAudio = "[Voice]"
+            copy.previewFile = "[File]"
+            copy.previewFileNamed = { "[File] \($0)" }
+            copy.previewLocation = "[Location]"
+            copy.previewLocationNamed = { "[Location] \($0)" }
+            copy.previewCard = "[Contact]"
+            copy.previewCardNamed = { "[Contact] \($0)" }
+            copy.previewSticker = "[Sticker]"
+            copy.previewEmoji = "[Emoji]"
+            copy.previewQuote = "[Quote]"
+            copy.previewLink = "[Link]"
+            copy.previewForward = "[Forward]"
+            copy.previewForwardCount = { "[Forward] \($0) messages" }
+            copy.previewThread = "[Thread]"
+            copy.previewMiniProgram = "[Mini Program]"
+            copy.previewImageGroup = "[Album]"
+            copy.previewImageGroupCount = { "[Album] \($0)" }
+            copy.previewSystem = "[System]"
+            copy.previewNotification = "[Notification]"
+            copy.previewVote = "[Poll]"
+            copy.previewTask = "[Task]"
+            copy.previewSchedule = "[Schedule]"
+            copy.previewAnnouncement = "[Announcement]"
+            copy.previewCustom = "[Custom]"
+            copy.previewPlaceholder = "[Placeholder]"
+            copy.previewUnknown = "[Unknown]"
+        }
     }
 
     /// What a jump says out loud. Posting it needs a device with an accessibility service; composing it

@@ -187,8 +187,8 @@ describe("MessageList host actions", () => {
     const handled = mountWith({ onAction: (...args: unknown[]) => calls.push(args) });
     const bubble = handled.findComponent(MessageBubble);
     expect(bubble.props("actions")).toEqual(actions);
-    bubble.vm.$emit("action", "report", "client-1");
-    expect(calls).toEqual([["report", "client-1"]]);
+    bubble.vm.$emit("action", "report", "server-1");
+    expect(calls).toEqual([["report", "server-1"]]);
     handled.unmount();
   });
 });
@@ -209,7 +209,7 @@ describe("MessageList reaction pills", () => {
     const pills = host.findAll(".message-reactions > button");
     expect(pills.map((pill) => pill.attributes("aria-pressed"))).toEqual(["true", "false"]);
     await pills[1].trigger("click");
-    expect(calls).toEqual([["client-1", "🎉"]]);
+    expect(calls).toEqual([["server-1", "🎉"]]);
     host.unmount();
   });
 

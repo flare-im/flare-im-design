@@ -17,6 +17,7 @@ import {
 } from "../../shared/contracts/plugin-ui";
 import FlarePluginPage from "./FlarePluginPage.vue";
 import FlarePluginView from "./FlarePluginView.vue";
+import FlareAccountView from "./account/FlareAccountView.vue";
 
 enableAutoUnmount(afterEach);
 afterEach(() => {
@@ -24,7 +25,7 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-type ItemFact = { key: string; badge: { text: string; tone: string } | null; primary: string; secondary: string | null; actions: Array<{ id: string; label: string; variant: string }> };
+type ItemFact = { key: string; badge: { text: string; tone: string } | null; primary: string; secondary: string | null; actions: Array<{ id: string; label: string; variant: string }>; tap?: string };
 type BlockFact = Record<string, unknown> & { kind: string };
 type PageCase = {
   id: string;
@@ -81,7 +82,8 @@ const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/
 };
 const vue = <T extends { platforms: string[] }>(cases: T[]) => cases.filter((c) => c.platforms.includes("vue"));
 const caseOf = (id: string) => vectors.pageViews.find((c) => c.id === id)!;
-const zh = (flareMessages["zh-CN"] as unknown as { pluginView: { dateTime: string; dateTimeYear: string } }).pluginView;
+const dataText = (text: string) => text.replace(/\u2212/g, "-");
+const zh = (flareMessages["zh-CN"] as unknown as { pluginView: { dateTime: string; dateTimeYear: string; filterEmpty: string } }).pluginView;
 
 const walletPage: FlarePluginPageRef = { pluginId: "flare.redpacket", page: "flare.redpacket.wallet" };
 // A wallet page as the red packet plugin declares it: fields, a recent list, an action and a next page.
@@ -98,6 +100,148 @@ const wallet: FlarePluginPageViewModel = {
   data: { balanceText: "¥12.30" },
 };
 
+it("content slots preserve page bindings and cannot bypass guarded or hidden actions", async () => {
+  const action = vi.fn();
+  const view: FlarePluginPageViewModel = {available:true,title:"Custom",fields:[],actions:[
+    {id:"submit",label:"Submit"},{id:"confirm",label:"Confirm",confirm:"Confirm?"},
+    {id:"native",label:"Native",target:{kind:"native",capability:"paymentConfirmation"}},
+    {id:"secret",label:"Secret",form:["pin"]}],inputs:[{id:"pin",kind:"password",label:"PIN"}],data:{opaque:"bound"}};
+  let request!: (id:string,payload?:Record<string,unknown>)=>void;
+  const wrapper = mount(FlarePluginPage,{props:{page:walletPage,view,contentActionIds:["submit","confirm","native","secret"],onAction:action},slots:{content:scope=>{
+    request=scope.onAction;return h("p",{"data-custom-content":true},scope.view.title);
+  }}});
+  for (const id of ["missing","confirm","native","secret"]) request(id);
+  expect(action).not.toHaveBeenCalled();
+  request("submit",{formValues:{amount:"1"},data:{opaque:"forged"},row:{key:"wrong",input:{walletId:"wrong"}}});
+  expect(action).toHaveBeenCalledExactlyOnceWith("submit",{page:walletPage,data:{opaque:"bound"},formValues:{amount:"1"}});
+  expect(wrapper.find('[data-action-id="confirm"]').exists()).toBe(true);
+  expect(wrapper.find('[data-action-id="native"]').exists()).toBe(true);
+  await wrapper.setProps({refreshing:true});
+  request("submit");expect(action).toHaveBeenCalledTimes(1);
+  await wrapper.setProps({busyActionId:"submit"}); request("submit"); expect(action).toHaveBeenCalledTimes(1);
+  await wrapper.setProps({busyActionId:undefined,view:{...view,available:false}}); request("submit");
+  expect(action).toHaveBeenCalledTimes(1);
+  expect(wrapper.find("[data-custom-content]").exists()).toBe(false);
+});
+
+it("shows a sole content-free settings form directly, while preserving confirmation flows", async () => {
+  const view: FlarePluginPageViewModel = { available: true, title: "设置", fields: [], inputs: [{ id: "enabled", kind: "toggle", label: "启用", default: true }], actions: [{ id: "save", label: "保存", form: ["enabled"] }] };
+  const { wrapper, state } = render({ view });
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBe("save");
+  expect(wrapper.find("[data-inline-action-id='save']").exists()).toBe(true);
+  state.view = { ...view, blocks: [{ kind: 'note', text: 'Review before saving', tone: 'info' }] };
+  await flushPromises();
+  expect(wrapper.findComponent(FlarePluginView).props('inlineFormActionId')).toBe('save');
+  expect(wrapper.text()).toContain('Review before saving');
+  state.view = { ...view, actions: [{ ...view.actions[0], confirm: "确认保存" }] };
+  await flushPromises();
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBeUndefined();
+});
+
+it("gives an available document without records, actions or a presentation a visible empty state", () => {
+  const { wrapper } = render({ view: { available: true, title: "私有材料", fields: [], blocks: [], actions: [] } });
+  expect(wrapper.find("[data-page-empty]").text()).toBe("暂无记录");
+  expect(wrapper.findComponent(FlarePluginView).exists()).toBe(false);
+});
+
+it("keeps dedicated payment confirmation on account pages instead of replacing it with an empty ledger", () => {
+  const walletVectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/wallet-flow-account-vectors.json"), "utf8"));
+  const view = walletVectors.cases.find((item: { id: string; locale: string }) => item.id === "confirm" && item.locale === "zh-CN").view;
+  const { wrapper } = render({ view, appearance: "account" });
+  expect(wrapper.findComponent(FlareAccountView).exists()).toBe(false);
+  expect(wrapper.getComponent(FlarePluginView).props("view").presentation?.renderer).toBe("payment.confirm");
+  expect(wrapper.find("[data-account-empty]").exists()).toBe(false);
+});
+
+it("renders plain account summaries in their declared hierarchy without inventing a transaction list", () => {
+  const view = { available: true, title: "Payment verification", fields: [{ label: "Amount", value: "0.10 CNY" }], blocks: [], actions: [{ id: "pay", label: "Verify and send" }] };
+  const { wrapper } = render({ view, appearance: "account" });
+  expect(wrapper.findComponent(FlareAccountView).exists()).toBe(false);
+  expect(wrapper.getComponent(FlarePluginView).text()).toContain("0.10 CNY");
+  expect(wrapper.text()).not.toContain("暂无交易记录");
+});
+
+it("uses the Kit wallet grid for an explicitly selected account document and preserves row navigation bindings", async () => {
+  const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/wallet-flow-vectors.json"), "utf8"));
+  const view = structuredClone(vectors.cases.find((item: {id: string; locale: string}) => item.id === "home" && item.locale === "zh-CN").view) as FlarePluginPageViewModel;
+  view.data = {viewer: "bound"};
+  const rows = view.blocks!.find((block): block is FlarePluginRowsBlock => block.kind === "rows")!;
+  const action = vi.fn();
+  const wrapper = mount(FlarePluginPage, {props: {page: walletPage, view, appearance: "account", onAction: action}});
+  expect(wrapper.findComponent(FlareAccountView).exists()).toBe(true);
+  expect(wrapper.findAll("[data-wallet-card]")).toHaveLength(rows.rows.length);
+  expect(wrapper.find("[data-hero-value]").exists()).toBe(false);
+  await wrapper.get("[data-wallet-card]").trigger("click");
+  const bound = rows.rows[0].actions[0];
+  expect(action).toHaveBeenCalledExactlyOnceWith(bound.id, expect.objectContaining({page: walletPage, data: view.data, row: {key: rows.rows[0].key, input: bound.input}}));
+  expect(view.presentation).toBeUndefined();
+  const hidden = wrapper.getComponent(FlareAccountView).findComponent({name: "FlareIconButton"});
+  await hidden.trigger("click");
+  expect(wrapper.get("[data-account-balance]").text()).toBe("••••");
+  await wrapper.setProps({appearance: "document"});
+  expect(wrapper.findComponent(FlareAccountView).exists()).toBe(false);
+});
+
+it("shows data entry beside its progress and instructions without an extra launcher", async () => {
+  const view: FlarePluginPageViewModel = {
+    available: true, title: "Your details", fields: [],
+    blocks: [
+      { kind: "steps", items: [{ label: "Details", state: "current" }, { label: "Review", state: "pending" }] },
+      { kind: "banner", text: "Use the details on your document", tone: "info" },
+    ],
+    inputs: [{ id: "name", kind: "text", label: "Name", required: true }],
+    actions: [{ id: "next", label: "Next", form: ["name"] }],
+  };
+  const { wrapper, state } = render({ view });
+  expect(wrapper.find('input').exists()).toBe(true);
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBe("next");
+  expect(wrapper.text()).toContain("Use the details on your document");
+  state.view = { ...view, fields: [{ label: "Currency", value: "CNY" }], blocks: [...view.blocks!, { kind: "fields", fields: [{ label: "Name", value: "A***" }] }] };
+  await flushPromises();
+  expect(wrapper.find('input').exists()).toBe(true);
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBe("next");
+  expect(wrapper.text()).toContain("CNY");
+  expect(wrapper.text()).toContain("A***");
+  state.view = { ...view, actions: [...view.actions, { id: "ack", label: "Dismiss result" }] };
+  await flushPromises();
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBe("next");
+  expect(wrapper.find("[data-action-id='ack']").exists()).toBe(true);
+  state.view = { ...view, inputs: [{ ...view.inputs![0], kind: "password" }] };
+  await flushPromises();
+  expect(wrapper.findComponent(FlarePluginView).props("inlineFormActionId")).toBeUndefined();
+});
+
+it('starts a new destination at the top, restores the previous position, and leaves refresh position alone', async () => {
+  const a = { pluginId: 'example', page: 'services' }, b = { pluginId: 'example', page: 'wallet' };
+  const { wrapper, state } = render({ page: a, view: { available: true, title: 'Services', fields: [{ label: 'Balance', value: '12.30' }], actions: [] } });
+  const scroller = () => wrapper.get('.flare-plugin-page__scroll').element as HTMLElement;
+  scroller().scrollTop = 180;
+  state.page = b;
+  await flushPromises();
+  expect(scroller().scrollTop).toBe(0);
+  scroller().scrollTop = 64;
+  state.refreshing = true;
+  await flushPromises();
+  expect(scroller().scrollTop).toBe(64);
+  state.page = a;
+  await flushPromises();
+  expect(scroller().scrollTop).toBe(180);
+});
+
+it("keeps a service-heavy page navigable when it also has direct destructive commands", () => {
+  const view: FlarePluginPageViewModel = { available: true, title: "服务", fields: [], actions: [
+    ...Array.from({ length: 4 }, (_, i) => ({ id: `open-${i}`, label: `服务 ${i}`, target: { kind: "page" as const, page: `page-${i}` } })),
+    { id: "close", label: "关闭", style: "danger", confirm: "确认关闭？" },
+  ] };
+  const { wrapper } = render({ view });
+  // R2.3: destinations are rows of the more-actions card; the danger action is its own last card.
+  expect(wrapper.findComponent(FlarePluginView).props("actionLayout")).toBe("roles");
+  expect(wrapper.findAll("[data-place='more'] [data-action-id]")).toHaveLength(4);
+  expect(wrapper.findAll("[data-place='more'] [data-chevron]")).toHaveLength(4);
+  expect(wrapper.find("[data-place='more'] [data-action-id='close']").exists()).toBe(false);
+  expect(wrapper.find("[data-place='danger'] [data-action-id='close']").exists()).toBe(true);
+});
+
 function render(props: Record<string, unknown>, { pointer = "fine" as "fine" | "coarse", refresh = true } = {}) {
   const state = reactive<Record<string, unknown>>({ title: "钱包", page: walletPage, back: true, resolveUser: (id: string) => vectors.users[id], ...props });
   const events: Array<[string, ...unknown[]]> = [];
@@ -108,7 +252,7 @@ function render(props: Record<string, unknown>, { pointer = "fine" as "fine" | "
       return () => h(FlarePluginPage as never, {
         ...state,
         onBack: () => events.push(["back"]),
-        ...(refresh ? { onRefresh: () => events.push(["refresh"]) } : {}),
+        ...(refresh ? { onRefresh: (reason: string) => events.push(["refresh", reason]) } : {}),
         onRetry: () => events.push(["retry"]),
         onLoadMore: (cursor: string) => events.push(["loadMore", cursor]),
         onFilter: (values: Record<string, unknown>) => events.push(["filter", values]),
@@ -145,6 +289,30 @@ describe("read-side paging recovery", () => {
     expect(events.filter(event => event[0] === "loadMore")).toHaveLength(1);
   });
 });
+describe("§5.8 paging and filters", () => {
+  it("loads more with a full-width secondary key and says when the list has ended", async () => {
+    const {wrapper, state} = render({view: wallet});
+    const more = wrapper.get('[data-page-load-more]');
+    expect(more.classes()).toContain("flare-button--secondary");
+    expect(more.classes()).toContain("is-block");
+    expect(wrapper.find("[data-page-end]").exists()).toBe(false);
+    await more.trigger("click");
+    state.view = {...wallet, nextCursor: undefined};
+    await flushPromises();
+    expect(wrapper.find("[data-page-load-more]").exists()).toBe(false);
+    expect(wrapper.get("[data-page-end]").text()).toBe("没有更多了");
+  });
+  it("says an empty list is the filter's and clears every filter back to all", async () => {
+    const view: FlarePluginPageViewModel = {available: true, title: "交易记录", fields: [], actions: [],
+      inputs: [{id: "kind", kind: "select", label: "类型", choices: [{value: "in", label: "收入"}, {value: "out", label: "支出"}]}],
+      blocks: [{kind: "rows", source: "history", columns: [{label: "金额", format: "text"}, {label: "说明", format: "text"}], rows: [], actions: [], filters: ["kind"]} as never]};
+    const {wrapper, events} = render({view, filters: {kind: "in", other: "kept"}});
+    const empty = wrapper.get("[data-rows-filter-empty]");
+    expect(empty.text()).toContain("这个筛选下没有记录");
+    await empty.get("[data-rows-clear-filter]").trigger("click");
+    expect(events.filter((event) => event[0] === "filter")).toEqual([["filter", {other: "kept"}]]);
+  });
+});
 function renderCase(c: PageCase, extra: Record<string, unknown> = {}) {
   return render({ title: c.title, page: c.page, filters: c.filters, view: c.view, ...extra });
 }
@@ -154,19 +322,21 @@ function touch(el: Element, type: string, y: number) {
   Object.defineProperty(event, "touches", { value: type === "touchend" ? [] : [{ clientY: y }] });
   el.dispatchEvent(event);
 }
-const variantOf = (el: Element) => [...el.classList].find((c) => /^flare-button--(primary|secondary|danger|ghost|quiet|text)$/.test(c))?.slice("flare-button--".length);
+// R2: a key's place decides how it is drawn (a list row, a header key); data-action-variant keeps the declared style.
+const variantOf = (el: Element) => el.getAttribute("data-action-variant") ?? [...el.classList].find((c) => /^flare-button--(primary|secondary|danger|ghost|quiet|text)$/.test(c))?.slice("flare-button--".length);
 const bodyButton = (label: string) => [...document.body.querySelectorAll("button")].find((b) => b.textContent?.trim() === label) as HTMLButtonElement | undefined;
 const lastAction = (events: Array<[string, ...unknown[]]>) => events.filter((e) => e[0] === "action").at(-1);
 const actionCount = (events: Array<[string, ...unknown[]]>) => events.filter((e) => e[0] === "action").length;
 
 async function tap(wrapper: VueWrapper, target: Tap): Promise<void> {
   if (target === "loadMore") await wrapper.get("[data-page-load-more]").trigger("click");
-  else if (target.row) await wrapper.get(`[data-row-key="${target.row}"] [data-row-action="${target.action}"]`).trigger("click");
+  // rules.pageRows: a row whose only action opens a page is tapped itself (rules.rowTap).
+  else if (target.row) await wrapper.get(`[data-row-key="${target.row}"] [data-row-action="${target.action}"], [data-row-key="${target.row}"] [data-row-tap="${target.action}"]`).trigger("click");
   else await wrapper.get(`[data-action-id="${target.action}"]`).trigger("click");
   await flushPromises();
 }
 
-function expectRows(node: ReturnType<VueWrapper["find"]>, fact: BlockFact, block: FlarePluginRowsBlock): void {
+function expectRows(node: ReturnType<VueWrapper["find"]>, fact: BlockFact, block: FlarePluginRowsBlock, filtered = false): void {
   const items = fact.items as ItemFact[];
   const nodes = node.findAll("[data-row-key]");
   expect(nodes.map((n) => n.attributes("data-row-key"))).toEqual(items.map((i) => i.key));
@@ -174,20 +344,39 @@ function expectRows(node: ReturnType<VueWrapper["find"]>, fact: BlockFact, block
     const el = nodes[i];
     const badge = el.find("[data-row-badge]");
     expect(badge.exists() ? { text: badge.text(), tone: badge.attributes("data-tone") } : null, `${item.key} badge`).toEqual(item.badge);
-    // The badge leads the first line.
-    if (item.badge) expect(el.get(".flare-plugin-rows__primary").element.firstElementChild?.hasAttribute("data-row-badge")).toBe(true);
-    expect(el.get("[data-row-primary]").text()).toBe(item.primary);
+    // A signed ledger row is a record (§5.8): title then badge on the first line, the amount at the end. Otherwise the
+    // badge leads the first line.
+    const record = el.classes().includes("is-record");
+    if (item.badge && record) expect(el.find(".flare-plugin-rows__primary [data-row-badge]").exists()).toBe(true);
+    else if (item.badge) expect(el.get(".flare-plugin-rows__primary").element.firstElementChild?.hasAttribute("data-row-badge")).toBe(true);
+    // The ledger amount draws U+2212 (R10); the vectors hold core's data with the ASCII hyphen.
+    expect(dataText(el.get("[data-row-primary]").text())).toBe(item.primary);
     // Time cells: the pure rule holds at the vectors' offset; the page draws the device zone.
     const row = block.rows.find((r) => r.key === item.key)!;
     expect(flarePluginRowLines(block, row, vectors.nowMs, zh, vectors.utcOffsetMinutes).secondary, `${item.key} secondary`).toBe(item.secondary);
     const device = flarePluginRowLines(block, row, vectors.nowMs, zh).secondary;
-    const secondary = el.find("[data-row-secondary]");
-    expect(secondary.exists() ? secondary.text() : null).toBe(device);
+    // A record splits the other cells into its title and the line under it; joined they are the same secondary.
+    const secondary = record
+      ? ["[data-row-title]", "[data-row-line]"].map((s) => el.find(s)).filter((n) => n.exists() && n.text()).map((n) => n.text()).join(" · ") || null
+      : el.find("[data-row-secondary]").exists() ? el.get("[data-row-secondary]").text() : null;
+    expect(secondary, `${item.key} drawn secondary`).toBe(device);
     const keys = el.findAll("[data-row-action]");
-    expect(keys.map((k) => ({ id: k.attributes("data-row-action"), label: k.text(), variant: variantOf(k.element) }))).toEqual(item.actions);
+    const rowTap = el.find("[data-row-tap]");
+    expect(rowTap.exists() ? rowTap.attributes("data-row-tap") : undefined, `${item.key} tap`).toBe(item.tap);
+    if (item.tap) {
+      // rules.rowTap: the row is its only action's button, ending with a chevron; no key is drawn.
+      expect(item.actions.map((action) => action.id)).toEqual([item.tap]);
+      expect(rowTap.element.tagName).toBe("BUTTON");
+      expect(rowTap.find("[data-row-chevron]").exists()).toBe(true);
+      expect(keys).toHaveLength(0);
+    } else expect(keys.map((k) => ({ id: k.attributes("data-row-action"), label: k.text(), variant: variantOf(k.element) }))).toEqual(item.actions);
   });
   const empty = node.find("[data-rows-empty]");
-  expect(empty.exists() ? empty.text() : null).toBe(fact.empty);
+  // §5.8: under a chosen filter the empty block says so and offers to clear it (as the Flutter vector test reads it).
+  const title = empty.exists() ? empty.find(".flare-empty__title") : null;
+  expect(empty.exists() ? (title?.exists() ? title.text() : empty.text()) : null)
+    .toBe(filtered && fact.empty != null ? zh.filterEmpty : fact.empty);
+  expect(node.find("[data-rows-clear-filter]").exists()).toBe(filtered && fact.empty != null);
   // The table form and the rows block's own load more never show on a page.
   expect(node.find("table").exists()).toBe(false);
   expect(node.find("[data-rows-load-more]").exists()).toBe(false);
@@ -208,7 +397,7 @@ describe("FlarePluginPage (spec/plugin-view-vectors.json pageViews)", () => {
     facts.blocks.forEach((fact, i) => {
       if (fact.kind === "rows") {
         expect(fact.layout).toBe("list");
-        expectRows(nodes[i] as never, fact, c.view.blocks![i] as FlarePluginRowsBlock);
+        expectRows(nodes[i] as never, fact, c.view.blocks![i] as FlarePluginRowsBlock, facts.filters.some((f) => f.selected !== f.tabs[0]));
       } else if (fact.kind === "note") {
         expect(nodes[i].text()).toBe(fact.text);
         expect(nodes[i].attributes("data-note-tone")).toBe(fact.tone);
@@ -260,11 +449,11 @@ describe("FlarePluginPage actions (pageActions)", () => {
         await flushPromises();
       }
       if (step.spinningRows) {
-        const spinning = wrapper.findAll("[data-row-key]").filter((n) => n.findAll("[data-row-action]").some((k) => k.classes().includes("is-loading")));
+        const spinning = wrapper.findAll("[data-row-key]").filter((n) => n.find("[data-row-spinner]").exists() || n.findAll("[data-row-action]").some((k) => k.classes().includes("is-loading")));
         expect(spinning.map((n) => n.attributes("data-row-key"))).toEqual(step.spinningRows);
       }
       if (step.rowKeysEnabled !== undefined) {
-        const keys = wrapper.findAll("[data-row-action]");
+        const keys = wrapper.findAll("[data-row-action], [data-row-tap]");
         expect(keys.length).toBeGreaterThan(0);
         expect(keys.every((k) => (k.attributes("disabled") === undefined) === step.rowKeysEnabled)).toBe(true);
       }
@@ -326,7 +515,7 @@ describe("FlarePluginPage paging (pagePaging)", () => {
       if (step.spinning === false) expect(key.classes()).not.toContain("is-loading");
       if (step.enabled !== undefined) expect(key.attributes("disabled") === undefined).toBe(step.enabled);
       if (step.rowKeys) expect(wrapper.findAll("[data-row-key]").map((n) => n.attributes("data-row-key"))).toEqual(step.rowKeys);
-      if (step.primaries) expect(wrapper.findAll("[data-row-primary]").map((n) => n.text())).toEqual(step.primaries);
+      if (step.primaries) expect(wrapper.findAll("[data-row-primary]").map((n) => dataText(n.text()))).toEqual(step.primaries);
     }
   });
 });
@@ -378,7 +567,7 @@ describe("FlarePluginPage", () => {
     const page = render({ loading: true });
     await flushPromises();
     expect(page.wrapper.get(".flare-plugin-page").attributes("data-state")).toBe("loading");
-    expect(page.wrapper.text()).toContain("加载中");
+    expect(page.wrapper.get("[data-page-loading]").attributes("aria-label")).toBe("正在加载");
     page.state.loading = false;
     page.state.view = wallet;
     await flushPromises();
@@ -392,7 +581,8 @@ describe("FlarePluginPage", () => {
   it("shows a failed first load with a retry key, and a failed refresh as a banner above the view", async () => {
     const page = render({ error: "加载失败" });
     await flushPromises();
-    expect(page.wrapper.get("[role=alert]").text()).toBe("加载失败");
+    expect(page.wrapper.get("[data-page-error] .flare-empty__title").text()).toBe("没有读到内容");
+    expect(page.wrapper.get("[data-page-error]").text()).toContain("加载失败");
     await page.wrapper.get("[data-page-retry]").trigger("click");
     expect(page.events).toEqual([["retry"]]);
     page.state.view = wallet;
@@ -417,7 +607,7 @@ describe("FlarePluginPage", () => {
     const page = render({ view: wallet });
     await flushPromises();
     await page.wrapper.get("[data-page-refresh]").trigger("click");
-    expect(page.events).toEqual([["refresh"]]);
+    expect(page.events).toEqual([["refresh", "key"]]);
     const none = render({ view: wallet }, { refresh: false });
     await flushPromises();
     expect(none.wrapper.find("[data-page-refresh]").exists()).toBe(false);
@@ -441,10 +631,12 @@ describe("FlarePluginPage", () => {
     await flushPromises();
     expect(page.wrapper.get("[data-page-pull]").text()).toBe("松开刷新");
     touch(scroller, "touchend", 260);
-    expect(page.events).toEqual([["refresh"]]);
+    expect(page.events).toEqual([["refresh", "pull"]]);
     page.state.refreshing = true;
     await flushPromises();
-    expect(page.wrapper.get("[data-page-pull]").text()).toBe("正在刷新");
+    // R1: a refresh keeps the body under a thin bar.
+    expect(page.wrapper.get("[data-page-progress]").attributes("aria-label")).toBe("正在刷新");
+    expect(page.wrapper.find("[data-page-pull]").exists()).toBe(false);
   });
 
   it("sends the page's actions as page action requests and goes back", async () => {

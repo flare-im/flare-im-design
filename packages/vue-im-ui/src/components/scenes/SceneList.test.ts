@@ -54,4 +54,13 @@ describe("SceneList", () => {
     await wrapper.get("article button").trigger("click");
     expect(wrapper.emitted("action")?.[0]).toEqual([{ id: "d1", action: "revoke" }]);
   });
+
+  it('supports quiet actions without losing danger semantics or row context', () => {
+    const wrapper = setup({ actionAppearance: 'text', items: [entry()] });
+    const button = wrapper.get('article button');
+    expect(button.classes()).toContain('is-text');
+    expect(button.classes()).toContain('flare-button--danger');
+    const description = (button.attributes('aria-describedby') ?? '').split(' ').map(id => wrapper.get(`[id="${id}"]`).text());
+    expect(description).toEqual(['iPhone 15', 'Shanghai · last seen 10:24']);
+  });
 });

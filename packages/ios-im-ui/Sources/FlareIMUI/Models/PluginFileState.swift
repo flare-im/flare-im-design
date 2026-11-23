@@ -26,12 +26,14 @@ public struct PluginFileState: Equatable, Sendable {
     public var error: String?
     public var preview: Bool
     public var previewLoading: Bool
+    /// §6.3: the host's local copy of a picked or captured picture (a file URL), drawn in a document slot.
+    public var imageUrl: URL?
     public init(scope: String, generation: Int, phase: PluginFilePhase = .empty, value: PluginFileValue? = nil,
                 fileName: String? = nil, progress: Double? = nil, error: String? = nil,
-                preview: Bool = false, previewLoading: Bool = false) {
+                preview: Bool = false, previewLoading: Bool = false, imageUrl: URL? = nil) {
         self.scope = scope; self.generation = generation; self.phase = phase; self.value = value
         self.fileName = fileName; self.progress = progress; self.error = error
-        self.preview = preview; self.previewLoading = previewLoading
+        self.preview = preview; self.previewLoading = previewLoading; self.imageUrl = imageUrl
     }
 }
 

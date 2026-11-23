@@ -55,7 +55,7 @@ function onInput(e: Event): void {
 <template>
   <div class="flare-stepper" :class="[`flare-stepper--${rsize}`, { 'is-disabled': disabled }]">
     <button type="button" class="flare-stepper__btn" :disabled="!canDec" :aria-label="t('stepper.decrease')" @click="dec">
-      <n-icon aria-hidden="true" :component="RemoveOutline" />
+      <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="RemoveOutline" />
     </button>
     <input
       v-if="!readonly"
@@ -68,7 +68,7 @@ function onInput(e: Event): void {
     />
     <span v-else class="flare-stepper__field is-static">{{ value }}</span>
     <button type="button" class="flare-stepper__btn" :disabled="!canInc" :aria-label="t('stepper.increase')" @click="inc">
-      <n-icon aria-hidden="true" :component="AddOutline" />
+      <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="AddOutline" />
     </button>
   </div>
 </template>

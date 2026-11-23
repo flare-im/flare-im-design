@@ -150,7 +150,7 @@ function dismiss() {
       </div>
       <p v-if="hint" class="flare-conv-batch__hint" :class="{ 'flare-conv-batch__hint--warn': exceeded && !busy }" role="status" aria-live="polite">
         <span v-if="busy" class="flare-conv-batch__spinner" aria-hidden="true" />
-        <n-icon v-else-if="exceeded" :size="14" :component="flareIcons.error" aria-hidden="true" />
+        <n-icon v-else-if="exceeded" size="var(--flare-size-icon-size-sm)" :component="flareIcons.error" aria-hidden="true" />
         {{ hint }}
       </p>
       <div class="flare-conv-batch__actions">
@@ -177,7 +177,7 @@ function dismiss() {
           :title="strings.cancelText"
           @click="clear"
         >
-          <n-icon aria-hidden="true" :size="18" :component="CloseOutline" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="CloseOutline" />
         </button>
       </div>
     </div>
@@ -209,7 +209,7 @@ function dismiss() {
             :aria-expanded="expanded"
             @click="expanded = !expanded"
           >
-            <n-icon aria-hidden="true" :size="14" :component="expanded ? ChevronUpOutline : ChevronDownOutline" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="expanded ? ChevronUpOutline : ChevronDownOutline" />
             <span>{{ expanded ? strings.collapseText : strings.expandText }}</span>
           </button>
           <button
@@ -222,7 +222,7 @@ function dismiss() {
             @click="retry"
           >
             <span v-if="isPending('retry')" class="flare-conv-batch__spinner" aria-hidden="true" />
-            <n-icon aria-hidden="true" v-else :size="14" :component="RefreshOutline" />
+            <n-icon aria-hidden="true" v-else size="var(--flare-size-icon-size-sm)" :component="RefreshOutline" />
             <span>{{ strings.retryFailedText }} ({{ summary.retryIds.length }})</span>
           </button>
           <button

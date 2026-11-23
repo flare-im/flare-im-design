@@ -29,6 +29,7 @@ public struct VersionPanelView: View {
         self.onCheck = onCheck; self.onUpdate = onUpdate
     }
 
+    @Environment(\.flareScreenTitle) private var screenTitle
     private var model: FlareVersionPanelModel { flareVersionPanel(updateState) }
 
     private var handler: (() -> Void)? {
@@ -54,7 +55,9 @@ public struct VersionPanelView: View {
     }
 
     public var body: some View {
-        SettingsListView(sections: [FlareSettingsSection(title: strings.versionPanelTitle, items: items)],
+        // No heading that only repeats the page's own title (Vue: `screen.title === versionPanel.title`).
+        SettingsListView(sections: [FlareSettingsSection(title: screenTitle == strings.versionPanelTitle ? nil
+                                                             : strings.versionPanelTitle, items: items)],
                          onSelect: { item in if item.key == Self.rowKey { handler?() } },
                          scrollable: false)
             .onChange(of: model.detail?.label(strings)) { detail in

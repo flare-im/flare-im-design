@@ -24,11 +24,8 @@ const props = withDefaults(
   { poster: "", downloading: false, progressPct: 0, saved: false },
 );
 const { t } = useFlareI18n();
-const strings = computed(() => ({
-  title: props.title ?? t("videoPlayerModal.title"),
-}));
 
-const emit = defineEmits<{ "update:show": [value: boolean]; download: []; reveal: [] }>();
+const emit = defineEmits<{ "update:show": [value: boolean]; download: []; reveal: []; "load-error": [url: string] }>();
 
 // 下载键（右上角，与图片预览一致）只在宿主处理 download 时出现：没人接的键点了什么也不会发生。
 // 已保存（saved）且宿主处理 reveal 时换成文件夹键：在文件夹中显示，而不是再下一份。
@@ -44,7 +41,7 @@ const progressLabel = computed(() => `${Math.round(Math.min(100, Math.max(0, pro
 const videoRef = ref<HTMLVideoElement | null>(null);
 const surfaceEl = ref<HTMLElement | null>(null);
 
-const displayTitle = computed(() => strings.value.title.trim() || t("videoPlayerModal.title"));
+const displayTitle = computed(() => props.title?.trim() || t("videoPlayerModal.title"));
 
 function requestClose(): void {
   emit("update:show", false);
@@ -62,7 +59,7 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
 
 <template>
   <Teleport :to="overlayContainer">
-    <div v-if="show" ref="surfaceEl" class="video-player-modal" role="dialog" aria-modal="true" tabindex="-1" @click.self="requestClose">
+    <div v-if="show" ref="surfaceEl" class="video-player-modal" role="dialog" aria-modal="true" :aria-label="displayTitle" tabindex="-1" @click.self="requestClose">
       <header class="video-player-modal__header">
         <strong class="video-player-modal__title">{{ displayTitle }}</strong>
         <div class="video-player-modal__actions">
@@ -74,7 +71,7 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
             :aria-label="t('messageMenu.openMediaFolder')"
             @click="emit('reveal')"
           >
-            <n-icon aria-hidden="true" :component="flareIcons.folder" />
+            <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="flareIcons.folder" />
           </button>
           <template v-else-if="handlesDownload()">
             <span v-if="downloading" class="video-player-modal__progress" role="status" aria-live="polite">{{ progressLabel }}</span>
@@ -86,11 +83,11 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
               :aria-label="t('media.downloadVideo')"
               @click="emit('download')"
             >
-              <n-icon aria-hidden="true" :component="DownloadOutline" />
+              <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="DownloadOutline" />
             </button>
           </template>
           <button type="button" class="video-player-modal__close" :aria-label="t('common.close')" @click="requestClose">
-            <n-icon aria-hidden="true" :component="CloseOutline" />
+            <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="CloseOutline" />
           </button>
         </div>
       </header>
@@ -104,8 +101,9 @@ watch(() => props.show, (open) => { if (!open) videoRef.value?.pause(); });
           controls
           playsinline
           preload="metadata"
+          @error="emit('load-error', videoSrc)"
         />
-        <div v-else class="video-player-modal__empty">Can't play: missing video URL</div>
+        <div v-else class="video-player-modal__empty">{{ t('mediaMessage.unavailableVideo') }}</div>
       </div>
     </div>
   </Teleport>

@@ -135,6 +135,9 @@ public struct FlareComposerAction: Identifiable {
 /// Business availability supplied by the host. Host-owned presentation, not an authorization decision: the
 /// server still decides what may be sent.
 public struct FlareComposerCapabilities: Sendable, Equatable {
+    /// Controls the message composer can present before the optional menu arrives.
+    public static let standardToolIDs: Set<String> = ["emoji", "voice", "image", "richText", "attachments"]
+
     /// The "+" panel ids to keep; nil keeps every tile.
     public let availableActionIDs: Set<String>?
     /// The toolbar keys to offer: `emoji`, `mention`, `voice`, `image`, `richText` and `attachments` (the "+" key).
@@ -198,6 +201,7 @@ public struct FlareComposerActionPanel: View {
     private let columns: Int
     private let formFactor: FlareComposerPanelFormFactor
     private let rows: Int?
+    private let loading: Bool
     private let onAction: ((FlareComposerAction) -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -210,16 +214,24 @@ public struct FlareComposerActionPanel: View {
     public static let rowHeight: CGFloat = 76
 
     /// `rows`: rows per page on a phone (default 2), most rows shown on a desktop (default 3).
+    /// `loading`: plugin items are still on their way — skeleton tiles stand in after the others, so the panel opens
+    /// at once (docs/plugin-experience.md §4.1).
     public init(actions: [FlareComposerAction]? = nil,
                 capabilities: FlareComposerCapabilities = FlareComposerCapabilities(),
                 columns: Int = 4,
                 formFactor: FlareComposerPanelFormFactor = .mobile,
                 rows: Int? = nil,
+                loading: Bool = false,
                 onAction: ((FlareComposerAction) -> Void)? = nil) {
         self.actions = actions; self.capabilities = capabilities
         self.columns = max(1, columns); self.formFactor = formFactor
-        self.rows = rows; self.onAction = onAction
+        self.rows = rows; self.loading = loading; self.onAction = onAction
     }
+
+    /// The skeleton tiles drawn while plugin items load: the rest of the last row, or one row when it is full.
+    static func loadingSlots(after count: Int, columns: Int) -> Int { columns - count % max(1, columns) }
+
+    private static let loadingIDPrefix = "flare.composer.loading."
 
     /// The built-in feature ids in panel order, the same on every platform (`composerActions.defaults`). Polls come
     /// from a plugin, not the built-in set.
@@ -251,11 +263,14 @@ public struct FlareComposerActionPanel: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let actions = resolveComposerActions(
+        let resolved = resolveComposerActions(
             defaults: Self.actions(for: strings),
             capabilities: capabilities,
             actions: self.actions
         )
+        let actions = resolved + (loading ? (0..<Self.loadingSlots(after: resolved.count, columns: columns)).map {
+            FlareComposerAction(id: Self.loadingIDPrefix + String($0), icon: "", enabled: false)
+        } : [])
         Group {
             if paged {
                 let pages = composerPanelPages(actions, rows: rowCount, columns: columns)
@@ -322,28 +337,44 @@ public struct FlareComposerActionPanel: View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .top), count: columns),
                   spacing: FlareSizes.spacingLg) {
             ForEach(items) { action in
-                let label = action.resolvedLabel(strings)
-                Button { onAction?(action) } label: {
-                    VStack(spacing: FlareSizes.spacingXs) {
-                        ZStack {
-                            Color.clear.frame(width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth)
-                            FlareIconImage(name: action.resolvedIcon, size: FlareSizes.iconSizeMd)
-                                .foregroundColor(colors.textPrimary)
-                        }
-                        Text(label).font(.system(size: FlareSizes.fontSizeXs))
-                            .foregroundColor(colors.textSecondary)
-                            .lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: Self.rowHeight, maxHeight: Self.rowHeight, alignment: .top)
+                if action.id.hasPrefix(Self.loadingIDPrefix) {
+                    loadingTile
+                } else {
+                    tile(action, colors)
                 }
-                .buttonStyle(.plain)
-                .disabled(!action.enabled)
-                .opacity(action.enabled ? 1 : FlareOpacity.disabled)
-                .accessibilityLabel(action.accessibilityLabel ?? label)
-                .accessibilityHint(action.enabled ? "" : (action.disabledReason ?? ""))
-                .transition(.opacity)
             }
         }
+    }
+
+    /// A plugin item still loading: the kit skeleton of a tile (still under Reduce Motion).
+    private var loadingTile: some View {
+        SkeletonView(variant: .tile, still: reduceMotion)
+            .frame(maxWidth: .infinity, minHeight: Self.rowHeight, maxHeight: Self.rowHeight, alignment: .top)
+            .accessibilityHidden(true)
+            .transition(.opacity)
+    }
+
+    private func tile(_ action: FlareComposerAction, _ colors: FlareColors) -> some View {
+        let label = action.resolvedLabel(strings)
+        return Button { onAction?(action) } label: {
+            VStack(spacing: FlareSizes.spacingXs) {
+                ZStack {
+                    Color.clear.frame(width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth)
+                    FlareIconImage(name: action.resolvedIcon, size: FlareSizes.iconSizeMd)
+                        .foregroundColor(colors.textPrimary)
+                }
+                Text(label).font(.system(size: FlareSizes.fontSizeXs))
+                    .foregroundColor(colors.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: Self.rowHeight, maxHeight: Self.rowHeight, alignment: .top)
+        }
+        .buttonStyle(.plain)
+        .disabled(!action.enabled)
+        .opacity(action.enabled ? 1 : FlareOpacity.disabled)
+        .accessibilityLabel(action.accessibilityLabel ?? label)
+        .accessibilityHint(action.enabled ? "" : (action.disabledReason ?? ""))
+        .transition(.opacity)
     }
 }
 
@@ -367,13 +398,17 @@ public struct FlareComposerSendButton: View {
     static let idleOpacity: Double = 0.38
 
     private let active: Bool
+    private let label: String?
     private let onSend: (() -> Void)?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.flareCompactOverlays) private var compactOverlays
 
-    public init(active: Bool, onSend: (() -> Void)? = nil) {
+    /// `label` names the key for assistive technology (default ``FlareStrings/send``; 保存编辑 while editing).
+    public init(active: Bool, label: String? = nil, onSend: (() -> Void)? = nil) {
         self.active = active
+        self.label = label
         self.onSend = onSend
     }
 
@@ -381,14 +416,14 @@ public struct FlareComposerSendButton: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         Button { if active { onSend?() } } label: {
             Image(systemName: "paperplane")
-                .font(.system(size: Self.glyph))
+                .font(.system(size: compactOverlays ? FlareSizes.iconSizeLg : Self.glyph))
                 .frame(width: Self.side, height: Self.side)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .foregroundColor(colors.primaryText.opacity(active ? 1 : Self.idleOpacity))
         .disabled(!active)
-        .accessibilityLabel(Text(strings.send))
+        .accessibilityLabel(Text(label ?? strings.send))
     }
 }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
-import 'action_icon.dart';
+import '../models/directory_data.dart';
+import 'flare_button.dart';
 import 'flare_icon.dart';
 import 'flare_status_banner.dart';
 
@@ -134,17 +136,17 @@ class FlareScreenShare extends StatelessWidget {
     this.presenterName,
     this.detail,
     this.busy = false,
-    this.title = '屏幕共享',
-    this.idleText = '未在共享',
-    this.requestingText = '正在请求共享',
-    this.sharingText = '正在共享屏幕',
-    this.viewingText = '正在观看共享',
-    this.unavailableText = '当前环境不支持屏幕共享',
-    this.sourceRowLabel = '共享内容',
-    this.presenterRowLabel = '共享者',
-    this.startText = '共享屏幕',
-    this.stopText = '停止共享',
-    this.cancelText = '取消请求',
+    this.title,
+    this.idleText,
+    this.requestingText,
+    this.sharingText,
+    this.viewingText,
+    this.unavailableText,
+    this.sourceRowLabel,
+    this.presenterRowLabel,
+    this.startText,
+    this.stopText,
+    this.cancelText,
     this.onStart,
     this.onStop,
     this.onCancel,
@@ -162,28 +164,30 @@ class FlareScreenShare extends StatelessWidget {
   final String? detail;
 
   final bool busy;
-  final String title;
-  final String idleText,
+
+  /// Copy overrides; null takes the `screenShare*` entries of [FlareStrings].
+  final String? title;
+  final String? idleText,
       requestingText,
       sharingText,
       viewingText,
       unavailableText;
-  final String sourceRowLabel, presenterRowLabel;
-  final String startText, stopText, cancelText;
+  final String? sourceRowLabel, presenterRowLabel;
+  final String? startText, stopText, cancelText;
   final VoidCallback? onStart, onStop, onCancel;
 
-  String get _stateText {
+  String _stateText(FlareStrings strings) {
     switch (state) {
       case FlareScreenShareState.idle:
-        return idleText;
+        return idleText ?? strings.screenShareIdle;
       case FlareScreenShareState.requesting:
-        return requestingText;
+        return requestingText ?? strings.screenShareRequesting;
       case FlareScreenShareState.sharing:
-        return sharingText;
+        return sharingText ?? strings.screenShareSharing;
       case FlareScreenShareState.viewing:
-        return viewingText;
+        return viewingText ?? strings.screenShareViewing;
       case FlareScreenShareState.unavailable:
-        return unavailableText;
+        return unavailableText ?? strings.screenShareUnavailable;
     }
   }
 
@@ -205,6 +209,8 @@ class FlareScreenShare extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final title = this.title ?? strings.screenShareTitle;
     final tone = _toneColor(colors);
     final active = state == FlareScreenShareState.sharing;
     // Visibility ignores busy (buttons stay in place); busy only disables them.
@@ -223,8 +229,10 @@ class FlareScreenShare extends StatelessWidget {
         : '';
     final detailText = detail?.trim() ?? '';
     final meta = <(String, String)>[
-      if (source.isNotEmpty) (sourceRowLabel, source),
-      if (presenter.isNotEmpty) (presenterRowLabel, presenter),
+      if (source.isNotEmpty)
+        (sourceRowLabel ?? strings.screenShareSourceRow, source),
+      if (presenter.isNotEmpty)
+        (presenterRowLabel ?? strings.screenSharePresenterRow, presenter),
     ];
 
     return Semantics(
@@ -266,7 +274,7 @@ class FlareScreenShare extends StatelessWidget {
                   children: [
                     FlareIcon(
                       screenShareIconName(state),
-                      size: 20,
+                      size: FlareSizes.iconSizeMd,
                       color: tone,
                     ),
                     const SizedBox(width: FlareSizes.spacingMd),
@@ -275,7 +283,7 @@ class FlareScreenShare extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _stateText,
+                            _stateText(strings),
                             style: TextStyle(
                               color: colors.textPrimary,
                               fontSize: FlareSizes.fontSizeLg,
@@ -301,8 +309,12 @@ class FlareScreenShare extends StatelessWidget {
             ),
             if (state == FlareScreenShareState.requesting) ...[
               const SizedBox(height: FlareSizes.spacingMd),
+              // Reduced motion: a still half bar instead of the sweep.
               LinearProgressIndicator(
-                semanticsLabel: requestingText,
+                value: MediaQuery.maybeDisableAnimationsOf(context) ?? false
+                    ? .5
+                    : null,
+                semanticsLabel: requestingText ?? strings.screenShareRequesting,
                 color: tone,
                 backgroundColor: colors.bgSecondary,
               ),
@@ -315,16 +327,16 @@ class FlareScreenShare extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 88,
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: FlareSizes.fontSizeMd,
-                          ),
+                      // One row at a time (source while sharing, presenter
+                      // while viewing), so no shared label column.
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: FlareSizes.fontSizeMd,
                         ),
                       ),
+                      const SizedBox(width: FlareSizes.spacingMd),
                       Expanded(
                         child: Text(
                           value,
@@ -345,53 +357,29 @@ class FlareScreenShare extends StatelessWidget {
                 runSpacing: FlareSizes.spacingSm,
                 children: [
                   if (actions.start)
-                    FilledButton.icon(
-                      onPressed: busy ? null : onStart,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colors.primary,
-                        disabledBackgroundColor: colors.bgDisabled,
-                        disabledForegroundColor: colors.textDisabled,
-                        minimumSize: const Size(
-                          FlareSizes.touchTarget,
-                          FlareSizes.touchTarget,
-                        ),
-                      ),
-                      icon: Icon(
-                        flareIconGlyph('screen-share'),
-                        size: FlareSizes.iconSizeSm,
-                      ),
-                      label: Text(startText),
+                    FlareButton(
+                      label: startText ?? strings.screenShareStart,
+                      icon: 'screen-share',
+                      size: FlareControlSize.lg,
+                      disabled: busy,
+                      onPressed: onStart,
                     ),
                   if (actions.stop)
-                    OutlinedButton.icon(
-                      onPressed: busy ? null : onStop,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colors.error,
-                        disabledForegroundColor: colors.textDisabled,
-                        side: BorderSide(
-                          color: busy ? colors.borderPrimary : colors.error,
-                        ),
-                        minimumSize: const Size(
-                          FlareSizes.touchTarget,
-                          FlareSizes.touchTarget,
-                        ),
-                      ),
-                      icon: const Icon(Icons.block, size: 16),
-                      label: Text(stopText),
+                    FlareButton(
+                      label: stopText ?? strings.screenShareStop,
+                      icon: 'screen-share',
+                      variant: FlareButtonVariant.danger,
+                      size: FlareControlSize.lg,
+                      disabled: busy,
+                      onPressed: onStop,
                     ),
                   if (actions.cancel)
-                    OutlinedButton(
-                      onPressed: busy ? null : onCancel,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colors.textPrimary,
-                        disabledForegroundColor: colors.textDisabled,
-                        side: BorderSide(color: colors.borderPrimary),
-                        minimumSize: const Size(
-                          FlareSizes.touchTarget,
-                          FlareSizes.touchTarget,
-                        ),
-                      ),
-                      child: Text(cancelText),
+                    FlareButton(
+                      label: cancelText ?? strings.screenShareCancel,
+                      variant: FlareButtonVariant.secondary,
+                      size: FlareControlSize.lg,
+                      disabled: busy,
+                      onPressed: onCancel,
                     ),
                 ],
               ),

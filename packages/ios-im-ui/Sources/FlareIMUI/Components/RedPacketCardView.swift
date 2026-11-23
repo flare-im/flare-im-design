@@ -114,7 +114,7 @@ public struct RedPacketCardView: View {
                         .frame(minHeight: blessingFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
                     Text(statusText)
                         .font(.system(size: statusFontSize))
-                        .foregroundColor(faded ? ink : ink.opacity(0.85))
+                        .foregroundColor(ink)
                         .lineSpacing(statusFontSize * (FlareSizes.lineHeightSnug - FlareSizes.lineHeightTight))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(minHeight: statusFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
@@ -132,7 +132,7 @@ public struct RedPacketCardView: View {
                 Text(brandLabel).lineLimit(1).truncationMode(.tail)
             }
             .font(.system(size: brandFontSize, weight: .medium))
-            .foregroundColor(ink.opacity(faded ? 0.72 : 0.6))
+            .foregroundColor(ink.opacity(faded ? 0.72 : 1))
             .frame(minHeight: brandFontSize * FlareSizes.lineHeightSnug, alignment: .leading)
             .padding(.top, FlareSizes.spacingSm)
         }
@@ -155,8 +155,6 @@ private struct RedPacketCardPressStyle: ButtonStyle {
 /// Geometry the red packet family shares that has no token of its own: proportions and hairlines.
 enum RedPacketMetrics {
     static let hairline: CGFloat = 0.5
-    /// The close button's ring.
-    static let ringWidth: CGFloat = 1.5
     static let cardGlyphWidth: CGFloat = 30
     static let cardTextGap: CGFloat = 3
     /// The glyph is an envelope: taller than wide.
@@ -167,20 +165,25 @@ enum RedPacketMetrics {
     static let flapCurve: CGFloat = 0.1
     /// The open button's glyph against the button's diameter.
     static let openGlyphShare: CGFloat = 0.42
-    /// One turn of the opening flip.
-    static let flipPeriod: Double = 0.9
+    /// One turn of the opening flip (§4.5, §7: 0.8 s).
+    static let flipPeriod: Double = 0.8
 }
 
 /// The festive colour ramps, all from the `colors.redPacket*` tokens.
 enum RedPacketPalette {
-    static func cover(_ colors: FlareColors, faded: Bool = false) -> LinearGradient {
+    // Page artwork keeps its original palette; only the message card changes state colours.
+    static func cover(_ colors: FlareColors) -> LinearGradient {
+        LinearGradient(colors: [colors.redPacketStart, colors.redPacketMiddle, colors.redPacketEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    static func cover(_ colors: FlareColors, faded: Bool) -> LinearGradient {
         LinearGradient(colors: coverStops(colors, faded: faded), startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     /// The card's gradient stops; a spent card's are mixed toward the fade target.
     static func coverStops(_ colors: FlareColors, faded: Bool) -> [Color] {
         let stops = [colors.redPacketStart, colors.redPacketMiddle, colors.redPacketEnd]
-        return faded ? stops.map { fade($0, colors) } : stops
+        return faded ? stops.map { fade($0, colors) } : [colors.redPacketEnd, colors.redPacketEnd, colors.redPacketEnd]
     }
 
     /// `color` moved ``FlareSizes/componentRedPacketFadedMix`` of the way to `redPacketFadedMixTarget`: white in
@@ -254,35 +257,41 @@ struct RedPacketFlapShape: Shape {
     }
 }
 
-/// The red action of the family ("put money in", "pay"): the large kit button's metrics on the deep red, with
-/// white text (above 4.5:1 on it), progress while `loading`, and the whole 48pt box as the target. SwiftUI's kit
-/// button has no colour override, so the family draws this one rather than re-tinting ``ButtonView``.
-struct RedPacketActionButton: View {
-    let label: String
-    let loading: Bool
-    let disabled: Bool
-    let action: (() -> Void)?
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.flareBrandTheme) private var flareBrandTheme
-    @Environment(\.flareStrings) private var strings
+extension View {
+    /// The red packet accent for kit buttons ("塞钱进红包", "发红包"): the ``ButtonView``s inside take the packet's
+    /// deep red as their primary, so they stay kit buttons (loading, disabled, focus, touch target) — Flutter
+    /// `FlareRedPacketTint`, Vue's `--flare-color-primary` override. White text on the deep red is above 4.5:1.
+    func flareRedPacketTint() -> some View { modifier(RedPacketTint()) }
+}
 
-    var body: some View {
-        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        Button { action?() } label: {
-            HStack(spacing: FlareSizes.spacingSm) {
-                if loading { ProgressView().controlSize(.small).tint(Color.white) }
-                Text(label).font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
-            }
-            .foregroundColor(Color.white)
-            .frame(maxWidth: .infinity, minHeight: FlareSizes.controlHeightLg)
-            .padding(.horizontal, FlareSizes.controlPadXLg)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.redPacketEnd))
-            .contentShape(RoundedRectangle(cornerRadius: FlareSizes.radiusLg))
-        }
-        .buttonStyle(.plain)
-        .disabled(disabled || loading || action == nil)
-        .opacity(disabled || action == nil ? FlareOpacity.disabled : 1)
-        .accessibilityValue(loading ? strings.packetBusy : "")
+/// The red packet's large amount (composer total, review): 44, 36 in a regular-width window (iPad, Mac), tabular
+/// digits.
+struct RedPacketAmountFont: ViewModifier {
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var wide: Bool { sizeClass == .regular }
+    #else
+    private let wide = true
+    #endif
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: wide ? FlareSizes.componentRedPacketAmountFontSizeWide
+                                        : FlareSizes.componentRedPacketAmountFontSize, weight: .semibold).monospacedDigit())
+    }
+}
+
+private struct RedPacketTint: ViewModifier {
+    @Environment(\.flareBrandTheme) private var brand
+
+    func body(content: Content) -> some View {
+        content.environment(\.flareBrandTheme, FlareBrandTheme(
+            name: brand.name + ".redPacket",
+            light: Self.tinted(brand.light), dark: Self.tinted(brand.dark)))
+    }
+
+    static func tinted(_ colors: FlareColors) -> FlareColors {
+        colors.copy(primary: colors.redPacketEnd, primaryActive: colors.redPacketEndActive,
+                    primaryHover: colors.redPacketEndHover)
     }
 }
 

@@ -220,7 +220,8 @@ class PresenterInteractionTest {
         compose.onNodeWithText("保存失败，请重试。").assertIsDisplayed()
         compose.onNode(hasSetTextAction() and hasText(" 老陈 ")).assertExists()
         fail = false
-        compose.onNodeWithText("保存").performClick()
+        // After a failed submit the same key reads 「重试」 (as Vue's form sheets).
+        compose.onNodeWithText(FlareStrings().retry).performClick()
         compose.waitForIdle()
         compose.onNode(isDialog()).assertDoesNotExist()
         assertEquals("老陈", result)

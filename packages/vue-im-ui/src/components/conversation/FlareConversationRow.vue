@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue";
-import { CheckmarkOutline, NotificationsOffOutline, PinOutline } from "../../shared/icon-glyphs";
+import { flareIcons } from "../../shared/icons";
 import { NIcon } from "naive-ui";
 import { resolveEmojiPackAssetUrlByKey } from "../composer/ComposerEmojiStickerPopover/composerEmojiAssets";
 import { resolveStickerUrlByPackageAndId } from "../composer/ComposerEmojiStickerPopover/composerStickers";
@@ -26,6 +26,7 @@ import FlareConversationActionSheet from "./FlareConversationActionSheet.vue";
 import { conversationActionGlyphs, conversationActionLabelKey } from "./conversationActionPresentation";
 import { conversationPreviewKind, conversationTitleEmphasis, conversationUnreadCount, conversationUnreadLabel } from "../../shared/contracts/conversation-presentation";
 import { formatConversationTime } from "../../shared/timeline-label";
+import { flareLayout } from "../../design-system/theme/layout-tokens";
 
 type AssetUrlLoader = () => Promise<string | undefined>;
 
@@ -58,6 +59,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useFlareI18n();
 const { isH5 } = useFlareAdaptiveSafe();
+const rowHeight = computed(() => isH5.value ? flareLayout.conversationRowMobileHeight : flareLayout.conversationRowDesktopHeight);
 
 function oneLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -69,7 +71,6 @@ const previewKind = computed(() => conversationPreviewKind({ ...props.item, draf
 const previewPrefix = computed(() => {
   if (previewKind.value === "failed") return `[${t("chat.sendFailed")}]`;
   if (previewKind.value === "draft") return `[${t("conversation.draftTag")}]`;
-  if (previewKind.value === "mention") return t("conversation.mentionPrefix");
   return "";
 });
 const contentPreviewVisual = computed(() =>
@@ -161,8 +162,8 @@ const menuItems = computed<FlareActionItem<Component>[]>(() =>
 
 const accessibilityLabel = computed(() => [
   displayName.value,
-  unread.value ? `${unread.value} ${t("conversation.filterUnread")}` : "",
   props.item.mentioned ? t("conversation.filterMention") : "",
+  unread.value ? `${unread.value} ${t("conversation.filterUnread")}` : "",
   props.item.pinned ? t("conversation.pinTag") : "",
   props.item.muted ? t("conversation.muteTag") : "",
   previewPrefix.value,
@@ -214,6 +215,7 @@ function openContextMenu(event: MouseEvent): void {
   <article
     ref="rowRoot"
     class="im-conv-item"
+    :style="{ '--flare-conversation-row-height': `${rowHeight}px` }"
     role="listitem"
     :data-conversation-id="item.id"
     :data-preview-kind="previewKind"
@@ -223,7 +225,6 @@ function openContextMenu(event: MouseEvent): void {
       'im-conv-item--muted': item.muted,
       'im-conv-item--pinned': item.pinned,
       'im-conv-item--mobile': isH5,
-      'im-conv-item--mentioned': item.mentioned,
       'im-conv-item--strong': strongTitle,
       'im-conv-item--selectable': selectable,
       'im-conv-item--selected': selectable && selected,
@@ -243,18 +244,21 @@ function openContextMenu(event: MouseEvent): void {
       @click="activateRow"
     >
       <span v-if="selectable" class="im-conv-item__check" :class="{ 'is-on': selected }" aria-hidden="true">
-        <n-icon v-if="selected" aria-hidden="true" :size="13" :component="CheckmarkOutline" />
+        <n-icon v-if="selected" aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="flareIcons.check" />
       </span>
       <span class="im-conv-item__avatar">
-        <FlareAvatar :user-id="item.id" :display-name="displayName" :avatar-url="item.avatarUrl" :size="isH5 ? 44 : 40" />
+        <FlareAvatar :user-id="item.id" :display-name="displayName" :avatar-url="item.avatarUrl" :size="isH5 ? 44 : 40" :group="item.kind === 'group'" />
       </span>
       <span class="im-conv-item__body">
         <span class="im-conv-item__top">
-          <span class="im-conv-item__title">{{ displayName }}</span>
-          <span v-if="item.pinned || item.muted" class="im-conv-item__marks" aria-hidden="true">
-            <n-icon aria-hidden="true" v-if="item.pinned" :component="PinOutline" />
-            <n-icon aria-hidden="true" v-if="item.muted" :component="NotificationsOffOutline" />
+          <span class="im-conv-item__heading">
+            <span class="im-conv-item__title">{{ displayName }}</span>
+            <span v-if="item.pinned || item.muted" class="im-conv-item__marks" aria-hidden="true">
+              <n-icon aria-hidden="true" v-if="item.pinned" :component="flareIcons.pin" />
+              <n-icon aria-hidden="true" v-if="item.muted" :component="flareIcons.mute" />
+            </span>
           </span>
+          <span class="im-conv-item__time" :title="timeText" aria-hidden="true">{{ timeText }}</span>
         </span>
         <span class="im-conv-item__bottom">
           <span v-if="previewPrefix" class="im-conv-item__prefix" :class="`is-${previewKind}`">{{ previewPrefix }}</span>
@@ -286,11 +290,9 @@ function openContextMenu(event: MouseEvent): void {
             </template>
             <PlainTextEmojiRich v-else :text="previewVisual.text" :inline-em-size="1.36" />
           </span>
+          <span v-if="item.mentioned" class="im-conv-item__mention" aria-hidden="true">{{ t("conversation.mentionBadge") }}</span>
+          <span v-if="unread" class="im-conv-item__unread-pill" aria-hidden="true">{{ unreadText }}</span>
         </span>
-      </span>
-      <span class="im-conv-item__meta" aria-hidden="true">
-        <span class="im-conv-item__time" :title="timeText">{{ timeText }}</span>
-        <span v-if="unread" class="im-conv-item__unread-pill">{{ unreadText }}</span>
       </span>
     </button>
   </article>
@@ -319,29 +321,33 @@ function openContextMenu(event: MouseEvent): void {
 
 <style scoped>
 .im-conv-item { position: relative; flex: 0 0 auto; width: 100%; min-width: 0; box-sizing: border-box; border-radius: var(--flare-size-radius-md); background: transparent; color: var(--flare-color-text-primary); container-type: inline-size; }
-.im-conv-item__select { display: grid; grid-template-columns: auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); align-items: center; gap: var(--flare-size-spacing-2sm); width: 100%; min-height: var(--flare-size-layout-session-item-height); padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-sm); box-sizing: border-box; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: start; }
-.im-conv-item--mobile .im-conv-item__select { min-height: 80px; padding-block: var(--flare-size-spacing-2md); }
+.im-conv-item__select { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; min-height: var(--flare-conversation-row-height); padding: var(--flare-size-spacing-2sm) var(--flare-size-spacing-md); box-sizing: border-box; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: start; }
+.im-conv-item--mobile .im-conv-item__select { padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg); }
 /* 手机上选中/按下是整条通栏,不是列表中间浮起来的一张 8px 圆角卡片 —— 一屏里只该有一种面。
    桌面的列表栏保留圆角选中行:那里它是一份并排的名单,圆角正好把「哪一行对应右边」框出来。 */
 .im-conv-item--mobile { border-radius: 0; }
+.im-conv-item--mobile::after { position: absolute; inset-inline: 72px 16px; inset-block-end: 0; height: 1px; background: var(--flare-color-border-secondary); opacity: .55; pointer-events: none; content: ""; }
+.im-conv-item--pinned:not(.im-conv-item--active):not(:hover) { background: color-mix(in srgb, var(--flare-color-bg-secondary) 55%, var(--flare-color-bg-primary)); }
 @media (hover: hover) { .im-conv-item:hover { background: var(--flare-color-bg-hover); } }
 .im-conv-item--active, .im-conv-item--active:hover { background: var(--flare-color-bg-selected); }
+.im-conv-item--active:not(.im-conv-item--selectable)::before { content: ""; position: absolute; inset-inline-start: 0; inset-block: var(--flare-size-spacing-md); width: 2px; border-radius: var(--flare-size-radius-full); background: var(--flare-color-primary); pointer-events: none; }
 .im-conv-item--active .im-conv-item__time { color: var(--flare-color-text-secondary); }
 .im-conv-item__select:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
-.im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
+.im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr); }
 .im-conv-item--selected, .im-conv-item--selected:hover { background: var(--flare-color-bg-selected); }
 .im-conv-item__check { display: grid; place-items: center; width: var(--flare-size-icon-size-md); height: var(--flare-size-icon-size-md); box-sizing: border-box; border: 1.5px solid var(--flare-color-border-hover); border-radius: var(--flare-size-radius-sm); background: var(--flare-color-bg-primary); color: var(--flare-color-message-outgoing-foreground); }
 .im-conv-item__check.is-on { border-color: var(--flare-color-primary); background: var(--flare-color-primary); }
 .im-conv-item__avatar { display: flex; flex-shrink: 0; }
 .im-conv-item__body { display: grid; gap: 4px; min-width: 0; }
 .im-conv-item__top, .im-conv-item__bottom { display: flex; align-items: center; gap: 4px; min-width: 0; height: 20px; }
+.im-conv-item__heading { display: flex; flex: 1; align-items: center; gap: 4px; min-width: 0; }
 .im-conv-item__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-lg); font-weight: 500; }
+.im-conv-item--mobile .im-conv-item__title { font-size: var(--flare-size-font-size-2xl); }
 .im-conv-item--strong .im-conv-item__title { font-weight: 700; }
-.im-conv-item__marks { display: inline-flex; flex-shrink: 0; gap: 4px; color: var(--flare-color-text-tertiary); font-size: 12px; }
-.im-conv-item__meta { display: grid; grid-template-rows: 20px 20px; justify-items: end; align-items: center; gap: 4px; min-width: 0; font-size: var(--flare-size-font-size-sm); }
-.im-conv-item__time { white-space: nowrap; text-align: end; font-variant-numeric: tabular-nums; font-size: var(--flare-size-font-size-xs); color: var(--flare-color-text-tertiary); }
+.im-conv-item__marks { display: inline-flex; flex-shrink: 0; gap: 4px; align-items: center; line-height: 1; color: var(--flare-color-text-tertiary); font-size: var(--flare-size-icon-size-sm); }
+.im-conv-item__time { flex: 0 0 auto; max-width: min(42%, calc(var(--flare-size-component-conversation-row-meta-width) + var(--flare-size-spacing-md))); margin-inline-start: var(--flare-size-spacing-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: end; font-variant-numeric: tabular-nums; font-size: var(--flare-size-font-size-xs); color: var(--flare-color-text-tertiary); }
 .im-conv-item__prefix { flex: 0 1 auto; min-width: 0; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-md); color: var(--flare-color-primary-text); }
-.im-conv-item__prefix.is-failed, .im-conv-item__prefix.is-mention { color: var(--flare-color-error-text); }
+.im-conv-item__prefix.is-failed { color: var(--flare-color-error-text); }
 .im-conv-item__preview { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .im-conv-item__preview :deep(.pte-rich), .im-conv-item__preview :deep(.pte-fallback), .im-conv-item__preview :deep(.pte-plain) { display: block; max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .im-conv-item__preview :deep(.pte-run) { display: inline; white-space: inherit; }
@@ -349,10 +355,22 @@ function openContextMenu(event: MouseEvent): void {
 .im-conv-item__preview-thumb { flex: 0 0 auto; }
 .im-conv-item__preview-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .im-conv-item__preview-fallback-icon { display: none; }
-.im-conv-item__unread-pill { min-width: 18px; max-width: 100%; height: 18px; box-sizing: border-box; padding-inline: 5px; border-radius: var(--flare-size-radius-full); background: var(--flare-color-primary); color: var(--flare-color-message-outgoing-foreground); font-size: var(--flare-size-font-size-xs); font-weight: 600; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
-.im-conv-item--muted:not(.im-conv-item--mentioned) .im-conv-item__unread-pill { background: var(--flare-color-bg-tertiary); color: var(--flare-color-text-secondary); }
+.im-conv-item__mention {
+  flex: none;
+  margin-inline-start: 4px;
+  padding-inline: 6px;
+  border-radius: var(--flare-size-radius-sm);
+  background: var(--flare-component-mention-bg);
+  color: var(--flare-component-mention-text);
+  font-size: var(--flare-size-font-size-xs);
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.im-conv-item__unread-pill { flex: none; min-width: 18px; max-width: 100%; height: 18px; box-sizing: border-box; padding-inline: 5px; border-radius: var(--flare-size-radius-full); background: var(--flare-color-primary); color: var(--flare-color-message-outgoing-foreground); font-size: var(--flare-size-font-size-xs); font-weight: 600; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.im-conv-item__preview + .im-conv-item__unread-pill { margin-inline-start: 8px; }
+.im-conv-item--muted .im-conv-item__unread-pill { background: var(--flare-color-bg-tertiary); color: var(--flare-color-text-secondary); }
 @container (max-width: 300px) {
-  .im-conv-item__select { gap: 8px; grid-template-columns: auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
-  .im-conv-item--selectable .im-conv-item__select { grid-template-columns: auto auto minmax(0, 1fr) var(--flare-size-component-conversation-row-meta-width); }
+  .im-conv-item__select { gap: 10px; }
 }
 </style>

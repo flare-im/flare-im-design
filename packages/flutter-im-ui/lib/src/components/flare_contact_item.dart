@@ -14,7 +14,9 @@ import 'flare_checkbox.dart';
 /// [FlareCheckbox] shows [selected], tapping the row calls [onToggleSelect]
 /// instead of [onSelect], and the row is announced as a checkbox named after
 /// the contact. [trailing] sits at the row end; its controls keep their own
-/// focus and their taps stay with them.
+/// focus and their taps stay with them. [current] marks the contact a
+/// neighbouring pane is showing (selected background, name in the primary
+/// colour), as the Vue row's `is-current`.
 class FlareContactItem extends StatelessWidget {
   const FlareContactItem({
     super.key,
@@ -25,6 +27,7 @@ class FlareContactItem extends StatelessWidget {
     this.selected = false,
     this.onToggleSelect,
     this.trailing,
+    this.current = false,
   });
 
   final FlareContact item;
@@ -34,6 +37,7 @@ class FlareContactItem extends StatelessWidget {
   final bool selected;
   final VoidCallback? onToggleSelect;
   final Widget? trailing;
+  final bool current;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +45,17 @@ class FlareContactItem extends StatelessWidget {
     Widget identity = Row(
       children: [
         if (selectable) ...[
-          // The row is the control; the box only shows its state.
-          IgnorePointer(child: FlareCheckbox(value: selected)),
+          // The row is the control; the box only shows its state, so it takes
+          // only its drawn size in the row (its own touch area would make the
+          // row 64 high instead of Vue's 56).
+          SizedBox.square(
+            dimension: FlareSizes.iconSizeMd,
+            child: OverflowBox(
+              maxWidth: FlareSizes.touchTarget,
+              maxHeight: FlareSizes.touchTarget,
+              child: IgnorePointer(child: FlareCheckbox(value: selected)),
+            ),
+          ),
           const SizedBox(width: FlareSizes.spacingMd),
         ],
         FlareAvatar(
@@ -60,10 +73,12 @@ class FlareContactItem extends StatelessWidget {
             children: [
               Text(
                 item.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: colors.textPrimary,
+                  color: current ? colors.primaryText : colors.textPrimary,
                   fontSize: FlareSizes.fontSizeLg,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: current ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
               if (item.signature != null && item.signature!.isNotEmpty)
@@ -95,19 +110,22 @@ class FlareContactItem extends StatelessWidget {
       onTap: selectable ? onToggleSelect : onSelect,
       // A selectable row announces itself through the checkbox node above.
       excludeFromSemantics: selectable,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingMd,
-          vertical: FlareSizes.spacingSm,
-        ),
-        child: Row(
-          children: [
-            Expanded(child: identity),
-            if (trailing != null) ...[
-              const SizedBox(width: FlareSizes.spacingSm),
-              trailing!,
+      child: Ink(
+        color: current ? colors.bgSelected : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: FlareSizes.spacingMd,
+            vertical: FlareSizes.spacingSm,
+          ),
+          child: Row(
+            children: [
+              Expanded(child: identity),
+              if (trailing != null) ...[
+                const SizedBox(width: FlareSizes.spacingSm),
+                trailing!,
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

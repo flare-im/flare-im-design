@@ -160,6 +160,16 @@ describe("FlareInviteCodeField", () => {
     expect(host.find(".flare-form-field__error").exists()).toBe(false);
   });
 
+  it("announces a failed pre-check without marking a still-submittable code invalid", async () => {
+    const { host, state } = mountField({ modelValue: "AB12CD", notice: "Check unavailable. You can still sign up." });
+    expect(host.get('[role="status"]').text()).toBe("Check unavailable. You can still sign up.");
+    expect(host.get("input").attributes("aria-invalid")).toBeUndefined();
+    state.value = { notice: state.value.notice, checkResult: { valid: false } };
+    await nextTick();
+    expect(host.get("input").attributes("aria-invalid")).toBe("true");
+    expect(host.find('[role="status"]').exists()).toBe(false);
+  });
+
   it("is inert while disabled and never asks for a check", async () => {
     const { host, checks } = mountField({ modelValue: "AB12CD", disabled: true, error: "boom" });
     expect(host.get("input").attributes("disabled")).toBeDefined();

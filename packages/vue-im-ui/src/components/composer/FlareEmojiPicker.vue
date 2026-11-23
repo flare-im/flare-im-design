@@ -52,7 +52,7 @@ function setTone(tn: string): void {
 <template>
   <div class="flare-emoji-picker">
     <div class="flare-emoji-picker__search">
-      <n-icon aria-hidden="true" :size="15" :component="SearchOutline" class="flare-emoji-picker__search-ico" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="SearchOutline" class="flare-emoji-picker__search-ico" />
       <input v-model="query" type="text" :placeholder="t('emoji.search')" class="flare-emoji-picker__input" />
       <span v-if="skinTones" class="flare-emoji-picker__tones">
         <button

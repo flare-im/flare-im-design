@@ -20,8 +20,7 @@ abstract final class FlareServerClock {
 
   /// The server's now, as the kit reads it wherever it compares now with a
   /// server-issued instant.
-  static int nowMs() =>
-      now(DateTime.now().millisecondsSinceEpoch, _offsetMs);
+  static int nowMs() => now(DateTime.now().millisecondsSinceEpoch, _offsetMs);
 
   /// Server now for a device reading and an offset: the device reading itself
   /// without an offset.

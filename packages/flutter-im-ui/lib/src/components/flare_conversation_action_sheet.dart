@@ -4,6 +4,46 @@ import 'package:flutter/services.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
+import 'flare_action_menu.dart';
+
+/// [conversationActions] as rows of a pointer's context menu
+/// ([FlareActionMenu]), the menu the Vue row opens on right-click: ids are the
+/// action names, labels and icons those of the sheet, danger entries in a group
+/// of their own.
+List<FlareActionItem> conversationActionMenuItems(
+  FlareConversationActionSnapshot conversation,
+  FlareConversationActionCapabilities capabilities,
+  FlareStrings strings,
+) {
+  final sheet = FlareConversationActionSheet(
+    conversation: conversation,
+    capabilities: capabilities,
+  );
+  return [
+    for (final entry in conversationActions(conversation, capabilities))
+      FlareActionItem(
+        id: entry.action.name,
+        label: sheet.labelFor(entry.action, strings),
+        icon: _actionIconNames[entry.action],
+        group: entry.danger ? 'danger' : 'manage',
+        danger: entry.danger,
+      ),
+  ];
+}
+
+const _actionIconNames = <FlareConversationAction, String>{
+  FlareConversationAction.pin: 'pin',
+  FlareConversationAction.unpin: 'unpin',
+  FlareConversationAction.mute: 'mute',
+  FlareConversationAction.unmute: 'notification',
+  FlareConversationAction.markRead: 'read',
+  FlareConversationAction.markUnread: 'mark-unread',
+  FlareConversationAction.archive: 'archive',
+  FlareConversationAction.unarchive: 'unarchive',
+  FlareConversationAction.hide: 'eye-off',
+  FlareConversationAction.clearHistory: 'clear-history',
+  FlareConversationAction.delete: 'delete',
+};
 
 /// Actions a [FlareConversationActionSheet] can emit. Names match the
 /// cross-platform contract (Vue `action` payload / SwiftUI / Compose enums).
@@ -215,19 +255,7 @@ class FlareConversationActionSheet extends StatelessWidget {
   };
 
   static IconData iconFor(FlareConversationAction action) =>
-      flareIconGlyph(switch (action) {
-        FlareConversationAction.pin => 'pin',
-        FlareConversationAction.unpin => 'unpin',
-        FlareConversationAction.mute => 'mute',
-        FlareConversationAction.unmute => 'notification',
-        FlareConversationAction.markRead => 'read',
-        FlareConversationAction.markUnread => 'mark-unread',
-        FlareConversationAction.archive => 'archive',
-        FlareConversationAction.unarchive => 'unarchive',
-        FlareConversationAction.hide => 'eye-off',
-        FlareConversationAction.clearHistory => 'clear-history',
-        FlareConversationAction.delete => 'delete',
-      });
+      flareIconGlyph(_actionIconNames[action]!);
 
   @override
   Widget build(BuildContext context) {

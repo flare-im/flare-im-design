@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue";
+import { computed } from "vue";
 import PluginRowsBlock from "./plugin/PluginRowsBlock.vue";
 import PluginSimpleBlock from "./plugin/PluginSimpleBlock.vue";
 import PluginTextBlock from "./plugin/PluginTextBlock.vue";
@@ -20,6 +20,7 @@ defineProps<{
   detailLabel?: string;
   /** Keep the list controls and render the host's content slot in place of the table. */
   content?: boolean;
+  embedded?: boolean;
   searchText?: string;
   loading?: boolean;
   busy?: boolean;
@@ -47,7 +48,10 @@ const emit = defineEmits<{
 const visibleColumnKeys = defineModel<string[] | null>("visibleColumnKeys", {
   default: null,
 });
-const slots = useSlots();
+const expandedRowKeys = defineModel<string[] | undefined>("expandedRowKeys");
+const slots = defineSlots<Record<string, (props: Record<string, unknown>) => unknown> & {
+  "expanded-row"?: (props: { row: FlarePluginRow }) => unknown;
+}>();
 // A host's own help / notice slots stay; the declared blocks follow them.
 const passthrough = computed(() => Object.keys(slots).filter((name) => name !== "help" && name !== "notice"));
 </script>
@@ -60,6 +64,7 @@ const passthrough = computed(() => Object.keys(slots).filter((name) => name !== 
     :detail-label="detailLabel"
     layout="admin-list"
     :admin-content="content"
+    :embedded="embedded"
     :search-text="searchText"
     :loading="loading"
     :busy="!!(busy || disabled || loading)"
@@ -71,6 +76,7 @@ const passthrough = computed(() => Object.keys(slots).filter((name) => name !== 
     :pagination="pagination"
     :format-time="formatTime"
     v-model:visible-column-keys="visibleColumnKeys"
+    v-model:expanded-row-keys="expandedRowKeys"
     @search="emit('search')"
     @reset="emit('reset')"
     @update:pagination="emit('update:pagination', $event)"
@@ -78,8 +84,8 @@ const passthrough = computed(() => Object.keys(slots).filter((name) => name !== 
     @open-row="emit('openRow', $event)"
     @load-more="emit('loadMore', $event)"
   >
-    <template v-for="name in passthrough" :key="name" #[name]
-      ><slot :name="name"
+    <template v-for="name in passthrough" :key="name" #[name]="slotProps"
+      ><slot :name="name" v-bind="slotProps"
     /></template>
     <template v-if="slots.help || help?.length" #help>
       <slot name="help" />

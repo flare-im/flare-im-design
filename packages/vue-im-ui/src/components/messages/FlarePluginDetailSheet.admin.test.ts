@@ -47,15 +47,18 @@ describe("FlarePluginDetailSheet row actions", () => {
     expect(calls).toEqual([["reject", {}]]);
   });
 
-  it("page presentation opens a drawer on desktop and keeps the sheet on a phone", async () => {
+  // Long record browsing is a full-height drawer on desktop and a full-width page on a phone (the compact drawer).
+  it("page presentation opens a drawer on desktop and a full page on a phone", async () => {
     render({ presentation: "page" }, false);
     await flushPromises();
     expect(surface()).toBe("drawer");
     expect(document.body.querySelector("[data-flare-presentation=drawer] .flare-plugin-detail__footer")).not.toBeNull();
+    expect(document.body.querySelector(".flare-drawer--compact")).toBeNull();
     document.body.innerHTML = "";
     render({ presentation: "page" }, true);
     await flushPromises();
-    expect(surface()).toBe("sheet");
+    expect(surface()).toBe("drawer");
+    expect(document.body.querySelector(".flare-drawer--compact")).not.toBeNull();
   });
 
   it("the default presentation stays the modal path on desktop", async () => {

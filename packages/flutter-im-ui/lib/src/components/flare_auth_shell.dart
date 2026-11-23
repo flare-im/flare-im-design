@@ -297,15 +297,24 @@ class _TaskSurface extends StatelessWidget {
             ),
             const SizedBox(height: FlareSizes.spacing2xl),
             shell.child,
+            // Vue `.flare-auth-shell__footer`: a hairline above, start-aligned
+            // secondary text.
             if (shell.footer case final footer?) ...[
               const SizedBox(height: FlareSizes.spacing2xl),
-              Text(
-                footer,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colors.textTertiary,
-                  fontSize: FlareSizes.fontSizeSm,
-                  height: FlareSizes.lineHeightRelaxed,
+              Container(
+                padding: const EdgeInsets.only(top: FlareSizes.spacingLg),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: colors.borderSecondary),
+                  ),
+                ),
+                child: Text(
+                  footer,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: FlareSizes.fontSizeSm,
+                    height: 1.7,
+                  ),
                 ),
               ),
             ],

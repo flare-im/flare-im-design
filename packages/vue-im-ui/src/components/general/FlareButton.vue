@@ -71,7 +71,9 @@ const rsize = computed(() => props.size ?? config.size.value);
 }
 .flare-button:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .flare-button.is-block { width: 100%; }
-.flare-button:active:not(:disabled) { transform: scale(0.98); }
+/* §12.10: pressed scales to 0.98 and takes the pressed fill (below); reduced motion keeps only the colour. */
+.flare-button:active:not(:disabled) { transform: scale(var(--flare-size-component-press-scale)); }
+@media (prefers-reduced-motion: reduce) { .flare-button:active:not(:disabled) { transform: none; } }
 .flare-button:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
 .flare-button__icon { flex: none; font-size: var(--flare-size-icon-size-md); }
 .flare-button--sm .flare-button__icon { font-size: var(--flare-header-labelled-action-glyph, var(--flare-size-icon-size-sm)); }
@@ -91,39 +93,38 @@ const rsize = computed(() => props.size ?? config.size.value);
   background: var(--flare-color-primary);
   color: #fff;
 }
-.flare-button--primary:hover:not(:disabled) { background: var(--flare-color-primary-hover); }
 .flare-button--primary:active:not(:disabled) { background: var(--flare-color-primary-active); }
+.flare-button--danger:active:not(:disabled) { background: var(--flare-color-error-active); }
+.flare-button--secondary:not(.is-text):active:not(:disabled),
+.flare-button--ghost:not(.is-text):active:not(:disabled),
+.flare-button--text:not(.is-text):active:not(:disabled),
+.flare-button--quiet:not(.is-text):active:not(:disabled) { background: var(--flare-color-bg-hover); }
 .flare-button--secondary {
   background: var(--flare-color-bg-secondary);
   color: var(--flare-color-text-primary);
   border-color: var(--flare-color-border-primary);
 }
-.flare-button--secondary:hover:not(:disabled) { background: var(--flare-color-bg-selected); border-color: var(--flare-color-primary); }
 .flare-button--ghost {
   background: transparent;
   color: var(--flare-color-primary-text);
   border-color: color-mix(in srgb, var(--flare-color-primary) 40%, transparent);
 }
-.flare-button--ghost:hover:not(:disabled) { background: var(--flare-color-bg-selected); }
 .flare-button--danger {
   background: var(--flare-color-error);
   color: #fff;
 }
-.flare-button--danger:hover:not(:disabled) { filter: brightness(0.95); }
 .flare-button--text {
   background: transparent;
   color: var(--flare-color-primary-text);
   padding-left: 8px;
   padding-right: 8px;
 }
-.flare-button--text:hover:not(:disabled) { background: var(--flare-color-bg-secondary); }
 /* 中性的安静动作。和 text 的区别只有一条:不用品牌色 —— 它是配在主按钮旁边的那个出口,
    两个都用紫色就分不出主次。内距交给尺寸类,这样和它配对的主按钮同字数时同宽。 */
 .flare-button--quiet {
   background: transparent;
   color: var(--flare-color-text-secondary);
 }
-.flare-button--quiet:hover:not(:disabled) { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
 
 .flare-button.is-text {
   min-width: var(--flare-size-layout-touch-target);
@@ -135,8 +136,24 @@ const rsize = computed(() => props.size ?? config.size.value);
 .flare-button--primary.is-text { color: var(--flare-color-primary-text); font-weight: var(--flare-size-font-weight-semibold); }
 .flare-button--danger.is-text { color: var(--flare-color-error-text); }
 .flare-button--secondary.is-text { color: var(--flare-color-text-secondary); }
-/* Text actions never inherit the filled secondary button's hover border. */
-.flare-button.is-text:hover:not(:disabled) { background: transparent; border-color: transparent; filter: none; }
+/* Hover fills only where hover exists: on touch screens :hover sticks after a tap. Text actions never inherit the
+   filled secondary button's hover border. */
+@media (hover: hover) {
+  .flare-button--primary:hover:not(:disabled) { background: var(--flare-color-primary-hover); }
+  .flare-button--secondary:hover:not(:disabled) { background: var(--flare-color-bg-selected); border-color: var(--flare-color-primary); }
+  .flare-button--ghost:hover:not(:disabled) { background: var(--flare-color-bg-selected); }
+  .flare-button--danger:hover:not(:disabled) { background: var(--flare-color-error-hover); }
+  .flare-button--text:hover:not(:disabled) { background: var(--flare-color-bg-secondary); }
+  .flare-button--quiet:hover:not(:disabled) { color: var(--flare-color-text-primary); background: var(--flare-color-bg-secondary); }
+  .flare-button.is-text:hover:not(:disabled) { background: transparent; border-color: transparent; filter: none; }
+  /* Pressed after hovered: the pressed fill wins over the hover fill. */
+  .flare-button--primary:active:not(:disabled) { background: var(--flare-color-primary-active); }
+  .flare-button--danger:active:not(:disabled) { background: var(--flare-color-error-active); }
+  .flare-button--secondary:not(.is-text):active:not(:disabled),
+  .flare-button--ghost:not(.is-text):active:not(:disabled),
+  .flare-button--text:not(.is-text):active:not(:disabled),
+  .flare-button--quiet:not(.is-text):active:not(:disabled) { background: var(--flare-color-bg-hover); }
+}
 /* Keep text actions undecorated. Keyboard focus uses a semantic tint and weight;
    icon-only controls keep the standard focus outline. */
 .flare-button.is-text .flare-button__label { text-decoration: none; }

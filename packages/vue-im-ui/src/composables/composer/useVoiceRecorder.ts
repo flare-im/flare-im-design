@@ -8,7 +8,7 @@ export interface VoiceRecordingPayload {
   fileName: string;
 }
 
-export type VoiceRecorderErrorKind = "unsupported" | "microphone" | "failed";
+export type VoiceRecorderErrorKind = "unsupported" | "permissionDenied" | "microphoneMissing" | "microphoneBusy" | "microphone" | "failed";
 
 export interface UseVoiceRecorderOptions {
   adapter: FlareVoiceRecorderAdapter;
@@ -167,10 +167,16 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions): VoiceRecorde
       opened.start(timesliceMs);
       recording.value = true;
       startTimer();
-    } catch {
+    } catch (error) {
       if (mine !== request) return;
       dropSession();
-      options.onError?.("microphone");
+      // Use the capture API's structured reason, never the browser's raw text.
+      // Other host adapters may only report an unknown capture failure.
+      const name = error && typeof error === "object" && "name" in error ? error.name : undefined;
+      options.onError?.(name === "NotSupportedError" ? "unsupported"
+        : name === "NotAllowedError" ? "permissionDenied"
+        : name === "NotFoundError" ? "microphoneMissing"
+          : name === "NotReadableError" ? "microphoneBusy" : "microphone");
     } finally {
       if (mine === request) requestPending.value = false;
     }

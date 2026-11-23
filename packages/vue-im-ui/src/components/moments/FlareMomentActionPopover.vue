@@ -11,8 +11,14 @@ import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
  * own post and you do not delete someone else's. Hosts used to have nowhere to put
  * 举报 and hung a text button *below* the card, which put a per-post action outside
  * the post and gave the feed a different row rhythm for other people's moments.
+ *
+ * `canLike` / `canComment` (both on by default) take Like and Comment out of the group: a moment card leaves them out
+ * when its host does not take `like` / `comment`, so a feed that turned the feature off offers nothing that does
+ * nothing. A divider sits only between two actions that are drawn.
  */
-defineProps<{ liked?: boolean; canDelete?: boolean; canReport?: boolean }>();
+withDefaults(defineProps<{ liked?: boolean; canDelete?: boolean; canReport?: boolean; canLike?: boolean; canComment?: boolean }>(), {
+  liked: false, canDelete: false, canReport: false, canLike: true, canComment: true,
+});
 const emit = defineEmits<{
   (e: "like"): void;
   (e: "comment"): void;
@@ -24,17 +30,17 @@ const { t } = useFlareI18n();
 
 <template>
   <div class="flare-moment-actions" role="group">
-    <button type="button" class="flare-moment-actions__btn" @click="emit('like')">
+    <button v-if="canLike" type="button" class="flare-moment-actions__btn" @click="emit('like')">
       <n-icon aria-hidden="true" :size="16" :component="liked ? HeartDislikeOutline : HeartOutline" />
       {{ liked ? t("moment.unlike") : t("moment.like") }}
     </button>
-    <span class="flare-moment-actions__divider" />
-    <button type="button" class="flare-moment-actions__btn" @click="emit('comment')">
+    <span v-if="canLike && canComment" class="flare-moment-actions__divider" />
+    <button v-if="canComment" type="button" class="flare-moment-actions__btn" @click="emit('comment')">
       <n-icon aria-hidden="true" :size="16" :component="ChatbubbleOutline" />
       {{ t("moment.comment") }}
     </button>
     <template v-if="canDelete">
-      <span class="flare-moment-actions__divider" />
+      <span v-if="canLike || canComment" class="flare-moment-actions__divider" />
       <button type="button" class="flare-moment-actions__btn is-danger" @click="emit('delete')">
         <n-icon aria-hidden="true" :size="16" :component="TrashOutline" />
         {{ t("moment.delete") }}
@@ -43,7 +49,7 @@ const { t } = useFlareI18n();
     <!-- 举报 does not destroy anything of mine, so it keeps the normal tint: the danger
          colour stays reserved for "this deletes something of yours". -->
     <template v-else-if="canReport">
-      <span class="flare-moment-actions__divider" />
+      <span v-if="canLike || canComment" class="flare-moment-actions__divider" />
       <button type="button" class="flare-moment-actions__btn" @click="emit('report')">
         <n-icon aria-hidden="true" :size="16" :component="flareIcons['report']" />
         {{ t("moment.report") }}

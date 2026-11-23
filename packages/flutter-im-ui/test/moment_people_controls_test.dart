@@ -203,7 +203,7 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('without a cover image the header is a quiet neutral band', (
+  testWidgets('without a cover image the header is a quiet identity row', (
     tester,
   ) async {
     final handle = tester.ensureSemantics();
@@ -217,13 +217,24 @@ void main() {
       ),
     );
     final colors = FlareColors.of(tester.element(find.text('林夏')));
-    final band = tester.widget<ColoredBox>(
-      find.descendant(
-        of: find.byType(FlareMomentsCoverHeader),
-        matching: find.byType(ColoredBox),
-      ),
+    // Vue `.flare-moments-cover--empty`: the page ground over a hairline.
+    final band =
+        tester
+                .widget<DecoratedBox>(
+                  find
+                      .descendant(
+                        of: find.byType(FlareMomentsCoverHeader),
+                        matching: find.byType(DecoratedBox),
+                      )
+                      .first,
+                )
+                .decoration
+            as BoxDecoration;
+    expect(band.color, colors.bgPrimary);
+    expect(
+      band.border,
+      Border(bottom: BorderSide(color: colors.borderSecondary)),
     );
-    expect(band.color, colors.bgTertiary);
     final gradients = tester
         .widgetList<DecoratedBox>(
           find.descendant(
@@ -231,7 +242,11 @@ void main() {
             matching: find.byType(DecoratedBox),
           ),
         )
-        .where((box) => (box.decoration as BoxDecoration).gradient != null);
+        .where(
+          (box) =>
+              box.decoration is BoxDecoration &&
+              (box.decoration as BoxDecoration).gradient != null,
+        );
     expect(gradients, isEmpty, reason: 'no brand gradient or scrim');
     final name = tester.widget<Text>(find.text('林夏')).style!;
     expect(name.color, colors.textPrimary);

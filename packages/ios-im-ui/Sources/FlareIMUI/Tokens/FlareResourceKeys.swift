@@ -15,10 +15,21 @@ extension FlareStrings {
         case "on": return self.on
         case "off": return self.off
         case "callWaitingAnswer": return self.callWaitingAnswer
+        case "callDockWaiting": return self.callDockWaiting
+        case "callEnded": return self.callEnded
+        case "callAnswerAudio": return self.callAnswerAudio
+        case "callDecline": return self.callDecline
+        case "callEncrypted": return self.callEncrypted
+        case "callYou": return self.callYou
+        case "callRedial": return self.callRedial
+        case "callMaxParticipants": return self.callMaxParticipants
+        case "callInterrupted": return self.callInterrupted
         case "callCalling": return self.callCalling
+        case "callSwapVideo": return self.callSwapVideo
         case "callRinging": return self.callRinging
         case "callConnected": return self.callConnected
         case "callReconnecting": return self.callReconnecting
+        case "callReconnectingShort": return self.callReconnectingShort
         case "callFailed": return self.callFailed
         case "callInProgress": return self.callInProgress
         case "send": return self.send
@@ -93,6 +104,14 @@ extension FlareStrings {
         case "packetNotEligible": return self.packetNotEligible
         case "packetOpenFailed": return self.packetOpenFailed
         case "packetViewDetails": return self.packetViewDetails
+        case "packetViewResult": return self.packetViewResult
+        case "packetRefundNotice": return self.packetRefundNotice
+        case "packetGroupMembers": return self.packetGroupMembers
+        case "packetCountLimit": return self.packetCountLimit
+        case "packetClaimPendingReview": return self.packetClaimPendingReview
+        case "packetCountUnit": return self.packetCountUnit
+        case "packetChooseRecipient": return self.packetChooseRecipient
+        case "packetSend": return self.packetSend
         case "packetBestLuck": return self.packetBestLuck
         case "packetNoClaims": return self.packetNoClaims
         case "packetDetailTitle": return self.packetDetailTitle
@@ -273,6 +292,13 @@ extension FlareStrings {
         case "today": return self.today
         case "timeRange": return self.timeRange
         case "searchIdleHint": return self.searchIdleHint
+        case "searchViewMore": return self.searchViewMore
+        case "searchEmpty": return self.searchEmpty
+        case "searchEmptyHint": return self.searchEmptyHint
+        case "searchSearching": return self.searchSearching
+        case "recentSearchesTitle": return self.recentSearchesTitle
+        case "recentSearchesClear": return self.recentSearchesClear
+        case "recentSearchesClearLabel": return self.recentSearchesClearLabel
         case "resend": return self.resend
         case "groupPermissionMatrixTitle": return self.groupPermissionMatrixTitle
         case "groupPermissionMatrixReadOnlyHint": return self.groupPermissionMatrixReadOnlyHint
@@ -313,6 +339,8 @@ extension FlareStrings {
         case "inviteCodeChecking": return self.inviteCodeChecking
         case "inviteCodeValid": return self.inviteCodeValid
         case "inviteCodeInviter": return self.inviteCodeInviter
+        case "contactIndex": return self.contactIndex
+        case "contactJumpTo": return self.contactJumpTo
         case "inviteCodeInvalid": return self.inviteCodeInvalid
         case "inviteCodeScan": return self.inviteCodeScan
         case "myInviteTitle": return self.myInviteTitle
@@ -560,6 +588,7 @@ extension FlareStrings {
         case "profileEditorBio": return self.profileEditorBio
         case "profileEditorBioPlaceholder": return self.profileEditorBioPlaceholder
         case "profileEditorSave": return self.profileEditorSave
+        case "profileEditorUnsaved": return self.profileEditorUnsaved
         case "composerEmoji": return self.composerEmoji
         case "composerMention": return self.composerMention
         case "composerVoice": return self.composerVoice
@@ -598,6 +627,8 @@ extension FlareStrings {
         case "exitMultiSelect": return self.exitMultiSelect
         case "scrollToLatest": return self.scrollToLatest
         case "callMinimize": return self.callMinimize
+        case "callExpand": return self.callExpand
+        case "callCollapse": return self.callCollapse
         case "callPeerMuted": return self.callPeerMuted
         case "callSwitchToVideo": return self.callSwitchToVideo
         case "callDeviceOn": return self.callDeviceOn
@@ -720,6 +751,11 @@ extension FlareStrings {
         case "updatePromptMessageRequired": return self.updatePromptMessageRequired
         case "updatePromptMessageRequiredReadOnly": return self.updatePromptMessageRequiredReadOnly
         case "composerReadOnlyUpdate": return self.composerReadOnlyUpdate
+        case "composerEditingMessage": return self.composerEditingMessage
+        case "composerCancelEdit": return self.composerCancelEdit
+        case "composerSaveEdit": return self.composerSaveEdit
+        case "composerEditingPlaceholder": return self.composerEditingPlaceholder
+        case "composerAttachmentPreview": return self.composerAttachmentPreview
         case "updatePromptMessageMetered": return self.updatePromptMessageMetered
         case "updatePromptMessageMeteredUnknown": return self.updatePromptMessageMeteredUnknown
         case "updatePromptMessageReady": return self.updatePromptMessageReady
@@ -756,6 +792,7 @@ extension FlareStrings {
         case "versionPanelChecking": return self.versionPanelChecking
         case "versionPanelUpToDate": return self.versionPanelUpToDate
         case "settingsRowBadge": return self.settingsRowBadge
+        case "activityListUnreadSuffix": return self.activityListUnreadSuffix
         case "groupDetailSearchMembers": return self.groupDetailSearchMembers
         case "groupDetailNoMatchingMembers": return self.groupDetailNoMatchingMembers
         case "previewMessage": return self.previewMessage
@@ -808,6 +845,7 @@ extension FlareStrings {
         case "displayNameTemp": return self.displayNameTemp
         case "displayNameSeparator": return self.displayNameSeparator
         case "pluginViewSubmit": return self.pluginViewSubmit
+        case "pluginViewCopyReference": return self.pluginViewCopyReference
         case "pluginViewEnded": return self.pluginViewEnded
         case "pluginViewDeadlinePassed": return self.pluginViewDeadlinePassed
         case "pluginViewSeeAll": return self.pluginViewSeeAll
@@ -839,6 +877,20 @@ extension FlareStrings {
         case "messageSendFailedRetry": return self.messageSendFailedRetry
         case "messageDeleted": return self.messageDeleted
         case "pluginViewMore": return self.pluginViewMore
+        case "pluginViewUnknownStatus": return self.pluginViewUnknownStatus
+        case "pluginViewOffline": return self.pluginViewOffline
+        case "pluginViewAvailableOnline": return self.pluginViewAvailableOnline
+        case "pluginViewLoadFailedTitle": return self.pluginViewLoadFailedTitle
+        case "pluginViewNoOptions": return self.pluginViewNoOptions
+        case "pluginViewNoOptionsHelp": return self.pluginViewNoOptionsHelp
+        case "pluginViewUploading": return self.pluginViewUploading
+        case "pluginViewGroupCommon": return self.pluginViewGroupCommon
+        case "pluginViewGroupRecords": return self.pluginViewGroupRecords
+        case "pluginViewDone": return self.pluginViewDone
+        case "pluginViewEndOfList": return self.pluginViewEndOfList
+        case "pluginViewReferences": return self.pluginViewReferences
+        case "pluginViewFilterEmpty": return self.pluginViewFilterEmpty
+        case "pluginViewClearFilter": return self.pluginViewClearFilter
         case "pluginViewMe": return self.pluginViewMe
         case "pluginViewUnavailableDisabled": return self.pluginViewUnavailableDisabled
         case "pluginViewUnavailableNotInstalled": return self.pluginViewUnavailableNotInstalled
@@ -890,11 +942,18 @@ extension FlareStrings {
         case "documentCaptureShoot": return self.documentCaptureShoot
         case "documentCaptureRetake": return self.documentCaptureRetake
         case "documentCaptureUse": return self.documentCaptureUse
+        case "documentCaptureHintGlare": return self.documentCaptureHintGlare
+        case "documentSlotTapToCapture": return self.documentSlotTapToCapture
+        case "documentSlotUploadFailed": return self.documentSlotUploadFailed
+        case "documentSlotUploading": return self.documentSlotUploading
+        case "documentSlotCaptured": return self.documentSlotCaptured
+        case "documentSlotCapturedRetake": return self.documentSlotCapturedRetake
         case "documentCaptureFromAlbum": return self.documentCaptureFromAlbum
         case "documentCaptureProcessing": return self.documentCaptureProcessing
         case "documentCaptureCameraUnavailable": return self.documentCaptureCameraUnavailable
         case "documentCaptureTooLarge": return self.documentCaptureTooLarge
         case "documentCaptureFailed": return self.documentCaptureFailed
+        case "documentCaptureFormat": return self.documentCaptureFormat
         case "documentCaptureNotAccepted": return self.documentCaptureNotAccepted
         case "paymentConfirmationTitle": return self.paymentConfirmationTitle
         case "paymentConfirmationPayee": return self.paymentConfirmationPayee
@@ -906,10 +965,15 @@ extension FlareStrings {
         case "paymentConfirmationInvalid": return self.paymentConfirmationInvalid
         case "paymentConfirmationConfirm": return self.paymentConfirmationConfirm
         case "paymentConfirmationVerifying": return self.paymentConfirmationVerifying
+        case "paymentConfirmationInsufficient": return self.paymentConfirmationInsufficient
+        case "paymentConfirmationTopUp": return self.paymentConfirmationTopUp
+        case "paymentConfirmationStartAgain": return self.paymentConfirmationStartAgain
+        case "pinInputProgress": return self.pinInputProgress
         case "pluginProtectedMediaReason": return self.pluginProtectedMediaReason
         case "pluginProtectedMediaNotice": return self.pluginProtectedMediaNotice
         case "pluginProtectedMediaOwnNotice": return self.pluginProtectedMediaOwnNotice
         case "pluginProtectedMediaView": return self.pluginProtectedMediaView
+        case "pluginProtectedMediaTapToView": return self.pluginProtectedMediaTapToView
         case "pluginProtectedMediaHide": return self.pluginProtectedMediaHide
         case "pluginProtectedMediaUnavailable": return self.pluginProtectedMediaUnavailable
         case "pluginProtectedMediaNotPreviewable": return self.pluginProtectedMediaNotPreviewable
@@ -955,11 +1019,16 @@ extension FlareStrings {
         case "accountEmpty": return self.accountEmpty
         case "accountEmptyDescription": return self.accountEmptyDescription
         case "accountInformation": return self.accountInformation
+        case "accountOtherWallets": return self.accountOtherWallets
         case "accountEntryDetails": return self.accountEntryDetails
         case "accountEntryId": return self.accountEntryId
         case "accountType": return self.accountType
         case "accountToday": return self.accountToday
         case "accountYesterday": return self.accountYesterday
+        case "walletSetupTitle": return self.walletSetupTitle
+        case "walletSetupBody": return self.walletSetupBody
+        case "realnamePhotosNeeded": return self.realnamePhotosNeeded
+        case "realnamePhotosNeededOne": return self.realnamePhotosNeededOne
         case "accountOtherEntries": return self.accountOtherEntries
         case "accountShowBalance": return self.accountShowBalance
         case "accountHideBalance": return self.accountHideBalance
@@ -967,9 +1036,14 @@ extension FlareStrings {
         case "accountDayFormat": return self.accountDayFormat
         case "accountDayYearFormat": return self.accountDayYearFormat
         case "pluginViewEmpty": return self.pluginViewEmpty
+        case "pluginViewLoading": return self.pluginViewLoading
+        case "pluginViewLoadMore": return self.pluginViewLoadMore
+        case "pluginFormMoneyRange": return self.pluginFormMoneyRange
+        case "pluginViewStepPosition": return self.pluginViewStepPosition
         case "packetView": return self.packetView
         case "packetRefunded": return self.packetRefunded
         case "packetBadgeLucky": return self.packetBadgeLucky
+        case "packetBadgeLuckyShort": return self.packetBadgeLuckyShort
         case "packetBadgeExclusive": return self.packetBadgeExclusive
         case "packetForRecipient": return self.packetForRecipient
         case "packetNotEligibleName": return self.packetNotEligibleName
@@ -1048,6 +1122,7 @@ extension FlareStrings {
         case "scanImageDecoding": return self.scanImageDecoding
         case "scanImageError": return self.scanImageError
         case "scanNoCodeInImage": return self.scanNoCodeInImage
+        case "scanRescan": return self.scanRescan
         case "scanNoCamera": return self.scanNoCamera
         case "scanInsecureContext": return self.scanInsecureContext
         case "scanCameraBusy": return self.scanCameraBusy
@@ -1092,10 +1167,21 @@ extension FlareStrings {
         case "on": self.on = value
         case "off": self.off = value
         case "callWaitingAnswer": self.callWaitingAnswer = value
+        case "callDockWaiting": self.callDockWaiting = value
+        case "callEnded": self.callEnded = value
+        case "callAnswerAudio": self.callAnswerAudio = value
+        case "callDecline": self.callDecline = value
+        case "callEncrypted": self.callEncrypted = value
+        case "callYou": self.callYou = value
+        case "callRedial": self.callRedial = value
+        case "callMaxParticipants": self.callMaxParticipants = value
+        case "callInterrupted": self.callInterrupted = value
         case "callCalling": self.callCalling = value
+        case "callSwapVideo": self.callSwapVideo = value
         case "callRinging": self.callRinging = value
         case "callConnected": self.callConnected = value
         case "callReconnecting": self.callReconnecting = value
+        case "callReconnectingShort": self.callReconnectingShort = value
         case "callFailed": self.callFailed = value
         case "callInProgress": self.callInProgress = value
         case "send": self.send = value
@@ -1170,6 +1256,14 @@ extension FlareStrings {
         case "packetNotEligible": self.packetNotEligible = value
         case "packetOpenFailed": self.packetOpenFailed = value
         case "packetViewDetails": self.packetViewDetails = value
+        case "packetViewResult": self.packetViewResult = value
+        case "packetRefundNotice": self.packetRefundNotice = value
+        case "packetGroupMembers": self.packetGroupMembers = value
+        case "packetCountLimit": self.packetCountLimit = value
+        case "packetClaimPendingReview": self.packetClaimPendingReview = value
+        case "packetCountUnit": self.packetCountUnit = value
+        case "packetChooseRecipient": self.packetChooseRecipient = value
+        case "packetSend": self.packetSend = value
         case "packetBestLuck": self.packetBestLuck = value
         case "packetNoClaims": self.packetNoClaims = value
         case "packetDetailTitle": self.packetDetailTitle = value
@@ -1350,6 +1444,13 @@ extension FlareStrings {
         case "today": self.today = value
         case "timeRange": self.timeRange = value
         case "searchIdleHint": self.searchIdleHint = value
+        case "searchViewMore": self.searchViewMore = value
+        case "searchEmpty": self.searchEmpty = value
+        case "searchEmptyHint": self.searchEmptyHint = value
+        case "searchSearching": self.searchSearching = value
+        case "recentSearchesTitle": self.recentSearchesTitle = value
+        case "recentSearchesClear": self.recentSearchesClear = value
+        case "recentSearchesClearLabel": self.recentSearchesClearLabel = value
         case "resend": self.resend = value
         case "groupPermissionMatrixTitle": self.groupPermissionMatrixTitle = value
         case "groupPermissionMatrixReadOnlyHint": self.groupPermissionMatrixReadOnlyHint = value
@@ -1390,6 +1491,8 @@ extension FlareStrings {
         case "inviteCodeChecking": self.inviteCodeChecking = value
         case "inviteCodeValid": self.inviteCodeValid = value
         case "inviteCodeInviter": self.inviteCodeInviter = value
+        case "contactIndex": self.contactIndex = value
+        case "contactJumpTo": self.contactJumpTo = value
         case "inviteCodeInvalid": self.inviteCodeInvalid = value
         case "inviteCodeScan": self.inviteCodeScan = value
         case "myInviteTitle": self.myInviteTitle = value
@@ -1637,6 +1740,7 @@ extension FlareStrings {
         case "profileEditorBio": self.profileEditorBio = value
         case "profileEditorBioPlaceholder": self.profileEditorBioPlaceholder = value
         case "profileEditorSave": self.profileEditorSave = value
+        case "profileEditorUnsaved": self.profileEditorUnsaved = value
         case "composerEmoji": self.composerEmoji = value
         case "composerMention": self.composerMention = value
         case "composerVoice": self.composerVoice = value
@@ -1675,6 +1779,8 @@ extension FlareStrings {
         case "exitMultiSelect": self.exitMultiSelect = value
         case "scrollToLatest": self.scrollToLatest = value
         case "callMinimize": self.callMinimize = value
+        case "callExpand": self.callExpand = value
+        case "callCollapse": self.callCollapse = value
         case "callPeerMuted": self.callPeerMuted = value
         case "callSwitchToVideo": self.callSwitchToVideo = value
         case "callDeviceOn": self.callDeviceOn = value
@@ -1797,6 +1903,11 @@ extension FlareStrings {
         case "updatePromptMessageRequired": self.updatePromptMessageRequired = value
         case "updatePromptMessageRequiredReadOnly": self.updatePromptMessageRequiredReadOnly = value
         case "composerReadOnlyUpdate": self.composerReadOnlyUpdate = value
+        case "composerEditingMessage": self.composerEditingMessage = value
+        case "composerCancelEdit": self.composerCancelEdit = value
+        case "composerSaveEdit": self.composerSaveEdit = value
+        case "composerEditingPlaceholder": self.composerEditingPlaceholder = value
+        case "composerAttachmentPreview": self.composerAttachmentPreview = value
         case "updatePromptMessageMetered": self.updatePromptMessageMetered = value
         case "updatePromptMessageMeteredUnknown": self.updatePromptMessageMeteredUnknown = value
         case "updatePromptMessageReady": self.updatePromptMessageReady = value
@@ -1833,6 +1944,7 @@ extension FlareStrings {
         case "versionPanelChecking": self.versionPanelChecking = value
         case "versionPanelUpToDate": self.versionPanelUpToDate = value
         case "settingsRowBadge": self.settingsRowBadge = value
+        case "activityListUnreadSuffix": self.activityListUnreadSuffix = value
         case "groupDetailSearchMembers": self.groupDetailSearchMembers = value
         case "groupDetailNoMatchingMembers": self.groupDetailNoMatchingMembers = value
         case "previewMessage": self.previewMessage = value
@@ -1885,6 +1997,7 @@ extension FlareStrings {
         case "displayNameTemp": self.displayNameTemp = value
         case "displayNameSeparator": self.displayNameSeparator = value
         case "pluginViewSubmit": self.pluginViewSubmit = value
+        case "pluginViewCopyReference": self.pluginViewCopyReference = value
         case "pluginViewEnded": self.pluginViewEnded = value
         case "pluginViewDeadlinePassed": self.pluginViewDeadlinePassed = value
         case "pluginViewSeeAll": self.pluginViewSeeAll = value
@@ -1916,6 +2029,20 @@ extension FlareStrings {
         case "messageSendFailedRetry": self.messageSendFailedRetry = value
         case "messageDeleted": self.messageDeleted = value
         case "pluginViewMore": self.pluginViewMore = value
+        case "pluginViewUnknownStatus": self.pluginViewUnknownStatus = value
+        case "pluginViewOffline": self.pluginViewOffline = value
+        case "pluginViewAvailableOnline": self.pluginViewAvailableOnline = value
+        case "pluginViewLoadFailedTitle": self.pluginViewLoadFailedTitle = value
+        case "pluginViewNoOptions": self.pluginViewNoOptions = value
+        case "pluginViewNoOptionsHelp": self.pluginViewNoOptionsHelp = value
+        case "pluginViewUploading": self.pluginViewUploading = value
+        case "pluginViewGroupCommon": self.pluginViewGroupCommon = value
+        case "pluginViewGroupRecords": self.pluginViewGroupRecords = value
+        case "pluginViewDone": self.pluginViewDone = value
+        case "pluginViewEndOfList": self.pluginViewEndOfList = value
+        case "pluginViewReferences": self.pluginViewReferences = value
+        case "pluginViewFilterEmpty": self.pluginViewFilterEmpty = value
+        case "pluginViewClearFilter": self.pluginViewClearFilter = value
         case "pluginViewMe": self.pluginViewMe = value
         case "pluginViewUnavailableDisabled": self.pluginViewUnavailableDisabled = value
         case "pluginViewUnavailableNotInstalled": self.pluginViewUnavailableNotInstalled = value
@@ -1967,11 +2094,18 @@ extension FlareStrings {
         case "documentCaptureShoot": self.documentCaptureShoot = value
         case "documentCaptureRetake": self.documentCaptureRetake = value
         case "documentCaptureUse": self.documentCaptureUse = value
+        case "documentCaptureHintGlare": self.documentCaptureHintGlare = value
+        case "documentSlotTapToCapture": self.documentSlotTapToCapture = value
+        case "documentSlotUploadFailed": self.documentSlotUploadFailed = value
+        case "documentSlotUploading": self.documentSlotUploading = value
+        case "documentSlotCaptured": self.documentSlotCaptured = value
+        case "documentSlotCapturedRetake": self.documentSlotCapturedRetake = value
         case "documentCaptureFromAlbum": self.documentCaptureFromAlbum = value
         case "documentCaptureProcessing": self.documentCaptureProcessing = value
         case "documentCaptureCameraUnavailable": self.documentCaptureCameraUnavailable = value
         case "documentCaptureTooLarge": self.documentCaptureTooLarge = value
         case "documentCaptureFailed": self.documentCaptureFailed = value
+        case "documentCaptureFormat": self.documentCaptureFormat = value
         case "documentCaptureNotAccepted": self.documentCaptureNotAccepted = value
         case "paymentConfirmationTitle": self.paymentConfirmationTitle = value
         case "paymentConfirmationPayee": self.paymentConfirmationPayee = value
@@ -1983,10 +2117,15 @@ extension FlareStrings {
         case "paymentConfirmationInvalid": self.paymentConfirmationInvalid = value
         case "paymentConfirmationConfirm": self.paymentConfirmationConfirm = value
         case "paymentConfirmationVerifying": self.paymentConfirmationVerifying = value
+        case "paymentConfirmationInsufficient": self.paymentConfirmationInsufficient = value
+        case "paymentConfirmationTopUp": self.paymentConfirmationTopUp = value
+        case "paymentConfirmationStartAgain": self.paymentConfirmationStartAgain = value
+        case "pinInputProgress": self.pinInputProgress = value
         case "pluginProtectedMediaReason": self.pluginProtectedMediaReason = value
         case "pluginProtectedMediaNotice": self.pluginProtectedMediaNotice = value
         case "pluginProtectedMediaOwnNotice": self.pluginProtectedMediaOwnNotice = value
         case "pluginProtectedMediaView": self.pluginProtectedMediaView = value
+        case "pluginProtectedMediaTapToView": self.pluginProtectedMediaTapToView = value
         case "pluginProtectedMediaHide": self.pluginProtectedMediaHide = value
         case "pluginProtectedMediaUnavailable": self.pluginProtectedMediaUnavailable = value
         case "pluginProtectedMediaNotPreviewable": self.pluginProtectedMediaNotPreviewable = value
@@ -2032,11 +2171,16 @@ extension FlareStrings {
         case "accountEmpty": self.accountEmpty = value
         case "accountEmptyDescription": self.accountEmptyDescription = value
         case "accountInformation": self.accountInformation = value
+        case "accountOtherWallets": self.accountOtherWallets = value
         case "accountEntryDetails": self.accountEntryDetails = value
         case "accountEntryId": self.accountEntryId = value
         case "accountType": self.accountType = value
         case "accountToday": self.accountToday = value
         case "accountYesterday": self.accountYesterday = value
+        case "walletSetupTitle": self.walletSetupTitle = value
+        case "walletSetupBody": self.walletSetupBody = value
+        case "realnamePhotosNeeded": self.realnamePhotosNeeded = value
+        case "realnamePhotosNeededOne": self.realnamePhotosNeededOne = value
         case "accountOtherEntries": self.accountOtherEntries = value
         case "accountShowBalance": self.accountShowBalance = value
         case "accountHideBalance": self.accountHideBalance = value
@@ -2044,9 +2188,14 @@ extension FlareStrings {
         case "accountDayFormat": self.accountDayFormat = value
         case "accountDayYearFormat": self.accountDayYearFormat = value
         case "pluginViewEmpty": self.pluginViewEmpty = value
+        case "pluginViewLoading": self.pluginViewLoading = value
+        case "pluginViewLoadMore": self.pluginViewLoadMore = value
+        case "pluginFormMoneyRange": self.pluginFormMoneyRange = value
+        case "pluginViewStepPosition": self.pluginViewStepPosition = value
         case "packetView": self.packetView = value
         case "packetRefunded": self.packetRefunded = value
         case "packetBadgeLucky": self.packetBadgeLucky = value
+        case "packetBadgeLuckyShort": self.packetBadgeLuckyShort = value
         case "packetBadgeExclusive": self.packetBadgeExclusive = value
         case "packetForRecipient": self.packetForRecipient = value
         case "packetNotEligibleName": self.packetNotEligibleName = value
@@ -2125,6 +2274,7 @@ extension FlareStrings {
         case "scanImageDecoding": self.scanImageDecoding = value
         case "scanImageError": self.scanImageError = value
         case "scanNoCodeInImage": self.scanNoCodeInImage = value
+        case "scanRescan": self.scanRescan = value
         case "scanNoCamera": self.scanNoCamera = value
         case "scanInsecureContext": self.scanInsecureContext = value
         case "scanCameraBusy": self.scanCameraBusy = value
@@ -2195,6 +2345,8 @@ let flareColorKeys: Set<String> = [
     "messageReactionBackground",
     "messageReactionSelected",
     "error",
+    "errorHover",
+    "errorActive",
     "errorText",
     "focusRing",
     "important",
@@ -2241,12 +2393,31 @@ let flareColorKeys: Set<String> = [
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "redPacketEndHover",
+    "redPacketEndActive",
     "chartSeries1",
     "chartSeries2",
     "chartSeries3",
     "chartSeries4",
     "chartSeries5",
     "chartSeries6",
+    "callStage",
+    "callStageTint",
+    "callOnStage",
+    "callOnStageSecondary",
+    "callControl",
+    "callControlHover",
+    "callControlActive",
+    "callOnControlActive",
+    "callHangup",
+    "callHangupPressed",
+    "callAccept",
+    "callAcceptPressed",
+    "callSpeaking",
+    "callTile",
+    "callChip",
+    "callPopover",
+    "callErrorText",
 ]
 
 extension FlareColors {
@@ -2288,6 +2459,8 @@ extension FlareColors {
             messageReactionBackground: values["messageReactionBackground"],
             messageReactionSelected: values["messageReactionSelected"],
             error: values["error"],
+            errorHover: values["errorHover"],
+            errorActive: values["errorActive"],
             errorText: values["errorText"],
             focusRing: values["focusRing"],
             important: values["important"],
@@ -2334,12 +2507,31 @@ extension FlareColors {
             redPacketFadedInk: values["redPacketFadedInk"],
             redPacketFadedMixTarget: values["redPacketFadedMixTarget"],
             redPacketAccent: values["redPacketAccent"],
+            redPacketEndHover: values["redPacketEndHover"],
+            redPacketEndActive: values["redPacketEndActive"],
             chartSeries1: values["chartSeries1"],
             chartSeries2: values["chartSeries2"],
             chartSeries3: values["chartSeries3"],
             chartSeries4: values["chartSeries4"],
             chartSeries5: values["chartSeries5"],
-            chartSeries6: values["chartSeries6"]
+            chartSeries6: values["chartSeries6"],
+            callStage: values["callStage"],
+            callStageTint: values["callStageTint"],
+            callOnStage: values["callOnStage"],
+            callOnStageSecondary: values["callOnStageSecondary"],
+            callControl: values["callControl"],
+            callControlHover: values["callControlHover"],
+            callControlActive: values["callControlActive"],
+            callOnControlActive: values["callOnControlActive"],
+            callHangup: values["callHangup"],
+            callHangupPressed: values["callHangupPressed"],
+            callAccept: values["callAccept"],
+            callAcceptPressed: values["callAcceptPressed"],
+            callSpeaking: values["callSpeaking"],
+            callTile: values["callTile"],
+            callChip: values["callChip"],
+            callPopover: values["callPopover"],
+            callErrorText: values["callErrorText"]
         )
     }
 }

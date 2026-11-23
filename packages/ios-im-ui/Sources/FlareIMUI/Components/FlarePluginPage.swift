@@ -30,6 +30,14 @@ import SwiftUI
 ///
 /// The host fetches: `onRefresh`, `onRetry`, `onLoadMore` and `onFilter` are requests; the kit calls nothing and
 /// draws nothing the view does not declare.
+///
+/// docs/plugin-experience.md §2: actions draw by the page's archetype (R2: overview quick keys and list cards, a
+/// task's bottom bar pinned on touch, a records page's header key; ``PluginViewActionLayout/page``); the refresh key
+/// and pull only on a data page, a 2-high bar while refreshing (R1); after an action settles cleanly the kit asks for
+/// a read (`onRefresh(.action)`, R4); `appearance` nil derives the account appearance from the view's structure
+/// (R12); a result block draws ``FlareResultView`` and polls while pending (R7); nothing for 300 ms then a skeleton,
+/// a failed first read as an empty state with retry, `offline` as a warning banner with every action disabled, an
+/// action failure as a dismissible banner (R8).
 public struct FlarePluginPage: View {
     private var providerName: String? = nil
     private var visible = true
@@ -60,14 +68,37 @@ public struct FlarePluginPage: View {
     private let onMembersRetry: (() -> Void)?
     private let settleToken: Int
     private let onBack: (() -> Void)?
-    private let onRefresh: (() -> Void)?
+    /// A read the page asks for, with why (R1 pull and key, R4 action, R7 and `refreshMs` timer).
+    private let onRefresh: ((PluginRefreshReason) -> Void)?
     private let onRetry: (() -> Void)?
     private let onLoadMore: ((String) -> Void)?
     private let onFilter: (([String: PluginJSONValue]) -> Void)?
     private let fileStates: [String: PluginFileState]
     private let onFileAction: ((PluginFileAction) -> Void)?
     private let onAction: ((String, PluginPageActionPayload) -> Void)?
-    private var appearance: FlarePluginPageAppearance = .document
+    private var appearance: FlarePluginPageAppearance?
+    /// The conversation's group size counting the viewer (the host's own group data): the red packet page's 「本群共 N 人」.
+    private var memberCount: Int?
+    private var offline = false
+    private var onDone: (() -> Void)?
+    /// §4.7: an unselected tab chosen — the host replaces this page with that sibling page (same plugin, arguments and
+    /// conversation, no new back step) and reads it.
+    private var onTab: ((String) -> Void)?
+    /// The tabs last drawn, kept while a chosen tab's page loads (spec rules.pageTabs).
+    @State private var lastTabs: [PluginPageTab] = []
+    /// The header key and the bottom bar the embedded view hands up (R2.2, R2.3).
+    @State private var chrome: PluginPageChrome?
+    /// The page's own form's submit key, pinned on touch (R6).
+    @State private var formSubmit: PluginFormSubmit?
+    /// R8: the skeleton waits 300 ms.
+    @State private var skeletonDue = false
+    /// R8: the action failure the viewer closed.
+    @State private var dismissedError: String?
+    /// An action form is open below: it shows the action's failure, so the page shows no banner for it.
+    @State private var formOpen = false
+    /// 5.8: the page asked for a next page at least once: no cursor left then reads "没有更多了".
+    @State private var pagedOnce = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var upgradeStatus: PluginUpgradeStatus?
     private var upgradeBusy = false
     private var onUpdate: (() -> Void)?
@@ -106,12 +137,13 @@ public struct FlarePluginPage: View {
                 resolveUser: (@Sendable (String) async -> PluginUser?)? = nil, viewerId: String? = nil,
                 busyActionId: String? = nil, actionError: String? = nil, formErrors: [PluginFormError] = [],
                 members: [PluginMember] = [], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
+                memberCount: Int? = nil,
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, settleToken: Int = 0,
-                onBack: (() -> Void)? = nil, onRefresh: (() -> Void)? = nil, onRetry: (() -> Void)? = nil,
+                onBack: (() -> Void)? = nil, onRefresh: ((PluginRefreshReason) -> Void)? = nil, onRetry: (() -> Void)? = nil,
                 onLoadMore: ((String) -> Void)? = nil, onFilter: (([String: PluginJSONValue]) -> Void)? = nil,
                 fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil,
                 onAction: ((String, PluginPageActionPayload) -> Void)? = nil,
-                appearance: FlarePluginPageAppearance = .document,
+                appearance: FlarePluginPageAppearance? = nil,
                 contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth,
                 providerName: String? = nil, visible: Bool = true,
                 encodeQr: (@Sendable (String) async throws -> String)? = nil,
@@ -122,18 +154,20 @@ public struct FlarePluginPage: View {
                 locationStates: [String: PluginLocationState] = [:],
                 onLocationAction: ((PluginLocationAction) -> Void)? = nil,
                 protectedMedia: [String: PluginProtectedMediaState] = [:],
-                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil,
+                offline: Bool = false, onDone: (() -> Void)? = nil, onTab: ((String) -> Void)? = nil) {
         self.init(page: page, title: title, view: view, filters: filters, loading: loading, error: error,
                   refreshing: refreshing, loadingMore: loadingMore, pagingToken: pagingToken, resolveUser: resolveUser, viewerId: viewerId,
                   busyActionId: busyActionId, actionError: actionError, formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                   settleToken: settleToken, onBack: onBack, onRefresh: onRefresh, onRetry: onRetry,
                   onLoadMore: onLoadMore, onFilter: onFilter, fileStates: fileStates, onFileAction: onFileAction, onAction: onAction, clock: .system, contentMaxWidth: contentMaxWidth)
-        self.appearance = appearance
+        self.appearance = appearance; self.memberCount = memberCount
         self.providerName = providerName; self.visible = visible; self.encodeQr = encodeQr; self.onSurfaceHints = onSurfaceHints
         self.upgradeStatus = upgradeStatus; self.upgradeBusy = upgradeBusy; self.onUpdate = onUpdate
         self.resolveImage = resolveImage; self.onQrRefresh = onQrRefresh
         self.locationStates = locationStates; self.onLocationAction = onLocationAction
         self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
+        self.offline = offline; self.onDone = onDone; self.onTab = onTab
     }
 
     /// The page at a fixed clock — how the tests pin `now` and the zone of the rows' time cells.
@@ -142,7 +176,7 @@ public struct FlarePluginPage: View {
          resolveUser: (@Sendable (String) async -> PluginUser?)?, viewerId: String?, busyActionId: String?,
          actionError: String?, formErrors: [PluginFormError], members: [PluginMember], membersLoading: Bool = false, membersRevision: Int = 0, membersError: String? = nil,
                 onMemberSearch: ((String) -> Void)? = nil, onMembersRetry: (() -> Void)? = nil, settleToken: Int,
-         onBack: (() -> Void)?, onRefresh: (() -> Void)?, onRetry: (() -> Void)?, onLoadMore: ((String) -> Void)?,
+         onBack: (() -> Void)?, onRefresh: ((PluginRefreshReason) -> Void)?, onRetry: (() -> Void)?, onLoadMore: ((String) -> Void)?,
          onFilter: (([String: PluginJSONValue]) -> Void)?,
          fileStates: [String: PluginFileState] = [:], onFileAction: ((PluginFileAction) -> Void)? = nil, onAction: ((String, PluginPageActionPayload) -> Void)?,
          clock: PluginViewClock, contentMaxWidth: CGFloat? = FlareSizes.directoryContentMaxWidth) {
@@ -184,10 +218,35 @@ public struct FlarePluginPage: View {
     /// The refresh key belongs to the header on a pointer; touch pulls to refresh.
     static var refreshKeyInHeader: Bool { FlareMessageMenuSource.pointerIdiom }
 
+    /// R1: the body's side margin — 24 on a pointer (PC, iPad), 16 on a phone.
+    static var pageMargin: CGFloat { refreshKeyInHeader ? FlareSizes.spacing2xl : FlareSizes.spacingLg }
+
     private var phase: Phase { Self.phase(loading: loading, error: error, view: view) }
 
-    /// Only a shown page refreshes.
-    private var canRefresh: Bool { onRefresh != nil && phase == .loaded }
+    /// Only a shown data page refreshes (R1).
+    private var canRefresh: Bool {
+        guard onRefresh != nil, phase == .loaded, let view else { return false }
+        return effectiveAppearance == .account
+            || PluginExperienceRules.showsRefreshKey(view.view, inlineFormActionId: inlineFormActionId)
+    }
+
+    private var effectiveAppearance: FlarePluginPageAppearance {
+        PluginExperienceRules.appearance(appearance, view?.view)
+    }
+
+    /// The page's own form shown in place (R6), on a document page.
+    private var inlineFormActionId: String? {
+        guard let view, effectiveAppearance == .document else { return nil }
+        return PluginExperienceRules.pageInlineForm(view.view, hasAction: onAction != nil)
+    }
+
+    private func requestRefresh(_ reason: PluginRefreshReason) { onRefresh?(reason) }
+
+    /// R7: the result shown is pending — the page reads again every 3 s for at most a minute.
+    private var resultPending: Bool {
+        guard let view, let result = PluginExperienceRules.resultBlock(view.view) else { return false }
+        return !result.unmapped && result.state == "pending"
+    }
 
     /// The filters wait while the page is read again or grows.
     private var filtersWaiting: Bool { loading || (refreshing && !automaticRefresh) || loadingMore }
@@ -196,11 +255,28 @@ public struct FlarePluginPage: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let screen = FlareScreen(title: Self.heading(view: view, title: title), onBack: onBack, surface: .surface,
                                  actions: headerActions, contentMaxWidth: contentMaxWidth) {
-            pageBody(colors)
-                .padding(.horizontal, FlareSizes.spacingLg)
+            VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
+                tabRow
+                pageBody(colors)
+            }
+                .padding(.horizontal, Self.pageMargin)
                 .padding(.top, FlareSizes.spacingMd)
                 .padding(.bottom, FlareSizes.spacingXl)
         }
+        .overlay(alignment: .top) {
+            // R1: a 2-high bar under the header while a read the viewer asked for runs.
+            if refreshing && !automaticRefresh && phase == .loaded {
+                PluginRefreshBar(still: reduceMotion).padding(.top, FlareSizes.screenHeaderHeight)
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if phase == .loaded, formSubmit != nil || !((chrome?.bar ?? []) + (chrome?.barSecondary ?? [])).isEmpty {
+                bottomBar(chrome, colors)
+            }
+        }
+        .onPreferenceChange(PluginPageChromeKey.self) { chrome = $0 }
+        .onPreferenceChange(PluginFormSubmitKey.self) { formSubmit = $0 }
+        .onPreferenceChange(PluginFormOpenKey.self) { formOpen = $0 }
         Group {
             if canRefresh, !Self.refreshKeyInHeader {
                 screen.refreshable { await pull() }
@@ -210,7 +286,29 @@ public struct FlarePluginPage: View {
         }
         // A failure, the host stopping or a page read again frees the load-more key; a merged page moves it on.
         .onChange(of: loadingMore) { loading in if !loading { paging.release() } }
-        .onChange(of: settleToken) { _ in paging.release() }
+        .onChange(of: settleToken) { _ in
+            paging.release()
+            dismissedError = nil
+            // R4: a clean settle while the page shows asks for a read.
+            let settle: PluginRefreshRules.Settle = !(actionError ?? "").isEmpty ? .error : !formErrors.isEmpty ? .formErrors : .ok
+            if phase == .loaded, let reason = PluginRefreshRules.afterAction(settle, visible: visible) { requestRefresh(reason) }
+        }
+        .task(id: phase == .loading) {
+            skeletonDue = false
+            guard phase == .loading else { return }
+            try? await Task.sleep(nanoseconds: UInt64(PluginExperienceRules.skeletonDelayMs) * 1_000_000)
+            if !Task.isCancelled { skeletonDue = true }
+        }
+        .task(id: resultPending) {
+            guard resultPending else { return }
+            var waited = 0
+            while !Task.isCancelled, waited < PluginExperienceRules.resultPollForMs {
+                try? await Task.sleep(nanoseconds: UInt64(PluginExperienceRules.resultPollMs) * 1_000_000)
+                waited += PluginExperienceRules.resultPollMs
+                guard !Task.isCancelled else { return }
+                if visible, !refreshing, !loading { automaticRefresh = true; requestRefresh(.timer) }
+            }
+        }
         .onChange(of: pagingToken) { _ in paging.release() }
         .onChange(of: actionError) { next in if !(next ?? "").isEmpty { paging.release() } }
         .onChange(of: error) { next in if !(next ?? "").isEmpty { paging.release() } }
@@ -219,6 +317,8 @@ public struct FlarePluginPage: View {
             if !next { automaticRefresh = false }
             if !next { paging.release() }
         }
+        .onAppear { keepTabs(view) }
+        .onChange(of: view) { keepTabs($0) }
         .onAppear { updateScanSurface(); if let value = view?.refreshMs, (3000...60000).contains(value) { refreshInterval = value } }
         .onDisappear { onSurfaceHints?(FlareScanSurfaceHints(secure: false, maxBrightness: false)) }
         .onChange(of: view?.refreshMs) { value in if let value, (3000...60000).contains(value) { refreshInterval = value } }
@@ -233,7 +333,7 @@ public struct FlarePluginPage: View {
                 if flareScanPluginCanRefresh(visible: visible, foreground: scenePhase == .active,
                     loading: loading || loadingMore, refreshing: refreshing, busy: busyActionId != nil,
                     interaction: !(view?.view.inputs.isEmpty ?? true)) {
-                    automaticRefresh = true; onRefresh?()
+                    automaticRefresh = true; requestRefresh(.timer)
                 }
             }
         }
@@ -241,20 +341,88 @@ public struct FlarePluginPage: View {
         .accessibilityLabel(Self.heading(view: view, title: title))
     }
 
-    /// The pointer's refresh key, spinning while the host refreshes.
+    /// The header: a records page's primary key (R2.3: a secondary key on a pointer, a text key on touch) and the
+    /// pointer's refresh key (waiting while the host refreshes; the bar under the header shows it).
     private var headerActions: AnyView? {
-        guard canRefresh, Self.refreshKeyInHeader else { return nil }
-        if refreshing && !automaticRefresh {
-            return AnyView(ProgressView().controlSize(.small).flareTouchTarget()
-                .accessibilityLabel(strings.loading))
+        let keys = phase == .loaded ? chrome?.header ?? [] : []
+        let refresh = canRefresh && Self.refreshKeyInHeader
+        guard refresh || !keys.isEmpty else { return nil }
+        return AnyView(HStack(spacing: FlareSizes.spacingXs) {
+            if let chrome {
+                ForEach(keys) { action in
+                    ButtonView(label: action.label, variant: Self.refreshKeyInHeader ? .secondary : .text, size: .sm,
+                               loading: chrome.busyActionId == action.id,
+                               disabled: (chrome.locked && chrome.busyActionId != action.id) || action.disabledReason != nil,
+                               maintainTouchTarget: true) { chrome.run(action) }
+                }
+            }
+            if refresh {
+                IconButtonView(icon: "refresh", accessibilityLabel: strings.pluginPageRefresh,
+                               disabled: refreshing && !automaticRefresh) { requestRefresh(.key) }
+            }
+        })
+    }
+
+    /// R2.2 on touch: the task's keys pinned over the safe area — quiet secondaries over the full-width primary.
+    private func bottomBar(_ chrome: PluginPageChrome?, _ colors: FlareColors) -> some View {
+        VStack(spacing: FlareSizes.spacingSm) {
+            if let chrome, !chrome.barSecondary.isEmpty {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    ForEach(chrome.barSecondary) { action in
+                        ButtonView(label: action.label, variant: .quiet, loading: chrome.busyActionId == action.id,
+                                   disabled: (chrome.locked && chrome.busyActionId != action.id) || action.disabledReason != nil,
+                                   block: true) { chrome.run(action) }
+                    }
+                }
+            }
+            if let formSubmit {
+                ButtonView(label: formSubmit.label, size: .lg, loading: formSubmit.busy,
+                           disabled: formSubmit.disabled || offline, block: true, action: formSubmit.submit)
+                if let caption = formSubmit.caption { PluginCaption(text: caption) }
+            } else if let chrome {
+                ForEach(chrome.bar) { action in
+                    ButtonView(label: action.label, variant: action.style == .danger ? .danger : .primary, size: .lg,
+                               loading: chrome.busyActionId == action.id,
+                               disabled: (chrome.locked && chrome.busyActionId != action.id) || action.disabledReason != nil,
+                               block: true) { chrome.run(action) }
+                    if let reason = action.disabledReason { PluginCaption(text: reason) }
+                }
+            }
+            if formSubmit != nil ? offline : chrome?.offline == true { PluginCaption(text: strings.pluginViewAvailableOnline) }
         }
-        return AnyView(IconButtonView(icon: "refresh", accessibilityLabel: strings.pluginPageRefresh, action: onRefresh))
+        .padding(.horizontal, Self.pageMargin)
+        .padding(.vertical, FlareSizes.spacingMd)
+        .frame(maxWidth: contentMaxWidth ?? .infinity)
+        .frame(maxWidth: .infinity)
+        .background(colors.bgPrimary.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
+    }
+
+    /// The tabs drawn now (spec rules.pageTabs).
+    private var tabs: [PluginPageTab] { PluginPageRules.tabs(view: view, page: page.page, last: lastTabs) }
+
+    private func keepTabs(_ view: PluginPageViewModel?) {
+        if let view, view.view.available, view.tabs.count >= 2 { lastTabs = view.tabs }
+    }
+
+    /// §4.7: the sibling pages as the kit segmented control (a tab list), above banners, filters and blocks.
+    @ViewBuilder private var tabRow: some View {
+        let tabs = self.tabs
+        if tabs.count >= 2 {
+            SegmentedControlView(options: tabs.map(\.label), selectedIndex: tabs.firstIndex(where: \.selected) ?? 0,
+                                 onSelect: { index in
+                                     if let next = PluginPageRules.tabChoice(tabs, index: index) { onTab?(next) }
+                                 })
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Self.heading(view: view, title: title))
+        }
     }
 
     /// A pull asks the host and holds the indicator until `refreshing` has been set and cleared (or a short wait
     /// passed without the host ever setting it).
     private func pull() async {
-        onRefresh?()
+        requestRefresh(.pull)
         var waited = 0
         while !Task.isCancelled {
             if !refreshInFlight, waited >= 3 { return }
@@ -266,19 +434,18 @@ public struct FlarePluginPage: View {
     @ViewBuilder private func pageBody(_ colors: FlareColors) -> some View {
         switch phase {
         case .loading:
-            ProgressView()
-                .tint(colors.primaryText)
-                .frame(maxWidth: .infinity, minHeight: 160)
-                .accessibilityLabel(strings.loading)
-        case .error:
-            VStack(spacing: FlareSizes.spacingMd) {
-                Text(error ?? "")
-                    .font(.system(size: FlareSizes.fontSizeLg * textScale))
-                    .foregroundColor(colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                retryKey
+            // R8: nothing for 300 ms, then the records skeleton (the archetype is unknown before a view).
+            Group {
+                if skeletonDue { SkeletonView(variant: .list, rows: 6, still: reduceMotion).padding(-FlareSizes.spacingLg) }
+                else { Color.clear.frame(height: 160) }
             }
             .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(strings.pluginViewLoading)
+        case .error:
+            EmptyStateView(title: strings.pluginViewLoadFailedTitle, description: error, icon: "error",
+                           actions: AnyView(retryKey))
+                .frame(maxWidth: .infinity)
         case .unavailable:
             if let view, view.view.upgradeRequired {
                 FlarePluginUpgradeNotice(variant: .page, title: Self.heading(view: view, title: title),
@@ -291,40 +458,88 @@ public struct FlarePluginPage: View {
             }
         case .loaded:
             if let view {
-                VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+                // §11: a red packet renderer the kit draws itself (it shows its own action errors).
+                let redPacket = FlareRedPacketPagePlan.of(view.view)
+                VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
+                    if offline { StatusBannerView(text: strings.pluginViewOffline, tone: .warning) }
+                    // R8: an action failure leads the page in a banner the viewer can close (the account view's too).
+                    if let actionError, !actionError.isEmpty, actionError != dismissedError, redPacket == nil, !formOpen {
+                        StatusBannerView(text: actionError, tone: .danger, dismissible: true,
+                                         onDismiss: { dismissedError = actionError })
+                    }
                     if let error, !error.isEmpty {
                         StatusBannerView(text: error, tone: .danger,
-                                         actionText: onRefresh != nil && !refreshing ? strings.retry : nil,
-                                         onAction: !refreshing ? onRefresh : nil)
+                                         actionText: canRefresh && !refreshing ? strings.retry : nil,
+                                         onAction: !refreshing ? { requestRefresh(.key) } : nil)
                     }
                     if let providerName, !providerName.isEmpty { Text(strings.scanProvidedBy.replacingOccurrences(of: "{name}", with: providerName)).foregroundColor(colors.textSecondary) }
                     if let presentation = view.view.presentation, presentation.renderer == "flare.qr" {
                         FlarePluginQrView(token: presentation.props["token"]?.stringValue, ttlMs: presentation.props["ttlMs"]?.numberValue, caption: presentation.props["caption"]?.stringValue, encodeQr: encodeQr)
                     }
                     filterRows(view.view)
-                    if appearance == .account {
+                    if let redPacket {
+                        redPacketPage(redPacket, view)
+                    } else if effectiveAppearance == .account {
                         FlareAccountView(view: view.view, busyActionId: busyActionId, error: actionError,
                                          formErrors: formErrors, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  settleToken: settleToken,
-                                         fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view))
+                                         fileStates: fileStates, onFileAction: onFileAction, offline: offline,
+                                         resolveUser: resolveUser, viewerId: viewerId, onAction: pageAction(view))
                             .accountContentWidth(contentMaxWidth)
+                            .accountErrorShownAbove()
+                            .environment(\.flarePluginClearFilters, clearFilters(view.view))
                     } else {
                     PluginView(view: view.view, icon: nil, viewerId: viewerId, busy: false, busyActionId: busyActionId,
-                               error: actionError, embedded: true, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
+                               error: actionError, embedded: true, actionLayout: .page, showError: false,
+                               inlineFormActionId: inlineFormActionId,
+                               resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
                                formErrors: formErrors, settleToken: settleToken, fileStates: fileStates, onFileAction: onFileAction, onAction: pageAction(view),
                                onOpenDetail: nil, clock: clock, users: [:], resolveImage: resolveImage,
                                onQrRefresh: onQrRefresh)
                         .hostCapabilities(locationStates: locationStates, onLocationAction: onLocationAction,
                                           protectedMedia: protectedMedia, onProtectedMediaRead: onProtectedMediaRead)
+                        .pageState(offline: offline, onDone: onDone)
+                        .environment(\.flarePluginClearFilters, clearFilters(view.view))
                     }
                     loadMoreKey(paging.key(cursor: view.nextCursor, loadingMore: loadingMore))
+                    if view.nextCursor == nil, pagedOnce { PluginCaption(text: strings.pluginViewEndOfList).frame(maxWidth: .infinity) }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // R3: a development warning names the plugin and the page before the value's place.
+                .environment(\.flarePluginScope, "\(page.pluginId) \(page.page) ")
             }
+        }
+    }
+
+    /// The red packet page, and under it, as a list, the page's actions it does not run (cancel, recovery).
+    @ViewBuilder private func redPacketPage(_ plan: FlareRedPacketPagePlan, _ view: PluginPageViewModel) -> some View {
+        let run = pageAction(view)
+        RedPacketPageView(plan: plan, view: view.view, busyActionId: busyActionId, refreshing: refreshing, offline: offline,
+                          actionError: actionError, formErrors: formErrors, settleToken: settleToken, members: members,
+                          memberCount: memberCount,
+                          membersLoading: membersLoading, membersError: membersError, membersRevision: membersRevision,
+                          onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry, resolveUser: resolveUser,
+                          onAction: { id, payload in run?(id, payload) }, onRefresh: onRefresh, onBack: onBack)
+        let owned = Set(plan.ownedActionIds)
+        let rest = PluginViewModel(available: true, title: "", actions: view.view.actions.filter { !owned.contains($0.id) },
+                                   inputs: view.view.inputs, menuActions: view.view.menuActions.filter { !owned.contains($0.id) },
+                                   unavailableReason: view.view.unavailableReason)
+        if !rest.actions.isEmpty || !rest.menuActions.isEmpty {
+            PluginView(view: rest, viewerId: viewerId, busyActionId: busyActionId, error: actionError, embedded: true,
+                       actionLayout: .list, showError: false, resolveUser: resolveUser, formErrors: formErrors,
+                       settleToken: settleToken, onAction: run)
+                .pageState(offline: offline, onDone: onDone)
         }
     }
 
     private var retryKey: some View {
         ButtonView(label: strings.retry, variant: .secondary, disabled: onRetry == nil) { onRetry?() }
+    }
+
+    /// 5.8: the empty state's "清除筛选" — every filter back to all; nil when no filter is set.
+    private func clearFilters(_ view: PluginViewModel) -> (() -> Void)? {
+        guard let onFilter, let next = PluginPageRules.cleared(
+            PluginPageRules.filters(view, values: filters, all: strings.pluginViewAll), in: filters) else { return nil }
+        return { if !filtersWaiting { onFilter(next) } }
     }
 
     /// The embedded view's actions as page actions: the page and the view's data go with each.
@@ -363,12 +578,34 @@ public struct FlarePluginPage: View {
         switch state {
         case .hidden: EmptyView()
         case .ready(let cursor):
-            ButtonView(label: strings.myInviteLoadMore, variant: .text, disabled: onLoadMore == nil || loading || refreshing, block: true) {
+            // 5.8: a full-width secondary key.
+            ButtonView(label: strings.pluginViewLoadMore, variant: .secondary, disabled: onLoadMore == nil || loading || refreshing, block: true) {
                 guard !loading, !refreshing else { return }
-                if let asked = paging.tap(cursor: cursor, loadingMore: loadingMore) { onLoadMore?(asked) }
+                if let asked = paging.tap(cursor: cursor, loadingMore: loadingMore) { pagedOnce = true; onLoadMore?(asked) }
             }
         case .loading:
-            ButtonView(label: strings.myInviteLoadMore, variant: .text, loading: true, block: true) {}
+            ButtonView(label: strings.pluginViewLoadMore, variant: .secondary, loading: true, block: true) {}
         }
+    }
+}
+
+/// R1: the 2-high progress bar under the header while a page refreshes; a still half bar under reduce motion.
+struct PluginRefreshBar: View {
+    let still: Bool
+    @State private var moving = false
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            Capsule().fill(FlareColors.of(scheme, brand: flareBrandTheme).primary)
+                .frame(width: geo.size.width / 2, height: 2)
+                .offset(x: still ? 0 : (moving ? geo.size.width : -geo.size.width / 2))
+                .animation(still ? nil : FlareMotion.refreshLoopAnimation.repeatForever(autoreverses: false), value: moving)
+        }
+        .frame(height: 2)
+        .clipped()
+        .onAppear { if !still { moving = true } }
+        .accessibilityHidden(true)
     }
 }

@@ -22,8 +22,8 @@ const label = computed(() =>
 .flare-unread-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
+  gap: var(--flare-size-spacing-sm);
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-lg);
 }
 .flare-unread-divider__line {
   flex: 1;

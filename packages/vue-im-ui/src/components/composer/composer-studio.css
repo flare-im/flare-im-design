@@ -370,16 +370,6 @@
 .composer-studio .composer-toolbar :deep(svg:not(.composer-resize-icon)) {
   width: var(--studio-action-glyph);
   height: var(--studio-action-glyph);
-  stroke-width: 1.7;
-}
-
-.composer-studio .composer-toolbar__send :deep(svg) {
-  transform: translate(1px, -1px);
-}
-
-.composer-studio .composer-toolbar__voice :deep(svg),
-.composer-studio .composer-toolbar__image :deep(svg) {
-  transform: translateY(0.5px);
 }
 
 .composer-studio.composer .composer-reply-strip {

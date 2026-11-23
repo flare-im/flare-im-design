@@ -55,6 +55,12 @@ export interface FlarePickImagesOptions {
   multiple?: boolean;
   /** Also allow videos. */
   video?: boolean;
+  /**
+   * Take a new photo with the camera instead of choosing from the library, where the platform can (the web adapter:
+   * an image input with `capture="environment"`, which a phone browser opens in its camera and a desktop one treats
+   * as a plain picker). One photo per capture.
+   */
+  camera?: boolean;
 }
 export interface FlareSharePayload {
   title?: string;

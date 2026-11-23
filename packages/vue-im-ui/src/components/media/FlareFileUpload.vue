@@ -3,6 +3,7 @@ import { ref } from "vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareImageUploadSlot from "./FlareImageUploadSlot.vue";
 import type { FlareUploadState } from "../../shared/contracts/upload";
+import { useFileDropTarget } from "../../shared/useFileDropTarget";
 
 /** A single-file picker and controlled upload surface. It makes no network requests. */
 const props = withDefaults(
@@ -41,6 +42,10 @@ const emit = defineEmits<{
   preview: [];
 }>();
 const picker = ref<HTMLInputElement>();
+const { dragging, enter, over, leave, dropped } = useFileDropTarget(
+  () => !props.hostPicker && !props.disabled && props.state !== "uploading" && (props.state !== "uploaded" || !!props.replaceLabel),
+  (files) => emit("select", files[0]!),
+);
 function choose() {
   if (props.disabled || props.state === "uploading") return;
   if (props.hostPicker) {
@@ -60,7 +65,9 @@ function selected(event: Event) {
 </script>
 
 <template>
-  <div class="flare-file-upload">
+  <div class="flare-file-upload" :class="{ 'is-dragging': dragging }"
+    @dragenter="!hostPicker && enter($event)" @dragover="!hostPicker && over($event)"
+    @dragleave="!hostPicker && leave($event)" @drop="!hostPicker && dropped($event)">
     <input
       v-if="!hostPicker"
       ref="picker"
@@ -144,5 +151,9 @@ function selected(event: Event) {
   color: var(--flare-color-text-secondary);
   font-size: var(--flare-text-caption-font-size);
   overflow-wrap: anywhere;
+}
+.flare-file-upload.is-dragging :deep(.flare-image-upload__picker) {
+  border-color: var(--flare-color-border-selected);
+  background: var(--flare-color-bg-selected);
 }
 </style>

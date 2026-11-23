@@ -19,6 +19,7 @@ class FlareConversationList extends StatelessWidget {
     this.loading = false,
     this.onSelect,
     this.onLongPress,
+    this.onContextMenu,
     this.onLoadMore,
     this.emptyPlaceholder,
   });
@@ -33,6 +34,10 @@ class FlareConversationList extends StatelessWidget {
 
   final ValueChanged<ConversationRowData>? onSelect;
   final ValueChanged<ConversationRowData>? onLongPress;
+
+  /// A row's secondary click at the pointer's global position
+  /// ([FlareConversationRow.onContextMenu]).
+  final void Function(ConversationRowData item, Offset position)? onContextMenu;
 
   /// Called once when the list is scrolled near the end (pagination).
   final VoidCallback? onLoadMore;
@@ -61,6 +66,12 @@ class FlareConversationList extends StatelessWidget {
         return false;
       },
       child: ListView.builder(
+        // Vue `.im-conv-list`: rows inset 4 in a list pane, edge to edge on a phone.
+        padding: EdgeInsets.symmetric(
+          horizontal: FlareConversationRow.denseIn(context)
+              ? FlareSizes.spacingXs
+              : 0,
+        ),
         findChildIndexCallback: (key) {
           final index = ordered.indexWhere((item) => ValueKey(item.id) == key);
           return index < 0 ? null : index;
@@ -74,6 +85,9 @@ class FlareConversationList extends StatelessWidget {
             active: item.id == activeId,
             onSelect: onSelect == null ? null : () => onSelect!(item),
             onLongPress: onLongPress == null ? null : () => onLongPress!(item),
+            onContextMenu: onContextMenu == null
+                ? null
+                : (position) => onContextMenu!(item, position),
           );
         },
       ),

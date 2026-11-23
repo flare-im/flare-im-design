@@ -10,7 +10,8 @@ import SwiftUI
 /// page instead (`compactFallback: .push`).
 ///
 /// - The panel is ``FlareSizes/componentSheetWidth`` wide by default (`width` overrides), clamped so a
-///   touch-target-wide strip of scrim always remains; `end` / `start` follow the layout direction.
+///   touch-target-wide strip of scrim always remains; in a window up to 640pt wide it covers it, square-cornered
+///   (Vue's phone form). `end` / `start` follow the layout direction.
 /// - Header: [back] title … [actions] [close]; none when there is no visible title, no actions, no back and
 ///   `showClose` is false (page content that brings its own header). `footer` sits under the content.
 /// - `navigable` wraps the content in a `NavigationStack` (it pushes with `navigationDestination` and titles
@@ -68,7 +69,8 @@ public struct DrawerView<Content: View>: View {
                     ZStack(alignment: FlareOverlayRules.alignment(placement)) {
                         FlareOverlayScrim(color: colors.scrim, visible: visible, onTap: dismissAllowed ? onClose : nil)
                         if visible {
-                            panel(width: FlareOverlayRules.drawerWidth(requested: preferred, window: window), rounded: true)
+                            panel(width: FlareOverlayRules.drawerWidth(requested: preferred, window: window),
+                                  rounded: !FlareOverlayRules.drawerFillsWindow(window))
                                 .transition(.move(edge: FlareOverlayRules.edge(placement)))
                         }
                     }

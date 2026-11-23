@@ -49,7 +49,8 @@ class SceneInteractionTest {
             CallView(peerName="测试联系人",mode=FlareCallMode.Audio,state=FlareCallState.Failed,recoveryText="重新连接",onRecover={recovered++},onHangup={ended++})
         } }
         compose.onNodeWithText("重新连接").performScrollTo().performClick()
-        compose.onNodeWithContentDescription("挂断").performScrollTo().performClick()
+        // 3.3: a failed call swaps its controls for 「关闭」 and the recovery key; without onClose, 关闭 hangs up.
+        compose.onNodeWithText(FlareStrings().close).performScrollTo().performClick()
         compose.runOnIdle { assertEquals(1,recovered);assertEquals(1,ended) }
     }
 }

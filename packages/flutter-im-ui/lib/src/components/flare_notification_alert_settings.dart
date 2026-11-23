@@ -127,6 +127,7 @@ class _FlareNotificationAlertSettingsState
     final value = widget.value;
     final quiet = value.quietHours;
     final disabled = widget.disabled;
+    // Row icons as the Vue kit's (`FlareNotificationAlertSettings.vue`).
     return [
       FlareSettingsSection(
         title: strings.quietHoursTitle,
@@ -135,6 +136,7 @@ class _FlareNotificationAlertSettingsState
           FlareSettingsItem(
             key: _quietHoursRow,
             label: strings.quietHoursLabel,
+            icon: 'mute',
             kind: FlareSettingKind.toggle,
             value: quiet.enabled,
             disabled: disabled,
@@ -143,24 +145,28 @@ class _FlareNotificationAlertSettingsState
             FlareSettingsItem(
               key: _startRow,
               label: strings.quietHoursStart,
+              icon: 'clock',
               detail: formatMinuteOfDay(quiet.startMinute),
               disabled: disabled,
             ),
             FlareSettingsItem(
               key: _endRow,
               label: strings.quietHoursEnd,
+              icon: 'clock',
               detail: quietHoursEndText(quiet, strings: strings),
               disabled: disabled,
             ),
             FlareSettingsItem(
               key: _repeatRow,
               label: strings.quietHoursRepeat,
+              icon: 'calendar',
               detail: weekdaySummaryText(quiet.weekdays, strings: strings),
               disabled: disabled,
             ),
             FlareSettingsItem(
               key: _allowMentionsRow,
               label: strings.quietHoursAllowMentions,
+              icon: 'mention',
               kind: FlareSettingKind.toggle,
               value: quiet.allowMentions,
               disabled: disabled,
@@ -175,6 +181,7 @@ class _FlareNotificationAlertSettingsState
           FlareSettingsItem(
             key: _previewRow,
             label: strings.notificationPreviewLabel,
+            icon: 'eye',
             detail: notificationPreviewText(value.preview, strings: strings),
             disabled: disabled,
           ),
@@ -187,6 +194,7 @@ class _FlareNotificationAlertSettingsState
           FlareSettingsItem(
             key: _multiDeviceRow,
             label: strings.multiDeviceLabel,
+            icon: 'devices',
             detail: multiDeviceAlertText(value.multiDevice, strings: strings),
             disabled: disabled,
           ),

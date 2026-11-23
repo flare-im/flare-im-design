@@ -119,20 +119,23 @@ fun PluginDetailSheet(
 }
 
 /**
- * The full-width "load more" key under a paged view: spinning while the page loads, tappable with a cursor, gone on the
- * last page. [ask] turns a tap into the cursor to request (null while the same page is already asked for).
+ * The full-width secondary "load more" key under a paged view (5.8): spinning while the page loads, tappable with a
+ * cursor, gone on the last page — where, once the list has paged ([end]), a caption says that is everything. [ask]
+ * turns a tap into the cursor to request (null while the same page is already asked for).
  */
 @Composable
-internal fun PluginLoadMoreKey(key: PluginDetailLoadMore, onLoadMore: ((String) -> Unit)?, ask: (String) -> String?) {
+internal fun PluginLoadMoreKey(key: PluginDetailLoadMore, onLoadMore: ((String) -> Unit)?, end: Boolean = false, ask: (String) -> String?) {
     val strings = flareStrings()
+    val label = strings.pluginViewLoadMore
     when (key) {
-        PluginDetailLoadMore.Hidden -> Unit
+        PluginDetailLoadMore.Hidden -> if (end) PluginCaption(strings.pluginViewEndOfList,
+            Modifier.padding(top = FlareSizes.spacingMd), align = androidx.compose.ui.text.style.TextAlign.Center)
         PluginDetailLoadMore.Loading -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
-            Button(label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, loading = true, block = true, onClick = {})
+            Button(label = label, variant = FlareButtonVariant.Secondary, loading = true, block = true, onClick = {})
         }
         is PluginDetailLoadMore.Ready -> Box(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd)) {
             Button(
-                label = strings.myInviteLoadMore, variant = FlareButtonVariant.Text, disabled = onLoadMore == null, block = true,
+                label = label, variant = FlareButtonVariant.Secondary, disabled = onLoadMore == null, block = true,
                 onClick = { ask(key.cursor)?.let { onLoadMore?.invoke(it) } },
             )
         }

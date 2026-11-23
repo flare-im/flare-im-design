@@ -12,6 +12,7 @@ import FlareIconButton from "./FlareIconButton.vue";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import FlareModal from "./FlareModal.vue";
+import { useFlareVisibleViewport } from "../../shared/useVisibleViewport";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { provideFlareSheetHeader } from "../../shared/sheetHeader";
@@ -76,7 +77,10 @@ watch(
   { flush: "sync" },
 );
 
-const sheetStyle = computed(() => (props.fill ? { maxHeight: props.maxHeight, height: props.maxHeight } : { maxHeight: props.maxHeight }));
+const sheetStyle = computed(() => {
+  const maxHeight = visibleViewportStyle.value ? `min(${props.maxHeight}, var(--flare-visible-viewport-height))` : props.maxHeight;
+  return props.fill ? { maxHeight, height: maxHeight } : { maxHeight };
+});
 // 内容声明了自带标题栏:定高模式下不再画第二个标题,title 只作可及名称。
 const contentOwnsHeader = provideFlareSheetHeader();
 const headingHidden = computed(() => props.titleHidden || (props.fill && contentOwnsHeader.value));
@@ -98,6 +102,7 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
   nativeBack: hostListensClose,
   onRequestClose: () => emit("close"),
 });
+const { style: visibleViewportStyle } = useFlareVisibleViewport(() => props.open && resolvedPresentation.value === "sheet" && (overlayContainer.value === "body" || (typeof document !== "undefined" && overlayContainer.value === document.body)));
 </script>
 
 <template>
@@ -119,7 +124,7 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
   </FlareModal>
   <Teleport v-else :to="overlayContainer">
     <transition name="flare-sheet-fade">
-      <div v-if="open" class="flare-overlay-scrim flare-sheet-scrim" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="dismissible && emit('close')">
+      <div v-if="open" class="flare-overlay-scrim flare-sheet-scrim" :style="[{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }, visibleViewportStyle]" @click="dismissible && emit('close')">
         <div
           ref="sheetEl"
           class="flare-sheet"
@@ -182,7 +187,7 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
 .flare-sheet__header { display: flex; align-items: center; padding-inline: var(--flare-size-spacing-sm); }
 .flare-sheet__close { margin-inline-start: auto; }
 .flare-sheet__header .flare-sheet__title { flex: 1; padding-inline-start: var(--flare-size-layout-control-height-sm); }
-.flare-sheet__title { padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) var(--flare-size-spacing-sm); font-size: var(--flare-size-font-size-md); font-weight: 500; color: var(--flare-color-text-tertiary); text-align: center; }
+.flare-sheet__title { flex: none; padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md) var(--flare-size-spacing-sm); font-size: var(--flare-size-font-size-md); font-weight: 500; color: var(--flare-color-text-tertiary); text-align: center; }
 
 /* 面的升起跟着遮罩的过渡类走:嵌套的 <transition> 在外层 v-if 离场时不会播放自己的 leave,
    面板会一下子消失。遮罩与面用同一时长,Vue 按遮罩的过渡结束移除节点。 */
@@ -194,11 +199,11 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
 .flare-sheet-fade-leave-active .flare-sheet { transition: transform var(--flare-transition-normal); }
 .flare-sheet-fade-enter-from .flare-sheet,
 .flare-sheet-fade-leave-to .flare-sheet { transform: translateY(100%); }
-/* 减少动态效果:不升起、遮罩也瞬间出现(契约 reducedMotionBehavior)。 */
+/* 减少动态效果(§7 / §12.10):面板不升起,和遮罩一起淡入淡出,不瞬现。 */
 @media (prefers-reduced-motion: reduce) {
-  .flare-sheet-fade-enter-active,
-  .flare-sheet-fade-leave-active,
   .flare-sheet-fade-enter-active .flare-sheet,
   .flare-sheet-fade-leave-active .flare-sheet { transition: none; }
+  .flare-sheet-fade-enter-from .flare-sheet,
+  .flare-sheet-fade-leave-to .flare-sheet { transform: none; }
 }
 </style>

@@ -68,27 +68,28 @@ void main() {
     }
   });
 
-  testWidgets('a key registered as a card loses the bubble and keeps the time', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      host(
-        FlareContentScope(
-          builders: {'packet': probe},
-          surfaces: const {'packet': FlareMessageSurface.card},
-          child: FlareMessageBubble(
-            message: message(),
-            currentUserId: 'me',
-            conversationId: 'conv-9',
+  testWidgets(
+    'a key registered as a card loses the bubble and keeps the time',
+    (tester) async {
+      await tester.pumpWidget(
+        host(
+          FlareContentScope(
+            builders: {'packet': probe},
+            surfaces: const {'packet': FlareMessageSurface.card},
+            child: FlareMessageBubble(
+              message: message(),
+              currentUserId: 'me',
+              conversationId: 'conv-9',
+            ),
           ),
         ),
-      ),
-    );
-    expect(find.byKey(const Key('probe')), findsOneWidget);
-    expect(framed, findsNothing);
-    expect(find.text('10:02'), findsOneWidget);
-    expect(seen?.surface, FlareMessageSurface.card);
-  });
+      );
+      expect(find.byKey(const Key('probe')), findsOneWidget);
+      expect(framed, findsNothing);
+      expect(find.text('10:02'), findsOneWidget);
+      expect(seen?.surface, FlareMessageSurface.card);
+    },
+  );
 
   testWidgets('a custom subtype is a card without registering anything', (
     tester,
@@ -124,26 +125,27 @@ void main() {
     expect(framed, findsOneWidget);
   });
 
-  testWidgets('the global registry takes a surface too, and unregister clears it', (
-    tester,
-  ) async {
-    FlareContentRegistry.register(
-      'packet',
-      probe,
-      surface: FlareMessageSurface.bareMedia,
-    );
-    addTearDown(() => FlareContentRegistry.unregister('packet'));
-    await tester.pumpWidget(
-      host(FlareMessageBubble(message: message(), currentUserId: 'me')),
-    );
-    expect(framed, findsNothing);
-    expect(
-      FlareContentRegistry.surfaceOf('packet'),
-      FlareMessageSurface.bareMedia,
-    );
-    FlareContentRegistry.unregister('packet');
-    expect(FlareContentRegistry.surfaceOf('packet'), isNull);
-  });
+  testWidgets(
+    'the global registry takes a surface too, and unregister clears it',
+    (tester) async {
+      FlareContentRegistry.register(
+        'packet',
+        probe,
+        surface: FlareMessageSurface.bareMedia,
+      );
+      addTearDown(() => FlareContentRegistry.unregister('packet'));
+      await tester.pumpWidget(
+        host(FlareMessageBubble(message: message(), currentUserId: 'me')),
+      );
+      expect(framed, findsNothing);
+      expect(
+        FlareContentRegistry.surfaceOf('packet'),
+        FlareMessageSurface.bareMedia,
+      );
+      FlareContentRegistry.unregister('packet');
+      expect(FlareContentRegistry.surfaceOf('packet'), isNull);
+    },
+  );
 
   testWidgets('a scope builder decides over a global registration', (
     tester,

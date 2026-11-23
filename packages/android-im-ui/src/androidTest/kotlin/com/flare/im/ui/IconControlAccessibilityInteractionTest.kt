@@ -14,6 +14,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsNotSelected
@@ -127,6 +128,31 @@ class IconControlAccessibilityInteractionTest {
         compose.runOnIdle { assertEquals(1, hangUps) }
         // The caption under a key repeats its name and stays out of the accessibility tree.
         compose.onAllNodesWithText(strings.microphone).assertCountEquals(0)
+    }
+
+    @Test fun heldCallControlsStayNamedAndReadAsDisabled() {
+        var hangUps = 0
+        compose.setContent {
+            FlareThemeProvider {
+                Column {
+                    // No media session yet: every key but hang up is held, and TalkBack still meets each one.
+                    CallControls(mode = FlareCallMode.Video, onToggleMute = {}, onToggleCamera = {}, onToggleSpeaker = {},
+                        onHangup = { hangUps++ }, disabled = true)
+                }
+            }
+        }
+        compose.onNodeWithContentDescription(strings.microphone).assertRole(Role.Switch).assertIsOn().assertIsNotEnabled()
+        compose.onNodeWithContentDescription(strings.camera).assertRole(Role.Switch).assertIsNotEnabled()
+        compose.onNodeWithContentDescription(strings.hangUp).assertButton().assertIsEnabled().performClick()
+        compose.runOnIdle { assertEquals(1, hangUps) }
+    }
+
+    @Test fun anEndedCallHoldsHangUpToo() {
+        compose.setContent {
+            FlareThemeProvider { CallView(peerName = "Ann", mode = FlareCallMode.Audio, state = FlareCallState.Ended, onHangup = {}) }
+        }
+        compose.onNodeWithContentDescription(strings.hangUp).assertRole(Role.Button).assertIsNotEnabled()
+        compose.onNodeWithContentDescription(strings.microphone).assertIsNotEnabled()
     }
 
     @Test fun videoCallControlsReportTheCameraAsASwitch() {

@@ -252,7 +252,7 @@ fun ConversationHeader(
         ) {
             if (showBack) {
                 IconButton(onClick = { onBack?.invoke() }, enabled = onBack != null) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = flareStrings().back, modifier = Modifier.size(22.dp))
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = flareStrings().back, modifier = Modifier.size(headerGlyphSize()))
                 }
             }
             val strings = flareStrings()
@@ -357,9 +357,9 @@ private fun HeaderActionButton(
             if (pressed != null) toggleableState = ToggleableState(pressed)
         },
     ) {
-        if (glyph != null) Icon(glyph, contentDescription = null, Modifier.size(21.dp), tint = if (pressed == true) colors.primaryText else colors.textSecondary)
+        if (glyph != null) Icon(glyph, contentDescription = null, Modifier.size(headerGlyphSize()), tint = if (pressed == true) colors.primaryText else colors.textSecondary)
         else if (actionIcon != null) actionIcon(action)
-        else Icon(headerActionIcon(action), contentDescription = null, Modifier.size(20.dp), tint = if (pressed == true) colors.primaryText else colors.textSecondary)
+        else Icon(headerActionIcon(action), contentDescription = null, Modifier.size(headerGlyphSize()), tint = if (pressed == true) colors.primaryText else colors.textSecondary)
     }
 }
 
@@ -379,7 +379,7 @@ private fun HeaderActionMenu(
             onClick = { expanded = true },
             enabled = onAction != null,
             modifier = Modifier.semantics { contentDescription = label },
-        ) { Icon(trigger, contentDescription = null, Modifier.size(21.dp), tint = colors.textSecondary) }
+        ) { Icon(trigger, contentDescription = null, Modifier.size(headerGlyphSize()), tint = colors.textSecondary) }
         ActionMenu(
             expanded = expanded,
             items = actions.map { it.toActionItem(labelOf(it)) },
@@ -409,3 +409,7 @@ internal fun ConversationHeaderAction.toActionItem(shownLabel: String = label): 
 )
 
 private fun headerActionIcon(action: ConversationHeaderAction): ImageVector = flareActionIcon(action.icon ?: action.id)
+
+@Composable
+private fun headerGlyphSize() =
+    if (flareCompactOverlays()) FlareSizes.iconSizeLg else FlareSizes.iconSizeMd

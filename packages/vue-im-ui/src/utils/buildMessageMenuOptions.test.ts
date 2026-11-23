@@ -41,7 +41,7 @@ describe("buildMessageMenuItems", () => {
     expect(incoming).not.toContain("action:hidden");
     const own = buildMessageMenuItems(message, "ivy", withDelete, undefined, [], actions).map((item) => item.id);
     expect(own).not.toContain("action:report");
-    expect(resolveMessageMenuAction(message, "action:translate")).toEqual({ type: "emit", event: "action", payload: { id: "client-1", actionId: "translate" } });
+    expect(resolveMessageMenuAction(message, "action:translate")).toEqual({ type: "emit", event: "action", payload: { id: "server-1", actionId: "translate" } });
   });
 });
 

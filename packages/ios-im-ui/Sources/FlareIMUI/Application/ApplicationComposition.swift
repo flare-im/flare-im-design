@@ -336,16 +336,20 @@ public struct AdaptiveNavigationView: View {
     private let activeID: String
     private let responsiveMode: FlareApplicationResponsiveMode
     private let presentation: FlareApplicationNavigationPresentation?
+    private let header: AnyView?
     private let onNavigate: (String) -> Void
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
+    /// - Parameter header: Drawn above the items, with a divider under it, in the side forms only (the web rail's
+    ///   identity, 新建 and 搜索 keys); the bottom bar has none.
     public init(groups: [FlareApplicationNavigationGroup], activeID: String,
                 responsiveMode: FlareApplicationResponsiveMode,
                 presentation: FlareApplicationNavigationPresentation? = nil,
+                header: AnyView? = nil,
                 onNavigate: @escaping (String) -> Void) {
         self.groups = groups; self.activeID = activeID; self.responsiveMode = responsiveMode
-        self.presentation = presentation; self.onNavigate = onNavigate
+        self.presentation = presentation; self.header = header; self.onNavigate = onNavigate
     }
 
     public var body: some View {
@@ -360,6 +364,10 @@ public struct AdaptiveNavigationView: View {
             .overlay(Divider(), alignment: .top)
         } else {
             VStack(spacing: FlareSizes.spacingXs) {
+                if let header {
+                    header
+                    Divider()
+                }
                 ForEach(items) { item in navButton(item, expanded: resolved == .sidebar || resolved == .expandedSidebar) }
                 Spacer(minLength: 0)
             }
@@ -699,20 +707,24 @@ public struct IMAppKitView: View {
     private let configuration: FlareIMAppConfiguration
     private let groups: [FlareApplicationNavigationGroup]
     private let activeID: String
+    private let navigationHeader: AnyView?
     private let onNavigate: (String) -> Void
     private let destination: (String) -> AnyView
     @StateObject private var depths = FlareShellDepths()
     @State private var visited: [String] = []
+    @State private var heightWithoutKeyboard: CGFloat = 0
     @Environment(\.flareShellNavigationProbe) private var navigationProbe
     /// The reader's text size as a factor: the mode is resolved on width divided by it.
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
 
+    /// - Parameter navigationHeader: The side navigation's ``AdaptiveNavigationView`` header (wide modes only).
     public init(configuration: FlareIMAppConfiguration = FlareIMAppConfiguration(),
                 groups: [FlareApplicationNavigationGroup], activeID: String,
+                navigationHeader: AnyView? = nil,
                 onNavigate: @escaping (String) -> Void,
                 destination: @escaping (String) -> AnyView) {
         self.configuration = configuration; self.groups = groups; self.activeID = activeID
-        self.onNavigate = onNavigate; self.destination = destination
+        self.navigationHeader = navigationHeader; self.onNavigate = onNavigate; self.destination = destination
     }
 
     /// The destinations to keep: every one opened so far whose navigation item still exists, and the active one.
@@ -729,12 +741,14 @@ public struct IMAppKitView: View {
         GeometryReader { geometry in
             let mode = resolveApplicationResponsiveMode(width: geometry.size.width, textScale: textScale)
             let mobile = mode == .mobile
-            let navigationHidden = mobile && depths.depth(of: activeID) > 0
+            let keyboardCoversBottom = geometry.size.height + 1 < heightWithoutKeyboard
+            let navigationHidden = mobile && (depths.depth(of: activeID) > 0 || keyboardCoversBottom)
             // One structure for every mode, so the destinations keep their identity when the window crosses a
             // breakpoint: the navigation column is an optional sibling before them, the bottom bar one after.
             HStack(spacing: 0) {
                 if !mobile {
-                    AdaptiveNavigationView(groups: groups, activeID: activeID, responsiveMode: mode, onNavigate: onNavigate)
+                    AdaptiveNavigationView(groups: groups, activeID: activeID, responsiveMode: mode,
+                                           header: navigationHeader, onNavigate: onNavigate)
                     Divider()
                 }
                 VStack(spacing: 0) {
@@ -767,6 +781,14 @@ public struct IMAppKitView: View {
             .onAppear { navigationProbe?(!navigationHidden) }
             .onChange(of: navigationHidden) { navigationProbe?(!$0) }
         }
+        #if os(iOS)
+        .background {
+            // Measure the same box without the keyboard so the tabs never move into the remaining space above it.
+            Color.clear
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { heightWithoutKeyboard = $0 }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+        }
+        #endif
         .onAppear { visited = kept(from: visited) }
         .onChange(of: activeID) { _ in visited = kept(from: visited) }
         .onChange(of: groups.flatMap(\.items).map(\.id)) { _ in

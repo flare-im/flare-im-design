@@ -31,7 +31,9 @@ final class ConversationHeaderIdentityTests: XCTestCase {
     func testIdentityLabelDefaultsToTitleAndActionLabel() {
         let identity = ConversationIdentity(id: "c1", title: "Design", action: details)
         XCTAssertEqual(ConversationHeaderView.identityLabel(identity, action: details, strings: FlareStrings()), "Design，Details")
-        let english = FlareStrings(conversationHeaderIdentityLabel: { "\($0), \($1)" })
+        let english = FlareStrings { copy in
+            copy.conversationHeaderIdentityLabel = { "\($0), \($1)" }
+        }
         XCTAssertEqual(ConversationHeaderView.identityLabel(identity, action: details, strings: english), "Design, Details")
         let labelled = ConversationHeaderAction(id: "details", label: "Details", accessibilityLabel: "Open Design details")
         XCTAssertEqual(ConversationHeaderView.identityLabel(identity, action: labelled, strings: english), "Open Design details")
@@ -58,10 +60,10 @@ final class ConversationHeaderIdentityTests: XCTestCase {
         XCTAssertEqual(try identity.accessibilityLabel().string(), "Design，Details")
         try identity.tap()
         XCTAssertEqual(dispatched, ["details"])
-        // The back button stays its own control, named from the strings table with a 44pt target on its label.
+        // The back button stays its own control, with the 48pt compact-header target on its label.
         let back = try header.inspect().find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == FlareStrings().back })
         XCTAssertEqual(try back.labelView().find(ViewType.Image.self).actualImage().name(), flareIconMap["back"])
-        XCTAssertEqual(try back.labelView().find(ViewType.Image.self).flexFrame().minWidth, FlareSizes.touchTargetMin)
+        XCTAssertEqual(try back.labelView().find(ViewType.Image.self).flexFrame().minWidth, FlareSizes.touchTarget)
         XCTAssertThrowsError(try header.inspect().find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == "Back" }),
                              "no English literal in the Chinese header")
     }

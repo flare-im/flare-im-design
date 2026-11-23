@@ -79,6 +79,22 @@ afterEach(() => {
 });
 
 describe("useFlareContextualLayer — Escape", () => {
+  it("does not dismiss selection in a kept hidden or inert shell destination", () => {
+    const dismissed = vi.fn();
+    mountWith(() => h('div', { class: 'destination' }, [h(Layer as Component, { onDismiss: dismissed })]));
+    const destination = document.querySelector<HTMLElement>('.destination')!;
+    destination.setAttribute('inert', '');
+    expect(escape().defaultPrevented).toBe(false);
+    expect(dismissed).not.toHaveBeenCalled();
+    destination.removeAttribute('inert');
+    document.querySelector<HTMLElement>('.layer')!.style.visibility = 'hidden';
+    expect(escape().defaultPrevented).toBe(false);
+    expect(dismissed).not.toHaveBeenCalled();
+    document.querySelector<HTMLElement>('.layer')!.style.visibility = 'visible';
+    escape();
+    expect(dismissed).toHaveBeenCalledTimes(1);
+  });
+
   it("exits on Escape and consumes the key", () => {
     const dismissed = vi.fn();
     mountWith(() => h(Layer as Component, { onDismiss: dismissed }));

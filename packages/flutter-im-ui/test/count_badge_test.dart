@@ -16,8 +16,9 @@ final Map<String, dynamic> _vectors =
 List<Map<String, dynamic>> get _cases =>
     (_vectors['cases'] as List).cast<Map<String, dynamic>>();
 
-Widget _host(Widget child) =>
-    MaterialApp(home: Scaffold(body: Center(child: child)));
+Widget _host(Widget child) => MaterialApp(
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   test('the shared table keeps its cases', () {
@@ -117,15 +118,18 @@ void main() {
     }
   });
 
-  test('a navigation badge and a filter tab take more without a host change', () {
-    // The new fields have defaults: a host that writes neither still builds.
-    expect(
-      const FlareNavigationBadge(kind: FlareNavigationBadgeKind.count).more,
-      isFalse,
-    );
-    expect(
-      const FlareFilterTabOption(value: 'a', label: 'A', badge: 3).badgeMore,
-      isFalse,
-    );
-  });
+  test(
+    'a navigation badge and a filter tab take more without a host change',
+    () {
+      // The new fields have defaults: a host that writes neither still builds.
+      expect(
+        const FlareNavigationBadge(kind: FlareNavigationBadgeKind.count).more,
+        isFalse,
+      );
+      expect(
+        const FlareFilterTabOption(value: 'a', label: 'A', badge: 3).badgeMore,
+        isFalse,
+      );
+    },
+  );
 }

@@ -5,6 +5,9 @@ import '../components/flare_conversation_workspace.dart';
 import '../components/flare_action_menu.dart';
 import '../components/flare_avatar.dart';
 import '../components/flare_skeleton.dart';
+import '../components/flare_empty_state.dart';
+import '../components/flare_icon_button.dart';
+import '../platform/flare_platform.dart';
 import '../components/flare_status_banner.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -1485,7 +1488,8 @@ class _FlareIMAppKitState extends State<FlareIMAppKit> {
       );
       final mobile = mode == FlareApplicationResponsiveMode.mobile;
       final active = widget.activeNavigationId;
-      final navigationHidden = mobile && (_depths[active]?.value ?? 0) > 0;
+      final navigationHidden = mobile &&
+          ((_depths[active]?.value ?? 0) > 0 || MediaQuery.viewInsetsOf(context).bottom > 0);
       void navigate(String id) {
         final contextual = widget.onNavigateWithMode;
         if (contextual != null) {
@@ -1603,18 +1607,27 @@ class FlareConversationListContainer extends StatelessWidget {
     this.onRetry,
     this.onLoadMore,
     this.onRefresh,
+    this.refreshLabel,
+    this.status,
     this.emptyTitle,
     this.label,
   });
   final Widget child;
   final FlareViewState<List<Object?>> state;
   final Widget? header, search, filters, pinned, archived, footer;
+
+  /// Between the header and the filters (a permission prompt, say), as in Vue.
+  final Widget? status;
   final bool loadingMore;
   final VoidCallback? onRetry, onLoadMore;
 
   /// Pull the ready list down to ask the host for fresh data; the gesture ends when the
   /// future completes. Without it the list does not take the gesture at all.
   final Future<void> Function()? onRefresh;
+
+  /// With [onRefresh], a fine pointer (mouse, trackpad) also gets a refresh key named
+  /// this at the end of the filters row, disabled while it runs (Vue `listRefresh.refresh`).
+  final String? refreshLabel;
 
   /// The container's own words for an empty list; `state.emptyTitle` overrides it per state.
   final String? emptyTitle;
@@ -1650,15 +1663,26 @@ class FlareConversationListContainer extends StatelessWidget {
           ),
         ),
         FlareViewStatus.error || FlareViewStatus.offline => Center(
-          child: IconButton(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            tooltip: state.error,
+          child: FlareEmptyState(
+            icon: 'warning',
+            tone: FlareEmptyStateTone.error,
+            title: state.error ?? '',
+            actionText: onRetry == null ? null : FlareStrings.of(context).retry,
+            onAction: onRetry,
           ),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        // Eight rows may be taller than the box: clipped, never an overflow.
+        _ => const SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: FlareSkeleton(rows: 8),
+        ),
       },
     };
+    final refreshKey =
+        refreshLabel != null &&
+        onRefresh != null &&
+        presentation != FlareViewPresentation.state &&
+        flareCapabilitiesOf(context).pointer == FlarePointerKind.fine;
     return Semantics(
       container: true,
       label: label,
@@ -1666,7 +1690,16 @@ class FlareConversationListContainer extends StatelessWidget {
         children: [
           if (header != null) header!,
           if (search != null) search!,
-          if (filters != null) filters!,
+          if (status != null) status!,
+          if (refreshKey)
+            Row(
+              children: [
+                Expanded(child: filters ?? const SizedBox.shrink()),
+                _ListRefreshKey(label: refreshLabel!, onRefresh: onRefresh!),
+              ],
+            )
+          else if (filters != null)
+            filters!,
           if (pinned != null && state.status == FlareViewStatus.ready) pinned!,
           Expanded(child: body),
           if (archived != null && state.status == FlareViewStatus.ready)
@@ -1699,7 +1732,36 @@ class FlareFriendListContainer extends FlareConversationListContainer {
     super.onRetry,
     super.onLoadMore,
     super.onRefresh,
+    super.refreshLabel,
+    super.status,
     super.emptyTitle,
     super.label,
   });
+}
+
+/// The list's refresh key for a fine pointer: off while the refresh it started runs.
+class _ListRefreshKey extends StatefulWidget {
+  const _ListRefreshKey({required this.label, required this.onRefresh});
+  final String label;
+  final Future<void> Function() onRefresh;
+  @override
+  State<_ListRefreshKey> createState() => _ListRefreshKeyState();
+}
+
+class _ListRefreshKeyState extends State<_ListRefreshKey> {
+  bool _busy = false;
+  @override
+  Widget build(BuildContext context) => FlareIconButton(
+    icon: 'refresh',
+    semanticLabel: widget.label,
+    disabled: _busy,
+    onPressed: () async {
+      setState(() => _busy = true);
+      try {
+        await widget.onRefresh();
+      } finally {
+        if (mounted) setState(() => _busy = false);
+      }
+    },
+  );
 }

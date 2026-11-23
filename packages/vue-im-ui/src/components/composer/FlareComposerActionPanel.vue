@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, type Component } from "vue";
 import FlareGlyph from "../general/FlareGlyph.vue";
+import FlareSkeleton from "../general/FlareSkeleton.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { flareIcons } from "../../shared/icons";
 import {
@@ -40,8 +41,10 @@ const props = withDefaults(
     formFactor?: FlareComposerPanelFormFactor;
     /** Rows per page on a phone (default 2), most rows shown on a desktop (default 3). */
     rows?: number;
+    /** Plugin items are still loading: one row of Skeleton squares stands in for them, so the panel opens at once (§4.1). */
+    loading?: boolean;
   }>(),
-  { actions: undefined, capabilities: undefined, columns: 4, formFactor: "mobile", rows: undefined },
+  { actions: undefined, capabilities: undefined, columns: 4, formFactor: "mobile", rows: undefined, loading: false },
 );
 const emit = defineEmits<{ (e: "action", action: FlareComposerActionItem): void }>();
 const { t } = useFlareI18nOptional();
@@ -61,12 +64,19 @@ const resolvedActions = computed(() => labelComposerActions<FlareComposerActionI
 
 const paged = computed(() => props.formFactor === "mobile");
 const rowCount = computed(() => Math.max(1, props.rows ?? (paged.value ? 2 : 3)));
+type Tile = FlareComposerActionItem | { id: string; skeleton: true };
+// Placeholders page like the items they stand in for; they are never actions.
+const tiles = computed<Tile[]>(() => props.loading
+  ? [...resolvedActions.value, ...Array.from({ length: props.columns }, (_, index) => ({ id: `\u0000skeleton-${index}`, skeleton: true as const }))]
+  : resolvedActions.value);
+const isSkeleton = (tile: Tile): tile is { id: string; skeleton: true } => "skeleton" in tile;
+const isAction = (tile: Tile): tile is FlareComposerActionItem => !isSkeleton(tile);
 const pages = computed(() => {
-  if (!paged.value) return [resolvedActions.value];
+  if (!paged.value) return [tiles.value];
   const size = rowCount.value * props.columns;
-  const out: FlareComposerActionItem[][] = [];
-  for (let start = 0; start < resolvedActions.value.length; start += size) {
-    out.push(resolvedActions.value.slice(start, start + size));
+  const out: Tile[][] = [];
+  for (let start = 0; start < tiles.value.length; start += size) {
+    out.push(tiles.value.slice(start, start + size));
   }
   return out;
 });
@@ -102,6 +112,7 @@ function select(action: FlareComposerActionItem): void {
     class="flare-action-panel"
     role="group"
     :aria-label="t('composer.features')"
+    :aria-busy="loading || undefined"
     :data-form-factor="formFactor"
     :style="{ '--flare-action-panel-columns': columns, '--flare-action-panel-rows': rowCount }"
   >
@@ -120,7 +131,7 @@ function select(action: FlareComposerActionItem): void {
         :aria-label="paged && pages.length > 1 ? t('composer.page', { page: index + 1 }) : undefined"
       >
         <button
-          v-for="a in items"
+          v-for="a in items.filter(isAction)"
           :key="a.id"
           type="button"
           class="flare-action-panel__tile"
@@ -139,6 +150,9 @@ function select(action: FlareComposerActionItem): void {
           <span v-if="a.badge" class="flare-action-panel__badge">{{ a.badge }}</span>
           <small v-if="a.hint" class="flare-action-panel__hint">{{ a.hint }}</small>
         </button>
+        <span v-for="s in items.filter(isSkeleton)" :key="s.id" class="flare-action-panel__tile is-skeleton" aria-hidden="true" data-action-skeleton="true">
+          <FlareSkeleton variant="tile" />
+        </span>
       </TransitionGroup>
     </div>
     <nav v-if="paged && pages.length > 1" class="flare-action-panel__dots">
@@ -200,6 +214,8 @@ function select(action: FlareComposerActionItem): void {
   cursor: pointer;
 }
 .flare-action-panel__tile:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
+/* A loading plugin tile: the icon square and a short label bar, in the kit Skeleton's tint (still under reduced motion). */
+.flare-action-panel__tile.is-skeleton { cursor: default; }
 .flare-action-panel__ico {
   width: 52px;
   height: 52px;
@@ -222,8 +238,8 @@ function select(action: FlareComposerActionItem): void {
 .flare-action-panel__badge,
 .flare-action-panel__hint { color: var(--flare-color-text-tertiary); font-size: var(--flare-size-font-size-xs); }
 .flare-action-panel__tile:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
-.flare-action-panel__dots { display: flex; justify-content: center; height: var(--flare-size-icon-size-lg); margin-top: var(--flare-size-spacing-xs); }
-.flare-action-panel__dots button { width: 28px; height: var(--flare-size-icon-size-lg); padding: var(--flare-size-spacing-sm); border: 0; background: transparent; cursor: pointer; }
+.flare-action-panel__dots { display: flex; justify-content: center; min-height: var(--flare-size-layout-touch-target-min); margin-top: var(--flare-size-spacing-xs); }
+.flare-action-panel__dots button { display: flex; align-items: center; justify-content: center; width: var(--flare-size-layout-touch-target-min); min-height: var(--flare-size-layout-touch-target-min); padding: var(--flare-size-spacing-sm); border: 0; background: transparent; cursor: pointer; }
 .flare-action-panel__dots span { display: block; width: 5px; height: 5px; border-radius: var(--flare-size-radius-full, 999px); background: var(--flare-color-border-primary); transition: width 150ms ease; }
 .flare-action-panel__dots [aria-current] span { width: 12px; background: var(--flare-color-primary); }
 .flare-action-panel__dots button:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }

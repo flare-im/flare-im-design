@@ -109,7 +109,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('flare-plugin-action-scan')));
-      await tester.pumpAndSettle();
+      // The slot spins until the host reports the upload: no settling.
+      await tester.pump();
       expect(sent, isEmpty);
       expect(files.map((a) => (a.action, a.inputId)), [
         (FlarePluginFileActionKind.choose, 'front'),

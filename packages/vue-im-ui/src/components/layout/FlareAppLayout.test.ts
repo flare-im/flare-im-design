@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { defineComponent, h, nextTick, ref } from 'vue';
 import FlareAppLayout from "./FlareAppLayout.vue";
 
 const slots = { navigation: "Rail", primary: "Conversations", default: "Chat", content: "Chat", detail: "Group details" };
@@ -11,11 +12,45 @@ function stubWidths(container: number): void {
   Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, get() { return 72; } });
 }
 afterEach(() => {
+  vi.unstubAllGlobals();
   delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
   delete (HTMLElement.prototype as unknown as Record<string, unknown>).offsetWidth;
 });
 
 describe("FlareAppLayout", () => {
+  it("preserves the primary search and list node under a phone detail", async () => {
+    stubWidths(390);
+    const List = defineComponent({ setup() { const query = ref(""); return () => h("input", { value: query.value, onInput: (e: Event) => { query.value = (e.target as HTMLInputElement).value; } }); } });
+    const wrapper = mount(FlareAppLayout, { props: { activePane: "primary" }, slots: { primary: () => h(List), content: "Profile" }, attachTo: document.body });
+    await nextTick();
+    await wrapper.get("input").setValue("Ivy");
+    const input = wrapper.get("input").element;
+    await wrapper.setProps({ activePane: "content" });
+    expect(wrapper.get("input").isVisible()).toBe(false);
+    await wrapper.setProps({ activePane: "primary" });
+    expect(wrapper.get("input").element).toBe(input);
+    expect(wrapper.get("input").element.value).toBe("Ivy");
+    wrapper.unmount();
+  });
+
+  it('keeps a detail instance and its current step through inline, overlay and phone layouts', async () => {
+    let resize = () => {};
+    vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { resize = callback; } observe() {} disconnect() {} });
+    stubWidths(1360);
+    let mounts = 0;
+    const Detail = defineComponent({ setup() { mounts++; const step = ref(0); return () => h('button', { onClick: () => step.value++ }, `Step ${step.value}`); } });
+    const wrapper = mount(FlareAppLayout, { props: { paneMode: 'triplePane', detailMode: 'inline', hasDetail: true, activePane: 'detail' }, slots: { primary: () => 'List', content: () => 'Chat', detail: () => h(Detail) } });
+    await nextTick();
+    await wrapper.get('button').trigger('click');
+    const button = wrapper.get('button').element;
+    for (const width of [800, 390, 1360]) {
+      stubWidths(width); resize(); await nextTick();
+      expect(wrapper.get('button').element).toBe(button);
+      expect(wrapper.get('button').text()).toBe('Step 1');
+    }
+    expect(mounts).toBe(1);
+    wrapper.unmount();
+  });
   it("shows one pane at a time with the rail when the list and a usable chat do not fit", async () => {
     stubWidths(700);
     const wrapper = mount(FlareAppLayout, {
@@ -34,7 +69,7 @@ describe("FlareAppLayout", () => {
     expect(wrapper.emitted("layoutChange")?.at(-1)).toEqual([{ paneMode: "singlePane", detailMode: "hidden" }]);
     await wrapper.setProps({ activePane: "content" });
     expect(wrapper.text()).toContain("Chat");
-    expect(wrapper.text()).not.toContain("Conversations");
+    expect(wrapper.get("aside").isVisible()).toBe(false);
     wrapper.unmount();
   });
 

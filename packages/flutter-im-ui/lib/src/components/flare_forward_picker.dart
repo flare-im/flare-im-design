@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
@@ -21,6 +22,9 @@ class FlareForwardPicker extends StatefulWidget {
     this.searchPlaceholder,
     this.sendLabel,
     this.selectedText,
+    this.busy = false,
+    this.selected,
+    this.onSelectionChanged,
   });
 
   final List<FlareForwardTarget> targets;
@@ -34,6 +38,21 @@ class FlareForwardPicker extends StatefulWidget {
 
   /// Formats the "N selected" footer text (defaults to "已选 N").
   final String Function(int count)? selectedText;
+
+  /// The host is forwarding to the chosen chats (the Vue kit's `busy`): the
+  /// send key shows progress, and neither the rows nor the close control
+  /// take taps.
+  final bool busy;
+
+  /// The chosen chats as the host holds them (the Vue kit's `v-model`): the
+  /// picker starts from them and takes them again whenever the host passes a
+  /// different list — after a partial failure, only the chats still waiting
+  /// for the forward. Ids that are not among [targets] are dropped. Null
+  /// leaves the choice to the picker.
+  final List<String>? selected;
+
+  /// Every change of the choice made in the picker, in the order chosen.
+  final ValueChanged<List<String>>? onSelectionChanged;
 
   @override
   State<FlareForwardPicker> createState() => _FlareForwardPickerState();
@@ -51,6 +70,29 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
   void initState() {
     super.initState();
     _query.addListener(() => setState(() {}));
+    _takeSelection();
+  }
+
+  @override
+  void didUpdateWidget(covariant FlareForwardPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final held = widget.selected;
+    if (held != null && !listEquals(held, oldWidget.selected)) {
+      _takeSelection();
+    } else if (!identical(widget.targets, oldWidget.targets)) {
+      final ids = {for (final target in widget.targets) target.id};
+      _selected.removeWhere((id) => !ids.contains(id));
+    }
+  }
+
+  /// The host's choice, kept to the chats on offer.
+  void _takeSelection() {
+    final held = widget.selected;
+    if (held == null) return;
+    final ids = {for (final target in widget.targets) target.id};
+    _selected
+      ..clear()
+      ..addAll(held.where(ids.contains));
   }
 
   @override
@@ -60,6 +102,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
   }
 
   void _toggle(String id) {
+    if (widget.busy) return;
     setState(() {
       if (widget.multiple) {
         if (!_selected.remove(id)) _selected.add(id);
@@ -70,6 +113,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
           ..addAll(wasSelected ? const <String>[] : [id]);
       }
     });
+    widget.onSelectionChanged?.call(_selected.toList());
   }
 
   List<FlareForwardTarget> get _filtered {
@@ -126,7 +170,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
                 if (widget.dismissible)
                   FlareIconControl(
                     label: FlareStrings.of(context).close,
-                    onTap: widget.onClose,
+                    onTap: widget.busy ? null : widget.onClose,
                     child: FlareIcon(
                       'close',
                       size: 18,
@@ -198,7 +242,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
   Widget _row(FlareColors colors, FlareForwardTarget t) {
     final selected = _selected.contains(t.id);
     return GestureDetector(
-      onTap: () => _toggle(t.id),
+      onTap: widget.busy ? null : () => _toggle(t.id),
       behavior: HitTestBehavior.opaque,
       child: Container(
         color: selected ? colors.bgSelected : Colors.transparent,
@@ -269,7 +313,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
 
   Widget _footer(FlareColors colors) {
     final count = _selected.length;
-    final enabled = count > 0;
+    final enabled = count > 0 && !widget.busy;
     return Container(
       padding: const EdgeInsets.all(FlareSizes.spacingMd),
       decoration: BoxDecoration(
@@ -292,7 +336,7 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
                 ? () => widget.onConfirm?.call(_selected.toList())
                 : null,
             child: Opacity(
-              opacity: enabled ? 1 : 0.4,
+              opacity: enabled || (widget.busy && count > 0) ? 1 : 0.4,
               child: Container(
                 height: 36,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -311,7 +355,17 @@ class _FlareForwardPickerState extends State<FlareForwardPicker> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const FlareIcon('send', size: 15, color: Colors.white),
+                    if (widget.busy)
+                      const SizedBox.square(
+                        key: ValueKey('flare-forward-picker-busy'),
+                        dimension: 15,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    else
+                      const FlareIcon('send', size: 15, color: Colors.white),
                     const SizedBox(width: 6),
                     Text(
                       _sendLabel,

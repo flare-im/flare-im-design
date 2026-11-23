@@ -43,8 +43,11 @@ export function getContentDecodedPreview(decoded: ContentElem | null | undefined
       }
       return readString(payload, "description", "title") || resolveFlareMessage(locale, "preview.image");
     }
-    case "video":
-      return readString(pickNestedPayload(decoded, "video"), "description", "title") || resolveFlareMessage(locale, "preview.video");
+    case "video": {
+      const video = pickNestedPayload(decoded, "video");
+      const payload = Object.keys(video).length ? video : root;
+      return readString(payload, "description", "caption", "title") || resolveFlareMessage(locale, "preview.video");
+    }
     case "audio":
       return readString(pickNestedPayload(decoded, "audio"), "description", "title") || resolveFlareMessage(locale, "preview.audio");
     case "file": {

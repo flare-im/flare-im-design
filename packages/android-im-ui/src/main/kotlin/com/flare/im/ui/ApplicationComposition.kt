@@ -1,5 +1,11 @@
 package com.flare.im.ui
 
+import androidx.compose.ui.platform.LocalFocusManager
+
+import androidx.compose.foundation.layout.imePadding
+
+import androidx.compose.foundation.layout.ime
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -7,6 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -17,10 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
@@ -40,9 +46,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Arrangement
 
 enum class FlareApplicationResponsiveMode { Mobile, Tablet, Desktop, WideDesktop }
 
@@ -339,25 +355,30 @@ fun AdaptiveNavigation(
     val colors = flareColors()
     val items = groups.flatMap { it.items }.filter { it.visible }
     if (presentation == FlareApplicationNavigationPresentation.Bottom) {
-        NavigationBar(modifier.selectableGroup(), containerColor = colors.bgPrimary) {
+        // Vue's bottom bar (`data-presentation="bottom"`): a top hairline, 4 around the items, each a 24 icon over a 12 label
+        // 2 apart with 4 above and below — about 62 in all, the system navigation bar's inset under it and not counted in it.
+        // The active item is told by colour alone: no Material indicator capsule (iOS has only ever used colour).
+        Row(
+            modifier.fillMaxWidth()
+                .background(colors.bgPrimary)
+                .drawBehind { drawLine(colors.borderPrimary, Offset(0f, 0.5.dp.toPx()), Offset(size.width, 0.5.dp.toPx()), 1.dp.toPx()) }
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(FlareSizes.spacingXs)
+                .selectableGroup(),
+        ) {
             items.forEach { item ->
-                NavigationBarItem(
-                    selected = item.id == activeId,
-                    enabled = item.enabled,
-                    onClick = { onNavigate(item.id) },
-                    icon = { ApplicationNavigationIcon(item) },
-                    label = { Text(item.label) },
-                    // 活跃态只由图标和文字的颜色表达。Material 默认会在活跃项外面画一块
-                    // 胶囊指示器(indicatorColor) —— 那是 Material 的语言不是 Flare 的,
-                    // 一行四项里只有一项带色块,比它要标示的图标还显眼。iOS 一直是只用颜色。
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color.Transparent,
-                        selectedIconColor = colors.primaryText,
-                        selectedTextColor = colors.primaryText,
-                        unselectedIconColor = colors.textSecondary,
-                        unselectedTextColor = colors.textSecondary,
-                    ),
-                )
+                val tint = if (item.id == activeId) colors.primaryText else colors.textSecondary
+                Column(
+                    Modifier.weight(1f).heightIn(min = FlareSizes.touchTarget)
+                        .selectable(selected = item.id == activeId, enabled = item.enabled, role = Role.Tab) { onNavigate(item.id) }
+                        .flareDimmed(if (item.enabled) 1f else FlareOpacity.disabled)
+                        .padding(vertical = FlareSizes.spacingXs, horizontal = 2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                ) {
+                    CompositionLocalProvider(LocalContentColor provides tint) { ApplicationNavigationIcon(item) }
+                    Text(item.label, color = tint, fontSize = FlareSizes.fontSizeSm, lineHeight = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
         }
     } else {
@@ -397,7 +418,7 @@ private fun ApplicationNavigationIcon(item: FlareApplicationNavigationItem) {
     val icon: @Composable () -> Unit = {
         // The navigation bar tints its selected item itself, so the glyph inherits the item's content
         // colour instead of the registry view's default.
-        FlareIcon(name = item.icon, tint = LocalContentColor.current, contentDescription = item.accessibilityLabel)
+        FlareIcon(name = item.icon, size = FlareSizes.iconSizeLg, tint = LocalContentColor.current, contentDescription = item.accessibilityLabel)
     }
     if (badge == null) {
         icon()
@@ -441,6 +462,8 @@ fun AppLayout(
     overlay: (@Composable () -> Unit)? = null,
     floating: (@Composable () -> Unit)? = null,
     onLayoutChange: ((FlareWorkspacePresentation) -> Unit)? = null,
+    /** The list column's width beside the content (Vue `primary-width`); the pane decision counts it too. */
+    primaryWidth: Dp = FlareSizes.primaryPaneDefaultWidth,
 ) {
     val colors = flareColors()
     val shellMode = LocalFlareShellResponsiveMode.current
@@ -460,6 +483,7 @@ fun AppLayout(
                     width = maxWidth,
                     textScale = textScale,
                     navigationWidth = if (navigation == null) 0.dp else null,
+                    primaryWidth = primaryWidth,
                 )
             }
             ReportWorkspacePresentation(presentation, onLayoutChange)
@@ -484,7 +508,7 @@ fun AppLayout(
                         Box(Modifier.weight(1f).fillMaxHeight()) { activeBody() }
                     } else {
                         if (primary != null) {
-                            Box(Modifier.width(FlareSizes.primaryPaneDefaultWidth).fillMaxHeight()) { primary() }
+                            Box(Modifier.width(primaryWidth).fillMaxHeight()) { primary() }
                             VerticalDivider(Modifier.fillMaxHeight())
                         }
                         Box(Modifier.weight(1f).fillMaxHeight()) { content() }
@@ -532,7 +556,8 @@ fun MobileAppShell(
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f).fillMaxWidth()) { content() }
+        // The bottom bar pads itself above the system navigation; the page above it must not pad for it again.
+        Box(Modifier.weight(1f).fillMaxWidth().then(if (hideNavigation) Modifier else Modifier.consumeWindowInsets(WindowInsets.navigationBars))) { content() }
         if (!hideNavigation) {
             AdaptiveNavigation(groups, activeNavigationId, FlareApplicationResponsiveMode.Mobile, onNavigate)
         }
@@ -685,7 +710,10 @@ fun IMAppKit(
         visited = shown
     }
     val registry = depths.getOrPut(activeNavigationId) { FlareDestinationDepthRegistry() }
-    BoxWithConstraints(Modifier.fillMaxSize().background(flareColors().bgPrimary)) {
+    val searchTaps = remember { SearchTapScope() }
+    val focus = LocalFocusManager.current
+    BoxWithConstraints(Modifier.fillMaxSize().background(flareColors().bgPrimary)
+        .dismissSearchOnOutsideTap(searchTaps) { focus.clearFocus() }) {
         val mode = resolveApplicationResponsiveMode(maxWidth, LocalDensity.current.fontScale)
         val mobile = mode == FlareApplicationResponsiveMode.Mobile
         // One structure for every mode, so the destination keeps its place when the window crosses a breakpoint: the
@@ -693,15 +721,26 @@ fun IMAppKit(
         Row(Modifier.fillMaxSize()) {
             if (!mobile) AdaptiveNavigation(groups, activeNavigationId, mode, onNavigate)
             Column(Modifier.weight(1f).fillMaxHeight()) {
-                Box(Modifier.weight(1f).fillMaxWidth()) {
+                val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                val atRoot = flareShellNavigationVisible(mode, registry.depth)
+                val bottomBar = mobile && atRoot && !keyboardVisible
+                // The bottom bar pads itself above the system navigation; the page above it must not pad for it again.
+                Box(Modifier.weight(1f).fillMaxWidth().then(
+                    when {
+                        bottomBar -> Modifier.consumeWindowInsets(WindowInsets.navigationBars)
+                        mobile && atRoot && keyboardVisible -> Modifier.imePadding()
+                        else -> Modifier
+                    },
+                )) {
                     CompositionLocalProvider(
                         LocalFlareShellResponsiveMode provides mode,
                         LocalFlareDestinationDepth provides registry,
+                        LocalSearchTapScope provides searchTaps,
                     ) {
                         holder.SaveableStateProvider(activeNavigationId) { destination(activeNavigationId) }
                     }
                 }
-                if (mobile && flareShellNavigationVisible(mode, registry.depth)) {
+                if (bottomBar) {
                     AdaptiveNavigation(groups, activeNavigationId, FlareApplicationResponsiveMode.Mobile, onNavigate)
                 }
             }
@@ -709,6 +748,12 @@ fun IMAppKit(
     }
 }
 
+/**
+ * [status] sits between the filters and the rows (a permission soft-ask, a notice). With [onRefresh] the rows take a
+ * pull from the top (touch is how this kit is used, so there is no refresh key); [refreshing] keeps the indicator up
+ * and stops a second pull. A list with no rows that failed shows the failure as the screen's own error state.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationListContainer(
     state: FlareApplicationViewState<List<Any>> = FlareApplicationViewState(),
@@ -723,14 +768,45 @@ fun ConversationListContainer(
     filters: (@Composable () -> Unit)? = null,
     pinned: (@Composable () -> Unit)? = null,
     archived: (@Composable () -> Unit)? = null,
+    status: (@Composable () -> Unit)? = null,
+    refreshing: Boolean = false,
+    onRefresh: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(flareColors().bgPrimary)) {
-        header?.invoke(); search?.invoke(); filters?.invoke()
+        header?.invoke(); search?.invoke(); filters?.invoke(); status?.invoke()
         if (state.status == FlareApplicationViewStatus.Ready) pinned?.invoke()
+        val presentation = flareViewPresentation(state.status, state.stale)
+        val rows: @Composable () -> Unit = {
+            if (onRefresh != null && presentation != FlareViewPresentation.State) {
+                val pull = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+                val strings = flareStrings()
+                // The Vue kit's band: it grows with the finger (64 at the threshold) and says what letting go will do.
+                val band = if (refreshing) 64.dp / 1.5f else 64.dp * pull.distanceFraction.coerceIn(0f, 1.5f)
+                androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                    isRefreshing = refreshing,
+                    onRefresh = { if (!refreshing) onRefresh() },
+                    modifier = Modifier.fillMaxSize(),
+                    state = pull,
+                    indicator = {
+                        if (band > 0.dp) Text(
+                            when {
+                                refreshing -> strings.listRefreshRefreshing
+                                pull.distanceFraction >= 1f -> strings.listRefreshRelease
+                                else -> strings.listRefreshPull
+                            },
+                            modifier = Modifier.align(Alignment.TopCenter).height(band).padding(top = FlareSizes.spacingSm)
+                                .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
+                            color = flareColors().textTertiary,
+                            fontSize = FlareSizes.fontSizeSm,
+                        )
+                    },
+                ) { Box(Modifier.fillMaxSize().padding(top = band)) { content() } }
+            } else content()
+        }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            when (flareViewPresentation(state.status, state.stale)) {
-                FlareViewPresentation.Content -> content()
+            when (presentation) {
+                FlareViewPresentation.Content -> rows()
                 // A failed refresh over rows worth keeping: the failure is a banner, the rows stay readable.
                 FlareViewPresentation.ContentWithNotice -> Column(Modifier.fillMaxSize()) {
                     StatusBanner(
@@ -739,11 +815,19 @@ fun ConversationListContainer(
                         actionText = retryLabel.takeIf { onRetry != null && it.isNotBlank() },
                         onAction = onRetry,
                     )
-                    Box(Modifier.weight(1f).fillMaxWidth()) { content() }
+                    Box(Modifier.weight(1f).fillMaxWidth()) { rows() }
                 }
                 FlareViewPresentation.State -> when (state.status) {
                     FlareApplicationViewStatus.Empty -> EmptyState(state.emptyTitle ?: emptyTitle, icon = "chats")
-                    FlareApplicationViewStatus.Error, FlareApplicationViewStatus.Offline -> StatusBanner(
+                    // Nothing else is on this screen, so the failure is its content, not a thin band over a blank list.
+                    FlareApplicationViewStatus.Error -> EmptyState(
+                        title = state.error.orEmpty(),
+                        actionText = retryLabel.takeIf { onRetry != null && it.isNotBlank() },
+                        icon = "warning",
+                        onAction = onRetry,
+                        tone = FlareEmptyStateTone.Error,
+                    )
+                    FlareApplicationViewStatus.Offline -> StatusBanner(
                         text = state.error.orEmpty(),
                         tone = if (state.status == FlareApplicationViewStatus.Error) FlareStatusTone.Danger else FlareStatusTone.Info,
                         actionText = retryLabel.takeIf { onRetry != null && it.isNotBlank() },
@@ -770,6 +854,8 @@ fun FriendListContainer(
     emptyTitle: String = "",
     header: (@Composable () -> Unit)? = null,
     search: (@Composable () -> Unit)? = null,
+    /** Under the search field, above the list (the phone directory's 群聊 / 新的好友 / 黑名单 entries). */
+    filters: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) = ConversationListContainer(
     state = state,
@@ -778,5 +864,6 @@ fun FriendListContainer(
     emptyTitle = emptyTitle,
     header = header,
     search = search,
+    filters = filters,
     content = content,
 )

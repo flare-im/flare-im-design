@@ -105,11 +105,11 @@ public struct PluginDetailSheetView: View {
         switch state {
         case .hidden: EmptyView()
         case .ready(let cursor):
-            ButtonView(label: strings.myInviteLoadMore, variant: .text, disabled: onLoadMore == nil, block: true) {
+            ButtonView(label: strings.pluginViewLoadMore, variant: .text, disabled: onLoadMore == nil, block: true) {
                 if let asked = paging.tap(cursor: cursor, loadingMore: loadingMore) { onLoadMore?(asked) }
             }
         case .loading:
-            ButtonView(label: strings.myInviteLoadMore, variant: .text, loading: true, block: true) {}
+            ButtonView(label: strings.pluginViewLoadMore, variant: .text, loading: true, block: true) {}
         }
     }
 

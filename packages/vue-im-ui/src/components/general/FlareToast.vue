@@ -52,7 +52,7 @@ const icon = computed(
 <template>
   <div class="flare-toast" :class="`flare-toast--${resolvedVariant}`" :data-tone="resolvedTone" role="status">
     <n-icon aria-hidden="true"
-      :size="18"
+      size="var(--flare-size-icon-size-md)"
       :component="icon"
       class="flare-toast__icon"
       :class="{ 'is-spin': resolvedVariant === 'loading' }"

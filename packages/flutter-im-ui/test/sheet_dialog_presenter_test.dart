@@ -337,7 +337,16 @@ void main() {
       expect(tester.getRect(_materialSheet).width, _phone.width);
     });
 
-    testWidgets('appears without motion when motion is reduced', (
+    testWidgets('the sheet rises in FlareMotion.slow (§7)', (tester) async {
+      final context = await _pumpHost(tester, size: _phone);
+      FlareBottomSheet.show<void>(context, builder: (_) => const Text('Body'));
+      await tester.pump();
+      final route = ModalRoute.of(tester.element(find.text('Body')))!;
+      expect(route.transitionDuration, FlareMotion.slow);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('fades in without sliding when motion is reduced', (
       tester,
     ) async {
       tester.platformDispatcher.accessibilityFeaturesTestValue =
@@ -345,13 +354,24 @@ void main() {
       addTearDown(
         tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
       );
+      double faded() => [
+        for (final o in tester.widgetList<Opacity>(
+          find.ancestor(of: find.text('Now'), matching: find.byType(Opacity)),
+        ))
+          o.opacity,
+      ].reduce((a, b) => a * b);
       for (final size in [_phone, _desktop]) {
         final context = await _pumpHost(tester, size: size);
         FlareBottomSheet.show<void>(context, builder: (_) => const Text('Now'));
         await tester.pump();
         await tester.pump();
+        // §12.10: in place from the first frame, only its opacity moving.
+        final rest = tester.getRect(find.text('Now'));
+        expect(faded(), lessThan(1), reason: '$size');
+        await tester.pump(FlareMotion.slow);
+        expect(tester.getRect(find.text('Now')), rest, reason: '$size');
+        expect(faded(), 1, reason: '$size');
         expect(tester.hasRunningAnimations, isFalse, reason: '$size');
-        expect(find.text('Now'), findsOneWidget);
         Navigator.of(tester.element(find.text('Now'))).pop();
         await tester.pumpAndSettle();
       }

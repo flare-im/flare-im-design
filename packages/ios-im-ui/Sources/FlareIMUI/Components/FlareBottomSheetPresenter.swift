@@ -31,13 +31,15 @@ public extension View {
         size: FlareSheetSize = .fitted,
         fill: Bool = false,
         maxHeight: CGFloat? = nil,
+        /// The dialog's width in a regular size class (default `component.sheetDialogWidth`).
+        width: CGFloat? = nil,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
         modifier(FlareSheetLayerPresenter(
             isPresented: isPresented, title: title, titleHidden: titleHidden, presentation: presentation,
-            dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, registers: true, compact: nil,
-            onDismiss: onDismiss, sheetContent: content
+            dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, width: width, registers: true,
+            compact: nil, onDismiss: onDismiss, sheetContent: content
         ))
     }
 
@@ -53,14 +55,16 @@ public extension View {
         size: FlareSheetSize = .fitted,
         fill: Bool = false,
         maxHeight: CGFloat? = nil,
+        /// The dialog's width in a regular size class (default `component.sheetDialogWidth`).
+        width: CGFloat? = nil,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping (Item) -> Content
     ) -> some View {
         modifier(FlareItemLayer(item: item) { presented, shown in
             FlareSheetLayerPresenter(
                 isPresented: presented, title: title, titleHidden: titleHidden, presentation: presentation,
-                dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, registers: true, compact: nil,
-                onDismiss: onDismiss
+                dismissible: dismissible, size: size, fill: fill, maxHeight: maxHeight, width: width, registers: true,
+                compact: nil, onDismiss: onDismiss
             ) {
                 if let value = shown() { content(value).id(value.id) }
             }
@@ -98,6 +102,7 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
     let size: FlareSheetSize
     let fill: Bool
     let maxHeight: CGFloat?
+    let width: CGFloat?
     let registers: Bool
     let compact: Bool?
     let onDismiss: (() -> Void)?
@@ -105,11 +110,13 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
     @State private var presence = UUID()
 
     init(isPresented: Binding<Bool>, title: String?, titleHidden: Bool, presentation: FlareSheetPresentation,
-         dismissible: Bool, size: FlareSheetSize, fill: Bool = false, maxHeight: CGFloat?, registers: Bool,
-         compact: Bool?, onDismiss: (() -> Void)?, @ViewBuilder sheetContent: @escaping () -> SheetContent) {
+         dismissible: Bool, size: FlareSheetSize, fill: Bool = false, maxHeight: CGFloat?, width: CGFloat? = nil,
+         registers: Bool, compact: Bool?, onDismiss: (() -> Void)?,
+         @ViewBuilder sheetContent: @escaping () -> SheetContent) {
         _isPresented = isPresented
         self.title = title; self.titleHidden = titleHidden; self.presentation = presentation
         self.dismissible = dismissible; self.size = size; self.fill = fill; self.maxHeight = maxHeight
+        self.width = width
         self.registers = registers; self.compact = compact; self.onDismiss = onDismiss
         self.sheetContent = sheetContent
     }
@@ -127,7 +134,7 @@ struct FlareSheetLayerPresenter<SheetContent: View>: ViewModifier {
             },
             coverLayer: {
                 // The sheet's own chrome: no close button (the scrim and Escape close it), the slim body padding.
-                FlareSheetModalCover(title: title, titleHidden: titleHidden, maxHeight: maxHeight,
+                FlareSheetModalCover(title: title, titleHidden: titleHidden, maxHeight: maxHeight, width: width,
                                      fill: size == .large || fill, ownHeaderHidesTitle: fill,
                                      dismissible: dismissible, scrollable: size == .fitted && !fill,
                                      onClose: { isPresented = false }) {
@@ -155,15 +162,20 @@ struct FlareSheetModalCover<Content: View>: View {
     let content: Content
     @State private var ownHeader = false
 
-    init(title: String?, titleHidden: Bool, maxHeight: CGFloat?, fill: Bool, ownHeaderHidesTitle: Bool,
-         dismissible: Bool, scrollable: Bool, onClose: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+    let width: CGFloat?
+
+    init(title: String?, titleHidden: Bool, maxHeight: CGFloat?, width: CGFloat? = nil, fill: Bool,
+         ownHeaderHidesTitle: Bool, dismissible: Bool, scrollable: Bool, onClose: @escaping () -> Void,
+         @ViewBuilder content: () -> Content) {
+        self.width = width
         self.title = title; self.titleHidden = titleHidden; self.maxHeight = maxHeight; self.fill = fill
         self.ownHeaderHidesTitle = ownHeaderHidesTitle; self.dismissible = dismissible; self.scrollable = scrollable
         self.onClose = onClose; self.content = content()
     }
 
     var body: some View {
-        ModalView(title: title, titleHidden: titleHidden || (ownHeaderHidesTitle && ownHeader), maxHeight: maxHeight,
+        ModalView(title: title, titleHidden: titleHidden || (ownHeaderHidesTitle && ownHeader), width: width,
+                  maxHeight: maxHeight,
                   fill: fill, dismissible: dismissible, showClose: false, scrollable: scrollable, onClose: onClose) {
             content
         }
@@ -308,5 +320,17 @@ private struct FlareSheetFeedback: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+public extension View {
+    /// Presents ``FlarePaymentConfirmation`` the kit's way (§4.3): a bottom sheet on a phone, a dialog of
+    /// `component.paymentDialogWidth` in a regular size class. Hosts present it with this, not a width of their own.
+    func flarePaymentConfirmation<Item: Identifiable, Content: View>(
+        item: Binding<Item?>, title: String? = nil, dismissible: Bool = false,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) -> some View {
+        flareBottomSheet(item: item, title: title, titleHidden: true, dismissible: dismissible,
+                         width: FlareSizes.componentPaymentDialogWidth, content: content)
     }
 }

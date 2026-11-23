@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsRole;
+
 import 'package:flutter/material.dart';
 
 import '../models/plugin_view.dart' show flarePluginNowMs;
@@ -6,6 +8,8 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
 import 'flare_avatar.dart';
+import 'flare_icon.dart';
+import 'red_packet_arch.dart';
 import 'flare_icon_button.dart';
 
 /// Red packet details — the body of an ordinary page, not an overlay: the host
@@ -36,6 +40,7 @@ class FlareRedPacketDetail extends StatelessWidget {
     this.title,
     this.nowMs,
     this.onBack,
+    this.onDeposited,
   });
 
   final String senderName;
@@ -51,17 +56,20 @@ class FlareRedPacketDetail extends StatelessWidget {
   /// the server lists them.
   final List<FlareRedPacketClaim> claims;
 
-  /// Title of the red bar drawn when [onBack] is set; defaults to the strings
+  /// Title of the navigation bar drawn when [onBack] is set; defaults to the strings
   /// table's `packetDetailTitle`.
   final String? title;
 
   /// The clock times are read against; null reads `flarePluginNowMs`.
   final int? nowMs;
 
-  /// With it the page draws its own red title bar — back key and [title],
-  /// light on the deep red, reaching up under the status bar and running into
-  /// the arched header — and the host hides its own navigation bar.
+  /// With it the page draws its own neutral title bar — back key and [title] —
+  /// above the shallow red arch, and the host hides its own navigation bar.
   final VoidCallback? onBack;
+
+  /// With it the "已存入钱包 ›" line under the viewer's amount opens the
+  /// wallet; without it the line is plain text.
+  final VoidCallback? onDeposited;
 
   @override
   Widget build(BuildContext context) {
@@ -80,177 +88,196 @@ class FlareRedPacketDetail extends StatelessWidget {
     final headline = view.headline;
     final summary = view.summary;
     final note = view.note;
-    return ColoredBox(
-      color: colors.bgPrimary,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (onBack != null) _bar(colors, strings),
-          _hero(colors),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              FlareSizes.spacingXl,
-              FlareSizes.spacing2xl,
-              FlareSizes.spacingXl,
-              FlareSizes.spacingXl,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ExcludeSemantics(
-                      child: FlareAvatar(
-                        userId: senderName,
-                        displayName: senderName,
-                        avatarUrl: senderAvatar,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: FlareSizes.spacingSm),
-                    Flexible(
-                      child: Semantics(
-                        header: true,
-                        child: Text(
-                          heading,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: FlareSizes.fontSize3xl,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (badge != null) ...[
-                      const SizedBox(width: FlareSizes.spacingSm),
-                      _kindBadge(colors, badge),
-                    ],
-                  ],
+    // The page is one region named for the packet ("小明的红包").
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: SemanticsRole.region,
+      label: heading,
+      child: ColoredBox(
+        color: colors.bgPrimary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (onBack != null) _bar(colors, strings),
+            // A PC pane keeps the arch and the list in one centred column.
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: FlareSizes.detailPaneMaxWidth,
                 ),
-                const SizedBox(height: FlareSizes.spacingSm),
-                Text(
-                  details.greeting,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: FlareSizes.fontSizeLg,
-                  ),
-                ),
-                if (headline != null) ...[
-                  const SizedBox(height: FlareSizes.spacingMd),
-                  Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      headline,
-                      key: headlineKey,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: FlareSizes.fontSizeXl,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-                if (amount != null) ...[
-                  const SizedBox(height: FlareSizes.spacingMd),
-                  Text(
-                    amount,
-                    key: amountKey,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: FlareSizes.componentRedPacketAmountFontSize,
-                      height: FlareSizes.lineHeightTight,
-                      fontWeight: FontWeight.w600,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  const SizedBox(height: FlareSizes.spacingSm),
-                  Text(
-                    strings.packetDeposited,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: colors.warningText,
-                      fontSize: FlareSizes.fontSizeMd,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (summary != null || view.claims)
-            Container(height: 1, color: colors.borderPrimary),
-          if (summary != null) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: FlareSizes.spacingLg,
-                vertical: FlareSizes.spacingMd,
-              ),
-              child: Text(
-                summary,
-                key: summaryKey,
-                style: TextStyle(
-                  color: colors.textTertiary,
-                  fontSize: FlareSizes.fontSizeMd,
-                ),
-              ),
-            ),
-            Container(height: 1, color: colors.borderPrimary),
-          ],
-          if (view.claims)
-            if (claims.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: FlareSizes.spacingLg,
-                  vertical: FlareSizes.spacingXl,
-                ),
-                child: Text(
-                  strings.packetNoClaims,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textTertiary,
-                    fontSize: FlareSizes.fontSizeMd,
-                  ),
-                ),
-              )
-            else
-              Semantics(
-                key: claimsKey,
-                label: strings.packetClaims,
-                explicitChildNodes: true,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (final claim in claims)
-                      _row(colors, strings, claim, now),
+                    const FlareRedPacketArch(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        FlareSizes.spacingXl,
+                        FlareSizes.spacingLg,
+                        FlareSizes.spacingXl,
+                        FlareSizes.spacingLg,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ExcludeSemantics(
+                            child: FlareAvatar(
+                              userId: senderName,
+                              displayName: senderName,
+                              avatarUrl: senderAvatar,
+                              size:
+                                  FlareSizes.componentRedPacketDetailAvatarSize,
+                            ),
+                          ),
+                          const SizedBox(height: FlareSizes.spacingSm),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    heading,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: colors.textPrimary,
+                                      fontSize: FlareSizes.fontSize2xl,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (badge != null) ...[
+                                const SizedBox(width: FlareSizes.spacingSm),
+                                _kindBadge(colors, badge),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: FlareSizes.spacingSm),
+                          Text(
+                            details.greeting,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: FlareSizes.fontSizeLg,
+                            ),
+                          ),
+                          if (headline != null) ...[
+                            const SizedBox(height: FlareSizes.spacingMd),
+                            Semantics(
+                              liveRegion: true,
+                              child: Text(
+                                headline,
+                                key: headlineKey,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: colors.textPrimary,
+                                  fontSize: FlareSizes.fontSizeXl,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (amount != null) ...[
+                            const SizedBox(height: FlareSizes.spacingMd),
+                            Text(
+                              amount,
+                              key: amountKey,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: FlareSizes
+                                    .componentRedPacketDetailAmountFontSize,
+                                height: FlareSizes.lineHeightTight,
+                                fontWeight: FontWeight.w600,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: FlareSizes.spacingSm),
+                            _deposited(colors, strings),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (summary != null || view.claims)
+                      Container(height: 1, color: colors.borderPrimary),
+                    if (summary != null) ...[
+                      Container(
+                        color: colors.bgSecondary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: FlareSizes.spacingLg,
+                          vertical: FlareSizes.spacingMd,
+                        ),
+                        child: Text(
+                          summary,
+                          key: summaryKey,
+                          style: TextStyle(
+                            color: colors.textSecondary,
+                            fontSize: FlareSizes.fontSizeMd,
+                          ),
+                        ),
+                      ),
+                      Container(height: 1, color: colors.borderPrimary),
+                    ],
+                    if (view.claims)
+                      if (claims.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: FlareSizes.spacingLg,
+                            vertical: FlareSizes.spacingXl,
+                          ),
+                          child: Text(
+                            strings.packetNoClaims,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: colors.textTertiary,
+                              fontSize: FlareSizes.fontSizeMd,
+                            ),
+                          ),
+                        )
+                      else
+                        Semantics(
+                          key: claimsKey,
+                          label: strings.packetClaims,
+                          explicitChildNodes: true,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final claim in claims)
+                                _row(colors, strings, claim, now),
+                            ],
+                          ),
+                        ),
+                    if (note != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          FlareSizes.spacingLg,
+                          FlareSizes.spacingLg,
+                          FlareSizes.spacingLg,
+                          FlareSizes.spacingXl,
+                        ),
+                        child: Text(
+                          note,
+                          key: noteKey,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: FlareSizes.fontSizeMd,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
-          if (note != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                FlareSizes.spacingLg,
-                FlareSizes.spacingLg,
-                FlareSizes.spacingLg,
-                FlareSizes.spacingXl,
-              ),
-              child: Text(
-                note,
-                key: noteKey,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colors.textTertiary,
-                  fontSize: FlareSizes.fontSizeMd,
-                ),
-              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -270,10 +297,72 @@ class FlareRedPacketDetail extends StatelessWidget {
   /// The refund note (tests).
   static const Key noteKey = ValueKey('flare-red-packet-detail-note');
 
-  /// The page's own title bar: the deep red keeps the light title and back
-  /// key above 4.5:1, and it reaches up under the status bar.
+  /// The viewer's amount went to the wallet: "已存入钱包", and with
+  /// [onDeposited] a chevron and a 48 touch target that opens it.
+  Widget _deposited(FlareColors colors, FlareStrings strings) {
+    final line = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: FlareIcon(
+            'success',
+            size: FlareSizes.iconSizeSm,
+            color: colors.successText,
+          ),
+        ),
+        const SizedBox(width: FlareSizes.spacingXs),
+        Flexible(
+          child: Text(
+            strings.packetDeposited,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: colors.successText,
+              fontSize: FlareSizes.fontSizeMd,
+            ),
+          ),
+        ),
+        if (onDeposited != null)
+          ExcludeSemantics(
+            child: FlareIcon(
+              'chevron-right',
+              size: FlareSizes.iconSizeSm,
+              color: colors.successText,
+            ),
+          ),
+      ],
+    );
+    if (onDeposited == null) return line;
+    return Semantics(
+      button: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          key: depositedKey,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+          onTap: onDeposited,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: FlareSizes.touchTarget,
+              minWidth: FlareSizes.touchTarget,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: FlareSizes.spacingSm,
+              ),
+              child: line,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The "已存入钱包 ›" key (tests).
+  static const Key depositedKey = ValueKey('flare-red-packet-detail-deposited');
+
+  /// The page's own neutral title bar follows the current theme and safe area.
   Widget _bar(FlareColors colors, FlareStrings strings) => ColoredBox(
-    color: colors.redPacketEnd,
+    color: colors.bgPrimary,
     child: SafeArea(
       bottom: false,
       child: SizedBox(
@@ -286,7 +375,7 @@ class FlareRedPacketDetail extends StatelessWidget {
                 child: FlareIconButton(
                   icon: 'back',
                   semanticLabel: strings.back,
-                  tintColor: Colors.white,
+                  tintColor: colors.textPrimary,
                   backgroundColor: Colors.transparent,
                   onPressed: onBack,
                 ),
@@ -300,8 +389,8 @@ class FlareRedPacketDetail extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: FlareSizes.fontSize2xl,
                     fontWeight: FontWeight.w600,
                   ),
@@ -315,31 +404,6 @@ class FlareRedPacketDetail extends StatelessWidget {
     ),
   );
 
-  /// The red band that bows out at the bottom, the way the envelope's flap does.
-  Widget _hero(FlareColors colors) => LayoutBuilder(
-    builder: (context, constraints) => ExcludeSemantics(
-      child: Container(
-        height: FlareSizes.componentRedPacketDetailHeaderHeight,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            // Under the title bar the arch starts from the bar's deep red.
-            colors: onBack != null
-                ? [colors.redPacketEnd, colors.redPacketMiddle]
-                : [colors.redPacketMiddle, colors.redPacketStart],
-          ),
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.elliptical(
-              constraints.maxWidth / 2,
-              FlareSizes.spacing2xl,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-
   Widget _kindBadge(FlareColors colors, String label) => Container(
     constraints: const BoxConstraints(
       minWidth: FlareSizes.iconSizeMd,
@@ -348,13 +412,13 @@ class FlareRedPacketDetail extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingXs),
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: colors.redPacketGold,
+      color: colors.bgSecondary,
       borderRadius: BorderRadius.circular(FlareSizes.radiusXs),
     ),
     child: Text(
       label,
       style: TextStyle(
-        color: colors.redPacketEnd,
+        color: colors.textSecondary,
         fontSize: FlareSizes.fontSizeXs,
         fontWeight: FontWeight.w600,
       ),
@@ -378,7 +442,7 @@ class FlareRedPacketDetail extends StatelessWidget {
     return MergeSemantics(
       child: Container(
         constraints: const BoxConstraints(
-          minHeight: FlareSizes.sessionItemHeight,
+          minHeight: FlareSizes.componentRedPacketClaimRowHeight,
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: FlareSizes.spacingLg,
@@ -424,43 +488,46 @@ class FlareRedPacketDetail extends StatelessWidget {
               ),
             ),
             const SizedBox(width: FlareSizes.spacingMd),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  amount,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: FlareSizes.fontSizeXl,
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    amount,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: FlareSizes.fontSize2xl,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                ),
-                if (c.best) ...[
-                  const SizedBox(height: FlareSizes.spacing3xs),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ExcludeSemantics(
-                        child: Icon(
-                          flareIconGlyph('star'),
-                          size: FlareSizes.iconSizeSm,
-                          color: colors.redPacketGoldDeep,
+                  if (c.best) ...[
+                    const SizedBox(height: FlareSizes.spacing3xs),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ExcludeSemantics(
+                          // The star is as tall as its 12 label.
+                          child: Icon(
+                            flareIconGlyph('star'),
+                            size: FlareSizes.fontSizeSm,
+                            color: colors.warningText,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: FlareSizes.spacing3xs),
-                      Text(
-                        strings.packetBestLuck,
-                        style: TextStyle(
-                          color: colors.warningText,
-                          fontSize: FlareSizes.fontSizeXs,
+                        const SizedBox(width: FlareSizes.spacing3xs),
+                        Text(
+                          strings.packetBestLuck,
+                          style: TextStyle(
+                            color: colors.warningText,
+                            fontSize: FlareSizes.fontSizeSm,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ],
         ),

@@ -142,7 +142,7 @@ final class DrawerModalViewTests: XCTestCase {
     }
 
     @MainActor
-    func testDrawerAtTheStartEdgeAndOnANarrowWindowKeepsAScrimStrip() {
+    func testDrawerAtTheStartEdgeAndCoversANarrowWindow() {
         let start = Seen()
         let w1 = render(DrawerView(placement: .start, showClose: false, onClose: {}) { FrameProbe(seen: start) },
                         size: CGSize(width: 1024, height: 700))
@@ -152,7 +152,8 @@ final class DrawerModalViewTests: XCTestCase {
         let w2 = render(DrawerView(showClose: false, onClose: {}) { FrameProbe(seen: narrow) },
                         size: CGSize(width: 390, height: 700))
         defer { w2.close() }
-        XCTAssertEqual(narrow.frame.width, 390 - FlareSizes.touchTarget, accuracy: 0.5)
+        // Up to 640pt the drawer takes the whole window (Vue's phone form); wider ones keep a scrim strip.
+        XCTAssertEqual(narrow.frame.width, 390, accuracy: 0.5)
     }
 
     @MainActor

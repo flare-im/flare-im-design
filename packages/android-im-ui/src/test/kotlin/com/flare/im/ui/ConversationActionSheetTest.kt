@@ -66,7 +66,7 @@ class ConversationActionSheetTest {
     @Test fun markUnreadAndClearHistoryCopyComesFromTheStringsTable() {
         val defaults = FlareStrings()
         assertEquals("标为未读", defaults.conversationActionSheetMarkUnread)
-        assertEquals("清空本地记录", defaults.conversationActionSheetClearHistory)
+        assertEquals("清空聊天记录", defaults.conversationActionSheetClearHistory)
         val english = FlareStrings {
             conversationActionSheetMarkUnread = "Mark as unread"
             conversationActionSheetClearHistory = "Clear local history"

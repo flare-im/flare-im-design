@@ -22,13 +22,23 @@ class FlareRedPacketTint extends StatelessWidget {
       mode: inherited?.mode ?? FlareThemeMode.system,
       colors: colors.copyWith(
         primary: red,
-        primaryHover: Color.lerp(red, Colors.black, 0.12),
-        primaryActive: Color.lerp(red, Colors.black, 0.22),
+        primaryHover: colors.redPacketEndHover,
+        primaryActive: colors.redPacketEndActive,
       ),
       child: child,
     );
   }
 }
+
+/// The large packet total of the composer and the review:
+/// [FlareSizes.componentRedPacketAmountFontSize] (44), and
+/// [FlareSizes.componentRedPacketAmountFontSizeWide] (36) in a PC window
+/// (≥ breakpoints.md, [FlareSizes.appShellCompactMinWidth]).
+double flareRedPacketAmountFontSize(BuildContext context) =>
+    (MediaQuery.maybeSizeOf(context)?.width ?? 0) >=
+        FlareSizes.appShellCompactMinWidth
+    ? FlareSizes.componentRedPacketAmountFontSizeWide
+    : FlareSizes.componentRedPacketAmountFontSize;
 
 /// A spent packet's colour: [color] mixed in sRGB with the theme's
 /// `redPacketFadedMixTarget` (white in light mode, a deep red in dark mode),

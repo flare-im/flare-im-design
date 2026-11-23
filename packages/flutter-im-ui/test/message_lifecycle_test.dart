@@ -33,9 +33,12 @@ void main() {
       ).visualStatus,
       FlareMessageDeliveryStatus.sent,
     );
-    expect(
-      FlareMessageDeliveryStatus.values.map((s) => s.name),
-      ['pending', 'sending', 'sent', 'read', 'failed'],
-    );
+    expect(FlareMessageDeliveryStatus.values.map((s) => s.name), [
+      'pending',
+      'sending',
+      'sent',
+      'read',
+      'failed',
+    ]);
   });
 }

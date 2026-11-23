@@ -1,5 +1,8 @@
 package com.flare.im.ui
 
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.os.Build
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -80,6 +84,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /*
  * Standalone, presentational per-type message bodies (clean params, no SDK /
@@ -149,9 +155,12 @@ private fun linkify(
  */
 private fun withMentionStyles(annotated: AnnotatedString, mentions: List<FlareTextMentionSpan>, self: Boolean, accent: Color): AnnotatedString {
     if (mentions.isEmpty()) return annotated
-    val style = if (self) SpanStyle(fontWeight = FontWeight.SemiBold) else SpanStyle(color = accent, fontWeight = FontWeight.Medium)
     return AnnotatedString.Builder(annotated).apply {
-        for (mention in mentions) addStyle(style, mention.start, mention.start + mention.length)
+        for (mention in mentions) {
+            val style = if (self) SpanStyle(fontWeight = FontWeight.SemiBold)
+            else SpanStyle(color = accent, fontWeight = if (mention.self || mention.all) FontWeight.SemiBold else FontWeight.Medium)
+            addStyle(style, mention.start, mention.start + mention.length)
+        }
     }.toAnnotatedString()
 }
 
@@ -425,9 +434,11 @@ fun VideoMessage(
     posterContent: (@Composable () -> Unit)? = null,
     duration: String = "",
     alt: String? = null,
+    localVideoPath: String? = null,
     onPlay: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
+    val localVideo = flareLocalVideoFile(localVideoPath)
     // With posterContent (e.g. a host-generated frame bitmap of any size) the slot defines the size.
     val outer = if (posterContent != null) Modifier else Modifier.width(VideoThumbnailWidth).aspectRatio(16f / 9f)
     Box(
@@ -436,6 +447,27 @@ fun VideoMessage(
     ) {
         if (posterContent != null) {
             posterContent()
+        } else if (localVideo != null) {
+            key(localVideo) {
+                val frame by produceState<Bitmap?>(null) {
+                    value = withContext(Dispatchers.IO) {
+                        runCatching {
+                            val retriever = MediaMetadataRetriever()
+                            try {
+                                retriever.setDataSource(localVideo.path)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                                    retriever.getScaledFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 480, 270)
+                                } else {
+                                    retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                                }
+                            } finally {
+                                retriever.release()
+                            }
+                        }.getOrNull()
+                    }
+                }
+                AsyncImage(model = frame, contentDescription = alt, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+            }
         } else if (!poster.isNullOrEmpty()) {
             AsyncImage(model = poster, contentDescription = alt, modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
         }
@@ -553,25 +585,12 @@ fun VoiceMessage(
 }
 
 /** The type a file's [name] ends in, as a file card shows it (`PDF`): one to five letters or digits after the last dot, else null. */
-internal fun flareFileExtension(name: String): String? =
+fun flareFileExtension(name: String): String? =
     Regex("\\.([A-Za-z0-9]{1,5})$").find(name.trim())?.groupValues?.get(1)?.uppercase()
 
-/**
- * The second line of a file card: the size and the type, then where the file stands on this device — downloading
- * (with the share once it is known) or downloaded. The size and type stay whatever the state.
- */
-internal fun fileMessageSubtitle(strings: FlareStrings, size: String, ext: String?, state: FlareMediaDownloadState?): String =
-    buildList {
-        if (size.isNotEmpty()) add(size)
-        if (!ext.isNullOrEmpty()) add(ext)
-        when {
-            state?.isDownloading == true -> {
-                val pct = state.progressPct.coerceIn(0, 100)
-                add(if (pct > 0) "${strings.downloading} $pct%" else strings.downloading)
-            }
-            state?.isSaved == true -> add(strings.downloaded)
-        }
-    }.joinToString(" · ")
+/** The size and type beneath the filename. The download control shows its state. */
+internal fun fileMessageSubtitle(size: String, ext: String?): String =
+    listOfNotNull(size, ext).filter { it.isNotBlank() }.joinToString(" · ")
 
 /**
  * file — icon / name / size · type, and a trailing download key; emits [onOpen] (the card). The key is there only
@@ -605,7 +624,7 @@ fun FileMessage(
         Column(Modifier.weight(1f)) {
             Text(name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp,
                 fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(fileMessageSubtitle(strings, size, ext, downloadState), color = colors.textTertiary, fontSize = 11.sp,
+            Text(fileMessageSubtitle(size, ext), color = colors.textTertiary, fontSize = 11.sp,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         when {

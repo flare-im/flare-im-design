@@ -36,8 +36,7 @@ void main() {
     expect(inAppNotificationPendingLimit, limits['pendingLimit']);
   });
 
-  for (final vector
-      in (table['cases'] as List).cast<Map<String, dynamic>>()) {
+  for (final vector in (table['cases'] as List).cast<Map<String, dynamic>>()) {
     test(vector['name'], () {
       final presenter = FlareInAppNotifications();
       final steps = (vector['steps'] as List).cast<Map<String, dynamic>>();
@@ -94,7 +93,8 @@ void main() {
     expect(bob.spoken(flareStringsEnglish), 'New message, Bob, lunch');
   });
 
-  Widget app(FlareInAppNotifications notifications, {
+  Widget app(
+    FlareInAppNotifications notifications, {
     void Function(String, String?)? onOpen,
   }) => MaterialApp(
     builder: (context, child) => FlareInAppNotificationHost(

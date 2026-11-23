@@ -70,7 +70,7 @@ function onKey(e: KeyboardEvent): void {
       @mouseenter="enter(n)"
       @click="pick(n)"
     >
-      <n-icon aria-hidden="true" :component="n <= active ? Star : StarOutline" />
+      <n-icon size="var(--flare-size-icon-size-lg)" aria-hidden="true" :component="n <= active ? Star : StarOutline" />
     </button>
   </div>
 </template>

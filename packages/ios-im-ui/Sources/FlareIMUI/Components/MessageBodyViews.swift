@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 // Standalone, presentational per-type message bodies (clean params, no SDK /
@@ -268,9 +269,10 @@ public struct TextMessageView: View {
 
     /// A mention run's look: weight 500 in the primary text colour (incoming), or weight 600 in the
     /// bubble's own foreground (outgoing: no colour of its own).
-    static func mentionRun(_ text: String, outgoing: Bool, colors: FlareColors, fontSize: CGFloat) -> AttributedString {
+    static func mentionRun(_ text: String, outgoing: Bool, colors: FlareColors, fontSize: CGFloat,
+                           highlighted: Bool = false) -> AttributedString {
         var run = AttributedString(text)
-        run.font = .system(size: fontSize, weight: outgoing ? .semibold : .medium)
+        run.font = .system(size: fontSize, weight: outgoing || highlighted ? .semibold : .medium)
         if !outgoing { run.foregroundColor = colors.primaryText }
         return run
     }
@@ -284,7 +286,8 @@ public struct TextMessageView: View {
                 result += linkified(segment.text, linkColor: linkColor)
                 return
             }
-            var run = mentionRun(segment.text, outgoing: outgoing, colors: colors, fontSize: fontSize)
+            var run = mentionRun(segment.text, outgoing: outgoing, colors: colors, fontSize: fontSize,
+                                 highlighted: mention.highlighted)
             if flatHighlight && !outgoing && mention.highlighted { run.backgroundColor = colors.bgSelected }
             result += run
         }
@@ -297,7 +300,8 @@ public struct TextMessageView: View {
             guard let mention = segment.mention else {
                 return text + plainText(segment.text, linkColor: linkColor, fontSize: fontSize)
             }
-            let run = Text(mentionRun(segment.text, outgoing: false, colors: colors, fontSize: fontSize))
+            let run = Text(mentionRun(segment.text, outgoing: false, colors: colors, fontSize: fontSize,
+                                      highlighted: mention.highlighted))
             return text + (mention.highlighted ? run.customAttribute(FlareMentionHighlight()) : run)
         }
     }
@@ -311,7 +315,8 @@ public struct TextMessageView: View {
             guard let mention = segment.mention else {
                 return text + plainText(segment.text, linkColor: linkColor, fontSize: fontSize)
             }
-            var run = mentionRun(segment.text, outgoing: outgoing, colors: colors, fontSize: fontSize)
+            var run = mentionRun(segment.text, outgoing: outgoing, colors: colors, fontSize: fontSize,
+                                 highlighted: mention.highlighted)
             if flatHighlight && !outgoing && mention.highlighted { run.backgroundColor = colors.bgSelected }
             return text + Text(run)
         }
@@ -458,6 +463,7 @@ public struct VideoMessageView: View {
     private let alt: String?
     private let width: CGFloat
     private let height: CGFloat
+    private let localVideoPath: String?
     private let onPlay: (() -> Void)?
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
@@ -465,9 +471,11 @@ public struct VideoMessageView: View {
     @Environment(\.flareStrings) private var strings
     public init(poster: String? = nil, duration: String = "", alt: String? = nil,
                 width: CGFloat = VideoMessageView.defaultWidth, height: CGFloat = VideoMessageView.defaultHeight,
+                localVideoPath: String? = nil,
                 onPlay: (() -> Void)? = nil) {
         self.poster = poster; self.duration = duration; self.alt = alt; self.onPlay = onPlay
         self.width = width; self.height = height
+        self.localVideoPath = localVideoPath
     }
 
     /// Whether the thumbnail carries a duration badge: only for a duration it knows.
@@ -478,7 +486,11 @@ public struct VideoMessageView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         ZStack {
-            NetImage(url: poster) { colors.bgTertiary }
+            if let local = flareLocalVideoURL(localVideoPath) {
+                FlareLocalVideoFrame(url: local, poster: poster, background: colors.bgTertiary).id(local)
+            } else {
+                NetImage(url: poster) { colors.bgTertiary }
+            }
             FlareVideoPlayDisc()
             if Self.showsDuration(duration) {
                 VStack { Spacer(); HStack { Spacer()
@@ -495,6 +507,43 @@ public struct VideoMessageView: View {
         .onTapIf(onPlay)
         .accessibilityLabel(alt?.isEmpty == false ? alt! : strings.messageVideo)
         .accessibilityValue(Self.showsDuration(duration) ? duration : "")
+    }
+}
+
+func flareLocalVideoURL(_ path: String?) -> URL? {
+    guard let path, path.hasPrefix("/"), FileManager.default.isReadableFile(atPath: path) else { return nil }
+    return URL(fileURLWithPath: path)
+}
+
+private struct FlareLocalVideoFrame: View {
+    let url: URL
+    let poster: String?
+    let background: Color
+    @State private var frame: CGImage?
+    @State private var failed = false
+
+    var body: some View {
+        Group {
+            if let frame {
+                Image(decorative: frame, scale: 1).resizable().scaledToFill()
+            } else if failed {
+                NetImage(url: poster) { background }
+            } else {
+                background
+            }
+        }.task {
+            guard frame == nil, !failed else { return }
+            let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: 480, height: 480)
+            do {
+                let result = try await generator.image(at: .zero)
+                guard !Task.isCancelled else { return }
+                frame = result.image
+            } catch {
+                if !Task.isCancelled { failed = true }
+            }
+        }
     }
 }
 
@@ -594,9 +643,7 @@ public struct VoiceMessageView: View {
 ///
 /// The key follows `downloadState`, the host's view of the file on this device: a download while it is not saved
 /// (`idle`, or `failed` — try again), the save's progress while `downloading` (not pressable), and once it is saved
-/// (`done`) a folder that shows it where it was saved (`onReveal`) — never a spent "downloaded" tick. The size line says
-/// the same after the size and type (`· 下载中 42%`, `· 已下载`). There is no key without `onDownload`, and a saved file
-/// whose host passes no `onReveal` keeps the download key.
+/// (done) a folder that shows where it was saved. A saved file without a reveal handler keeps the download key.
 public struct FileMessageView: View {
     /// What the trailing key is.
     enum Key: Equatable {
@@ -644,20 +691,9 @@ public struct FileMessageView: View {
         }
     }
 
-    /// The line under the name: the size and type, then where the file stands on this device while it is being saved
-    /// (with the percent once there is one) or once it is.
-    static func subtitle(size: String, ext: String?, state: FlareMediaDownloadState?, strings: FlareStrings) -> String {
-        var facts = [size, ext ?? ""].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
-        switch state?.status {
-        case .downloading?:
-            let pct = min(max(state?.progressPct ?? 0, 0), 100)
-            facts.append(pct > 0 ? "\(strings.downloading) \(pct)%" : strings.downloading)
-        case .done?:
-            facts.append(strings.downloaded)
-        default:
-            break
-        }
-        return facts.joined(separator: " · ")
+    static func subtitle(size: String, ext: String?) -> String {
+        [size, ext ?? ""].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
     public var body: some View {
@@ -670,7 +706,7 @@ public struct FileMessageView: View {
                     Text(name).font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
                         .foregroundColor(bodyForeground ?? colors.textPrimary)
                         .lineLimit(1).truncationMode(.middle)
-                    Text(Self.subtitle(size: size, ext: ext, state: downloadState, strings: strings))
+                    Text(Self.subtitle(size: size, ext: ext))
                         .font(.system(size: FlareSizes.fontSizeXs * textScale).monospacedDigit())
                         .foregroundColor(bodyForeground?.opacity(0.72) ?? colors.textTertiary)
                         .lineLimit(1)

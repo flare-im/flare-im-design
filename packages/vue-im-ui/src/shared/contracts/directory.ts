@@ -55,6 +55,9 @@ export interface FlareGroupSummary {
   memberCount?: number;
 }
 
+/** UI draft owned by the caller for one profile identity; saving remains a host action. */
+export interface FlareProfileDraft { name: string; signature: string }
+
 export interface FlareUserProfile {
   id: string;
   name: string;
@@ -80,6 +83,8 @@ export interface FlareSettingsItem {
   kind?: FlareSettingKind;
   value?: boolean;
   detail?: string;
+  /** Draw `detail` under the label however short (a disabled action's reason, R2.5). */
+  detailBelow?: boolean;
   /**
    * `true` is a red dot before the chevron, with no number: something here is new (an update waiting in About). A number
    * is the red count badge (pending friend requests) on a navigation row; 99+ above 99. A toggle row draws neither.

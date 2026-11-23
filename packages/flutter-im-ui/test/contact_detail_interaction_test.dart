@@ -85,10 +85,12 @@ void main() {
       expect(primary.variant, FlareButtonVariant.primary);
       final message = tester.widget<FlareButton>(_button(_labels.message));
       expect(message.variant, FlareButtonVariant.secondary);
-      // It leads the action row, ahead of Message.
+      // It leads, ahead of Message: on a page it fills its own row (Vue
+      // `block`), so Message follows under it.
+      expect(primary.block, isTrue);
       expect(
-        tester.getTopLeft(find.text('添加到通讯录')).dx,
-        lessThan(tester.getTopLeft(find.text(_labels.message)).dx),
+        tester.getTopLeft(find.text('添加到通讯录')).dy,
+        lessThan(tester.getTopLeft(find.text(_labels.message)).dy),
       );
       // Not a footer key: the footer keeps only the host's extra actions.
       expect(_button('举报'), findsOneWidget);

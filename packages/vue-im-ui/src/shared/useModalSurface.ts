@@ -26,6 +26,7 @@ import { claimNativeBack } from "./platform/useFlareNativeBack";
 
 /** 所有模态面共用的一个栈,叠起来时最上面那张才收键盘。 */
 const stack = shallowReactive<symbol[]>([]);
+const surfaces = new Map<symbol, Ref<HTMLElement | null>>();
 let lockCount = 0;
 let priorOverflow = "";
 
@@ -66,6 +67,12 @@ export function hasFlareModalSurface(): boolean {
   return stack.length > 0;
 }
 
+/** Deferred background work must not move focus behind the current modal. */
+export function canFocusFlareModalTarget(target: Node | null): boolean {
+  const top = stack.at(-1);
+  return top === undefined || Boolean(target && surfaces.get(top)?.value?.contains(target));
+}
+
 export interface FlareModalSurface {
   /** Teleport 目标:宿主提供的容器,缺省 "body"。 */
   overlayContainer: Ref<FlareOverlayTarget>;
@@ -100,6 +107,7 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
       document.body.style.overflow = "hidden";
     }
     stack.push(id);
+    surfaces.set(id, options.surface);
     lockCount += 1;
     holdsLock = true;
   }
@@ -109,6 +117,7 @@ export function useFlareModalSurface(options: FlareModalSurfaceOptions): FlareMo
     holdsLock = false;
     const index = stack.indexOf(id);
     if (index !== -1) stack.splice(index, 1);
+    surfaces.delete(id);
     lockCount = Math.max(0, lockCount - 1);
     if (lockCount === 0) document.body.style.overflow = priorOverflow;
   }

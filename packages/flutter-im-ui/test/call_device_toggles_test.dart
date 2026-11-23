@@ -24,6 +24,10 @@ SemanticsNode _named(WidgetTester tester, String name) {
 
 void main() {
   testWidgets('call controls: toggled means the device is on', (tester) async {
+    // A phone: flip is a phone-only key.
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final handle = tester.ensureSemantics();
     for (final (muted, cameraOn) in [(false, true), (true, false)]) {
       await tester.pumpWidget(

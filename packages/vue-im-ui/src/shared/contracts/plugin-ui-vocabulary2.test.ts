@@ -186,7 +186,7 @@ describe("plugin upgrade notice (spec upgradeNotice)", () => {
 
 describe("PLUGIN_UI_VOCABULARY", () => {
   it("is the shared vocabulary without the Vue kit's omissions", () => {
-    const omit = source.kits.vue.omit;
+    const omit = source.kits.vue.omit ?? {}; // no omissions: the kit entry carries no omit (as the builder reads it)
     for (const set of ["blocks", "inputs", "formats", "actions", "native", "renderers", "kinds"] as const) {
       const expected = (source.vocabulary[set] as string[]).filter((name) => !(omit[set] ?? []).includes(name)).sort();
       expect([...PLUGIN_UI_VOCABULARY[set]]).toEqual(expected);

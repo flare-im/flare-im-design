@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -168,93 +169,86 @@ fun ContactDetail(
     primaryActionBusy: Boolean = false,
 ) {
     val colors = flareColors()
-    Column(
-        modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-    ) {
-        // Hero
-        Column(
-            Modifier.fillMaxWidth().padding(top = FlareSizes.spacing2xl, bottom = FlareSizes.spacing2sm),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Avatar(userId = contact.id, displayName = contact.name, size = 76.dp, presence = contact.presence)
-            Spacer(Modifier.height(FlareSizes.spacingMd))
-            Text(contact.name, color = colors.textPrimary, fontSize = FlareSizes.fontSize4xl.value.sp, fontWeight = FontWeight.Bold)
-            if (!contact.signature.isNullOrEmpty()) {
-                Spacer(Modifier.height(FlareSizes.spacingXs))
-                Text(contact.signature, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
-            }
-            if (starred) {
-                Spacer(Modifier.height(FlareSizes.spacingSm))
-                // The registry star and the label; the glyph is decoration, the label names the badge.
-                Row(
-                    Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSelected).padding(horizontal = FlareSizes.spacing2sm, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
-                ) {
-                    Icon(flareIconVector("star"), contentDescription = null, tint = colors.primaryText, modifier = Modifier.size(13.dp))
-                    Text(labels.star, color = colors.primaryText, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+    Column(modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+            // Hero, as on Vue: the avatar beside the name (a star after a starred one) and the signature under it.
+            Row(
+                Modifier.fillMaxWidth().padding(start = FlareSizes.spacingMd, end = FlareSizes.spacingMd, top = FlareSizes.spacingLg, bottom = FlareSizes.spacingMd),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2md),
+            ) {
+                Avatar(userId = contact.id, displayName = contact.name, size = 64.dp, presence = contact.presence)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+                        Text(contact.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl.value.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f, fill = false))
+                        if (starred) Icon(flareIconVector("star"), contentDescription = labels.star, tint = colors.primaryText, modifier = Modifier.size(16.dp))
+                    }
+                    if (!contact.signature.isNullOrEmpty()) {
+                        Text(contact.signature, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
+                    }
                 }
             }
-        }
 
+            // 资料 settings card — left out when there is nothing to show or edit.
+            val infoItems = contactDetailInfoItems(
+                contact, starred, description, labels,
+                editsRemark = onEditRemark != null,
+                editsDescription = onEditDescription != null,
+                togglesStar = onToggleStar != null,
+            )
+            if (infoItems.isNotEmpty()) Spacer(Modifier.height(FlareSizes.spacingSm))
+            if (infoItems.isNotEmpty()) SettingsList(
+                scrollable = false,
+                sections = listOf(SettingsSection(title = labels.infoSection, items = infoItems)),
+                onSelect = { item ->
+                    when (item.key) {
+                        "remark" -> onEditRemark?.invoke()
+                        "description" -> onEditDescription?.invoke()
+                    }
+                },
+                onToggle = { item, v -> if (item.key == "star") onToggleStar?.invoke(v) },
+            )
+
+            // Danger zone: only the handled intents, and none at all without them.
+            if (onBlock != null || onRemove != null || extraActions.isNotEmpty()) Column(
+                Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
+                verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
+            ) {
+                for (action in extraActions) Button(
+                    label = action.label, size = FlareControlSize.Lg, block = true, maintainTouchTarget = true,
+                    variant = if (action.danger) FlareButtonVariant.Danger else FlareButtonVariant.Secondary,
+                    onClick = { onExtraAction?.invoke(action.id) },
+                )
+                if (onBlock != null) Button(
+                    label = labels.block, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Lg,
+                    block = true, maintainTouchTarget = true, onClick = onBlock,
+                )
+                if (onRemove != null) Button(
+                    label = labels.remove, variant = FlareButtonVariant.Danger, size = FlareControlSize.Lg,
+                    block = true, maintainTouchTarget = true, onClick = onRemove,
+                )
+            }
+        }
         // Actions: only the intents the host handles.
         val row = contactDetailRow(
             hasPrimary = contactDetailHasPrimaryAction(primaryActionLabel, onPrimaryAction != null),
             intents = contactDetailActions(onMessage != null, onCall != null, onVideo != null),
         )
         if (row.isNotEmpty()) FlowRow(
-            Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingXs),
-            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            Modifier.fillMaxWidth().background(colors.bgPrimary)
+                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+            horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
         ) {
             row.forEach { key ->
                 when (key.intent) {
                     null -> action(primaryActionLabel.orEmpty(), "person-add", onPrimaryAction, primary = true, busy = contactDetailKeyBusy(key, primaryActionBusy))
-                    ContactDetailAction.Message -> action(labels.message, "comment", onMessage, primary = key.primary)
+                    ContactDetailAction.Message -> action(labels.message, null, onMessage, primary = key.primary)
                     ContactDetailAction.Call -> action(labels.voice, "phone", onCall)
                     ContactDetailAction.Video -> action(labels.video, "video", onVideo)
                 }
             }
-        }
-
-        // 资料 settings card — left out when there is nothing to show or edit.
-        val infoItems = contactDetailInfoItems(
-            contact, starred, description, labels,
-            editsRemark = onEditRemark != null,
-            editsDescription = onEditDescription != null,
-            togglesStar = onToggleStar != null,
-        )
-        if (infoItems.isNotEmpty()) Spacer(Modifier.height(FlareSizes.spacingSm))
-        if (infoItems.isNotEmpty()) SettingsList(
-            scrollable = false,
-            sections = listOf(SettingsSection(title = labels.infoSection, items = infoItems)),
-            onSelect = { item ->
-                when (item.key) {
-                    "remark" -> onEditRemark?.invoke()
-                    "description" -> onEditDescription?.invoke()
-                }
-            },
-            onToggle = { item, v -> if (item.key == "star") onToggleStar?.invoke(v) },
-        )
-
-        // Danger zone: only the handled intents, and none at all without them.
-        if (onBlock != null || onRemove != null || extraActions.isNotEmpty()) Column(
-            Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
-            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
-        ) {
-            for (action in extraActions) Button(
-                label = action.label, size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
-                variant = if (action.danger) FlareButtonVariant.Danger else FlareButtonVariant.Secondary,
-                onClick = { onExtraAction?.invoke(action.id) },
-            )
-            if (onBlock != null) Button(
-                label = labels.block, variant = FlareButtonVariant.Secondary, size = FlareControlSize.Sm,
-                block = true, maintainTouchTarget = true, onClick = onBlock,
-            )
-            if (onRemove != null) Button(
-                label = labels.remove, variant = FlareButtonVariant.Danger, size = FlareControlSize.Sm,
-                block = true, maintainTouchTarget = true, onClick = onRemove,
-            )
         }
     }
 }
@@ -262,16 +256,18 @@ fun ContactDetail(
 @Composable
 private fun action(
     label: String,
-    icon: String,
+    icon: String?,
     onClick: (() -> Unit)?,
     primary: Boolean = false,
     busy: Boolean = false,
 ) {
+    // The primary key spans the row and Message draws no glyph, as on Vue's phone layout.
     Button(
         label = label,
         icon = icon,
         variant = if (primary) FlareButtonVariant.Primary else FlareButtonVariant.Secondary,
-        size = FlareControlSize.Sm,
+        size = FlareControlSize.Lg,
+        block = primary,
         loading = busy,
         maintainTouchTarget = true,
         onClick = onClick,

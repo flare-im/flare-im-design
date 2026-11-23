@@ -9,7 +9,7 @@ import { computed } from "vue";
 import FlareIcon from "./FlareIcon.vue";
 import { flareIconNameOrFallback } from "../../shared/icons";
 
-const props = withDefaults(defineProps<{ icon?: string; size?: number }>(), { size: 20 });
+const props = withDefaults(defineProps<{ icon?: string; size?: "sm" | "md" | "lg" | "xl" | number }>(), { size: "md" });
 const value = computed(() => props.icon?.trim() ?? "");
 // A word-like value is meant as an icon name: the registry's glyph, or the fallback for a name it does not have.
 const semantic = computed(() => (/^[A-Za-z][A-Za-z0-9-]*$/.test(value.value) ? flareIconNameOrFallback(value.value) : null));

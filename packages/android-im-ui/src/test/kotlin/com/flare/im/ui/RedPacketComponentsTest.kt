@@ -226,6 +226,15 @@ class RedPacketComponentsTest {
         return (maxOf(x, y) + 0.05) / (minOf(x, y) + 0.05)
     }
 
+    @Test fun unclaimedDeepRedSupportsWhiteCopy() {
+        for (dark in listOf(false, true)) {
+            val colors = FlareColors.resolve(FlareBrandTheme.Violet, dark)
+            for (stop in redPacketCoverStops(colors, false)) {
+                assertTrue(contrast(stop, colors.redPacketOnSurface) >= 4.5)
+            }
+        }
+    }
+
     /** Light and dark: the mix target, the ink, every faded stop, and the ink's contrast on the text stops. */
     @Test fun spentCardsFadeAsTheSharedTableSays() {
         val table = vectors()["faded"] as Map<*, *>

@@ -135,7 +135,7 @@ const edges = useFlareScrollEdges(scroller, () => true);
             @keydown.space.prevent.stop="toggleLevels"
           >
             <span class="composer-heading-select__value">{{ activeHeading.label }}</span>
-            <n-icon aria-hidden="true" :size="14" :component="levelsOpen ? flareIcons['chevron-up'] : flareIcons['chevron-down']" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="levelsOpen ? flareIcons['chevron-up'] : flareIcons['chevron-down']" />
           </button>
         </template>
         <FlareActionMenu v-else :items="headingItems" :label="t('composer.headingLevel')" presentation="anchored" placement="top-start" @select="onHeadingSelect">
@@ -149,7 +149,7 @@ const edges = useFlareScrollEdges(scroller, () => true);
             @pointerdown.prevent
           >
             <span class="composer-heading-select__value">{{ activeHeading.label }}</span>
-            <n-icon aria-hidden="true" :size="14" :component="flareIcons['chevron-down']" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="flareIcons['chevron-down']" />
           </button>
         </FlareActionMenu>
       </div>
@@ -202,7 +202,7 @@ const edges = useFlareScrollEdges(scroller, () => true);
           @keydown.enter.prevent.stop="emit('apply', action.key)"
           @keydown.space.prevent.stop="emit('apply', action.key)"
         >
-          <n-icon aria-hidden="true" v-if="action.icon" :size="14" :component="action.icon" />
+          <n-icon aria-hidden="true" v-if="action.icon" size="var(--flare-size-icon-size-sm)" :component="action.icon" />
           <span v-else class="composer-format-glyph" :class="`composer-format-glyph--${action.key}`" aria-hidden="true">{{ action.glyph }}</span>
         </button>
       </div>

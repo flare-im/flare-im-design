@@ -35,6 +35,8 @@ export interface PluginFormInputState {
   selectionSearch(id: string, query: string): void;
   selectionRetry(id: string): void;
   selectionMore(id: string): void;
+  /** A PIN got its sixth digit: submit when no required field follows it, else go to the next field. */
+  pinComplete?(input: FlarePluginInput): void;
 }
 </script>
 <script setup lang="ts">
@@ -49,14 +51,18 @@ import FlareFormField from "./FlareFormField.vue";
 import FlareTextarea from "./FlareTextarea.vue";
 import FlareSwitch from "./FlareSwitch.vue";
 import FlareRadioGroup from "./FlareRadioGroup.vue";
+import FlarePinInput from "./FlarePinInput.vue";
 import FlareSelect from "./FlareSelect.vue";
 import FlareFileUpload from "../media/FlareFileUpload.vue";
+import FlareDocumentSlot from "../messages/FlareDocumentSlot.vue";
 import FlareDatePicker from "./FlareDatePicker.vue";
 import FlareTimePicker from "./FlareTimePicker.vue";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { flarePluginCounterShown, flarePluginSelectControl } from "../../shared/contracts/plugin-experience";
 import {
   flarePluginCounter,
+  flarePluginMaxLength,
   flarePluginIsUpload,
   flarePluginMaxItems,
   flarePluginMinRows,
@@ -81,14 +87,72 @@ function setCustomValue(value: unknown): void {
   if (!customDisabled.value) props.state.set(props.input.id, value);
 }
 const { t } = useFlareI18nOptional();
+const allChoiceValues = computed(() => {
+  const { input, state } = props;
+  if (
+    input.kind !== "options" ||
+    !input.choices?.length ||
+    input.reference ||
+    state.presentation !== "form"
+  ) return [];
+  const selection = state.selectionOf(input);
+  if (!selection || selection.remote !== false || selection.hasMore) return [];
+  const values = selection.options
+    .filter((option) => !option.disabled)
+    .map((option) => option.value);
+  return values.length > 1 && values.length <= flarePluginMaxItems(input) ? values : [];
+});
+const selectAllDisabled = computed(() => {
+  const selected = props.state.rowsOf(props.input.id);
+  return (
+    customDisabled.value ||
+    !!props.state.selectionOf(props.input)?.error ||
+    (selected.length === allChoiceValues.value.length &&
+      allChoiceValues.value.every((value) => selected.includes(value)))
+  );
+});
+/** R6: "{length}/{max}" only with a limit of at most 200 and something typed. */
+function counterOf(input: FlarePluginInput): string | undefined {
+  const draft = props.state.draft[input.id];
+  const typed = [...String(draft ?? "")].length;
+  return flarePluginCounterShown(flarePluginMaxLength(input), typed) ? flarePluginCounter(input, draft) ?? undefined : undefined;
+}
+/** R6: a select's control by its choice count (filters keep their dropdown; no choices is always a disabled select). */
+const selectControl = computed(() => {
+  const rule = flarePluginSelectControl(props.state.choicesOf(props.input).length);
+  if (rule.disabled) return "empty" as const;
+  if (props.state.presentation === "filters" || props.state.selectPresentation === "dropdown") return "select" as const;
+  return rule.control;
+});
+/** R6: the plugin's help under the field (caption, secondary); filters stay one line. */
+const help = computed(() => (props.state.presentation === "filters" ? undefined : props.input.help || undefined));
+const moneyRangeHint = computed(() => {
+  const money = props.input.money;
+  return money?.currency && money.min !== undefined && money.max !== undefined
+    ? t("pluginForm.moneyRange", { min: money.min, max: money.max, currency: money.currency }) : undefined;
+});
+const moneyError = computed(() => {
+  const error = props.state.errorText(props.input);
+  return error === t("pluginForm.outOfRange") && moneyRangeHint.value ? moneyRangeHint.value : error;
+});
 /** The keyboard's decimal separator follows the device language, not the kit's (spec moneyInput.typed). */
 const decimalSeparator = flarePluginDecimalSeparator(typeof navigator === "undefined" ? undefined : navigator.language);
 const removeIcon = flareIcons.close;
 const addIcon = flareIcons.add;
+/** A document input's name with its side, once (「认证材料 · 证件正面」, but 「证件正面」 alone). */
+function documentName(input: FlarePluginInput): string {
+  const sideLabel = input.kind === "document" && input.side ? t(`pluginForm.documentSide.${input.side}`) : "";
+  const side = sideLabel && !input.label.toLocaleLowerCase().includes(sideLabel.toLocaleLowerCase()) ? ` · ${sideLabel}` : "";
+  return `${input.label}${side}`;
+}
 /** The upload's title: an image or document input names what it takes (the side of a document). */
 function uploadTitle(input: FlarePluginInput): string {
-  const side = input.kind === "document" && input.side ? ` · ${t(`pluginForm.documentSide.${input.side}`)}` : "";
-  return `${input.label}${side}${input.required ? " *" : ""}`;
+  return `${documentName(input)}${input.required ? " *" : ""}`;
+}
+/** §6.3: a document input is a capture slot — uploaded is captured, in flight uploading, failed failed. */
+function slotState(input: FlarePluginInput): "empty" | "captured" | "uploading" | "failed" {
+  const phase = props.state.fileState(input).phase;
+  return phase === "uploaded" ? "captured" : phase === "failed" ? "failed" : phase === "empty" ? "empty" : "uploading";
 }
 function uploadPickLabel(input: FlarePluginInput): string {
   if (input.kind === "image") return t("pluginForm.chooseImage");
@@ -125,6 +189,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <template #default="field">
@@ -144,6 +209,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label="input.label"
     :required="input.required"
     :error="state.locationState(input).error || state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
     data-input-kind="location"
   >
@@ -179,9 +245,29 @@ function filePolicyHint(input: FlarePluginInput): string {
       </div>
     </div>
   </FlareFormField>
+  <!-- §6.3: a document input is its capture slot (the native capture action's entry, the host takes the photo). -->
+  <FlareFormField
+    v-else-if="input.kind === 'document' && state.presentation !== 'filters'"
+    :error="state.fileState(input).error || state.errorText(input)"
+    :hint="help"
+    :data-input-id="input.id"
+    data-input-kind="document"
+  >
+    <FlareDocumentSlot
+      :label="documentName(input)"
+      :side="input.side ?? 'front'"
+      :state="slotState(input)"
+      :image-url="state.fileState(input).previewUrl"
+      :progress="state.fileState(input).progress"
+      :disabled="state.busy || !state.fileEnabled || !input.file"
+      @capture="state.fileAction(input, state.fileState(input).phase === 'empty' ? 'choose' : 'replace')"
+      @retry="state.fileAction(input, 'retry')"
+    />
+  </FlareFormField>
   <FlareFormField
     v-else-if="flarePluginIsUpload(input.kind)"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
     :data-input-kind="input.kind"
   >
@@ -217,40 +303,71 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
-    <FlareAdminEntitySelect
+    <div class="flare-plugin-form__selection" :class="{ 'has-bulk-action': allChoiceValues.length }">
+      <FlareAdminEntitySelect
+        :label="input.label"
+        :multiple="input.kind === 'options' || input.kind === 'members'"
+        :value="
+          typeof state.draft[input.id] === 'string'
+            ? (state.draft[input.id] as string)
+            : ''
+        "
+        :values="
+          Array.isArray(state.draft[input.id])
+            ? (state.draft[input.id] as string[])
+            : []
+        "
+        :options="state.directoryOptions(input)"
+        :remote="state.selectionOf(input)!.remote ?? true"
+        :clearable="!input.required"
+        :max="flarePluginMaxItems(input)"
+        :loading="state.selectionOf(input)!.loading"
+        :disabled="state.busy || state.selectionOf(input)!.disabled"
+        :error="
+          state.selectionOf(input)!.error || state.selectionOf(input)!.invalid
+        "
+        :has-more="state.selectionOf(input)!.hasMore"
+        :placeholder="state.selectionLabels?.placeholder || input.label"
+        :empty-text="state.selectionLabels?.empty || ''"
+        :more-text="state.selectionLabels?.more || ''"
+        :retry-text="state.selectionLabels?.retry || ''"
+        @update:value="state.set(input.id, $event)"
+        @update:values="state.set(input.id, $event)"
+        @search="state.selectionSearch(input.id, $event)"
+        @retry="state.selectionRetry(input.id)"
+        @more="state.selectionMore(input.id)"
+      />
+      <FlareButton
+        v-if="allChoiceValues.length"
+        size="sm"
+        appearance="text"
+        :label="t('batch.selectAll')"
+        :aria-label="`${t('batch.selectAll')} · ${input.label}`"
+        :disabled="selectAllDisabled"
+        @click="state.set(input.id, allChoiceValues)"
+      />
+    </div>
+  </FlareFormField>
+  <!-- §5.10: a 6-digit password (a payment PIN) is six cells; the value is still the typed string. -->
+  <FlareFormField
+    :native="native"
+    v-else-if="input.kind === 'password' && input.maxLength === 6 && state.presentation !== 'filters'"
+    :label="input.label"
+    :required="input.required"
+    :error="state.errorText(input)"
+    :hint="help"
+    :data-input-id="input.id"
+  >
+    <FlarePinInput
+      :model-value="String(state.draft[input.id] ?? '')"
       :label="input.label"
-      :multiple="input.kind === 'options' || input.kind === 'members'"
-      :value="
-        typeof state.draft[input.id] === 'string'
-          ? (state.draft[input.id] as string)
-          : ''
-      "
-      :values="
-        Array.isArray(state.draft[input.id])
-          ? (state.draft[input.id] as string[])
-          : []
-      "
-      :options="state.directoryOptions(input)"
-      :remote="state.selectionOf(input)!.remote ?? true"
-      :clearable="!input.required"
-      :max="flarePluginMaxItems(input)"
-      :loading="state.selectionOf(input)!.loading"
-      :disabled="state.busy || state.selectionOf(input)!.disabled"
-      :error="
-        state.selectionOf(input)!.error || state.selectionOf(input)!.invalid
-      "
-      :has-more="state.selectionOf(input)!.hasMore"
-      :placeholder="state.selectionLabels?.placeholder || input.label"
-      :empty-text="state.selectionLabels?.empty || ''"
-      :more-text="state.selectionLabels?.more || ''"
-      :retry-text="state.selectionLabels?.retry || ''"
-      @update:value="state.set(input.id, $event)"
-      @update:values="state.set(input.id, $event)"
-      @search="state.selectionSearch(input.id, $event)"
-      @retry="state.selectionRetry(input.id)"
-      @more="state.selectionMore(input.id)"
+      :disabled="state.busy"
+      :error="Boolean(state.errorText(input))"
+      @update:model-value="(v: string) => state.set(input.id, v)"
+      @complete="state.pinComplete?.(input)"
     />
   </FlareFormField>
   <FlareFormField
@@ -260,11 +377,8 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
-    :hint="
-      state.presentation === 'filters'
-        ? undefined
-        : (flarePluginCounter(input, state.draft[input.id]) ?? undefined)
-    "
+    :counter="state.presentation === 'filters' ? undefined : counterOf(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <FlareInput
@@ -284,19 +398,24 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label="input.label"
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
-    :error="state.errorText(input)"
+    :hint="help ?? moneyRangeHint"
+    :error="moneyError"
     :data-input-id="input.id"
   >
     <div class="flare-plugin-form__money" data-money-input="true">
       <FlareInput
         :model-value="String(state.draft[input.id] ?? '')"
         :placeholder="moneyPlaceholder(input)"
+        :aria-label="input.money?.currency ? `${input.label} (${input.money.currency})` : undefined"
         inputmode="decimal"
         autocomplete="off"
         :disabled="state.busy || !input.money?.currency"
         @update:model-value="(v: string) => state.set(input.id, flarePluginMoneyTyped(v, decimalSeparator))"
-      />
-      <span v-if="input.money?.currency" class="flare-plugin-form__currency" data-money-currency="true">{{ input.money.currency }}</span>
+      >
+        <template v-if="input.money?.currency" #suffix>
+          <span class="flare-plugin-form__currency" data-money-currency="true">{{ input.money.currency }}</span>
+        </template>
+      </FlareInput>
     </div>
   </FlareFormField>
   <FlareFormField
@@ -306,7 +425,8 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
-    :hint="flarePluginCounter(input, state.draft[input.id]) ?? undefined"
+    :counter="counterOf(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <FlareTextarea
@@ -324,12 +444,13 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <FlareInput
       :model-value="state.numberText[input.id] ?? ''"
       :placeholder="input.placeholder"
-      inputmode="decimal"
+      :inputmode="input.min !== undefined && Number.isInteger(input.min) && input.max !== undefined && Number.isInteger(input.max) ? 'numeric' : 'decimal'"
       :disabled="state.busy"
       @update:model-value="(v: string) => state.setNumber(input.id, v)"
     />
@@ -338,6 +459,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :native="native"
     v-else-if="input.kind === 'toggle'"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <label class="flare-plugin-form__toggle">
@@ -356,12 +478,24 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="selectControl === 'empty' && state.presentation !== 'filters' ? t('pluginView.noOptionsHelp') : help"
     :data-input-id="input.id"
+    :data-select-control="selectControl"
   >
+    <!-- R6: nothing to choose — a disabled select that says so (the form keeps submit off). -->
+    <FlareSelect
+      v-if="selectControl === 'empty' && state.presentation !== 'filters'"
+      model-value=""
+      :options="[]"
+      :placeholder="t('pluginView.noOptions')"
+      :title="input.label"
+      disabled
+      data-select-empty="true"
+    />
     <!-- Native admin filters sit in a clipped, collapsible query region.
          Naive's teleported menu shares the wallet filters' popup behavior. -->
     <NSelect
-      v-if="native && state.presentation === 'filters'"
+      v-else-if="native && state.presentation === 'filters'"
       :value="String(state.draft[input.id] ?? '')"
       :options="
         input.required
@@ -379,7 +513,7 @@ function filePolicyHint(input: FlarePluginInput): string {
       @update:value="(v: string) => state.set(input.id, v)"
     />
     <FlareSelect
-      v-else-if="state.presentation === 'filters' || state.selectPresentation === 'dropdown'"
+      v-else-if="selectControl !== 'cards'"
       :model-value="String(state.draft[input.id] ?? '')"
       :options="
         state.presentation === 'filters' && !input.required
@@ -398,9 +532,11 @@ function filePolicyHint(input: FlarePluginInput): string {
     />
     <FlareRadioGroup
       v-else
+      :aria-label="input.label"
       :model-value="String(state.draft[input.id] ?? '')"
       :options="state.choicesOf(input)"
-      vertical
+      option-layout="cards"
+      data-select-cards="true"
       @update:model-value="(v: string) => state.set(input.id, v)"
     />
   </FlareFormField>
@@ -411,6 +547,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <NDatePicker
@@ -460,6 +597,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <div class="flare-plugin-form__options">
@@ -507,6 +645,7 @@ function filePolicyHint(input: FlarePluginInput): string {
     :label-placement="state.presentation === 'filters' ? 'left' : undefined"
     :required="input.required"
     :error="state.errorText(input)"
+    :hint="help"
     :data-input-id="input.id"
   >
     <div class="flare-plugin-form__members">
@@ -529,12 +668,22 @@ function filePolicyHint(input: FlarePluginInput): string {
 </template>
 
 <style scoped>
+.flare-plugin-form__selection {
+  display: contents;
+}
+.flare-plugin-form__selection.has-bulk-action {
+  display: flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  min-width: 0;
+  width: 100%;
+}
 .flare-plugin-form__toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--flare-size-spacing-md);
-  font-size: var(--flare-size-font-size-lg);
+  font-size: var(--flare-size-font-size-sm);
   color: var(--flare-color-text-primary);
 }
 .flare-plugin-form__datetime {
@@ -574,6 +723,7 @@ function filePolicyHint(input: FlarePluginInput): string {
   width: 100%;
   min-width: 0;
 }
+
 .flare-plugin-form__money > :first-child {
   flex: 1;
   min-width: 0;

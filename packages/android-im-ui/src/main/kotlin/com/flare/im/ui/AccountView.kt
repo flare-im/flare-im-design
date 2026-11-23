@@ -81,13 +81,18 @@ internal fun accountPresentation(view: PluginViewModel): AccountPresentation {
 }
 
 internal data class AccountEntry(val id: String, val block: PluginRowsBlock, val row: PluginRow, val separateBadge: Boolean = false) {
-    val amount get() = row.cells.firstOrNull()?.text.orEmpty()
+    /** The first cell as drawn: money with its currency (R10, as Vue `flarePluginMoneyFormatted`), else as sent. */
+    val amount get() = row.cells.firstOrNull()?.let { cell -> (cell.format as? PluginValueFormat.Money)?.let { PluginFormatRules.money(cell.text, it) } ?: cell.text }.orEmpty()
     val title get() = (if (separateBadge) null else row.badge?.text) ?: row.cells.getOrNull(1)?.text ?: block.columns.firstOrNull()?.label.orEmpty()
     val walletTitle get() = row.cells.getOrNull(1)?.text.orEmpty()
     val walletCaption get() = block.columns.firstOrNull()?.label.orEmpty()
     val walletFields get() = row.cells.mapIndexedNotNull { index, cell ->
-        if (index < 2 || cell.text.isEmpty()) null else block.columns.getOrNull(index)?.let { PluginViewField(it.label, cell.text) }
+        if (index < 2 || cell.text.isEmpty()) null else block.columns.getOrNull(index)?.let { PluginViewField(it.label, cell.text, cell.format, cell.tone, cell.unmapped) }
     }
+    /** §12.23: a PC wallet card's foot keeps only the statuses (toned or unmapped), never plain details like the asset. */
+    val walletStatuses get() = walletFields.filter { it.tone != null || it.unmapped }
+    /** R3: the row's toned cells (its statuses), drawn as Tags under the amount; a completed (success) one stays quiet (5.8). */
+    val statusCells get() = row.cells.drop(1).filter { (it.tone != null && it.tone != PluginTone.Success) || it.unmapped }
     val subtitle get() = row.cells.mapIndexedNotNull { i, cell ->
         cell.text.takeIf { i >= (if (separateBadge || row.badge == null) 2 else 1) && i < 3 && block.columns.getOrNull(i)?.format != PluginRowsFormat.Time && it.isNotEmpty() }
     }.joinToString(" · ")
@@ -114,6 +119,8 @@ internal fun accountUrgentBlocks(view: PluginViewModel): List<PluginBlock> {
     when (it) {
         is PluginNoteBlock -> it.text.isNotBlank() && it.tone in listOf(PluginTone.Warning, PluginTone.Danger)
         is PluginStatusBlock -> it.text.isNotBlank() && it.tone in listOf(PluginTone.Warning, PluginTone.Danger)
+        // 5.1: a pending operation's warning banner (with its review key) sits above the overview card.
+        is PluginBannerBlock -> it.text.isNotBlank() && (it.tone == PluginBannerTone.Warning || it.tone == PluginBannerTone.Danger)
         else -> false
     }
     }
@@ -139,10 +146,15 @@ fun FlareAccountView(
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
     onAction: ((String, PluginActionPayload) -> Unit)? = null,
+    /** Names and avatars of the users the view mentions (people, entries), as [PluginView]'s. */
+    resolveUser: (suspend (String) -> PluginUser?)? = null,
+    /** The viewer's user id: entries of that user carry the "me" tag. */
+    viewerId: String? = null,
 ) = AccountViewContent(view, busyActionId, error, formErrors, members, settleToken, onAction, null,
-    fileStates = fileStates, onFileAction = onFileAction, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision)
+    fileStates = fileStates, onFileAction = onFileAction, membersLoading = membersLoading, membersError = membersError, onMemberSearch = onMemberSearch, onMembersRetry = onMembersRetry, membersRevision = membersRevision,
+    resolveUser = resolveUser, viewerId = viewerId)
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun AccountViewContent(
     view: PluginViewModel, busyActionId: String?, error: String?, formErrors: List<PluginFormError>,
@@ -155,11 +167,19 @@ internal fun AccountViewContent(
     onMemberSearch: ((String) -> Unit)? = null,
     onMembersRetry: (() -> Unit)? = null,
     membersRevision: Int = 0,
+    /** R8: offline holds every action and entry (not hidden); the primary keys say they are available online. */
+    offline: Boolean = false,
+    resolveUser: (suspend (String) -> PluginUser?)? = null,
+    viewerId: String? = null,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
     val locale = LocalConfiguration.current.locales[0]
+    val phone = flareCompactOverlays()
     var hidden by remember { mutableStateOf(false) }
+    // R8: an action's failure is a banner at the top the viewer can close; closed, it stays closed for that failure.
+    var dismissedError by remember { mutableStateOf<String?>(null) }
+    val failure = error?.takeIf { it.isNotEmpty() && it != dismissedError }
     var information by remember { mutableStateOf(false) }
     var selectedId by remember { mutableStateOf<String?>(null) }
     val entries = remember(view) { accountEntries(view) }
@@ -172,7 +192,7 @@ internal fun AccountViewContent(
     val otherBlocks = remember(view) { view.blocks.filterNot { it is PluginRowsBlock || it in urgent } }
     val selected = entries.firstOrNull { it.id == selectedId }
     fun activateEntry(entry: AccountEntry) {
-        if (busyActionId != null) return
+        if (busyActionId != null || offline) return
         val action = accountEntryAction(view, entry, busy = false, handled = onAction != null)
         if (action != null) onAction?.invoke(action.first.id, PluginActionPayload(row = PluginActionRow(entry.row.key, action.second.input)))
         else selectedId = entry.id
@@ -191,8 +211,8 @@ internal fun AccountViewContent(
     fun projection(fields: List<PluginViewField> = emptyList(), actions: List<PluginViewAction> = emptyList(), blocks: List<PluginBlock> = emptyList()) =
         view.copy(fields = fields, actions = actions, blocks = blocks, menuActions = emptyList(), detail = false, nextCursor = null, presentation = null)
     val actions: @Composable (PluginViewModel, AccountEntry?, PluginViewActionLayout, Boolean) -> Unit = { projected, entry, layout, showError ->
-        PluginView(view = projected, embedded = true,
-            actionLayout = layout, showError = showError,
+        PluginView(view = projected, embedded = true, busy = offline,
+            actionLayout = layout, showError = showError, resolveUser = resolveUser, viewerId = viewerId,
             labelRows = account.layout == AccountLayout.Flow,
             inlineFormActionId = flowInlineId.takeIf { entry == null && projected.actions == account.primary },
             inlineFormTitle = (presentation["formTitle"] as? String).takeIf { account.layout == AccountLayout.Flow },
@@ -215,6 +235,9 @@ internal fun AccountViewContent(
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
     ) {
         list?.header?.invoke(this)
+        if (account.layout != AccountLayout.Flow) failure?.let { text ->
+            item(key = "account:error") { StatusBanner(text = text, tone = FlareStatusTone.Danger, dismissible = true, onDismiss = { dismissedError = text }) }
+        }
         if (account.layout == AccountLayout.Flow) {
             item(key = "account:introduction") {
                 Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
@@ -233,38 +256,63 @@ internal fun AccountViewContent(
             if (account.services.isNotEmpty()) item(key = "account:services") {
                 Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                     (presentation["servicesTitle"] as? String)?.let { Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() }) }
-                    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary).padding(FlareSizes.spacingLg)) {
-                        actions(projection(actions = account.services), null, PluginViewActionLayout.List, flowInlineId == null)
-                    }
+                    // R2.1: list cards by group, danger in its own card.
+                    actions(projection(actions = account.services), null, PluginViewActionLayout.Groups, flowInlineId == null)
                 }
             }
         } else if (account.layout == AccountLayout.Wallet) {
             item(key = "account:wallet") {
-                Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                    AccountHeader {
-                        Text(presentation["sectionTitle"] as? String ?: presentation["summaryTitle"] as? String ?: view.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                            if (account.primary.isNotEmpty()) Box(Modifier.weight(1f, fill = false)) { actions(projection(actions = account.primary), null, PluginViewActionLayout.Compact, false) }
-                            IconButton(if (hidden) "eye-off" else "eye", if (hidden) strings.accountShowBalance else strings.accountHideBalance, onClick = { hidden = !hidden })
-                        }
+                val title = presentation["sectionTitle"] as? String ?: presentation["summaryTitle"] as? String ?: view.title
+                // §12.23: a PC wallet home has no title row (the page header names it); the section keeps it for the reader.
+                val pc = !phone && entries.isNotEmpty()
+                Column(if (pc) Modifier.semantics { contentDescription = title } else Modifier, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+                    if (!pc) AccountHeader {
+                        Text(title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
+                        // 5.2: no wallet, no balance to hide.
+                        if (entries.isNotEmpty()) AccountMaskKey(hidden) { hidden = !hidden }
                     }
                     if (urgent.isNotEmpty()) actions(projection(blocks = urgent), null, PluginViewActionLayout.Inline, false)
-                    error?.takeIf { it.isNotEmpty() }?.let { StatusBanner(text = it, tone = FlareStatusTone.Danger) }
-                    if (entries.isEmpty()) view.fields.firstOrNull()?.let { first ->
-                        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary).padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
-                            Text(first.label, color = colors.textSecondary)
-                            Text(if (hidden) "••••" else first.value, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl, fontWeight = FontWeight.SemiBold)
+                    // 5.1: the primary keys close the overview card (phone: equal widths, 48 high), never the title row.
+                    val quick: @Composable () -> Unit = {
+                        if (account.primary.isNotEmpty()) quickKeys(projection(actions = account.primary), actions, offline, strings)
+                    }
+                    val directLabel = { entry: AccountEntry -> accountEntryAction(view, entry, false, onAction != null)?.first?.label }
+                    if (entries.isEmpty()) Unit
+                    else if (phone) {
+                        // 5.1: the default wallet is the overview card; any other wallet is a row under it.
+                        val lead = entries.first()
+                        key(lead.id) { AccountWalletCard(lead, hidden, busyActionId != null || offline, directLabel(lead), footer = quick) { activateEntry(lead) } }
+                        val others = entries.drop(1)
+                        if (others.isNotEmpty()) {
+                            PluginSectionTitle(accountOtherWalletsTitle(presentation, strings), Modifier.padding(top = FlareSizes.spacingSm))
+                            Column(Modifier.pluginListCard()) {
+                                others.forEachIndexed { index, entry ->
+                                    if (index > 0) FlareGroupedCardDivider()
+                                    key(entry.id) { AccountWalletRow(entry, hidden, busyActionId != null || offline) { activateEntry(entry) } }
+                                }
+                            }
                         }
-                    } else BoxWithConstraints {
-                        val columns = accountWalletColumnCount(maxWidth, entries.size)
-                        Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                            entries.chunked(columns).forEach { row -> Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                                row.forEach { entry -> key(entry.id) { Box(Modifier.weight(1f)) {
-                                    AccountWalletCard(entry, hidden, busyActionId != null, accountEntryAction(view, entry, false, onAction != null)?.first?.label) { activateEntry(entry) }
-                                } } }
-                                if (row.size < columns) Spacer(Modifier.weight(1f))
-                            } }
+                    } else {
+                        BoxWithConstraints {
+                            val columns = accountWalletColumnCount(maxWidth, entries.size)
+                            Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+                                entries.chunked(columns).forEach { row -> Row(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+                                    row.forEach { entry -> key(entry.id) { Box(Modifier.weight(1f)) {
+                                        AccountWalletCard(entry, hidden, busyActionId != null || offline, directLabel(entry), pc = true) { activateEntry(entry) }
+                                    } } }
+                                    if (row.size < columns) Spacer(Modifier.weight(1f))
+                                } }
+                            }
                         }
+                        // §12.23: the quick keys (R2.1 PC) start the row under the cards, the eye ends it (alone there without keys).
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.weight(1f)) {
+                                if (account.primary.isNotEmpty()) actions(projection(actions = account.primary), null, PluginViewActionLayout.Quick, false)
+                            }
+                            // The keys stand spacing.lg under the cards (PluginQuickKeys); the eye keeps their line.
+                            Box(Modifier.padding(top = FlareSizes.spacingLg)) { AccountMaskKey(hidden) { hidden = !hidden } }
+                        }
+                        if (offline && account.primary.isNotEmpty()) PluginCaption(strings.pluginViewAvailableOnline)
                     }
                 }
             }
@@ -274,20 +322,23 @@ internal fun AccountViewContent(
                     actions(projection(actions = account.shortcuts), null, PluginViewActionLayout.Compact, false)
                 }
             }
-            if (entries.isEmpty()) item(key = "account:empty") { EmptyState(title = presentation["emptyTitle"] as? String ?: strings.accountEmpty, description = presentation["emptyDescription"] as? String ?: strings.accountEmptyDescription, icon = "wallet") }
+            // 5.2: no wallet yet is a whole-page setup state — no balance, the primary (open a wallet) under it.
+            if (entries.isEmpty()) item(key = "account:empty") {
+                AccountSetupState(
+                    title = presentation["emptyTitle"] as? String ?: strings.walletSetupTitle,
+                    description = presentation["emptyDescription"] as? String ?: strings.walletSetupBody,
+                    phone = phone,
+                    keys = if (account.primary.isEmpty()) null else ({ quickKeys(projection(actions = account.primary), actions, offline, strings) }),
+                )
+            }
             if (view.fields.isNotEmpty() || otherBlocks.isNotEmpty()) item(key = "account:info") {
-                Column {
-                    Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { information = !information }.heightIn(min = FlareSizes.touchTarget), verticalAlignment = Alignment.CenterVertically) {
-                        Text(presentation["informationTitle"] as? String ?: strings.accountInformation, color = colors.textSecondary, modifier = Modifier.weight(1f))
-                        FlareIcon(if (information) "chevron-up" else "chevron-down", tint = colors.textSecondary)
-                    }
-                    if (information) actions(projection(fields = view.fields.map { if (hidden) it.copy(value = "••••") else it }, blocks = otherBlocks), null, PluginViewActionLayout.Inline, false)
-                }
+                AccountInformationRow(presentation["informationTitle"] as? String ?: strings.accountInformation) { information = true }
             }
             if (account.services.isNotEmpty()) item(key = "account:services") {
                 Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                     (presentation["servicesTitle"] as? String)?.let { Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() }) }
-                    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary).padding(FlareSizes.spacingLg)) { actions(projection(actions = account.services), null, PluginViewActionLayout.List, false) }
+                    // R2.1: list cards by group (`group`, the row icon), chevrons on destinations only, danger in its own centred card.
+                    actions(projection(actions = account.services), null, PluginViewActionLayout.Groups, false)
                 }
             }
         } else {
@@ -302,81 +353,98 @@ internal fun AccountViewContent(
         }
         if (presentation["layout"] == "ledger") {
         if (urgent.isNotEmpty()) item(key = "account:notices") { actions(projection(blocks = urgent), null, PluginViewActionLayout.Inline, false) }
-        error?.takeIf { it.isNotEmpty() }?.let { item(key = "account:error") { StatusBanner(text = it, tone = FlareStatusTone.Danger) } }
         }
         view.fields.firstOrNull()?.let { first -> item(key = "account:overview") {
-            Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary).padding(FlareSizes.spacingLg),
+            // R10: the overview card (bg.primary, radius.card); the balance 32/700 and the figures 18/600, tabular.
+            Column(Modifier.pluginListCard().padding(FlareSizes.spacingLg),
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(first.label, color = colors.textSecondary, modifier = Modifier.weight(1f))
-                    IconButton(icon = if (hidden) "eye-off" else "eye",
-                        contentDescription = if (hidden) strings.accountShowBalance else strings.accountHideBalance,
-                        onClick = { hidden = !hidden })
+                    AccountMaskKey(hidden) { hidden = !hidden }
                 }
-                Text(if (hidden) "••••" else first.value, color = colors.textPrimary,
-                    fontSize = FlareSizes.componentRedPacketAmountFontSize.value.sp, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clearAndSetSemantics { contentDescription = if (hidden) strings.accountBalanceHidden else first.value })
+                Text(if (hidden) PLUGIN_HIDDEN_AMOUNT else first.value, color = colors.textPrimary,
+                    fontSize = FlareSizes.componentAmountHeroFontSize.value.sp, fontWeight = FontWeight.Bold, style = FlareTabularFigures,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = if (hidden) strings.accountBalanceHidden else FlarePaymentRules.spokenAmount(first.value, locale) })
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXl), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                     view.fields.drop(1).forEach { field -> Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                         Text(field.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
-                        Text(if (hidden) "••••" else field.value, color = colors.textPrimary, fontWeight = FontWeight.SemiBold)
+                        Text(if (hidden) PLUGIN_HIDDEN_AMOUNT else field.value, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl,
+                            fontWeight = FontWeight.SemiBold, style = FlareTabularFigures)
                     } }
                 }
             }
         } }
         if (presentation["layout"] != "ledger") {
             if (urgent.isNotEmpty()) item(key = "account:notices") { actions(projection(blocks = urgent), null, PluginViewActionLayout.Inline, false) }
-            error?.takeIf { it.isNotEmpty() }?.let { item(key = "account:error") { StatusBanner(text = it, tone = FlareStatusTone.Danger) } }
         }
         if (view.fields.isNotEmpty() || presentation["sectionTitle"] is String) item(key = "account:heading") { Text(((view.presentation?.get("props") as? Map<*, *>)?.get("sectionTitle") as? String) ?: strings.accountTransactions, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() }) }
-        if (entries.isEmpty()) item(key = "account:empty") { EmptyState(title = presentation["emptyTitle"] as? String ?: strings.accountEmpty, description = presentation["emptyDescription"] as? String ?: strings.accountEmptyDescription, icon = "wallet") }
+        // R8 / 5.8: the records' empty state is the compact one with the clock.
+        if (entries.isEmpty()) item(key = "account:empty") { EmptyState(title = presentation["emptyTitle"] as? String ?: strings.accountEmpty, description = presentation["emptyDescription"] as? String ?: strings.accountEmptyDescription, icon = "clock", compact = true) }
         entries.forEachIndexed { index, entry ->
-            if (account.groupByDate && (index == 0 || day(entry) != day(entries[index - 1]))) item(key = "account:day:${entry.id}") {
-                Text(dayLabel(entry), color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, modifier = Modifier.semantics { heading() })
+            // 5.8: the day heading sticks while its rows scroll under it.
+            if (account.groupByDate && (index == 0 || day(entry) != day(entries[index - 1]))) stickyHeader(key = "account:day:${entry.id}") {
+                Text(dayLabel(entry), color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth().background(colors.bgPrimary).padding(vertical = FlareSizes.spacingXs).semantics { heading() })
             }
             item(key = "account:entry:${entry.id}") {
-                Row(Modifier.fillMaxWidth().clickable(enabled = busyActionId == null, role = Role.Button) {
+                // 5.8: a 64 high row — the kind's 36 circle, the title 15 over "time · the rest" 12, the signed amount
+                // 16/600 with its non-completed status Tags under it; the row opens its detail, no chevron.
+                val time = entry.timeMs?.let { Instant.ofEpochMilli(it).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm", locale)) }
+                val line = listOfNotNull(time, entry.subtitle.takeIf { it.isNotEmpty() }).joinToString(" · ")
+                val masked = hidden && presentation["maskRowAmounts"] == true
+                // R11: the row reads as one line, its amount with the currency's name and its statuses after it.
+                val spoken = listOfNotNull(
+                    entry.title, entry.row.badge?.text?.takeIf { entry.separateBadge }, line.takeIf { it.isNotEmpty() },
+                    if (masked) strings.accountBalanceHidden else FlarePaymentRules.spokenAmount(pluginSignedAmount(entry.amount), locale),
+                ) + entry.statusCells.map { cell ->
+                    when (val draw = pluginStatusDraw(PluginFormatRules.text(cell.text, cell.format, strings), cell.tone, cell.unmapped, strings)) {
+                        is PluginStatusDraw.Tag -> draw.text
+                        is PluginStatusDraw.Text -> draw.text
+                    }
+                }
+                Row(Modifier.fillMaxWidth().clickable(enabled = busyActionId == null && !offline, role = Role.Button) {
                     val action = accountEntryAction(view, entry, busyActionId != null, onAction != null)
                     if (action != null) onAction?.invoke(action.first.id, PluginActionPayload(row = PluginActionRow(entry.row.key, action.second.input))) else selectedId = entry.id
                 }
-                    .heightIn(min = FlareSizes.touchTarget).padding(vertical = FlareSizes.spacingSm),
+                    .clearAndSetSemantics { contentDescription = spoken.joinToString(", ") }
+                    .heightIn(min = FlareSizes.componentRecordRowHeight).padding(vertical = FlareSizes.spacingSm),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
-                    Box(Modifier.clip(RoundedCornerShape(FlareSizes.radiusMd)).background(colors.bgSecondary).padding(FlareSizes.spacingSm)) {
-                        FlareIcon("wallet", tint = colors.textSecondary)
-                    }
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
-                        Text(entry.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium)
+                    PluginLedgerIcon(pluginLedgerKind(entry.amount), entry.row.icon)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
+                        Text(entry.title, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (entry.separateBadge) entry.row.badge?.let { PluginBadgeTag(it) }
-                        if (entry.subtitle.isNotEmpty()) Text(entry.subtitle, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        if (line.isNotEmpty()) Text(line, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
-                        Text(if (hidden && presentation["maskRowAmounts"] == true) "••••" else entry.amount, color = if (entry.amount.startsWith("+")) colors.successText else colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.SemiBold)
-                        Text(entry.timeMs?.let { Instant.ofEpochMilli(it).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm", locale)) }.orEmpty(), color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
+                        // R10: income in the success ink with "+", spending in the primary ink with "−" (U+2212), tabular.
+                        Text(if (masked) PLUGIN_HIDDEN_AMOUNT else pluginSignedAmount(entry.amount),
+                            color = if (pluginLedgerKind(entry.amount) == PluginLedgerKind.Income) colors.successText else colors.textPrimary,
+                            fontSize = FlareSizes.fontSize2xl, fontWeight = FontWeight.SemiBold, style = FlareTabularFigures, maxLines = 1)
+                        entry.statusCells.forEach { cell -> PluginStatusValue(cell.text, cell.format, cell.tone, cell.unmapped, strings, warnKey = entry.block.source) }
                     }
-                    FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.textTertiary)
                 }
             }
         }
         if (otherBlocks.isNotEmpty()) item(key = "account:info") {
-            Column {
-                Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { information = !information }.heightIn(min = FlareSizes.touchTarget), verticalAlignment = Alignment.CenterVertically) {
-                    Text(presentation["informationTitle"] as? String ?: strings.accountInformation, color = colors.textSecondary, modifier = Modifier.weight(1f))
-                    FlareIcon(if (information) "chevron-up" else "chevron-down", tint = colors.textSecondary)
-                }
-                if (information) actions(projection(blocks = otherBlocks), null, PluginViewActionLayout.Inline, false)
-            }
+            AccountInformationRow(presentation["informationTitle"] as? String ?: strings.accountInformation) { information = true }
         }
         if ((view.actions + view.menuActions).isNotEmpty()) item(key = "account:services") {
             Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 (presentation["servicesTitle"] as? String)?.let { Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() }) }
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary).padding(FlareSizes.spacingLg)) {
-                    actions(projection(actions = view.actions + view.menuActions), null, PluginViewActionLayout.List, false)
-                }
+                actions(projection(actions = view.actions + view.menuActions), null, PluginViewActionLayout.Groups, false)
             }
         }
         }
         list?.footer?.invoke(this)
     }
+    }
+    // 5.1: account information opens as a panel of label/value rows (and the account's other blocks).
+    if (information) BottomSheet(onClose = { information = false }, title = presentation["informationTitle"] as? String ?: strings.accountInformation) {
+        Column(Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(FlareSizes.spacingLg),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+            if (view.fields.isNotEmpty()) PluginDescriptionList(view.fields.map { if (hidden) it.copy(value = PLUGIN_HIDDEN_AMOUNT) else it })
+            if (otherBlocks.isNotEmpty()) actions(projection(blocks = otherBlocks), null, PluginViewActionLayout.Inline, false)
+        }
     }
     if (selected != null) BottomSheet(onClose = { selectedId = null }, title = detailTitle, titleHidden = true, dismissible = busyActionId == null) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
@@ -412,15 +480,17 @@ private fun AccountDetailLine(label: String, value: String) {
 }
 
 @Composable
-private fun AccountWalletCard(entry: AccountEntry, hidden: Boolean, disabled: Boolean, directLabel: String?, onSelect: () -> Unit) {
+private fun AccountWalletCard(entry: AccountEntry, hidden: Boolean, disabled: Boolean, directLabel: String?, footer: (@Composable () -> Unit)? = null, pc: Boolean = false, onSelect: () -> Unit) {
     val colors = flareColors()
     val strings = flareStrings()
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val hovered by interaction.collectIsHoveredAsState()
-    val shape = RoundedCornerShape(FlareSizes.radiusLg)
-    Column(Modifier.fillMaxWidth().clip(shape).background(colors.bgSecondary)
-        .border(if (focused) 3.dp else 1.dp, if (focused && !disabled) colors.focusRing else if (hovered && !disabled) colors.borderHover else colors.borderSecondary, shape)
+    val locale = flareLocale()
+    // 5.1: the overview card is the primary surface on `radius.card`, never the secondary fill.
+    val shape = RoundedCornerShape(FlareSizes.radiusCard)
+    Column(Modifier.fillMaxWidth().clip(shape).background(colors.bgPrimary)
+        .border(if (focused) 3.dp else 1.dp, if (focused && !disabled) colors.borderSelected else if (hovered && !disabled) colors.borderHover else colors.borderSecondary, shape)
         .clickable(enabled = !disabled, role = Role.Button, onClickLabel = directLabel ?: strings.accountEntryDetails, interactionSource = interaction, indication = androidx.compose.foundation.LocalIndication.current, onClick = onSelect).padding(FlareSizes.spacingLg),
         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -429,19 +499,40 @@ private fun AccountWalletCard(entry: AccountEntry, hidden: Boolean, disabled: Bo
             Text(entry.walletTitle, color = colors.textPrimary, fontSize = FlareSizes.fontSize4xl, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             if (directLabel == null) FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.textSecondary)
         }
-        Text(entry.walletCaption, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
-        Text(if (hidden) "••••" else entry.amount, color = colors.textPrimary, fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.Bold,
-            modifier = Modifier.clearAndSetSemantics { contentDescription = if (hidden) strings.accountBalanceHidden else entry.amount })
-        Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+        if (!pc) Text(entry.walletCaption, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
+        Text(if (hidden) PLUGIN_HIDDEN_AMOUNT else entry.amount, color = colors.textPrimary, fontSize = FlareSizes.componentAmountHeroFontSize.value.sp,
+            fontWeight = FontWeight.Bold, style = FlareTabularFigures,
+            modifier = Modifier.clearAndSetSemantics { contentDescription = if (hidden) strings.accountBalanceHidden else FlarePaymentRules.spokenAmount(entry.amount, locale) })
+        // §12.23: a PC card ends with one line, its statuses then 「查看明细 ›」 (no balance label, no plain details).
+        if (pc) {
+            if (entry.walletStatuses.isNotEmpty() || directLabel != null) Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                val dot: @Composable () -> Unit = { Text("·", color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm) }
+                entry.walletStatuses.forEachIndexed { index, field ->
+                    if (index > 0) dot()
+                    PluginStatusValue(field.value, field.format, field.tone, field.unmapped, strings)
+                }
+                if (directLabel != null) {
+                    if (entry.walletStatuses.isNotEmpty()) dot()
+                    Text(directLabel, color = colors.primaryText, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold)
+                    FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.primaryText)
+                }
+            }
+        } else Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
             entry.walletFields.chunked(2).forEach { fields -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
                 fields.forEach { field -> Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
                     Text(field.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm)
-                    Text(if (hidden) "••••" else field.value, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg, fontWeight = FontWeight.Medium)
+                    // R3 / W-04: a status reads as its Tag; figures hide with the balance.
+                    if (field.tone != null || field.unmapped) PluginStatusValue(field.value, field.format, field.tone, field.unmapped, strings)
+                    // R10: a card's secondary figure is 18/600 in tabular digits.
+                    else Text(if (hidden) PLUGIN_HIDDEN_AMOUNT else field.value, color = colors.textPrimary, fontSize = FlareSizes.fontSize3xl,
+                        fontWeight = FontWeight.SemiBold, style = FlareTabularFigures)
                 } }
                 if (entry.walletFields.size > 1 && fields.size < 2) Spacer(Modifier.weight(1f))
             } }
         }
-        if (directLabel != null) {
+        footer?.invoke()
+        if (directLabel != null && !pc) {
             Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderSecondary))
             Row(Modifier.fillMaxWidth().padding(top = FlareSizes.spacingXs), verticalAlignment = Alignment.CenterVertically) {
                 Text(directLabel, color = colors.primaryText, fontSize = FlareSizes.fontSizeSm, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
@@ -468,5 +559,89 @@ private fun AccountHeader(content: @Composable () -> Unit) {
                 y += item.height + lineGap
             }
         }
+    }
+}
+
+/** The eye key that hides the balances (R10): a switch read as hide / show balance. */
+@Composable
+private fun AccountMaskKey(hidden: Boolean, onToggle: () -> Unit) {
+    val strings = flareStrings()
+    FlareIconControl(label = if (hidden) strings.accountShowBalance else strings.accountHideBalance, onClick = onToggle, checked = hidden) {
+        FlareIcon(if (hidden) "eye-off" else "eye", size = FlareSizes.iconSizeMd, tint = flareColors().textSecondary)
+    }
+}
+
+/** The "other wallets" heading (5.1): the presentation's own words, else the kit's. */
+internal fun accountOtherWalletsTitle(presentation: Map<*, *>, strings: FlareStrings): String =
+    presentation["otherWalletsTitle"] as? String ?: strings.accountOtherWallets
+
+/** One more wallet under the overview card on a phone (5.1): its name and caption, the balance, a chevron. */
+@Composable
+private fun AccountWalletRow(entry: AccountEntry, hidden: Boolean, disabled: Boolean, onSelect: () -> Unit) {
+    val colors = flareColors()
+    val strings = flareStrings()
+    val locale = flareLocale()
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 52.dp).flareDimmed(if (disabled) FlareOpacity.disabled else 1f)
+            .clickable(enabled = !disabled, role = Role.Button, onClickLabel = strings.accountEntryDetails, onClick = onSelect)
+            .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
+    ) {
+        Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+            Text(entry.walletTitle, color = colors.textPrimary, fontSize = FlareSizes.fontSizeXl, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(entry.walletCaption, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, maxLines = 1)
+        }
+        Text(if (hidden) PLUGIN_HIDDEN_AMOUNT else entry.amount, color = colors.textPrimary, fontSize = FlareSizes.fontSize2xl,
+            fontWeight = FontWeight.SemiBold, style = FlareTabularFigures,
+            modifier = Modifier.clearAndSetSemantics { contentDescription = if (hidden) strings.accountBalanceHidden else FlarePaymentRules.spokenAmount(entry.amount, locale) })
+        FlareIcon("chevron-right", size = FlareSizes.iconSizeSm, tint = colors.textTertiary)
+    }
+}
+
+/** The account information row (5.1): one list row that opens the information panel. */
+@Composable
+private fun AccountInformationRow(title: String, onOpen: () -> Unit) {
+    Column(Modifier.pluginListCard()) {
+        SettingsRow(SettingsItem("account-information", title, icon = "info"), onSelect = { onOpen() })
+    }
+}
+
+/**
+ * 5.2: no wallet yet — the wallet in its 48 circle on `bg.selected`, the title at `textRole.title` 20/700, what a
+ * wallet gives, then the open key: full width 48 on a phone, `component.accountSetupActionWidth` on a wide window.
+ */
+@Composable
+private fun AccountSetupState(title: String, description: String, phone: Boolean, keys: (@Composable () -> Unit)?) {
+    val colors = flareColors()
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacing2xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+    ) {
+        Box(Modifier.size(FlareSizes.controlHeightLg + FlareSizes.spacingLg).clip(androidx.compose.foundation.shape.CircleShape).background(colors.bgSelected),
+            contentAlignment = Alignment.Center) {
+            FlareIcon("wallet", size = FlareSizes.controlHeightLg, tint = colors.primaryText)
+        }
+        Text(title, color = colors.textPrimary, fontSize = FlareTextRoles.Title.fontSize, fontWeight = FlareTextRoles.Title.fontWeight,
+            textAlign = TextAlign.Center, modifier = Modifier.semantics { heading() })
+        Text(description, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg, textAlign = TextAlign.Center)
+        keys?.let {
+            Box(Modifier.padding(top = FlareSizes.spacingMd).then(if (phone) Modifier.fillMaxWidth() else Modifier.width(FlareSizes.componentAccountSetupActionWidth))) { it() }
+        }
+    }
+}
+
+/** The account's primary keys at the quick row's size, with the offline caption under them. */
+@Composable
+private fun quickKeys(
+    primary: PluginViewModel,
+    actions: @Composable (PluginViewModel, AccountEntry?, PluginViewActionLayout, Boolean) -> Unit,
+    offline: Boolean,
+    strings: FlareStrings,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+        actions(primary, null, PluginViewActionLayout.Quick, false)
+        if (offline) PluginCaption(strings.pluginViewAvailableOnline)
     }
 }

@@ -36,10 +36,12 @@ public struct CallParticipant: Identifiable, Sendable {
     public let cameraOff: Bool
     public let speaking: Bool
     public let isSelf: Bool
+    /// Invited and not yet answered: the tile shows the avatar at half strength and `callCalling`.
+    public let calling: Bool
     public init(id: String, name: String, avatarURL: String? = nil, muted: Bool = false,
-                cameraOff: Bool = false, speaking: Bool = false, isSelf: Bool = false) {
+                cameraOff: Bool = false, speaking: Bool = false, isSelf: Bool = false, calling: Bool = false) {
         self.id = id; self.name = name; self.avatarURL = avatarURL; self.muted = muted
-        self.cameraOff = cameraOff; self.speaking = speaking; self.isSelf = isSelf
+        self.cameraOff = cameraOff; self.speaking = speaking; self.isSelf = isSelf; self.calling = calling
     }
 }
 
@@ -58,10 +60,13 @@ public struct FriendRequest: Identifiable, Sendable {
     /// Where the request came from, worded by the host ("Added from a contact card, shared by X"): its own line under
     /// the message, never on the message's line.
     public let source: String?
+    /// The other person (the applicant of an incoming request, the target of an outgoing one), so a host can open
+    /// their profile from the row; nil when the host does not know it.
+    public let userId: String?
     public init(id: String, name: String, avatarURL: String? = nil, message: String? = nil,
-                direction: FriendRequestDirection = .incoming, source: String? = nil) {
+                direction: FriendRequestDirection = .incoming, source: String? = nil, userId: String? = nil) {
         self.id = id; self.name = name; self.avatarURL = avatarURL; self.message = message
-        self.direction = direction; self.source = source
+        self.direction = direction; self.source = source; self.userId = userId
     }
 }
 
@@ -113,12 +118,17 @@ public struct FlareSettingsItem: Identifiable, Sendable {
     /// A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet). It is words,
     /// read with the row; a toggle row draws none.
     public let tag: String?
+    /// The row is the one shown or in use now (Vue `current`): the selected ground, its label in the primary colour
+    /// and semibold, read as selected. A host marks it; the row's taps are unchanged.
+    public var current: Bool
     public init(key: String, label: String, icon: String? = nil,
                 kind: FlareSettingKind = .navigation, value: Bool = false, detail: String? = nil,
-                disabled: Bool = false, danger: Bool = false, badge: Bool = false, tag: String? = nil) {
+                disabled: Bool = false, danger: Bool = false, badge: Bool = false, tag: String? = nil,
+                current: Bool = false) {
         self.key = key; self.label = label; self.icon = icon
         self.kind = kind; self.value = value; self.detail = detail
         self.disabled = disabled; self.danger = danger; self.badge = badge; self.tag = tag
+        self.current = current
     }
 }
 
@@ -142,10 +152,10 @@ public struct SearchResultItem: Identifiable, Sendable { public let id: String; 
 /// `total` is the match count when the list is truncated and the host knows it; `hasMore` says the list is
 /// truncated when it does not (a search that takes a limit and returns no count). `total` wins.
 public struct SearchResultGroup: Identifiable, Sendable { public var id: String { kind.rawValue }; public let kind: SearchResultKind; public let label: String; public let items: [SearchResultItem]; public let total: Int?; public let hasMore: Bool; public init(kind: SearchResultKind, label: String, items: [SearchResultItem] = [], total: Int? = nil, hasMore: Bool = false) { self.kind = kind; self.label = label; self.items = items; self.total = total; self.hasMore = hasMore }
-    /// The truncated group's last row, or nil when the list is whole: the counted "查看全部 N" when the total is known, the plain "更多" otherwise.
+    /// The truncated group's last row, or nil when the list is whole: the counted "查看全部 N" when the total is known, "查看更多" otherwise.
     func moreText(_ strings: FlareStrings) -> String? {
         if let total, total > items.count { return strings.viewAll(total) }
-        return hasMore ? strings.more : nil
+        return hasMore ? strings.searchViewMore : nil
     }
 }
 
@@ -172,7 +182,20 @@ public struct Moment: Identifiable, Sendable { public let id: String; public let
 /// 中性的低强度动作:配在主按钮旁边的那个「出口」。和 text 的唯一区别是不用品牌色 —— 两个都用紫色就分不出主次;和 ghost 的区别是没有那圈 40% 品牌色描边。内距走尺寸类而不是像 text 那样压成固定值,这样它和配对的主按钮同字数时同宽。
 public enum FlareButtonVariant: Sendable { case primary, secondary, ghost, danger, text, quiet }
 public enum FlareControlSize: Sendable { case sm, md, lg }
-public struct FlareSelectOption: Identifiable, Sendable { public var id: String { value }; public let value: String; public let label: String; public let disabled: Bool; public init(value: String, label: String, disabled: Bool = false) { self.value = value; self.label = label; self.disabled = disabled } }
+public struct FlareSelectOption: Identifiable, Sendable {
+    public var id: String { value }
+    public let value: String
+    public let label: String
+    public let disabled: Bool
+    public let description: String?
+
+    public init(value: String, label: String, disabled: Bool = false, description: String? = nil) {
+        self.value = value
+        self.label = label
+        self.disabled = disabled
+        self.description = description
+    }
+}
 
 /// A minimal contact reference — enough to render a row (avatar + name).
 ///

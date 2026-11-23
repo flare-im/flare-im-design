@@ -252,8 +252,7 @@ FlareResourceEmojiResult flareResourceEmoji(
       final rawStickers = raw['stickers'];
       final stickers = <FlareResourceSticker>[
         if (rawStickers is List)
-          for (final item in rawStickers)
-            ?_stickerOf(item, seenStickers),
+          for (final item in rawStickers) ?_stickerOf(item, seenStickers),
       ];
       final rawEmoji = raw['emoji'];
       final entries = <FlareResourceEmoji>[
@@ -348,17 +347,16 @@ class FlareResourceOverlay {
   }) {
     final accepted = <String, String>{};
     for (final pack in _tokenPacks) {
-      accepted.addAll(flareResourceColors(known, pack[dark ? 'dark' : 'colors']));
+      accepted.addAll(
+        flareResourceColors(known, pack[dark ? 'dark' : 'colors']),
+      );
     }
     return accepted;
   }
 
   /// [base] with what the packs say for [locale], the language [base] is written in.
   FlareStrings strings(FlareStrings base, {required String locale}) {
-    final accepted = stringValues(
-      locale,
-      (key) => flareStringValue(base, key),
-    );
+    final accepted = stringValues(locale, (key) => flareStringValue(base, key));
     return accepted.isEmpty ? base : flareStringsApplying(base, accepted);
   }
 

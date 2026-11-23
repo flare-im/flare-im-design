@@ -148,7 +148,7 @@ function pickTo(date: string): void {
           <button
             v-if="draft.from" type="button" class="flare-search-date-range__reset"
             :disabled="disabled" :aria-label="`${strings.clearText} ${strings.fromLabel}`" @click="pickFrom('')"
-          ><FlareIcon name="close" :size="14" aria-hidden="true" /></button>
+          ><FlareIcon name="close" size="sm" aria-hidden="true" /></button>
         </div>
       </div>
       <div class="flare-search-date-range__field">
@@ -161,7 +161,7 @@ function pickTo(date: string): void {
           <button
             v-if="draft.to" type="button" class="flare-search-date-range__reset"
             :disabled="disabled" :aria-label="`${strings.clearText} ${strings.toLabel}`" @click="pickTo('')"
-          ><FlareIcon name="close" :size="14" aria-hidden="true" /></button>
+          ><FlareIcon name="close" size="sm" aria-hidden="true" /></button>
         </div>
       </div>
     </div>

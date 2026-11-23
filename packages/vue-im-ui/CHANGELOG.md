@@ -1,5 +1,38 @@
 ## 未发布
 
+- 插件页 K3（`docs/plugin-experience.md` R2.3、R10）：`FlarePluginFormat` 的 money 新增 `currency`，scale 已知时经付款格式化 `flarePaymentAmountText` 写成「¥1,234.56」「1,234 LABPOINT」，负号留在最前（`spec/plugin-view-vectors.json` formats2）；`rows` 的行唯一动作是打开页面（无 form、非 danger）时整行为一个按钮、行尾 chevron、不画键（新纯规则 `flarePluginRowTap`，向量 rowTap），label rows 照旧。
+
+- 插件页 K1：`FlarePluginInput` 新增 `help`（插件已翻译的说明），插件表单把它画在字段下方（R6，筛选条不画）。
+
+- 插件页 K2：`FlarePluginPage`、`FlareRedPacketPage` 新增 `memberCount`（宿主按自己的群资料给的群人数，含自己），群里发红包的「本群共 N 人」读它，不再数 `members`；红包金额（`flareRedPacketMoney`：发红包总额、详情与领取明细；确认页金额）统一走付款面板的 `flarePaymentAmountText`（R10：有符号的币种符号在前，JPY 写「JP¥」，其余代码写在数字后，如「3 LABPOINT」）；`FlareSelect` 打开或获焦为 1px `border.selected` 边加 focusRing 光晕（§12.22，同输入框），不再用主色边；`FlareRedPacketArch` 改为贴页头下沿的整宽弧（§4.2，compact 32 高）。
+
+- 真机对照（web，`docs/plugin-experience.md` §3.3、§3.4、§4.2、§5.8、§6.5）：`FlareCallControls` 手机控件条占满舞台宽（键距 spacing.lg，4 键一行，挂断不再被挤到第二行），「翻转」只在手机视频出现，PC 视频与群视频不画；`FlareGroupCallView` 视频铺满格子（cover），说话描边改用 `::after` 盖在视频上；`FlareRedPacketPage` 专属红包没选人提示「请选择发给谁」（新文案 `redPacket.chooseRecipient`），不再是「专属接收人: 必填」；`FlareCapabilityConsent` 的 PC 授权对话框 480 → 400（`component.paymentDialogWidth`，与付款面板同宽）；`rows` 记录行的 36 圆底改 `bg.tertiary`（rules.rowsIcon）；`FlarePluginPage` 日期组标题吸顶时贴滚动区上沿，记录不再从标题上方的缝里透出。
+
+- 红包页（`docs/plugin-experience.md` §11）：视图的 `presentation.renderer` 为 `redPacket.compose` / `redPacket.review` / `redPacket.detail` 时，`FlarePluginPage` 画 kit 红包页 `FlareRedPacketPage`（发红包，群里在个数下写「本群共 N 人」；确认页画 `FlareRedPacketReview`；拆红包面板叠在详情上，经宿主领取），映射不上时画通用文档，不看插件 id。新属性 `contentState`（发红包草稿），新纯函数 `flareRedPacketComposePlan`、`flareRedPacketReviewPlan`、`flareRedPacketDetailPlan`、`flareRedPacketPagePlan`；映射不上的红包页按通用文档画，不再由通用视图盖上确认页；`PLUGIN_UI_VOCABULARY.renderers` 加这两个名字。`FlareRedPacketComposer` 总额为 0 或有字段错时主键禁用，祝福语最多 24 字，各行同高；`FlareRedPacketOpenSheet` 拆的过程中不能关闭，信封上按 Enter 拆，头像 56，标题 15/600，祝福语 20/600 两行，圆角 18，翻转 0.8 秒，减弱动效时转圈，颜色走 token；`FlareRedPacketDetail` 领取金额 16/600，手气最佳星 12 与 12 号字用 warning 色；`FlareRedPacketCard` 白字与阴影改用 token。
+- 红包记录（`docs/plugin-experience.md` 4.7，`spec/plugin-view-vectors.json` 的 `pageTabs`、`rowsIcon`）：`FlarePluginPage` 新增事件 `tab`，视图带 `tabs` 时正文顶部画 `FlareSegmentedControl`（tablist），所选页加载期间保留页签；`rows` 块带 `icon` 时每行画成记录行（36 圆底图标、标题与时间行、行尾金额与状态 Tag），空态用该图标；页面列表里 `person` 格显示名字。新公开 `flarePluginRecordLine`、`FlarePluginPageTab`。
+- 插件体验（`docs/plugin-experience.md`，`spec/plugin-view-vectors.json` 的 `actionRoles` 至 `statusCard`、`spec/plugin-refresh-vectors.json` 的 `afterAction`）：
+  - `FlarePluginPage` 按页面原型（总览、任务、记录）摆动作，列表卡用 `FlareSettingsRow`，页面上不再有文字链接；消息卡片脚最多 3 个键，其余进「⋯」。
+  - 刷新：`refresh` 带原因（`FlarePluginRefreshReason`：pull / key / timer / action / return），动作成功结算后 Kit 自己发 `refresh("action")`；刷新键只在数据页出现。
+  - 新属性 `offline`、新事件 `done`；`appearance` 不传时按页面结构推导账户外观，宿主不再按插件 id 选。
+  - 状态值画成 `FlareTag`，取值表外的值写「未知状态」；单号收进「单号与凭据」。块绑定的输入不画成字段。
+  - 表单：≤4 个字段用面板，`select` 无选项时禁用，计数器只在输入后出现，6 位数字密码画成 6 格。
+  - 新块 `result`（`FlareResultView`）与 `status.card` 渲染器。
+  - 加载 300 毫秒后画骨架，读取失败、离线、动作失败、空数据块各有画法。
+- 通话：语音和视频共用一块深色舞台（`colors.call.*`）；`FlareIncomingCall` 新增 `presentation="banner"`（PC 非模态横幅）与 `acceptAudio`；`FlareCallView` 新增 `ended` 状态与 `close` 事件；失败时控件条换成「关闭」「重拨」；本地预览可拖动、可互换；`FlareCallSurface` 按新 token 定窗口大小，手机全屏，PC 可拖动。
+- 红包与付款：新增 `FlareRedPacketReview`（`redPacket.review` 渲染器）与 `FlareRedPacketArch`；`FlareRedPacketComposer` 主键改为「塞钱进红包」，金额范围只在出错时显示；`FlarePaymentConfirmation` 新增 `shortfall`、`topUp`、`startAgain`，订单号默认折叠；`FlareRedPacketDetail` 新增 `deposited`。
+- 证件：新增 `FlareDocumentSlot`；`FlareDocumentCapture` 的取景框按证件比例画四角标与提示。
+- 基础组件：`FlareEmptyState` 新增 `compact`，`FlareRadioGroup` 的 `optionLayout` 新增 `cards`，`FlareSkeleton` 的 `variant` 新增 `card`、`list`、`form`，`FlareSettingsRow` 新增 `loading`；新增 `FlarePinInput`（6 格，输满发出 `complete`）。
+- `FlareComposerActionPanel` 新增 `loading`（插件项未到时画骨架方块，面板立即打开），`EnhancedComposer` 经 `actionsLoading` 透传；`FlareRedPacketComposer` 新增 `currencySymbol`；`FlareCallSurface` 新增 `update:expanded`；`FlareGroupCallView` 点格子放大为主画面。
+
+- 群头像标记：`FlareAvatar` 新增 `group`（右下角实心小圆章：底色取头像色板的字色、图标取色板底色，外圈 2px 表面色描边，读屏「群聊」，取代群没有的在线点）；`FlareConversationRowModel` 新增 `kind`，会话行在 `kind === "group"` 时给头像画上标记。
+- `FlareSearchBar` 的输入框关闭拼写检查、自动更正与自动大写：WebKit（Safari、Tauri 桌面）不再在搜索词下弹出更正气泡。
+
+- SearchBar 增加可选 compact 密度；PluginForm 增加全高页面布局与初始焦点，长插件表单底部操作保持可达。聊天输入区的延迟聚焦遵循当前模态面的焦点归属，功能面板的分页点击区满足触控下限。
+
+- `FlareMomentComposer` 新增 `layout="page"`：全高编辑、固定操作栏、书写焦点与忙时草稿锁定；默认保留独立卡片布局。
+- Web 交互打磨：`FlareFormSheet` 新增可选 `fill` / `maxHeight`，长表单滚动字段时保留底部操作；`FlareScreen` 自带页头作为浮层 chrome，避免抽屉打开时返回键抢走搜索焦点；好友申请的资料区域支持原生按钮键盘操作；设置行图标继承语义前景色，修复深色主题的黑色图标。
+
+- 对齐 Flutter 社交应用：新增 `FlareUnreadBadge`、`FlareActivityList`（与类型 `FlareActivityItem`）、`useFlareLoadMoreWhenVisible`（`./composables`、包根）与 `flareSwipeReplyGesture`（`./contracts`）；`FlareMessageList` 新增 `openFile`、`swipeReply`，`FlareMessageBubble` / `FlareMessageContentView` 新增 `openFile`；`FlareMomentCard` 的赞与评论跟随监听规则，`FlareMomentActionPopover` 新增 `canLike` / `canComment`；Composer 的 `camera` 意图经 `pickImages({ camera: true })` 自己拍照；`FlareConversationListContainer` 新增 `refreshing` 与 `refresh`（触摸下拉、指针设备刷新键）；`FlareProfilePanel` 画分组标题与页脚；`FlareAvatar` 绑定 `@click` 时是按钮，新增 `ariaLabel`；词条 `listRefresh.*`、`activityList.unreadSuffix`。
 - 插件动作带上 `target`（`FlarePluginActionTarget`）：页面上一个原生动作的 `into` 指向本页表单的上传或定位输入时，Kit 不再把动作发出去，而是走那个输入自己的键（文件输入发 `fileAction` 的 choose/replace，定位输入发 `locationAction` 的 locate），宿主拿到表单的 scope，引擎写回的结果直接进表单，不用先碰一下输入（`spec/plugin-native-into-vectors.json`，四端同一份；`flarePluginNativeIntoKey`、`FLARE_PLUGIN_UPLOAD_CAPABILITIES`；`FlarePluginForm` 暴露 `nativeInto`）。`flareCapabilityConsentAnswer` 改为直接返回 `{decision}`，引擎只记「始终允许」，宿主不再撤销。合同导出补上 `FlarePluginLocationAction`、`FlarePluginLocationState`、`FlarePluginLocationValue`、`flarePluginLocationValue`。
 - 宿主能力组件（`docs/plugin-components.md`「宿主能力组件」，`spec/capability-ui-vectors.json`，四端同一份）：新增 `FlareCapabilityConsent`（仅本次允许、始终允许、不允许；一次性定位不给「始终」）、`FlareDocumentCapture`（宿主相机画面放 `preview` 插槽，Kit 画取景框，用画布按方向重画并压成不带元数据的 JPEG）、`FlarePaymentConfirmation`（金额只取订单、按服务端时钟倒计时、过期不能确认，`credential` 插槽给宿主的密码框）。导出规则 `flareCapabilityConsentAnswer`、`flareCapabilityLabelKey`、`flarePaymentAmountText`、`flarePaymentCountdown`、`flareDocumentFrameAspect`、`flareProcessDocumentPhoto`、`flareJpegIsStripped`、`flareJpegStrippingMetadata` 等。**删除** `FlareRedPacketPayConfirm` 和 `redPacket.pay`、`payment.confirm` 渲染器（这两个名字按普通文档画）与 `redPacket.pay.*` 文案。新输入 `location`（`precision`，显示定位与精度、「获取位置」「清除」，事件 `locationAction`，属性 `locationStates`）。受保护媒体在块未声明 `reasonInput` 时点一次即读（本人页面），图片不可拖拽、无右键菜单；`FlarePluginPage` 转发 `protectedMedia`、`protectedMediaRead`。`PLUGIN_UI_VOCABULARY` 的 `native` 加 `documentCapture`、`paymentConfirmation`、`locationOnce`，`renderers` 只剩 `redPacket.card`。
 - 插件 `chart` 块改用图表 token `--flare-color-chart-series1`–`series6`，不再借用语义状态色。

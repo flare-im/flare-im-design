@@ -114,26 +114,26 @@ function sections(): FlareSettingsSection[] {
   const { quietHours, preview, multiDevice } = props.value;
   const disabled = props.disabled;
   const quiet: FlareSettingsItem[] = [
-    { key: QUIET_HOURS_ROW, label: t("notificationAlertSettings.quietHours"), kind: "toggle", value: quietHours.enabled, disabled },
+    { key: QUIET_HOURS_ROW, label: t("notificationAlertSettings.quietHours"), icon: "mute", kind: "toggle", value: quietHours.enabled, disabled },
   ];
   if (quietHours.enabled) {
     quiet.push(
-      { key: QUIET_HOURS_START_ROW, label: t("notificationAlertSettings.start"), detail: formatMinuteOfDay(quietHours.startMinute), disabled },
-      { key: QUIET_HOURS_END_ROW, label: t("notificationAlertSettings.end"), detail: endLabel(quietHours), disabled },
-      { key: QUIET_HOURS_REPEAT_ROW, label: t("notificationAlertSettings.repeat"), detail: repeatLabel(quietHours.weekdays), disabled },
-      { key: QUIET_HOURS_ALLOW_MENTIONS_ROW, label: t("notificationAlertSettings.allowMentions"), kind: "toggle", value: quietHours.allowMentions, disabled },
+      { key: QUIET_HOURS_START_ROW, label: t("notificationAlertSettings.start"), icon: "clock", detail: formatMinuteOfDay(quietHours.startMinute), disabled },
+      { key: QUIET_HOURS_END_ROW, label: t("notificationAlertSettings.end"), icon: "clock", detail: endLabel(quietHours), disabled },
+      { key: QUIET_HOURS_REPEAT_ROW, label: t("notificationAlertSettings.repeat"), icon: "calendar", detail: repeatLabel(quietHours.weekdays), disabled },
+      { key: QUIET_HOURS_ALLOW_MENTIONS_ROW, label: t("notificationAlertSettings.allowMentions"), icon: "mention", kind: "toggle", value: quietHours.allowMentions, disabled },
     );
   }
   return [
     { title: t("notificationAlertSettings.quietTitle"), items: quiet, footer: t("notificationAlertSettings.quietFooter") },
     {
       title: t("notificationAlertSettings.previewTitle"),
-      items: [{ key: NOTIFICATION_PREVIEW_ROW, label: t("notificationAlertSettings.preview"), detail: previewLabel(preview), disabled }],
+      items: [{ key: NOTIFICATION_PREVIEW_ROW, label: t("notificationAlertSettings.preview"), icon: "eye", detail: previewLabel(preview), disabled }],
       footer: t("notificationAlertSettings.previewFooter"),
     },
     {
       title: t("notificationAlertSettings.multiDeviceTitle"),
-      items: [{ key: MULTI_DEVICE_ROW, label: t("notificationAlertSettings.multiDevice"), detail: multiDeviceLabel(multiDevice), disabled }],
+      items: [{ key: MULTI_DEVICE_ROW, label: t("notificationAlertSettings.multiDevice"), icon: "devices", detail: multiDeviceLabel(multiDevice), disabled }],
       footer: t("notificationAlertSettings.multiDeviceFooter"),
     },
   ];
@@ -227,11 +227,11 @@ function pickChoice(choice: string): void {
       />
     </FlareBottomSheet>
     <FlareBottomSheet :open="picker === 'repeat'" :title="t('notificationAlertSettings.repeat')" @close="picker = null">
-      <FlareSettingsList :sections="[weekdaySection()]" @toggle="toggleDay" />
+      <FlareSettingsList surface="flush" :sections="[weekdaySection()]" @toggle="toggleDay" />
     </FlareBottomSheet>
     <FlareBottomSheet :open="choiceOpen" :title="choiceTitle" @close="picker = null">
       <div class="flare-notification-alert__choices">
-        <FlareRadioGroup vertical :model-value="choiceValue" :options="choiceOptions" @change="pickChoice" />
+        <FlareRadioGroup option-layout="list" :aria-label="choiceTitle" :model-value="choiceValue" :options="choiceOptions" @change="pickChoice" />
       </div>
     </FlareBottomSheet>
   </div>
@@ -240,6 +240,6 @@ function pickChoice(choice: string): void {
 <style scoped>
 .flare-notification-alert { min-width: 0; }
 .flare-notification-alert__choices {
-  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg) var(--flare-size-spacing-lg);
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm) var(--flare-size-spacing-sm);
 }
 </style>

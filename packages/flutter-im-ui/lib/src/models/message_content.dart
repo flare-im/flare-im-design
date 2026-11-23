@@ -523,6 +523,7 @@ class FlareGenericContent extends FlareMessageContent {
   });
   final String contentType;
   final String label;
+
   /// Opaque data for a scoped renderer. The kit never evaluates it.
   final String? payloadJson;
 

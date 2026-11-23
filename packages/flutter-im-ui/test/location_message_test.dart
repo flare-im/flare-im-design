@@ -17,7 +17,8 @@ final Map<String, dynamic> _vectors =
 List<Map<String, dynamic>> _rows(String key) =>
     (_vectors[key] as List).cast<Map<String, dynamic>>();
 
-FlareLocationProvider _provider(Object? value) => flareLocationProviderFrom(value);
+FlareLocationProvider _provider(Object? value) =>
+    flareLocationProviderFrom(value);
 
 Widget _host(Widget child) => MaterialApp(
   home: Scaffold(body: Center(child: child)),
@@ -148,8 +149,13 @@ void main() {
     }
 
     test('each Flutter target opens the column the table names', () {
-      final links = flareLocationMapLinks(latitude: 39.9087, longitude: 116.3975, title: '天安门广场')!;
-      final targets = (_vectors['flutterTargets'] as Map<String, dynamic>).cast<String, String>();
+      final links = flareLocationMapLinks(
+        latitude: 39.9087,
+        longitude: 116.3975,
+        title: '天安门广场',
+      )!;
+      final targets = (_vectors['flutterTargets'] as Map<String, dynamic>)
+          .cast<String, String>();
       String column(String name) => switch (name) {
         'apple' => links.apple,
         'geo' => links.geo,
@@ -162,7 +168,10 @@ void main() {
           reason: platform.name,
         );
       }
-      expect(links.forPlatform(TargetPlatform.android, isWeb: true), column(targets['web']!));
+      expect(
+        links.forPlatform(TargetPlatform.android, isWeb: true),
+        column(targets['web']!),
+      );
     });
 
     for (final row in _rows('cardLines')) {
@@ -188,27 +197,51 @@ void main() {
     test('the card map is the shared size', () {
       expect(_rows('cardLines').length, greaterThanOrEqualTo(12));
       final map = _vectors['cardMap'] as Map<String, dynamic>;
-      expect(FlareLocationMessage.mapSize.width, (map['width'] as num).toDouble());
-      expect(FlareLocationMessage.mapSize.height, (map['height'] as num).toDouble());
+      expect(
+        FlareLocationMessage.mapSize.width,
+        (map['width'] as num).toDouble(),
+      );
+      expect(
+        FlareLocationMessage.mapSize.height,
+        (map['height'] as num).toDouble(),
+      );
     });
 
     test('a coordinate JSON cannot carry opens nothing', () {
-      expect(flareLocationMapLinks(latitude: double.nan, longitude: 10), isNull);
-      expect(flareLocationMapLinks(latitude: 10, longitude: double.infinity), isNull);
+      expect(
+        flareLocationMapLinks(latitude: double.nan, longitude: 10),
+        isNull,
+      );
+      expect(
+        flareLocationMapLinks(latitude: 10, longitude: double.infinity),
+        isNull,
+      );
       expect(flareLocationDistanceLabel(double.nan), isNull);
     });
   });
 
   group('FlareLocationMessage', () {
-    testWidgets('draws the map texture and the coordinate line without a picture', (tester) async {
-      await tester.pumpWidget(
-        _host(const FlareLocationMessage(title: 'HQ', latitude: 39.9087, longitude: 116.3975)),
-      );
-      expect(find.byKey(FlareLocationMapSurface.placeholderKey), findsOneWidget);
-      expect(find.text('HQ'), findsOneWidget);
-      expect(find.text('39.90870, 116.39750'), findsOneWidget);
-      expect(find.byType(InkWell), findsNothing);
-    });
+    testWidgets(
+      'draws the map texture and the coordinate line without a picture',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(
+            const FlareLocationMessage(
+              title: 'HQ',
+              latitude: 39.9087,
+              longitude: 116.3975,
+            ),
+          ),
+        );
+        expect(
+          find.byKey(FlareLocationMapSurface.placeholderKey),
+          findsOneWidget,
+        );
+        expect(find.text('HQ'), findsOneWidget);
+        expect(find.text('39.90870, 116.39750'), findsOneWidget);
+        expect(find.byType(InkWell), findsNothing);
+      },
+    );
 
     testWidgets('draws the static map when there is one', (tester) async {
       await tester.pumpWidget(
@@ -227,11 +260,16 @@ void main() {
       expect(find.text('Beijing'), findsOneWidget);
     });
 
-    testWidgets("credits OpenStreetMap on its static map, and not AMap's", (tester) async {
+    testWidgets("credits OpenStreetMap on its static map, and not AMap's", (
+      tester,
+    ) async {
       // A 1x1 PNG the test binding can decode (it answers HTTP with 400).
       const png =
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-      Future<void> pumpCard(FlareLocationProvider provider, {String? snapshot = png}) async {
+      Future<void> pumpCard(
+        FlareLocationProvider provider, {
+        String? snapshot = png,
+      }) async {
         await tester.pumpWidget(
           _host(
             FlareLocationMessage(
@@ -243,12 +281,17 @@ void main() {
             ),
           ),
         );
-        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
         await tester.pump();
       }
 
       await pumpCard(FlareLocationProvider.osm);
-      expect(find.byKey(FlareLocationMapSurface.attributionKey), findsOneWidget);
+      expect(
+        find.byKey(FlareLocationMapSurface.attributionKey),
+        findsOneWidget,
+      );
       expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
       await pumpCard(FlareLocationProvider.amap);
       expect(find.byKey(FlareLocationMapSurface.attributionKey), findsNothing);
@@ -257,11 +300,22 @@ void main() {
       expect(find.byKey(FlareLocationMapSurface.attributionKey), findsNothing);
     });
 
-    testWidgets('never draws a blank line for a place without a name', (tester) async {
+    testWidgets('never draws a blank line for a place without a name', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        _host(const FlareLocationMessage(title: '', latitude: 39.9087, longitude: 116.3975)),
+        _host(
+          const FlareLocationMessage(
+            title: '',
+            latitude: 39.9087,
+            longitude: 116.3975,
+          ),
+        ),
       );
-      final drawn = tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList();
+      final drawn = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data)
+          .toList();
       expect(drawn, ['39.90870, 116.39750']);
       await tester.pumpWidget(_host(const FlareLocationMessage(title: '  ')));
       expect(
@@ -272,11 +326,19 @@ void main() {
         _host(
           const FlareStringsScope(
             strings: flareStringsEnglish,
-            child: FlareLocationMessage(title: '', address: '东城区', latitude: 0, longitude: 0),
+            child: FlareLocationMessage(
+              title: '',
+              address: '东城区',
+              latitude: 0,
+              longitude: 0,
+            ),
           ),
         ),
       );
-      expect(tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList(), ['东城区']);
+      expect(
+        tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).toList(),
+        ['东城区'],
+      );
     });
 
     testWidgets('is a control only with onOpen', (tester) async {
@@ -304,7 +366,11 @@ void main() {
       await tester.pumpWidget(
         _host(
           FlareMessageContentView(
-            content: const FlareLocationContent(name: 'HQ', latitude: 39.9087, longitude: 116.3975),
+            content: const FlareLocationContent(
+              name: 'HQ',
+              latitude: 39.9087,
+              longitude: 116.3975,
+            ),
             onLocationOpen: (location) => opened = location,
             onOpenLink: links.add,
           ),
@@ -315,42 +381,59 @@ void main() {
       expect(links, isEmpty);
     });
 
-    testWidgets('without onLocationOpen the platform map link goes to onOpenLink', (tester) async {
-      final links = <String>[];
-      Future<void> tapOn(TargetPlatform platform, FlareLocationProvider provider) async {
-        debugDefaultTargetPlatformOverride = platform;
-        await tester.pumpWidget(
-          _host(
-            FlareMessageContentView(
-              content: FlareLocationContent(
-                name: '天安门广场',
-                latitude: 39.9087,
-                longitude: 116.3975,
-                provider: provider,
+    testWidgets(
+      'without onLocationOpen the platform map link goes to onOpenLink',
+      (tester) async {
+        final links = <String>[];
+        Future<void> tapOn(
+          TargetPlatform platform,
+          FlareLocationProvider provider,
+        ) async {
+          debugDefaultTargetPlatformOverride = platform;
+          await tester.pumpWidget(
+            _host(
+              FlareMessageContentView(
+                content: FlareLocationContent(
+                  name: '天安门广场',
+                  latitude: 39.9087,
+                  longitude: 116.3975,
+                  provider: provider,
+                ),
+                onOpenLink: links.add,
               ),
-              onOpenLink: links.add,
             ),
+          );
+          await tester.tap(find.text('天安门广场'));
+        }
+
+        await tapOn(TargetPlatform.android, FlareLocationProvider.osm);
+        await tapOn(TargetPlatform.iOS, FlareLocationProvider.osm);
+        await tapOn(TargetPlatform.windows, FlareLocationProvider.amap);
+        debugDefaultTargetPlatformOverride = null;
+        final row = _rows(
+          'links',
+        ).firstWhere((row) => row['id'] == 'osm-titled');
+        expect(links[0], row['geo']);
+        expect(links[1], row['apple']);
+        expect(
+          links[2],
+          startsWith(
+            'https://uri.amap.com/marker?position=116.3975,39.9087&name=',
           ),
         );
-        await tester.tap(find.text('天安门广场'));
-      }
-
-      await tapOn(TargetPlatform.android, FlareLocationProvider.osm);
-      await tapOn(TargetPlatform.iOS, FlareLocationProvider.osm);
-      await tapOn(TargetPlatform.windows, FlareLocationProvider.amap);
-      debugDefaultTargetPlatformOverride = null;
-      final row = _rows('links').firstWhere((row) => row['id'] == 'osm-titled');
-      expect(links[0], row['geo']);
-      expect(links[1], row['apple']);
-      expect(links[2], startsWith('https://uri.amap.com/marker?position=116.3975,39.9087&name='));
-    });
+      },
+    );
 
     testWidgets('a 0,0 wire coordinate opens nothing', (tester) async {
       final links = <String>[];
       await tester.pumpWidget(
         _host(
           FlareMessageContentView(
-            content: const FlareLocationContent(name: 'Somewhere', latitude: 0, longitude: 0),
+            content: const FlareLocationContent(
+              name: 'Somewhere',
+              latitude: 0,
+              longitude: 0,
+            ),
             onOpenLink: links.add,
           ),
         ),
@@ -381,7 +464,9 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsNothing);
     });
 
-    testWidgets('the list hands card and location taps over with the message', (tester) async {
+    testWidgets('the list hands card and location taps over with the message', (
+      tester,
+    ) async {
       final events = <String>[];
       await tester.pumpWidget(
         MaterialApp(
@@ -399,11 +484,17 @@ void main() {
                   id: 'm2',
                   senderId: 'u9',
                   senderName: 'Zhou',
-                  content: FlareLocationContent(name: 'HQ', latitude: 39.9087, longitude: 116.3975),
+                  content: FlareLocationContent(
+                    name: 'HQ',
+                    latitude: 39.9087,
+                    longitude: 116.3975,
+                  ),
                 ),
               ],
-              onCardOpen: (message, userId) => events.add('${message.id}:$userId'),
-              onLocationOpen: (message, location) => events.add('${message.id}:${location.name}'),
+              onCardOpen: (message, userId) =>
+                  events.add('${message.id}:$userId'),
+              onLocationOpen: (message, location) =>
+                  events.add('${message.id}:${location.name}'),
             ),
           ),
         ),
@@ -416,15 +507,21 @@ void main() {
   });
 
   group('FlareContactMessage', () {
-    testWidgets('reports the user id with onOpen, and displays without it', (tester) async {
+    testWidgets('reports the user id with onOpen, and displays without it', (
+      tester,
+    ) async {
       final ids = <String>[];
       await tester.pumpWidget(
-        _host(FlareContactMessage(name: 'Ivy Chen', userId: 'u2', onOpen: ids.add)),
+        _host(
+          FlareContactMessage(name: 'Ivy Chen', userId: 'u2', onOpen: ids.add),
+        ),
       );
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
       await tester.tap(find.text('Ivy Chen'));
       expect(ids, ['u2']);
-      await tester.pumpWidget(_host(const FlareContactMessage(name: 'Ivy Chen', userId: 'u2')));
+      await tester.pumpWidget(
+        _host(const FlareContactMessage(name: 'Ivy Chen', userId: 'u2')),
+      );
       expect(find.byIcon(Icons.chevron_right), findsNothing);
     });
   });

@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -147,7 +148,37 @@ fun ImagePreview(
     val dismissAfter = with(LocalDensity.current) { DismissDistance.toPx() }
     FlareNativeBackEffect(enabled = onClose != null) { close?.invoke() }
     // The backdrop thins to half as the swipe nears the distance, so the chat behind shows through.
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 1f - (dragY / dismissAfter).coerceIn(0f, 1f) / 2))) {
+    Column(
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 1f - (dragY / dismissAfter).coerceIn(0f, 1f) / 2))
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+    ) {
+        Box(
+            Modifier.fillMaxWidth().background(Color.Black).padding(FlareSizes.spacingSm),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                imagePreviewControls(strings, canDownload = onDownload != null, downloading = downloading, saved = saved, canReveal = onReveal != null).forEach { control ->
+                    when (control.id) {
+                        "close" -> CircleButton(control, onClose)
+                        "download" -> CircleButton(control, onDownload)
+                        "reveal" -> CircleButton(control, onReveal)
+                    }
+                    if (control.id == "close") androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                }
+                if (onDownload != null && downloading) DownloadProgressRing(progressPct)
+            }
+            if (pages) {
+                Text(
+                    "${galleryIndex!! + 1} / $galleryCount",
+                    color = Color.White,
+                    fontSize = FlareSizes.fontSizeLg,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = strings.imagePreviewPosition(galleryIndex + 1, galleryCount!!)
+                    },
+                )
+            }
+        }
+        Box(Modifier.fillMaxWidth().weight(1f).clipToBounds()) {
         Box(
             Modifier.fillMaxSize()
                 .pointerInput(imageSrc) {
@@ -230,31 +261,13 @@ fun ImagePreview(
             }
         }
         if (pages) {
-            Text(
-                "${galleryIndex!! + 1} / $galleryCount",
-                color = Color.White,
-                fontSize = FlareSizes.fontSizeLg,
-                modifier = Modifier.align(Alignment.TopCenter).windowInsetsPadding(WindowInsets.safeDrawing)
-                    .padding(top = FlareSizes.spacingMd + FlareSizes.spacingSm)
-                    .clearAndSetSemantics { contentDescription = strings.imagePreviewPosition(galleryIndex + 1, galleryCount!!) },
-            )
-            Box(Modifier.align(Alignment.CenterStart).windowInsetsPadding(WindowInsets.safeDrawing).padding(FlareSizes.spacingSm)) {
+            Box(Modifier.align(Alignment.CenterStart).padding(FlareSizes.spacingSm)) {
                 PagingButton(FlareIconControlSpec("previous", "chevron-left", strings.imagePreviewPrevious, enabled = onPrevious != null), onPrevious)
             }
-            Box(Modifier.align(Alignment.CenterEnd).windowInsetsPadding(WindowInsets.safeDrawing).padding(FlareSizes.spacingSm)) {
+            Box(Modifier.align(Alignment.CenterEnd).padding(FlareSizes.spacingSm)) {
                 PagingButton(FlareIconControlSpec("next", "chevron-right", strings.imagePreviewNext, enabled = onNext != null), onNext)
             }
         }
-        Row(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.safeDrawing).padding(FlareSizes.spacingMd)) {
-            imagePreviewControls(strings, canDownload = onDownload != null, downloading = downloading, saved = saved, canReveal = onReveal != null).forEach { control ->
-                when (control.id) {
-                    "close" -> CircleButton(control, onClose)
-                    "download" -> CircleButton(control, onDownload)
-                    "reveal" -> CircleButton(control, onReveal)
-                }
-                if (control.id == "close") androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-            }
-            if (onDownload != null && downloading) DownloadProgressRing(progressPct)
         }
     }
 }

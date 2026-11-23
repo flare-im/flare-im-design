@@ -12,14 +12,27 @@ internal val flareStringKeys: Set<String> = setOf(
     "speaker",
     "hangUp",
     "callMinimize",
+    "callExpand",
+    "callCollapse",
     "callPeerMuted",
     "callSwitchToVideo",
     "callReturn",
     "callWaitingAnswer",
+    "callDockWaiting",
+    "callEnded",
+    "callAnswerAudio",
+    "callDecline",
+    "callEncrypted",
+    "callYou",
+    "callRedial",
+    "callMaxParticipants",
+    "callInterrupted",
     "callCalling",
+    "callSwapVideo",
     "callRinging",
     "callConnected",
     "callReconnecting",
+    "callReconnectingShort",
     "callFailed",
     "send",
     "cancelReply",
@@ -78,6 +91,14 @@ internal val flareStringKeys: Set<String> = setOf(
     "packetNotEligible",
     "packetOpenFailed",
     "packetViewDetails",
+    "packetViewResult",
+    "packetRefundNotice",
+    "packetGroupMembers",
+    "packetCountLimit",
+    "packetClaimPendingReview",
+    "packetCountUnit",
+    "packetChooseRecipient",
+    "packetSend",
     "packetBestLuck",
     "packetNoClaims",
     "packetDetailTitle",
@@ -127,6 +148,11 @@ internal val flareStringKeys: Set<String> = setOf(
     "momentTextHint",
     "addImage",
     "removeImage",
+    "momentCommentsTitle",
+    "momentNoComments",
+    "momentLocatedComment",
+    "momentDetailTitle",
+    "activityUnreadSuffix",
     "pickLocation",
     "pickVisibility",
     "more",
@@ -301,6 +327,22 @@ internal val flareStringKeys: Set<String> = setOf(
     "composerFormatQuote",
     "composerFormatBullet",
     "composerFormatOrdered",
+    "composerFormatUnderline",
+    "composerFormatImage",
+    "composerFormatInlineCode",
+    "composerFormatCodeBlock",
+    "composerFormatDivider",
+    "composerFormatParagraph",
+    "composerFormatHeadingNumbered",
+    "composerFormatTextStyle",
+    "composerFormatToolbar",
+    "composerSampleBold",
+    "composerSampleStrike",
+    "composerSampleItalic",
+    "composerSampleUnderline",
+    "composerSampleLink",
+    "composerSampleImage",
+    "composerSampleCode",
     "voiceHoldButtonLabel",
     "voiceHoldButtonRecording",
     "voiceHoldButtonCancel",
@@ -314,6 +356,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "inlineVoiceComposerDiscard",
     "inlineVoiceComposerSendFailed",
     "emojiStickerPickerEmoji",
+    "emojiStickerPickerAll",
     "emojiStickerPickerLoading",
     "groupPermissionMatrixTitle",
     "groupPermissionMatrixReadOnlyHint",
@@ -648,6 +691,22 @@ internal val flareStringKeys: Set<String> = setOf(
     "profileEditorBio",
     "profileEditorBioPlaceholder",
     "profileEditorSave",
+    "profileEditorUnsaved",
+    "deviceSessionsHint",
+    "deviceSessionsEmpty",
+    "profilePanelMenuIncomplete",
+    "listRefreshPull",
+    "listRefreshRelease",
+    "listRefreshRefreshing",
+    "groupDetailMyRemarkName",
+    "groupDetailRemarkPlaceholder",
+    "recentSearchesTitle",
+    "recentSearchesClear",
+    "recentSearchesClearLabel",
+    "searchEmpty",
+    "searchEmptyHint",
+    "searchSearching",
+    "searchViewMore",
     "connectionConnecting",
     "connectionSyncing",
     "connectionSwitching",
@@ -738,6 +797,11 @@ internal val flareStringKeys: Set<String> = setOf(
     "updatePromptMessageRequired",
     "updatePromptMessageRequiredReadOnly",
     "composerReadOnlyUpdate",
+    "composerEditingMessage",
+    "composerEditingPlaceholder",
+    "composerCancelEdit",
+    "composerSaveEdit",
+    "composerAttachmentPreview",
     "updatePromptMessageMetered",
     "updatePromptMessageMeteredUnknown",
     "updatePromptMessageReady",
@@ -806,6 +870,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "navigationGroups",
     "navigationNewFriends",
     "pluginViewSubmit",
+    "pluginViewCopyReference",
     "pluginViewEnded",
     "pluginViewDeadlinePassed",
     "pluginViewSeeAll",
@@ -843,6 +908,20 @@ internal val flareStringKeys: Set<String> = setOf(
     "fileSizeMegabytes",
     "fileSizeGigabytes",
     "pluginViewMore",
+    "pluginViewUnknownStatus",
+    "pluginViewOffline",
+    "pluginViewAvailableOnline",
+    "pluginViewLoadFailedTitle",
+    "pluginViewNoOptions",
+    "pluginViewNoOptionsHelp",
+    "pluginViewUploading",
+    "pluginViewGroupCommon",
+    "pluginViewGroupRecords",
+    "pluginViewDone",
+    "pluginViewEndOfList",
+    "pluginViewReferences",
+    "pluginViewFilterEmpty",
+    "pluginViewClearFilter",
     "pluginPageRefresh",
     "pluginViewMe",
     "pluginViewMaxSelections",
@@ -851,11 +930,16 @@ internal val flareStringKeys: Set<String> = setOf(
     "accountEmpty",
     "accountEmptyDescription",
     "accountInformation",
+    "accountOtherWallets",
     "accountEntryDetails",
     "accountEntryId",
     "accountType",
     "accountToday",
     "accountYesterday",
+    "walletSetupTitle",
+    "walletSetupBody",
+    "realnamePhotosNeeded",
+    "realnamePhotosNeededOne",
     "accountOtherEntries",
     "accountShowBalance",
     "accountHideBalance",
@@ -863,6 +947,10 @@ internal val flareStringKeys: Set<String> = setOf(
     "accountDayFormat",
     "accountDayYearFormat",
     "pluginViewEmpty",
+    "pluginViewLoading",
+    "pluginViewLoadMore",
+    "pluginFormMoneyRange",
+    "pluginViewStepPosition",
     "pluginViewUnavailableDisabled",
     "pluginViewUnavailableNotInstalled",
     "pluginViewUnavailableNoPermission",
@@ -940,11 +1028,18 @@ internal val flareStringKeys: Set<String> = setOf(
     "documentCaptureShoot",
     "documentCaptureRetake",
     "documentCaptureUse",
+    "documentCaptureHintGlare",
+    "documentSlotTapToCapture",
+    "documentSlotUploadFailed",
+    "documentSlotUploading",
+    "documentSlotCaptured",
+    "documentSlotCapturedRetake",
     "documentCaptureFromAlbum",
     "documentCaptureProcessing",
     "documentCaptureCameraUnavailable",
     "documentCaptureTooLarge",
     "documentCaptureFailed",
+    "documentCaptureFormat",
     "documentCaptureNotAccepted",
     "paymentConfirmationTitle",
     "paymentConfirmationPayee",
@@ -956,10 +1051,15 @@ internal val flareStringKeys: Set<String> = setOf(
     "paymentConfirmationInvalid",
     "paymentConfirmationConfirm",
     "paymentConfirmationVerifying",
+    "paymentConfirmationInsufficient",
+    "paymentConfirmationTopUp",
+    "paymentConfirmationStartAgain",
+    "pinInputProgress",
     "pluginProtectedMediaReason",
     "pluginProtectedMediaNotice",
     "pluginProtectedMediaOwnNotice",
     "pluginProtectedMediaView",
+    "pluginProtectedMediaTapToView",
     "pluginProtectedMediaHide",
     "pluginProtectedMediaUnavailable",
     "pluginProtectedMediaNotPreviewable",
@@ -974,6 +1074,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "packetView",
     "packetRefunded",
     "packetBadgeLucky",
+    "packetBadgeLuckyShort",
     "packetBadgeExclusive",
     "packetForRecipient",
     "packetNotEligibleName",
@@ -1051,6 +1152,7 @@ internal val flareStringKeys: Set<String> = setOf(
     "scanImageDecoding",
     "scanImageError",
     "scanNoCodeInImage",
+    "scanRescan",
     "scanNoCamera",
     "scanInsecureContext",
     "scanCameraBusy",
@@ -1089,14 +1191,27 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "speaker" -> this.speaker
     "hangUp" -> this.hangUp
     "callMinimize" -> this.callMinimize
+    "callExpand" -> this.callExpand
+    "callCollapse" -> this.callCollapse
     "callPeerMuted" -> this.callPeerMuted
     "callSwitchToVideo" -> this.callSwitchToVideo
     "callReturn" -> this.callReturn
     "callWaitingAnswer" -> this.callWaitingAnswer
+    "callDockWaiting" -> this.callDockWaiting
+    "callEnded" -> this.callEnded
+    "callAnswerAudio" -> this.callAnswerAudio
+    "callDecline" -> this.callDecline
+    "callEncrypted" -> this.callEncrypted
+    "callYou" -> this.callYou
+    "callRedial" -> this.callRedial
+    "callMaxParticipants" -> this.callMaxParticipants
+    "callInterrupted" -> this.callInterrupted
     "callCalling" -> this.callCalling
+    "callSwapVideo" -> this.callSwapVideo
     "callRinging" -> this.callRinging
     "callConnected" -> this.callConnected
     "callReconnecting" -> this.callReconnecting
+    "callReconnectingShort" -> this.callReconnectingShort
     "callFailed" -> this.callFailed
     "send" -> this.send
     "cancelReply" -> this.cancelReply
@@ -1155,6 +1270,14 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "packetNotEligible" -> this.packetNotEligible
     "packetOpenFailed" -> this.packetOpenFailed
     "packetViewDetails" -> this.packetViewDetails
+    "packetViewResult" -> this.packetViewResult
+    "packetRefundNotice" -> this.packetRefundNotice
+    "packetGroupMembers" -> this.packetGroupMembers
+    "packetCountLimit" -> this.packetCountLimit
+    "packetClaimPendingReview" -> this.packetClaimPendingReview
+    "packetCountUnit" -> this.packetCountUnit
+    "packetChooseRecipient" -> this.packetChooseRecipient
+    "packetSend" -> this.packetSend
     "packetBestLuck" -> this.packetBestLuck
     "packetNoClaims" -> this.packetNoClaims
     "packetDetailTitle" -> this.packetDetailTitle
@@ -1204,6 +1327,11 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "momentTextHint" -> this.momentTextHint
     "addImage" -> this.addImage
     "removeImage" -> this.removeImage
+    "momentCommentsTitle" -> this.momentCommentsTitle
+    "momentNoComments" -> this.momentNoComments
+    "momentLocatedComment" -> this.momentLocatedComment
+    "momentDetailTitle" -> this.momentDetailTitle
+    "activityUnreadSuffix" -> this.activityUnreadSuffix
     "pickLocation" -> this.pickLocation
     "pickVisibility" -> this.pickVisibility
     "more" -> this.more
@@ -1378,6 +1506,22 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "composerFormatQuote" -> this.composerFormatQuote
     "composerFormatBullet" -> this.composerFormatBullet
     "composerFormatOrdered" -> this.composerFormatOrdered
+    "composerFormatUnderline" -> this.composerFormatUnderline
+    "composerFormatImage" -> this.composerFormatImage
+    "composerFormatInlineCode" -> this.composerFormatInlineCode
+    "composerFormatCodeBlock" -> this.composerFormatCodeBlock
+    "composerFormatDivider" -> this.composerFormatDivider
+    "composerFormatParagraph" -> this.composerFormatParagraph
+    "composerFormatHeadingNumbered" -> this.composerFormatHeadingNumbered
+    "composerFormatTextStyle" -> this.composerFormatTextStyle
+    "composerFormatToolbar" -> this.composerFormatToolbar
+    "composerSampleBold" -> this.composerSampleBold
+    "composerSampleStrike" -> this.composerSampleStrike
+    "composerSampleItalic" -> this.composerSampleItalic
+    "composerSampleUnderline" -> this.composerSampleUnderline
+    "composerSampleLink" -> this.composerSampleLink
+    "composerSampleImage" -> this.composerSampleImage
+    "composerSampleCode" -> this.composerSampleCode
     "voiceHoldButtonLabel" -> this.voiceHoldButtonLabel
     "voiceHoldButtonRecording" -> this.voiceHoldButtonRecording
     "voiceHoldButtonCancel" -> this.voiceHoldButtonCancel
@@ -1391,6 +1535,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "inlineVoiceComposerDiscard" -> this.inlineVoiceComposerDiscard
     "inlineVoiceComposerSendFailed" -> this.inlineVoiceComposerSendFailed
     "emojiStickerPickerEmoji" -> this.emojiStickerPickerEmoji
+    "emojiStickerPickerAll" -> this.emojiStickerPickerAll
     "emojiStickerPickerLoading" -> this.emojiStickerPickerLoading
     "groupPermissionMatrixTitle" -> this.groupPermissionMatrixTitle
     "groupPermissionMatrixReadOnlyHint" -> this.groupPermissionMatrixReadOnlyHint
@@ -1725,6 +1870,22 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "profileEditorBio" -> this.profileEditorBio
     "profileEditorBioPlaceholder" -> this.profileEditorBioPlaceholder
     "profileEditorSave" -> this.profileEditorSave
+    "profileEditorUnsaved" -> this.profileEditorUnsaved
+    "deviceSessionsHint" -> this.deviceSessionsHint
+    "deviceSessionsEmpty" -> this.deviceSessionsEmpty
+    "profilePanelMenuIncomplete" -> this.profilePanelMenuIncomplete
+    "listRefreshPull" -> this.listRefreshPull
+    "listRefreshRelease" -> this.listRefreshRelease
+    "listRefreshRefreshing" -> this.listRefreshRefreshing
+    "groupDetailMyRemarkName" -> this.groupDetailMyRemarkName
+    "groupDetailRemarkPlaceholder" -> this.groupDetailRemarkPlaceholder
+    "recentSearchesTitle" -> this.recentSearchesTitle
+    "recentSearchesClear" -> this.recentSearchesClear
+    "recentSearchesClearLabel" -> this.recentSearchesClearLabel
+    "searchEmpty" -> this.searchEmpty
+    "searchEmptyHint" -> this.searchEmptyHint
+    "searchSearching" -> this.searchSearching
+    "searchViewMore" -> this.searchViewMore
     "connectionConnecting" -> this.connectionConnecting
     "connectionSyncing" -> this.connectionSyncing
     "connectionSwitching" -> this.connectionSwitching
@@ -1815,6 +1976,11 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "updatePromptMessageRequired" -> this.updatePromptMessageRequired
     "updatePromptMessageRequiredReadOnly" -> this.updatePromptMessageRequiredReadOnly
     "composerReadOnlyUpdate" -> this.composerReadOnlyUpdate
+    "composerEditingMessage" -> this.composerEditingMessage
+    "composerEditingPlaceholder" -> this.composerEditingPlaceholder
+    "composerCancelEdit" -> this.composerCancelEdit
+    "composerSaveEdit" -> this.composerSaveEdit
+    "composerAttachmentPreview" -> this.composerAttachmentPreview
     "updatePromptMessageMetered" -> this.updatePromptMessageMetered
     "updatePromptMessageMeteredUnknown" -> this.updatePromptMessageMeteredUnknown
     "updatePromptMessageReady" -> this.updatePromptMessageReady
@@ -1883,6 +2049,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "navigationGroups" -> this.navigationGroups
     "navigationNewFriends" -> this.navigationNewFriends
     "pluginViewSubmit" -> this.pluginViewSubmit
+    "pluginViewCopyReference" -> this.pluginViewCopyReference
     "pluginViewEnded" -> this.pluginViewEnded
     "pluginViewDeadlinePassed" -> this.pluginViewDeadlinePassed
     "pluginViewSeeAll" -> this.pluginViewSeeAll
@@ -1920,6 +2087,20 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "fileSizeMegabytes" -> this.fileSizeMegabytes
     "fileSizeGigabytes" -> this.fileSizeGigabytes
     "pluginViewMore" -> this.pluginViewMore
+    "pluginViewUnknownStatus" -> this.pluginViewUnknownStatus
+    "pluginViewOffline" -> this.pluginViewOffline
+    "pluginViewAvailableOnline" -> this.pluginViewAvailableOnline
+    "pluginViewLoadFailedTitle" -> this.pluginViewLoadFailedTitle
+    "pluginViewNoOptions" -> this.pluginViewNoOptions
+    "pluginViewNoOptionsHelp" -> this.pluginViewNoOptionsHelp
+    "pluginViewUploading" -> this.pluginViewUploading
+    "pluginViewGroupCommon" -> this.pluginViewGroupCommon
+    "pluginViewGroupRecords" -> this.pluginViewGroupRecords
+    "pluginViewDone" -> this.pluginViewDone
+    "pluginViewEndOfList" -> this.pluginViewEndOfList
+    "pluginViewReferences" -> this.pluginViewReferences
+    "pluginViewFilterEmpty" -> this.pluginViewFilterEmpty
+    "pluginViewClearFilter" -> this.pluginViewClearFilter
     "pluginPageRefresh" -> this.pluginPageRefresh
     "pluginViewMe" -> this.pluginViewMe
     "pluginViewMaxSelections" -> this.pluginViewMaxSelections
@@ -1928,11 +2109,16 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "accountEmpty" -> this.accountEmpty
     "accountEmptyDescription" -> this.accountEmptyDescription
     "accountInformation" -> this.accountInformation
+    "accountOtherWallets" -> this.accountOtherWallets
     "accountEntryDetails" -> this.accountEntryDetails
     "accountEntryId" -> this.accountEntryId
     "accountType" -> this.accountType
     "accountToday" -> this.accountToday
     "accountYesterday" -> this.accountYesterday
+    "walletSetupTitle" -> this.walletSetupTitle
+    "walletSetupBody" -> this.walletSetupBody
+    "realnamePhotosNeeded" -> this.realnamePhotosNeeded
+    "realnamePhotosNeededOne" -> this.realnamePhotosNeededOne
     "accountOtherEntries" -> this.accountOtherEntries
     "accountShowBalance" -> this.accountShowBalance
     "accountHideBalance" -> this.accountHideBalance
@@ -1940,6 +2126,10 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "accountDayFormat" -> this.accountDayFormat
     "accountDayYearFormat" -> this.accountDayYearFormat
     "pluginViewEmpty" -> this.pluginViewEmpty
+    "pluginViewLoading" -> this.pluginViewLoading
+    "pluginViewLoadMore" -> this.pluginViewLoadMore
+    "pluginFormMoneyRange" -> this.pluginFormMoneyRange
+    "pluginViewStepPosition" -> this.pluginViewStepPosition
     "pluginViewUnavailableDisabled" -> this.pluginViewUnavailableDisabled
     "pluginViewUnavailableNotInstalled" -> this.pluginViewUnavailableNotInstalled
     "pluginViewUnavailableNoPermission" -> this.pluginViewUnavailableNoPermission
@@ -2017,11 +2207,18 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "documentCaptureShoot" -> this.documentCaptureShoot
     "documentCaptureRetake" -> this.documentCaptureRetake
     "documentCaptureUse" -> this.documentCaptureUse
+    "documentCaptureHintGlare" -> this.documentCaptureHintGlare
+    "documentSlotTapToCapture" -> this.documentSlotTapToCapture
+    "documentSlotUploadFailed" -> this.documentSlotUploadFailed
+    "documentSlotUploading" -> this.documentSlotUploading
+    "documentSlotCaptured" -> this.documentSlotCaptured
+    "documentSlotCapturedRetake" -> this.documentSlotCapturedRetake
     "documentCaptureFromAlbum" -> this.documentCaptureFromAlbum
     "documentCaptureProcessing" -> this.documentCaptureProcessing
     "documentCaptureCameraUnavailable" -> this.documentCaptureCameraUnavailable
     "documentCaptureTooLarge" -> this.documentCaptureTooLarge
     "documentCaptureFailed" -> this.documentCaptureFailed
+    "documentCaptureFormat" -> this.documentCaptureFormat
     "documentCaptureNotAccepted" -> this.documentCaptureNotAccepted
     "paymentConfirmationTitle" -> this.paymentConfirmationTitle
     "paymentConfirmationPayee" -> this.paymentConfirmationPayee
@@ -2033,10 +2230,15 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "paymentConfirmationInvalid" -> this.paymentConfirmationInvalid
     "paymentConfirmationConfirm" -> this.paymentConfirmationConfirm
     "paymentConfirmationVerifying" -> this.paymentConfirmationVerifying
+    "paymentConfirmationInsufficient" -> this.paymentConfirmationInsufficient
+    "paymentConfirmationTopUp" -> this.paymentConfirmationTopUp
+    "paymentConfirmationStartAgain" -> this.paymentConfirmationStartAgain
+    "pinInputProgress" -> this.pinInputProgress
     "pluginProtectedMediaReason" -> this.pluginProtectedMediaReason
     "pluginProtectedMediaNotice" -> this.pluginProtectedMediaNotice
     "pluginProtectedMediaOwnNotice" -> this.pluginProtectedMediaOwnNotice
     "pluginProtectedMediaView" -> this.pluginProtectedMediaView
+    "pluginProtectedMediaTapToView" -> this.pluginProtectedMediaTapToView
     "pluginProtectedMediaHide" -> this.pluginProtectedMediaHide
     "pluginProtectedMediaUnavailable" -> this.pluginProtectedMediaUnavailable
     "pluginProtectedMediaNotPreviewable" -> this.pluginProtectedMediaNotPreviewable
@@ -2051,6 +2253,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "packetView" -> this.packetView
     "packetRefunded" -> this.packetRefunded
     "packetBadgeLucky" -> this.packetBadgeLucky
+    "packetBadgeLuckyShort" -> this.packetBadgeLuckyShort
     "packetBadgeExclusive" -> this.packetBadgeExclusive
     "packetForRecipient" -> this.packetForRecipient
     "packetNotEligibleName" -> this.packetNotEligibleName
@@ -2128,6 +2331,7 @@ internal fun FlareStrings.stringValue(key: String): String? = when (key) {
     "scanImageDecoding" -> this.scanImageDecoding
     "scanImageError" -> this.scanImageError
     "scanNoCodeInImage" -> this.scanNoCodeInImage
+    "scanRescan" -> this.scanRescan
     "scanNoCamera" -> this.scanNoCamera
     "scanInsecureContext" -> this.scanInsecureContext
     "scanCameraBusy" -> this.scanCameraBusy
@@ -2196,6 +2400,8 @@ internal val flareColorKeys: Set<String> = setOf(
     "messageReactionBackground",
     "messageReactionSelected",
     "error",
+    "errorHover",
+    "errorActive",
     "errorText",
     "focusRing",
     "important",
@@ -2242,12 +2448,31 @@ internal val flareColorKeys: Set<String> = setOf(
     "redPacketFadedInk",
     "redPacketFadedMixTarget",
     "redPacketAccent",
+    "redPacketEndHover",
+    "redPacketEndActive",
     "chartSeries1",
     "chartSeries2",
     "chartSeries3",
     "chartSeries4",
     "chartSeries5",
     "chartSeries6",
+    "callStage",
+    "callStageTint",
+    "callOnStage",
+    "callOnStageSecondary",
+    "callControl",
+    "callControlHover",
+    "callControlActive",
+    "callOnControlActive",
+    "callHangup",
+    "callHangupPressed",
+    "callAccept",
+    "callAcceptPressed",
+    "callSpeaking",
+    "callTile",
+    "callChip",
+    "callPopover",
+    "callErrorText",
 )
 
 /** These colours with the fields [values] names replaced. */
@@ -2287,6 +2512,8 @@ internal fun FlareColors.applying(values: Map<String, Color>): FlareColors = cop
     messageReactionBackground = values["messageReactionBackground"] ?: this.messageReactionBackground,
     messageReactionSelected = values["messageReactionSelected"] ?: this.messageReactionSelected,
     error = values["error"] ?: this.error,
+    errorHover = values["errorHover"] ?: this.errorHover,
+    errorActive = values["errorActive"] ?: this.errorActive,
     errorText = values["errorText"] ?: this.errorText,
     focusRing = values["focusRing"] ?: this.focusRing,
     important = values["important"] ?: this.important,
@@ -2333,10 +2560,29 @@ internal fun FlareColors.applying(values: Map<String, Color>): FlareColors = cop
     redPacketFadedInk = values["redPacketFadedInk"] ?: this.redPacketFadedInk,
     redPacketFadedMixTarget = values["redPacketFadedMixTarget"] ?: this.redPacketFadedMixTarget,
     redPacketAccent = values["redPacketAccent"] ?: this.redPacketAccent,
+    redPacketEndHover = values["redPacketEndHover"] ?: this.redPacketEndHover,
+    redPacketEndActive = values["redPacketEndActive"] ?: this.redPacketEndActive,
     chartSeries1 = values["chartSeries1"] ?: this.chartSeries1,
     chartSeries2 = values["chartSeries2"] ?: this.chartSeries2,
     chartSeries3 = values["chartSeries3"] ?: this.chartSeries3,
     chartSeries4 = values["chartSeries4"] ?: this.chartSeries4,
     chartSeries5 = values["chartSeries5"] ?: this.chartSeries5,
     chartSeries6 = values["chartSeries6"] ?: this.chartSeries6,
+    callStage = values["callStage"] ?: this.callStage,
+    callStageTint = values["callStageTint"] ?: this.callStageTint,
+    callOnStage = values["callOnStage"] ?: this.callOnStage,
+    callOnStageSecondary = values["callOnStageSecondary"] ?: this.callOnStageSecondary,
+    callControl = values["callControl"] ?: this.callControl,
+    callControlHover = values["callControlHover"] ?: this.callControlHover,
+    callControlActive = values["callControlActive"] ?: this.callControlActive,
+    callOnControlActive = values["callOnControlActive"] ?: this.callOnControlActive,
+    callHangup = values["callHangup"] ?: this.callHangup,
+    callHangupPressed = values["callHangupPressed"] ?: this.callHangupPressed,
+    callAccept = values["callAccept"] ?: this.callAccept,
+    callAcceptPressed = values["callAcceptPressed"] ?: this.callAcceptPressed,
+    callSpeaking = values["callSpeaking"] ?: this.callSpeaking,
+    callTile = values["callTile"] ?: this.callTile,
+    callChip = values["callChip"] ?: this.callChip,
+    callPopover = values["callPopover"] ?: this.callPopover,
+    callErrorText = values["callErrorText"] ?: this.callErrorText,
 )

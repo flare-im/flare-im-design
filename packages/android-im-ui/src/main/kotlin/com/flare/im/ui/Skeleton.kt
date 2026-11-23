@@ -29,8 +29,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 
-/** Loading skeleton placeholders. Spec: Feedback/Skeleton. */
-enum class SkeletonVariant { Conversation, Message, Profile, Text }
+/**
+ * Loading skeleton placeholders. Spec: Feedback/Skeleton. [Card], [List] and [Form] are the plugin page archetypes'
+ * (R8 of docs/plugin-experience.md): one `component.skeletonCardHeight` card, list-height rows, labelled field placeholders;
+ * [Tile] is a "+" panel tile still loading (4.1).
+ */
+enum class SkeletonVariant { Conversation, Message, Profile, Text, Card, List, Form, Tile }
 
 @Composable
 fun Skeleton(
@@ -63,13 +67,13 @@ fun Skeleton(
                     Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacing2sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    skBlock(Modifier.size(44.dp), brush, CircleShape)
+                    skBlock(Modifier.size(FlareSizes.avatarSize), brush, CircleShape)
                     Spacer(Modifier.width(FlareSizes.spacingMd))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
                         skBlock(Modifier.fillMaxWidth(0.42f).height(11.dp), brush)
                         skBlock(Modifier.fillMaxWidth(0.68f).height(11.dp), brush)
                     }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(FlareSizes.spacingSm))
                     skBlock(Modifier.width(34.dp).height(11.dp), brush)
                 }
             }
@@ -112,6 +116,41 @@ fun Skeleton(
             skBlock(Modifier.size(72.dp), brush, CircleShape)
             skBlock(Modifier.fillMaxWidth(0.4f).height(15.dp), brush)
             skBlock(Modifier.fillMaxWidth(0.6f).height(11.dp), brush)
+        }
+
+        SkeletonVariant.Card -> skBlock(Modifier.fillMaxWidth().height(FlareSizes.componentSkeletonCardHeight), brush, RoundedCornerShape(FlareSizes.radiusCard))
+
+        // A "+" panel tile still loading (4.1): the icon square and its label line.
+        SkeletonVariant.Tile -> Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+            skBlock(Modifier.size(FlareSizes.componentComposerActionWidth), brush, RoundedCornerShape(FlareSizes.radiusLg))
+            skBlock(Modifier.width(32.dp).height(9.dp), brush)
+        }
+
+        SkeletonVariant.List -> Column(Modifier.fillMaxWidth()) {
+            repeat(rows) {
+                Row(
+                    Modifier.fillMaxWidth().height(52.dp).padding(horizontal = FlareSizes.spacingLg),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                        skBlock(Modifier.fillMaxWidth(0.5f).height(11.dp), brush)
+                        skBlock(Modifier.fillMaxWidth(0.3f).height(9.dp), brush)
+                    }
+                    skBlock(Modifier.width(56.dp).height(11.dp), brush)
+                }
+            }
+        }
+
+        SkeletonVariant.Form -> Column(
+            Modifier.fillMaxWidth().padding(FlareSizes.spacingLg),
+            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg),
+        ) {
+            repeat(rows) {
+                Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                    skBlock(Modifier.fillMaxWidth(0.3f).height(11.dp), brush)
+                    skBlock(Modifier.fillMaxWidth().height(FlareSizes.controlHeightLg), brush, RoundedCornerShape(FlareSizes.radiusLg))
+                }
+            }
         }
 
         SkeletonVariant.Text -> Column(

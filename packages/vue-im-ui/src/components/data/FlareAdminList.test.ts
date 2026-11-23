@@ -120,6 +120,26 @@ function setup(props = {}, slots = {}) {
   };
 }
 describe("FlareAdminList / Naive UI composition", () => {
+  it("lazily renders an expanded row and keeps its expansion controlled while busy", async () => {
+    layout();
+    const render = vi.fn(({ row }) => h("p", {}, `Wallets for ${row.id}`));
+    const { list, set } = setup({ expandedRowKeys: [] }, { "expanded-row": render });
+    const table = list.findComponent(NDataTable);
+    expect(render).not.toHaveBeenCalled();
+    expect(table.props("columns")![0]).toMatchObject({ type: "expand", width: 68 });
+    expect(table.props("scrollX")).toBe(388);
+    table.vm.$emit("update:expandedRowKeys", ["1"]);
+    await nextTick();
+    expect(list.emitted("update:expandedRowKeys")).toEqual([[["1"]]]);
+    await set({ expandedRowKeys: ["1"] });
+    expect(list.text()).toContain("Wallets for 1");
+    expect(list.get('button[aria-expanded="true"]').attributes("aria-label")).toBe("收起");
+    await set({ disabled: true });
+    table.vm.$emit("update:expandedRowKeys", []);
+    await nextTick();
+    expect(list.emitted("update:expandedRowKeys")).toHaveLength(1);
+    expect(list.text()).toContain("Wallets for 1");
+  });
   it("passes native tree children and controlled expansion without selecting or flattening nodes", async () => {
     layout();
     const rows = [
@@ -283,6 +303,7 @@ describe("FlareAdminList / Naive UI composition", () => {
     expect(list.findComponent(NDataTable).props("data")![0].id).toBe("7");
     expect(list.get("strong").text()).toBe("Original");
     expect(list.text()).toContain("Open 7");
+    expect(list.findComponent(NDataTable).props("columns")!.at(-1)).toMatchObject({ fixed: "right", width: 140 });
   });
   it("groups the reserved actions column once without treating audit action data as controls", async () => {
     const edit = vi.fn(),
@@ -317,6 +338,8 @@ describe("FlareAdminList / Naive UI composition", () => {
       '[role="group"][aria-label="Application operations"]',
     );
     expect(group.classes()).toContain("flare-admin-actions");
+    expect(list.findComponent(NDataTable).props("columns")!.at(-1)).toMatchObject({ key: "actions", fixed: "right", width: 140 });
+    expect(list.findComponent(NDataTable).props("columns")![1]).not.toHaveProperty("fixed", "right");
     expect(group.findAll("button")).toHaveLength(2);
     await group.findAll("button")[0].trigger("click");
     await group.findAll("button")[1].trigger("click");

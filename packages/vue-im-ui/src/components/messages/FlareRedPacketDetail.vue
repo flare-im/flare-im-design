@@ -7,6 +7,8 @@
 import { NIcon } from "naive-ui";
 import { computed, getCurrentInstance } from "vue";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
+import FlareIcon from "../general/FlareIcon.vue";
+import RedPacketArch from "./RedPacketArch.vue";
 import FlareIconButton from "../general/FlareIconButton.vue";
 import {
   flareRedPacketCardBadge,
@@ -31,20 +33,22 @@ const props = withDefaults(
     designatedName?: string;
     /** Claim rows (names and avatars from the host's directory); drawn only when details.claimsListed. */
     claims?: ReadonlyArray<FlareRedPacketClaim>;
-    /** Title of the red bar drawn when the host listens to `back`; defaults to "红包详情". */
+    /** Title of the title bar drawn when the host listens to `back`; defaults to "红包详情". */
     title?: string;
     /** The clock the times are written against; defaults to now. */
     nowMs?: number;
   }>(),
   { senderAvatar: undefined, designatedName: undefined, claims: () => [], title: undefined, nowMs: undefined },
 );
-// With a `back` listener the page draws its own red title bar (back key and title), running into the
+// With a `back` listener the page draws its own neutral title bar (back key and title), running into the
 // arched header and up under the status bar; the host then hides its own navigation bar.
-const emit = defineEmits<{ (e: "back"): void }>();
+// With a `deposited` listener the "saved to your wallet" note is a row that opens the wallet (§4.6).
+const emit = defineEmits<{ (e: "back"): void; (e: "deposited"): void }>();
 
 const { t } = useFlareI18nOptional();
 const instance = getCurrentInstance();
 const showsBar = computed(() => Boolean(instance?.vnode.props?.onBack));
+const opensWallet = computed(() => Boolean(instance?.vnode.props?.onDeposited));
 const barTitle = computed(() => props.title || t("redPacket.detailTitle"));
 const heading = computed(() => t("redPacket.fromSender", { name: props.senderName }));
 const badge = computed(() => flareRedPacketCardBadge(props.details.kind));
@@ -80,26 +84,29 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
         class="flare-rp-detail__back"
         :icon="flareIcons.back"
         :ariaLabel="t('common.back')"
-        tint="#fff"
+        tint="var(--flare-color-text-primary)"
         background="transparent"
         @click="emit('back')"
       />
       <h1 class="flare-rp-detail__bar-title">{{ barTitle }}</h1>
       <span class="flare-rp-detail__bar-spacer" aria-hidden="true" />
     </header>
-    <div class="flare-rp-detail__hero" aria-hidden="true" />
+    <RedPacketArch />
     <header class="flare-rp-detail__head">
       <div class="flare-rp-detail__sender">
-        <FlareAvatar :name="senderName" :avatar-url="senderAvatar" :size="28" />
+        <FlareAvatar :name="senderName" :avatar-url="senderAvatar" />
         <h2 class="flare-rp-detail__title">{{ heading }}</h2>
         <span v-if="badge.badge" class="flare-rp-detail__kind" data-detail-badge="true">{{ t(`redPacket.badge.${badge.badge}`) }}</span>
       </div>
       <p class="flare-rp-detail__blessing">{{ details.greeting }}</p>
       <p v-if="texts.headline" class="flare-rp-detail__headline" data-detail-headline="true">{{ texts.headline }}</p>
-      <template v-if="texts.amount">
+      <div v-if="texts.amount" class="flare-rp-detail__settlement">
         <p class="flare-rp-detail__amount" data-detail-amount="true">{{ texts.amount }}</p>
-        <p class="flare-rp-detail__amount-note">{{ t("redPacket.deposited") }}</p>
-      </template>
+        <button v-if="opensWallet" type="button" class="flare-rp-detail__amount-note is-link" data-detail-deposited="true" @click="emit('deposited')">
+          <FlareIcon name="success" size="sm" aria-hidden="true" /><span>{{ t("redPacket.deposited") }}</span><FlareIcon name="chevron-right" size="sm" aria-hidden="true" />
+        </button>
+        <p v-else class="flare-rp-detail__amount-note"><FlareIcon name="success" size="sm" aria-hidden="true" /><span>{{ t("redPacket.deposited") }}</span></p>
+      </div>
     </header>
 
     <div v-if="texts.summary || texts.claims" class="flare-rp-detail__claims">
@@ -107,7 +114,7 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
       <template v-if="texts.claims">
         <ul v-if="rows.length" class="flare-rp-detail__list" :aria-label="t('redPacket.claims')">
           <li v-for="row in rows" :key="row.claim.id" class="flare-rp-detail__row" :class="{ 'is-best': row.claim.best }" data-detail-claim="true">
-            <FlareAvatar :user-id="row.claim.id" :name="row.claim.name" :avatar-url="row.claim.avatar" :size="40" />
+            <FlareAvatar :user-id="row.claim.id" :name="row.claim.name" :avatar-url="row.claim.avatar" />
             <span class="flare-rp-detail__who">
               <span class="flare-rp-detail__name">{{ row.claim.name }}</span>
               <span class="flare-rp-detail__time">{{ row.time }}</span>
@@ -115,7 +122,7 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
             <span class="flare-rp-detail__share">
               <span v-if="row.amount" class="flare-rp-detail__share-amount">{{ row.amount }}</span>
               <span v-if="row.claim.best" class="flare-rp-detail__best">
-                <n-icon aria-hidden="true" :component="flareIcons.star" />
+                <n-icon size="var(--flare-size-font-size-sm)" aria-hidden="true" :component="flareIcons.star" />
                 <span>{{ t("redPacket.bestLuck") }}</span>
               </span>
             </span>
@@ -130,22 +137,20 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
 </template>
 
 <style scoped>
+/* PC: the content column stays at the detail pane width, centred; the arch follows the column (R-08). */
 .flare-rp-detail {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: var(--flare-size-layout-detail-pane-max-width);
+  margin-inline: auto;
+  box-sizing: border-box;
   min-width: 0;
   color: var(--flare-color-text-primary);
   background: var(--flare-color-bg-primary);
+  border-radius: var(--flare-size-radius-card);
+  overflow: hidden;
 }
-/* The red header: a band that bows out at the bottom, the way the envelope's flap does. */
-.flare-rp-detail__hero {
-  height: var(--flare-size-component-red-packet-detail-header-height);
-  background: linear-gradient(180deg, var(--flare-color-red-packet-middle), var(--flare-color-red-packet-start));
-  border-radius: 0 0 50% 50% / 0 0 var(--flare-size-spacing-2xl) var(--flare-size-spacing-2xl);
-}
-/* The page's own title bar: the deep red keeps the light title and back key above 4.5:1, and the arched
-   header below starts from the same red, so bar and arch read as one piece reaching up under the
-   status bar. */
 .flare-rp-detail__bar {
   display: grid;
   grid-template-columns: var(--flare-size-layout-touch-target) minmax(0, 1fr) var(--flare-size-layout-touch-target);
@@ -153,13 +158,8 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   min-height: var(--flare-size-layout-header-height);
   padding: env(safe-area-inset-top, 0px) var(--flare-size-spacing-xs) 0;
   box-sizing: content-box;
-  background: var(--flare-color-red-packet-end);
-  color: #fff;
-}
-.flare-rp-detail.has-bar .flare-rp-detail__hero {
-  /* Overlap the bar by a hairline: at a fractional offset the page behind would show through the seam. */
-  margin-top: -1px;
-  background: linear-gradient(180deg, var(--flare-color-red-packet-end), var(--flare-color-red-packet-middle));
+  background: var(--flare-color-bg-primary);
+  color: var(--flare-color-text-primary);
 }
 .flare-rp-detail__back { justify-self: center; }
 .flare-rp-detail__bar-title {
@@ -177,23 +177,32 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   flex-direction: column;
   align-items: center;
   gap: var(--flare-size-spacing-sm);
-  padding: var(--flare-size-spacing-2xl) var(--flare-size-spacing-xl) var(--flare-size-spacing-xl);
+  padding: var(--flare-size-spacing-lg);
   text-align: center;
 }
+/* §4.6: the avatar sits above the title, centred; the blessing follows under the block. */
 .flare-rp-detail__sender {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--flare-size-spacing-sm);
   max-width: 100%;
   min-width: 0;
 }
+/* FlareAvatar takes a number: the sender's 56 comes from the token, as the call stage does. */
+.flare-rp-detail__sender :deep(.im-avatar) {
+  width: var(--flare-size-component-red-packet-detail-avatar-size) !important;
+  height: var(--flare-size-component-red-packet-detail-avatar-size) !important;
+  --avatar-size: var(--flare-size-component-red-packet-detail-avatar-size) !important;
+}
 .flare-rp-detail__title {
   margin: 0;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--flare-size-font-size-3xl);
+  font-size: var(--flare-size-font-size-2xl);
   font-weight: var(--flare-size-font-weight-semibold);
 }
 .flare-rp-detail__kind {
@@ -208,8 +217,8 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   border-radius: var(--flare-size-radius-xs);
   font-size: var(--flare-size-font-size-xs);
   font-weight: var(--flare-size-font-weight-semibold);
-  color: var(--flare-color-red-packet-end);
-  background: var(--flare-color-red-packet-gold);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-bg-secondary);
 }
 .flare-rp-detail__blessing {
   margin: 0;
@@ -224,18 +233,36 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   color: var(--flare-color-text-primary);
   overflow-wrap: anywhere;
 }
+.flare-rp-detail__settlement { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-sm); margin-top: var(--flare-size-spacing-md); max-width: 100%; }
 .flare-rp-detail__amount {
-  margin: var(--flare-size-spacing-md) 0 0;
-  font-size: var(--flare-size-component-red-packet-amount-font-size);
+  margin: 0;
+  font-size: var(--flare-size-component-red-packet-detail-amount-font-size);
   line-height: var(--flare-size-line-height-tight);
   font-weight: var(--flare-size-font-weight-semibold);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .flare-rp-detail__amount-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--flare-size-spacing-xs);
   margin: 0;
   font-size: var(--flare-size-font-size-md);
-  color: var(--flare-color-warning-text);
+  color: var(--flare-color-success-text);
+}
+.flare-rp-detail__amount-note.is-link {
+  min-height: var(--flare-size-layout-touch-target);
+  padding: 0 var(--flare-size-spacing-sm);
+  border: 0;
+  border-radius: var(--flare-size-radius-md);
+  background: transparent;
+  font: inherit;
+  font-size: var(--flare-size-font-size-md);
+  cursor: pointer;
+}
+.flare-rp-detail__amount-note.is-link:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
+@media (hover: hover) {
+  .flare-rp-detail__amount-note.is-link:hover { background: var(--flare-color-bg-hover); }
 }
 .flare-rp-detail__claims {
   border-top: 1px solid var(--flare-color-border-primary);
@@ -244,19 +271,27 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   margin: 0;
   padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg);
   font-size: var(--flare-size-font-size-md);
-  color: var(--flare-color-text-tertiary);
-  border-bottom: 1px solid var(--flare-color-border-primary);
+  color: var(--flare-color-text-secondary);
+  background: var(--flare-color-bg-secondary);
+  border-bottom: 1px solid var(--flare-color-border-secondary);
 }
 .flare-rp-detail__list { list-style: none; margin: 0; padding: 0; }
 .flare-rp-detail__row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
   gap: var(--flare-size-spacing-md);
-  min-height: var(--flare-size-layout-session-item-height);
+  min-height: var(--flare-size-component-red-packet-claim-row-height);
   padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg);
   box-sizing: border-box;
   border-bottom: 1px solid var(--flare-color-border-secondary);
+}
+.flare-rp-detail__row:last-child { border-bottom: none; }
+/* Claim rows draw the 40 message avatar (FlareAvatar takes a number; the size comes from the token). */
+.flare-rp-detail__row :deep(.im-avatar) {
+  width: var(--flare-size-component-message-avatar-size) !important;
+  height: var(--flare-size-component-message-avatar-size) !important;
+  --avatar-size: var(--flare-size-component-message-avatar-size) !important;
 }
 .flare-rp-detail__who { display: flex; flex-direction: column; gap: var(--flare-size-spacing-3xs); min-width: 0; }
 .flare-rp-detail__name {
@@ -266,22 +301,25 @@ const rows = computed(() => (texts.value.claims ? props.claims : []).map((claim)
   white-space: nowrap;
 }
 .flare-rp-detail__time { font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-tertiary); }
-.flare-rp-detail__share { display: flex; flex-direction: column; align-items: flex-end; gap: var(--flare-size-spacing-3xs); }
+.flare-rp-detail__share { display: flex; flex-direction: column; align-items: flex-end; gap: var(--flare-size-spacing-3xs); min-width: 0; max-width: 100%; text-align: end; }
+/* §4.6: the claimed share 16/600. */
 .flare-rp-detail__share-amount {
-  font-size: var(--flare-size-font-size-xl);
-  font-weight: var(--flare-size-font-weight-medium);
+  font-size: var(--flare-size-font-size-2xl);
+  font-weight: var(--flare-size-font-weight-semibold);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .flare-rp-detail__best {
   display: inline-flex;
   align-items: center;
   gap: var(--flare-size-spacing-3xs);
-  font-size: var(--flare-size-font-size-xs);
+  font-size: var(--flare-size-font-size-sm);
   color: var(--flare-color-warning-text);
-  white-space: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
-.flare-rp-detail__best :deep(svg) { color: var(--flare-color-red-packet-gold-deep); }
+/* §4.6: the best-luck star 12 in warning, beside its 12 label. */
+.flare-rp-detail__best :deep(svg) { color: var(--flare-color-warning-text); }
 .flare-rp-detail__empty,
 .flare-rp-detail__note {
   margin: 0;

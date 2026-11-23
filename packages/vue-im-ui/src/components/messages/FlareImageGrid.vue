@@ -55,10 +55,11 @@ const { t } = useFlareI18nOptional();
 <style scoped>
 .flare-image-grid {
   display: grid;
-  grid-template-columns: repeat(var(--cols, 3), 1fr);
-  gap: 4px;
-  width: max-content;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: var(--flare-size-spacing-xs);
+  width: calc(var(--cols, 3) * 84px + (var(--cols, 3) - 1) * var(--flare-size-spacing-xs));
   max-width: 100%;
+  min-width: 0;
 }
 .flare-image-grid.is-single { width: auto; }
 .flare-image-grid__cell {
@@ -69,14 +70,16 @@ const { t } = useFlareI18nOptional();
   overflow: hidden;
   border-radius: 8px;
   background: var(--flare-color-bg-secondary);
-  width: 84px;
-  height: 84px;
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: 1;
   transition: filter var(--flare-transition-fast);
 }
 .flare-image-grid.is-single .flare-image-grid__cell {
   width: auto;
   height: auto;
-  max-width: 220px;
+  aspect-ratio: auto;
+  max-width: min(100%, 220px);
   max-height: 260px;
   border-radius: var(--flare-size-radius-card);
 }
@@ -90,7 +93,7 @@ const { t } = useFlareI18nOptional();
 .flare-image-grid.is-single .flare-image-grid__cell img {
   width: auto;
   height: auto;
-  max-width: 220px;
+  max-width: min(100%, 220px);
   max-height: 260px;
   object-fit: contain;
 }

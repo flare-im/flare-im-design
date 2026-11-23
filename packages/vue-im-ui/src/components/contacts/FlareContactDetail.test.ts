@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { defineComponent, h, nextTick, ref, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareContactDetail from "./FlareContactDetail.vue";
+import FlareScreen from "../layout/FlareScreen.vue";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => { host?.unmount(); host = undefined; });
@@ -68,10 +69,10 @@ describe("FlareContactDetail primary action", () => {
     const actions = view.findAll(".flare-contact-detail__actions button");
     expect(actions.map((button) => button.text())).toEqual(["添加到通讯录", "发消息"]);
     expect(actions[0].classes()).toContain("flare-button--primary");
-    expect(actions.every((action) => action.classes().includes("flare-button--sm"))).toBe(true);
+    expect(actions.every((action) => action.classes().includes("flare-button--lg"))).toBe(true);
     expect(actions[1].classes()).not.toContain("flare-button--primary");
-    // Not a footer action: the footer keeps only the host's extra actions.
     expect(view.findAll(".flare-contact-detail__extra button").map((button) => button.text())).toEqual(["举报"]);
+    expect(view.element.lastElementChild?.className).toContain("flare-contact-detail__actions");
     await actions[0].trigger("click");
     expect(events).toEqual(["primary"]);
   });
@@ -124,4 +125,23 @@ describe("FlareContactDetail primary action", () => {
     await primary.trigger("click");
     expect(events).toEqual(["message", "primary"]);
   });
+});
+
+it("adapts to the detail reading column without changing profile or action intents", async () => {
+  const layout = ref<"page" | "detail">("detail");
+  const message = () => {};
+  host = mount(defineComponent({ setup() {
+    useFlareI18nProvider("zh-CN");
+    return () => h(FlareScreen, { layout: layout.value }, () => h(FlareContactDetail, { contact, onMessage: message }));
+  } }));
+  const detail = host.getComponent(FlareContactDetail);
+  const identity = host.get(".flare-contact-detail__name").element;
+  expect(detail.classes()).toContain("is-detail");
+  expect(host.get('[data-contact-action="message"]').classes()).not.toContain("is-block");
+  await host.get('[data-contact-action="message"]').trigger("click");
+  layout.value = "page"; await nextTick();
+  expect(host.get(".flare-contact-detail__name").element).toBe(identity);
+  expect(host.get('[data-contact-action="message"]').classes()).toContain("is-block");
+  await host.get('[data-contact-action="message"]').trigger("click");
+  expect(detail.emitted("message")).toEqual([[], []]);
 });

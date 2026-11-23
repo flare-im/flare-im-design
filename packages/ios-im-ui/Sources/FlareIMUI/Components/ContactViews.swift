@@ -6,6 +6,7 @@ public struct ContactItemView: View {
     private let showPresence: Bool
     private let selectable: Bool
     private let selected: Bool
+    private let current: Bool
     private let trailing: AnyView?
     private let onSelect: (() -> Void)?
     private let onToggleSelect: (() -> Void)?
@@ -15,14 +16,17 @@ public struct ContactItemView: View {
     /// - Parameters:
     ///   - selectable: A leading checkbox shows `selected`; tapping the row calls `onToggleSelect`
     ///     (not `onSelect`), and the row is one checkbox for assistive technology, named by the contact.
+    ///   - current: The person the detail pane beside the list shows (Vue `current`; not `selected`, the checkbox):
+    ///     the name in the primary colour and semibold, read as selected. The list draws the row's ground.
     ///   - trailing: Content at the row end (a button, a status). Its controls keep their own taps
     ///     and focus; they do not select the row.
     ///   - onSelect: Tapping the row outside selection mode. Without a handler for the current mode
     ///     the row is not a control.
     public init(item: Contact, showPresence: Bool = true, selectable: Bool = false, selected: Bool = false,
+                current: Bool = false,
                 trailing: AnyView? = nil, onSelect: (() -> Void)? = nil, onToggleSelect: (() -> Void)? = nil) {
         self.item = item; self.showPresence = showPresence
-        self.selectable = selectable; self.selected = selected; self.trailing = trailing
+        self.selectable = selectable; self.selected = selected; self.current = current; self.trailing = trailing
         self.onSelect = onSelect; self.onToggleSelect = onToggleSelect
     }
 
@@ -37,25 +41,28 @@ public struct ContactItemView: View {
             if let action = Self.rowAction(selectable: selectable, onSelect: onSelect, onToggleSelect: onToggleSelect) {
                 Button(action: action) { row }
                     .buttonStyle(.plain)
-                    .modifier(RowSemantics(name: item.name, selectable: selectable, selected: selected, control: true))
+                    .modifier(RowSemantics(name: item.name, selectable: selectable, selected: selected, current: current,
+                                           control: true))
             } else {
-                row.modifier(RowSemantics(name: item.name, selectable: selectable, selected: selected, control: false))
+                row.modifier(RowSemantics(name: item.name, selectable: selectable, selected: selected, current: current,
+                                          control: false))
             }
             if let trailing { trailing }
         }
     }
 
     /// One element per row. A selectable row reads as a checkbox named by the contact, with its
-    /// checked state as the selected trait (the kit ``CheckboxView`` convention).
+    /// checked state as the selected trait (the kit ``CheckboxView`` convention); the current row is selected too.
     private struct RowSemantics: ViewModifier {
         let name: String
         let selectable: Bool
         let selected: Bool
+        let current: Bool
         let control: Bool
 
         func body(content: Content) -> some View {
             let button: AccessibilityTraits = control ? .isButton : []
-            let checked: AccessibilityTraits = selectable && selected ? .isSelected : []
+            let checked: AccessibilityTraits = (selectable && selected) || current ? .isSelected : []
             return Group {
                 if selectable {
                     content.accessibilityElement(children: .ignore).accessibilityLabel(name)
@@ -77,7 +84,8 @@ public struct ContactItemView: View {
             AvatarView(userId: item.id, displayName: item.name, avatarURL: item.avatarURL,
                        size: 40, presence: showPresence ? item.presence : nil)
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
+                Text(item.name).font(.system(size: FlareSizes.fontSizeLg, weight: current ? .semibold : .medium))
+                    .foregroundColor(current ? colors.primaryText : colors.textPrimary)
                 if let s = item.signature, !s.isEmpty {
                     Text(s).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary).lineLimit(1)
                 }
@@ -99,11 +107,22 @@ public struct ContactListView: View {
     private let empty: AnyView?
     private let onSelect: ((Contact) -> Void)?
     private let onToggleSelect: ((Contact) -> Void)?
+    private let selection: [Contact]
+    private let selectionLabel: String?
+    private let removeSelectionLabel: ((String) -> String)?
+    private let activeId: String?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
 
     /// - Parameters:
+    ///   - activeId: The contact the detail pane beside the list shows (Vue `activeId`): that row on the selected
+    ///     ground, its name in the primary colour and semibold, read as selected. Ignored in a selectable list.
+    ///   - selection: In a selectable list, the picked contacts as a strip of removable chips above the rows (Vue
+    ///     `FlareContactList` selectable): 24-point avatar, name, ✕; tapping one toggles it off through
+    ///     `onToggleSelect`. The host passes everyone picked, so a filter that hides a row keeps its chip.
+    ///   - selectionLabel: The strip's name for assistive technology ("3 selected"); `removeSelectionLabel` names a
+    ///     chip from the contact's name ("Remove Ann from selection").
     ///   - selectable: Rows show a checkbox checked for `selectedIds` and toggle through
     ///     `onToggleSelect` (see ``ContactItemView``); `onSelect` is not called.
     ///   - selectedIds: The host-owned selection, by contact id.
@@ -114,11 +133,15 @@ public struct ContactListView: View {
                 selectable: Bool = false, selectedIds: Set<String> = [],
                 trailing: ((Contact) -> AnyView)? = nil,
                 empty: AnyView? = nil,
-                onSelect: ((Contact) -> Void)? = nil, onToggleSelect: ((Contact) -> Void)? = nil) {
+                onSelect: ((Contact) -> Void)? = nil, onToggleSelect: ((Contact) -> Void)? = nil,
+                selection: [Contact] = [], selectionLabel: String? = nil,
+                removeSelectionLabel: ((String) -> String)? = nil, activeId: String? = nil) {
         self.items = items; self.indexed = indexed; self.loading = loading
         self.selectable = selectable; self.selectedIds = selectedIds; self.trailing = trailing
         self.empty = empty
         self.onSelect = onSelect; self.onToggleSelect = onToggleSelect
+        self.selection = selection; self.selectionLabel = selectionLabel; self.removeSelectionLabel = removeSelectionLabel
+        self.activeId = activeId
     }
 
     /// The index group for names that start with neither a Latin letter nor a Chinese character.
@@ -186,6 +209,43 @@ public struct ContactListView: View {
     }
 
     public var body: some View {
+        VStack(spacing: 0) {
+            if selectable && !selection.isEmpty { selectionStrip }
+            rows
+        }
+    }
+
+    private var selectionStrip: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: FlareSizes.spacingSm) {
+                ForEach(selection) { c in
+                    Button { onToggleSelect?(c) } label: {
+                        HStack(spacing: FlareSizes.spacingXs) {
+                            AvatarView(userId: c.id, displayName: c.name, avatarURL: c.avatarURL, size: 24)
+                            Text(c.name).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textPrimary)
+                                .lineLimit(1)
+                            Image(systemName: flareIconSymbol("close"))
+                                .font(.system(size: FlareSizes.fontSize2xs, weight: .semibold))
+                                .foregroundColor(colors.textTertiary)
+                        }
+                        .padding(.vertical, 2).padding(.leading, 2).padding(.trailing, FlareSizes.spacingSm)
+                        .frame(maxWidth: 180)
+                        .background(Capsule().fill(colors.bgSecondary))
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(removeSelectionLabel?(c.name) ?? c.name)
+                }
+            }
+            .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(selectionLabel ?? "")
+    }
+
+    @ViewBuilder
+    private var rows: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         if items.isEmpty {
             if loading {
@@ -203,12 +263,15 @@ public struct ContactListView: View {
                             ForEach(groups, id: \.letter) { g in
                                 Section {
                                     ForEach(g.people) { c in
+                                        let current = !selectable && activeId != nil && c.id == activeId
                                         ContactItemView(item: c, selectable: selectable, selected: selectedIds.contains(c.id),
+                                                        current: current,
                                                         trailing: trailing?(c),
                                                         onSelect: onSelect.map { select in { select(c) } },
                                                         onToggleSelect: onToggleSelect.map { toggle in { toggle(c) } })
                                             .padding(.horizontal, FlareSizes.spacingMd)
                                             .padding(.vertical, FlareSizes.spacingSm)
+                                            .background(current ? colors.bgSelected : Color.clear)
                                     }
                                 } header: {
                                     Text(g.letter)
@@ -229,9 +292,13 @@ public struct ContactListView: View {
                                     .font(.system(size: FlareSizes.fontSize2xs, weight: .semibold))
                                     .foregroundColor(colors.primaryText)
                                     .onTapGesture { withAnimation { proxy.scrollTo(g.letter, anchor: .top) } }
+                                    .accessibilityLabel(strings.contactJumpTo.replacingOccurrences(of: "{letter}", with: g.letter))
+                                    .accessibilityAddTraits(.isButton)
                             }
                         }
                         .padding(.trailing, 2)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(strings.contactIndex)
                     }
                 }
             }
@@ -251,6 +318,11 @@ public struct NewFriendRequestsView: View {
     private let acceptLabel: String?
     private let declineLabel: String?
     private let withdrawLabel: String?
+    private let pending: [String: FlareFriendRequestAnswer]
+    private let errors: [String: String]
+    private let retryLabel: String?
+    private let onRetry: ((FriendRequest) -> Void)?
+    private let empty: AnyView?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -260,13 +332,22 @@ public struct NewFriendRequestsView: View {
     ///     the request id. Without a handler the row is inert (Flutter/Compose `onView` parity).
     ///   - onWithdraw: Withdraws an outgoing request. Outgoing rows show a pending status instead
     ///     of accept/decline, and a withdraw button only with this handler.
+    ///   - pending: Answers under way, by request id (Vue `pending`): the answer being sent spins, and both of
+    ///     that row's buttons take no taps; other rows stay usable.
+    ///   - errors: A failed answer's text, by request id: a danger banner under that row, with `retryLabel` /
+    ///     `onRetry` while the row is not pending.
+    ///   - empty: Replaces the whole empty state (a search with no match, an invitation to add someone).
     public init(items: [FriendRequest], emptyText: String? = nil,
                 acceptLabel: String? = nil, declineLabel: String? = nil, withdrawLabel: String? = nil,
                 onAccept: ((FriendRequest) -> Void)? = nil, onReject: ((FriendRequest) -> Void)? = nil,
-                onView: ((String) -> Void)? = nil, onWithdraw: ((FriendRequest) -> Void)? = nil) {
+                onView: ((String) -> Void)? = nil, onWithdraw: ((FriendRequest) -> Void)? = nil,
+                pending: [String: FlareFriendRequestAnswer] = [:], errors: [String: String] = [:],
+                retryLabel: String? = nil, onRetry: ((FriendRequest) -> Void)? = nil, empty: AnyView? = nil) {
         self.items = items; self.emptyText = emptyText
         self.acceptLabel = acceptLabel; self.declineLabel = declineLabel; self.withdrawLabel = withdrawLabel
         self.onAccept = onAccept; self.onReject = onReject; self.onView = onView; self.onWithdraw = onWithdraw
+        self.pending = pending; self.errors = errors; self.retryLabel = retryLabel; self.onRetry = onRetry
+        self.empty = empty
     }
 
     /// The row's tap action, or nil when the host did not opt in.
@@ -301,45 +382,55 @@ public struct NewFriendRequestsView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         if items.isEmpty {
-            EmptyStateView(title: emptyText ?? strings.newFriendRequestsEmpty, icon: "person-add")
+            if let empty { empty } else { EmptyStateView(title: emptyText ?? strings.newFriendRequestsEmpty, icon: "person-add") }
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(items) { req in
-                        HStack(spacing: FlareSizes.spacingMd) {
-                            AvatarView(userId: req.id, displayName: req.name, avatarURL: req.avatarURL, size: 44)
-                            VStack(alignment: .leading) {
-                                Text(req.name).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
-                                if let m = req.message, !m.isEmpty {
-                                    Text(m).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary).lineLimit(1)
+                        let answering = pending[req.id]
+                        VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+                            HStack(spacing: FlareSizes.spacingMd) {
+                                AvatarView(userId: req.userId ?? req.id, displayName: req.name, avatarURL: req.avatarURL, size: 40)
+                                VStack(alignment: .leading) {
+                                    Text(req.name).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
+                                    if let m = req.message, !m.isEmpty {
+                                        Text(m).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary).lineLimit(1)
+                                    }
+                                    // The source is a line of its own, in the same quiet style, never beside the message.
+                                    if let source = req.source, !source.isEmpty {
+                                        Text(source).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                                            .lineLimit(1).truncationMode(.tail)
+                                    }
                                 }
-                                // The source is a line of its own, in the same quiet style, never beside the message.
-                                if let source = req.source, !source.isEmpty {
-                                    Text(source).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
-                                        .lineLimit(1).truncationMode(.tail)
+                                Spacer()
+                                if req.direction == .outgoing {
+                                    Text(strings.newFriendRequestsPending)
+                                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                                }
+                                ForEach(Self.rowControls(req.direction, hasAccept: onAccept != nil, hasReject: onReject != nil,
+                                                         hasWithdraw: onWithdraw != nil), id: \.self) { control in
+                                    switch control {
+                                    // 出口用 .quiet 而不是 .secondary:secondary 是填充+描边,
+                                    // 分量和旁边的接受按钮相当,一行里两颗都想被点。
+                                    case .decline:
+                                        ButtonView(label: declineLabel ?? strings.reject, variant: .quiet, size: .sm,
+                                                   loading: answering == .reject, disabled: answering != nil) { onReject?(req) }
+                                    case .accept:
+                                        ButtonView(label: acceptLabel ?? strings.newFriendRequestsAccept, size: .sm,
+                                                   loading: answering == .accept, disabled: answering != nil) { onAccept?(req) }
+                                    case .withdraw:
+                                        ButtonView(label: withdrawLabel ?? strings.newFriendRequestsWithdraw, variant: .quiet, size: .sm) { onWithdraw?(req) }
+                                    }
                                 }
                             }
-                            Spacer()
-                            if req.direction == .outgoing {
-                                Text(strings.newFriendRequestsPending)
-                                    .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
-                            }
-                            ForEach(Self.rowControls(req.direction, hasAccept: onAccept != nil, hasReject: onReject != nil,
-                                                     hasWithdraw: onWithdraw != nil), id: \.self) { control in
-                                switch control {
-                                // 出口用 .quiet 而不是 .secondary:secondary 是填充+描边,
-                                // 分量和旁边的接受按钮相当,一行里两颗都想被点。
-                                case .decline:
-                                    ButtonView(label: declineLabel ?? strings.reject, variant: .quiet, size: .sm) { onReject?(req) }
-                                case .accept:
-                                    ButtonView(label: acceptLabel ?? strings.newFriendRequestsAccept, size: .sm) { onAccept?(req) }
-                                case .withdraw:
-                                    ButtonView(label: withdrawLabel ?? strings.newFriendRequestsWithdraw, variant: .quiet, size: .sm) { onWithdraw?(req) }
-                                }
+                            .modifier(RowTap(action: Self.rowTap(id: req.id, onView: onView)))
+                            if let error = errors[req.id] {
+                                StatusBannerView(text: error, tone: .danger,
+                                                 actionText: answering == nil ? (retryLabel ?? strings.retry) : nil,
+                                                 onAction: answering == nil ? { onRetry?(req) } : nil)
                             }
                         }
                         .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
-                        .modifier(RowTap(action: Self.rowTap(id: req.id, onView: onView)))
                     }
                 }
             }
@@ -347,12 +438,16 @@ public struct NewFriendRequestsView: View {
     }
 }
 
+/// The answer a friend-request row is sending (``NewFriendRequestsView`` `pending`).
+public enum FlareFriendRequestAnswer: Sendable, Equatable { case accept, reject }
+
 /// My groups. Spec: Contacts/GroupList (`GroupListView`).
 public struct GroupListView: View {
     private let items: [GroupSummary]
     private let onSelect: ((GroupSummary) -> Void)?
     private let emptyText: String?
     private let empty: AnyView?
+    private let activeId: String?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -360,9 +455,12 @@ public struct GroupListView: View {
     /// - Parameters:
     ///   - emptyText: Replaces the line the kit writes when there is no group.
     ///   - empty: Replaces the whole empty state, so it can say what to do about it.
+    ///   - activeId: The group the detail pane beside the list shows (Vue `activeId`): that row on the selected ground
+    ///     with a primary bar at its start, its name in the primary colour and semibold, read as selected.
     public init(items: [GroupSummary], emptyText: String? = nil, empty: AnyView? = nil,
-                onSelect: ((GroupSummary) -> Void)? = nil) {
+                onSelect: ((GroupSummary) -> Void)? = nil, activeId: String? = nil) {
         self.items = items; self.emptyText = emptyText; self.empty = empty; self.onSelect = onSelect
+        self.activeId = activeId
     }
 
     public var body: some View {
@@ -373,19 +471,24 @@ public struct GroupListView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(items) { g in
+                        let current = activeId != nil && g.id == activeId
                         Button { onSelect?(g) } label: {
                             HStack(spacing: FlareSizes.spacingMd) {
-                                AvatarView(userId: g.id, displayName: g.name, avatarURL: g.avatarURL, size: 44)
+                                AvatarView(userId: g.id, displayName: g.name, avatarURL: g.avatarURL, size: 40)
                                 VStack(alignment: .leading) {
-                                    Text(g.name).font(.system(size: FlareSizes.fontSizeLg, weight: .medium)).foregroundColor(colors.textPrimary)
+                                    Text(g.name).font(.system(size: FlareSizes.fontSizeLg, weight: current ? .semibold : .medium))
+                                        .foregroundColor(current ? colors.primaryText : colors.textPrimary)
                                     Text(strings.memberCount(g.memberCount)).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                                 }
                                 Spacer()
                             }
                             .contentShape(Rectangle())
                             .padding(.horizontal, FlareSizes.spacingMd).padding(.vertical, FlareSizes.spacingSm)
+                            .background(current ? colors.bgSelected : Color.clear)
+                            .overlay(alignment: .leading) { if current { Rectangle().fill(colors.primary).frame(width: 3) } }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityAddTraits(current ? .isSelected : [])
                     }
                 }
             }

@@ -38,6 +38,18 @@ describe("AudioView", () => {
     expect(wrapper.text()).not.toContain("Voice message");
   });
 
+  it("reads the canonical core audio source duration before playback and updates finite container metadata", async () => {
+    const wrapper = mountAudio({ contentType: "audio", audio: {
+      source: { url: "https://example.com/core-voice.webm", durationMs: 1829 },
+    } });
+    await flushPromises();
+    expect(wrapper.findComponent(FlareVoiceMessage).props("seconds")).toBe(2);
+    const audio = wrapper.get("audio");
+    Object.defineProperty(audio.element, "duration", { configurable: true, value: 2.5 });
+    await audio.trigger("durationchange");
+    expect(wrapper.findComponent(FlareVoiceMessage).props("seconds")).toBe(2.5);
+  });
+
   it("a voice message with nothing to load says so instead of a dead player", async () => {
     const wrapper = mountAudio({
       contentType: "audio",

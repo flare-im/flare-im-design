@@ -23,11 +23,13 @@ fun DatePill(label: String, floating: Boolean = false) {
     Row(Modifier.fillMaxWidth().padding(vertical = FlareSizes.spacingXs), horizontalArrangement = Arrangement.Center) {
         Text(
             label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = 12.sp,
-            modifier = Modifier
+            // A quiet day marker in the timeline, as on Vue; only the floating chip over scrolled messages gets a surface.
+            modifier = (if (floating) Modifier
                 .shadow(3.dp, RoundedCornerShape(999.dp), clip = false)
                 .clip(RoundedCornerShape(999.dp)).background(colors.bgPrimary.copy(alpha = 0.78f))
                 .border(1.dp, colors.borderPrimary, RoundedCornerShape(999.dp))
-                .padding(horizontal = FlareSizes.spacingMd, vertical = 3.dp),
+            else Modifier.clip(RoundedCornerShape(999.dp)).background(colors.bgSecondary))
+                .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacing3xs),
         )
     }
 }

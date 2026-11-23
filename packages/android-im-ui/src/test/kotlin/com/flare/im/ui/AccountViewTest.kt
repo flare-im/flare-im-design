@@ -248,6 +248,18 @@ class AccountViewTest {
         assertEquals(listOf("余额", "余额"), entries.map { it.walletCaption })
         assertEquals("900.00", view.fields.first().value)
         assertEquals(listOf("wallet-cny-fixture", "wallet-usd-fixture"), entries.map { (it.row.actions.first().input as? Map<*, *>)?.get("walletId") })
+        // §12.23: a PC card's foot keeps the toned status only, never the plain 「资金类型与币种」.
+        assertTrue(entries.all { it.walletStatuses.isEmpty() }, "an untoned status is a plain detail")
+        val toned = entries.first().let { it.copy(row = it.row.copy(cells = it.row.cells.mapIndexed { i, cell -> if (i == 3) cell.copy(tone = PluginTone.Success) else cell })) }
+        assertEquals(listOf("正常"), toned.walletStatuses.map { it.value })
+        assertEquals(listOf("CNY · cash", "正常"), toned.walletFields.map { it.value })
+        // R10: a money cell reads with its currency on the card, a ledger sign kept in front.
+        val money = toned.copy(row = toned.row.copy(cells = toned.row.cells.mapIndexed { i, cell ->
+            if (i == 0) cell.copy(text = "9969", format = PluginValueFormat.Money("9969", 0, currency = "LABPOINT")) else cell }))
+        assertEquals("9,969 LABPOINT", money.amount)
+        val income = money.copy(row = money.row.copy(cells = money.row.cells.mapIndexed { i, cell ->
+            if (i == 0) cell.copy(text = "+3", format = PluginValueFormat.Money("+3", 0, currency = "LABPOINT")) else cell }))
+        assertEquals("+3 LABPOINT", income.amount)
     }
     private fun view() = PluginViewModel.fromMap(SpecTables.table("account-view-vectors.json").obj("view")!!)
     @Test fun exactAmountsAndBindingsSurvivePresentation() {

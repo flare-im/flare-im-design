@@ -169,15 +169,12 @@ void main() {
   );
 
   test('granted draws nothing; a soft-ask only what the person can act on', () {
-    expect(
-      FlarePermissionState.values.where(permissionPromptShows).toList(),
-      [
-        FlarePermissionState.undetermined,
-        FlarePermissionState.denied,
-        FlarePermissionState.restricted,
-        FlarePermissionState.unavailable,
-      ],
-    );
+    expect(FlarePermissionState.values.where(permissionPromptShows).toList(), [
+      FlarePermissionState.undetermined,
+      FlarePermissionState.denied,
+      FlarePermissionState.restricted,
+      FlarePermissionState.unavailable,
+    ]);
     expect(
       FlarePermissionState.values
           .where((s) => permissionPromptShows(s, softAsk: true))
@@ -196,6 +193,10 @@ void main() {
   testWidgets('the notification soft-ask: own copy, no chip, Not now', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final log = <String>[];
     Widget host(FlarePermissionState state) => MaterialApp(
       home: Scaffold(
@@ -214,6 +215,10 @@ void main() {
     expect(find.text('开启通知'), findsOneWidget);
     expect(find.text('以后再说'), findsOneWidget);
     expect(find.text('未授权'), findsNothing);
+    expect(
+      tester.getCenter(find.widgetWithText(FlareButton, '开启通知')).dy,
+      tester.getCenter(find.widgetWithText(OutlinedButton, '以后再说')).dy,
+    );
     await tester.tap(find.text('开启通知'));
     await tester.tap(find.text('以后再说'));
     expect(log, ['request', 'dismiss']);

@@ -100,6 +100,32 @@ export function flarePaymentAmountText(amount: string, currency: string): string
   return code ? `${number} ${code}` : number;
 }
 
+/**
+ * R11: an amount as a screen reader should say it — the number, then the currency's name from the platform
+ * (`Intl.DisplayNames`, no string table), falling back to the code; a symbol is never left to the reader to guess.
+ * `text` is the drawn amount ("¥1,000.00", "−¥5.00", "100.00 XYZ"); `currency` the code when the caller knows it,
+ * else it is read from the kit's symbol or a trailing code. With no currency found the text is returned as it is.
+ */
+export function flareSpokenAmount(text: string, locale: string, currency?: string): string {
+  const trimmed = text.trim();
+  const sign = /^[+\-\u2212]/.exec(trimmed)?.[0] ?? "";
+  let body = trimmed.slice(sign.length).trim();
+  let code = currency?.trim().toUpperCase() || undefined;
+  const symbol = Object.entries(CURRENCY_PREFIX).sort(([, a], [, b]) => b.length - a.length)
+    .find(([key, prefix]) => body.startsWith(prefix) && (!code || key === code));
+  const trailing = /^(.+?)\s+([A-Za-z]{3})$/.exec(body);
+  if (symbol) { code ??= symbol[0]; body = body.slice(symbol[1].length).trim(); }
+  else if (trailing && (!code || trailing[2].toUpperCase() === code)) { code ??= trailing[2].toUpperCase(); body = trailing[1]; }
+  if (!code) return text;
+  let name = code;
+  try {
+    name = new Intl.DisplayNames([locale], { type: "currency" }).of(code) ?? code;
+  } catch {
+    name = code;
+  }
+  return `${sign}${body} ${name}`;
+}
+
 /** What is left of an order: whole seconds rounded up, mm:ss under an hour, h:mm:ss from an hour on. */
 export function flarePaymentCountdown(remainingMs: number): { text: string; expired: boolean } {
   if (!Number.isFinite(remainingMs) || remainingMs <= 0) return { text: "00:00", expired: true };
@@ -117,7 +143,7 @@ export type FlareDocumentSide = "front" | "back" | "holding";
 
 /** The viewfinder frame's width over height: an ID-1 card for front and back, 3:4 portrait for holding. */
 export function flareDocumentFrameAspect(side: FlareDocumentSide): number {
-  return side === "holding" ? 0.75 : 1.585;
+  return side === "holding" ? 0.75 : 1.586; // tokens component.documentFrameRatio (85.60 × 53.98 mm)
 }
 
 /** The (longest edge, JPEG quality) steps the kit tries until the photo fits; none fits: too large. */
@@ -223,7 +249,7 @@ export interface FlareCapturedDocument {
   bytes: Uint8Array;
 }
 
-export type FlareDocumentProcessError = "tooLarge" | "failed" | "notAccepted";
+export type FlareDocumentProcessError = "tooLarge" | "failed" | "notAccepted" | "format";
 
 /**
  * Re-encodes a photo to a JPEG that fits `maxBytes`: the orientation is applied to the pixels, then the picture is
@@ -236,6 +262,8 @@ export async function flareProcessDocumentPhoto(
   options: { maxBytes: number; accept?: ReadonlyArray<string> },
 ): Promise<FlareCapturedDocument> {
   if (!flareDocumentAcceptsJpeg(options.accept)) throw "notAccepted" satisfies FlareDocumentProcessError;
+  // §6.4: a picked photo of another type is refused with 「只支持 JPG 和 PNG」 (a typeless capture is decoded as it is).
+  if (photo.type && photo.type !== "image/jpeg" && photo.type !== "image/png") throw "format" satisfies FlareDocumentProcessError;
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(photo, { imageOrientation: "from-image" });

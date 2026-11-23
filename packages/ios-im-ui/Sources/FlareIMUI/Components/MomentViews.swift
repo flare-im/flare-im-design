@@ -35,24 +35,45 @@ public struct TopicChipView: View {
 /// "回复 {name}：{text}". The author's name opens the author only with `onSelectAuthor`: inside a selectable
 /// row it is a pointer shortcut (VoiceOver reaches the row, which names the author), in a plain row it is
 /// the control. Names read in the accessible primary text colour.
+///
+/// A comment longer than `maxLines` lines (3 in the feed; a detail view passes 5) folds behind 展开 / 收起 (the Vue
+/// `MomentCommentRow` rule; 0 never folds). The comment `focusCommentId` names is the located one: it starts open,
+/// sits on the selected surface with a bar at its leading edge and `focusLabel` (已定位评论) over it, and the label
+/// is announced. The row carries the comment's id, so a host's `ScrollViewReader` can scroll to it.
 public struct CommentThreadView: View {
     private let comments: [MomentComment]
     private let onSelect: ((MomentComment) -> Void)?
     private let onSelectAuthor: ((String) -> Void)?
+    private let maxLines: Int
+    private let focusCommentId: String?
+    private let focusLabel: String?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    /// Comments open past `maxLines`.
+    @State private var expanded: Set<String>
+    /// Comments measured to run past `maxLines` at the drawn width.
+    @State private var overflowing: Set<String> = []
 
     public init(comments: [MomentComment],
                 onSelect: ((MomentComment) -> Void)? = nil,
-                onSelectAuthor: ((String) -> Void)? = nil) {
+                onSelectAuthor: ((String) -> Void)? = nil,
+                maxLines: Int = 3, focusCommentId: String? = nil, focusLabel: String? = nil) {
         self.comments = comments; self.onSelect = onSelect; self.onSelectAuthor = onSelectAuthor
+        self.maxLines = maxLines; self.focusCommentId = focusCommentId; self.focusLabel = focusLabel
+        _expanded = State(initialValue: focusCommentId.map { Set([$0]) } ?? [])
     }
 
     /// The vertical room around each comment line.
     static let rowInset: CGFloat = 3
     private static let nameFont = Font.system(size: FlareSizes.fontSizeMd, weight: .medium)
     private static let bodyFont = Font.system(size: FlareSizes.fontSizeMd)
+
+    /// Whether a comment gets 展开 / 收起: it was measured past `maxLines`, or — before it is measured — its own line
+    /// breaks already make more lines than that.
+    static func folds(_ comment: MomentComment, maxLines: Int, measured: Bool) -> Bool {
+        maxLines > 0 && (measured || comment.text.split(separator: "\n", omittingEmptySubsequences: false).count > maxLines)
+    }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -63,11 +84,43 @@ public struct CommentThreadView: View {
         }
     }
 
-    @ViewBuilder
     private func row(_ colors: FlareColors, _ comment: MomentComment) -> some View {
+        let focused = comment.id == focusCommentId
+        let open = expanded.contains(comment.id)
+        return VStack(alignment: .leading, spacing: 0) {
+            if focused, let focusLabel {
+                Text(focusLabel).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.primaryText)
+                    .padding(.top, Self.rowInset)
+            }
+            commentLine(colors, comment, lines: maxLines > 0 && !open ? maxLines : nil)
+            if Self.folds(comment, maxLines: maxLines, measured: overflowing.contains(comment.id)) {
+                Button { expanded.formSymmetricDifference([comment.id]) } label: {
+                    Text(open ? strings.collapse : strings.expand)
+                        .font(.system(size: FlareSizes.fontSizeMd))
+                        .foregroundColor(colors.primaryText)
+                        .flareTouchTarget(alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, focused ? FlareSizes.spacingSm : 0)
+        .background(focused ? colors.bgSelected : Color.clear)
+        .overlay(alignment: .leading) {
+            if focused { Rectangle().fill(colors.borderSelected).frame(width: 2) }
+        }
+        .id(comment.id)
+        .onAppear { if focused, let focusLabel { flareAnnounce(focusLabel) } }
+    }
+
+    @ViewBuilder
+    private func commentLine(_ colors: FlareColors, _ comment: MomentComment, lines: Int?) -> some View {
         let line = Self.line(colors, comment, strings: strings)
+            .lineLimit(lines)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .background(alignment: .topLeading) {
+                if lines != nil { overflowProbe(colors, comment) }
+            }
             .padding(.vertical, Self.rowInset)
             .contentShape(Rectangle())
         if let onSelect {
@@ -94,6 +147,29 @@ public struct CommentThreadView: View {
             .accessibilityLabel(comment.author.name)
             .accessibilityHidden(inControl)
         }
+    }
+
+    /// The whole comment at the drawn width, never shown: taller than the clamped line means it runs past `maxLines`.
+    private func overflowProbe(_ colors: FlareColors, _ comment: MomentComment) -> some View {
+        GeometryReader { shown in
+            Self.line(colors, comment, strings: strings)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: shown.size.width, alignment: .leading)
+                .background(GeometryReader { full in
+                    let runsOver = full.size.height > shown.size.height + 1
+                    Color.clear
+                        .onAppear { measured(comment.id, runsOver) }
+                        .onChange(of: runsOver) { measured(comment.id, $0) }
+                })
+                .hidden()
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func measured(_ id: String, _ runsOver: Bool) {
+        guard runsOver != overflowing.contains(id) else { return }
+        overflowing.formSymmetricDifference([id])
     }
 
     static func line(_ colors: FlareColors, _ comment: MomentComment, strings: FlareStrings) -> Text {
@@ -143,30 +219,41 @@ public struct MomentActionPopoverView: View {
         self.onReport = onReport
     }
 
+    /// The items the popover draws, in order (DM-00.1: an action is drawn only when the host handles it): like or
+    /// unlike, comment, then delete (my moment) or report (someone else's).
+    static func items(liked: Bool, canDelete: Bool, canReport: Bool, like: Bool, comment: Bool, delete: Bool,
+                      report: Bool) -> [String] {
+        var items: [String] = []
+        if like { items.append(liked ? "unlike" : "like") }
+        if comment { items.append("comment") }
+        if canDelete, delete { items.append("delete") } else if canReport, report { items.append("report") }
+        return items
+    }
+
     public var body: some View {
+        let shown = Self.items(liked: liked, canDelete: canDelete, canReport: canReport, like: onLike != nil,
+                               comment: onComment != nil, delete: onDelete != nil, report: onReport != nil)
         HStack(spacing: 0) {
-            Button { onLike?() } label: {
-                item(icon: liked ? "heart.slash" : "heart", label: liked ? strings.unlike : strings.like)
-            }.buttonStyle(.plain)
-
-            divider
-
-            Button { onComment?() } label: {
-                item(icon: "bubble.left", label: strings.comment)
-            }.buttonStyle(.plain)
-
-            if canDelete {
-                divider
-                Button { onDelete?() } label: {
-                    item(icon: "trash", label: strings.delete, tint: colors.error)
-                }.buttonStyle(.plain)
-            } else if canReport {
-                // 举报 is not destructive to my own data, so it keeps the normal tint —
-                // the danger colour is reserved for "this deletes something of yours".
-                divider
-                Button { onReport?() } label: {
-                    item(icon: flareIconSymbol("report"), label: strings.report)
-                }.buttonStyle(.plain)
+            ForEach(Array(shown.enumerated()), id: \.element) { index, id in
+                if index > 0 { divider }
+                switch id {
+                case "like", "unlike":
+                    Button { onLike?() } label: {
+                        item(icon: liked ? "heart.slash" : "heart", label: liked ? strings.unlike : strings.like)
+                    }.buttonStyle(.plain)
+                case "comment":
+                    Button { onComment?() } label: { item(icon: "bubble.left", label: strings.comment) }.buttonStyle(.plain)
+                case "delete":
+                    Button { onDelete?() } label: {
+                        item(icon: "trash", label: strings.delete, tint: colors.error)
+                    }.buttonStyle(.plain)
+                default:
+                    // 举报 is not destructive to my own data, so it keeps the normal tint —
+                    // the danger colour is reserved for "this deletes something of yours".
+                    Button { onReport?() } label: {
+                        item(icon: flareIconSymbol("report"), label: strings.report)
+                    }.buttonStyle(.plain)
+                }
             }
         }
         .frame(height: 34)
@@ -257,13 +344,14 @@ public struct MomentsCoverHeaderView: View {
         }
     }
 
-    /// The no-cover header: avatar, then name and signature, in reading order on the tertiary surface.
+    /// The no-cover header (Vue `--empty`): a 48pt avatar, then name and signature, in reading order on the primary
+    /// surface with a hairline under it; 换封面 is a quiet text key at the end of the row.
     private func compactIdentity(_ colors: FlareColors) -> some View {
         HStack(spacing: FlareSizes.spacingMd) {
-            avatar
-            VStack(alignment: .leading, spacing: 4) {
+            compactAvatar
+            VStack(alignment: .leading, spacing: 5) {
                 Text(name)
-                    .font(.system(size: FlareSizes.fontSize3xl, weight: .bold))
+                    .font(.system(size: FlareSizes.fontSizeLg, weight: .bold))
                     .foregroundColor(colors.textPrimary)
                     .lineLimit(1)
                 if let signature {
@@ -276,24 +364,28 @@ public struct MomentsCoverHeaderView: View {
             Spacer(minLength: FlareSizes.spacingSm)
             if let onEditCover {
                 Button(action: onEditCover) {
-                    HStack(spacing: FlareSizes.spacingXs) {
-                        Image(systemName: flareIconSymbol("image")).font(.system(size: FlareSizes.fontSizeXs))
-                        Text(strings.changeCover).font(.system(size: FlareSizes.fontSizeSm))
-                    }
-                    .foregroundColor(colors.textSecondary)
-                    .padding(.horizontal, 11).padding(.vertical, 5)
-                    .background(Capsule().fill(colors.bgElevated))
-                    .overlay(Capsule().stroke(colors.borderSecondary, lineWidth: 1))
-                    .flareTouchTarget()
+                    Text(strings.changeCover).font(.system(size: FlareSizes.fontSizeSm))
+                        .foregroundColor(colors.textSecondary)
+                        .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
+                        .flareTouchTarget()
                 }
                 .buttonStyle(.plain)
-                .flareCompactLayout(height: 30)
+                .flareCompactLayout(height: 26)
             }
         }
-        .padding(.horizontal, FlareSizes.spacingMd)
-        .padding(.vertical, FlareSizes.spacingMd)
+        .padding(FlareSizes.spacingLg)
         .frame(maxWidth: .infinity)
-        .background(colors.bgTertiary)
+        .background(colors.bgPrimary)
+        .overlay(alignment: .bottom) { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
+    }
+
+    @ViewBuilder private var compactAvatar: some View {
+        let picture = AvatarView(userId: userId, displayName: name, avatarURL: avatarURL, size: 48)
+        if let onAvatar {
+            Button(action: onAvatar) { picture }.buttonStyle(.plain)
+        } else {
+            picture
+        }
     }
 
     private func cover(_ colors: FlareColors, image: URL?) -> some View {
@@ -396,8 +488,14 @@ public struct MomentsCoverHeaderView: View {
 // MARK: - MomentComposer
 
 /// Moment composer card — text, an image grid with add / remove, and location /
-/// visibility rows. Spec: Moments/MomentComposer (`MomentComposerView`).
+/// visibility rows. Spec: Moments/MomentComposer (`MomentComposerView`). `imageUpload` (Vue's `images` slot) takes the
+/// grid's place, typically a ``MediaUploadView`` with each picture's upload state; `images` still counts for 发表.
+/// Where a ``MomentComposerView`` sits (Vue `layout`): `card` is a 360pt floating card; `page` fills the drawer or
+/// page holding it, edge to edge, with no frame of its own.
+public enum MomentComposerLayout: Sendable { case card, page }
+
 public struct MomentComposerView: View {
+    private let layout: MomentComposerLayout
     private let images: [String]
     private let maxImages: Int
     private let location: String?
@@ -409,6 +507,7 @@ public struct MomentComposerView: View {
     private let onRemoveImage: ((Int) -> Void)?
     private let onPickLocation: (() -> Void)?
     private let onPickVisibility: (() -> Void)?
+    private let imageUpload: AnyView?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -418,12 +517,14 @@ public struct MomentComposerView: View {
                 visibility: String? = nil, busy: Bool = false,
                 onSubmit: ((String) -> Void)? = nil, onCancel: (() -> Void)? = nil,
                 onAddImage: (() -> Void)? = nil, onRemoveImage: ((Int) -> Void)? = nil,
-                onPickLocation: (() -> Void)? = nil, onPickVisibility: (() -> Void)? = nil) {
+                onPickLocation: (() -> Void)? = nil, onPickVisibility: (() -> Void)? = nil,
+                imageUpload: AnyView? = nil, layout: MomentComposerLayout = .card) {
+        self.layout = layout
         self.images = images; self.maxImages = maxImages; self.location = location
         self.visibility = visibility; self.busy = busy
         self.onSubmit = onSubmit; self.onCancel = onCancel; self.onAddImage = onAddImage
         self.onRemoveImage = onRemoveImage; self.onPickLocation = onPickLocation
-        self.onPickVisibility = onPickVisibility
+        self.onPickVisibility = onPickVisibility; self.imageUpload = imageUpload
     }
 
     private var canPost: Bool {
@@ -443,39 +544,32 @@ public struct MomentComposerView: View {
                 .textFieldStyle(.plain)
                 .padding(FlareSizes.spacing2md)
 
-            grid(colors)
+            if let imageUpload {
+                imageUpload.padding(.horizontal, FlareSizes.spacing2md).padding(.bottom, 12)
+            } else {
+                grid(colors)
+            }
 
             Rectangle().fill(colors.borderPrimary).frame(height: 1)
-            row(colors, icon: "location", label: location ?? strings.pickLocation, onTap: onPickLocation)
+            row(colors, icon: flareIconSymbol("location"), label: location ?? strings.pickLocation, onTap: onPickLocation)
             Rectangle().fill(colors.borderPrimary).frame(height: 1)
             row(colors, icon: "globe", label: visibility ?? strings.pickVisibility, onTap: onPickVisibility)
+            if layout == .page { Rectangle().fill(colors.borderPrimary).frame(height: 1) }
         }
-        .frame(width: 360)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
-            .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))
-        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
-        .shadow(color: Color.black.opacity(0.16), radius: 28, y: 12)
+        .modifier(MomentComposerFrame(layout: layout, colors: colors))
     }
 
+    /// 取消 (ghost) and 发表 (primary), the kit's small buttons (Vue `__head`).
     private func header(_ colors: FlareColors) -> some View {
         HStack {
-            Button { onCancel?() } label: {
-                Text(strings.cancel).font(.system(size: 14)).foregroundColor(colors.textSecondary)
-            }.buttonStyle(.plain)
+            ButtonView(label: strings.cancel, variant: .ghost, size: .sm, disabled: busy, maintainTouchTarget: true,
+                       action: onCancel)
             Spacer(minLength: 0)
-            Button { onSubmit?(text.trimmingCharacters(in: .whitespacesAndNewlines)) } label: {
-                Text(strings.post).font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
-                    .padding(.horizontal, 18).padding(.vertical, 6)
-                    .background(
-                        Capsule().fill(
-                            LinearGradient(colors: [colors.primary, colors.primary.opacity(0.82)],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing)))
+            ButtonView(label: strings.post, size: .sm, disabled: !canPost || busy, maintainTouchTarget: true) {
+                onSubmit?(text.trimmingCharacters(in: .whitespacesAndNewlines))
             }
-            .buttonStyle(.plain)
-            .disabled(!canPost || busy)
-            .opacity(canPost && !busy ? 1 : 0.45)
         }
-        .padding(.horizontal, FlareSizes.spacing2md).padding(.vertical, 12)
+        .padding(.horizontal, FlareSizes.spacing2md).padding(.vertical, FlareSizes.spacingSm)
     }
 
     @ViewBuilder
@@ -563,9 +657,15 @@ public struct MomentComposerView: View {
 /// People and comments are controls only when the host handles them (G18): the author's name with
 /// `onSelectAuthor` (the avatar then repeats it for pointers and stays out of VoiceOver), each liker with
 /// `onSelectLiker`, each comment with `onSelectComment` (see ``CommentThreadView``); otherwise they are text.
-/// Names read in the accessible primary text colour.
+/// Names read in the accessible primary text colour. Comments fold past `commentMaxLines` (3; a detail view passes
+/// 5), and `focusCommentId` / `focusCommentLabel` mark the located comment (``CommentThreadView``).
+/// How a ``MomentCardView`` sits (Vue `appearance`): `card` floats on its own rounded, shadowed surface; `feed` is a
+/// flat full-width item with a hairline under it, for a feed of moments.
+public enum MomentCardAppearance: Sendable { case card, feed }
+
 public struct MomentCardView: View {
     private let moment: Moment
+    private let appearance: MomentCardAppearance
     private let canDelete: Bool
     private let canReport: Bool
     private let onLike: (() -> Void)?
@@ -576,22 +676,38 @@ public struct MomentCardView: View {
     private let onSelectAuthor: ((String) -> Void)?
     private let onSelectLiker: ((String) -> Void)?
     private let onSelectComment: ((MomentComment) -> Void)?
+    private let commentMaxLines: Int
+    private let focusCommentId: String?
+    private let focusCommentLabel: String?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @State private var menuOpen = false
+    @State private var expanded = false
+
+    /// A body longer than this, or than ``foldLines`` lines, folds behind 展开 / 收起 (the Vue card's rule).
+    static let foldCharacters = 280
+    static let foldLines = 6
+
+    static func folds(_ text: String) -> Bool {
+        text.count > foldCharacters || text.split(separator: "\n", omittingEmptySubsequences: false).count > foldLines
+    }
 
     public init(moment: Moment, canDelete: Bool = false, canReport: Bool = false,
                 onLike: (() -> Void)? = nil,
                 onComment: (() -> Void)? = nil, onDelete: (() -> Void)? = nil,
                 onReport: (() -> Void)? = nil,
                 onOpenImage: ((Int) -> Void)? = nil, onSelectAuthor: ((String) -> Void)? = nil,
-                onSelectLiker: ((String) -> Void)? = nil, onSelectComment: ((MomentComment) -> Void)? = nil) {
-        self.moment = moment; self.canDelete = canDelete; self.canReport = canReport
+                onSelectLiker: ((String) -> Void)? = nil, onSelectComment: ((MomentComment) -> Void)? = nil,
+                commentMaxLines: Int = 3, focusCommentId: String? = nil, focusCommentLabel: String? = nil,
+                appearance: MomentCardAppearance = .card) {
+        self.moment = moment; self.appearance = appearance; self.canDelete = canDelete; self.canReport = canReport
         self.onLike = onLike; self.onComment = onComment
         self.onDelete = onDelete; self.onReport = onReport
         self.onOpenImage = onOpenImage; self.onSelectAuthor = onSelectAuthor
         self.onSelectLiker = onSelectLiker; self.onSelectComment = onSelectComment
+        self.commentMaxLines = commentMaxLines; self.focusCommentId = focusCommentId
+        self.focusCommentLabel = focusCommentLabel
     }
 
     private var hasSocial: Bool { !moment.likes.isEmpty || !moment.comments.isEmpty }
@@ -605,12 +721,23 @@ public struct MomentCardView: View {
                 authorName(colors)
 
                 if let text = moment.text, !text.isEmpty {
+                    let folds = Self.folds(text)
                     Text(text)
                         .font(.system(size: 15))
                         .foregroundColor(colors.textPrimary)
+                        .lineLimit(folds && !expanded ? Self.foldLines : nil)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 4)
+                    if folds {
+                        Button { expanded.toggle() } label: {
+                            Text(expanded ? strings.collapse : strings.expand)
+                                .font(.system(size: FlareSizes.fontSizeMd))
+                                .foregroundColor(colors.primaryText)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 4)
+                    }
                 }
 
                 if !moment.images.isEmpty {
@@ -627,17 +754,15 @@ public struct MomentCardView: View {
                     .padding(.top, 8)
                 }
 
-                meta(colors).padding(.top, FlareSizes.spacing2sm)
+                meta(colors).padding(.top, FlareSizes.spacingXs)
 
                 if hasSocial {
-                    social(colors).padding(.top, FlareSizes.spacing2sm)
+                    social(colors).padding(.top, FlareSizes.spacing2xs)
                 }
             }
         }
         .padding(16)
-        // The card floats on an elevated surface with a deeper dark-mode shadow.
-        .background(RoundedRectangle(cornerRadius: 18).fill(colors.bgElevated))
-        .shadow(color: Color.black.opacity(scheme == .dark ? 0.5 : 0.1), radius: 20, y: 8)
+        .modifier(MomentCardSurface(appearance: appearance, colors: colors, dark: scheme == .dark))
     }
 
     @ViewBuilder
@@ -670,11 +795,28 @@ public struct MomentCardView: View {
         }
     }
 
+    /// Whether the popover has anything to offer: without a single action there is no 「···」 key.
+    private var hasActions: Bool {
+        !MomentActionPopoverView.items(liked: moment.likedBySelf, canDelete: canDelete, canReport: canReport,
+                                       like: onLike != nil, comment: onComment != nil, delete: onDelete != nil,
+                                       report: onReport != nil).isEmpty
+    }
+
+    private func closing(_ action: (() -> Void)?) -> (() -> Void)? {
+        action.map { run in { menuOpen = false; run() } }
+    }
+
     private func meta(_ colors: FlareColors) -> some View {
         HStack {
             Text(moment.time ?? "")
                 .font(.system(size: 12)).foregroundColor(colors.textTertiary)
             Spacer(minLength: 0)
+            if hasActions { actionsKey(colors) }
+        }
+    }
+
+    private func actionsKey(_ colors: FlareColors) -> some View {
+        Group {
             Button { menuOpen.toggle() } label: {
                 Image(systemName: flareIconSymbol("more")).font(.system(size: 16))
                     .foregroundColor(menuOpen ? colors.primaryText : colors.textSecondary)
@@ -693,10 +835,10 @@ public struct MomentCardView: View {
                         liked: moment.likedBySelf,
                         canDelete: canDelete,
                         canReport: canReport,
-                        onLike: { menuOpen = false; onLike?() },
-                        onComment: { menuOpen = false; onComment?() },
-                        onDelete: { menuOpen = false; onDelete?() },
-                        onReport: { menuOpen = false; onReport?() })
+                        onLike: closing(onLike),
+                        onComment: closing(onComment),
+                        onDelete: closing(onDelete),
+                        onReport: closing(onReport))
                     .fixedSize()
                     .offset(x: -36)
                 }
@@ -704,26 +846,23 @@ public struct MomentCardView: View {
         }
     }
 
+    /// Likes and comments under one hairline, inside the card (Vue `__social`): no second surface.
     private func social(_ colors: FlareColors) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
             if !moment.likes.isEmpty {
                 likesRow(colors)
-            }
-            if !moment.likes.isEmpty && !moment.comments.isEmpty {
-                Rectangle()
-                    .fill(colors.textTertiary.opacity(0.22))
-                    .frame(height: 1)
-                    .padding(.vertical, 7)
             }
             if !moment.comments.isEmpty {
                 CommentThreadView(comments: moment.comments,
                                   onSelect: onSelectComment,
-                                  onSelectAuthor: onSelectAuthor)
+                                  onSelectAuthor: onSelectAuthor,
+                                  maxLines: commentMaxLines, focusCommentId: focusCommentId,
+                                  focusLabel: focusCommentLabel)
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 8)
+        .padding(.top, FlareSizes.spacingXs)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+        .overlay(alignment: .top) { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
     }
 
     private func likesRow(_ colors: FlareColors) -> some View {
@@ -748,3 +887,46 @@ public struct MomentCardView: View {
     }
 }
 
+/// The ground of a ``MomentCardView`` for its appearance.
+private struct MomentCardSurface: ViewModifier {
+    let appearance: MomentCardAppearance
+    let colors: FlareColors
+    let dark: Bool
+
+    func body(content: Content) -> some View {
+        switch appearance {
+        case .card:
+            // The card floats on an elevated surface with a deeper dark-mode shadow.
+            content
+                .background(RoundedRectangle(cornerRadius: 18).fill(colors.bgElevated))
+                .shadow(color: Color.black.opacity(dark ? 0.5 : 0.1), radius: 20, y: 8)
+        case .feed:
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(colors.bgElevated)
+                .overlay(alignment: .bottom) { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
+        }
+    }
+}
+
+/// The composer's own frame for its layout: the floating card, or none on a page.
+private struct MomentComposerFrame: ViewModifier {
+    let layout: MomentComposerLayout
+    let colors: FlareColors
+
+    func body(content: Content) -> some View {
+        switch layout {
+        case .card:
+            content
+                .frame(width: 360)
+                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgPrimary)
+                    .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).stroke(colors.borderPrimary, lineWidth: 1)))
+                .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
+                .shadow(color: Color.black.opacity(0.16), radius: 28, y: 12)
+        case .page:
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(colors.bgPrimary)
+        }
+    }
+}

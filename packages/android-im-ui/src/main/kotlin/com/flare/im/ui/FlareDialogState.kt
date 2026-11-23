@@ -221,7 +221,8 @@ private fun FlarePromptDialog(
     val focus = remember { FocusRequester() }
     FormDialog(
         title = options.title,
-        confirmLabel = options.confirmText ?: strings.confirmAction,
+        // After a failed submit the same key tries again, and says so (Vue form sheets: 「重试」).
+        confirmLabel = if (error != null) strings.retry else options.confirmText ?: strings.confirmAction,
         cancelLabel = options.cancelText ?: strings.cancel,
         onClose = onCancel,
         onConfirm = { onConfirm(draft) },
@@ -234,7 +235,9 @@ private fun FlarePromptDialog(
             options.message?.takeIf { it.isNotBlank() }?.let {
                 Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd)
             }
-            FormField(error = error) {
+            // A long text counts itself once it nears its limit (Vue `FlareTextarea`: from 80%).
+            val max = options.maxLength
+            FormField(error = error, counter = if (options.multiline && max != null && draft.length >= max * 4 / 5) "${draft.length}/$max" else null) {
                 Box(Modifier.focusRequester(focus)) {
                     Input(
                         value = draft,

@@ -1,5 +1,6 @@
 package com.flare.im.ui
 
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -81,8 +82,10 @@ fun Drawer(
     val reducedMotion = flareReducedMotion()
     val sign = flareDrawerSlideSign(placement, LocalLayoutDirection.current)
     val end = placement == FlareDrawerPlacement.End
+    // On a phone the panel is the whole window, square, as Vue's `--compact` (where a sheet is the platform's overlay).
+    val compact = flareCompactOverlays()
     // Rounded on the edge that faces the content it covers; start/end corners mirror with the layout direction.
-    val shape = if (end) {
+    val shape = if (compact) RectangleShape else if (end) {
         RoundedCornerShape(topStart = FlareSizes.radiusXl, bottomStart = FlareSizes.radiusXl)
     } else {
         RoundedCornerShape(topEnd = FlareSizes.radiusXl, bottomEnd = FlareSizes.radiusXl)
@@ -99,9 +102,9 @@ fun Drawer(
             scrim = colors.scrim,
             scrimLabel = if (flareScrimAnnounced(dismissible, showClose)) strings.close else null,
             contentAlignment = if (end) Alignment.CenterEnd else Alignment.CenterStart,
-            enter = if (reducedMotion) EnterTransition.None
+            enter = if (reducedMotion) flareReducedEnter
             else slideInHorizontally(tween(FlareMotion.slow, easing = FlareMotion.slowEasing)) { it * sign },
-            exit = if (reducedMotion) ExitTransition.None
+            exit = if (reducedMotion) flareReducedExit
             else slideOutHorizontally(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) { it * sign },
             onBack = step,
             // The panel runs under the status bar: its icons must read on the panel's surface.
@@ -114,7 +117,7 @@ fun Drawer(
             )
             Column(
                 modifier.fillMaxHeight()
-                    .width(flareDrawerWidth(width, bounds.width))
+                    .width(if (compact) bounds.width else flareDrawerWidth(width, bounds.width))
                     .shadow(depth, shape, clip = false)
                     .clip(shape)
                     .background(colors.bgPrimary)

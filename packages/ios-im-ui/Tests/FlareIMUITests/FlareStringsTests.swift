@@ -26,6 +26,26 @@ final class FlareStringsTests: XCTestCase {
         XCTAssertEqual(FlareBrandTheme.ocean.light.primary, FlareBrandTheme.allCases[1].light.primary)
     }
 
+    func testTypedConfigurationPreservesDefaultsFormattersAndKeyPaths() {
+        let configured = FlareStrings { copy in
+            copy.send = "Send"
+            copy.readTab = { "Read \($0)" }
+            copy.messageMenuLoading = "Loading menu"
+        }
+        let sendKey: WritableKeyPath<FlareStrings, String> = \.send
+        var changed = configured
+        changed[keyPath: sendKey] = "Submit"
+        changed.readTab = { "Seen \($0)" }
+
+        XCTAssertEqual(configured.send, "Send")
+        XCTAssertEqual(configured.readTab(2), "Read 2")
+        XCTAssertEqual(changed.send, "Submit")
+        XCTAssertEqual(changed.readTab(2), "Seen 2")
+        XCTAssertEqual(configured.messageMenuLoading, "Loading menu")
+        XCTAssertEqual(configured.scanProvidedBy, FlareStrings().scanProvidedBy)
+        XCTAssertEqual(configured.permissionNoun(.camera), FlareStrings().permissionNoun(.camera))
+    }
+
     func testDefaultFormattersProduceCopy() {
         let s = FlareStrings()
         XCTAssertEqual(s.readTab(3), "已读 (3)")
@@ -45,8 +65,11 @@ final class FlareStringsTests: XCTestCase {
     func testEnvironmentDefaultsAndOverride() {
         var env = EnvironmentValues()
         XCTAssertEqual(env.flareStrings.send, "发送")
-        env.flareStrings = FlareStrings(send: "Send", noResults: "No results",
-                                        readTab: { "Read (\($0))" })
+        env.flareStrings = FlareStrings { copy in
+            copy.send = "Send"
+            copy.noResults = "No results"
+            copy.readTab = { "Read (\($0))" }
+        }
         XCTAssertEqual(env.flareStrings.send, "Send")
         XCTAssertEqual(env.flareStrings.noResults, "No results")
         XCTAssertEqual(env.flareStrings.readTab(2), "Read (2)")
@@ -57,15 +80,27 @@ final class FlareStringsTests: XCTestCase {
     func testViewModifierInstallsStringsForSubtree() {
         // The modifier is the host-facing entry point; it must accept any FlareStrings
         // and stay a View so it can wrap an app root.
-        let wrapped = Text("x").flareStrings(FlareStrings(send: "Send"))
+        let wrapped = Text("x").flareStrings(FlareStrings { copy in
+            copy.send = "Send"
+        })
         XCTAssertNotNil(wrapped as Any)
     }
 
     func testComponentsResolveCopyFromSuppliedStrings() {
-        let english = FlareStrings(actionImage: "Photo", actionVideo: "Video", actionCamera: "Camera", actionFile: "File",
-                                   actionLocation: "Location", actionCard: "Card", actionVote: "Poll",
-                                   actionTask: "Task", actionSchedule: "Event",
-                                   favorites: "Favorites", moments: "Moments", settings: "Settings")
+        let english = FlareStrings { copy in
+            copy.actionImage = "Photo"
+            copy.actionVideo = "Video"
+            copy.actionCamera = "Camera"
+            copy.actionFile = "File"
+            copy.actionLocation = "Location"
+            copy.actionCard = "Card"
+            copy.actionVote = "Poll"
+            copy.actionTask = "Task"
+            copy.actionSchedule = "Event"
+            copy.favorites = "Favorites"
+            copy.moments = "Moments"
+            copy.settings = "Settings"
+        }
 
         let tiles = FlareComposerActionPanel.actions(for: english)
         XCTAssertEqual(tiles.map(\.id), ["image", "camera", "video", "file", "voice", "location", "card"])
@@ -80,20 +115,22 @@ final class FlareStringsTests: XCTestCase {
     }
 
     func testPermissionCopyFollowsSuppliedStrings() {
-        let english = FlareStrings(
-            permissionNoun: { _ in "Microphone" },
-            permissionVerb: { _ in "use the microphone" },
-            permissionTitle: { "\($0) access needed" },
-            permissionFeatureFallback: "This feature",
-            permissionUndeterminedBody: { "\($0) needs to \($1)." },
-            permissionAllow: "Allow"
-        )
+        let english = FlareStrings { copy in
+            copy.permissionNoun = { _ in "Microphone" }
+            copy.permissionVerb = { _ in "use the microphone" }
+            copy.permissionTitle = { "\($0) access needed" }
+            copy.permissionFeatureFallback = "This feature"
+            copy.permissionUndeterminedBody = { "\($0) needs to \($1)." }
+            copy.permissionAllow = "Allow"
+        }
         let copy = defaultPermissionCopy(.microphone, .undetermined, strings: english)
         XCTAssertEqual(copy.title, "Microphone access needed")
         XCTAssertEqual(copy.description, "This feature needs to use the microphone.")
         XCTAssertEqual(copy.primaryLabel, "Allow")
 
-        let stateLabels = FlareStrings(permissionStateLabel: { _ in "Denied" })
+        let stateLabels = FlareStrings { copy in
+            copy.permissionStateLabel = { _ in "Denied" }
+        }
         XCTAssertEqual(defaultPermissionStateLabel(.denied, strings: stateLabels), "Denied")
         // Defaults are unchanged when the host supplies nothing.
         XCTAssertEqual(defaultPermissionStateLabel(.denied), "已拒绝")

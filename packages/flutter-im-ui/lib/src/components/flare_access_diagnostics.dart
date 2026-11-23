@@ -38,6 +38,8 @@ class FlareAccessDiagnostics extends StatefulWidget {
     this.onRefresh,
     this.onImportRecovery,
     this.onExportDiagnostics,
+    this.compact = false,
+    this.preferences,
   });
 
   /// What `access.getStatus` returned; null until the host has read it.
@@ -81,6 +83,12 @@ class FlareAccessDiagnostics extends StatefulWidget {
 
   /// Copy the diagnostics (`access.exportDiagnostics`, then the clipboard).
   final VoidCallback? onExportDiagnostics;
+
+  /// Lead with recovery tools and disclose connection details on demand.
+  final bool compact;
+
+  /// Host controls such as the preferred protocol, after the live notices.
+  final Widget? preferences;
 
   @override
   State<FlareAccessDiagnostics> createState() => _FlareAccessDiagnosticsState();
@@ -197,11 +205,16 @@ class _FlareAccessDiagnosticsState extends State<FlareAccessDiagnostics> {
               : flareAccessNoticeLabel(model.notices.first.text, strings)),
     );
 
-    final current = _CurrentLine(status: widget.status, model: model);
+    final current = _CurrentLine(
+      status: widget.status,
+      model: model,
+      compact: widget.compact,
+    );
     final lines = _Lines(
       model: model,
       onPin: widget.onPin,
       onUnpin: widget.onUnpin,
+      compact: widget.compact,
     );
     final recovery = _Recovery(
       link: _link,
@@ -221,9 +234,21 @@ class _FlareAccessDiagnosticsState extends State<FlareAccessDiagnostics> {
       onImport: widget.onImportRecovery == null ? null : _importLink,
     );
     final recovering = model.state == FlareAccessDiagnosticsState.recovering;
-    final sections = recovering
-        ? <Widget>[recovery, current, lines]
-        : <Widget>[current, lines, recovery];
+    final colors = FlareColors.of(context);
+    final recoverySection = widget.compact
+        ? Container(
+            decoration: BoxDecoration(
+              color: colors.bgElevated,
+              border: Border.all(color: colors.borderSecondary),
+              borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+            ),
+            padding: const EdgeInsets.all(FlareSizes.spacingMd),
+            child: recovery,
+          )
+        : recovery;
+    final sections = recovering || widget.compact
+        ? <Widget>[recoverySection, current, lines]
+        : <Widget>[current, lines, recoverySection];
 
     return Semantics(
       container: true,
@@ -231,7 +256,7 @@ class _FlareAccessDiagnosticsState extends State<FlareAccessDiagnostics> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: FlareSizes.spacingXl,
+        spacing: widget.compact ? FlareSizes.spacingLg : FlareSizes.spacingXl,
         children: [
           if (model.notices.isNotEmpty)
             Column(
@@ -247,6 +272,7 @@ class _FlareAccessDiagnosticsState extends State<FlareAccessDiagnostics> {
                   ),
               ],
             ),
+          ?widget.preferences,
           ...sections,
         ],
       ),
@@ -255,14 +281,54 @@ class _FlareAccessDiagnosticsState extends State<FlareAccessDiagnostics> {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.children});
+  const _Section({
+    required this.title,
+    required this.children,
+    this.collapsible = false,
+  });
 
   final String title;
   final List<Widget> children;
+  final bool collapsible;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    if (collapsible) {
+      final shape = RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+        side: BorderSide(color: colors.borderSecondary),
+      );
+      return ExpansionTile(
+        title: Text(
+          title,
+          style: TextStyle(
+            color: colors.textPrimary,
+            fontSize: FlareTextRoles.body.fontSize,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        shape: shape,
+        collapsedShape: shape,
+        backgroundColor: colors.bgElevated,
+        collapsedBackgroundColor: colors.bgElevated,
+        childrenPadding: const EdgeInsets.fromLTRB(
+          FlareSizes.spacingMd,
+          0,
+          FlareSizes.spacingMd,
+          FlareSizes.spacingMd,
+        ),
+        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: FlareSizes.spacingMd,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
+        ],
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -287,10 +353,15 @@ class _Section extends StatelessWidget {
 }
 
 class _CurrentLine extends StatelessWidget {
-  const _CurrentLine({required this.status, required this.model});
+  const _CurrentLine({
+    required this.status,
+    required this.model,
+    required this.compact,
+  });
 
   final FlareAccessStatus? status;
   final FlareAccessDiagnosticsModel model;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -299,6 +370,7 @@ class _CurrentLine extends StatelessWidget {
     final grade = model.rtt.grade;
     return _Section(
       title: strings.accessDiagnosticsCurrent,
+      collapsible: compact,
       children: [
         _Fact(strings.accessDiagnosticsAccessPoint, status?.accessPointId),
         _Fact(strings.accessDiagnosticsRegion, status?.regionId),
@@ -395,11 +467,17 @@ class _Fact extends StatelessWidget {
 }
 
 class _Lines extends StatelessWidget {
-  const _Lines({required this.model, this.onPin, this.onUnpin});
+  const _Lines({
+    required this.model,
+    this.onPin,
+    this.onUnpin,
+    required this.compact,
+  });
 
   final FlareAccessDiagnosticsModel model;
   final ValueChanged<String>? onPin;
   final VoidCallback? onUnpin;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -407,6 +485,7 @@ class _Lines extends StatelessWidget {
     final colors = FlareColors.of(context);
     return _Section(
       title: strings.accessDiagnosticsLines,
+      collapsible: compact,
       children: [
         if (model.regions.isEmpty)
           Text(

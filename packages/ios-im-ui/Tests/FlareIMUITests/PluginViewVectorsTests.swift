@@ -283,7 +283,7 @@ final class PluginViewVectorsTests: XCTestCase {
         case .rows(let rows):
             shown += try PluginVectors.checkRows(rows, fact, clock: PluginViewClock(nowMs: nowMs, utcOffsetMinutes: zone),
                                                  strings: s, id: id)
-        case .section, .stats, .chart, .image, .qr, .hero, .steps, .banner, .timeline, .protectedMedia:
+        case .section, .stats, .chart, .image, .qr, .hero, .steps, .banner, .timeline, .protectedMedia, .result:
             // Vocabulary 2 blocks have their facts in blocks2 (PluginViewV2Tests); no v1 view carries them.
             XCTFail("\(id): a vocabulary 2 block in a v1 view")
         }
@@ -402,7 +402,11 @@ final class PluginViewVectorsTests: XCTestCase {
                 XCTAssertEqual(label, s.pluginViewDetail, name)
                 let button = try tree.find(button: label)
                 XCTAssertEqual(try button.isDisabled(), !(key["enabled"]?.boolValue ?? true), "\(name) enabled")
-                XCTAssertNoThrow(try tree.find(ButtonView.self, where: { try $0.find(text: label).string() == label }))
+                // R5: with footer actions the key ends the footer as a kit button; else it is the head's text key.
+                if !PluginExperienceRules.places(view, embedded: embedded, inlineFormActionId: nil).footer.isEmpty {
+                    XCTAssertNoThrow(try tree.find(ButtonView.self, where: { try $0.find(text: label).string() == label }),
+                                     "\(name) footer key")
+                }
                 if expect?["opens"]?.boolValue == true {
                     try button.tap()
                     XCTAssertEqual(opened, 1, "\(name) opens the detail")
@@ -655,8 +659,9 @@ final class PluginViewVectorsTests: XCTestCase {
     func testTheFormViewDrawsCountersRowsAndErrorsAndSubmitsCleanValues() throws {
         let (inputs, form) = try formTable()
         let empty = try PluginFormView(inputs: inputs).inspect()
-        XCTAssertNoThrow(try empty.find(text: "0/10"))
-        XCTAssertNoThrow(try empty.find(text: "0/20"))
+        // R6: the counter shows only once something is typed.
+        XCTAssertThrowsError(try empty.find(text: "0/10"))
+        XCTAssertThrowsError(try empty.find(text: "0/20"))
         XCTAssertNoThrow(try empty.find(text: s.pollOptionHint(2)), "two option rows to start")
         let remove = try empty.findAll(IconButtonView.self).filter {
             (try? $0.find(ViewType.Button.self).accessibilityLabel().string()) == s.removeOption
@@ -678,6 +683,9 @@ final class PluginViewVectorsTests: XCTestCase {
         let filled = try PluginFormView(inputs: inputs, values: values, members: members,
                                         onSubmit: { submitted.append($0) }).inspect()
         XCTAssertNoThrow(try filled.find(text: "Carol"), "a chosen member reads by name")
+        let title = try XCTUnwrap(inputs.first { $0.id == "title" })
+        XCTAssertNoThrow(try filled.find(text: try XCTUnwrap(PluginFormRules.counter(title, values["title"]))),
+                         "a typed value shows its counter")
         try filled.find(button: s.pluginViewSubmit).tap()
         XCTAssertEqual(submitted.map(PluginJSONValue.object), [try XCTUnwrap(valid["submitted"])])
 
@@ -738,10 +746,10 @@ final class PluginViewVectorsTests: XCTestCase {
                                                   onLoadMore: { asked.append($0) }).inspect()
             guard expect["loadMore"]?.boolValue == true else {
                 XCTAssertEqual(state, .hidden, name)
-                XCTAssertThrowsError(try sheet.find(button: s.myInviteLoadMore), "\(name): no key")
+                XCTAssertThrowsError(try sheet.find(button: s.pluginViewLoadMore), "\(name): no key")
                 continue
             }
-            let key = try sheet.find(button: s.myInviteLoadMore)
+            let key = try sheet.find(button: s.pluginViewLoadMore)
             let enabled = expect["enabled"]?.boolValue ?? false
             XCTAssertEqual(!key.isDisabled(), enabled, "\(name) enabled")
             let spinning = (try? key.labelView().find(ViewType.ProgressView.self)) != nil

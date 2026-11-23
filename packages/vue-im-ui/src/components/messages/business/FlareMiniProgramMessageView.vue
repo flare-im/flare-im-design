@@ -22,7 +22,7 @@ const subtitle = computed(() => businessSubtitle(payload.value));
   <div class="business-message-view business-message-view--mini-program">
     <header class="business-message-view__header">
       <span class="business-message-view__icon" aria-hidden="true">
-        <n-icon aria-hidden="true" :component="AppsOutline" />
+        <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="AppsOutline" />
       </span>
       <div class="business-message-view__main">
         <span class="business-message-view__kicker">{{ t("business.miniProgram") }}</span>

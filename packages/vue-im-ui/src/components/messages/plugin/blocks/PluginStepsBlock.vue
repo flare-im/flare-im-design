@@ -22,10 +22,12 @@ const steps = computed(() => props.block.items.map((item) => ({ label: item.labe
       :aria-current="step.state === 'current' ? 'step' : undefined"
     >
       <span class="flare-plugin-steps__marker" aria-hidden="true">
-        <FlareIcon v-if="step.state === 'done'" name="check" :size="12" />
-        <FlareIcon v-else-if="step.state === 'failed'" name="close" :size="12" />
+        <FlareIcon v-if="step.state === 'done'" name="check" size="sm" />
+        <FlareIcon v-else-if="step.state === 'failed'" name="close" size="sm" />
         <template v-else>{{ index + 1 }}</template>
       </span>
+      <!-- §12.5: read as 「第 N 步，共 M 步：标签，状态」. -->
+      <span class="flare-plugin-steps__spoken" data-step-position="true">{{ t("pluginView.stepPosition", { index: index + 1, count: steps.length }) }}</span>
       <span class="flare-plugin-steps__label">{{ step.label }}</span>
       <span class="flare-plugin-steps__spoken">{{ t(`pluginView.step.${step.state}`) }}</span>
     </li>

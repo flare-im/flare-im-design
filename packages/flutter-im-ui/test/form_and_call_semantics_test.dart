@@ -129,6 +129,8 @@ void main() {
         ),
       ),
     );
+    // Full screen puts focus on accept once it is up.
+    await tester.pump();
     expect(find.text('Answer'), findsNothing);
     expect(find.text(strings.incomingVideoCall), findsOneWidget);
     expect(
@@ -141,6 +143,7 @@ void main() {
         hasTapAction: true,
         hasFocusAction: true,
         isFocusable: true,
+        isFocused: true,
       ),
     );
     await tester.tap(find.bySemanticsLabel(strings.accept));

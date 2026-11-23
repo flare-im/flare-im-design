@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -301,8 +302,10 @@ class RedPacketComponentsInteractionTest {
     @Test fun openingWithAnimationsRemovedSaysSoInstead() {
         setAnimatorScale(0f)
         content { RedPacketOpenSheet(senderName = "Ann", blessing = "Wish", state = FlareRedPacketOpenState.Opening, onClose = {}, onOpen = {}) }
-        compose.onNodeWithText(zh.packetBusy, useUnmergedTree = true).assertIsDisplayed()
-        compose.onNodeWithContentDescription(zh.packetOpenAction).assertIsNotEnabled()
+        // 4.5: with animations removed the still coin shows a spinner (no caption) and the key still says it is busy.
+        compose.onNodeWithContentDescription(zh.packetOpenAction)
+            .assertIsNotEnabled()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, zh.packetBusy))
     }
 
     // MARK: Details
@@ -429,7 +432,8 @@ class RedPacketComponentsInteractionTest {
 
     /**
      * The red action keeps its red fill in both themes, inert and enabled, and while the amount field has focus and the
-     * keyboard is up — a fill that vanished there left the label white on the page.
+     * keyboard is up — a fill that vanished there left the label white on the page. Inert it is that red at
+     * `opacity.disabled` over the page (a disabled kit button fades whole, as the web's `opacity`).
      */
     @Test fun theSubmitKeepsItsRedFillInLightMode() = submitKeepsItsRedFill(dark = false)
 
@@ -448,9 +452,10 @@ class RedPacketComponentsInteractionTest {
                 }
             }
         }
-        val red = FlareColors.resolve(FlareBrandTheme.Violet, dark).redPacketEnd
+        val palette = FlareColors.resolve(FlareBrandTheme.Violet, dark)
+        val red = palette.redPacketEnd
         val mode = if (dark) "dark" else "light"
-        assertFillIs(zh.packetSubmit, red, "$mode, inert")
+        assertFillIs(zh.packetSubmit, dimmed(red, palette.bgSecondary), "$mode, inert")
         compose.onNodeWithContentDescription(zh.packetFieldAmount).performTextInput("1.88")
         compose.onNodeWithContentDescription(zh.packetFieldAmount).assertIsFocused()
         compose.onNodeWithText(zh.packetSubmit).assertIsEnabled()
@@ -464,15 +469,19 @@ class RedPacketComponentsInteractionTest {
     @Test fun aKitButtonThatBecomesEnabledKeepsItsFill() {
         val enabled = mutableStateOf(false)
         content {
-            Column(Modifier.width(300.dp)) {
+            Column(Modifier.width(300.dp).background(flareColors().bgPrimary)) {
                 Button(label = "Go", size = FlareControlSize.Lg, block = true, onClick = if (enabled.value) ({}) else null)
             }
         }
-        val primary = FlareColors.resolve(FlareBrandTheme.Violet, isSystemDark()).primary
-        assertFillIs("Go", primary, "inert")
+        val palette = FlareColors.resolve(FlareBrandTheme.Violet, isSystemDark())
+        val primary = palette.primary
+        assertFillIs("Go", dimmed(primary, palette.bgPrimary), "inert")
         compose.runOnIdle { enabled.value = true }
         assertFillIs("Go", primary, "enabled")
     }
+
+    /** A disabled kit button's fill: [color] at `opacity.disabled` over [surface]. */
+    private fun dimmed(color: Color, surface: Color): Color = color.copy(alpha = FlareOpacity.disabled).compositeOver(surface)
 
     private fun isSystemDark(): Boolean =
         (instrumentation.targetContext.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==

@@ -64,7 +64,7 @@ void main() {
     expect(_ringed(tester), isFalse);
   });
 
-  testWidgets('the corner preview: video calls only, 3:4 at the token width', (
+  testWidgets('the corner preview: video calls only, 9:16 at the token width', (
     tester,
   ) async {
     const mine = Key('mine');
@@ -78,14 +78,11 @@ void main() {
     );
     final size = tester.getSize(find.byKey(mine));
     expect(size.width, FlareSizes.componentCallPreviewWidth);
-    expect(size.height, FlareSizes.componentCallPreviewWidth * 4 / 3);
-    // Top trailing corner, with the peer block starting below it.
+    expect(size.height, FlareSizes.componentCallPreviewWidth * 16 / 9);
+    // Top trailing corner, clear of the peer's avatar.
     final rect = tester.getRect(find.byKey(mine));
     expect(rect.right, 390 - FlareSizes.spacingLg);
-    expect(
-      tester.getRect(find.byType(FlareAvatar)).top,
-      greaterThanOrEqualTo(rect.bottom),
-    );
+    expect(tester.getRect(find.byType(FlareAvatar)).overlaps(rect), isFalse);
 
     await tester.pumpWidget(
       _host(_view(localVideoContent: const SizedBox.expand(key: mine))),

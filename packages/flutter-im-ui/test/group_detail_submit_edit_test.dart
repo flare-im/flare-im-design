@@ -63,7 +63,12 @@ void main() {
         onUpdateName: reported.add,
       ),
     );
-    await tester.tap(find.text(_labels.name));
+    // The pencil beside the title renames (Vue: the name is written once).
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is FlareIconButton && w.semanticLabel == _labels.editName,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(_field, 'New team');
     await tester.pump();

@@ -54,10 +54,13 @@ final class OverlayRulesTests: XCTestCase {
     func testDrawerWidthDefaultsToTheSheetTokenAndLeavesAScrimStrip() {
         XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 1024), FlareSizes.componentSheetWidth)
         XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: 300, window: 1024), 300)
-        // A narrow window keeps a touch-target-wide strip of scrim to tap.
-        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 390), 390 - FlareSizes.touchTarget)
+        // A window wider than 640pt keeps a touch-target-wide strip of scrim to tap.
         XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: 2000, window: 800), 800 - FlareSizes.touchTarget)
-        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 10), 0)
+        // Up to 640pt the drawer covers the window (Vue's phone form).
+        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 390), 390)
+        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: 300, window: 640), 640)
+        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 10), 10)
+        XCTAssertEqual(FlareOverlayRules.drawerWidth(requested: nil, window: 0), 0)
     }
 
     func testModalWidthDefaultsToTheDialogTokenWithinAGutter() {

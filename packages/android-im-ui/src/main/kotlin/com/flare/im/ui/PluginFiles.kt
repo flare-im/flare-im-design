@@ -8,7 +8,11 @@ data class PluginInputShowWhen(val field: String, val anyOf: List<String>)
 enum class PluginFilePhase { Empty, Selected, Uploading, Uploaded, Failed }
 enum class PluginFileActionKind { Choose, Retry, Cancel, Replace, Remove, Preview, Invalidate }
 
-/** No file bytes, private URL, token or platform URI belongs in component state. */
+/**
+ * No file bytes, private URL or token belongs in component state. The one address it carries is [previewUrl]: the
+ * host's own local copy of a captured picture (a file or content address on this device, never the upload's private
+ * URL), which a document slot shows once captured (6.3).
+ */
 data class PluginFileState(
     val scope: String,
     val generation: Int,
@@ -19,6 +23,8 @@ data class PluginFileState(
     val error: String? = null,
     val preview: Boolean = false,
     val previewLoading: Boolean = false,
+    /** The captured picture on this device, for a document slot to show; null: the slot keeps its outline. */
+    val previewUrl: String? = null,
 )
 
 data class PluginFileAction(

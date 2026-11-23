@@ -38,7 +38,8 @@ enum class FlareStatusTone { Info, Success, Warning, Danger, Neutral }
 /**
  * A compact status strip (connection / sync / runtime state) with an optional
  * pulsing dot and an optional inline action. Spec: General/StatusBanner
- * (`StatusBanner`).
+ * (`StatusBanner`). [dismissible] draws a close key (named `close`) that calls [onDismiss]; the host removes the
+ * banner and remembers it (R8 of docs/plugin-experience.md: an action's failure).
  */
 @Composable
 fun StatusBanner(
@@ -49,6 +50,9 @@ fun StatusBanner(
     actionText: String? = null,
     onAction: (() -> Unit)? = null,
     floating: Boolean = false,
+    dismissible: Boolean = false,
+    onDismiss: (() -> Unit)? = null,
+    actionDisabled: Boolean = false,
 ) {
     val colors = flareColors()
     val toneColor = statusToneColor(colors, tone)
@@ -98,9 +102,12 @@ fun StatusBanner(
         )
         if (!actionText.isNullOrBlank() && onAction != null) {
             Spacer(Modifier.width(FlareSizes.spacingSm))
-            TextButton(onClick = onAction, modifier = Modifier.widthIn(max = 160.dp).defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
-                Text(actionText, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd.value.sp)
+            TextButton(onClick = onAction, enabled = !actionDisabled, modifier = Modifier.widthIn(max = 160.dp).defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)) {
+                Text(actionText, color = if (actionDisabled) colors.textTertiary else colors.textPrimary, fontSize = FlareSizes.fontSizeMd.value.sp)
             }
+        }
+        if (dismissible && onDismiss != null) {
+            IconButton(icon = "close", contentDescription = flareStrings().close, size = FlareControlSize.Sm, onClick = onDismiss)
         }
     }
 }

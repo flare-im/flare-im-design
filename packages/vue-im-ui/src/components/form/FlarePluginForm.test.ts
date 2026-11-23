@@ -16,7 +16,7 @@ afterEach(() => { document.body.innerHTML = ""; });
 const vectors = JSON.parse(readFileSync(resolve(__dirname, "../../../../../spec/plugin-view-vectors.json"), "utf8")) as {
   form: {
     inputs: FlarePluginInput[];
-    initial: { options: { rows: number; canAdd: boolean; canRemove: boolean }; counters: Record<string, string> };
+    initial: { options: { rows: number; canAdd: boolean; canRemove: boolean }; counters: Record<string, string | null> };
     cases: Array<{ name: string; values: Record<string, unknown>; clientErrors: FlarePluginFormError[]; submitted: Record<string, unknown> | null }>;
     hostErrors: Array<{ error: FlarePluginFormError; zh: string }>;
     shownPerInput: Record<string, string>;
@@ -52,6 +52,36 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("updates sibling validation immediately and blocks submission until corrected", async () => {
+    const { wrapper, submits } = render({
+      inputs: [{ id: "amount", kind: "text", label: "总额" }, { id: "limit", kind: "text", label: "单笔上限" }],
+      values: { amount: "9", limit: "8" },
+      validateField: (id: string, values: Record<string, string>) =>
+        id === "limit" && BigInt(values.limit) > BigInt(values.amount) ? "单笔上限不能超过预算金额。" : undefined,
+    });
+    await field(wrapper, "amount").get("input").setValue("7");
+    expect(errorOf(wrapper, "limit")).toBe("单笔上限不能超过预算金额。");
+    await wrapper.get("form").trigger("submit");
+    expect(submits).toEqual([]);
+    await field(wrapper, "limit").get("input").setValue("7");
+    expect(errorOf(wrapper, "limit")).toBeNull();
+    await wrapper.get("form").trigger("submit");
+    expect(submits).toEqual([{ amount: "7", limit: "7" }]);
+  });
+  it("shows the exact service amount bounds for correction and names the currency", async () => {
+    const { wrapper, submits } = render({ inputs: [{ id: "amount", kind: "money", label: "金额", required: true,
+      money: { currency: "CNY", scale: 2, min: "0.01", max: "9007199254740993.99" } }] });
+    const input = field(wrapper, "amount").get("input");
+    expect(input.attributes("aria-label")).toBe("金额 (CNY)");
+    expect(field(wrapper, "amount").text()).toContain("金额范围：0.01–9007199254740993.99 CNY");
+    await input.setValue("0");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(errorOf(wrapper, "amount")).toBe("金额范围：0.01–9007199254740993.99 CNY");
+    expect(submits).toHaveLength(0);
+    await input.setValue("0.01");
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{ amount: { amount: "0.01", currency: "CNY" } }]);
+  });
   it("authoritative member revisions clear member selection without resetting other fields", async () => {
     const searches:string[]=[];
     const {wrapper,state,submits}=render({
@@ -77,6 +107,33 @@ describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
     await wrapper.get("[data-form-submit]").trigger("click");
     expect(submits).toEqual([{password:"839271"}]);
     expect((input.element as HTMLInputElement).value).toBe("");
+  });
+
+  it("draws a 6-digit password as six PIN cells over one numeric input; an error clears it and shakes", async () => {
+    const {wrapper,state}=render({inputs:[{id:"password",kind:"password",label:"支付密码",required:true,maxLength:6}]});
+    const pin=field(wrapper,"password").get("[data-pin]");
+    expect(pin.findAll(".flare-pin__cell")).toHaveLength(6);
+    const input=pin.get("input");
+    expect(input.attributes("inputmode")).toBe("numeric");
+    expect(input.attributes("type")).toBe("password");
+    await input.setValue("12a3");
+    expect((input.element as HTMLInputElement).value).toBe("123");
+    expect(pin.findAll(".flare-pin__dot")).toHaveLength(3);
+    state.errors=[{input:"password",issue:"unknown"}];
+    await flushPromises();
+    expect((input.element as HTMLInputElement).value).toBe("");
+    expect(pin.classes()).toContain("is-shaking");
+  });
+
+  it("submits on the sixth PIN digit when no required field follows, else moves to the next field", async () => {
+    const last=render({inputs:[{id:"password",kind:"password",label:"支付密码",required:true,maxLength:6}]});
+    await field(last.wrapper,"password").get("input").setValue("123456");
+    expect(last.submits).toEqual([{password:"123456"}]);
+    const before=render({inputs:[{id:"password",kind:"password",label:"支付密码",required:true,maxLength:6},{id:"note",kind:"text",label:"备注",required:true}]});
+    await field(before.wrapper,"password").get("input").setValue("123456");
+    await flushPromises();
+    expect(before.submits).toEqual([]);
+    expect(document.activeElement).toBe(field(before.wrapper,"note").get("input").element);
   });
 
   it("record editing blocks unchanged submissions and preserves exact money text", async () => {
@@ -150,10 +207,16 @@ describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
     expect(cancels()).toBe(0);
   });
 
-  it("draws every input kind, with counters and the option rows' limits", () => {
+  it("draws every input kind, with counters and the option rows' limits", async () => {
     const { wrapper } = render();
     for (const input of inputs) expect(wrapper.find(`[data-input-id="${input.id}"]`).exists()).toBe(true);
-    for (const [id, counter] of Object.entries(vectors.form.initial.counters)) expect(field(wrapper, id).get(".flare-form-field__hint").text()).toBe(counter);
+    // R6 (spec formCounter): an empty field has no counter (form.initial.counters are null); typed, it reads "{n}/{max}".
+    for (const [id, counter] of Object.entries(vectors.form.initial.counters)) {
+      expect(counter).toBeNull();
+      expect(field(wrapper, id).find(".flare-form-field__counter").exists()).toBe(false);
+    }
+    await field(wrapper, "title").get("input").setValue("abc");
+    expect(field(wrapper, "title").get(".flare-form-field__counter").text()).toBe(`3/${inputs.find((input) => input.id === "title")!.maxLength}`);
     const options = field(wrapper, "options");
     expect(options.findAll("[data-option-row]")).toHaveLength(vectors.form.initial.options.rows);
     expect(options.get("[data-option-add]").attributes("disabled") === undefined).toBe(vectors.form.initial.options.canAdd);
@@ -224,6 +287,31 @@ describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
     row.click();
     await flushPromises();
     expect(field(wrapper, "owner").get("[data-members-chosen]").text()).toBe("Carol");
+  });
+  it("keeps existing members while adding a user from remote search", async () => {
+    const searches: string[] = [];
+    const { wrapper, state, submits } = render({
+      inputs: [{ id: "participants", kind: "members", label: "参与人", max: 10 }],
+      values: { participants: [members[0]!.userId] },
+      members: [members[0]],
+      onMemberSearch: (query: string) => searches.push(query),
+    });
+    await field(wrapper, "participants").get("[data-members-choose]").trigger("click");
+    await flushPromises();
+    const picker = document.body.querySelector<HTMLElement>(".flare-contact-picker")!;
+    const search = picker.querySelector<HTMLInputElement>("input")!;
+    search.value = "Bob";
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+    await flushPromises();
+    expect(searches).toEqual(["", "Bob"]);
+    state.members = [members[1]];
+    await flushPromises();
+    picker.querySelector<HTMLButtonElement>(".flare-contact-picker__row")!.click();
+    await flushPromises();
+    [...picker.querySelectorAll("button")].find((button) => button.textContent?.includes("确定"))!.click();
+    await flushPromises();
+    await wrapper.get("[data-form-submit]").trigger("click");
+    expect(submits).toEqual([{ participants: [members[0]!.userId, members[1]!.userId] }]);
   });
 
   it("locks while busy and reports cancel", async () => {

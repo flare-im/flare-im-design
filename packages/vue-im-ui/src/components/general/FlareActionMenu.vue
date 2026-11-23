@@ -10,7 +10,7 @@
  * The trigger is the default slot's first element: it gets the click that toggles the
  * menu and `aria-haspopup` / `aria-expanded` / `aria-controls`.
  */
-import { Comment, Fragment, cloneVNode, computed, onMounted, ref, useId, useSlots, watch, type Component, type VNode } from "vue";
+import { Comment, Fragment, cloneVNode, computed, nextTick, onMounted, onScopeDispose, ref, useId, useSlots, watch, type Component, type VNode } from "vue";
 import { NPopover } from "naive-ui";
 import FlareBottomSheet from "./FlareBottomSheet.vue";
 import FlareActionMenuList from "./FlareActionMenuList.vue";
@@ -30,12 +30,14 @@ const props = withDefaults(
     /** Anchor at a viewport point instead of the trigger (a context menu). */
     x?: number;
     y?: number;
-    placement?: "bottom-start" | "bottom-end" | "top-start" | "top-end" | "right-start" | "left-start";
+    placement?: "bottom-start" | "bottom-end" | "top-start" | "top-end" | "right-start" | "left-start" | "left";
+    /** Anchored action strips may lay out horizontally; sheets stay vertical. */
+    orientation?: 'vertical' | 'horizontal';
     presentation?: FlareActionMenuPresentation;
     /** `click`: the trigger toggles the menu. `manual`: the slot is only the anchor and `open` decides. */
     trigger?: "click" | "manual";
   }>(),
-  { open: undefined, x: undefined, y: undefined, placement: "bottom-end", presentation: "auto", trigger: "click" },
+  { open: undefined, x: undefined, y: undefined, placement: "bottom-end", presentation: "auto", trigger: "click", orientation: 'vertical' },
 );
 const emit = defineEmits<{
   (e: "select", id: string): void;
@@ -58,6 +60,8 @@ onMounted(() => {
 });
 
 let returnFocusTo: HTMLElement | null = null;
+let disposed = false;
+onScopeDispose(() => { disposed = true; });
 
 function triggerElement(): HTMLElement | null {
   if (typeof document === "undefined") return null;
@@ -97,6 +101,16 @@ function close(restoreFocus: boolean): void {
   const target = returnFocusTo;
   setOpen(false);
   if (restoreFocus && target?.isConnected) target.focus({ preventScroll: true });
+  // Controlled hosts can replace the trigger during this render. Resolve the current
+  // node after the update, without taking focus from a newly opened editor/dialog.
+  if (restoreFocus) void nextTick(() => {
+    if (disposed || isOpen.value) return;
+    const active = document.activeElement;
+    const closingMenu = document.getElementById(menuId);
+    if (active === document.body || active === target || closingMenu?.contains(active)) {
+      (triggerElement() ?? (target?.isConnected ? target : null))?.focus({ preventScroll: true });
+    }
+  });
 }
 
 function onSelect(id: string): void {
@@ -153,6 +167,7 @@ function triggerVNode(): VNode | null {
       :items="items"
       :label="label"
       presentation="anchored"
+      :orientation="orientation"
       @select="onSelect"
       @escape="close(true)"
       @tab="close(false)"

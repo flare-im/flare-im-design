@@ -274,11 +274,7 @@ String flareStoredPreviewText(
 /// Vue's `systemEvent.*`), or '' for a key it does not name. The keys are the
 /// `SystemContent.event_kind` values the social server writes; [name] is the
 /// name the event's parameters carry, for the events whose words include one.
-String _kitSystemEventText(
-  String eventKey,
-  String name,
-  FlareStrings strings,
-) {
+String _kitSystemEventText(String eventKey, String name, FlareStrings strings) {
   switch (eventKey) {
     case 'group.created':
       return strings.systemEventGroupCreated;

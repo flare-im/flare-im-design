@@ -113,6 +113,8 @@ class FlareComposer extends StatefulWidget {
     this.actions,
     this.capabilities = const FlareComposerCapabilities(),
     this.onAction,
+    this.actionPanelLoading = false,
+    this.onActionsOpen,
     this.replyLabel,
     this.enableVoice = false,
     this.voiceLabel,
@@ -125,6 +127,11 @@ class FlareComposer extends StatefulWidget {
     this.desktopSubmitMode = FlareComposerSubmitMode.enter,
     this.mentionCandidates = const [],
     this.enableMentions = true,
+    this.editing = false,
+    this.editPreview,
+    this.onClearEdit,
+    this.statusHint,
+    this.sendBlocked = false,
   });
 
   final String conversationKey;
@@ -163,6 +170,14 @@ class FlareComposer extends StatefulWidget {
   final FlareComposerCapabilities capabilities;
   final void Function(FlareComposerAction action)? onAction;
 
+  /// The plugin items of [actions] are still loading: the panel opens at
+  /// once with skeleton squares in their place
+  /// ([FlareComposerActionPanel.loading], docs/plugin-experience.md §4.1).
+  final bool actionPanelLoading;
+
+  /// Called when the user opens the optional actions panel.
+  final VoidCallback? onActionsOpen;
+
   /// Show the voice (按住说话) toggle.
   final bool enableVoice;
   final Future<bool> Function(String path, int durationMs)? onVoiceSend;
@@ -181,14 +196,41 @@ class FlareComposer extends StatefulWidget {
   /// A group may keep this true while its roster is still loading.
   final bool enableMentions;
 
+  /// The field holds a sent message being edited (the Vue kit's `editing`):
+  /// an "editing" strip with [editPreview] (the field's text when null) and a
+  /// close control replaces the reply strip, the send key saves, and rich text
+  /// and voice step aside — an edit replaces plain text. The host owns the
+  /// text it puts in and what [FlareComposer.onSend] does with it; the
+  /// composer clears the field on a true answer as it does for a send.
+  final bool editing;
+  final String? editPreview;
+
+  /// The editing strip's close control (the Vue kit's `clear-edit`): the host
+  /// ends the edit and puts back what the field held before it.
+  final VoidCallback? onClearEdit;
+
+  /// Why the conversation takes no messages right now (removed from a group,
+  /// muted, read-only), drawn as a status line over the field (the Vue kit's
+  /// `statusHint`). Pair it with [disabled]; empty or null draws nothing.
+  final String? statusHint;
+
+  /// Sending is blocked right now — the IM connection is not online (the Vue
+  /// kit's `sendBlocked`): typing, attaching and the draft go on, the send key
+  /// and Enter do nothing until it clears.
+  final bool sendBlocked;
+
   @override
   State<FlareComposer> createState() => FlareComposerState();
 }
 
 class FlareComposerState extends State<FlareComposer> {
   bool _allowsTool(String id) => widget.capabilities.allowsTool(id);
-  bool get _effectiveRich =>
-      _allowsTool('richText') && (_richMode || widget.rich);
+
+  /// Rich text and voice are not ways to edit a sent text message.
+  bool get _richTool => _allowsTool('richText') && !widget.editing;
+  bool get _voiceTool =>
+      widget.enableVoice && _allowsTool('voice') && !widget.editing;
+  bool get _effectiveRich => _richTool && (_richMode || widget.rich);
   List<FlareComposerAction> get _resolvedActions => resolveFlareComposerActions(
     actions: widget.actions,
     capabilities: widget.capabilities,
@@ -202,7 +244,10 @@ class FlareComposerState extends State<FlareComposer> {
       _allowsTool('attachments') &&
       (_hasActionPanel || widget.onAttach != null);
   String get _placeholder =>
-      widget.placeholder ?? FlareStrings.of(context).composerPlaceholder;
+      widget.placeholder ??
+      (widget.editing
+          ? FlareStrings.of(context).composerEditingPlaceholder
+          : FlareStrings.of(context).composerPlaceholder);
   String get _replyLabel =>
       widget.replyLabel ?? FlareStrings.of(context).composerReply;
   late TextEditingController _controller;
@@ -418,12 +463,18 @@ class FlareComposerState extends State<FlareComposer> {
       null => true,
     };
     if (widget.disabled || !panelAvailable) _closeTransientPanels();
-    if (widget.disabled || !_allowsTool('voice') || !widget.enableVoice)
-      _voiceMode = false;
-    if (widget.disabled || !_allowsTool('richText')) {
+    if (widget.disabled || !_voiceTool) _voiceMode = false;
+    if (widget.disabled || !_richTool) {
       _richMode = false;
       _formatLevelsOpen = false;
       _formatting = const RichComposerFormatting();
+    }
+    // Choosing edit on a message (or another message while one is open) puts
+    // the caret in the field, so the user types right away (as on Web).
+    if (widget.editing &&
+        !widget.disabled &&
+        (!oldWidget.editing || oldWidget.editPreview != widget.editPreview)) {
+      _focusInput();
     }
     if (widget.controller != oldWidget.controller) {
       if (_panel == _ComposerPanel.mention) _closeTransientPanels();
@@ -462,6 +513,7 @@ class FlareComposerState extends State<FlareComposer> {
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (widget.disabled ||
+        widget.sendBlocked ||
         _sending ||
         text.isEmpty ||
         (widget.onSend == null && widget.onSendRich == null))
@@ -526,6 +578,7 @@ class FlareComposerState extends State<FlareComposer> {
     if (widget.disabled || !_allowsTool('attachments')) return;
     if (_hasActionPanel) {
       _togglePanel(_ComposerPanel.more, hideKeyboard: m.mobile);
+      if (_panel == _ComposerPanel.more) widget.onActionsOpen?.call();
     } else {
       _focusNode.unfocus();
       dismissPanel();
@@ -543,10 +596,7 @@ class FlareComposerState extends State<FlareComposer> {
     // it both in the toolbar and in the "+" surface; selecting either entry
     // must reach the same recorder instead of asking every host to recreate
     // the composer's private state transition.
-    if (action.id == 'voice' &&
-        widget.enableVoice &&
-        _allowsTool('voice') &&
-        widget.onVoiceSend != null) {
+    if (action.id == 'voice' && _voiceTool && widget.onVoiceSend != null) {
       setState(() {
         _voiceMode = true;
         _expanded = false;
@@ -578,7 +628,7 @@ class FlareComposerState extends State<FlareComposer> {
   }
 
   void _toggleRichMode() {
-    if (widget.disabled || !_allowsTool('richText')) return;
+    if (widget.disabled || !_richTool) return;
     _focusNode.unfocus();
     setState(() {
       _richMode = !_richMode;
@@ -602,7 +652,7 @@ class FlareComposerState extends State<FlareComposer> {
       // Desktop uses a denser footprint, not a smaller glyph. Web keeps the
       // toolbar artwork at 20px inside its compact 34–36px controls; shrinking
       // the glyph to 14px made the Flutter desktop footer look visibly weak.
-      iconSize: FlareSizes.iconSizeMd,
+      iconSize: compact ? FlareSizes.iconSizeMd : FlareSizes.iconSizeLg,
       padding: EdgeInsets.zero,
       constraints: BoxConstraints.tightFor(
         width: compact ? 34 : FlareSizes.componentComposerActionWidth,
@@ -987,7 +1037,7 @@ class FlareComposerState extends State<FlareComposer> {
           active: _panel == _ComposerPanel.mention,
           compact: m.wide,
         ),
-      if (widget.enableVoice && _allowsTool('voice'))
+      if (_voiceTool)
         _tool(
           flareIconGlyph('mic'),
           s.composerVoiceInput,
@@ -1010,7 +1060,7 @@ class FlareComposerState extends State<FlareComposer> {
           _openImage,
           compact: m.wide,
         ),
-      if (_allowsTool('richText'))
+      if (_richTool)
         _tool(
           flareIconGlyph('rich-text'),
           s.composerRichText,
@@ -1029,6 +1079,7 @@ class FlareComposerState extends State<FlareComposer> {
       FlareComposerSendButton(
         active:
             !widget.disabled &&
+            !widget.sendBlocked &&
             (_canSend || _controller.text.trim().isNotEmpty) &&
             (widget.onSend != null || widget.onSendRich != null),
         busy: _sending,
@@ -1037,6 +1088,7 @@ class FlareComposerState extends State<FlareComposer> {
           _send();
         },
         compact: m.wide,
+        label: widget.editing ? s.composerSaveEdit : null,
       ),
     ];
     return TapRegion(
@@ -1086,9 +1138,10 @@ class FlareComposerState extends State<FlareComposer> {
   /// Emoji, mention, [voice], image, rich text, more, send.
   int get _keyCount =>
       1 +
-      ['emoji', 'image', 'richText'].where(_allowsTool).length +
+      ['emoji', 'image'].where(_allowsTool).length +
+      (_richTool ? 1 : 0) +
       (_plusShown ? 1 : 0) +
-      (widget.enableVoice && _allowsTool('voice') ? 1 : 0) +
+      (_voiceTool ? 1 : 0) +
       (widget.enableMentions && _allowsTool('mention') ? 1 : 0);
 
   Widget _inputField(_Metrics m, FlareColors colors) {
@@ -1228,6 +1281,7 @@ class FlareComposerState extends State<FlareComposer> {
     _ComposerPanel.more => FlareComposerActionPanel(
       actions: _resolvedActions,
       onAction: _activatePanelAction,
+      loading: widget.actionPanelLoading,
       formFactor: m.mobile
           ? FlareComposerPanelFormFactor.mobile
           : FlareComposerPanelFormFactor.desktop,
@@ -1258,7 +1312,10 @@ class FlareComposerState extends State<FlareComposer> {
               _expanded ||
               rich ||
               widget.replyTo != null ||
+              widget.editing ||
               _textNeedsMultipleLines(_controller.text);
+          final statusHint = widget.statusHint?.trim() ?? '';
+          final strings = FlareStrings.of(context);
           return Container(
             decoration: BoxDecoration(
               color: m.wide ? colors.bgPrimary : colors.bgSecondary,
@@ -1279,7 +1336,21 @@ class FlareComposerState extends State<FlareComposer> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.replyTo != null)
+                if (statusHint.isNotEmpty)
+                  _ComposerStatusHint(text: statusHint, flush: !m.wide),
+                if (widget.editing)
+                  FlareComposerReplyStrip(
+                    key: const ValueKey('composer-edit-strip'),
+                    label: strings.composerEditingMessage,
+                    senderName: '',
+                    summary: (widget.editPreview?.trim().isNotEmpty ?? false)
+                        ? widget.editPreview!.trim()
+                        : _controller.text.trim(),
+                    cancelLabel: strings.composerCancelEdit,
+                    onCancel: widget.onClearEdit,
+                    flush: !m.wide,
+                  )
+                else if (widget.replyTo != null)
                   FlareComposerReplyStrip(
                     label: _replyLabel,
                     senderName: flareQuoteSenderText(
@@ -1340,6 +1411,60 @@ class FlareComposerState extends State<FlareComposer> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Why the conversation takes no messages right now, over the field: a
+/// warning dot and the reason, announced as a status (Vue
+/// `.composer-status-hint`). A phone composer draws it full width, closed by a
+/// hairline like the reply strip.
+class _ComposerStatusHint extends StatelessWidget {
+  const _ComposerStatusHint({required this.text, required this.flush});
+
+  final String text;
+  final bool flush;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    return Semantics(
+      key: const ValueKey('composer-status-hint'),
+      container: true,
+      liveRegion: true,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 36),
+        padding: EdgeInsets.symmetric(
+          horizontal: flush ? FlareSizes.spacingLg : FlareSizes.spacingSm,
+          vertical: FlareSizes.spacingXs,
+        ),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: colors.borderPrimary)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: FlareSizes.spacingSm,
+              height: FlareSizes.spacingSm,
+              decoration: BoxDecoration(
+                color: colors.warning,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: FlareSizes.spacingSm),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: colors.warningText,
+                  fontSize: FlareSizes.fontSizeSm,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

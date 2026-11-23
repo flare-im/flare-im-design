@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import FlareSearchBar from "../general/FlareSearchBar.vue";
 import FlareFilterTabs from "../general/FlareFilterTabs.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
@@ -25,24 +25,30 @@ const props = withDefaults(
     groups: FlareContactPickerGroup[];
     searchable?: boolean;
     multiple?: boolean;
+    initialSelected?: FlareContactPickerEntry[];
     /** Maximum selected entries; already chosen rows remain removable. */
     maxSelected?: number;
     /** Header title; the kit's "Choose a contact" when omitted. */
     title?: string;
+    /** A caption line under the header (e.g. the call host's 「最多 N 人同时通话」); caption style, text.secondary. */
+    caption?: string;
     /** The host is sending the card: the tapped row (multiple mode: the confirm key) spins; rows take no taps. */
     sending?: boolean;
-    /** A remote source owns matching, loading and retry when provided. */
-    onSearch?: (query: string) => void;
     loading?: boolean;
     error?: string;
-    onRetry?: () => void;
   }>(),
-  { searchable: true, multiple: false, title: undefined, sending: false, loading: false },
+  { searchable: true, multiple: false, title: undefined, caption: undefined, sending: false, loading: false },
 );
 const emit = defineEmits<{
   (e: "select", entries: FlareContactPickerEntry[]): void;
   (e: "cancel"): void;
+  /** A host listener opts into remote matching instead of local filtering. */
+  (e: "search", query: string): void;
+  (e: "retry"): void;
 }>();
+const instance = getCurrentInstance();
+const remoteSearch = () => Boolean(instance?.vnode.props?.onSearch);
+const canRetry = () => Boolean(instance?.vnode.props?.onRetry);
 
 const { t } = useFlareI18n();
 // The header row (Cancel, the title, confirm) is the picker's own: a kit sheet in fill mode draws no second title.
@@ -58,8 +64,10 @@ watch(() => props.groups, (groups) => {
   if (!groups.some((group) => group.id === activeGroupId.value)) activeGroupId.value = groups[0]?.id ?? "";
 });
 const query = ref("");
-watch(query, value => props.onSearch?.(value));
-const chosen = ref<string[]>([]);
+watch(query, value => { if (remoteSearch()) emit("search", value); });
+// An authorized search page is partial: keep selected entries until explicitly
+// removed instead of attempting to reconstruct them from the latest page.
+const chosen = ref<FlareContactPickerEntry[]>([...(props.initialSelected ?? [])]);
 // The row a single-mode tap answered with: it spins while the host sends, and is forgotten once the send settles.
 const pendingId = ref<string | null>(null);
 watch(() => props.sending, (now, before) => {
@@ -76,7 +84,7 @@ const tabs = computed(() => props.groups.map((group) => ({ value: group.id, labe
 const activeGroup = computed(() => props.groups.find((group) => group.id === activeGroupId.value) ?? props.groups[0]);
 const filtered = computed(() => {
   const entries = activeGroup.value?.entries ?? [];
-  return !props.onSearch && props.searchable && query.value.trim()
+  return !remoteSearch() && props.searchable && query.value.trim()
     ? entries.filter((entry) => matchesFlareContactPickerEntry(entry, query.value))
     : entries;
 });
@@ -125,7 +133,7 @@ watch([activeGroupId, query], () => {
 });
 
 // ── choosing ──────────────────────────────────────────────────────────────
-const isChosen = (entry: FlareContactPickerEntry): boolean => chosen.value.includes(entry.userId);
+const isChosen = (entry: FlareContactPickerEntry): boolean => chosen.value.some(item => item.userId === entry.userId);
 const isPending = (entry: FlareContactPickerEntry): boolean =>
   props.sending && !props.multiple && pendingId.value === entry.userId;
 const atLimit = (entry: FlareContactPickerEntry): boolean => props.multiple && props.maxSelected !== undefined && chosen.value.length >= Math.max(0, props.maxSelected) && !isChosen(entry);
@@ -137,14 +145,11 @@ function tap(entry: FlareContactPickerEntry): void {
     emit("select", [entry]);
     return;
   }
-  chosen.value = isChosen(entry) ? chosen.value.filter((id) => id !== entry.userId) : [...chosen.value, entry.userId];
+  chosen.value = isChosen(entry) ? chosen.value.filter(item => item.userId !== entry.userId) : [...chosen.value, entry];
 }
 function confirm(): void {
   if (props.sending || props.loading || props.error) return;
-  const everyone = props.groups.flatMap((group) => group.entries);
-  const picked = chosen.value
-    .map((id) => everyone.find((entry) => entry.userId === id))
-    .filter((entry): entry is FlareContactPickerEntry => Boolean(entry));
+  const picked = [...chosen.value];
   if (picked.length) emit("select", picked);
 }
 </script>
@@ -165,6 +170,7 @@ function confirm(): void {
         />
       </span>
     </header>
+    <p v-if="caption?.trim()" class="flare-contact-picker__caption" data-picker-caption="true">{{ caption }}</p>
 
     <div v-if="searchable" class="flare-contact-picker__search">
       <FlareSearchBar v-model="query" :placeholder="t('contactPicker.search')" />
@@ -187,8 +193,8 @@ function confirm(): void {
       @scroll.passive="onScroll"
     >
       <FlareEmptyState v-if="loading" :title="t('common.loading')" loading />
-      <FlareEmptyState v-else-if="error" :title="error" tone="error" :action-text="onRetry?t('common.retry'):undefined" @action="onRetry?.()" />
-      <FlareEmptyState v-else-if="!filtered.length" :title="t('contactPicker.empty')" :icon="query.trim() ? 'search' : 'people'" />
+      <FlareEmptyState v-else-if="error" :title="error" tone="error" :action-text="canRetry() ? t('common.retry') : undefined" @action="emit('retry')" />
+      <FlareEmptyState v-else-if="!filtered.length" :title="t(query.trim() ? 'contactPicker.noResults' : 'contactPicker.empty')" :icon="query.trim() ? 'search' : 'people'" />
       <template v-else>
         <div v-if="topSpacer" :style="{ height: `${topSpacer}px` }" aria-hidden="true" />
         <button
@@ -206,7 +212,7 @@ function confirm(): void {
           @click="tap(entry)"
         >
           <span v-if="multiple" class="flare-contact-picker__check" :class="{ 'is-on': isChosen(entry) }" aria-hidden="true">
-            <FlareIcon v-if="isChosen(entry)" name="check" :size="12" />
+            <FlareIcon v-if="isChosen(entry)" name="check" size="sm" />
           </span>
           <FlareAvatar :user-id="entry.userId" :display-name="entry.name" :avatar-url="entry.avatarUrl" :size="40" />
           <span class="flare-contact-picker__body">
@@ -261,6 +267,7 @@ function confirm(): void {
   font-weight: var(--flare-size-font-weight-bold);
 }
 .flare-contact-picker__head-end { justify-self: end; }
+.flare-contact-picker__caption { flex: none; margin: 0; padding: 0 var(--flare-size-spacing-md) var(--flare-size-spacing-xs); font-size: var(--flare-size-font-size-sm); line-height: var(--flare-size-line-height-normal); color: var(--flare-color-text-secondary); text-align: center; }
 .flare-contact-picker__search { flex: none; padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-md); }
 .flare-contact-picker__tabs { flex: none; padding: 0 var(--flare-size-spacing-md); }
 .flare-contact-picker__list {

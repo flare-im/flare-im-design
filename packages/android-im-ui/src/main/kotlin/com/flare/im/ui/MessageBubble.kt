@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -40,6 +41,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
@@ -311,7 +314,9 @@ internal fun MessageBubbleRow(
             }
             Column(horizontalAlignment = if (self) Alignment.End else Alignment.Start) {
                 if (rowPresentation.showSenderName) {
-                    Text(message.senderName, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp)
+                    // Vue `.message-meta__name`: xs, secondary, 600, nudged in by xs.
+                    Text(message.senderName, color = colors.textSecondary, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = FlareSizes.spacingXs))
                 }
                 // Multi-select taps select the row: a poll or a task is not a control then.
                 val intents = MessageBodyIntents(
@@ -321,7 +326,9 @@ internal fun MessageBubbleRow(
                     locationOpen = onLocationOpen?.let { cb -> { location -> cb(message, location) } },
                 )
                 MessageSurfaceBody(
-                    message = message, self = self, surface = resolved, tail = groupEnd,
+                    message = message, self = self, surface = resolved,
+                    // A received tail hangs into the avatar gutter (Vue `--avatar-gutter`); without one it has no room.
+                    tail = groupEnd && (self || rowPresentation.reserveAvatarSpace),
                     colors = colors, mediaState = mediaState, time = time, status = status, receipt = receipt,
                     onResend = resend, onMediaAction = onMediaAction, onMediaDownload = onMediaDownload, onMediaReveal = onMediaReveal,
                     onOpenFile = onOpenFile, onOpenLink = onOpenLink, onLocateQuote = onLocateQuote, intents = intents,
@@ -514,24 +521,34 @@ private fun MessageSurfaceBody(
                 horizontalAlignment = if (self) Alignment.End else Alignment.Start,
             ) {
                 Box(Modifier.locateMark(message.id, markShape, colors.primary)) { body() }
+                if (self) message.uploadProgress?.let { progress ->
+                    LinearProgressIndicator(
+                        progress = { progress / 100f },
+                        modifier = Modifier.width(112.dp).padding(top = FlareSizes.spacingXs),
+                        color = colors.primary,
+                    )
+                }
                 if (hasMeta && !hasReactions) meta(Modifier.align(Alignment.End).padding(top = FlareSizes.spacingXs))
             }
         }
         return
     }
 
-    // Flare thread grammar: radius 16 with a 4dp tail on the last of a run; received = message.incoming, a step darker
-    // than the chat canvas, with the small shadow token and no outline; outgoing uses message semantics; a failed outgoing
-    // bubble is the failure surface with its red edge (spec/message-surface-vectors.json `palette`).
+    // Flare thread grammar, as Vue's message-bubble.css: radius 16 with the speaker's bottom corner at 4, and on the last of a
+    // run that corner at 7 with the tail curve hung off it; received = message.incoming, a step darker than the chat canvas,
+    // with the small shadow token and no outline; outgoing uses message semantics; a failed outgoing bubble is the failure
+    // surface with its red edge (spec/message-surface-vectors.json `palette`).
     val chrome = messageSurfaceChrome(surface, tail)
+    val tailCorner = if (chrome.tail) 7.dp else FlareSizes.radiusBubbleTail
     val shape = RoundedCornerShape(
         topStart = FlareSizes.radiusBubble, topEnd = FlareSizes.radiusBubble,
-        bottomStart = if (self || !chrome.tail) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
-        bottomEnd = if (!self || !chrome.tail) FlareSizes.radiusBubble else FlareSizes.radiusBubbleTail,
+        bottomStart = if (self) FlareSizes.radiusBubble else tailCorner,
+        bottomEnd = if (!self) FlareSizes.radiusBubble else tailCorner,
     )
+    val tailOnLeft = self == (LocalLayoutDirection.current == LayoutDirection.Rtl)
     val palette = flareMessageBubblePalette(tone, colors)
     val quotedBody: @Composable () -> Unit = {
-        if (quoteView == null) body() else QuotedBody(quote = quoteView, body = body, alignEnd = self)
+        if (quoteView == null) body() else QuotedBody(quote = quoteView, body = body)
     }
     val inner: @Composable () -> Unit = {
         when {
@@ -552,12 +569,32 @@ private fun MessageSurfaceBody(
                 // the small shadow token, so the bubble and the gap between two of them read without a hairline. The failure
                 // surface alone keeps an edge.
                 .then(if (!self && chrome.shadow) Modifier.shadow(flareShadowElevation(flareShadows().sm), shape, clip = false) else Modifier)
+                .then(if (chrome.tail) Modifier.drawBehind { drawBubbleTail(tailOnLeft, palette.background) } else Modifier)
                 .clip(shape)
                 .background(palette.background)
                 .then(palette.edge?.let { Modifier.border(1.dp, it, shape) } ?: Modifier)
                 .padding(horizontal = FlareSizes.componentBubblePaddingX, vertical = FlareSizes.componentBubblePaddingY),
         ) { inner() }
     }
+}
+
+/**
+ * Vue's tail (message-bubble.css `::after`): an 18 × 15 curve in the bubble's fill, hung 9 past the speaker's bottom corner
+ * and 1 below the bubble, drawn outside the bubble's clip.
+ */
+private fun DrawScope.drawBubbleTail(left: Boolean, fill: Color) {
+    val u = 1.dp.toPx()
+    val x0 = if (left) -9 * u else size.width - 9 * u
+    val y0 = size.height + u - 15 * u
+    fun x(v: Float) = x0 + (if (left) v else 18 - v) * u
+    fun y(v: Float) = y0 + v * u
+    val path = Path().apply {
+        moveTo(x(18f), y(1f))
+        cubicTo(x(14f), y(7f), x(9f), y(10f), x(0f), y(12f))
+        cubicTo(x(5f), y(15f), x(13f), y(15f), x(18f), y(9f))
+        close()
+    }
+    drawPath(path, fill)
 }
 
 /**
@@ -634,7 +671,7 @@ private fun Modifier.locateMark(messageId: String, shape: Shape, tint: Color): M
  * its own), measured without intrinsics so every content renderer can sit under a quote.
  */
 @Composable
-private fun QuotedBody(quote: @Composable () -> Unit, body: @Composable () -> Unit, alignEnd: Boolean) {
+private fun QuotedBody(quote: @Composable () -> Unit, body: @Composable () -> Unit) {
     val gap = FlareSizes.spacingSm
     Layout(contents = listOf(quote, body)) { (quoteMeasurables, bodyMeasurables), constraints ->
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
@@ -647,7 +684,8 @@ private fun QuotedBody(quote: @Composable () -> Unit, body: @Composable () -> Un
             var y = 0
             quotes.forEach { it.placeRelative(0, y); y += it.height }
             y += spacing
-            bodies.forEach { it.placeRelative(if (alignEnd) width - it.width else 0, y); y += it.height }
+            // The reply starts under the quote, as on Vue — the bubble's side is not the text's.
+            bodies.forEach { it.placeRelative(0, y); y += it.height }
         }
     }
 }
@@ -670,10 +708,12 @@ private fun MessageQuote(quote: FlareReplyTarget, colors: FlareColors, onLocate:
         Modifier
             .then(if (onCard) Modifier.fillMaxWidth() else Modifier)
             .clip(RoundedCornerShape(topEnd = FlareSizes.radiusMd, bottomEnd = FlareSizes.radiusMd))
-            .background(colors.messageReplyBackground)
+            // In a bubble, Vue's quote: tertiary at 88% over the bubble, the rule in the outgoing bubble's colour.
+            .background(if (onCard) colors.messageReplyBackground else colors.bgTertiary.copy(alpha = 0.88f))
             .drawBehind {
                 val width = bar.toPx()
-                drawRect(colors.messageReplyBorder, topLeft = Offset(if (rtl) size.width - width else 0f, 0f), size = Size(width, size.height))
+                drawRect(if (onCard) colors.messageReplyBorder else colors.messageOutgoingBackground,
+                    topLeft = Offset(if (rtl) size.width - width else 0f, 0f), size = Size(width, size.height))
             }
             .then(
                 if (onLocate != null) Modifier.heightIn(min = FlareSizes.touchTarget)
@@ -681,12 +721,15 @@ private fun MessageQuote(quote: FlareReplyTarget, colors: FlareColors, onLocate:
                     .semantics { contentDescription = label }
                 else Modifier.semantics(mergeDescendants = true) {},
             )
-            .padding(start = bar + FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacingXs, bottom = FlareSizes.spacingXs),
-        verticalArrangement = Arrangement.Center,
+            .padding(start = bar + FlareSizes.spacing2sm, end = FlareSizes.spacing2sm, top = FlareSizes.spacingSm, bottom = FlareSizes.spacingSm),
+        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
     ) {
-        Text(sender, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp,
-            fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(quote.summary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeSm.value.sp,
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
+            FlareIcon("reply", size = FlareSizes.iconSizeSm, tint = colors.textSecondary)
+            Text(sender, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Text(quote.summary, color = colors.textPrimary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.Bold,
             maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

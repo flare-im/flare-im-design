@@ -110,7 +110,9 @@ final class ReplyQuoteTests: XCTestCase {
         let chinese = FlareStrings()
         XCTAssertEqual(chinese.messageQuoteLabel("Bob", "See you"), "引用 Bob：See you")
         XCTAssertEqual(chinese.messageQuoteLabel("", "See you"), "引用：See you")
-        let english = FlareStrings(messageQuoteLabel: { $0.isEmpty ? "Quoted: \($1)" : "Quoted \($0): \($1)" })
+        let english = FlareStrings { copy in
+            copy.messageQuoteLabel = { $0.isEmpty ? "Quoted: \($1)" : "Quoted \($0): \($1)" }
+        }
         XCTAssertEqual(english.messageQuoteLabel("Bob", "See you"), "Quoted Bob: See you")
         XCTAssertEqual(english.messageQuoteLabel("", "See you"), "Quoted: See you")
     }

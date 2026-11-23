@@ -10,7 +10,8 @@ final class FlareIMUITests: XCTestCase {
     }
 
     func testInitialsFallback() {
-        XCTAssertEqual(AvatarView.initials("Henry Ford"), "HF")
+        XCTAssertEqual(AvatarView.initials("Henry Ford"), "H")
+        XCTAssertEqual(AvatarView.initials("群签到验收 g1"), "群")
         XCTAssertEqual(AvatarView.initials("Ivy"), "I")
         XCTAssertEqual(AvatarView.initials("   "), "?")
     }
@@ -25,6 +26,20 @@ final class FlareIMUITests: XCTestCase {
         XCTAssertNotEqual(AvatarView.seedTint("u1", light).bg, AvatarView.seedTint("u1", dark).bg)
         // 但选中的是同一格:取模只看种子,不看模式。
         XCTAssertEqual(AvatarView.seedTint("u1", dark).bg, AvatarView.seedTint("u1", dark).bg)
+    }
+
+    /// Slots computed with Vue `avatarTint` (0 blue, 1 purple, 2 pink, 3 green, 4 amber, 5 slate).
+    func testTintIndexMatchesVue() {
+        XCTAssertEqual(AvatarView.tintIndex("Plugin Lab Group"), 3)
+        XCTAssertEqual(AvatarView.tintIndex("Lab Carol"), 4)
+        XCTAssertEqual(AvatarView.tintIndex("群签到验收 g2 m7df423d1d5"), 2)
+        XCTAssertEqual(AvatarView.tintIndex("Lab Bob m2b8d19dc4a"), 1)
+        XCTAssertEqual(AvatarView.tintIndex("😀ab"), 4)
+        XCTAssertEqual(AvatarView.tintIndex("  "), AvatarView.tintIndex("user"))
+        // The Android kit test's pairs (android-im-ui FlareUiTest.avatarTintIndexIsTheVueHash): same input, same slot.
+        XCTAssertEqual(AvatarView.tintIndex("Lab Bob"), 4)
+        XCTAssertEqual(AvatarView.tintIndex("😀a"), 2)
+        XCTAssertEqual(AvatarView.tintIndex("  "), 3)
     }
 
     func testTokensThemeDiffers() {

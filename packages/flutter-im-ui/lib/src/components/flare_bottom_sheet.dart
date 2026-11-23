@@ -6,6 +6,7 @@ import '../platform/flare_platform.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_button.dart';
+import 'flare_form_field.dart';
 import 'flare_input.dart';
 import 'flare_modal.dart';
 import 'flare_overlay.dart';
@@ -59,6 +60,7 @@ class FlareBottomSheet extends StatelessWidget {
     this.maxHeight,
     this.presentation = FlareSheetPresentation.auto,
     this.fill = false,
+    this.showClose = false,
     required this.child,
   });
 
@@ -83,6 +85,10 @@ class FlareBottomSheet extends StatelessWidget {
   /// 72% of the available height) and [child] fills the rest and owns its
   /// scrolling. Handed to a FlareModal it is the modal's `fill`.
   final bool fill;
+
+  /// A close control in the corner when handed to a FlareModal (the Vue kit's
+  /// `show-close`, a modal-only control); a sheet keeps its handle and scrim.
+  final bool showClose;
   final Widget child;
 
   /// The child draws its own header: in fill mode the title is not drawn.
@@ -103,8 +109,9 @@ class FlareBottomSheet extends StatelessWidget {
   /// the route directly, past any pop guard), so the lock cannot be bypassed.
   ///
   /// The route sits on the root navigator, so a sheet opened from a page
-  /// inside a FlareDrawer covers the window. Motion is skipped when the
-  /// platform asks for reduced motion.
+  /// inside a FlareDrawer covers the window. The sheet rises in
+  /// [FlareMotion.slow] (§7); under reduced motion it fades in instead of
+  /// sliding, and so does the modal form.
   ///
   /// [fill] makes the surface take its whole cap and hands what [builder]
   /// returns the rest of the height; when that widget is a
@@ -120,6 +127,9 @@ class FlareBottomSheet extends StatelessWidget {
   /// looks at what each rebuild returns, so a [FlareSheetOwnHeader] keeps the
   /// title as the accessible name only. Pass the same notifier as [busy] to
   /// lock the sheet while it is true.
+  ///
+  /// [dialogWidth] sizes the dialog it becomes off the phone form factor
+  /// (default the sheet dialog width).
   static Future<T?> show<T>(
     BuildContext context, {
     String? title,
@@ -130,7 +140,9 @@ class FlareBottomSheet extends StatelessWidget {
     double? maxHeight,
     FlareSheetPresentation presentation = FlareSheetPresentation.auto,
     bool fill = false,
+    bool showClose = false,
     Listenable? listenable,
+    double? dialogWidth,
     required WidgetBuilder builder,
   }) {
     final asModal =
@@ -145,25 +157,33 @@ class FlareBottomSheet extends StatelessWidget {
       maxHeight: maxHeight,
       presentation: resolved,
       fill: fill,
+      showClose: showClose,
       // The sheet inspects the content itself for an owned header in fill mode.
       child: fill ? builder(inner) : Builder(builder: builder),
     );
-    Widget frame(BuildContext routeContext) => FlareSheetResolution(
-      asModal: asModal,
-      dismissible: dismissible,
-      busy: busy,
-      child: listenable == null
-          ? Builder(builder: content)
-          : ListenableBuilder(
-              listenable: listenable,
-              builder: (inner, _) => content(inner),
-            ),
-    );
+    final still = flareReduceMotion(context);
+    Widget frame(BuildContext routeContext) {
+      final resolution = FlareSheetResolution(
+        asModal: asModal,
+        dismissible: dismissible,
+        busy: busy,
+        child: listenable == null
+            ? Builder(builder: content)
+            : ListenableBuilder(
+                listenable: listenable,
+                builder: (inner, _) => content(inner),
+              ),
+      );
+      // §12.10: reduced motion drops the route's slide, not the arrival.
+      return still ? _FadeIn(child: resolution) : resolution;
+    }
+
     if (asModal) {
       return FlareModal.show<T>(
         context,
         dismissible: dismissible,
         framed: false,
+        width: dialogWidth,
         builder: frame,
       );
     }
@@ -179,9 +199,9 @@ class FlareBottomSheet extends StatelessWidget {
       barrierColor: FlareColors.of(context).scrim,
       elevation: 0,
       constraints: const BoxConstraints(maxWidth: FlareSizes.bubbleMaxWidth),
-      sheetAnimationStyle: flareReduceMotion(context)
+      sheetAnimationStyle: still
           ? AnimationStyle.noAnimation
-          : null,
+          : const AnimationStyle(duration: FlareMotion.slow),
       builder: (routeContext) => scopes(
         _PopGuard(
           dismissible: dismissible,
@@ -203,6 +223,12 @@ class FlareBottomSheet extends StatelessWidget {
   /// typed, so confirming again retries. Confirm waits for a non-blank value
   /// unless [allowEmpty] (clearing a remark, for example). [confirmText] and
   /// [cancelText] default to the strings table's confirm and cancel.
+  ///
+  /// [label] and [hint] put the field in a [FlareFormField] (a label above,
+  /// a hint below, [required] marks it), as a form sheet's single field;
+  /// [message] stays the sheet's description. After a failed submit the
+  /// confirm key reads [retryText] when given. [clearable] adds the field's
+  /// clear key.
   static Future<String?> prompt(
     BuildContext context, {
     required String title,
@@ -216,6 +242,11 @@ class FlareBottomSheet extends StatelessWidget {
     String? cancelText,
     FlareSheetPresentation presentation = FlareSheetPresentation.auto,
     Future<void> Function(String value)? onSubmit,
+    String? label,
+    String? hint,
+    bool required = false,
+    String? retryText,
+    bool clearable = false,
   }) async {
     final busy = ValueNotifier<bool>(false);
     try {
@@ -235,6 +266,11 @@ class FlareBottomSheet extends StatelessWidget {
           confirmText: confirmText,
           cancelText: cancelText,
           onSubmit: onSubmit,
+          label: label,
+          hint: hint,
+          required: required,
+          retryText: retryText,
+          clearable: clearable,
         ),
       );
     } finally {
@@ -269,7 +305,7 @@ class FlareBottomSheet extends StatelessWidget {
       fill: fill,
       dismissible: dismissible,
       busy: isBusy,
-      showClose: false,
+      showClose: showClose,
       scrollable: false,
       child: body,
     );
@@ -369,6 +405,22 @@ class FlareBottomSheet extends StatelessWidget {
   }
 }
 
+/// Fades its child in over [FlareMotion.slow] once, when it first builds.
+class _FadeIn extends StatelessWidget {
+  const _FadeIn({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: FlareMotion.slow,
+    curve: FlareMotion.slowCurve,
+    builder: (_, opacity, child) => Opacity(opacity: opacity, child: child),
+    child: child,
+  );
+}
+
 /// Blocks the scrim, Escape and back while the sheet is not dismissible or
 /// while the host's busy flag is up. Material routes the scrim through
 /// `Navigator.maybePop`, so this guard holds for it too.
@@ -411,6 +463,11 @@ class _FlarePrompt extends StatefulWidget {
     required this.confirmText,
     required this.cancelText,
     required this.onSubmit,
+    this.label,
+    this.hint,
+    this.required = false,
+    this.retryText,
+    this.clearable = false,
   });
 
   final ValueNotifier<bool> busy;
@@ -423,6 +480,11 @@ class _FlarePrompt extends StatefulWidget {
   final String? confirmText;
   final String? cancelText;
   final Future<void> Function(String value)? onSubmit;
+  final String? label;
+  final String? hint;
+  final bool required;
+  final String? retryText;
+  final bool clearable;
 
   @override
   State<_FlarePrompt> createState() => _FlarePromptState();
@@ -476,6 +538,15 @@ class _FlarePromptState extends State<_FlarePrompt> {
     }
   }
 
+  Widget _field(Widget input) => widget.label == null && widget.hint == null
+      ? input
+      : FlareFormField(
+          label: widget.label,
+          hint: widget.hint,
+          required: widget.required,
+          child: input,
+        );
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -503,14 +574,17 @@ class _FlarePromptState extends State<_FlarePrompt> {
             ),
             const SizedBox(height: FlareSizes.spacingMd),
           ],
-          FlareInput(
-            controller: _draft,
-            placeholder: widget.placeholder,
-            maxLength: widget.maxLength,
-            multiline: widget.multiline,
-            autofocus: true,
-            disabled: _busy,
-            onSubmitted: widget.multiline ? null : (_) => _confirm(),
+          _field(
+            FlareInput(
+              controller: _draft,
+              placeholder: widget.placeholder,
+              maxLength: widget.maxLength,
+              multiline: widget.multiline,
+              autofocus: true,
+              disabled: _busy,
+              clearable: widget.clearable,
+              onSubmitted: widget.multiline ? null : (_) => _confirm(),
+            ),
           ),
           if (error != null) ...[
             const SizedBox(height: FlareSizes.spacingSm),
@@ -541,7 +615,9 @@ class _FlarePromptState extends State<_FlarePrompt> {
               const SizedBox(width: FlareSizes.spacingMd),
               Expanded(
                 child: FlareButton(
-                  label: widget.confirmText ?? strings.confirm,
+                  label: error != null && widget.retryText != null
+                      ? widget.retryText!
+                      : widget.confirmText ?? strings.confirm,
                   size: FlareControlSize.lg,
                   block: true,
                   loading: _busy,

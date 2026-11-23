@@ -56,6 +56,7 @@ class FlareStrings {
     this.scanImageDecoding = "正在识别图片…",
     this.scanImageError = "图片识别失败，请重试或选择其他图片",
     this.scanNoCodeInImage = "图片中没有二维码",
+    this.scanRescan = "重新扫描",
     this.scanNoCamera = "此设备没有可用相机",
     this.scanInsecureContext = "相机需要安全连接，请选择图片",
     this.scanCameraBusy = "视频通话正在使用相机",
@@ -72,14 +73,27 @@ class FlareStrings {
     this.flipCamera = '翻转',
     this.speaker = '扬声器',
     this.hangUp = '挂断',
-    this.callWaitingAnswer = '等待对方接听…',
+    this.callWaitingAnswer = '等待对方接受邀请…',
+    this.callDockWaiting = '等待接听',
+    this.callEnded = '通话已结束 · {duration}',
+    this.callAnswerAudio = '语音接听',
+    this.callDecline = '拒接',
+    this.callEncrypted = '端到端加密',
+    this.callYou = '我',
+    this.callRedial = '重拨',
+    this.callMaxParticipants = '最多 {count} 人同时通话',
+    this.callInterrupted = '通话中断',
     this.callCalling = '正在呼叫…',
-    this.callRinging = '正在响铃…',
+    this.callSwapVideo = '互换画面',
+    this.callRinging = '对方响铃中…',
     this.callConnected = '已接通',
-    this.callReconnecting = '正在恢复通话…',
+    this.callReconnecting = '网络不稳定，正在重连…',
+    this.callReconnectingShort = '正在重连',
     this.callFailed = '通话连接失败',
     this.callReturn = '返回通话', // en: Return to call
     this.callMinimize = '最小化', // en: Minimize
+    this.callExpand = '展开', // en: Expand
+    this.callCollapse = '收起', // en: Collapse
     this.callPeerMuted = '对方已静音', // en: Peer muted
     this.callSwitchToVideo = '切换到视频', // en: Switch to video
     // 输入区
@@ -107,11 +121,13 @@ class FlareStrings {
     this.pluginFileSelected = '等待上传完成', // en: Waiting for upload
     this.pluginFileUploading = '上传中', // en: Uploading
     this.pluginFileUploaded = '已上传', // en: Uploaded
-    this.pluginFileFailed = '上传未完成，请重试或重新选择', // en: Upload is incomplete. Retry or choose another file
+    this.pluginFileFailed =
+        '上传未完成，请重试或重新选择', // en: Upload is incomplete. Retry or choose another file
     this.pluginFileReplace = '替换', // en: Replace
     this.pluginFileRemove = '移除', // en: Remove
     this.pluginFilePreview = '预览', // en: Preview
-    this.pluginFileRejected = '请选择符合格式与大小限制的文件', // en: Choose a file within the allowed format and size limits
+    this.pluginFileRejected =
+        '请选择符合格式与大小限制的文件', // en: Choose a file within the allowed format and size limits
     this.loading = '加载中',
     this.messagePending = '等待发送',
     this.messageSending = '发送中',
@@ -189,8 +205,16 @@ class FlareStrings {
     this.packetMissed = '手慢了，红包派完了',
     this.packetExpiredNotice = '红包已过期',
     this.packetNotEligible = '你不能领取这个红包',
-    this.packetOpenFailed = '领取失败，请重试',
+    this.packetOpenFailed = '没有领到，请重试',
     this.packetViewDetails = '查看领取详情',
+    this.packetViewResult = '查看结果',
+    this.packetRefundNotice = '未领取的红包将于 24 小时后退回',
+    this.packetGroupMembers = '本群共 {count} 人',
+    this.packetCountLimit = '最多可发 {n} 个红包',
+    this.packetClaimPendingReview = '红包已存入钱包；原操作仍待确认，可在下方查看。',
+    this.packetCountUnit = '个',
+    this.packetChooseRecipient = '请选择发给谁',
+    this.packetSend = '发红包',
     this.packetBestLuck = '手气最佳',
     this.packetNoClaims = '暂无人领取',
     this.packetClaims = '领取记录',
@@ -198,6 +222,7 @@ class FlareStrings {
     this.packetView = '查看红包',
     this.packetRefunded = '已退回',
     this.packetBadgeLucky = '拼手气',
+    this.packetBadgeLuckyShort = '拼',
     this.packetBadgeExclusive = '专属',
     this.packetForRecipient = '给 {name}',
     this.packetNotEligibleName = '仅 {name} 可领取',
@@ -284,11 +309,26 @@ class FlareStrings {
     // 插件卡片 v2、位置署名
     this.locationOsmAttribution = '© OpenStreetMap contributors',
     this.pluginViewSubmit = '提交',
+    this.pluginViewCopyReference = '复制{label}',
     this.pluginViewEnded = '已结束',
     this.pluginViewDeadlinePassed = '已截止',
     this.pluginViewSeeAll = '查看全部（{count}）',
     this.pluginViewDetail = '查看详情',
     this.pluginViewMore = '更多操作',
+    this.pluginViewUnknownStatus = '未知状态',
+    this.pluginViewOffline = '网络不可用，显示的是上次读取的内容',
+    this.pluginViewAvailableOnline = '联网后可用',
+    this.pluginViewLoadFailedTitle = '没有读到内容',
+    this.pluginViewNoOptions = '暂无可选项',
+    this.pluginViewNoOptionsHelp = '暂时无法选择，请稍后再试',
+    this.pluginViewUploading = '正在上传 {done}/{total}',
+    this.pluginViewGroupCommon = '常用',
+    this.pluginViewGroupRecords = '记录与设置',
+    this.pluginViewDone = '完成',
+    this.pluginViewEndOfList = '没有更多了',
+    this.pluginViewReferences = '单号与凭据',
+    this.pluginViewFilterEmpty = '这个筛选下没有记录',
+    this.pluginViewClearFilter = '清除筛选',
     this.pluginViewMe = '我',
     this.pluginViewUnavailableDisabled = '插件已停用',
     this.pluginViewUnavailableNotInstalled = '插件未安装',
@@ -304,18 +344,27 @@ class FlareStrings {
     this.accountEmpty = '暂无交易记录',
     this.accountEmptyDescription = '收支明细会显示在这里',
     this.accountInformation = '账户说明与规则',
+    this.accountOtherWallets = '其他钱包',
     this.accountEntryDetails = '交易详情',
     this.accountEntryId = '记录编号',
     this.accountType = '类型',
     this.accountToday = '今天',
     this.accountYesterday = '昨天',
+    this.walletSetupTitle = '开通钱包',
+    this.walletSetupBody = '开通后可充值、提现、收付款和查看账单',
+    this.realnamePhotosNeeded = '还差 {count} 张照片',
+    this.realnamePhotosNeededOne = '还差 {count} 张照片',
     this.accountOtherEntries = '其他记录',
     this.accountShowBalance = '显示余额',
     this.accountHideBalance = '隐藏余额',
     this.accountBalanceHidden = '余额已隐藏',
     this.accountDayFormat = 'M月d日',
     this.accountDayYearFormat = 'y年M月d日',
-    this.pluginViewEmpty = '暂无数据',
+    this.pluginViewEmpty = '暂无记录',
+    this.pluginViewLoading = '正在加载',
+    this.pluginViewLoadMore = '加载更多',
+    this.pluginFormMoneyRange = '金额范围：{min}–{max} {currency}',
+    this.pluginViewStepPosition = '第 {index} 步，共 {count} 步',
     this.pluginViewUnavailableUpgradeRequired = '更新应用后查看',
     this.pluginUpgradeAction = '去更新',
     this.pluginUpgradeNotAvailable = '当前版本暂不支持，新版本发布后可用',
@@ -353,25 +402,32 @@ class FlareStrings {
     this.capabilityMicrophone = '麦克风',
     this.capabilityRtcSession = '语音和视频通话',
     this.capabilityGeneric = '设备上的一项能力',
-    this.documentCaptureHintFront = '将证件正面放入框内，保持清晰、避免反光',
-    this.documentCaptureHintBack = '将证件反面放入框内，保持清晰、避免反光',
-    this.documentCaptureHintHolding = '手持证件放在胸前，脸和证件都要清晰',
+    this.documentCaptureHintFront = '将证件人像面放入框内',
+    this.documentCaptureHintBack = '将证件国徽面放入框内',
+    this.documentCaptureHintHolding = '手持证件，人脸与证件都要清晰',
     this.documentCaptureShoot = '拍摄',
     this.documentCaptureRetake = '重拍',
     this.documentCaptureUse = '使用照片',
-    this.documentCaptureFromAlbum = '从相册选择',
-    this.documentCaptureProcessing = '正在处理照片',
-    this.documentCaptureCameraUnavailable = '相机不可用，可从相册选择',
-    this.documentCaptureTooLarge = '照片太大，请重拍',
-    this.documentCaptureFailed = '照片无法处理，请重拍',
+    this.documentCaptureHintGlare = '避免反光和遮挡',
+    this.documentSlotTapToCapture = '点击拍摄',
+    this.documentSlotUploadFailed = '上传失败，点按重试',
+    this.documentSlotUploading = '正在上传 {percent}%',
+    this.documentSlotCaptured = '已拍摄',
+    this.documentSlotCapturedRetake = '已拍摄，点按重拍',
+    this.documentCaptureFromAlbum = '相册',
+    this.documentCaptureProcessing = '正在处理',
+    this.documentCaptureCameraUnavailable = '无法使用相机，可从相册选择',
+    this.documentCaptureTooLarge = '照片超过 5 MB，请换一张',
+    this.documentCaptureFailed = '没有处理成功，请重拍',
+    this.documentCaptureFormat = '只支持 JPG 和 PNG',
     this.documentCaptureNotAccepted = '这里不接受照片，请联系服务提供方',
     this.paymentConfirmationTitle = '确认付款',
     this.paymentConfirmationPayee = '收款方',
     this.paymentConfirmationItem = '付款说明',
     this.paymentConfirmationOrder = '订单号',
     this.paymentConfirmationRequestedBy = '由「{plugin}」发起',
-    this.paymentConfirmationExpiresIn = '{time} 后失效',
-    this.paymentConfirmationExpired = '订单已失效，请重新发起',
+    this.paymentConfirmationExpiresIn = '{time} 内有效',
+    this.paymentConfirmationExpired = '付款已过期',
     this.paymentConfirmationInvalid = '订单金额无法识别，不能付款',
     this.pluginBundleOpening = '正在打开…',
     this.pluginBundleUnavailable = '页面暂时无法打开',
@@ -401,11 +457,16 @@ class FlareStrings {
     this.pluginBridgeErrorRevoked = '页面已被停用',
     this.pluginBridgeErrorInternal = '出现问题，请稍后再试',
     this.paymentConfirmationConfirm = '确认付款',
-    this.paymentConfirmationVerifying = '正在验证身份',
+    this.paymentConfirmationVerifying = '正在验证身份…',
+    this.paymentConfirmationInsufficient = '余额不足，还差 {amount}',
+    this.paymentConfirmationTopUp = '去充值',
+    this.paymentConfirmationStartAgain = '重新发起',
+    this.pinInputProgress = '{label}，已输入 {count} 位',
     this.pluginProtectedMediaReason = '查看原因',
     this.pluginProtectedMediaNotice = '查看受保护材料需要说明原因，操作会留下审计记录。',
     this.pluginProtectedMediaOwnNotice = '仅你本人可查看，图片不会保存到设备。',
     this.pluginProtectedMediaView = '查看',
+    this.pluginProtectedMediaTapToView = '{label}，点按查看',
     this.pluginProtectedMediaHide = '隐藏',
     this.pluginProtectedMediaUnavailable = '无法显示，请重试',
     this.pluginProtectedMediaNotPreviewable = '此类文件不能在这里预览',
@@ -468,6 +529,7 @@ class FlareStrings {
     this.allowMultiple = '允许多选',
     this.submitPoll = '创建投票',
     this.chatBackground = '聊天背景',
+    this.chatReactionFailed = '表情回应失败', // en: Reaction failed
     // 步进 / 日历
     this.decrease = '减少',
     this.increase = '增加',
@@ -486,6 +548,7 @@ class FlareStrings {
     this.pickLocation = '所在位置',
     this.pickVisibility = '谁可以看',
     this.more = '更多',
+    this.searchViewMore = '查看更多', // en: See more
     this.momentActions = '动态操作', // en: Moment actions
     this.removeImage = '移除图片', // en: Remove image
     // 语音转文字 / 表情贴纸
@@ -512,8 +575,8 @@ class FlareStrings {
     this.actionMiniProgram = '小程序',
     this.actionTranslate = '翻译',
     // 来电
-    this.incomingVideoCall = '邀请你进行视频通话',
-    this.incomingVoiceCall = '邀请你进行语音通话',
+    this.incomingVideoCall = '邀请你视频通话',
+    this.incomingVoiceCall = '邀请你语音通话',
     this.reject = '拒绝',
     this.accept = '接听',
     // 通用
@@ -640,6 +703,11 @@ class FlareStrings {
     this.yesterday = '昨天', // en: Yesterday
     this.timeRange = '时间范围',
     this.searchIdleHint = '输入关键词或选择类型',
+    this.searchPanelSearching = '正在搜索…', // en: Searching…
+    // 最近搜索（FlareRecentSearches）
+    this.recentSearchesTitle = '最近搜索', // en: Recent searches
+    this.recentSearchesClear = '清除', // en: Clear
+    this.recentSearchesClearLabel = '清除最近搜索', // en: Clear recent searches
     this.permissionDismiss = '知道了',
     // 权限提示的轻询问（FlarePermissionPrompt(softAsk: true)）
     this.permissionNotNow = '以后再说',
@@ -650,7 +718,15 @@ class FlareStrings {
     this.permissionSoftAskNotificationsAction = '开启通知',
     // Composer（输入区工具 / 富文本工具条 / 按住说话）
     this.composerPlaceholder = '发送消息',
+    this.composerAttachmentPreview = '发送附件', // en: Send attachments
+    this.composerImageCaption = '添加图片说明',
+    this.composerImagePreview = '发送图片',
+    this.composerVideoCaption = '添加视频说明',
     this.composerReply = '回复',
+    this.composerEditingMessage = '编辑消息',
+    this.composerCancelEdit = '取消编辑',
+    this.composerSaveEdit = '保存编辑',
+    this.composerEditingPlaceholder = '编辑这条消息',
     this.composerVoice = '按住 说话',
     this.composerVoiceRecording = '松开发送 · 上滑取消',
     this.composerVoiceCancel = '松开手指，取消发送',
@@ -1107,8 +1183,10 @@ class FlareStrings {
     this.accessDiagnosticsSerial = '清单版本', // en: Manifest version
     this.accessDiagnosticsSource = '清单来源', // en: Manifest source
     this.accessDiagnosticsManifest = '清单状态', // en: Manifest status
-    this.accessDiagnosticsReportedAccessPoint = '服务端报告的接入点', // en: Reported by the server
-    this.accessDiagnosticsRecoveryRounds = '已尝试恢复轮数', // en: Recovery rounds so far
+    this.accessDiagnosticsReportedAccessPoint =
+        '服务端报告的接入点', // en: Reported by the server
+    this.accessDiagnosticsRecoveryRounds =
+        '已尝试恢复轮数', // en: Recovery rounds so far
     this.accessDiagnosticsManifestValid = '有效', // en: Valid
     this.accessDiagnosticsManifestStale = '已过期', // en: Expired
     this.accessDiagnosticsManifestNone = '暂无清单', // en: None yet
@@ -1120,7 +1198,8 @@ class FlareStrings {
     this.accessDiagnosticsSourceSeed = '内置种子', // en: Built-in seed
     this.accessDiagnosticsSourceMirror = '镜像', // en: Mirror
     this.accessDiagnosticsSourceRecovery = '恢复链接', // en: Recovery link
-    this.accessDiagnosticsSourceDevelopment = '开发配置', // en: Development configuration
+    this.accessDiagnosticsSourceDevelopment =
+        '开发配置', // en: Development configuration
     this.accessDiagnosticsSourceNone = '无', // en: None
     this.accessDiagnosticsStatusActive = '可用', // en: Available
     this.accessDiagnosticsStatusDraining = '即将下线', // en: Draining
@@ -1137,30 +1216,48 @@ class FlareStrings {
     this.accessDiagnosticsExport = '复制诊断', // en: Copy diagnostics
     this.accessDiagnosticsImport = '导入', // en: Import
     this.accessDiagnosticsImportLabel = '导入恢复链接', // en: Import a recovery link
-    this.accessDiagnosticsImportPlaceholder = '粘贴 flare-recover:// 链接', // en: Paste a flare-recover:// link
-    this.accessDiagnosticsImportHint = '线路一直无法恢复时，可向客服索取恢复链接。', // en: If the service does not come back, ask support for a recovery link.
+    this.accessDiagnosticsImportPlaceholder =
+        '粘贴 flare-recover:// 链接', // en: Paste a flare-recover:// link
+    this.accessDiagnosticsImportHint =
+        '线路一直无法恢复时，可向客服索取恢复链接。', // en: If the service does not come back, ask support for a recovery link.
     this.accessDiagnosticsHealthy = '线路正常', // en: Connection is healthy
     this.accessDiagnosticsNotConnected = '当前没有连接', // en: Not connected
-    this.accessDiagnosticsAccessPointMismatch = '服务端报告的接入点与当前线路不一致，连接不受影响', // en: The server reports a different access point. The connection is not affected.
-    this.accessDiagnosticsManifestStaleNotice = '线路清单已过期，仍可连接，正在更新', // en: The line manifest has expired. You can still connect while it updates.
+    this.accessDiagnosticsAccessPointMismatch =
+        '服务端报告的接入点与当前线路不一致，连接不受影响', // en: The server reports a different access point. The connection is not affected.
+    this.accessDiagnosticsManifestStaleNotice =
+        '线路清单已过期，仍可连接，正在更新', // en: The line manifest has expired. You can still connect while it updates.
     this.accessDiagnosticsRefreshAdopted = '线路已更新', // en: Lines updated
-    this.accessDiagnosticsRefreshUpToDate = '线路已是最新', // en: Lines are up to date
-    this.accessDiagnosticsRefreshFailed = '暂时无法更新线路，稍后会自动重试', // en: Could not update the lines. Retrying automatically.
-    this.accessDiagnosticsRefreshSkipped = '开发模式下线路由配置决定', // en: In development mode the lines come from the configuration.
-    this.accessDiagnosticsImportAdopted = '恢复链接已导入，正在切换线路', // en: Recovery link imported. Switching lines.
-    this.accessDiagnosticsImportUnchanged = '这条链接已经导入过', // en: This link was already imported.
-    this.accessDiagnosticsImportRollback = '这条链接比本机线路旧，不需要导入', // en: This link is older than the lines on this device.
-    this.accessDiagnosticsImportExpired = '这条链接已过期，请重新获取', // en: This link has expired. Ask for a new one.
-    this.accessDiagnosticsImportWrongApp = '这条链接不属于当前应用', // en: This link belongs to another app.
-    this.accessDiagnosticsImportDevelopmentMode = '开发模式不使用恢复链接', // en: Recovery links are not used in development mode.
-    this.accessDiagnosticsImportUntrusted = '链接校验失败，请确认它来自官方渠道', // en: This link could not be verified. Make sure it came from an official channel.
-    this.accessDiagnosticsImportMalformed = '链接格式不正确，请完整复制后重试', // en: This link is malformed. Copy the whole link and try again.
-    this.accessDiagnosticsImportRejected = '无法导入这条链接', // en: This link cannot be imported.
+    this.accessDiagnosticsRefreshUpToDate =
+        '线路已是最新', // en: Lines are up to date
+    this.accessDiagnosticsRefreshFailed =
+        '暂时无法更新线路，稍后会自动重试', // en: Could not update the lines. Retrying automatically.
+    this.accessDiagnosticsRefreshSkipped =
+        '开发模式下线路由配置决定', // en: In development mode the lines come from the configuration.
+    this.accessDiagnosticsImportAdopted =
+        '恢复链接已导入，正在切换线路', // en: Recovery link imported. Switching lines.
+    this.accessDiagnosticsImportUnchanged =
+        '这条链接已经导入过', // en: This link was already imported.
+    this.accessDiagnosticsImportRollback =
+        '这条链接比本机线路旧，不需要导入', // en: This link is older than the lines on this device.
+    this.accessDiagnosticsImportExpired =
+        '这条链接已过期，请重新获取', // en: This link has expired. Ask for a new one.
+    this.accessDiagnosticsImportWrongApp =
+        '这条链接不属于当前应用', // en: This link belongs to another app.
+    this.accessDiagnosticsImportDevelopmentMode =
+        '开发模式不使用恢复链接', // en: Recovery links are not used in development mode.
+    this.accessDiagnosticsImportUntrusted =
+        '链接校验失败，请确认它来自官方渠道', // en: This link could not be verified. Make sure it came from an official channel.
+    this.accessDiagnosticsImportMalformed =
+        '链接格式不正确，请完整复制后重试', // en: This link is malformed. Copy the whole link and try again.
+    this.accessDiagnosticsImportRejected =
+        '无法导入这条链接', // en: This link cannot be imported.
     this.accessDiagnosticsExportCopied = '诊断信息已复制', // en: Diagnostics copied
-    this.accessDiagnosticsExportFailed = '复制失败，请重试', // en: Could not copy. Try again.
+    this.accessDiagnosticsExportFailed =
+        '复制失败，请重试', // en: Could not copy. Try again.
     this.updatePromptTitleAvailable = '发现新版本', // en: New version available
     this.updatePromptTitleRequired = '需要更新', // en: Update required
-    this.updatePromptTitleMetered = '使用计费网络下载？', // en: Download on a metered network?
+    this.updatePromptTitleMetered =
+        '使用计费网络下载？', // en: Download on a metered network?
     this.updatePromptTitleDownloading = '正在下载更新', // en: Downloading update
     this.updatePromptTitleVerifying = '正在校验更新', // en: Verifying update
     this.updatePromptTitleReady = '更新已就绪', // en: Update ready
@@ -1168,27 +1265,45 @@ class FlareStrings {
     this.updatePromptTitleFailed = '更新失败', // en: Update failed
     this.updatePromptVersion = '版本', // en: Version
     this.updatePromptNotes = '更新内容', // en: What's new
-    this.updatePromptMessageRequired = '当前版本已停止支持，更新后才能继续使用。', // en: This version is no longer supported. Update to keep using the app.
-    this.updatePromptMessageRequiredReadOnly = '更新后才能发送消息，现在可以继续浏览本地内容。', // en: Update to send messages. You can keep browsing what is on this device.
-    this.composerReadOnlyUpdate = '更新后才能发送消息', // en: Update to send messages. You can keep browsing what is on this device.
-    this.updatePromptMessageMetered = '当前是计费网络，这次下载约', // en: You are on a metered network. This download is about
-    this.updatePromptMessageMeteredUnknown = '当前是计费网络，下载会消耗流量。', // en: You are on a metered network. The download will use data.
-    this.updatePromptMessageReady = '重启后新版本生效，应用不会自动重启。', // en: The new version starts after a restart. The app will not restart by itself.
-    this.updatePromptFailManifestUnavailable = '暂时获取不到更新信息，请检查网络后重试。', // en: Could not get the update information. Check your network and try again.
-    this.updatePromptFailManifestRejected = '更新信息未通过校验。', // en: The update information failed verification.
-    this.updatePromptFailNoArtifact = '这个版本暂时没有适合本设备的安装包。', // en: This version has no package for this device yet.
-    this.updatePromptFailInsufficientSpace = '存储空间不足，清理后重试。', // en: Not enough storage. Free up some space and try again.
-    this.updatePromptFailDownload = '下载失败，请检查网络后重试。', // en: The download failed. Check your network and try again.
-    this.updatePromptFailHashMismatch = '下载的文件未通过校验，请重试。', // en: The download failed verification. Try again.
-    this.updatePromptFailInstall = '安装失败，请重试。', // en: The installation failed. Try again.
-    this.updatePromptFailSignatureMismatch = '安装包签名不匹配，已停止安装。', // en: The package signature does not match. Installation stopped.
-    this.updatePromptFailDowngrade = '不能安装比当前更旧的版本。', // en: A version older than this one cannot be installed.
-    this.updatePromptFailNotSkippable = '这个版本不能跳过。', // en: This version cannot be skipped.
-    this.updatePromptFailUnknown = '更新没有完成，请稍后重试。', // en: The update did not finish. Try again later.
+    this.updatePromptMessageRequired =
+        '当前版本已停止支持，更新后才能继续使用。', // en: This version is no longer supported. Update to keep using the app.
+    this.updatePromptMessageRequiredReadOnly =
+        '更新后才能发送消息，现在可以继续浏览本地内容。', // en: Update to send messages. You can keep browsing what is on this device.
+    this.composerReadOnlyUpdate =
+        '更新后才能发送消息', // en: Update to send messages. You can keep browsing what is on this device.
+    this.updatePromptMessageMetered =
+        '当前是计费网络，这次下载约', // en: You are on a metered network. This download is about
+    this.updatePromptMessageMeteredUnknown =
+        '当前是计费网络，下载会消耗流量。', // en: You are on a metered network. The download will use data.
+    this.updatePromptMessageReady =
+        '重启后新版本生效，应用不会自动重启。', // en: The new version starts after a restart. The app will not restart by itself.
+    this.updatePromptFailManifestUnavailable =
+        '暂时获取不到更新信息，请检查网络后重试。', // en: Could not get the update information. Check your network and try again.
+    this.updatePromptFailManifestRejected =
+        '更新信息未通过校验。', // en: The update information failed verification.
+    this.updatePromptFailNoArtifact =
+        '这个版本暂时没有适合本设备的安装包。', // en: This version has no package for this device yet.
+    this.updatePromptFailInsufficientSpace =
+        '存储空间不足，清理后重试。', // en: Not enough storage. Free up some space and try again.
+    this.updatePromptFailDownload =
+        '下载失败，请检查网络后重试。', // en: The download failed. Check your network and try again.
+    this.updatePromptFailHashMismatch =
+        '下载的文件未通过校验，请重试。', // en: The download failed verification. Try again.
+    this.updatePromptFailInstall =
+        '安装失败，请重试。', // en: The installation failed. Try again.
+    this.updatePromptFailSignatureMismatch =
+        '安装包签名不匹配，已停止安装。', // en: The package signature does not match. Installation stopped.
+    this.updatePromptFailDowngrade =
+        '不能安装比当前更旧的版本。', // en: A version older than this one cannot be installed.
+    this.updatePromptFailNotSkippable =
+        '这个版本不能跳过。', // en: This version cannot be skipped.
+    this.updatePromptFailUnknown =
+        '更新没有完成，请稍后重试。', // en: The update did not finish. Try again later.
     this.updatePromptContinueDownload = '继续下载', // en: Continue download
     this.updatePromptRestart = '重启以完成更新', // en: Restart to finish updating
     this.updatePromptRetry = '重试', // en: Try again
-    this.updatePromptFallbackWebsite = '前往官网下载', // en: Download from the website
+    this.updatePromptFallbackWebsite =
+        '前往官网下载', // en: Download from the website
     this.updatePromptFallbackStore = '前往应用商店', // en: Go to the app store
     this.updatePromptLater = '稍后', // en: Later
     this.updatePromptBackground = '后台下载', // en: Download in background
@@ -1213,9 +1328,15 @@ class FlareStrings {
     this.groupDetailNoMatchingMembers = '没有匹配的群成员', // en: No matching members
     this.profilePanelEditProfile =
         _profilePanelEditProfile, // en: {name}, edit profile
+    this.profilePanelMenuIncomplete =
+        '部分入口暂时未能加载，请重试。', // en: Some entries could not be loaded. Try again.
     this.momentReplyTo = '回复', // en: replying to
     this.momentReplyToComment =
         _momentReplyToComment, // en: Reply to {name}: {text}
+    this.momentCommentsTitle = '评论', // en: Comments
+    this.momentNoComments = '还没有评论', // en: No comments yet
+    this.momentLocatedComment = '已定位评论', // en: Located comment
+    this.momentDetailTitle = '动态详情', // en: Post details
     this.favorites = '收藏', // en: Favorites
     this.moments = '圈子', // en: Moments
     this.settings = '设置', // en: Settings
@@ -1250,10 +1371,21 @@ class FlareStrings {
   final String speaker;
   final String hangUp;
   final String callWaitingAnswer;
+  final String callDockWaiting;
+  final String callEnded;
+  final String callAnswerAudio;
+  final String callDecline;
+  final String callEncrypted;
+  final String callYou;
+  final String callRedial;
+  final String callMaxParticipants;
+  final String callInterrupted;
   final String callCalling;
+  final String callSwapVideo;
   final String callRinging;
   final String callConnected;
   final String callReconnecting;
+  final String callReconnectingShort;
   final String callFailed;
 
   /// The call dock's main control, which returns to the full call.
@@ -1261,6 +1393,8 @@ class FlareStrings {
 
   /// The group call's minimize control.
   final String callMinimize;
+  final String callExpand;
+  final String callCollapse;
 
   /// The peer's mic-off badge on [FlareCallView], read by screen readers.
   final String callPeerMuted;
@@ -1393,6 +1527,14 @@ class FlareStrings {
   final String packetNotEligible;
   final String packetOpenFailed;
   final String packetViewDetails;
+  final String packetViewResult;
+  final String packetRefundNotice;
+  final String packetGroupMembers;
+  final String packetCountLimit;
+  final String packetClaimPendingReview;
+  final String packetCountUnit;
+  final String packetChooseRecipient;
+  final String packetSend;
   final String packetBestLuck;
   final String packetNoClaims;
   final String packetClaims;
@@ -1400,6 +1542,7 @@ class FlareStrings {
   final String packetView;
   final String packetRefunded;
   final String packetBadgeLucky;
+  final String packetBadgeLuckyShort;
   final String packetBadgeExclusive;
   final String packetForRecipient;
   final String packetNotEligibleName;
@@ -1493,6 +1636,7 @@ class FlareStrings {
   /// OpenStreetMap's data credit (ODbL), drawn on its static maps; not translated.
   final String locationOsmAttribution;
   final String pluginViewSubmit;
+  final String pluginViewCopyReference;
   final String pluginViewEnded;
   final String pluginViewDeadlinePassed;
   final String pluginViewSeeAll;
@@ -1500,6 +1644,20 @@ class FlareStrings {
   /// The card's key to the detail view when no entries block offers "see all".
   final String pluginViewDetail;
   final String pluginViewMore;
+  final String pluginViewUnknownStatus;
+  final String pluginViewOffline;
+  final String pluginViewAvailableOnline;
+  final String pluginViewLoadFailedTitle;
+  final String pluginViewNoOptions;
+  final String pluginViewNoOptionsHelp;
+  final String pluginViewUploading;
+  final String pluginViewGroupCommon;
+  final String pluginViewGroupRecords;
+  final String pluginViewDone;
+  final String pluginViewEndOfList;
+  final String pluginViewReferences;
+  final String pluginViewFilterEmpty;
+  final String pluginViewClearFilter;
   final String pluginViewMe;
   final String pluginViewUnavailableDisabled;
   final String pluginViewUnavailableNotInstalled;
@@ -1521,11 +1679,16 @@ class FlareStrings {
   final String accountEmpty;
   final String accountEmptyDescription;
   final String accountInformation;
+  final String accountOtherWallets;
   final String accountEntryDetails;
   final String accountEntryId;
   final String accountType;
   final String accountToday;
   final String accountYesterday;
+  final String walletSetupTitle;
+  final String walletSetupBody;
+  final String realnamePhotosNeeded;
+  final String realnamePhotosNeededOne;
   final String accountOtherEntries;
   final String accountShowBalance;
   final String accountHideBalance;
@@ -1533,6 +1696,10 @@ class FlareStrings {
   final String accountDayFormat;
   final String accountDayYearFormat;
   final String pluginViewEmpty;
+  final String pluginViewLoading;
+  final String pluginViewLoadMore;
+  final String pluginFormMoneyRange;
+  final String pluginViewStepPosition;
   final String pluginViewUnavailableUpgradeRequired;
   final String pluginUpgradeAction;
   final String pluginUpgradeNotAvailable;
@@ -1576,11 +1743,18 @@ class FlareStrings {
   final String documentCaptureShoot;
   final String documentCaptureRetake;
   final String documentCaptureUse;
+  final String documentCaptureHintGlare;
+  final String documentSlotTapToCapture;
+  final String documentSlotUploadFailed;
+  final String documentSlotUploading;
+  final String documentSlotCaptured;
+  final String documentSlotCapturedRetake;
   final String documentCaptureFromAlbum;
   final String documentCaptureProcessing;
   final String documentCaptureCameraUnavailable;
   final String documentCaptureTooLarge;
   final String documentCaptureFailed;
+  final String documentCaptureFormat;
   final String documentCaptureNotAccepted;
   final String paymentConfirmationTitle;
   final String paymentConfirmationPayee;
@@ -1621,10 +1795,15 @@ class FlareStrings {
   final String pluginBridgeErrorInternal;
   final String paymentConfirmationConfirm;
   final String paymentConfirmationVerifying;
+  final String paymentConfirmationInsufficient;
+  final String paymentConfirmationTopUp;
+  final String paymentConfirmationStartAgain;
+  final String pinInputProgress;
   final String pluginProtectedMediaReason;
   final String pluginProtectedMediaNotice;
   final String pluginProtectedMediaOwnNotice;
   final String pluginProtectedMediaView;
+  final String pluginProtectedMediaTapToView;
   final String pluginProtectedMediaHide;
   final String pluginProtectedMediaUnavailable;
   final String pluginProtectedMediaNotPreviewable;
@@ -1696,6 +1875,9 @@ class FlareStrings {
   final String allowMultiple;
   final String submitPoll;
   final String chatBackground;
+
+  /// A reaction the user added or removed did not go through.
+  final String chatReactionFailed;
   // 步进 / 日历
   final String decrease;
   final String increase;
@@ -1716,6 +1898,9 @@ class FlareStrings {
   final String pickLocation;
   final String pickVisibility;
   final String more;
+
+  /// A search result group's key to its own scope when it found more than it shows.
+  final String searchViewMore;
 
   /// The moment card's ··· control, which opens like / comment / delete.
   final String momentActions;
@@ -1883,6 +2068,12 @@ class FlareStrings {
   final String yesterday;
   final String timeRange;
   final String searchIdleHint;
+
+  /// A search panel's first search is running and has nothing to show yet.
+  final String searchPanelSearching;
+  final String recentSearchesTitle;
+  final String recentSearchesClear;
+  final String recentSearchesClearLabel;
   final String permissionDismiss;
   // 权限提示的轻询问（FlarePermissionPrompt(softAsk: true)）
   final String permissionNotNow;
@@ -1892,7 +2083,20 @@ class FlareStrings {
   final String permissionSoftAskNotificationsAction;
   // Composer（输入区工具 / 富文本工具条 / 按住说话）
   final String composerPlaceholder;
+
+  /// The sheet that shows picked pictures or a file before they are sent.
+  final String composerAttachmentPreview;
+  final String composerImageCaption;
+  final String composerImagePreview;
+  final String composerVideoCaption;
   final String composerReply;
+
+  /// The strip over the field while the composer holds a sent message being
+  /// edited, its close control, and the send key's name meanwhile.
+  final String composerEditingMessage;
+  final String composerCancelEdit;
+  final String composerSaveEdit;
+  final String composerEditingPlaceholder;
   final String composerVoice;
   final String composerVoiceRecording;
   final String composerVoiceCancel;
@@ -2458,11 +2662,28 @@ class FlareStrings {
   /// The profile panel's identity control, which opens the profile editor.
   final String Function(String name) profilePanelEditProfile;
 
+  /// The account page's notice when the menu the SDK returned is incomplete
+  /// (`me_menu` answered `complete: false` or could not be read); the host
+  /// offers a retry beside it.
+  final String profilePanelMenuIncomplete;
+
   /// Between a comment's author and the person it replies to.
   final String momentReplyTo;
 
   /// A moment comment row that replies to [name]'s comment [text].
   final String Function(String name, String text) momentReplyToComment;
+
+  /// The comments heading of a moment's detail view (followed by the count).
+  final String momentCommentsTitle;
+
+  /// A moment's detail view without comments.
+  final String momentNoComments;
+
+  /// The tag on the comment a detail view was opened to.
+  final String momentLocatedComment;
+
+  /// The title of the moment detail surface.
+  final String momentDetailTitle;
 
   /// The profile panel's default entry for the user's favorites.
   final String favorites;
@@ -2519,6 +2740,7 @@ class FlareStrings {
   final String scanImageDecoding;
   final String scanImageError;
   final String scanNoCodeInImage;
+  final String scanRescan;
   final String scanNoCamera;
   final String scanInsecureContext;
   final String scanCameraBusy;
@@ -2586,6 +2808,7 @@ class FlareStrings {
     String? scanImageDecoding,
     String? scanImageError,
     String? scanNoCodeInImage,
+    String? scanRescan,
     String? scanNoCamera,
     String? scanInsecureContext,
     String? scanCameraBusy,
@@ -2603,13 +2826,26 @@ class FlareStrings {
     String? speaker,
     String? hangUp,
     String? callWaitingAnswer,
+    String? callDockWaiting,
+    String? callEnded,
+    String? callAnswerAudio,
+    String? callDecline,
+    String? callEncrypted,
+    String? callYou,
+    String? callRedial,
+    String? callMaxParticipants,
+    String? callInterrupted,
     String? callCalling,
+    String? callSwapVideo,
     String? callRinging,
     String? callConnected,
     String? callReconnecting,
+    String? callReconnectingShort,
     String? callFailed,
     String? callReturn,
     String? callMinimize,
+    String? callExpand,
+    String? callCollapse,
     String? callPeerMuted,
     String? callSwitchToVideo,
     String? send,
@@ -2708,6 +2944,14 @@ class FlareStrings {
     String? packetNotEligible,
     String? packetOpenFailed,
     String? packetViewDetails,
+    String? packetViewResult,
+    String? packetRefundNotice,
+    String? packetGroupMembers,
+    String? packetCountLimit,
+    String? packetClaimPendingReview,
+    String? packetCountUnit,
+    String? packetChooseRecipient,
+    String? packetSend,
     String? packetBestLuck,
     String? packetNoClaims,
     String? packetClaims,
@@ -2715,6 +2959,7 @@ class FlareStrings {
     String? packetView,
     String? packetRefunded,
     String? packetBadgeLucky,
+    String? packetBadgeLuckyShort,
     String? packetBadgeExclusive,
     String? packetForRecipient,
     String? packetNotEligibleName,
@@ -2796,11 +3041,26 @@ class FlareStrings {
     String? contactPickerSelfSuffix,
     String? locationOsmAttribution,
     String? pluginViewSubmit,
+    String? pluginViewCopyReference,
     String? pluginViewEnded,
     String? pluginViewDeadlinePassed,
     String? pluginViewSeeAll,
     String? pluginViewDetail,
     String? pluginViewMore,
+    String? pluginViewUnknownStatus,
+    String? pluginViewOffline,
+    String? pluginViewAvailableOnline,
+    String? pluginViewLoadFailedTitle,
+    String? pluginViewNoOptions,
+    String? pluginViewNoOptionsHelp,
+    String? pluginViewUploading,
+    String? pluginViewGroupCommon,
+    String? pluginViewGroupRecords,
+    String? pluginViewDone,
+    String? pluginViewEndOfList,
+    String? pluginViewReferences,
+    String? pluginViewFilterEmpty,
+    String? pluginViewClearFilter,
     String? pluginViewMe,
     String? pluginViewUnavailableDisabled,
     String? pluginViewUnavailableNotInstalled,
@@ -2816,11 +3076,16 @@ class FlareStrings {
     String? accountEmpty,
     String? accountEmptyDescription,
     String? accountInformation,
+    String? accountOtherWallets,
     String? accountEntryDetails,
     String? accountEntryId,
     String? accountType,
     String? accountToday,
     String? accountYesterday,
+    String? walletSetupTitle,
+    String? walletSetupBody,
+    String? realnamePhotosNeeded,
+    String? realnamePhotosNeededOne,
     String? accountOtherEntries,
     String? accountShowBalance,
     String? accountHideBalance,
@@ -2828,6 +3093,10 @@ class FlareStrings {
     String? accountDayFormat,
     String? accountDayYearFormat,
     String? pluginViewEmpty,
+    String? pluginViewLoading,
+    String? pluginViewLoadMore,
+    String? pluginFormMoneyRange,
+    String? pluginViewStepPosition,
     String? pluginViewUnavailableUpgradeRequired,
     String? pluginUpgradeAction,
     String? pluginUpgradeNotAvailable,
@@ -2871,11 +3140,18 @@ class FlareStrings {
     String? documentCaptureShoot,
     String? documentCaptureRetake,
     String? documentCaptureUse,
+    String? documentCaptureHintGlare,
+    String? documentSlotTapToCapture,
+    String? documentSlotUploadFailed,
+    String? documentSlotUploading,
+    String? documentSlotCaptured,
+    String? documentSlotCapturedRetake,
     String? documentCaptureFromAlbum,
     String? documentCaptureProcessing,
     String? documentCaptureCameraUnavailable,
     String? documentCaptureTooLarge,
     String? documentCaptureFailed,
+    String? documentCaptureFormat,
     String? documentCaptureNotAccepted,
     String? paymentConfirmationTitle,
     String? paymentConfirmationPayee,
@@ -2914,10 +3190,15 @@ class FlareStrings {
     String? pluginBridgeErrorInternal,
     String? paymentConfirmationConfirm,
     String? paymentConfirmationVerifying,
+    String? paymentConfirmationInsufficient,
+    String? paymentConfirmationTopUp,
+    String? paymentConfirmationStartAgain,
+    String? pinInputProgress,
     String? pluginProtectedMediaReason,
     String? pluginProtectedMediaNotice,
     String? pluginProtectedMediaOwnNotice,
     String? pluginProtectedMediaView,
+    String? pluginProtectedMediaTapToView,
     String? pluginProtectedMediaHide,
     String? pluginProtectedMediaUnavailable,
     String? pluginProtectedMediaNotPreviewable,
@@ -2978,6 +3259,7 @@ class FlareStrings {
     String? allowMultiple,
     String? submitPoll,
     String? chatBackground,
+    String? chatReactionFailed,
     String? decrease,
     String? increase,
     String? previousMonth,
@@ -2994,6 +3276,7 @@ class FlareStrings {
     String? pickLocation,
     String? pickVisibility,
     String? more,
+    String? searchViewMore,
     String? momentActions,
     String? removeImage,
     String? hideTranscript,
@@ -3139,6 +3422,10 @@ class FlareStrings {
     String? yesterday,
     String? timeRange,
     String? searchIdleHint,
+    String? searchPanelSearching,
+    String? recentSearchesTitle,
+    String? recentSearchesClear,
+    String? recentSearchesClearLabel,
     String? permissionDismiss,
     String? permissionNotNow,
     String? permissionSoftAskNotificationsTitle,
@@ -3146,7 +3433,15 @@ class FlareStrings {
     String? permissionSoftAskNotificationsDeniedBody,
     String? permissionSoftAskNotificationsAction,
     String? composerPlaceholder,
+    String? composerAttachmentPreview,
+    String? composerImageCaption,
+    String? composerImagePreview,
+    String? composerVideoCaption,
     String? composerReply,
+    String? composerEditingMessage,
+    String? composerCancelEdit,
+    String? composerSaveEdit,
+    String? composerEditingPlaceholder,
     String? composerVoice,
     String? composerVoiceRecording,
     String? composerVoiceCancel,
@@ -3667,8 +3962,13 @@ class FlareStrings {
     String? groupDetailSearchMembers,
     String? groupDetailNoMatchingMembers,
     String Function(String name)? profilePanelEditProfile,
+    String? profilePanelMenuIncomplete,
     String? momentReplyTo,
     String Function(String name, String text)? momentReplyToComment,
+    String? momentCommentsTitle,
+    String? momentNoComments,
+    String? momentLocatedComment,
+    String? momentDetailTitle,
     String? favorites,
     String? moments,
     String? settings,
@@ -3727,6 +4027,7 @@ class FlareStrings {
       scanImageDecoding: scanImageDecoding ?? this.scanImageDecoding,
       scanImageError: scanImageError ?? this.scanImageError,
       scanNoCodeInImage: scanNoCodeInImage ?? this.scanNoCodeInImage,
+      scanRescan: scanRescan ?? this.scanRescan,
       scanNoCamera: scanNoCamera ?? this.scanNoCamera,
       scanInsecureContext: scanInsecureContext ?? this.scanInsecureContext,
       scanCameraBusy: scanCameraBusy ?? this.scanCameraBusy,
@@ -3744,13 +4045,27 @@ class FlareStrings {
       speaker: speaker ?? this.speaker,
       hangUp: hangUp ?? this.hangUp,
       callWaitingAnswer: callWaitingAnswer ?? this.callWaitingAnswer,
+      callDockWaiting: callDockWaiting ?? this.callDockWaiting,
+      callEnded: callEnded ?? this.callEnded,
+      callAnswerAudio: callAnswerAudio ?? this.callAnswerAudio,
+      callDecline: callDecline ?? this.callDecline,
+      callEncrypted: callEncrypted ?? this.callEncrypted,
+      callYou: callYou ?? this.callYou,
+      callRedial: callRedial ?? this.callRedial,
+      callMaxParticipants: callMaxParticipants ?? this.callMaxParticipants,
+      callInterrupted: callInterrupted ?? this.callInterrupted,
       callCalling: callCalling ?? this.callCalling,
+      callSwapVideo: callSwapVideo ?? this.callSwapVideo,
       callRinging: callRinging ?? this.callRinging,
       callConnected: callConnected ?? this.callConnected,
       callReconnecting: callReconnecting ?? this.callReconnecting,
+      callReconnectingShort:
+          callReconnectingShort ?? this.callReconnectingShort,
       callFailed: callFailed ?? this.callFailed,
       callReturn: callReturn ?? this.callReturn,
       callMinimize: callMinimize ?? this.callMinimize,
+      callExpand: callExpand ?? this.callExpand,
+      callCollapse: callCollapse ?? this.callCollapse,
       callPeerMuted: callPeerMuted ?? this.callPeerMuted,
       callSwitchToVideo: callSwitchToVideo ?? this.callSwitchToVideo,
       send: send ?? this.send,
@@ -3855,6 +4170,16 @@ class FlareStrings {
       packetNotEligible: packetNotEligible ?? this.packetNotEligible,
       packetOpenFailed: packetOpenFailed ?? this.packetOpenFailed,
       packetViewDetails: packetViewDetails ?? this.packetViewDetails,
+      packetViewResult: packetViewResult ?? this.packetViewResult,
+      packetRefundNotice: packetRefundNotice ?? this.packetRefundNotice,
+      packetGroupMembers: packetGroupMembers ?? this.packetGroupMembers,
+      packetCountLimit: packetCountLimit ?? this.packetCountLimit,
+      packetClaimPendingReview:
+          packetClaimPendingReview ?? this.packetClaimPendingReview,
+      packetCountUnit: packetCountUnit ?? this.packetCountUnit,
+      packetChooseRecipient:
+          packetChooseRecipient ?? this.packetChooseRecipient,
+      packetSend: packetSend ?? this.packetSend,
       packetBestLuck: packetBestLuck ?? this.packetBestLuck,
       packetNoClaims: packetNoClaims ?? this.packetNoClaims,
       packetClaims: packetClaims ?? this.packetClaims,
@@ -3862,6 +4187,8 @@ class FlareStrings {
       packetView: packetView ?? this.packetView,
       packetRefunded: packetRefunded ?? this.packetRefunded,
       packetBadgeLucky: packetBadgeLucky ?? this.packetBadgeLucky,
+      packetBadgeLuckyShort:
+          packetBadgeLuckyShort ?? this.packetBadgeLuckyShort,
       packetBadgeExclusive: packetBadgeExclusive ?? this.packetBadgeExclusive,
       packetForRecipient: packetForRecipient ?? this.packetForRecipient,
       packetNotEligibleName:
@@ -3971,12 +4298,36 @@ class FlareStrings {
       locationOsmAttribution:
           locationOsmAttribution ?? this.locationOsmAttribution,
       pluginViewSubmit: pluginViewSubmit ?? this.pluginViewSubmit,
+      pluginViewCopyReference:
+          pluginViewCopyReference ?? this.pluginViewCopyReference,
       pluginViewEnded: pluginViewEnded ?? this.pluginViewEnded,
       pluginViewDeadlinePassed:
           pluginViewDeadlinePassed ?? this.pluginViewDeadlinePassed,
       pluginViewSeeAll: pluginViewSeeAll ?? this.pluginViewSeeAll,
       pluginViewDetail: pluginViewDetail ?? this.pluginViewDetail,
       pluginViewMore: pluginViewMore ?? this.pluginViewMore,
+      pluginViewUnknownStatus:
+          pluginViewUnknownStatus ?? this.pluginViewUnknownStatus,
+      pluginViewOffline: pluginViewOffline ?? this.pluginViewOffline,
+      pluginViewAvailableOnline:
+          pluginViewAvailableOnline ?? this.pluginViewAvailableOnline,
+      pluginViewLoadFailedTitle:
+          pluginViewLoadFailedTitle ?? this.pluginViewLoadFailedTitle,
+      pluginViewNoOptions: pluginViewNoOptions ?? this.pluginViewNoOptions,
+      pluginViewNoOptionsHelp:
+          pluginViewNoOptionsHelp ?? this.pluginViewNoOptionsHelp,
+      pluginViewUploading: pluginViewUploading ?? this.pluginViewUploading,
+      pluginViewGroupCommon:
+          pluginViewGroupCommon ?? this.pluginViewGroupCommon,
+      pluginViewGroupRecords:
+          pluginViewGroupRecords ?? this.pluginViewGroupRecords,
+      pluginViewDone: pluginViewDone ?? this.pluginViewDone,
+      pluginViewEndOfList: pluginViewEndOfList ?? this.pluginViewEndOfList,
+      pluginViewReferences: pluginViewReferences ?? this.pluginViewReferences,
+      pluginViewFilterEmpty:
+          pluginViewFilterEmpty ?? this.pluginViewFilterEmpty,
+      pluginViewClearFilter:
+          pluginViewClearFilter ?? this.pluginViewClearFilter,
       pluginViewMe: pluginViewMe ?? this.pluginViewMe,
       pluginViewUnavailableDisabled:
           pluginViewUnavailableDisabled ?? this.pluginViewUnavailableDisabled,
@@ -4007,11 +4358,17 @@ class FlareStrings {
       accountEmptyDescription:
           accountEmptyDescription ?? this.accountEmptyDescription,
       accountInformation: accountInformation ?? this.accountInformation,
+      accountOtherWallets: accountOtherWallets ?? this.accountOtherWallets,
       accountEntryDetails: accountEntryDetails ?? this.accountEntryDetails,
       accountEntryId: accountEntryId ?? this.accountEntryId,
       accountType: accountType ?? this.accountType,
       accountToday: accountToday ?? this.accountToday,
       accountYesterday: accountYesterday ?? this.accountYesterday,
+      walletSetupTitle: walletSetupTitle ?? this.walletSetupTitle,
+      walletSetupBody: walletSetupBody ?? this.walletSetupBody,
+      realnamePhotosNeeded: realnamePhotosNeeded ?? this.realnamePhotosNeeded,
+      realnamePhotosNeededOne:
+          realnamePhotosNeededOne ?? this.realnamePhotosNeededOne,
       accountOtherEntries: accountOtherEntries ?? this.accountOtherEntries,
       accountShowBalance: accountShowBalance ?? this.accountShowBalance,
       accountHideBalance: accountHideBalance ?? this.accountHideBalance,
@@ -4019,107 +4376,220 @@ class FlareStrings {
       accountDayFormat: accountDayFormat ?? this.accountDayFormat,
       accountDayYearFormat: accountDayYearFormat ?? this.accountDayYearFormat,
       pluginViewEmpty: pluginViewEmpty ?? this.pluginViewEmpty,
-      pluginViewUnavailableUpgradeRequired: pluginViewUnavailableUpgradeRequired ?? this.pluginViewUnavailableUpgradeRequired,
+      pluginViewLoading: pluginViewLoading ?? this.pluginViewLoading,
+      pluginViewLoadMore: pluginViewLoadMore ?? this.pluginViewLoadMore,
+      pluginFormMoneyRange: pluginFormMoneyRange ?? this.pluginFormMoneyRange,
+      pluginViewStepPosition:
+          pluginViewStepPosition ?? this.pluginViewStepPosition,
+      pluginViewUnavailableUpgradeRequired:
+          pluginViewUnavailableUpgradeRequired ??
+          this.pluginViewUnavailableUpgradeRequired,
       pluginUpgradeAction: pluginUpgradeAction ?? this.pluginUpgradeAction,
-      pluginUpgradeNotAvailable: pluginUpgradeNotAvailable ?? this.pluginUpgradeNotAvailable,
+      pluginUpgradeNotAvailable:
+          pluginUpgradeNotAvailable ?? this.pluginUpgradeNotAvailable,
       pluginUpgradeBadge: pluginUpgradeBadge ?? this.pluginUpgradeBadge,
       pluginUpgradeTitle: pluginUpgradeTitle ?? this.pluginUpgradeTitle,
-      pluginUpgradeDescription: pluginUpgradeDescription ?? this.pluginUpgradeDescription,
+      pluginUpgradeDescription:
+          pluginUpgradeDescription ?? this.pluginUpgradeDescription,
       pluginViewQrExpired: pluginViewQrExpired ?? this.pluginViewQrExpired,
       pluginViewQrRefresh: pluginViewQrRefresh ?? this.pluginViewQrRefresh,
-      pluginViewStepPending: pluginViewStepPending ?? this.pluginViewStepPending,
-      pluginViewStepCurrent: pluginViewStepCurrent ?? this.pluginViewStepCurrent,
+      pluginViewStepPending:
+          pluginViewStepPending ?? this.pluginViewStepPending,
+      pluginViewStepCurrent:
+          pluginViewStepCurrent ?? this.pluginViewStepCurrent,
       pluginViewStepDone: pluginViewStepDone ?? this.pluginViewStepDone,
       pluginViewStepFailed: pluginViewStepFailed ?? this.pluginViewStepFailed,
       pluginViewTrendUp: pluginViewTrendUp ?? this.pluginViewTrendUp,
       pluginViewTrendDown: pluginViewTrendDown ?? this.pluginViewTrendDown,
       pluginViewTrendFlat: pluginViewTrendFlat ?? this.pluginViewTrendFlat,
-      pluginViewImageUnavailable: pluginViewImageUnavailable ?? this.pluginViewImageUnavailable,
+      pluginViewImageUnavailable:
+          pluginViewImageUnavailable ?? this.pluginViewImageUnavailable,
       pluginFormatSeconds: pluginFormatSeconds ?? this.pluginFormatSeconds,
-      pluginFormatCountUnits: pluginFormatCountUnits ?? this.pluginFormatCountUnits,
-      pluginFormChooseImage: pluginFormChooseImage ?? this.pluginFormChooseImage,
-      pluginFormCaptureDocument: pluginFormCaptureDocument ?? this.pluginFormCaptureDocument,
-      pluginFormDocumentFront: pluginFormDocumentFront ?? this.pluginFormDocumentFront,
-      pluginFormDocumentBack: pluginFormDocumentBack ?? this.pluginFormDocumentBack,
-      pluginFormDocumentHolding: pluginFormDocumentHolding ?? this.pluginFormDocumentHolding,
-      capabilityConsentTitle: capabilityConsentTitle ?? this.capabilityConsentTitle,
-      capabilityConsentPurpose: capabilityConsentPurpose ?? this.capabilityConsentPurpose,
-      capabilityConsentAllowOnce: capabilityConsentAllowOnce ?? this.capabilityConsentAllowOnce,
-      capabilityConsentAllowAlways: capabilityConsentAllowAlways ?? this.capabilityConsentAllowAlways,
-      capabilityConsentDeny: capabilityConsentDeny ?? this.capabilityConsentDeny,
-      capabilityConsentNote: capabilityConsentNote ?? this.capabilityConsentNote,
-      capabilityDocumentCapture: capabilityDocumentCapture ?? this.capabilityDocumentCapture,
-      capabilityPaymentConfirmation: capabilityPaymentConfirmation ?? this.capabilityPaymentConfirmation,
-      capabilityLocationCoarse: capabilityLocationCoarse ?? this.capabilityLocationCoarse,
-      capabilityLocationFine: capabilityLocationFine ?? this.capabilityLocationFine,
+      pluginFormatCountUnits:
+          pluginFormatCountUnits ?? this.pluginFormatCountUnits,
+      pluginFormChooseImage:
+          pluginFormChooseImage ?? this.pluginFormChooseImage,
+      pluginFormCaptureDocument:
+          pluginFormCaptureDocument ?? this.pluginFormCaptureDocument,
+      pluginFormDocumentFront:
+          pluginFormDocumentFront ?? this.pluginFormDocumentFront,
+      pluginFormDocumentBack:
+          pluginFormDocumentBack ?? this.pluginFormDocumentBack,
+      pluginFormDocumentHolding:
+          pluginFormDocumentHolding ?? this.pluginFormDocumentHolding,
+      capabilityConsentTitle:
+          capabilityConsentTitle ?? this.capabilityConsentTitle,
+      capabilityConsentPurpose:
+          capabilityConsentPurpose ?? this.capabilityConsentPurpose,
+      capabilityConsentAllowOnce:
+          capabilityConsentAllowOnce ?? this.capabilityConsentAllowOnce,
+      capabilityConsentAllowAlways:
+          capabilityConsentAllowAlways ?? this.capabilityConsentAllowAlways,
+      capabilityConsentDeny:
+          capabilityConsentDeny ?? this.capabilityConsentDeny,
+      capabilityConsentNote:
+          capabilityConsentNote ?? this.capabilityConsentNote,
+      capabilityDocumentCapture:
+          capabilityDocumentCapture ?? this.capabilityDocumentCapture,
+      capabilityPaymentConfirmation:
+          capabilityPaymentConfirmation ?? this.capabilityPaymentConfirmation,
+      capabilityLocationCoarse:
+          capabilityLocationCoarse ?? this.capabilityLocationCoarse,
+      capabilityLocationFine:
+          capabilityLocationFine ?? this.capabilityLocationFine,
       capabilityCamera: capabilityCamera ?? this.capabilityCamera,
       capabilityMicrophone: capabilityMicrophone ?? this.capabilityMicrophone,
       capabilityRtcSession: capabilityRtcSession ?? this.capabilityRtcSession,
       capabilityGeneric: capabilityGeneric ?? this.capabilityGeneric,
-      documentCaptureHintFront: documentCaptureHintFront ?? this.documentCaptureHintFront,
-      documentCaptureHintBack: documentCaptureHintBack ?? this.documentCaptureHintBack,
-      documentCaptureHintHolding: documentCaptureHintHolding ?? this.documentCaptureHintHolding,
+      documentCaptureHintFront:
+          documentCaptureHintFront ?? this.documentCaptureHintFront,
+      documentCaptureHintBack:
+          documentCaptureHintBack ?? this.documentCaptureHintBack,
+      documentCaptureHintHolding:
+          documentCaptureHintHolding ?? this.documentCaptureHintHolding,
       documentCaptureShoot: documentCaptureShoot ?? this.documentCaptureShoot,
-      documentCaptureRetake: documentCaptureRetake ?? this.documentCaptureRetake,
+      documentCaptureRetake:
+          documentCaptureRetake ?? this.documentCaptureRetake,
       documentCaptureUse: documentCaptureUse ?? this.documentCaptureUse,
-      documentCaptureFromAlbum: documentCaptureFromAlbum ?? this.documentCaptureFromAlbum,
-      documentCaptureProcessing: documentCaptureProcessing ?? this.documentCaptureProcessing,
-      documentCaptureCameraUnavailable: documentCaptureCameraUnavailable ?? this.documentCaptureCameraUnavailable,
-      documentCaptureTooLarge: documentCaptureTooLarge ?? this.documentCaptureTooLarge,
-      documentCaptureFailed: documentCaptureFailed ?? this.documentCaptureFailed,
-      documentCaptureNotAccepted: documentCaptureNotAccepted ?? this.documentCaptureNotAccepted,
-      paymentConfirmationTitle: paymentConfirmationTitle ?? this.paymentConfirmationTitle,
-      paymentConfirmationPayee: paymentConfirmationPayee ?? this.paymentConfirmationPayee,
-      paymentConfirmationItem: paymentConfirmationItem ?? this.paymentConfirmationItem,
-      paymentConfirmationOrder: paymentConfirmationOrder ?? this.paymentConfirmationOrder,
-      paymentConfirmationRequestedBy: paymentConfirmationRequestedBy ?? this.paymentConfirmationRequestedBy,
-      paymentConfirmationExpiresIn: paymentConfirmationExpiresIn ?? this.paymentConfirmationExpiresIn,
-      paymentConfirmationExpired: paymentConfirmationExpired ?? this.paymentConfirmationExpired,
-      paymentConfirmationInvalid: paymentConfirmationInvalid ?? this.paymentConfirmationInvalid,
+      documentCaptureHintGlare:
+          documentCaptureHintGlare ?? this.documentCaptureHintGlare,
+      documentSlotTapToCapture:
+          documentSlotTapToCapture ?? this.documentSlotTapToCapture,
+      documentSlotUploadFailed:
+          documentSlotUploadFailed ?? this.documentSlotUploadFailed,
+      documentSlotUploading:
+          documentSlotUploading ?? this.documentSlotUploading,
+      documentSlotCaptured: documentSlotCaptured ?? this.documentSlotCaptured,
+      documentSlotCapturedRetake:
+          documentSlotCapturedRetake ?? this.documentSlotCapturedRetake,
+      documentCaptureFromAlbum:
+          documentCaptureFromAlbum ?? this.documentCaptureFromAlbum,
+      documentCaptureProcessing:
+          documentCaptureProcessing ?? this.documentCaptureProcessing,
+      documentCaptureCameraUnavailable:
+          documentCaptureCameraUnavailable ??
+          this.documentCaptureCameraUnavailable,
+      documentCaptureTooLarge:
+          documentCaptureTooLarge ?? this.documentCaptureTooLarge,
+      documentCaptureFailed:
+          documentCaptureFailed ?? this.documentCaptureFailed,
+      documentCaptureFormat:
+          documentCaptureFormat ?? this.documentCaptureFormat,
+      documentCaptureNotAccepted:
+          documentCaptureNotAccepted ?? this.documentCaptureNotAccepted,
+      paymentConfirmationTitle:
+          paymentConfirmationTitle ?? this.paymentConfirmationTitle,
+      paymentConfirmationPayee:
+          paymentConfirmationPayee ?? this.paymentConfirmationPayee,
+      paymentConfirmationItem:
+          paymentConfirmationItem ?? this.paymentConfirmationItem,
+      paymentConfirmationOrder:
+          paymentConfirmationOrder ?? this.paymentConfirmationOrder,
+      paymentConfirmationRequestedBy:
+          paymentConfirmationRequestedBy ?? this.paymentConfirmationRequestedBy,
+      paymentConfirmationExpiresIn:
+          paymentConfirmationExpiresIn ?? this.paymentConfirmationExpiresIn,
+      paymentConfirmationExpired:
+          paymentConfirmationExpired ?? this.paymentConfirmationExpired,
+      paymentConfirmationInvalid:
+          paymentConfirmationInvalid ?? this.paymentConfirmationInvalid,
       pluginBundleOpening: pluginBundleOpening ?? this.pluginBundleOpening,
-      pluginBundleUnavailable: pluginBundleUnavailable ?? this.pluginBundleUnavailable,
+      pluginBundleUnavailable:
+          pluginBundleUnavailable ?? this.pluginBundleUnavailable,
       pluginBundleCrashed: pluginBundleCrashed ?? this.pluginBundleCrashed,
-      pluginBundleCrashedHint: pluginBundleCrashedHint ?? this.pluginBundleCrashedHint,
+      pluginBundleCrashedHint:
+          pluginBundleCrashedHint ?? this.pluginBundleCrashedHint,
       pluginBundleReload: pluginBundleReload ?? this.pluginBundleReload,
       pluginBundleClosed: pluginBundleClosed ?? this.pluginBundleClosed,
-      pluginBundleExternalTitle: pluginBundleExternalTitle ?? this.pluginBundleExternalTitle,
-      pluginBundleExternalMessage: pluginBundleExternalMessage ?? this.pluginBundleExternalMessage,
-      pluginBundleExternalOpen: pluginBundleExternalOpen ?? this.pluginBundleExternalOpen,
+      pluginBundleExternalTitle:
+          pluginBundleExternalTitle ?? this.pluginBundleExternalTitle,
+      pluginBundleExternalMessage:
+          pluginBundleExternalMessage ?? this.pluginBundleExternalMessage,
+      pluginBundleExternalOpen:
+          pluginBundleExternalOpen ?? this.pluginBundleExternalOpen,
       pluginBundleCopied: pluginBundleCopied ?? this.pluginBundleCopied,
-      pluginBridgeErrorInvalidEnvelope: pluginBridgeErrorInvalidEnvelope ?? this.pluginBridgeErrorInvalidEnvelope,
-      pluginBridgeErrorUnsupportedBridge: pluginBridgeErrorUnsupportedBridge ?? this.pluginBridgeErrorUnsupportedBridge,
-      pluginBridgeErrorNotReady: pluginBridgeErrorNotReady ?? this.pluginBridgeErrorNotReady,
-      pluginBridgeErrorMethodNotFound: pluginBridgeErrorMethodNotFound ?? this.pluginBridgeErrorMethodNotFound,
-      pluginBridgeErrorInvalidParams: pluginBridgeErrorInvalidParams ?? this.pluginBridgeErrorInvalidParams,
-      pluginBridgeErrorPayloadTooLarge: pluginBridgeErrorPayloadTooLarge ?? this.pluginBridgeErrorPayloadTooLarge,
-      pluginBridgeErrorPermissionDenied: pluginBridgeErrorPermissionDenied ?? this.pluginBridgeErrorPermissionDenied,
-      pluginBridgeErrorRateLimited: pluginBridgeErrorRateLimited ?? this.pluginBridgeErrorRateLimited,
-      pluginBridgeErrorCancelled: pluginBridgeErrorCancelled ?? this.pluginBridgeErrorCancelled,
-      pluginBridgeErrorGestureRequired: pluginBridgeErrorGestureRequired ?? this.pluginBridgeErrorGestureRequired,
-      pluginBridgeErrorQuotaExceeded: pluginBridgeErrorQuotaExceeded ?? this.pluginBridgeErrorQuotaExceeded,
-      pluginBridgeErrorNotFound: pluginBridgeErrorNotFound ?? this.pluginBridgeErrorNotFound,
-      pluginBridgeErrorUnavailable: pluginBridgeErrorUnavailable ?? this.pluginBridgeErrorUnavailable,
-      pluginBridgeErrorTimeout: pluginBridgeErrorTimeout ?? this.pluginBridgeErrorTimeout,
-      pluginBridgeErrorOperationFailed: pluginBridgeErrorOperationFailed ?? this.pluginBridgeErrorOperationFailed,
-      pluginBridgeErrorRevoked: pluginBridgeErrorRevoked ?? this.pluginBridgeErrorRevoked,
-      pluginBridgeErrorInternal: pluginBridgeErrorInternal ?? this.pluginBridgeErrorInternal,
-      paymentConfirmationConfirm: paymentConfirmationConfirm ?? this.paymentConfirmationConfirm,
-      paymentConfirmationVerifying: paymentConfirmationVerifying ?? this.paymentConfirmationVerifying,
-      pluginProtectedMediaReason: pluginProtectedMediaReason ?? this.pluginProtectedMediaReason,
-      pluginProtectedMediaNotice: pluginProtectedMediaNotice ?? this.pluginProtectedMediaNotice,
-      pluginProtectedMediaOwnNotice: pluginProtectedMediaOwnNotice ?? this.pluginProtectedMediaOwnNotice,
-      pluginProtectedMediaView: pluginProtectedMediaView ?? this.pluginProtectedMediaView,
-      pluginProtectedMediaHide: pluginProtectedMediaHide ?? this.pluginProtectedMediaHide,
-      pluginProtectedMediaUnavailable: pluginProtectedMediaUnavailable ?? this.pluginProtectedMediaUnavailable,
-      pluginProtectedMediaNotPreviewable: pluginProtectedMediaNotPreviewable ?? this.pluginProtectedMediaNotPreviewable,
+      pluginBridgeErrorInvalidEnvelope:
+          pluginBridgeErrorInvalidEnvelope ??
+          this.pluginBridgeErrorInvalidEnvelope,
+      pluginBridgeErrorUnsupportedBridge:
+          pluginBridgeErrorUnsupportedBridge ??
+          this.pluginBridgeErrorUnsupportedBridge,
+      pluginBridgeErrorNotReady:
+          pluginBridgeErrorNotReady ?? this.pluginBridgeErrorNotReady,
+      pluginBridgeErrorMethodNotFound:
+          pluginBridgeErrorMethodNotFound ??
+          this.pluginBridgeErrorMethodNotFound,
+      pluginBridgeErrorInvalidParams:
+          pluginBridgeErrorInvalidParams ?? this.pluginBridgeErrorInvalidParams,
+      pluginBridgeErrorPayloadTooLarge:
+          pluginBridgeErrorPayloadTooLarge ??
+          this.pluginBridgeErrorPayloadTooLarge,
+      pluginBridgeErrorPermissionDenied:
+          pluginBridgeErrorPermissionDenied ??
+          this.pluginBridgeErrorPermissionDenied,
+      pluginBridgeErrorRateLimited:
+          pluginBridgeErrorRateLimited ?? this.pluginBridgeErrorRateLimited,
+      pluginBridgeErrorCancelled:
+          pluginBridgeErrorCancelled ?? this.pluginBridgeErrorCancelled,
+      pluginBridgeErrorGestureRequired:
+          pluginBridgeErrorGestureRequired ??
+          this.pluginBridgeErrorGestureRequired,
+      pluginBridgeErrorQuotaExceeded:
+          pluginBridgeErrorQuotaExceeded ?? this.pluginBridgeErrorQuotaExceeded,
+      pluginBridgeErrorNotFound:
+          pluginBridgeErrorNotFound ?? this.pluginBridgeErrorNotFound,
+      pluginBridgeErrorUnavailable:
+          pluginBridgeErrorUnavailable ?? this.pluginBridgeErrorUnavailable,
+      pluginBridgeErrorTimeout:
+          pluginBridgeErrorTimeout ?? this.pluginBridgeErrorTimeout,
+      pluginBridgeErrorOperationFailed:
+          pluginBridgeErrorOperationFailed ??
+          this.pluginBridgeErrorOperationFailed,
+      pluginBridgeErrorRevoked:
+          pluginBridgeErrorRevoked ?? this.pluginBridgeErrorRevoked,
+      pluginBridgeErrorInternal:
+          pluginBridgeErrorInternal ?? this.pluginBridgeErrorInternal,
+      paymentConfirmationConfirm:
+          paymentConfirmationConfirm ?? this.paymentConfirmationConfirm,
+      paymentConfirmationVerifying:
+          paymentConfirmationVerifying ?? this.paymentConfirmationVerifying,
+      paymentConfirmationInsufficient:
+          paymentConfirmationInsufficient ??
+          this.paymentConfirmationInsufficient,
+      paymentConfirmationTopUp:
+          paymentConfirmationTopUp ?? this.paymentConfirmationTopUp,
+      paymentConfirmationStartAgain:
+          paymentConfirmationStartAgain ?? this.paymentConfirmationStartAgain,
+      pinInputProgress: pinInputProgress ?? this.pinInputProgress,
+      pluginProtectedMediaReason:
+          pluginProtectedMediaReason ?? this.pluginProtectedMediaReason,
+      pluginProtectedMediaNotice:
+          pluginProtectedMediaNotice ?? this.pluginProtectedMediaNotice,
+      pluginProtectedMediaOwnNotice:
+          pluginProtectedMediaOwnNotice ?? this.pluginProtectedMediaOwnNotice,
+      pluginProtectedMediaView:
+          pluginProtectedMediaView ?? this.pluginProtectedMediaView,
+      pluginProtectedMediaTapToView:
+          pluginProtectedMediaTapToView ?? this.pluginProtectedMediaTapToView,
+      pluginProtectedMediaHide:
+          pluginProtectedMediaHide ?? this.pluginProtectedMediaHide,
+      pluginProtectedMediaUnavailable:
+          pluginProtectedMediaUnavailable ??
+          this.pluginProtectedMediaUnavailable,
+      pluginProtectedMediaNotPreviewable:
+          pluginProtectedMediaNotPreviewable ??
+          this.pluginProtectedMediaNotPreviewable,
       pluginLocationLocate: pluginLocationLocate ?? this.pluginLocationLocate,
-      pluginLocationRelocate: pluginLocationRelocate ?? this.pluginLocationRelocate,
+      pluginLocationRelocate:
+          pluginLocationRelocate ?? this.pluginLocationRelocate,
       pluginLocationClear: pluginLocationClear ?? this.pluginLocationClear,
-      pluginLocationLocating: pluginLocationLocating ?? this.pluginLocationLocating,
+      pluginLocationLocating:
+          pluginLocationLocating ?? this.pluginLocationLocating,
       pluginLocationEmpty: pluginLocationEmpty ?? this.pluginLocationEmpty,
       pluginLocationCoarse: pluginLocationCoarse ?? this.pluginLocationCoarse,
       pluginLocationFine: pluginLocationFine ?? this.pluginLocationFine,
-      pluginLocationAccuracy: pluginLocationAccuracy ?? this.pluginLocationAccuracy,
+      pluginLocationAccuracy:
+          pluginLocationAccuracy ?? this.pluginLocationAccuracy,
       pluginViewVotes: pluginViewVotes ?? this.pluginViewVotes,
       pluginViewRemaining: pluginViewRemaining ?? this.pluginViewRemaining,
       pluginViewDateTimeFormat:
@@ -4177,6 +4647,7 @@ class FlareStrings {
       allowMultiple: allowMultiple ?? this.allowMultiple,
       submitPoll: submitPoll ?? this.submitPoll,
       chatBackground: chatBackground ?? this.chatBackground,
+      chatReactionFailed: chatReactionFailed ?? this.chatReactionFailed,
       decrease: decrease ?? this.decrease,
       increase: increase ?? this.increase,
       previousMonth: previousMonth ?? this.previousMonth,
@@ -4193,6 +4664,7 @@ class FlareStrings {
       pickLocation: pickLocation ?? this.pickLocation,
       pickVisibility: pickVisibility ?? this.pickVisibility,
       more: more ?? this.more,
+      searchViewMore: searchViewMore ?? this.searchViewMore,
       momentActions: momentActions ?? this.momentActions,
       removeImage: removeImage ?? this.removeImage,
       hideTranscript: hideTranscript ?? this.hideTranscript,
@@ -4314,8 +4786,7 @@ class FlareStrings {
       backgroundDeliveryLabel:
           backgroundDeliveryLabel ?? this.backgroundDeliveryLabel,
       backgroundDeliveryUnrestricted:
-          backgroundDeliveryUnrestricted ??
-          this.backgroundDeliveryUnrestricted,
+          backgroundDeliveryUnrestricted ?? this.backgroundDeliveryUnrestricted,
       backgroundDeliveryOptimized:
           backgroundDeliveryOptimized ?? this.backgroundDeliveryOptimized,
       backgroundDeliveryRestricted:
@@ -4385,6 +4856,11 @@ class FlareStrings {
       yesterday: yesterday ?? this.yesterday,
       timeRange: timeRange ?? this.timeRange,
       searchIdleHint: searchIdleHint ?? this.searchIdleHint,
+      searchPanelSearching: searchPanelSearching ?? this.searchPanelSearching,
+      recentSearchesTitle: recentSearchesTitle ?? this.recentSearchesTitle,
+      recentSearchesClear: recentSearchesClear ?? this.recentSearchesClear,
+      recentSearchesClearLabel:
+          recentSearchesClearLabel ?? this.recentSearchesClearLabel,
       permissionDismiss: permissionDismiss ?? this.permissionDismiss,
       permissionNotNow: permissionNotNow ?? this.permissionNotNow,
       permissionSoftAskNotificationsTitle:
@@ -4400,7 +4876,18 @@ class FlareStrings {
           permissionSoftAskNotificationsAction ??
           this.permissionSoftAskNotificationsAction,
       composerPlaceholder: composerPlaceholder ?? this.composerPlaceholder,
+      composerAttachmentPreview:
+          composerAttachmentPreview ?? this.composerAttachmentPreview,
+      composerImageCaption: composerImageCaption ?? this.composerImageCaption,
+      composerImagePreview: composerImagePreview ?? this.composerImagePreview,
+      composerVideoCaption: composerVideoCaption ?? this.composerVideoCaption,
       composerReply: composerReply ?? this.composerReply,
+      composerEditingMessage:
+          composerEditingMessage ?? this.composerEditingMessage,
+      composerCancelEdit: composerCancelEdit ?? this.composerCancelEdit,
+      composerSaveEdit: composerSaveEdit ?? this.composerSaveEdit,
+      composerEditingPlaceholder:
+          composerEditingPlaceholder ?? this.composerEditingPlaceholder,
       composerVoice: composerVoice ?? this.composerVoice,
       composerVoiceRecording:
           composerVoiceRecording ?? this.composerVoiceRecording,
@@ -5217,23 +5704,28 @@ class FlareStrings {
       updatePromptMessageRequired:
           updatePromptMessageRequired ?? this.updatePromptMessageRequired,
       updatePromptMessageRequiredReadOnly:
-          updatePromptMessageRequiredReadOnly ?? this.updatePromptMessageRequiredReadOnly,
+          updatePromptMessageRequiredReadOnly ??
+          this.updatePromptMessageRequiredReadOnly,
       composerReadOnlyUpdate:
           composerReadOnlyUpdate ?? this.composerReadOnlyUpdate,
       updatePromptMessageMetered:
           updatePromptMessageMetered ?? this.updatePromptMessageMetered,
       updatePromptMessageMeteredUnknown:
-          updatePromptMessageMeteredUnknown ?? this.updatePromptMessageMeteredUnknown,
+          updatePromptMessageMeteredUnknown ??
+          this.updatePromptMessageMeteredUnknown,
       updatePromptMessageReady:
           updatePromptMessageReady ?? this.updatePromptMessageReady,
       updatePromptFailManifestUnavailable:
-          updatePromptFailManifestUnavailable ?? this.updatePromptFailManifestUnavailable,
+          updatePromptFailManifestUnavailable ??
+          this.updatePromptFailManifestUnavailable,
       updatePromptFailManifestRejected:
-          updatePromptFailManifestRejected ?? this.updatePromptFailManifestRejected,
+          updatePromptFailManifestRejected ??
+          this.updatePromptFailManifestRejected,
       updatePromptFailNoArtifact:
           updatePromptFailNoArtifact ?? this.updatePromptFailNoArtifact,
       updatePromptFailInsufficientSpace:
-          updatePromptFailInsufficientSpace ?? this.updatePromptFailInsufficientSpace,
+          updatePromptFailInsufficientSpace ??
+          this.updatePromptFailInsufficientSpace,
       updatePromptFailDownload:
           updatePromptFailDownload ?? this.updatePromptFailDownload,
       updatePromptFailHashMismatch:
@@ -5241,7 +5733,8 @@ class FlareStrings {
       updatePromptFailInstall:
           updatePromptFailInstall ?? this.updatePromptFailInstall,
       updatePromptFailSignatureMismatch:
-          updatePromptFailSignatureMismatch ?? this.updatePromptFailSignatureMismatch,
+          updatePromptFailSignatureMismatch ??
+          this.updatePromptFailSignatureMismatch,
       updatePromptFailDowngrade:
           updatePromptFailDowngrade ?? this.updatePromptFailDowngrade,
       updatePromptFailNotSkippable:
@@ -5286,8 +5779,14 @@ class FlareStrings {
           groupDetailNoMatchingMembers ?? this.groupDetailNoMatchingMembers,
       profilePanelEditProfile:
           profilePanelEditProfile ?? this.profilePanelEditProfile,
+      profilePanelMenuIncomplete:
+          profilePanelMenuIncomplete ?? this.profilePanelMenuIncomplete,
       momentReplyTo: momentReplyTo ?? this.momentReplyTo,
       momentReplyToComment: momentReplyToComment ?? this.momentReplyToComment,
+      momentCommentsTitle: momentCommentsTitle ?? this.momentCommentsTitle,
+      momentNoComments: momentNoComments ?? this.momentNoComments,
+      momentLocatedComment: momentLocatedComment ?? this.momentLocatedComment,
+      momentDetailTitle: momentDetailTitle ?? this.momentDetailTitle,
       favorites: favorites ?? this.favorites,
       moments: moments ?? this.moments,
       settings: settings ?? this.settings,

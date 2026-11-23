@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsValidationResult;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,6 +22,8 @@ class FlareTextarea extends StatefulWidget {
     this.maxlength,
     this.disabled = false,
     this.autofocus = false,
+    this.semanticLabel,
+    this.error,
     this.onChanged,
     this.onSubmit,
   });
@@ -39,6 +43,13 @@ class FlareTextarea extends StatefulWidget {
   final int? maxlength;
   final bool disabled;
   final bool autofocus;
+
+  /// Accessible field name when the visual label is drawn outside the input.
+  final String? semanticLabel;
+
+  /// The field's error (R6): an error border, and the text is read with the
+  /// field as its hint, marked invalid.
+  final String? error;
   final void Function(String)? onChanged;
 
   /// Raised on ⌘/Ctrl+Enter (the Vue `enter` event).
@@ -134,14 +145,18 @@ class _FlareTextareaState extends State<FlareTextarea> {
           color: _focused ? colors.bgPrimary : colors.bgSecondary,
           borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
           border: Border.all(
-            color: _focused ? colors.borderSelected : colors.borderPrimary,
+            color: widget.error != null
+                ? colors.error
+                : _focused
+                ? colors.borderSelected
+                : colors.borderPrimary,
           ),
           boxShadow: _focused
               ? [
                   BoxShadow(
                     color: colors.focusRing,
                     blurRadius: 0,
-                    spreadRadius: 3,
+                    spreadRadius: FlareSizes.componentFocusRingWidth,
                   ),
                 ]
               : null,
@@ -150,39 +165,48 @@ class _FlareTextareaState extends State<FlareTextarea> {
           children: [
             Padding(
               padding: _padding,
-              child: Focus(
-                onKeyEvent: _onKey,
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  enabled: !widget.disabled,
-                  autofocus: widget.autofocus,
-                  minLines: widget.rows,
-                  maxLines: widget.maxRows > 0 ? widget.maxRows : null,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  maxLength: widget.maxlength,
-                  cursorColor: colors.primary,
-                  style: TextStyle(
-                    fontSize: _fontSize,
-                    height: FlareSizes.lineHeightNormal,
-                    color: colors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    counterText: '',
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    hintText: widget.placeholder,
-                    hintStyle: TextStyle(
-                      fontSize: _fontSize,
-                      color: colors.textTertiary,
+              child: MergeSemantics(
+                child: Semantics(
+                  label: widget.semanticLabel,
+                  hint: widget.error,
+                  validationResult: widget.error != null
+                      ? SemanticsValidationResult.invalid
+                      : SemanticsValidationResult.none,
+                  child: Focus(
+                    onKeyEvent: _onKey,
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      enabled: !widget.disabled,
+                      autofocus: widget.autofocus,
+                      minLines: widget.rows,
+                      maxLines: widget.maxRows > 0 ? widget.maxRows : null,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      maxLength: widget.maxlength,
+                      cursorColor: colors.primary,
+                      style: TextStyle(
+                        fontSize: _fontSize,
+                        height: FlareSizes.lineHeightNormal,
+                        color: colors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        counterText: '',
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: widget.placeholder,
+                        hintStyle: TextStyle(
+                          fontSize: _fontSize,
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                      onChanged: widget.onChanged,
                     ),
                   ),
-                  onChanged: widget.onChanged,
                 ),
               ),
             ),

@@ -108,7 +108,7 @@ const detailText = computed(() => props.detail?.trim());
         :disabled="!actions.enabled"
         @click="emit('start')"
       >
-        <FlareIcon name="devices" :size="16" /><span>{{ strings.startText }}</span>
+        <FlareIcon name="screen-share" size="sm" /><span>{{ strings.startText }}</span>
       </button>
       <button
         v-if="actions.stop"
@@ -117,7 +117,7 @@ const detailText = computed(() => props.detail?.trim());
         :disabled="!actions.enabled"
         @click="emit('stop')"
       >
-        <FlareIcon name="block" :size="16" /><span>{{ strings.stopText }}</span>
+        <FlareIcon name="screen-share" size="sm" /><span>{{ strings.stopText }}</span>
       </button>
       <button
         v-if="actions.cancel"

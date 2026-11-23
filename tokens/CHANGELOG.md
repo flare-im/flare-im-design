@@ -1,5 +1,6 @@
 ## 未发布
 
+- 新增通话舞台色 `colors.call.*`（舞台、舞台上文字、控件、挂断、接听、说话光环、宫格、名牌、设备面板；浅色、深色同值）与插件体验尺寸 `sizes.component.*`：通话键 / 头像 / 悬浮条 / 窗口 / 来电横幅、`amountHeroFontSize`、`resultIconSize`、证件取景比例与拍摄位、`formColumnWidth`、`actionMinWidth`（见 `docs/plugin-experience.md` 第 9 节）。
 - 新增媒体舞台色 `colors.media.stage`、`onStage`、`stageShade`（浅色、深色同值，始终是暗底）。证件拍摄取景区四端改用它们，不再写死黑白。
 - 新增图表分类色 `colors.chart.series1`–`series6`（浅色、深色各一组，按固定顺序分配给系列）。插件 `chart` 块四端改用它们，不再借用 primary、info、success 等语义色。
 - **许可证由 MIT 变更为 Apache-2.0。** 已发布的 1.0.5 及更早版本仍按 MIT 授权，

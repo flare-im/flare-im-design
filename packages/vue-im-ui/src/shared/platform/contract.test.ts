@@ -93,8 +93,18 @@ describe("web adapter: pickImages", () => {
     expect(result.ok && result.value[0].mimeType).toBe("image/png");
     const imagesOnly = web.pickImages!();
     expect(pendingInput().accept).toBe("image/*");
+    expect(pendingInput().hasAttribute("capture")).toBe(false);
     settleInput([png()]);
     await imagesOnly;
+  });
+  it("pickImages.success — the camera is an image input that captures with the rear camera, one photo", async () => {
+    const pending = web.pickImages!({ camera: true, multiple: true });
+    expect(pendingInput().accept).toBe("image/*");
+    expect(pendingInput().getAttribute("capture")).toBe("environment");
+    expect(pendingInput().multiple).toBe(false);
+    settleInput([png()]);
+    const result = await pending;
+    expect(result.ok && result.value[0].name).toBe("shot.png");
   });
   it("pickImages.cancelled", async () => {
     expect(ids.has("pickImages.cancelled")).toBe(true);

@@ -14,6 +14,11 @@ export {
 } from "./useViewport";
 export { useLongPress } from "./useLongPress";
 export {
+  useFlareLoadMoreWhenVisible,
+  FLARE_LOAD_MORE_ROOT_MARGIN,
+  type FlareLoadMoreWhenVisibleOptions,
+} from "./useFlareLoadMoreWhenVisible";
+export {
   useFlareReadReceiptList,
   type FlareReadReceiptList,
   type FlareReadReceiptMembers,
@@ -95,6 +100,7 @@ export {
   type FlareVoiceCaptureSession,
   type FlareVoiceCaptureState,
   type FlareVoiceRecorderAdapter,
+  type FlareWebVoiceRecorderOptions,
 } from "./composer/voiceRecorder";
 export {
   useVoiceRecorder,
@@ -104,4 +110,5 @@ export {
   type VoiceRecorderErrorKind,
 } from "./composer/useVoiceRecorder";
 export { useFileDrop, type FileDropHandlers } from "./composer/useFileDrop";
+export { useFlareComposerAttachments } from "./composer/useFlareComposerAttachments";
 export { useMarkdownShortcuts, type MarkdownShortcutKey } from "./composer/useMarkdownShortcuts";

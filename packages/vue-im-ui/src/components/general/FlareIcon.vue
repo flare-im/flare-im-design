@@ -7,7 +7,8 @@ const props = withDefaults(
   defineProps<{
     /** A canonical Flare icon name (see the gallery). */
     name: FlareIconName;
-    size?: number;
+    /** Token size for product UI; numeric sizes remain available for media overlays. */
+    size?: "sm" | "md" | "lg" | "xl" | number;
     /**
      * The icon's own accessible name. Leave it unset for the common case — an
      * icon inside an already-labelled control — and the icon is hidden from
@@ -15,9 +16,10 @@ const props = withDefaults(
      */
     ariaLabel?: string;
   }>(),
-  { size: 20, ariaLabel: undefined },
+  { size: "md", ariaLabel: undefined },
 );
 const glyph = computed(() => flareIcons[props.name]);
+const resolvedSize = computed(() => typeof props.size === "number" ? props.size : `var(--flare-size-icon-size-${props.size})`);
 const decorative = computed(() => !props.ariaLabel);
 </script>
 
@@ -25,9 +27,13 @@ const decorative = computed(() => !props.ariaLabel);
   <!-- A stable class so hosts style the icon without reaching for the icon runtime's own class name. -->
   <n-icon
     class="flare-icon"
-    :size="size"
+    :size="resolvedSize"
     :component="glyph"
     :aria-hidden="decorative ? 'true' : undefined"
     :aria-label="ariaLabel"
   />
 </template>
+
+<style scoped>
+.flare-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; line-height: 1; vertical-align: middle; }
+</style>

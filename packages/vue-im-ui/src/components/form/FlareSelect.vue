@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
           @click="pick(o)"
         >
           <span>{{ o.label }}</span>
-          <n-icon aria-hidden="true" v-if="o.value === value" :size="15" :component="CheckmarkOutline" />
+          <n-icon aria-hidden="true" v-if="o.value === value" size="var(--flare-size-icon-size-sm)" :component="CheckmarkOutline" />
         </button>
       </div>
     </transition>
@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
           @click="pick(o)"
         >
           <span>{{ o.label }}</span>
-          <n-icon aria-hidden="true" v-if="o.value === value" :size="19" :component="CheckmarkOutline" />
+          <n-icon aria-hidden="true" v-if="o.value === value" size="var(--flare-size-icon-size-md)" :component="CheckmarkOutline" />
         </button>
       </div>
     </FlareBottomSheet>
@@ -166,8 +166,11 @@ onBeforeUnmount(() => {
 .flare-select--sm .flare-select__trigger { height: 32px; padding: 0 var(--flare-size-spacing-2sm); font-size: 13px; }
 .flare-select--md .flare-select__trigger { height: 40px; padding: 0 12px; font-size: 14px; }
 .flare-select--lg .flare-select__trigger { height: 48px; padding: 0 var(--flare-size-spacing-2md); font-size: 15px; }
-.flare-select.is-open .flare-select__trigger {
-  border-color: var(--flare-color-primary);
+/* §12.22: open or focused, a 1px border.selected border (the compliant layer) under the focus-ring halo, as Input. */
+.flare-select.is-open .flare-select__trigger,
+.flare-select__trigger:focus-visible {
+  outline: none;
+  border-color: var(--flare-color-border-selected);
   box-shadow: 0 0 0 3px var(--flare-color-focus-ring);
 }
 .flare-select.is-disabled { opacity: 0.55; }

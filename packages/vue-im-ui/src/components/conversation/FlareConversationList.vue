@@ -6,6 +6,7 @@ import FlareEmptyState from "../general/FlareEmptyState.vue";
 import FlareConversationRow from "./FlareConversationRow.vue";
 import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import { flareLayout } from "../../design-system/theme/layout-tokens";
 
 const props = withDefaults(defineProps<{
   /** 只读：列表从不改动宿主给的数组（筛选后的切片就是只读的）。 */
@@ -34,7 +35,7 @@ const props = withDefaults(defineProps<{
 
 const { t } = useFlareI18n();
 const { isH5 } = useFlareAdaptiveSafe();
-const rowHeight = computed(() => props.estimatedRowHeight ?? (isH5.value ? 80 : 72));
+const rowHeight = computed(() => props.estimatedRowHeight ?? (isH5.value ? flareLayout.conversationRowMobileHeight : flareLayout.conversationRowDesktopHeight));
 const emit = defineEmits<{
   (event: "select", id: string): void;
   (event: "action", action: FlareConversationAction, id: string): void;
@@ -163,7 +164,7 @@ onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <template>
-  <div ref="root" class="im-conv-list" role="list" @scroll.passive="onScroll" @keydown="onKeydown">
+  <div ref="root" class="im-conv-list" :class="{ 'im-conv-list--mobile': isH5 }" role="list" @scroll.passive="onScroll" @keydown="onKeydown">
     <FlareEmptyState v-if="loading" class="im-conv-list__state" loading :title="t('conversation.loading')" />
     <div v-else-if="!itemCount" class="im-conv-list__state">
       <slot name="empty"><FlareEmptyState icon="chats" :title="t('conversation.emptyTitle')" /></slot>
@@ -215,10 +216,12 @@ onBeforeUnmount(() => observer?.disconnect());
   min-width: 0;
   min-height: 0;
   box-sizing: border-box;
+  padding-inline: 4px;
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--flare-color-bg-primary);
 }
+.im-conv-list--mobile { padding: 0; }
 
 /* Spacers stand in for the rows outside the window; a shrinkable flex item would
    collapse to 0 px in this fixed-height column and cut the list off. */

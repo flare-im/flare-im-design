@@ -4,16 +4,20 @@ import SwiftUI
 ///
 /// The header is a single tappable-to-edit target (trailing chevron signals it), with the QR
 /// key as its own control beside it (`onQr`). Rows render as one or more grouped section
-/// cards (iOS style): pass `sections` for grouping, or `entries` for a single flat card.
+/// cards (iOS style): pass `sections` for grouping, or `entries` for a single flat card. A row's
+/// `current` draws it selected. `layout: .sidebar` (a two-pane left column) keeps the card at the top
+/// and scrolls the groups under it, so the host must not wrap the panel in a scroll view.
 public struct ProfilePanelView: View {
     private let user: UserProfile
     private let entries: [FlareSettingsItem]?
     private let sections: [FlareSettingsSection]?
     private let signaturePlaceholder: String?
+    private let identityActionLabel: String?
     private let onEdit: (() -> Void)?
     private let onQr: (() -> Void)?
     private let onEntry: ((FlareSettingsItem) -> Void)?
     private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
+    private let layout: FlareProfilePanelLayout
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
@@ -35,41 +39,63 @@ public struct ProfilePanelView: View {
                 entries: [FlareSettingsItem]? = nil,
                 sections: [FlareSettingsSection]? = nil,
                 signaturePlaceholder: String? = nil,
+                identityActionLabel: String? = nil,
                 onEdit: (() -> Void)? = nil, onQr: (() -> Void)? = nil,
                 onEntry: ((FlareSettingsItem) -> Void)? = nil,
-                onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil) {
+                onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil,
+                layout: FlareProfilePanelLayout = .page) {
         self.user = user
         self.entries = entries
         self.sections = sections
         self.signaturePlaceholder = signaturePlaceholder
+        self.identityActionLabel = identityActionLabel
         self.onEdit = onEdit; self.onQr = onQr; self.onEntry = onEntry; self.onToggle = onToggle
+        self.layout = layout
     }
 
     public var body: some View {
+        VStack(spacing: 0) {
+            header
+            if layout == .sidebar {
+                // The card stays put; the groups scroll in the height left under it.
+                ScrollView { groups.padding(.bottom, FlareSizes.spacingMd) }
+            } else {
+                groups
+                Spacer()
+            }
+        }
+    }
+
+    private var groups: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let dark = scheme == .dark
         // Normalize to grouped sections so the body has one render path (mirrors the Vue panel).
         let sections = self.sections ?? [FlareSettingsSection(items: entries ?? Self.entries(for: strings))]
-        VStack(spacing: 0) {
-            header
-
+        return VStack(spacing: 0) {
             ForEach(Array(sections.enumerated()), id: \.element.id) { i, section in
+                // A titled group (常用功能 / 应用服务) names itself above its card, as in ``SettingsListView``.
+                if let title = section.title, !title.isEmpty {
+                    Text(title)
+                        .font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
+                        .foregroundColor(colors.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, FlareSizes.spacingLg)
+                        .padding(.top, FlareSizes.spacingMd)
+                        .accessibilityAddTraits(.isHeader)
+                }
                 // Shared row → `kind` (toggle/value/navigation) and `detail` are honoured here too.
                 VStack(spacing: 0) {
                     ForEach(Array(section.items.enumerated()), id: \.element.id) { j, e in
-                        if j > 0 {
-                            Divider().overlay(colors.borderSecondary)
-                                .padding(.leading, FlareSizes.spacingMd)
-                        }
+                        if j > 0 { Divider().overlay(colors.borderSecondary) }
                         FlareSettingsRow(item: e, onToggle: onToggle, onSelect: { onEntry?($0) })
-                            .padding(.horizontal, FlareSizes.spacingMd)
+                            .padding(.horizontal, FlareSizes.spacingLg)
+                            .background(e.current ? colors.bgSelected : Color.clear)
                     }
                 }
                 .flareGroupedCard(colors, dark: dark)
                 .padding(.horizontal, FlareSizes.spacingMd)
                 .padding(.top, i == 0 ? FlareSizes.spacingMd : FlareSizes.spacingSm)
             }
-            Spacer()
         }
     }
 
@@ -106,28 +132,28 @@ public struct ProfilePanelView: View {
     /// editor; plain content without `onEdit`. It leaves room at its end for the QR key laid over it.
     @ViewBuilder
     private func identityRow(_ colors: FlareColors) -> some View {
+        let signature = user.signature.flatMap { $0.isEmpty ? nil : $0 }
+        let bio = signature ?? signaturePlaceholder
+        let sidebar = layout == .sidebar
         let content = HStack(spacing: FlareSizes.spacingMd) {
-            AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: 56)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(user.name).font(.system(size: FlareSizes.fontSize3xl, weight: .bold)).foregroundColor(colors.textPrimary)
-                    .lineLimit(1)
-                if let s = user.signature, !s.isEmpty {
-                    Text(s).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-                        .lineLimit(1)
-                } else if let placeholder = signaturePlaceholder, !placeholder.isEmpty {
-                    // What to write when the user has no signature yet.
-                    Text(placeholder).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
+            AvatarView(userId: user.id, displayName: user.name, avatarURL: user.avatarURL, size: Self.avatarSize)
+            VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                Text(user.name)
+                    .font(.system(size: sidebar ? FlareSizes.fontSizeLg : FlareSizes.fontSize3xl, weight: .semibold))
+                    .foregroundColor(colors.textPrimary)
+                    .lineLimit(2)
+                if let f = user.flareId, !f.isEmpty {
+                    Text("\(strings.contactDetailFlareId): \(f)")
+                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
                         .lineLimit(1)
                 }
-                if let f = user.flareId, !f.isEmpty {
-                    // The label is the strings table's, so a host that renames or translates the
-                    // public handle is followed here too (``ProfileCardView`` already reads it).
-                    Text("\(strings.contactDetailFlareId): \(f)")
-                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                if let bio, !bio.isEmpty {
+                    Text(bio).font(.system(size: sidebar ? FlareSizes.fontSizeSm : FlareSizes.fontSizeMd))
+                        .foregroundColor(signature == nil ? colors.textTertiary : colors.textSecondary)
+                        .lineLimit(sidebar ? 1 : 2)
                 }
             }
-            Spacer(minLength: 0)
-            // Room for the QR key, which is its own control laid over this row.
+            .frame(maxWidth: .infinity, alignment: .leading)
             if onQr != nil { Color.clear.frame(width: FlareSizes.touchTargetMin, height: 1) }
             if onEdit != nil {
                 Image(systemName: "chevron.right").font(.system(size: FlareSizes.fontSizeLg, weight: .semibold))
@@ -136,29 +162,43 @@ public struct ProfilePanelView: View {
                     .accessibilityHidden(true)
             }
         }
-        .padding(.leading, FlareSizes.spacingLg)
-        .padding(.trailing, FlareSizes.spacingMd)
-        .padding(.vertical, FlareSizes.spacingLg)
+        .padding(FlareSizes.spacingMd)
         .frame(maxWidth: .infinity, minHeight: Self.identityMinHeight, alignment: .leading)
         .contentShape(Rectangle())
         if let onEdit {
             Button(action: onEdit) { content }
                 .buttonStyle(.plain)
-                .accessibilityLabel(strings.profilePanelEditProfile(user.name))
+                .accessibilityLabel(identityActionLabel ?? strings.profilePanelEditProfile(user.name))
         } else {
             content.accessibilityElement(children: .combine)
         }
     }
 
-    /// The identity row's height (Vue `min-height: 88px`), well above the 44pt target.
-    static let identityMinHeight: CGFloat = 88
+    static let identityMinHeight: CGFloat = avatarSize + 2 * FlareSizes.spacingMd
+    static let avatarSize: CGFloat = 48
+}
+
+/// How ``ProfilePanelView`` sits (Vue `layout`): `page` flows in the host's scroll view; `sidebar` fills the height
+/// it is given, the identity card fixed and the groups scrolling under it.
+public enum FlareProfilePanelLayout: Sendable { case page, sidebar }
+
+/// The edit ``ProfileEditorView`` holds (Vue `FlareProfileDraft`), for a host that keeps it across pages.
+public struct FlareProfileDraft: Equatable, Sendable {
+    public var name: String
+    public var signature: String
+    public init(name: String, signature: String) { self.name = name; self.signature = signature }
 }
 
 /// Profile editor. Spec: Profile/ProfileEditor (`ProfileEditorView`).
+///
+/// An edit that differs from `user` says 「未保存修改」 beside the buttons, and only then can be saved. `draft` (Vue
+/// `v-model:draft`) starts the fields from a kept edit and is written on every change, so a host can keep it while
+/// the viewer moves around and drop it on cancel or a save that landed.
 public struct ProfileEditorView: View {
     private let user: UserProfile
     private let labels: FlareProfileEditorLabels
     private let busy: Bool
+    private let draft: Binding<FlareProfileDraft?>?
     private let onSave: ((String, String) -> Void)?
     private let onCancel: (() -> Void)?
     private let onPickAvatar: (() -> Void)?
@@ -169,13 +209,21 @@ public struct ProfileEditorView: View {
     @State private var signature: String
 
     public init(user: UserProfile, labels: FlareProfileEditorLabels = FlareProfileEditorLabels(), busy: Bool = false,
+                draft: Binding<FlareProfileDraft?>? = nil,
                 onSave: ((String, String) -> Void)? = nil, onCancel: (() -> Void)? = nil, onPickAvatar: (() -> Void)? = nil) {
-        self.user = user; self.labels = labels; self.busy = busy; self.onSave = onSave; self.onCancel = onCancel; self.onPickAvatar = onPickAvatar
-        _name = State(initialValue: user.name)
-        _signature = State(initialValue: user.signature ?? "")
+        self.user = user; self.labels = labels; self.busy = busy; self.draft = draft
+        self.onSave = onSave; self.onCancel = onCancel; self.onPickAvatar = onPickAvatar
+        let kept = draft?.wrappedValue
+        _name = State(initialValue: kept?.name ?? user.name)
+        _signature = State(initialValue: kept?.signature ?? user.signature ?? "")
     }
 
     private var copy: FlareProfileEditorLabels.Resolved { labels.resolve(strings) }
+
+    /// The fields differ from the profile as saved (Vue `dirty`).
+    static func isDirty(name: String, signature: String, user: UserProfile) -> Bool {
+        name != user.name || signature != (user.signature ?? "")
+    }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -197,38 +245,52 @@ public struct ProfileEditorView: View {
             InputView(text: $signature, placeholder: copy.bioPlaceholder, multiline: true, maxLength: 60, disabled: busy)
 
             HStack(spacing: FlareSizes.spacingMd) {
+                if dirty {
+                    Text(strings.profileEditorUnsaved).font(.system(size: FlareSizes.fontSizeSm))
+                        .foregroundColor(colors.textSecondary).fixedSize()
+                }
                 ButtonView(label: copy.cancel, variant: .secondary, size: .lg,
                            disabled: busy || onCancel == nil, block: true, action: onCancel)
                 ButtonView(label: copy.save, size: .lg, loading: busy,
-                           disabled: name.trimmingCharacters(in: .whitespaces).isEmpty || onSave == nil,
+                           disabled: name.trimmingCharacters(in: .whitespaces).isEmpty || !dirty || onSave == nil,
                            block: true) { onSave?(name, signature) }
             }
             .padding(.top, FlareSizes.spacingMd)
         }
         .padding(FlareSizes.spacingLg)
+        .onChange(of: FlareProfileDraft(name: name, signature: signature)) { draft?.wrappedValue = $0 }
     }
+
+    private var dirty: Bool { Self.isDirty(name: name, signature: signature, user: user) }
 }
 
-/// Grouped card: a section's rows float together on one elevated
-/// surface (bgElevated, radiusXl, soft theme-tinted lift in dark). Shared by
-/// ``SettingsListView`` and ``ProfilePanelView``; matches Android / Flutter.
+/// Grouped card: a section's rows together on one elevated surface (bgElevated, radiusLg, a borderSecondary
+/// hairline, as Vue `.flare-settings__group`). Shared by ``SettingsListView`` and ``ProfilePanelView``.
 struct FlareGroupedCard: ViewModifier {
     let colors: FlareColors
     let dark: Bool
     func body(content: Content) -> some View {
+        // Vue `.flare-settings__group`: a quiet group with one shared hairline edge, no lift.
+        let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg, style: .continuous)
         content
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl, style: .continuous).fill(colors.bgElevated))
-            .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl, style: .continuous))
-            .shadow(color: dark ? Color.black.opacity(0.5) : Color(.sRGB, red: 0x15 / 255, green: 0x13 / 255, blue: 0x20 / 255, opacity: 0.08),
-                    radius: dark ? 12 : 11, y: 8)
-            .shadow(color: dark ? colors.primary.opacity(0.14) : Color.clear,
-                    radius: dark ? 6 : 0, y: dark ? 2 : 0)
+            .background(shape.fill(colors.bgElevated))
+            .clipShape(shape)
+            .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1))
     }
 }
 
 extension View {
     func flareGroupedCard(_ colors: FlareColors, dark: Bool) -> some View {
         modifier(FlareGroupedCard(colors: colors, dark: dark))
+    }
+
+    /// R2.1 / §5.1: a plugin page's card (list card, overview card, wallet card) — `radius.card` on `bg.primary` with
+    /// the shared hairline edge.
+    func flarePluginCard(_ colors: FlareColors) -> some View {
+        let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusCard, style: .continuous)
+        return background(shape.fill(colors.bgPrimary))
+            .clipShape(shape)
+            .overlay(shape.stroke(colors.borderSecondary, lineWidth: 1).allowsHitTesting(false))
     }
 }
 
@@ -242,13 +304,18 @@ public struct SettingsListView: View {
     private let onToggle: ((FlareSettingsItem, Bool) -> Void)?
     private let onSelect: ((FlareSettingsItem) -> Void)?
     private let scrollable: Bool
+    private let flush: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
-    /// - Parameter scrollable: false when the host already owns vertical scrolling: the list sizes to its content.
+    /// - Parameters:
+    ///   - scrollable: false when the host already owns vertical scrolling: the list sizes to its content.
+    ///   - flush: rows edge to edge on the primary surface, no card, inset or section gap (Vue `surface="flush"`),
+    ///     for entries that are part of a list page, such as 通讯录's 群聊 / 新的好友 / 黑名单.
     public init(sections: [FlareSettingsSection], onToggle: ((FlareSettingsItem, Bool) -> Void)? = nil, onSelect: ((FlareSettingsItem) -> Void)? = nil,
-                scrollable: Bool = true) {
+                scrollable: Bool = true, flush: Bool = false) {
         self.sections = sections; self.onToggle = onToggle; self.onSelect = onSelect; self.scrollable = scrollable
+        self.flush = flush
     }
 
     public var body: some View {
@@ -267,33 +334,36 @@ public struct SettingsListView: View {
             ForEach(sections) { section in
                 if let t = section.title, !t.isEmpty {
                     Text(t)
-                        .font(.system(size: FlareSizes.fontSizeSm))
-                        .foregroundColor(colors.textTertiary)
+                        .font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
+                        .foregroundColor(colors.textSecondary)
                         .padding(.horizontal, FlareSizes.spacingLg)
                         .padding(.top, FlareSizes.spacingMd)
                         .padding(.bottom, FlareSizes.spacingSm)
-                } else {
+                } else if !flush {
                     Spacer().frame(height: FlareSizes.spacingSm)
                 }
-                VStack(spacing: 0) {
+                let group = VStack(spacing: 0) {
                     ForEach(Array(section.items.enumerated()), id: \.element.id) { i, item in
-                        if i > 0 {
-                            Divider().overlay(colors.borderSecondary)
-                                .padding(.leading, FlareSizes.spacingMd)
-                        }
+                        if i > 0 { Divider().overlay(colors.borderSecondary) }
                         FlareSettingsRow(item: item, onToggle: onToggle, onSelect: onSelect)
-                            .padding(.horizontal, FlareSizes.spacingMd)
+                            .padding(.horizontal, FlareSizes.spacingLg)
+                            .background(item.current ? colors.bgSelected : Color.clear)
                     }
                 }
-                .flareGroupedCard(colors, dark: dark)
-                .padding(.horizontal, FlareSizes.spacingMd)
-                .padding(.bottom, FlareSizes.spacingSm)
+                if flush {
+                    group.background(colors.bgPrimary)
+                } else {
+                    group
+                        .flareGroupedCard(colors, dark: dark)
+                        .padding(.horizontal, FlareSizes.spacingMd)
+                        .padding(.bottom, FlareSizes.spacingSm)
+                }
                 if let footer = section.footer, !footer.isEmpty {
                     FlareSettingsSectionFooter(text: footer, colors: colors)
                 }
             }
         }
-        .padding(.vertical, FlareSizes.spacingSm)
+        .padding(.vertical, flush ? 0 : FlareSizes.spacingSm)
     }
 }
 
@@ -363,7 +433,21 @@ public struct FlareSettingsRow: View {
         Group {
             if item.kind == .toggle {
                 Toggle(isOn: Binding(get: { item.value }, set: { onToggle?(item, $0) })) {
-                    rowLabel(colors)
+                    if let detail = item.detail, !detail.isEmpty {
+                        // A switch's detail is its explanation, under the label (Vue settings row subtitle).
+                        HStack(alignment: .top, spacing: FlareSizes.spacingMd) {
+                            rowIcon(colors)
+                            VStack(alignment: .leading, spacing: FlareSizes.spacing2xs) {
+                                rowTitle(colors)
+                                Text(detail).font(.system(size: FlareSizes.fontSizeSm))
+                                    .foregroundColor(colors.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(.vertical, FlareSizes.spacingSm)
+                    } else {
+                        rowLabel(colors)
+                    }
                 }
                 .toggleStyle(FlareSwitchStyle(size: .sm, fillsRow: true))
                 .disabled(item.disabled || onToggle == nil)
@@ -380,8 +464,9 @@ public struct FlareSettingsRow: View {
             }
         }
         .frame(minHeight: FlareSizes.touchTarget)
-        .opacity(item.disabled ? 0.45 : 1)
+        .opacity(item.disabled ? FlareOpacity.disabled : 1)
         .modifier(FlareSettingsRowBadgeValue(text: Self.drawsBadge(item) ? strings.settingsRowBadge : nil))
+        .accessibilityAddTraits(item.current ? .isSelected : [])
     }
 
     /// The row's label, value and chevron (stacked or on one line).
@@ -435,14 +520,17 @@ public struct FlareSettingsRow: View {
 
     @ViewBuilder private func rowIcon(_ colors: FlareColors) -> some View {
         // A name outside the registry draws the plugin glyph; an empty one draws no icon.
+        // One 20pt column in the row's colour (Vue `.flare-settings__ico`), so every label starts at the same x.
         if let icon = flareIconNameOrFallback(item.icon) {
-            IconView(icon, size: FlareSizes.iconSizeSm, color: colors.textSecondary)
+            IconView(icon, size: FlareSizes.iconSizeMd, color: item.danger ? colors.errorText : colors.textPrimary)
+                .frame(width: FlareSizes.iconSizeMd, height: FlareSizes.iconSizeMd)
         }
     }
 
     private func rowTitle(_ colors: FlareColors) -> some View {
-        Text(item.label).font(.system(size: FlareSizes.fontSizeLg))
-            .foregroundColor(item.danger ? colors.errorText : colors.textPrimary)
+        // The current row is marked by weight as well as colour (the ground is drawn by the list around the row).
+        Text(item.label).font(.system(size: FlareSizes.fontSizeLg, weight: item.current ? .semibold : .regular))
+            .foregroundColor(item.danger ? colors.errorText : item.current ? colors.primaryText : colors.textPrimary)
     }
 
     /// The warning tag, drawn like a plugin badge (the kit's tinted capsule).
@@ -464,8 +552,10 @@ public struct FlareSettingsRow: View {
 
     @ViewBuilder private func chevron(_ colors: FlareColors) -> some View {
         if item.kind == .navigation {
-            Image(systemName: "chevron.right").font(.system(size: 12))
+            // §12.3: every list row ends in chevron-right 16.
+            FlareIconImage(name: "chevron-right", size: FlareSizes.iconSizeSm)
                 .foregroundColor(colors.textTertiary)
+                .accessibilityHidden(true)
         }
     }
 }

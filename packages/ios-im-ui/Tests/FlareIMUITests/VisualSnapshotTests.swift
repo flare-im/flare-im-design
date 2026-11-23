@@ -45,6 +45,7 @@ final class VisualSnapshotTests: XCTestCase {
         // motion on, typeset as en-US.
         let host = NSHostingView(rootView: view
             .environment(\._accessibilityReduceMotion, false)
+            .environment(\.displayScale, Self.snapshotScale)
             .typesettingLanguage(Locale.Language(identifier: "en-US")))
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                               styleMask: .borderless, backing: .buffered, defer: false)

@@ -56,7 +56,7 @@ public extension FlareContactDetailLabels {
     }
 }
 
-/// Contact profile — hero (avatar / name / presence / star chip), an action row
+/// Contact profile — hero (avatar, name with a 16pt star when starred, the presence line when known, signature), an action row
 /// (message / voice / video), a 资料 settings card (Flare ID / remark / description / favorite
 /// toggle), and a danger zone (block / remove).
 ///
@@ -99,6 +99,9 @@ public struct FlareContactDetail: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    #endif
 
     public init(contact: Contact, starred: Bool = false, description: String = "",
                 labels: FlareContactDetailLabels = FlareContactDetailLabels(),
@@ -177,71 +180,106 @@ public struct FlareContactDetail: View {
         let intents = Self.intents(primary: Self.hasPrimaryAction(label: primaryActionLabel, handled: onPrimaryAction != nil),
                                    message: onMessage != nil, call: onCall != nil, video: onVideo != nil)
         ScrollView {
-            VStack(spacing: FlareSizes.spacingLg) {
+            VStack(spacing: FlareSizes.spacingSm) {
                 hero(colors)
-                if !intents.isEmpty { actions(intents) }
+                if !blocksLead && !intents.isEmpty { actions(intents) }
                 infoCard(colors, items: Self.infoItems(contact: contact, description: description, starred: starred, copy: copy,
                                                        editsRemark: onEditRemark != nil,
                                                        editsDescription: onEditDescription != nil,
                                                        togglesStar: onToggleStar != nil))
                 if onBlock != nil || onRemove != nil || !extraActions.isEmpty { danger(colors) }
             }
-            .padding(.vertical, FlareSizes.spacingLg)
+            .padding(.bottom, FlareSizes.spacingLg)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if blocksLead && !intents.isEmpty {
+                actions(intents)
+                    .padding(.vertical, FlareSizes.spacingSm)
+                    .background(colors.bgPrimary)
+            }
         }
         .background(colors.bgSecondary.ignoresSafeArea())
     }
 
+    /// Vue `__hero`: the avatar, then name, presence and signature at its side, all from the leading edge.
     private func hero(_ colors: FlareColors) -> some View {
-        VStack(spacing: FlareSizes.spacingSm) {
+        HStack(spacing: FlareSizes.spacing2md) {
             AvatarView(userId: contact.id, displayName: contact.name, avatarURL: contact.avatarURL,
-                       size: 76, presence: contact.presence)
-            Text(contact.name)
-                .font(.system(size: FlareSizes.fontSize4xl, weight: .bold)).foregroundColor(colors.textPrimary)
+                       size: 64, presence: contact.presence)
+            VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            HStack(spacing: FlareSizes.spacingSm) {
+                Text(contact.name)
+                    .font(.system(size: FlareSizes.fontSizeXl, weight: .bold)).foregroundColor(colors.textPrimary)
+                if starred {
+                    // A 16pt kit star after the name (Vue `__star`), read as 星标好友.
+                    Image(systemName: flareIconSymbol("star"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(colors.primaryText)
+                        .accessibilityLabel(copy.star)
+                }
+            }
+            if let presence = contact.presence {
+                // The presence in words beside its dot (Vue `__presence`), only when it is known.
+                HStack(spacing: 6) {
+                    Circle().fill(AvatarView.presenceColor(colors, presence)).frame(width: 7, height: 7)
+                        .accessibilityHidden(true)
+                    Text(Self.presenceText(presence, strings))
+                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                }
+            }
             if let s = contact.signature, !s.isEmpty {
                 Text(s).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textSecondary)
-                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            if starred {
-                // The star is the kit icon, not a text character; the badge reads as its label.
-                HStack(spacing: FlareSizes.spacingXs) {
-                    Image(systemName: flareIconSymbol("star"))
-                        .font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
-                        .accessibilityHidden(true)
-                    Text(copy.star)
-                        .font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
-                }
-                .foregroundColor(colors.primaryText)
-                .padding(.horizontal, FlareSizes.spacing2sm).padding(.vertical, 2)
-                .background(Capsule().fill(colors.bgSelected))
-                .accessibilityElement(children: .combine)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.top, FlareSizes.spacingLg)
+        .padding(.bottom, FlareSizes.spacingSm)
+    }
+
+    /// The lead action fills its row on the phone (Vue `block` outside the detail layout).
+    private var blocksLead: Bool {
+        #if os(iOS)
+        sizeClass == .compact
+        #else
+        false
+        #endif
+    }
+
+    static func presenceText(_ presence: FlarePresence, _ strings: FlareStrings) -> String {
+        switch presence {
+        case .online: return strings.presenceOnline
+        case .offline: return strings.presenceOffline
+        case .busy: return strings.presenceBusy
+        case .away: return strings.presenceAway
+        }
     }
 
     private func actions(_ intents: [Intent]) -> some View {
         let lead = Self.primaryIntent(in: intents)
-        return FlareFlowLayout(spacing: FlareSizes.spacingSm, lineSpacing: FlareSizes.spacingSm,
-                               alignment: .center, constrainSubviews: true) {
+        return FlareFlowLayout(spacing: FlareSizes.spacing2sm, lineSpacing: FlareSizes.spacing2sm,
+                               alignment: .leading, constrainSubviews: true) {
             ForEach(intents, id: \.self) { intent in
                 switch intent {
                 case .primary:
                     actionButton(primaryActionLabel ?? "", "person-add", onPrimaryAction,
                                  primary: true, busy: primaryActionBusy)
-                case .message: actionButton(copy.message, "comment", onMessage, primary: lead == .message)
+                case .message: actionButton(copy.message, nil, onMessage, primary: lead == .message)
                 case .call: actionButton(copy.voice, "phone", onCall)
                 case .video: actionButton(copy.video, "video", onVideo)
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, FlareSizes.spacingLg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, FlareSizes.spacingMd)
     }
 
-    private func actionButton(_ label: String, _ icon: String, _ action: (() -> Void)?,
+    private func actionButton(_ label: String, _ icon: String?, _ action: (() -> Void)?,
                               primary: Bool = false, busy: Bool = false) -> some View {
-        ButtonView(label: label, variant: primary ? .primary : .secondary, size: .sm, loading: busy,
-                   icon: icon, maintainTouchTarget: true, action: action)
+        ButtonView(label: label, variant: primary ? .primary : .secondary, size: blocksLead ? .lg : .sm, loading: busy,
+                   block: primary && blocksLead, icon: icon, maintainTouchTarget: true, action: action)
     }
 
     /// The 资料 card; nothing at all when it has no rows.
@@ -249,21 +287,21 @@ public struct FlareContactDetail: View {
     private func infoCard(_ colors: FlareColors, items: [FlareSettingsItem]) -> some View {
         if !items.isEmpty {
             VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
-                Text(copy.info).font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
-                    .foregroundColor(colors.textTertiary).padding(.horizontal, FlareSizes.spacingLg)
+                Text(copy.info).font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
+                    .foregroundColor(colors.textSecondary).padding(.horizontal, FlareSizes.spacingLg)
                 VStack(spacing: 0) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { i, item in
-                        if i > 0 { Divider().padding(.leading, FlareSizes.spacingMd) }
+                        if i > 0 { Divider().overlay(colors.borderSecondary) }
                         // A value row is not a control: it gets no select handler.
                         FlareSettingsRow(item: item, onToggle: { it, on in if it.key == "star" { onToggleStar?(on) } },
                                          onSelect: item.kind == .navigation ? { it in
                             if it.key == "remark" { onEditRemark?() } else if it.key == "description" { onEditDescription?() }
                         } : nil)
-                        .padding(.horizontal, FlareSizes.spacingMd)
+                        .padding(.horizontal, FlareSizes.spacingLg)
                         .frame(minHeight: 48)
                     }
                 }
-                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(colors.bgElevated))
+                .flareGroupedCard(colors, dark: scheme == .dark)
                 .padding(.horizontal, FlareSizes.spacingMd)
             }
         }
@@ -272,12 +310,12 @@ public struct FlareContactDetail: View {
     private func danger(_ colors: FlareColors) -> some View {
         VStack(spacing: FlareSizes.spacingSm) {
             ForEach(extraActions) { action in
-                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: .sm, block: true, maintainTouchTarget: true) {
+                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: blocksLead ? .lg : .sm, block: true, maintainTouchTarget: true) {
                     onExtraAction?(action.id)
                 }
             }
-            if let onBlock { ButtonView(label: copy.block, variant: .secondary, size: .sm, block: true, maintainTouchTarget: true, action: onBlock) }
-            if let onRemove { ButtonView(label: copy.remove, variant: .danger, size: .sm, block: true, maintainTouchTarget: true, action: onRemove) }
+            if let onBlock { ButtonView(label: copy.block, variant: .secondary, size: blocksLead ? .lg : .sm, block: true, maintainTouchTarget: true, action: onBlock) }
+            if let onRemove { ButtonView(label: copy.remove, variant: .danger, size: blocksLead ? .lg : .sm, block: true, maintainTouchTarget: true, action: onRemove) }
         }
         .padding(.horizontal, FlareSizes.spacingLg)
         .padding(.top, FlareSizes.spacingSm)

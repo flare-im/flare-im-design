@@ -196,9 +196,10 @@ String weekdaySummaryText(
     FlareWeekdaySummaryKind.everyDay => strings.weekdayEveryDay,
     FlareWeekdaySummaryKind.weekdays => strings.weekdayWeekdays,
     FlareWeekdaySummaryKind.weekends => strings.weekdayWeekends,
-    FlareWeekdaySummaryKind.days => summary.days
-        .map((day) => weekdayName(day, strings: strings))
-        .join(strings.displayNameSeparator),
+    FlareWeekdaySummaryKind.days =>
+      summary.days
+          .map((day) => weekdayName(day, strings: strings))
+          .join(strings.displayNameSeparator),
   };
 }
 

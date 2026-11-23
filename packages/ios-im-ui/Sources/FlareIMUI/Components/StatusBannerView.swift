@@ -21,6 +21,11 @@ public struct StatusBannerView: View {
     private let actionText: String?
     private let onAction: (() -> Void)?
     private let floating: Bool
+    private let dismissible: Bool
+    private let onDismiss: (() -> Void)?
+    /// The inline action shows but waits (R8: offline or busy disables, never hides).
+    private let actionDisabled: Bool
+    @Environment(\.flareStrings) private var strings
     @ScaledMetric private var textSize: CGFloat = FlareSizes.fontSizeMd
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -28,9 +33,12 @@ public struct StatusBannerView: View {
     @State private var pulsing = false
 
     public init(text: String, tone: FlareStatusTone = .info, dot: Bool = true, pulse: Bool = false,
-                actionText: String? = nil, onAction: (() -> Void)? = nil, floating: Bool = false) {
+                actionText: String? = nil, onAction: (() -> Void)? = nil, floating: Bool = false,
+                dismissible: Bool = false, onDismiss: (() -> Void)? = nil, actionDisabled: Bool = false) {
+        self.actionDisabled = actionDisabled
         self.text = text; self.tone = tone; self.dot = dot; self.pulse = pulse
         self.actionText = actionText; self.onAction = onAction; self.floating = floating
+        self.dismissible = dismissible; self.onDismiss = onDismiss
     }
 
     private func toneColor(_ colors: FlareColors) -> Color {
@@ -70,6 +78,11 @@ public struct StatusBannerView: View {
                         .frame(minWidth: 48, minHeight: 48)
                 }
                 .buttonStyle(.plain)
+                .disabled(actionDisabled)
+                .opacity(actionDisabled ? FlareOpacity.disabled : 1)
+            }
+            if dismissible, let onDismiss {
+                IconButtonView(icon: "close", accessibilityLabel: strings.close, size: .sm, action: onDismiss)
             }
         }
         .padding(.horizontal, FlareSizes.spacing2md)

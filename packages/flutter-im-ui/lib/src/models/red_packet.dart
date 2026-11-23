@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../tokens/flare_strings.dart';
+import 'capability_ui.dart' show flareCurrencyPrefix, flarePaymentAmountText;
 import 'plugin_view.dart' show flarePluginRenderPattern;
 
 /// Red packet v5 presentation (docs/design/red-packet-v5-roles-and-wallet.md,
@@ -52,6 +53,11 @@ enum FlareRedPacketOpenState {
 /// conversation only has [normal]. On a card, [lucky] and [exclusive] draw a
 /// badge and [normal] none.
 enum FlareRedPacketKind { lucky, normal, exclusive }
+
+/// A `FlareRedPacketComposer` field a host error belongs to or focus moves to
+/// (spec RedPacketComposer `errorField` / `focusField`). [form] is for
+/// `errorField` only: a service failure drawn in a banner above the card.
+enum FlareRedPacketField { amount, count, greeting, recipient, form }
 
 T? _enumOf<T extends Enum>(List<T> values, Object? name) {
   for (final value in values) {
@@ -122,7 +128,10 @@ bool flareRedPacketCardDimmed(FlareRedPacketCardState state) =>
 }) {
   final name = recipientName?.trim() ?? '';
   return switch (kind) {
-    FlareRedPacketKind.lucky => (badge: strings.packetBadgeLucky, recipient: null),
+    FlareRedPacketKind.lucky => (
+      badge: strings.packetBadgeLucky,
+      recipient: null,
+    ),
     FlareRedPacketKind.normal => (badge: null, recipient: null),
     FlareRedPacketKind.exclusive => (
       badge: strings.packetBadgeExclusive,
@@ -152,16 +161,9 @@ bool flareRedPacketCardDimmed(FlareRedPacketCardState state) =>
 
 // ── amounts (vectors → amount) ─────────────────────────────────────────────
 
-/// Currency symbols the kit writes before an amount; any other code is
-/// written as "{CODE} {amount}".
-const Map<String, String> flareRedPacketCurrencySymbols = {
-  'CNY': '¥',
-  'JPY': '¥',
-  'USD': r'$',
-  'EUR': '€',
-  'GBP': '£',
-  'HKD': r'HK$',
-};
+/// Currency symbols the kit writes before an amount: the kit's one table
+/// ([flareCurrencyPrefix], R10); any other code goes after the number.
+const Map<String, String> flareRedPacketCurrencySymbols = flareCurrencyPrefix;
 
 final RegExp _asciiDigits = RegExp(r'^[0-9]+$');
 
@@ -181,13 +183,11 @@ String? flareRedPacketMinorText(String? minor, int exponent) {
   return exponent == 0 ? whole : '$whole.$fraction';
 }
 
-/// [flareRedPacketMinorText] with its currency: the symbol for a code in
-/// [flareRedPacketCurrencySymbols], else "{CODE} {text}".
+/// [flareRedPacketMinorText] with its currency, by the kit's one amount
+/// formatter ([flarePaymentAmountText], R10): "¥1,000.00", "3 LABPOINT".
 String? flareRedPacketMoney(String? minor, int exponent, String currency) {
   final text = flareRedPacketMinorText(minor, exponent);
-  if (text == null) return null;
-  final symbol = flareRedPacketCurrencySymbols[currency.toUpperCase()];
-  return symbol == null ? '$currency $text' : '$symbol$text';
+  return text == null ? null : flarePaymentAmountText(text, currency);
 }
 
 // ── details (vectors → detail) ─────────────────────────────────────────────
@@ -361,8 +361,7 @@ String flareRedPacketTime(
 /// minutes, whole hours, then whole days.
 String flareRedPacketDuration(int ms, FlareStrings strings) {
   final seconds = ms ~/ 1000;
-  String n(String template, int value) =>
-      template.replaceAll('{n}', '$value');
+  String n(String template, int value) => template.replaceAll('{n}', '$value');
   if (seconds < 60) return n(strings.packetDurationSeconds, seconds);
   if (seconds < 3600) return n(strings.packetDurationMinutes, seconds ~/ 60);
   if (seconds < 86400) return n(strings.packetDurationHours, seconds ~/ 3600);
@@ -391,8 +390,12 @@ FlareRedPacketDetailPresentation flareRedPacketDetailPresentation(
   String? money(String? minor) => (minor ?? '').isEmpty
       ? null
       : flareRedPacketMoney(minor, details.currencyExponent, details.currency);
-  String time(int ms) =>
-      flareRedPacketTime(ms, nowMs, strings, utcOffsetMinutes: utcOffsetMinutes);
+  String time(int ms) => flareRedPacketTime(
+    ms,
+    nowMs,
+    strings,
+    utcOffsetMinutes: utcOffsetMinutes,
+  );
   final role = details.viewerRole;
   final status = details.status;
   final spent =

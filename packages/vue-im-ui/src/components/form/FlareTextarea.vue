@@ -74,7 +74,7 @@ function onInput(): void {
   resize();
 }
 function onKeydown(e: KeyboardEvent): void {
-  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+  if (!props.disabled && !e.isComposing && e.keyCode !== 229 && e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     emit("enter");
   }
@@ -116,8 +116,10 @@ onMounted(() => {
 .flare-textarea {
   box-sizing: border-box;
   min-width: 0;
+  min-height: 0;
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   border: 1px solid var(--flare-color-border-primary);
   border-radius: var(--flare-size-radius-lg);
@@ -131,6 +133,9 @@ onMounted(() => {
 }
 .flare-textarea.is-disabled { opacity: 0.55; }
 .flare-textarea__field {
+  flex: 1 1 auto;
+  min-height: calc(1.5em + var(--flare-size-spacing-sm) * 2);
+  overflow-y: auto;
   width: 100%;
   box-sizing: border-box;
   border: none;
@@ -147,6 +152,7 @@ onMounted(() => {
 .flare-textarea--md .flare-textarea__field { padding: var(--flare-size-spacing-2sm) 12px; font-size: 14px; }
 .flare-textarea--lg .flare-textarea__field { padding: 12px var(--flare-size-spacing-2md); font-size: 15px; }
 .flare-textarea__count {
+  flex: none;
   display: block;
   padding: 0 12px 6px;
   text-align: end;

@@ -154,7 +154,10 @@ final class InviteViewsTests: XCTestCase {
     /// ViewInspector cannot read `.environment` values, so the host override is asserted on the
     /// strings value the host applies, not on an inspected tree.
     func testHostOverrideCarriesTheInviteCopy() {
-        let en = FlareStrings(inviteCodeLabel: "Invite code", myInviteTitle: "My invite")
+        let en = FlareStrings { copy in
+            copy.inviteCodeLabel = "Invite code"
+            copy.myInviteTitle = "My invite"
+        }
         XCTAssertEqual(en.myInviteTitle, "My invite")
         XCTAssertEqual(en.inviteCodeLabel, "Invite code")
         XCTAssertEqual(en.myInviteEmpty, "还没有人通过你的邀请码加入", "untouched fields keep the kit default")

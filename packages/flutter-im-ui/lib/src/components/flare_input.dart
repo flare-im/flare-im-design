@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsValidationResult;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -28,6 +30,7 @@ class FlareInput extends StatefulWidget {
     this.inputFormatters,
     this.prefix,
     this.monospace = false,
+    this.error,
     this.onChanged,
     this.onSubmitted,
   });
@@ -67,6 +70,10 @@ class FlareInput extends StatefulWidget {
   /// Draw the value in the platform's monospaced face (codes, identifiers);
   /// the field's geometry does not change.
   final bool monospace;
+
+  /// The field's error (R6): an error border, and the text is read with the
+  /// field as its hint, marked invalid.
+  final String? error;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
@@ -160,11 +167,23 @@ class _FlareInputState extends State<FlareInput> {
           decoration: BoxDecoration(
             color: colors.bgSecondary,
             borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                      color: colors.focusRing,
+                      spreadRadius: FlareSizes.componentFocusRingWidth,
+                    ),
+                  ]
+                : null,
           ),
           foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
             border: Border.all(
-              color: _focused ? colors.borderSelected : colors.borderPrimary,
+              color: widget.error != null
+                  ? colors.error
+                  : _focused
+                  ? colors.borderSelected
+                  : colors.borderPrimary,
               width: 1,
             ),
           ),
@@ -193,6 +212,10 @@ class _FlareInputState extends State<FlareInput> {
                       child: Semantics(
                         label: widget.semanticLabel ?? widget.placeholder,
                         identifier: widget.semanticLabel,
+                        hint: widget.error,
+                        validationResult: widget.error != null
+                            ? SemanticsValidationResult.invalid
+                            : SemanticsValidationResult.none,
                         child: TextField(
                           obscureText:
                               widget.secure && !widget.multiline && !_revealed,

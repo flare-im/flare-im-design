@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'call_stage.dart';
 import 'flare_avatar.dart';
 import 'flare_call_controls.dart' show FlareCallMode;
+import 'flare_call_view.dart' show FlareCallState;
 import 'flare_icon.dart';
 import 'icon_control.dart';
 
-/// Minimized ongoing-call dock — a floating pill showing the active call. Its
-/// main button (avatar, title, duration) returns to the full call; beside it
-/// sit the microphone toggle, announced as on while the microphone is, and
-/// hang up. Spec: Call/CallDock (`FlareCallDock`).
+/// Minimized ongoing-call dock — a floating pill on the call stage colour
+/// showing the active call. Its main button (avatar, title, status) returns
+/// to the full call; beside it sit the microphone toggle, announced as on
+/// while the microphone is, and hang up. Spec: Call/CallDock
+/// (`FlareCallDock`), docs/plugin-experience.md §3.5.
+///
+/// The status follows [state]: the duration once connected, waiting while
+/// calling or ringing, a warning dot while reconnecting and the interrupted
+/// text when failed; [statusDetail] replaces it.
 class FlareCallDock extends StatelessWidget {
   const FlareCallDock({
     super.key,
@@ -18,6 +25,8 @@ class FlareCallDock extends StatelessWidget {
     this.avatarUrl,
     this.durationLabel,
     this.mode = FlareCallMode.audio,
+    this.state = FlareCallState.connected,
+    this.statusDetail,
     this.muted = false,
     this.onExpand,
     this.onToggleMute,
@@ -28,43 +37,58 @@ class FlareCallDock extends StatelessWidget {
   final String? avatarUrl;
   final String? durationLabel;
   final FlareCallMode mode;
+  final FlareCallState state;
+
+  /// Host text that replaces the status line.
+  final String? statusDetail;
   final bool muted;
   final VoidCallback? onExpand;
   final VoidCallback? onToggleMute;
   final VoidCallback? onHangup;
 
-  static const Color _success = Color(0xFF34D17F);
+  /// §3.5: the name's widest run.
+  static const double _nameMaxWidth = FlareSizes.componentCallDockNameMaxWidth;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
+    final failed = state == FlareCallState.failed;
+    // §12.17: the dock speaks in short phrases.
+    final status =
+        statusDetail ??
+        switch (state) {
+          FlareCallState.connected => durationLabel ?? strings.callConnected,
+          FlareCallState.calling ||
+          FlareCallState.ringing => strings.callDockWaiting,
+          FlareCallState.reconnecting => strings.callReconnectingShort,
+          FlareCallState.failed => strings.callInterrupted,
+          FlareCallState.ended => callEndedText(strings, durationLabel),
+        };
+    final statusColor = failed
+        ? colors.callErrorText
+        : colors.callOnStageSecondary;
     return Container(
-      // The two controls are full touch targets around 36-point discs, so the
-      // pill gives back the difference to keep its size: less padding above,
-      // below and after the hang-up disc.
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        FlareSizes.spacingSm,
-        FlareSizes.spacingXs,
-        FlareSizes.spacingSm - _targetInset,
-        FlareSizes.spacingXs,
+      constraints: const BoxConstraints(
+        minHeight: FlareSizes.componentCallDockHeight,
       ),
-      decoration: BoxDecoration(
-        color: colors.messageOutgoingBackground,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 24,
-            offset: Offset(0, 10),
-          ),
-        ],
+      // The two controls are full touch targets around 36-point discs, so the
+      // pill gives back the difference after the hang-up disc.
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        FlareSizes.spacingXs,
+        0,
+        FlareSizes.spacingSm - _targetInset,
+        0,
+      ),
+      decoration: callStageDecoration(colors).copyWith(
+        borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
+        boxShadow: FlareShadows.of(Theme.of(context).brightness).lg,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Named for what it does, like the web dock's aria-label; the title
-          // and duration it shows stay out of the name.
+          // and status it shows stay out of the name.
           FlareIconControl(
             label: strings.callReturn,
             onTap: onExpand,
@@ -72,28 +96,24 @@ class FlareCallDock extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _success, width: 2),
-                      ),
-                    ),
-                    FlareAvatar(
-                      userId: title,
-                      displayName: title,
-                      avatarUrl: avatarUrl,
-                      size: 34,
-                    ),
-                  ],
+                // A 40 avatar; connected, the speaking-green ring breathes
+                // outside it (still under reduced motion).
+                CallHalo(
+                  color: state == FlareCallState.connected
+                      ? colors.callSpeaking
+                      : Colors.transparent,
+                  breathing: state == FlareCallState.connected,
+                  inset: FlareSizes.spacingXs,
+                  child: FlareAvatar(
+                    userId: title,
+                    displayName: title,
+                    avatarUrl: avatarUrl,
+                    size: FlareSizes.componentCallDockAvatarSize,
+                  ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: FlareSizes.spacingSm),
                 ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 120),
+                  constraints: const BoxConstraints(maxWidth: _nameMaxWidth),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,34 +123,35 @@ class FlareCallDock extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: colors.messageOutgoingForeground,
+                          color: colors.callOnStage,
                           fontSize: FlareSizes.fontSizeLg,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: FlareSizes.spacing3xs),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            mode == FlareCallMode.video
-                                ? Icons.videocam
-                                : Icons.call,
-                            size: 12,
-                            color: colors.messageOutgoingForeground.withValues(
-                              alpha: 0.66,
+                          if (state == FlareCallState.reconnecting)
+                            const CallPulseDot(size: FlareSizes.spacing2xs)
+                          else
+                            FlareIcon(
+                              mode == FlareCallMode.video ? 'video' : 'phone',
+                              size: FlareSizes.fontSizeSm,
+                              color: statusColor,
                             ),
-                          ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: FlareSizes.spacingXs),
                           Flexible(
                             child: Text(
-                              durationLabel ?? strings.callConnected,
+                              status,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: colors.messageOutgoingForeground
-                                    .withValues(alpha: 0.66),
+                                color: statusColor,
                                 fontSize: FlareSizes.fontSizeSm,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                               ),
                             ),
                           ),
@@ -139,13 +160,11 @@ class FlareCallDock extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: FlareSizes.spacing2xs),
                 FlareIcon(
                   'expand',
-                  size: 14,
-                  color: colors.messageOutgoingForeground.withValues(
-                    alpha: 0.5,
-                  ),
+                  size: FlareSizes.fontSizeLg,
+                  color: colors.callOnStageSecondary,
                 ),
               ],
             ),
@@ -156,26 +175,26 @@ class FlareCallDock extends StatelessWidget {
             label: strings.microphone,
             toggled: !muted,
             onTap: onToggleMute,
-            bg: muted
-                ? colors.messageOutgoingForeground
-                : colors.messageOutgoingForeground.withValues(alpha: 0.14),
-            iconColor: muted
-                ? colors.messageOutgoingBackground
-                : colors.messageOutgoingForeground,
+            bg: muted ? colors.callControlActive : colors.callControl,
+            pressedBg: muted
+                ? colors.callControlActive
+                : colors.callControlHover,
+            iconColor: muted ? colors.callOnControlActive : colors.callOnStage,
           ),
           _circleButton(
             icon: 'end-call',
             label: strings.hangUp,
             onTap: onHangup,
-            bg: const Color(0xFFEF4444),
-            iconColor: Colors.white,
+            bg: colors.callHangup,
+            pressedBg: colors.callHangupPressed,
+            iconColor: colors.callOnStage,
           ),
         ],
       ),
     );
   }
 
-  static const double _disc = 36;
+  static const double _disc = FlareSizes.componentCallDockKeySize;
 
   /// How far a control's touch target reaches past its disc on each side.
   static const double _targetInset = (FlareSizes.touchTarget - _disc) / 2;
@@ -185,19 +204,32 @@ class FlareCallDock extends StatelessWidget {
     required String label,
     required VoidCallback? onTap,
     required Color bg,
+    required Color pressedBg,
     required Color iconColor,
     bool? toggled,
   }) {
-    return FlareIconControl(
-      label: label,
-      onTap: onTap,
-      toggled: toggled,
-      child: Container(
-        width: _disc,
-        height: _disc,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
-        child: FlareIcon(icon, size: 18, color: iconColor),
+    return CallFocusRing(
+      diameter: _disc,
+      child: CallPressTint(
+        builder: (active) => FlareIconControl(
+          label: label,
+          onTap: onTap,
+          toggled: toggled,
+          child: Container(
+            width: _disc,
+            height: _disc,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: active ? pressedBg : bg,
+            ),
+            child: FlareIcon(
+              icon,
+              size: FlareSizes.iconSizeSm,
+              color: iconColor,
+            ),
+          ),
+        ),
       ),
     );
   }

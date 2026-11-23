@@ -1,4 +1,5 @@
 import '../components/flare_avatar.dart';
+import '../components/flare_message_bubble.dart' show FlareConversationKind;
 
 /// Tone for a small inline row tag (group / bot / official / mention markers).
 enum FlareTagTone { info, warning, neutral }
@@ -32,6 +33,7 @@ class ConversationRowData {
     this.tags = const [],
     this.typing = false,
     this.failed = false,
+    this.kind,
   });
 
   /// Stable conversation id — also seeds the avatar fallback colour.
@@ -69,6 +71,10 @@ class ConversationRowData {
   /// Small inline tags shown after the title (e.g. "Group", "Official").
   final List<ConversationRowTag> tags;
 
+  /// [FlareConversationKind.group] puts the group mark on the row's avatar
+  /// (Vue `FlareConversationRowModel.kind`).
+  final FlareConversationKind? kind;
+
   /// The facts a host feeds a row after the core built it: the draft this device is holding for the
   /// conversation, whether anyone is typing in it, and the peer's presence. Everything else on a row comes
   /// from the core's own summary and is not the host's to rewrite. Kotlin gets this from `data class`;
@@ -96,6 +102,7 @@ class ConversationRowData {
     tags: tags,
     typing: typing ?? this.typing,
     failed: failed,
+    kind: kind,
   );
 
   bool get hasUnread => unreadCount > 0;

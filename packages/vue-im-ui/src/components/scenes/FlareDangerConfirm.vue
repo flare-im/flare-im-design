@@ -85,6 +85,7 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
       <div class="flare-danger-confirm__actions">
         <FlareButton
           variant="secondary"
+          size="sm"
           :label="strings.cancelText"
           :aria-label="strings.cancelText"
           :disabled="busy"
@@ -93,6 +94,7 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
         />
         <FlareButton
           variant="danger"
+          size="sm"
           :label="strings.confirmText"
           :aria-label="strings.confirmText"
           :disabled="busy || !ready"
@@ -114,15 +116,13 @@ function cancel(): void { if (!props.busy) emit("cancel"); }
 .flare-danger-confirm__error {
   color: var(--flare-color-error-text);
 }
+.flare-danger-confirm > p { margin: 0; line-height: var(--flare-size-line-height-normal); }
 /* On a sheet the keys are the sheet's own footer: full width, danger last, thumb-reachable. */
 .flare-danger-confirm__actions {
   display: flex;
   flex-direction: column;
-  gap: var(--flare-size-spacing-sm);
-  margin-top: var(--flare-size-spacing-md);
-}
-[data-flare-presentation="sheet"] .flare-danger-confirm__actions :deep(.flare-button) {
-  min-height: var(--flare-size-layout-touch-target);
+  gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm));
+  margin-top: var(--flare-size-spacing-sm);
 }
 /* 弹窗里没有拇指够不够得着的问题,横排收在末端,和别的桌面弹窗一个样子。
    判据取自面上的 data-flare-presentation(FlareBottomSheet 自己的面写 sheet,交给

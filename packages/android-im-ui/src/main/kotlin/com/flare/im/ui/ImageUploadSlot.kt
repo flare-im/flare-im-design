@@ -59,8 +59,8 @@ fun FlareImageUploadSlot(
     val strings = flareStrings()
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     val tint = when (state) {
-        FlareImageUploadState.Uploaded -> colors.success
-        FlareImageUploadState.Failed -> colors.error
+        FlareImageUploadState.Uploaded -> colors.successText
+        FlareImageUploadState.Failed -> colors.errorText
         else -> colors.textSecondary
     }
     val canChoose = onChoose != null && state != FlareImageUploadState.Uploaded && state != FlareImageUploadState.Uploading
@@ -98,7 +98,7 @@ fun FlareImageUploadSlot(
                 }
             }
             if (state == FlareImageUploadState.Uploading || previewLoading) {
-                CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeLg), color = colors.primary, strokeWidth = 2.dp)
+                CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeLg), color = colors.primaryText, strokeWidth = 2.dp)
             }
             if (preview != null || state == FlareImageUploadState.Uploading || previewLoading) {
                 Text(if (previewMode) "$statusText · ${viewLabel.orEmpty()}" else statusText, color = tint, fontSize = FlareSizes.fontSizeSm,

@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
          above the trigger when there is no room below. -->
     <NPopover :show="open && !asSheet" trigger="manual" raw :show-arrow="false" placement="bottom-start" :animated="!panel.reduceMotion.value" :style="{ boxShadow: 'none' }">
       <template #trigger>
-        <button type="button" class="flare-dp__trigger" :disabled="disabled" @click.stop="show">
+        <button type="button" class="flare-dp__trigger" :aria-label="title ? `${title} ${value || placeholder}` : undefined" :aria-expanded="open" :disabled="disabled" @click.stop="show">
           <n-icon aria-hidden="true" :size="16" :component="CalendarOutline" class="flare-dp__icon" />
           <span class="flare-dp__value" :class="{ 'is-placeholder': !value }">{{ value || placeholder }}</span>
         </button>

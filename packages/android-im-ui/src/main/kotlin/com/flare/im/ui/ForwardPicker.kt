@@ -3,6 +3,7 @@ package com.flare.im.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,12 @@ import androidx.compose.ui.unit.sp
  *
  * On a kit overlay (sheet, modal, drawer) the overlay supplies the surface and closes on its scrim and back, so
  * the picker drops its own card, fixed width and close control; standalone it is a 340 dp card.
+ *
+ * A host that sends from the picker (Vue `ForwardPicker` in a busy `FlareFormSheet`) names it with [title], holds
+ * the selection ([selectedIds] with [onSelectionChange]) so a partial failure can keep only the targets that failed,
+ * marks it [busy] while sending (Send spins, the rows and the search are locked) and shows what failed in [error].
+ * With [cancelLabel] the footer is the form sheet's two equal keys — [cancelLabel] (closes; locked while busy) and
+ * [confirmLabel] (发送（N）, off with nothing picked) — instead of the picked count beside 发送.
  */
 @Composable
 fun ForwardPicker(
@@ -62,19 +69,27 @@ fun ForwardPicker(
     dismissible: Boolean = true,
     onConfirm: ((List<String>) -> Unit)? = null,
     onClose: (() -> Unit)? = null,
+    title: String? = null,
+    selectedIds: List<String>? = null,
+    onSelectionChange: ((List<String>) -> Unit)? = null,
+    busy: Boolean = false,
+    error: String? = null,
+    confirmLabel: String? = null,
+    cancelLabel: String? = null,
 ) {
     val colors = flareColors()
     var query by remember { mutableStateOf("") }
-    val selected = remember { mutableStateListOf<String>() }
+    val own = remember { mutableStateListOf<String>() }
+    val selected: List<String> = selectedIds ?: own
     val filtered = targets.filter {
         val q = query.trim().lowercase()
         q.isEmpty() || it.name.lowercase().contains(q) || (it.subtitle?.lowercase()?.contains(q) == true)
     }
     fun toggle(id: String) {
-        if (!multiple) {
-            selected.clear(); selected.add(id); return
-        }
-        if (selected.contains(id)) selected.remove(id) else selected.add(id)
+        if (busy) return
+        val next = if (!multiple) listOf(id) else if (id in selected) selected - id else selected + id
+        if (selectedIds == null) { own.clear(); own.addAll(next) }
+        onSelectionChange?.invoke(next)
     }
 
     val onOverlay = LocalFlareOverlaySurface.current != null
@@ -92,7 +107,7 @@ fun ForwardPicker(
                 Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingMd, top = FlareSizes.spacing2md, bottom = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
+                Text(title ?: flareStrings().forwardTo, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
                     fontSize = FlareSizes.fontSizeXl.value.sp)
                 Spacer(Modifier.weight(1f))
                 if (dismissible && !onOverlay) {
@@ -107,15 +122,15 @@ fun ForwardPicker(
                     .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Outlined.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(FlareSizes.iconSizeSm))
+                Spacer(Modifier.width(FlareSizes.spacingSm))
                 BasicTextField(
-                    value = query, onValueChange = { query = it }, singleLine = true,
-                    textStyle = TextStyle(color = colors.textPrimary, fontSize = 14.sp),
+                    value = query, onValueChange = { query = it }, singleLine = true, enabled = !busy,
+                    textStyle = TextStyle(color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg),
                     cursorBrush = SolidColor(colors.primary),
                     modifier = Modifier.weight(1f),
                     decorationBox = { inner ->
-                        if (query.isEmpty()) Text(flareStrings().searchConversations, color = colors.textTertiary, fontSize = 14.sp)
+                        if (query.isEmpty()) Text(flareStrings().searchConversations, color = colors.textTertiary, fontSize = FlareSizes.fontSizeLg)
                         inner()
                     },
                 )
@@ -130,7 +145,7 @@ fun ForwardPicker(
                     Row(
                         Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
                             .background(if (on) colors.bgSelected else Color.Transparent)
-                            .clickable { toggle(tgt.id) }.padding(horizontal = FlareSizes.spacingSm, vertical = 7.dp),
+                            .clickable(enabled = !busy) { toggle(tgt.id) }.padding(horizontal = FlareSizes.spacingSm, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
@@ -159,14 +174,31 @@ fun ForwardPicker(
                         modifier = Modifier.fillMaxWidth().padding(FlareSizes.spacing2xl), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
+            error?.let {
+                Text(it, color = colors.errorText, fontSize = FlareSizes.fontSizeSm.value.sp,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingXs))
+            }
             Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderPrimary))
-            Row(
+            if (cancelLabel != null) Row(
+                Modifier.fillMaxWidth().padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingMd),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm),
+            ) {
+                Box(Modifier.weight(1f)) {
+                    Button(label = cancelLabel, variant = FlareButtonVariant.Secondary, disabled = busy, block = true, onClick = { onClose?.invoke() })
+                }
+                Box(Modifier.weight(1f)) {
+                    Button(
+                        label = confirmLabel ?: flareStrings().send, disabled = selected.isEmpty(), loading = busy, block = true,
+                        onClick = { if (!busy) onConfirm?.invoke(selected.toList()) },
+                    )
+                }
+            } else Row(
                 Modifier.fillMaxWidth().padding(start = FlareSizes.spacingLg, end = FlareSizes.spacingLg, top = FlareSizes.spacing2sm, bottom = FlareSizes.spacing2md),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(flareStrings().selectedCount(selected.size), color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd.value.sp)
                 Spacer(Modifier.weight(1f))
-                val enabled = selected.isNotEmpty()
+                val enabled = selected.isNotEmpty() && !busy
                 Box(
                     Modifier.height(36.dp).clip(RoundedCornerShape(FlareSizes.radiusLg))
                         .background(
@@ -177,7 +209,8 @@ fun ForwardPicker(
                         .padding(horizontal = FlareSizes.spacingXl),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,
+                    if (busy) androidx.compose.material3.CircularProgressIndicator(Modifier.size(18.dp), color = colors.primaryText, strokeWidth = 2.dp)
+                    else Text(flareStrings().send, color = if (enabled) Color.White else colors.textTertiary,
                         fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd.value.sp)
                 }
             }

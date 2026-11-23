@@ -291,9 +291,9 @@ class FlareConversationHeader extends StatelessWidget
                       IconButton(
                         tooltip: strings.back,
                         onPressed: onBack,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          size: 20,
+                          size: _headerGlyph(context),
                         ),
                       ),
                     Expanded(
@@ -317,7 +317,10 @@ class FlareConversationHeader extends StatelessWidget
                         context,
                         overflow.single,
                         colors,
-                        icon: const Icon(Icons.more_horiz_rounded, size: 22),
+                        icon: Icon(
+                          Icons.more_horiz_rounded,
+                          size: _headerGlyph(context),
+                        ),
                       )
                     else if (overflow.isNotEmpty)
                       _menu(
@@ -460,7 +463,7 @@ class FlareConversationHeader extends StatelessWidget
     final glyph =
         icon ??
         actionIconBuilder?.call(context, action) ??
-        Icon(_icon(action), size: 21);
+        Icon(_icon(action), size: _headerGlyph(context));
     return IconButton(
       tooltip:
           action.disabledReason ?? action.accessibilityLabel ?? action.label,
@@ -500,7 +503,11 @@ class FlareConversationHeader extends StatelessWidget
       builder: (context, open) => IconButton(
         tooltip: label,
         onPressed: onAction == null ? null : open,
-        icon: Icon(trigger, size: 22, color: colors.textSecondary),
+        icon: Icon(
+          trigger,
+          size: _headerGlyph(context),
+          color: colors.textSecondary,
+        ),
       ),
     );
   }
@@ -522,4 +529,10 @@ class FlareConversationHeader extends StatelessWidget
 
   IconData _icon(FlareConversationHeaderAction action) =>
       flareActionIcon(action.icon ?? action.id) ?? Icons.more_horiz_rounded;
+
+  double _headerGlyph(BuildContext context) =>
+      (MediaQuery.maybeSizeOf(context)?.width ?? double.infinity) <
+          FlareSizes.navigationRailMinWidth
+      ? FlareSizes.iconSizeLg
+      : FlareSizes.iconSizeMd;
 }

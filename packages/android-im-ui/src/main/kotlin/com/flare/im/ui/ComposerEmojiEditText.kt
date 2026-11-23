@@ -65,11 +65,16 @@ internal fun FlareComposerEmojiEditText(
     emojiSize: Dp = 26.dp,
     onFocus: () -> Unit = {},
     cursorAfterReplacement: Int? = null,
+    /** With [cursorAfterReplacement], the end of the range left selected (a format key selects the sample it wrote). */
+    selectionEndAfterReplacement: Int? = null,
+    /** The selection as the person moves it, for a format key to wrap or prefix. */
+    onSelectionChange: (Int, Int) -> Unit = { _, _ -> },
 ) {
     val catalogLoaded = rememberCatalogLoaded()
     val catalogRevision by FlareEmojiStickerCatalog.revision.collectAsState()
     val currentOnValueChange = rememberUpdatedState(onValueChange)
     val currentOnFocus = rememberUpdatedState(onFocus)
+    val currentOnSelectionChange = rememberUpdatedState(onSelectionChange)
     val emojiSizePx = with(LocalDensity.current) { emojiSize.roundToPx() }
     val editorHolder = remember { arrayOfNulls<FlareEmojiEditText>(1) }
     var focusedState by remember { mutableStateOf(false) }
@@ -112,6 +117,7 @@ internal fun FlareComposerEmojiEditText(
                     if (focused) currentOnFocus.value()
                 }
                 rawTextChanged = { currentOnValueChange.value(it) }
+                selectionChanged = { start, end -> currentOnSelectionChange.value(start, end) }
             }
         },
         update = { field ->
@@ -131,6 +137,7 @@ internal fun FlareComposerEmojiEditText(
                 emojiSizePx = emojiSizePx,
                 catalogRevision = catalogRevision,
                 cursorAfterReplacement = cursorAfterReplacement,
+                selectionEndAfterReplacement = selectionEndAfterReplacement,
             )
         },
     )
@@ -138,6 +145,13 @@ internal fun FlareComposerEmojiEditText(
 
 private class FlareEmojiEditText(context: Context) : EditText(context) {
     var rawTextChanged: (String) -> Unit = {}
+    // Nullable: EditText reports a selection from its own constructor, before this property is set.
+    var selectionChanged: ((Int, Int) -> Unit)? = null
+
+    override fun onSelectionChanged(selStart: Int, selEnd: Int) {
+        super.onSelectionChanged(selStart, selEnd)
+        selectionChanged?.invoke(selStart, selEnd)
+    }
 
     private var syncing = false
     private val emojiDrawableStates = mutableMapOf<String, Drawable.ConstantState>()
@@ -177,6 +191,7 @@ private class FlareEmojiEditText(context: Context) : EditText(context) {
         emojiSizePx: Int,
         catalogRevision: Int,
         cursorAfterReplacement: Int?,
+        selectionEndAfterReplacement: Int?,
     ) {
         isEnabled = enabled
         this.hint = hint
@@ -200,7 +215,8 @@ private class FlareEmojiEditText(context: Context) : EditText(context) {
             val nextSelection = cursorAfterReplacement ?: selectionStart.coerceAtLeast(0)
             syncing = true
             setText(raw)
-            setSelection(nextSelection.coerceAtMost(raw.length))
+            val start = nextSelection.coerceAtMost(raw.length)
+            setSelection(start, (selectionEndAfterReplacement ?: start).coerceIn(start, raw.length))
             syncing = false
         }
         if (appliedCatalogRevision != catalogRevision) {

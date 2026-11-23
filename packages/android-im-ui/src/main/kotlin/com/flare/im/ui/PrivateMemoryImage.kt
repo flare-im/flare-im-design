@@ -36,7 +36,7 @@ fun PrivateMemoryImage(
         model = model, contentDescription = contentDescription,
         modifier = modifier, contentScale = ContentScale.Fit,
         loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = colors.primary)
+            CircularProgressIndicator(color = colors.primaryText)
         } },
         error = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             FlareIcon("image", size = FlareSizes.iconSizeXl, tint = colors.textTertiary)

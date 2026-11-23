@@ -13,6 +13,8 @@ import {
 } from "../../shared/contracts/message-receipt";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import MessageStatus from "./MessageStatus.vue";
+import { NIcon } from "naive-ui";
+import { PinOutline } from "../../shared/icon-glyphs";
 
 // The time, edited / ephemeral labels and the receipt of one message (spec/message-meta-placement-vectors.json,
 // spec/message-receipt-vectors.json). `placement` says where the row sits; the bubble lays it out. Below a card or a
@@ -21,6 +23,7 @@ import MessageStatus from "./MessageStatus.vue";
 const props = withDefaults(defineProps<{
   timestamp?: string;
   edited?: boolean;
+  pinned?: boolean;
   status?: MessageStatusState;
   lifecycle?: MessageLifecycle;
   ephemeral?: MessageEphemeralState;
@@ -31,6 +34,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   timestamp: "",
   edited: false,
+  pinned: false,
   ephemeral: "none",
   density: "compact",
   tone: "default",
@@ -89,6 +93,7 @@ const showGlyph = computed(() => hasReceipt.value && !summaryText.value && !fail
       >{{ t("message.sendFailedRetry") }}</button>
       <span v-else class="message-meta-row__failed" role="status">{{ t("message.failed") }}</span>
     </template>
+    <span v-if="pinned" class="message-meta-row__pin" role="img" :aria-label="t('message.pinnedTitle')" :title="t('message.pinnedTitle')"><n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="PinOutline" /></span>
     <span v-if="timestamp" class="message-meta-row__text">{{ timestamp }}</span>
     <span v-if="edited" class="message-meta-row__text">{{ t("message.edited") }}</span>
     <span v-if="ephemeralLabel" class="message-meta-row__text">{{ ephemeralLabel }}</span>
@@ -97,17 +102,21 @@ const showGlyph = computed(() => hasReceipt.value && !summaryText.value && !fail
         v-if="summaryTappable"
         type="button"
         class="message-meta-row__summary"
-        :class="{ 'is-all-read': receipt.summary?.allRead }"
         :aria-label="t('message.readReceiptAria', { summary: summaryText })"
         data-read-summary="true"
         @click.stop="emit('readReceiptOpen')"
-      >{{ summaryText }}</button>
+      >
+        <MessageStatus :status="receipt.summary?.allRead ? 'read' : 'sent'" :tone="tone" aria-hidden="true" />
+      </button>
       <span
         v-else
         class="message-meta-row__summary"
-        :class="{ 'is-all-read': receipt.summary?.allRead }"
+        role="img"
+        :aria-label="summaryText"
         data-read-summary="true"
-      >{{ summaryText }}</span>
+      >
+        <MessageStatus :status="receipt.summary?.allRead ? 'read' : 'sent'" :tone="tone" aria-hidden="true" />
+      </span>
     </template>
     <MessageStatus
       v-if="showGlyph"
@@ -136,6 +145,8 @@ const showGlyph = computed(() => hasReceipt.value && !summaryText.value && !fail
 
 .message-meta-row--normal { gap: var(--flare-size-spacing-2xs); }
 .message-meta-row--on-outgoing { color: var(--flare-color-message-status-on-outgoing); }
+.message-meta-row__pin { display: inline-flex; align-items: center; flex: none; font-size: var(--flare-size-font-size-xs); color: var(--flare-component-message-pinned-text); }
+.message-meta-row--on-outgoing .message-meta-row__pin { color: currentColor; }
 /* Under a card or a picture: the timeline's own palette at the trailing edge, never over the content. */
 .message-meta-row--below { color: var(--flare-color-message-meta-foreground); }
 
@@ -153,7 +164,7 @@ const showGlyph = computed(() => hasReceipt.value && !summaryText.value && !fail
   margin-inline-end: var(--flare-size-spacing-xs);
 }
 
-/* Text keys sized to their words whose hit area reaches the touch target around them. */
+/* Keep the receipt and retry hit areas larger than their visible content. */
 .message-meta-row__summary,
 .message-meta-row__retry {
   position: relative;
@@ -187,8 +198,7 @@ button.message-meta-row__summary:focus-visible,
   border-radius: var(--flare-size-radius-xs);
 }
 
-.message-meta-row__summary.is-all-read { color: var(--flare-color-message-status-read); }
-.message-meta-row--on-outgoing .message-meta-row__summary.is-all-read { color: var(--flare-color-message-status-read-on-outgoing); }
+.message-meta-row__summary { display: inline-flex; }
 
 .message-meta-row__retry,
 .message-meta-row__failed {

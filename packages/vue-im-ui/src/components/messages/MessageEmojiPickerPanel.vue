@@ -23,7 +23,7 @@ const emit = defineEmits<{
       <h3 class="msg-ctx-emoji-panel__title">{{ t("messageEmojiPickerPanel.title") }}</h3>
       <button type="button" class="msg-ctx-emoji-panel__collapse" @click="emit('collapse')">
         <span>{{ t("messageEmojiPickerPanel.collapse") }}</span>
-        <n-icon aria-hidden="true" :component="ChevronDownOutline" />
+        <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ChevronDownOutline" />
       </button>
     </header>
 

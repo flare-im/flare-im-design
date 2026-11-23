@@ -89,7 +89,8 @@ class FlareAnnouncementReadBar extends StatelessWidget {
                 ),
               ),
             ),
-          if (canViewUnread && !allRead) ...[
+          // An intent shows only when the host handles it (DM-00.1).
+          if (canViewUnread && onViewUnread != null && !allRead) ...[
             const SizedBox(width: FlareSizes.spacingSm),
             GestureDetector(
               onTap: onViewUnread,

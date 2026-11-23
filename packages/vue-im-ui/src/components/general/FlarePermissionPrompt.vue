@@ -72,7 +72,7 @@ const dismissText = computed(() => props.dismissText ?? (props.softAsk ? t("perm
 const actions = () => permissionActions(props.state, {
   hasRequest: hasListener('onRequest'), hasOpenSettings: hasListener('onOpenSettings'), hasDismiss: hasListener('onDismiss'), busy: props.busy,
 });
-const buttonSize = computed(() => (props.compact && !sheet.value ? 'md' : 'lg'));
+const buttonSize = computed(() => (props.compact && !sheet.value ? 'sm' : 'md'));
 
 /** The inline presentation: the prompt itself, with no surface around it. */
 const InlineSurface: FunctionalComponent = (_, { slots }) => slots.default?.();
@@ -104,13 +104,13 @@ function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss'
       @keydown.escape.prevent="onEscape"
     >
       <span class="flare-permission-prompt__icon" aria-hidden="true">
-        <FlareIcon :name="permissionIcon[kind]" :size="compact && !sheet ? 20 : 26" />
+        <FlareIcon :name="permissionIcon[kind]" :size="compact && !sheet ? 'md' : 'lg'" />
       </span>
       <div class="flare-permission-prompt__body">
         <div class="flare-permission-prompt__heading">
           <h3 class="flare-permission-prompt__title">{{ title }}</h3>
           <span v-if="!softAsk" class="flare-permission-prompt__state" role="status">
-            <FlareIcon :name="permissionStateIcon[state]" :size="14" />
+            <FlareIcon :name="permissionStateIcon[state]" size="sm" />
             <span>{{ stateText }}</span>
           </span>
         </div>
@@ -139,7 +139,7 @@ function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss'
         <FlareButton
           v-if="actions().dismiss"
           :label="dismissText"
-          variant="secondary"
+          :variant="softAsk ? 'quiet' : 'secondary'"
           :size="buttonSize"
           :block="sheet"
           :disabled="busy"
@@ -220,7 +220,7 @@ function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss'
   gap: var(--flare-size-spacing-sm);
   margin-top: var(--flare-size-spacing-xs);
 }
-.flare-permission-prompt__actions :deep(.flare-button) { min-width: 48px; min-height: 48px; max-width: 100%; white-space: normal; }
+.flare-permission-prompt__actions :deep(.flare-button) { max-width: 100%; white-space: normal; }
 
 /* Compact: one row for the composer strip. */
 .flare-permission-prompt--compact {
@@ -233,7 +233,10 @@ function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss'
 .flare-permission-prompt--compact .flare-permission-prompt__icon { width: 32px; height: 32px; }
 .flare-permission-prompt--compact .flare-permission-prompt__title { font-size: var(--flare-size-font-size-lg); }
 .flare-permission-prompt--compact .flare-permission-prompt__description { font-size: var(--flare-size-font-size-sm); }
-.flare-permission-prompt--compact .flare-permission-prompt__actions { grid-column: 3; margin-top: 0; }
+.flare-permission-prompt--compact .flare-permission-prompt__actions { grid-column: 3; margin-top: 0; row-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm)); }
+/* A non-blocking prompt often sits inside a narrow sidebar on a wide screen. */
+.flare-permission-prompt--compact.flare-permission-prompt--soft-ask { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.flare-permission-prompt--compact.flare-permission-prompt--soft-ask .flare-permission-prompt__actions { grid-column: 2; }
 @media (max-width: 480px) {
   .flare-permission-prompt--compact { grid-template-columns: auto minmax(0, 1fr); }
   .flare-permission-prompt--compact .flare-permission-prompt__actions { grid-column: 2; }

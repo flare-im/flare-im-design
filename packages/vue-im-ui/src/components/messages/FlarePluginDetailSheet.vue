@@ -2,7 +2,8 @@
 import { computed } from "vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareDrawer from "../general/FlareDrawer.vue";
-import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
+import FlareScreen from "../layout/FlareScreen.vue";
+import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareEmptyState from "../general/FlareEmptyState.vue";
 import FlarePluginView from "./FlarePluginView.vue";
@@ -29,6 +30,8 @@ const props = withDefaults(
     open: boolean;
     /** Title while there is no view (the card's); the view's title wins. */
     title?: string;
+    /** Long record browsing: phone page / desktop full-height drawer. */
+    presentation?: "sheet" | "page";
     view?: FlarePluginViewModel;
     loading?: boolean;
     /** Loading failed: the host's text with a retry key. */
@@ -36,8 +39,6 @@ const props = withDefaults(
     resolveUser?: FlarePluginResolveUser;
     /** The viewer's user id: their rows in grouped entries carry the "me" tag. */
     viewerId?: string;
-    /** `page`: a right-side drawer on desktop for long record browsing; phones keep the bottom sheet. */
-    presentation?: "auto" | "page";
     busyActionId?: string;
     /** The record's own actions, drawn at the bottom of the sheet or drawer; each emits `action` with an empty payload. */
     actions?: readonly FlarePluginAction[];
@@ -59,6 +60,10 @@ const props = withDefaults(
     settleToken?: number;
     /** The host is fetching the next page: the load-more key spins and is disabled. */
     loadingMore?: boolean;
+    /** Next-page failure keeps the loaded records and retries that same cursor. */
+    paginationError?: string;
+    /** Explicit completion, including repeated immediate failures with the same copy. */
+    pagingToken?: number;
     /** The scale the host knows for an asset (PluginView assetScale). */
     assetScale?: (assetId: string) => number | undefined;
     /** What the host has for each protected media item of the detail (PluginView protectedMedia). */
@@ -68,7 +73,9 @@ const props = withDefaults(
   }>(),
   {
     title: "", view: undefined, loading: false, error: undefined, resolveUser: undefined, viewerId: undefined, busyActionId: undefined,
-    actions: () => [], presentation: "auto",
+    presentation: "sheet",
+    paginationError: undefined, pagingToken: 0,
+    actions: () => [],
     actionError: undefined, errorPresentation: "inline", formErrors: () => [], members: () => [], settleToken: 0, loadingMore: false,
     assetScale: undefined, protectedMedia: undefined,
   },
@@ -83,11 +90,9 @@ const emit = defineEmits<{
   protectedMediaRead: [read: FlarePluginProtectedMediaRead];
 }>();
 const { t } = useFlareI18nOptional();
-const platform = useFlarePlatformSafe();
-// The drawer is the desktop form of the page presentation; a phone keeps the bottom sheet.
-const drawer = computed(() => props.presentation === "page" && !platform.capabilities.value.bottomSheet);
 const heading = computed(() => props.view?.title || props.title);
-const state = computed(() => (props.loading ? "loading" : props.error ? "error" : props.view ? "loaded" : "loading"));
+const state = computed(() => (props.view ? "loaded" : props.loading ? "loading" : props.error ? "error" : "loading"));
+const pageMode = computed(() => props.presentation === "page");
 
 // ── paging ───────────────────────────────────────────────────────────────
 const { nextCursor, pageBusy, loadMore } = usePluginPaging({
@@ -95,23 +100,30 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
   loadingMore: () => props.loadingMore,
   settleToken: () => props.settleToken,
   actionError: () => props.actionError,
+  pageError: () => props.error || props.paginationError,
+  pagingToken: () => props.pagingToken,
+  refreshing: () => props.loading,
   request: (cursor) => emit("loadMore", cursor),
 });
 </script>
 
 <template>
-  <component :is="drawer ? FlareDrawer : FlareBottomSheet" :open="open" :title="heading"
-    v-bind="drawer ? { showClose: true } : { showClose: true, maxHeight: '80vh' }" @close="emit('close')">
-    <div class="flare-plugin-detail" :data-state="state" :aria-busy="state === 'loading'">
+  <component :is="pageMode ? FlareDrawer : FlareBottomSheet" :open="open" :title="heading"
+    v-bind="pageMode ? { titleHidden: true, showClose: false, contentPadding: 'none' } : { showClose: true, maxHeight: '80vh' }" @close="emit('close')">
+    <component :is="pageMode ? FlareScreen : 'div'" v-bind="pageMode ? { title: heading, back: true, scroll: false, surface: 'surface' } : {}" @back="emit('close')">
+    <div class="flare-plugin-detail" :class="{ 'is-page': pageMode }" :data-state="state" :aria-busy="loading">
       <FlareEmptyState v-if="state === 'loading'" :title="t('pluginView.loading')" loading />
       <div v-else-if="state === 'error'" class="flare-plugin-detail__error">
         <p role="alert">{{ error }}</p>
-        <FlareButton variant="secondary" :label="t('pluginView.retry')" data-detail-retry="true" @click="emit('retry')" />
+        <FlareButton size="sm" variant="secondary" :label="t('pluginView.retry')" data-detail-retry="true" @click="emit('retry')" />
       </div>
+      <FlareStatusBanner v-if="state === 'loaded' && error" :text="error" tone="danger" :action-text="t('pluginView.retry')" @action="emit('retry')" />
+      <FlareStatusBanner v-if="state === 'loaded' && loading" :text="t('pluginView.refreshing')" tone="info" pulse />
       <FlarePluginView
-        v-else-if="view"
+        v-if="state === 'loaded' && view"
         :view="view"
         embedded
+        :form-presentation="pageMode ? 'page' : 'sheet'"
         :resolve-user="resolveUser"
         :viewer-id="viewerId"
         :busy-action-id="busyActionId"
@@ -128,18 +140,19 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
         @protected-media-read="(read: FlarePluginProtectedMediaRead) => emit('protectedMediaRead', read)"
       />
       <div v-if="state === 'loaded' && nextCursor" class="flare-plugin-detail__more">
+        <FlareStatusBanner v-if="paginationError" :text="paginationError" tone="danger" />
         <FlareButton
           variant="ghost"
           size="sm"
           block
-          :label="t('pluginView.loadMore')"
+          :label="t(paginationError ? 'pluginView.retry' : 'pluginView.loadMore')"
           :loading="pageBusy"
           :disabled="pageBusy"
           data-detail-load-more="true"
           @click="loadMore"
         />
       </div>
-      <footer v-if="state === 'loaded' && (actions.length || $slots.footer)" class="flare-plugin-detail__footer">
+      <footer v-if="state === 'loaded' && !error && !loading && (actions.length || $slots.footer)" class="flare-plugin-detail__footer">
         <div v-if="actions.length" class="flare-plugin-detail__actions" data-detail-actions="true">
           <FlareButton
             v-for="action in actions"
@@ -156,11 +169,13 @@ const { nextCursor, pageBusy, loadMore } = usePluginPaging({
         <slot name="footer" />
       </footer>
     </div>
+    </component>
   </component>
 </template>
 
 <style scoped>
 .flare-plugin-detail { box-sizing: border-box; width: 100%; min-height: 0; padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) var(--flare-size-spacing-xl); overflow-y: auto; }
+.flare-plugin-detail.is-page { height: 100%; }
 .flare-plugin-detail__footer { position: sticky; bottom: 0; padding-block: var(--flare-size-spacing-md); background: var(--flare-color-bg-primary); border-top: 1px solid var(--flare-color-border-secondary); }
 .flare-plugin-detail__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--flare-size-spacing-sm); }
 .flare-plugin-detail__more { padding-top: var(--flare-size-spacing-md); }

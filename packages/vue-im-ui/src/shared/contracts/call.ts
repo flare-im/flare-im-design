@@ -1,7 +1,8 @@
 // Audio / video call data contracts.
 
 export type FlareCallMode = "audio" | "video";
-export type FlareCallState = "calling" | "ringing" | "connected" | "reconnecting" | "failed";
+/** `ended`: the call is over (CallView only): the status reads call.ended and every control is inert. */
+export type FlareCallState = "calling" | "ringing" | "connected" | "reconnecting" | "failed" | "ended";
 
 /** One participant in a group (multi-party) call. */
 export interface FlareCallParticipant {
@@ -16,6 +17,8 @@ export interface FlareCallParticipant {
   speaking?: boolean;
   /** This tile is the local user. */
   isSelf?: boolean;
+  /** Invited and still ringing: the tile shows the avatar at half opacity and call.calling. */
+  calling?: boolean;
 }
 
 // ── Call record card (FlareCallRecordCard) ──────────────────────────────

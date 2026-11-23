@@ -68,6 +68,27 @@ void main() {
         expect(flarePluginFormatText(c['text'] as String, format, en), c['en']);
       });
     }
+    test('an account entry draws its money cell with the currency (R10)', () {
+      const cell = FlarePluginRowCell(
+        text: '9969',
+        format: {
+          'kind': 'money',
+          'minor': '9969',
+          'scale': 0,
+          'currency': 'LABPOINT',
+        },
+      );
+      final block = FlarePluginRowsBlock(
+        source: 'flare.wallet.ui.home',
+        columns: const [],
+        rows: const [
+          FlarePluginRow(key: 'w', cells: [cell]),
+        ],
+      );
+      final entry = FlareAccountEntry('w', block, block.rows.single);
+      expect(entry.amount, '9969');
+      expect(entry.amountText(zh), '9,969 LABPOINT');
+    });
   });
 
   group('blocks2', () {
@@ -518,8 +539,11 @@ void main() {
     () {
       final shared = (vocabularySource['vocabulary'] as Map)
           .cast<String, dynamic>();
+      // A kit with nothing left to omit carries no omit list.
       final omit =
-          (((vocabularySource['kits'] as Map)['flutter'] as Map)['omit'] as Map)
+          (((vocabularySource['kits'] as Map)['flutter'] as Map)['omit']
+                      as Map? ??
+                  const {})
               .cast<String, dynamic>();
       for (final set in [
         'blocks',

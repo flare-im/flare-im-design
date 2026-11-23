@@ -9,6 +9,10 @@ const props = withDefaults(
     max?: number;
     step?: number;
     disabled?: boolean;
+    /** Accessible name for sliders outside a labelled form field. */
+    ariaLabel?: string;
+    /** Human-readable value, for example an audio playback time. */
+    ariaValueText?: string;
     /** Show a value bubble above the thumb while dragging. */
     showValue?: boolean;
   }>(),
@@ -49,7 +53,8 @@ function onChange(): void {
       :value="value"
       :disabled="disabled"
       :id="control.id"
-      :aria-label="control.labelId ? undefined : t('slider.label')"
+      :aria-label="ariaLabel || (control.labelId ? undefined : t('slider.label'))"
+      :aria-valuetext="ariaValueText"
       :aria-describedby="control.describedBy"
       :aria-invalid="control.invalid || undefined"
       @input="onInput"
@@ -62,12 +67,12 @@ function onChange(): void {
 </template>
 
 <style scoped>
-.flare-slider { position: relative; display: flex; align-items: center; height: 28px; width: 100%; }
+.flare-slider { --slider-track-height: 6px; --slider-thumb-size: 18px; position: relative; display: flex; align-items: center; height: 28px; width: 100%; }
 .flare-slider.is-disabled { opacity: 0.5; }
 .flare-slider__track {
   position: absolute;
   left: 0; right: 0;
-  height: 6px;
+  height: var(--slider-track-height);
   border-radius: 999px;
   background: var(--flare-color-border-hover);
   overflow: hidden;
@@ -77,16 +82,22 @@ function onChange(): void {
   position: relative;
   width: 100%;
   margin: 0;
+  height: 100%;
+  padding: 0;
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
 }
 .flare-slider__input:disabled { cursor: not-allowed; }
+.flare-slider__input::-webkit-slider-runnable-track { height: var(--slider-track-height); border: 0; background: transparent; }
+.flare-slider__input::-moz-range-track { height: var(--slider-track-height); border: 0; background: transparent; }
 .flare-slider__input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px; height: 18px;
+  margin-top: calc((var(--slider-track-height) - var(--slider-thumb-size)) / 2);
+  box-sizing: border-box;
+  width: var(--slider-thumb-size); height: var(--slider-thumb-size);
   border-radius: 50%;
   background: #fff;
   border: 2px solid var(--flare-color-primary);
@@ -97,7 +108,8 @@ function onChange(): void {
 .flare-slider__input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; box-shadow: 0 0 0 4px var(--flare-color-focus-ring); }
 .flare-slider__input:focus-visible::-moz-range-thumb { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; box-shadow: 0 0 0 4px var(--flare-color-focus-ring); }
 .flare-slider__input::-moz-range-thumb {
-  width: 18px; height: 18px;
+  box-sizing: border-box;
+  width: var(--slider-thumb-size); height: var(--slider-thumb-size);
   border-radius: 50%;
   background: #fff;
   border: 2px solid var(--flare-color-primary);

@@ -2,8 +2,8 @@ import SwiftUI
 
 // MARK: - DatePill
 
-/// Date pill — centered floating day separator chip. Its ground (the primary surface with a hairline) differs from
-/// the timeline canvas, and its words follow Dynamic Type.
+/// Date pill — centered day separator chip on the secondary surface; the `floating` one (over scrolled messages) is
+/// the primary surface with a hairline and a shadow. Its words follow Dynamic Type.
 /// Spec: Message/DatePill (`DatePillView`).
 public struct DatePillView: View {
     private let label: String
@@ -21,13 +21,15 @@ public struct DatePillView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         HStack {
             Spacer()
+            // Vue `FlareDatePill`: a quiet chip in the timeline; only the floating one, over scrolled messages,
+            // gets a surface, hairline and shadow of its own.
             Text(label)
                 .font(.system(size: textSize, weight: .medium))
                 .foregroundColor(colors.textSecondary)
-                .padding(.vertical, 3).padding(.horizontal, 12)
-                .background(Capsule().fill(colors.bgPrimary.opacity(0.78))
-                    .overlay(Capsule().stroke(colors.borderPrimary, lineWidth: 1)))
-                .shadow(color: Color.black.opacity(0.08), radius: 6, y: 2)
+                .padding(.vertical, FlareSizes.spacing3xs).padding(.horizontal, FlareSizes.spacing2sm)
+                .background(Capsule().fill(floating ? colors.bgPrimary.opacity(0.78) : colors.bgSecondary)
+                    .overlay(Capsule().stroke(floating ? colors.borderPrimary : .clear, lineWidth: 1)))
+                .shadow(color: Color.black.opacity(floating ? 0.08 : 0), radius: 6, y: 2)
             Spacer()
         }
     }

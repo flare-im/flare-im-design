@@ -41,7 +41,11 @@ public struct FormSheetView<Content: View>: View {
     }
     private var panel: some View {
         VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
-            Text(title).font(.headline).accessibilityAddTraits(.isHeader)
+            // Vue `.flare-sheet__title`: a quiet centred caption, the fields carry the weight.
+            Text(title).font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
+                .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textTertiary)
+                .frame(maxWidth: .infinity)
+                .accessibilityAddTraits(.isHeader)
             ScrollView { content.frame(maxWidth: .infinity, alignment: .leading).disabled(busy) }
             HStack(spacing: FlareSizes.spacingMd) {
                 ButtonView(label: cancelLabel, variant: .secondary, size: .lg, disabled: busy, block: true, action: onClose)

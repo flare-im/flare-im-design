@@ -456,9 +456,7 @@ class _FlareReadReceiptSheetState extends State<FlareReadReceiptSheet> {
             variant: FlareButtonVariant.quiet,
             size: FlareControlSize.sm,
             block: true,
-            onPressed: _onLoadMore == null
-                ? null
-                : () => _onLoadMore!(column),
+            onPressed: _onLoadMore == null ? null : () => _onLoadMore!(column),
           ),
         );
     }

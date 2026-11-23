@@ -36,6 +36,13 @@ const names = (wrapper: ReturnType<typeof render>["wrapper"]) =>
   wrapper.findAll(".flare-contact-picker__row").map((row) => row.attributes("data-user-id"));
 
 describe("FlareContactPicker", () => {
+  it("draws the caption under its own header, and nothing without one", () => {
+    const { wrapper } = render({ multiple: true, caption: "最多 9 人同时通话" });
+    const caption = wrapper.get("[data-picker-caption]");
+    expect(caption.text()).toBe("最多 9 人同时通话");
+    expect(caption.element.previousElementSibling?.classList.contains("flare-contact-picker__head")).toBe(true);
+    expect(render({}).wrapper.find("[data-picker-caption]").exists()).toBe(false);
+  });
   it("delegates remote matching without filtering a partial authorized result again", async () => {
     const queries: string[] = [];
     const picker = render({groups:[{id:"groupMembers",entries:[IVY]}],onSearch:(query:string)=>queries.push(query)});
@@ -59,6 +66,27 @@ describe("FlareContactPicker", () => {
     await old.trigger("click");expect(picker.selections).toEqual([]);
     await picker.wrapper.get('[data-user-id="u2"]').trigger('click');expect(picker.selections).toEqual([[ZHOU]]);
   });
+  it("retains selected people across partial remote pages and emits canonical search and retry events", async () => {
+    const state = reactive({groups: [{id: "groupMembers", entries: [IVY]}], multiple: true,
+      error: undefined as string | undefined, onSearch: (_: string) => {}, onRetry: () => {}});
+    const picker = render(state);
+    await picker.wrapper.get('[data-user-id="u1"]').trigger("click");
+    await picker.wrapper.get(".flare-contact-picker__search input").setValue("next-page");
+    state.groups = [{id: "groupMembers", entries: [ZHOU]}];
+    await nextTick();
+    await picker.wrapper.get('[data-user-id="u2"]').trigger("click");
+    state.error = "Directory unavailable";
+    await nextTick();
+    await picker.wrapper.get(".flare-empty__act").trigger("click");
+    const component = picker.wrapper.getComponent(FlareContactPicker);
+    expect(component.emitted("search")).toEqual([["next-page"]]);
+    expect(component.emitted("retry")).toEqual([[]]);
+    state.error = undefined;
+    await nextTick();
+    await picker.wrapper.get(".flare-contact-picker__head-end button").trigger("click");
+    expect(picker.selections).toEqual([[IVY, ZHOU]]);
+  });
+
   it("shows a tab per group, the friends first, and switches", async () => {
     const picker = render({});
     const tabs = picker.wrapper.findAll('[role="tab"]');
@@ -90,7 +118,7 @@ describe("FlareContactPicker", () => {
     expect(names(picker.wrapper)).toEqual(["u1"]);
     await input.setValue("没有这个人");
     expect(names(picker.wrapper)).toEqual([]);
-    expect(picker.wrapper.text()).toContain("没有联系人");
+    expect(picker.wrapper.text()).toContain("未找到匹配的联系人");
   });
 
   it("hides the search when the host turns it off, and shows the empty state for an empty group", () => {

@@ -251,7 +251,9 @@ describe("whether the reader is at the bottom (atBottomChange)", () => {
     await settle();
     conversationId.value = "c2";
     messages.value = rows(101, 140);
-    await settle();
-    expect(told).toEqual([true, true]);
+    await nextTick();
+    // Wait for the new conversation's two-frame placement, rather than a wall-clock
+    // sleep that can expire before its animation frames under a full-suite load.
+    await expect.poll(() => told, { timeout: 3000 }).toEqual([true, true]);
   });
 });

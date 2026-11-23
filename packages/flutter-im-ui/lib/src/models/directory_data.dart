@@ -49,6 +49,7 @@ class FlareCallParticipant {
     this.cameraOff = false,
     this.speaking = false,
     this.isSelf = false,
+    this.calling = false,
   });
 
   final String id;
@@ -58,6 +59,10 @@ class FlareCallParticipant {
   final bool cameraOff;
   final bool speaking;
   final bool isSelf;
+
+  /// Invited and still being called: the tile shows the avatar at half
+  /// opacity with `callCalling`, and no video.
+  final bool calling;
 }
 
 /// Who sent a friend request: [incoming] ones wait for the current user,
@@ -224,10 +229,12 @@ class FlareSelectOption {
   final String value;
   final String label;
   final bool disabled;
+  final String? description;
   const FlareSelectOption({
     required this.value,
     required this.label,
     this.disabled = false,
+    this.description,
   });
 }
 
@@ -253,10 +260,19 @@ class FlareSettingsItem {
     this.disabled = false,
     this.danger = false,
     this.badge = false,
+    this.badgeCount,
+    this.badgeMore = false,
+    this.current = false,
     this.tag,
+    this.centered = false,
+    this.busy = false,
   });
   final String key;
   final String label;
+
+  /// One action standing alone (a list card's danger row, R2.1): the label
+  /// centred, no icon, detail or chevron.
+  final bool centered;
 
   /// A semantic icon name from `flareIconNames`; null or empty draws no icon,
   /// any other name the `plugin` glyph (`flareIconNameOrFallback`).
@@ -271,9 +287,25 @@ class FlareSettingsItem {
   /// About). A toggle row draws none.
   final bool badge;
 
+  /// A red count badge before the chevron instead of the dot: how many wait
+  /// here (pending friend or join requests). It is drawn when
+  /// [flareCountBadgeDrawn] says so and reads [flareCountBadgeText]
+  /// (spec/count-badge-vectors.json), with [badgeMore] for "more than the
+  /// count". A toggle row draws none.
+  final int? badgeCount;
+  final bool badgeMore;
+
+  /// The row is the one whose content is on screen beside the list (an entry
+  /// rail next to its pane): drawn selected and announced as selected. A row
+  /// that only opens something leaves it false.
+  final bool current;
+
   /// A short warning tag before the chevron (「需更新」 on a plugin entry this
   /// build cannot open yet), read with the row. A toggle row draws none.
   final String? tag;
+
+  /// The row's action runs: a small spinner at its end, the row waits.
+  final bool busy;
 }
 
 class FlareSettingsSection {

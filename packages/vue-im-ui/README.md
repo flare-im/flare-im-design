@@ -69,6 +69,8 @@ also locks selection; the host still checks permission and current-page membersh
 Use `rowSelectable` when some rows cannot join a batch: both row checkboxes and
 select-all respect the same predicate. Hosts remain responsible for validation and
 for clearing selections when their source records or permissions change.
+Use `FlareAdminBackButton` for a page-level return action. Pass the localized
+destination as `label` and handle `click` in the host's existing navigation flow.
 Cursor sources display only the actual count on this page and the page number: short
 or filtered pages do not justify a global row offset or an estimated total.
 Use `FlarePermissionTree selection-mode="independent"` when parents are real grants:
@@ -161,6 +163,11 @@ With multiple row blocks only the first receives the page toolbar actions.
 the admin rows presenter passes that space to `FlareAdminList` so its table body
 scrolls and its pagination stays in the content footer. Notes and other static
 blocks keep natural height. The default `flow` layout preserves cards and chat.
+
+## Page actions and platform status
+
+- `FlareMomentComposer` with `layout="page"` keeps the visibility action next to Publish. The host supplies the current visibility and responds to `pick-visibility` with its audience picker.
+- `FlareNotificationDeliverySettings` accepts `status-label` for a platform-specific permission label. The host checks permission and handles changes to delivery preferences.
 
 ## File and image uploads
 

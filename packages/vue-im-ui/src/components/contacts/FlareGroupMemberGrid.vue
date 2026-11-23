@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useScreenLayout } from "../../shared/screenLayout";
 import { flareIcons } from "../../shared/icons";
 import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
@@ -6,6 +7,7 @@ import FlareAvatar from "../conversation/FlareAvatar.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 import type { FlareContact } from "../../shared/contracts";
 
+const { detail: detailLayout } = useScreenLayout();
 const props = withDefaults(
   defineProps<{
     members: FlareContact[];
@@ -40,7 +42,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
 </script>
 
 <template>
-  <div class="flare-member-grid">
+  <div class="flare-member-grid" :class="{ 'is-detail': detailLayout }">
     <component
       :is="opensRoster ? 'button' : 'div'"
       :type="opensRoster ? 'button' : undefined"
@@ -72,7 +74,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
       </button>
 
       <button v-if="showAdd" type="button" class="flare-member-grid__cell flare-member-grid__add" @click="emit('addMember')">
-        <span class="flare-member-grid__add-icon"><n-icon aria-hidden="true" :size="22" :component="flareIcons['add']" /></span>
+        <span class="flare-member-grid__add-icon"><n-icon aria-hidden="true" size="var(--flare-size-icon-size-lg)" :component="flareIcons['add']" /></span>
         <span class="flare-member-grid__name">{{ t("group.addMember") }}</span>
       </button>
     </div>
@@ -83,6 +85,8 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
 .flare-member-grid {
   padding: 16px;
 }
+.flare-member-grid.is-detail { padding: var(--flare-size-spacing-sm) 0 var(--flare-size-spacing-md); }
+.flare-member-grid.is-detail .flare-member-grid__grid { row-gap: var(--flare-size-spacing-md); max-width: var(--flare-size-layout-detail-pane-max-width); }
 /* 组名 + 人数。人数原来只是一行说明文字，同时「群成员 / N 名成员」在下面的设置列表里
    又整行重复了一遍 —— 现在这一行就是打开完整成员名单的入口，那一行随之去掉。 */
 .flare-member-grid__head {
@@ -138,6 +142,7 @@ const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns
   background: none;
   cursor: pointer;
 }
+.flare-member-grid__cell:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; border-radius: var(--flare-size-radius-md); }
 .flare-member-grid__role {
   position: absolute;
   top: 34px;

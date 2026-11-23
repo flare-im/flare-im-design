@@ -68,7 +68,7 @@ class FlareMessageMeta extends StatelessWidget {
   /// The "发送失败，重试" key under a card or media.
   static const Key retryTextKey = ValueKey('flare-message-meta-retry');
 
-  /// The read summary ("N 人未读" / "全部已读").
+  /// The group receipt glyph.
   static const Key readSummaryKey = ValueKey('flare-message-meta-read-summary');
 
   String _ephemeralLabel(
@@ -129,7 +129,7 @@ class FlareMessageMeta extends StatelessWidget {
           style: textStyle,
         ),
       if (receipt.summary case final summary?)
-        _summary(strings, colors, summary, textStyle)
+        _summary(strings, summary)
       else if (state != null && !failedText)
         FlareMessageStatus(
           status: state,
@@ -185,32 +185,24 @@ class FlareMessageMeta extends StatelessWidget {
     );
   }
 
-  Widget _summary(
-    FlareStrings strings,
-    FlareColors colors,
-    FlareMessageReadSummaryText summary,
-    TextStyle style,
-  ) {
-    final label = summary.text(strings);
+  Widget _summary(FlareStrings strings, FlareMessageReadSummaryText summary) {
     final below = placement == FlareMessageMetaPlacement.below;
-    final read = (below ? null : readTint) ?? colors.messageStatusRead;
-    final text = Text(
-      label,
-      maxLines: 1,
-      style: style.copyWith(
-        color: summary.allRead ? read : style.color,
-        fontWeight: FontWeight.w500,
+    final glyph = ExcludeSemantics(
+      child: FlareMessageStatus(
+        status: summary.allRead
+            ? FlareMessageDeliveryStatus.read
+            : FlareMessageDeliveryStatus.sent,
+        variant: FlareMessageStatusVariant.compact,
+        tint: below ? null : (summary.allRead ? readTint : tint),
       ),
     );
     final open = onReadReceiptOpen;
-    if (open == null) {
-      return KeyedSubtree(key: readSummaryKey, child: text);
-    }
     return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: _action(readSummaryKey, open, text),
+      button: open != null,
+      label: summary.text(strings),
+      child: open == null
+          ? KeyedSubtree(key: readSummaryKey, child: glyph)
+          : _action(readSummaryKey, open, glyph),
     );
   }
 

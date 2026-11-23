@@ -156,24 +156,24 @@ internal fun notificationAlertSections(
 ): List<SettingsSection> {
     val quiet = value.quietHours
     val quietRows = buildList {
-        add(SettingsItem(key = QUIET_HOURS_ROW, label = strings.quietHoursLabel, kind = FlareSettingKind.Toggle, value = quiet.enabled, disabled = disabled))
+        add(SettingsItem(key = QUIET_HOURS_ROW, label = strings.quietHoursLabel, icon = "mute", kind = FlareSettingKind.Toggle, value = quiet.enabled, disabled = disabled))
         if (quiet.enabled) {
-            add(SettingsItem(key = QUIET_HOURS_START_ROW, label = strings.quietHoursStart, detail = formatMinuteOfDay(quiet.startMinute), disabled = disabled))
-            add(SettingsItem(key = QUIET_HOURS_END_ROW, label = strings.quietHoursEnd, detail = quietHoursEndText(quiet, strings), disabled = disabled))
-            add(SettingsItem(key = QUIET_HOURS_REPEAT_ROW, label = strings.quietHoursRepeat, detail = weekdaySummaryText(quiet.weekdays, strings), disabled = disabled))
-            add(SettingsItem(key = QUIET_HOURS_ALLOW_MENTIONS_ROW, label = strings.quietHoursAllowMentions, kind = FlareSettingKind.Toggle, value = quiet.allowMentions, disabled = disabled))
+            add(SettingsItem(key = QUIET_HOURS_START_ROW, label = strings.quietHoursStart, icon = "clock", detail = formatMinuteOfDay(quiet.startMinute), disabled = disabled))
+            add(SettingsItem(key = QUIET_HOURS_END_ROW, label = strings.quietHoursEnd, icon = "clock", detail = quietHoursEndText(quiet, strings), disabled = disabled))
+            add(SettingsItem(key = QUIET_HOURS_REPEAT_ROW, label = strings.quietHoursRepeat, icon = "calendar", detail = weekdaySummaryText(quiet.weekdays, strings), disabled = disabled))
+            add(SettingsItem(key = QUIET_HOURS_ALLOW_MENTIONS_ROW, label = strings.quietHoursAllowMentions, icon = "mention", kind = FlareSettingKind.Toggle, value = quiet.allowMentions, disabled = disabled))
         }
     }
     return listOf(
         SettingsSection(title = strings.quietHoursTitle, items = quietRows, footer = strings.quietHoursFooter),
         SettingsSection(
             title = strings.notificationPreviewTitle,
-            items = listOf(SettingsItem(key = NOTIFICATION_PREVIEW_ROW, label = strings.notificationPreviewLabel, detail = notificationPreviewText(value.preview, strings), disabled = disabled)),
+            items = listOf(SettingsItem(key = NOTIFICATION_PREVIEW_ROW, label = strings.notificationPreviewLabel, icon = "eye", detail = notificationPreviewText(value.preview, strings), disabled = disabled)),
             footer = strings.notificationPreviewFooter,
         ),
         SettingsSection(
             title = strings.multiDeviceTitle,
-            items = listOf(SettingsItem(key = MULTI_DEVICE_ROW, label = strings.multiDeviceLabel, detail = multiDeviceAlertText(value.multiDevice, strings), disabled = disabled)),
+            items = listOf(SettingsItem(key = MULTI_DEVICE_ROW, label = strings.multiDeviceLabel, icon = "devices", detail = multiDeviceAlertText(value.multiDevice, strings), disabled = disabled)),
             footer = strings.multiDeviceFooter,
         ),
     )

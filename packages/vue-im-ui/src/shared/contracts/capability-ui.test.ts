@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { flareMessages } from "../i18n/messages";
 import {
+  flareSpokenAmount,
   FLARE_DOCUMENT_COMPRESSION_PLAN,
   flareCapabilityConsentAllowsAlways,
   flareCapabilityConsentAnswer,
@@ -93,8 +94,24 @@ describe("capability components (spec/capability-ui-vectors.json)", () => {
   });
   it("reports the capabilities the kit now serves", () => {
     for (const name of ["documentCapture", "paymentConfirmation", "locationOnce"]) expect(PLUGIN_UI_VOCABULARY.native).toContain(name);
-    expect(PLUGIN_UI_VOCABULARY.renderers).toEqual(["redPacket.card"]);
+    expect(PLUGIN_UI_VOCABULARY.renderers).toEqual(expect.arrayContaining(["redPacket.card", "redPacket.compose", "redPacket.detail", "redPacket.review"]));
     expect(PLUGIN_UI_VOCABULARY.inputs).toContain("location");
     expect(PLUGIN_UI_VOCABULARY.blocks).toContain("protected-media");
+  });
+});
+
+describe("flareSpokenAmount (R11)", () => {
+  const name = (locale: string, code: string) => new Intl.DisplayNames([locale], { type: "currency" }).of(code);
+  it("reads the currency's platform name after the number, from the symbol, a trailing code or the caller's code", () => {
+    expect(flareSpokenAmount("¥1,000.00", "zh-CN")).toBe(`1,000.00 ${name("zh-CN", "CNY")}`);
+    expect(flareSpokenAmount("−$5.00", "en-US")).toBe(`−5.00 ${name("en-US", "USD")}`);
+    expect(flareSpokenAmount("JP¥300", "en-US")).toBe(`300 ${name("en-US", "JPY")}`);
+    expect(flareSpokenAmount("100.00 XYZ", "en-US")).toBe(`100.00 ${name("en-US", "XYZ") ?? "XYZ"}`);
+    expect(flareSpokenAmount("26.64", "zh-CN", "cny")).toBe(`26.64 ${name("zh-CN", "CNY")}`);
+    expect(name("zh-CN", "CNY")).not.toBe("CNY");
+  });
+  it("falls back to the code on a bad locale and leaves an amount with no currency as it is", () => {
+    expect(flareSpokenAmount("¥8.00", "not a locale!")).toBe("8.00 CNY");
+    expect(flareSpokenAmount("1,000.00", "zh-CN")).toBe("1,000.00");
   });
 });

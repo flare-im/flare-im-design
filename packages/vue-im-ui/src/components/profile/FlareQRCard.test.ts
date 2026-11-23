@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
-import { mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { defineComponent, h, nextTick, ref } from "vue";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+enableAutoUnmount(afterEach);
 import { flareDesignTokens } from "@flare-im/tokens";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareQRCard from "./FlareQRCard.vue";
 
-function mountCard(props: { name: string; qrPayload?: string }) {
+function mountCard(props: InstanceType<typeof FlareQRCard>["$props"]) {
   const host = mount(defineComponent({
     setup() {
       useFlareI18nProvider("en-US");
@@ -56,8 +57,8 @@ describe("FlareQRCard", () => {
   it("shows a neutral unavailable panel and no matrix without a payload", () => {
     for (const qrPayload of [undefined, "   "]) {
       const wrapper = mountCard({ name: "Ann", qrPayload });
-      expect(wrapper.find("svg").exists()).toBe(false);
-      expect(wrapper.find("[role=img]").exists()).toBe(false);
+      expect(wrapper.find(".flare-qr-card__code svg").exists()).toBe(false);
+      expect(wrapper.find("[role=img].flare-qr-card__code").exists()).toBe(false);
       expect(wrapper.get(".flare-qr-card__unavailable").text()).toBe("QR code unavailable");
       expect(wrapper.find(".flare-qr-card__hint").exists()).toBe(false);
     }
@@ -74,6 +75,29 @@ describe("FlareQRCard", () => {
     expect(document.querySelector('[href]')).toBeNull();
   });
   it('never shows the stale QR matrix after expiry or while rotating', () => {
-    for (const props of [{ phase: 'ready', refreshInMs: 0 }, { phase: 'refreshing' }] as const) { const view = mount(defineComponent({ setup() { useFlareI18nProvider('en-US'); return () => h(FlareQRCard, { name: 'My code', qrPayload: 'https://scan.test/u/token', ...props }); } })); expect(view.find('svg').exists()).toBe(false); view.unmount(); }
+    for (const props of [{ phase: 'ready', refreshInMs: 0 }, { phase: 'refreshing' }] as const) { const view = mount(defineComponent({ setup() { useFlareI18nProvider('en-US'); return () => h(FlareQRCard, { name: 'My code', qrPayload: 'https://scan.test/u/token', ...props }); } })); expect(view.find('.flare-qr-card__code svg').exists()).toBe(false); view.unmount(); }
   });
+});
+
+it("keeps refresh, save and share as independent controlled intents", async () => {
+  const refresh = vi.fn(), save = vi.fn(), share = vi.fn();
+  const card = mountCard({ name: "Ann", qrPayload: "flare://user/ann", onRefresh: refresh, onSave: save, onShare: share });
+  const buttons = card.findAll(".flare-qr-card__actions button");
+  expect(buttons.map(button => button.text())).toEqual(["Refresh", "Save", "Share"]);
+  for (const button of buttons) await button.trigger("click");
+  expect(refresh).toHaveBeenCalledTimes(1);
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(share).toHaveBeenCalledTimes(1);
+  expect(card.find(".flare-qr-card__code svg").exists()).toBe(true);
+});
+
+it("withholds stale codes and export actions while refreshing and offers retry after failure", () => {
+  const retry = vi.fn();
+  for (const phase of ["loading", "refreshing", "failed", "ready"] as const) {
+    const card = mountCard({ name: "Ann", qrPayload: "flare://user/ann", phase, refreshInMs: phase === "ready" ? 0 : undefined, onRefresh: retry, onSave: vi.fn(), onShare: vi.fn() });
+    expect(card.find(".flare-qr-card__code").exists()).toBe(false);
+    expect(card.find(".flare-qr-card__actions").exists()).toBe(false);
+    expect(card.attributes("aria-busy")).toBe(String(phase === "loading" || phase === "refreshing"));
+    if (phase === "failed" || phase === "ready") expect(card.findAll("button").some(button => button.text() === "Retry")).toBe(true);
+  }
 });

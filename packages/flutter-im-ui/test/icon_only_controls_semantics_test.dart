@@ -190,6 +190,10 @@ void main() {
     testWidgets('toggles expose their state and hang up is named', (
       tester,
     ) async {
+      // A phone: flip is a phone-only key.
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
@@ -398,7 +402,15 @@ void main() {
       final empty = tester.getSize(find.byType(FlareInput));
       controller.text = 'draft';
       await tester.pump();
-      _expectNamedButton(tester, _strings.clear);
+      // An action inside the field takes the field's own height on touch
+      // (touchTargetMin), so the field does not grow when it appears.
+      final clear = _node(tester, _strings.clear);
+      expect(clear, isSemantics(isButton: true, hasTapAction: true));
+      expect(clear.rect.width, greaterThanOrEqualTo(FlareSizes.touchTargetMin));
+      expect(
+        clear.rect.height,
+        greaterThanOrEqualTo(FlareSizes.touchTargetMin),
+      );
       expect(tester.getSize(find.byType(FlareInput)), empty);
       await tester.tap(find.bySemanticsLabel(_strings.clear));
       await tester.pump();
@@ -440,15 +452,17 @@ void main() {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(
         _host(
-          const SizedBox(
+          SizedBox(
             width: 360,
             child: FlareMomentCard(
-              moment: FlareMoment(
+              moment: const FlareMoment(
                 id: 'm',
                 author: FlareMomentAuthor(id: 'u', name: 'Ann'),
                 text: 'Hello',
                 time: '1m',
               ),
+              // The ··· key exists only with an action behind it.
+              onLike: () {},
             ),
           ),
         ),

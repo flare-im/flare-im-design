@@ -10,8 +10,8 @@ import { listMessageMediaDownloadSources, type MessageMediaDownloadSource } from
  * core records a save under when the host passes no `downloadKey`.
  */
 export interface MessageMediaSaveHost {
-  /** Saves `source` to this device; rejects when it could not (the host says why). */
-  save(source: MessageMediaDownloadSource, message: MessageLike): Promise<void>;
+  /** Save the file. Return false if a browser handles the download without a filesystem receipt. */
+  save(source: MessageMediaDownloadSource, message: MessageLike): Promise<void | false>;
   /** Whether `key` is saved on this device and still there. Asked once per key when its message shows up. */
   isSaved(key: string): Promise<boolean>;
   /**
@@ -89,8 +89,7 @@ export function useMessageMediaSaves(options: {
     if (downloading.has(key)) return;
     downloading.add(key);
     try {
-      await options.host.save(source, message);
-      saved.add(key);
+      if (await options.host.save(source, message) !== false) saved.add(key);
     } catch {
       // The host said why; the key stays a download.
     } finally {

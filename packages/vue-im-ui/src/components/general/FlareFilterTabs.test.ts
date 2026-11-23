@@ -32,6 +32,25 @@ describe("FlareFilterTabs", () => {
     tabs.unmount();
   });
 
+  it("keeps one Tab stop and selects filters with arrows, Home and End", async () => {
+    const tabs = mount(FlareFilterTabs, {
+      props: { options, modelValue: "all", "onUpdate:modelValue": (value: string) => tabs.setProps({ modelValue: value }) },
+      attachTo: document.body,
+    });
+    const buttons = tabs.findAll<HTMLButtonElement>('[role="tab"]');
+    expect(buttons.map((button) => button.attributes("tabindex"))).toEqual(["0", "-1"]);
+    buttons[0].element.focus();
+    await buttons[0].trigger("keydown", { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(buttons[1].element);
+    expect(buttons.map((button) => button.attributes("tabindex"))).toEqual(["-1", "0"]);
+    await buttons[1].trigger("keydown", { key: "Home" });
+    expect(document.activeElement).toBe(buttons[0].element);
+    await buttons[0].trigger("keydown", { key: "End" });
+    expect(document.activeElement).toBe(buttons[1].element);
+    expect(tabs.emitted("change")).toEqual([["unread"], ["all"], ["unread"]]);
+    tabs.unmount();
+  });
+
   it("carries the appearance on the root so a resident row can drop the chips", () => {
     // 默认是药丸。一条常驻在列表顶上的筛选用 quiet：摆成一排带底色的药丸时，
     // 它会和上面的搜索框叠成两排同色圆角，一屏里最先看见的是几块灰底而不是列表。

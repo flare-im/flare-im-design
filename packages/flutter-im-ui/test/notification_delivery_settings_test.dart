@@ -78,7 +78,9 @@ void main() {
             status: FlareNotificationStatus.off,
             background: FlareBackgroundDelivery.restricted,
             vendorActions: [
-              FlareNotificationGuideAction(onSelect: () => log.add('autoStart')),
+              FlareNotificationGuideAction(
+                onSelect: () => log.add('autoStart'),
+              ),
             ],
             onStatusAction: () => log.add('status'),
             onOpenBatterySettings: () => log.add('battery'),

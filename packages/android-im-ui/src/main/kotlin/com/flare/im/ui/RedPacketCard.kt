@@ -210,10 +210,10 @@ fun RedPacketCard(
                     )
                     Text(
                         status,
-                        color = if (faded) ink else ink.copy(alpha = 0.85f),
+                        color = ink,
                         fontSize = FlareSizes.fontSizeSm,
                         lineHeight = (FlareSizes.fontSizeSm.value * FlareSizes.lineHeightSnug).sp,
-                        modifier = Modifier.padding(top = 3.dp),
+                        modifier = Modifier.padding(top = FlareSizes.spacing3xs),
                     )
                 }
             }
@@ -225,7 +225,7 @@ fun RedPacketCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
             ) {
-                val footer = ink.copy(alpha = if (faded) 0.72f else 0.6f)
+                val footer = ink.copy(alpha = if (faded) 0.72f else 1f)
                 val footerHeight = (FlareSizes.fontSize2xs.value * FlareSizes.lineHeightSnug).sp
                 if (badge.badge != null || badge.recipient != null) {
                     Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
@@ -261,16 +261,16 @@ internal object RedPacketMetrics {
     const val flapCurve = 0.1f
     /** The open button's glyph against the button's diameter. */
     const val openGlyphShare = 0.42f
-    /** One turn of the opening flip, in milliseconds. */
-    const val flipMillis = 900
+    /** One turn of the opening flip, in milliseconds (§4.5: 0.8 s). */
+    const val flipMillis = 800
 }
 
 /** The festive colour ramps, all from the `colors.redPacket*` tokens; a spent card's stops are faded. */
-internal fun redPacketCoverBrush(colors: FlareColors, faded: Boolean = false): Brush =
+internal fun redPacketCoverBrush(colors: FlareColors, faded: Boolean): Brush =
     Brush.linearGradient(redPacketCoverStops(colors, faded))
 
 internal fun redPacketCoverStops(colors: FlareColors, faded: Boolean): List<Color> =
-    listOf(colors.redPacketStart, colors.redPacketMiddle, colors.redPacketEnd).map { if (faded) redPacketFade(it, colors) else it }
+    listOf(colors.redPacketStart, colors.redPacketMiddle, colors.redPacketEnd).map { if (faded) redPacketFade(it, colors) else colors.redPacketEnd }
 
 /**
  * [color] moved `componentRedPacketFadedMix` of the way to `redPacketFadedMixTarget`, per sRGB channel (CSS
@@ -329,8 +329,8 @@ internal fun RedPacketMoneyTint(content: @Composable () -> Unit) {
     FlareThemeProvider(
         colors = colors.copy(
             primary = red,
-            primaryHover = lerp(red, Color.Black, 0.12f),
-            primaryActive = lerp(red, Color.Black, 0.22f),
+            primaryHover = colors.redPacketEndHover,
+            primaryActive = colors.redPacketEndActive,
         ),
         content = content,
     )

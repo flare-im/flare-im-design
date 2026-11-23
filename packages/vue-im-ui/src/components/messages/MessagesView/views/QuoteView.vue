@@ -56,19 +56,19 @@ const currentText = computed(() => {
 </script>
 
 <template>
-  <div class="im-quote">
+  <div class="im-quote" :class="{ 'im-quote--outgoing': isSelf }">
     <button
       v-if="quotedMessageId && locatable"
       type="button"
       class="im-quote__source im-quote__source--clickable"
       @click.stop="emit('locate-message', quotedMessageId)"
     >
-      <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
+      <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ReturnUpBackOutline" />
       <span>{{ quotedSender }}</span>
       <strong>{{ quotedPreview || t("preview.message") }}</strong>
     </button>
     <div v-else class="im-quote__source">
-      <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
+      <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ReturnUpBackOutline" />
       <span>{{ quotedSender }}</span>
       <strong>{{ quotedPreview || t("preview.message") }}</strong>
     </div>
@@ -78,42 +78,63 @@ const currentText = computed(() => {
 
 <style scoped>
 .im-quote__source {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  --flare-component-quote-fill: var(--flare-color-message-reply-background);
+
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--flare-size-spacing-2xs) var(--flare-size-spacing-xs);
   align-items: center;
   width: 100%;
-  margin-bottom: 8px;
-  padding: 8px var(--flare-size-spacing-2sm);
-  border-left: 3px solid var(--flare-color-message-outgoing-background);
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  border-radius: 0 8px 8px 0;
-  background: color-mix(in srgb, var(--flare-color-bg-tertiary) 88%, transparent);
-  color: var(--flare-color-text-secondary);
-  font-size: 12px;
-  text-align: left;
+  margin-block-end: var(--flare-size-spacing-xs);
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-2sm);
+  border: 0;
+  border-inline-start: 3px solid var(--flare-color-message-reply-border);
+  border-start-end-radius: var(--flare-size-radius-md);
+  border-end-end-radius: var(--flare-size-radius-md);
+  background: var(--flare-component-quote-fill);
+  color: inherit;
+  font-size: var(--flare-size-font-size-sm);
+  line-height: 1.4;
+  text-align: start;
+}
+
+.im-quote--outgoing .im-quote__source {
+  --flare-component-quote-fill: rgb(0 0 0 / 18%);
+  border-inline-start-color: color-mix(in srgb, currentColor 58%, transparent);
+}
+
+.im-quote__source > span {
+  overflow: hidden;
+  color: color-mix(in srgb, currentColor 82%, transparent);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .im-quote__source strong {
-  width: 100%;
-  color: var(--flare-color-text-primary);
-  font-size: 13px;
+  display: -webkit-box;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  font-size: var(--flare-size-font-size-md);
+  font-weight: 400;
 }
 
 .im-quote__source--clickable {
+  min-height: 44px;
   cursor: pointer;
-  transition:
-    background var(--flare-component-motion-fast),
-    border-color var(--flare-component-motion-fast);
+  transition: background var(--flare-component-motion-fast);
 }
 
-.im-quote__source--clickable:hover,
+.im-quote__source--clickable:hover {
+  background: color-mix(in srgb, currentColor 8%, var(--flare-component-quote-fill));
+}
+
 .im-quote__source--clickable:focus-visible {
-  border-left-color: var(--flare-color-primary);
-  outline: none;
-  background: color-mix(in srgb, var(--flare-color-primary) 12%, var(--flare-color-bg-tertiary));
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .im-quote__body {

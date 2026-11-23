@@ -57,10 +57,10 @@ const activePack = computed(() => railPacks.value.find((p) => p.key === activeKe
         :title="p.label"
         @click="activeKey = p.key"
       >
-        <n-icon aria-hidden="true" v-if="p.key === '__recent'" :size="18" :component="TimeOutline" />
+        <n-icon aria-hidden="true" v-if="p.key === '__recent'" size="var(--flare-size-icon-size-md)" :component="TimeOutline" />
         <img v-else-if="p.coverUrl" :src="p.coverUrl" :alt="p.label" />
         <span v-else-if="p.coverEmoji || p.stickers[0]?.placeholder">{{ p.coverEmoji || p.stickers[0]?.placeholder }}</span>
-        <n-icon v-else aria-hidden="true" :size="18" :component="flareIcons.image" />
+        <n-icon v-else aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.image" />
       </button>
     </div>
   </div>

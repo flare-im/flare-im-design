@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, h, onBeforeUnmount, reactive, ref, useSlots, watch } from "vue";
+import { computed, getCurrentInstance, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, useId, useSlots, watch, type FunctionalComponent } from "vue";
 import PluginFormInput, {
   type PluginFormInputState,
 } from "./PluginFormInput.vue";
@@ -8,9 +8,11 @@ import type {
   SchemaSelectionLabels,
 } from "./schema-selections";
 import FlareButton from "../general/FlareButton.vue";
+import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareContactPicker from "../composer/FlareContactPicker.vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
+import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import type { FlareContactPickerEntry } from "../../shared/contracts/contact-picker";
 import {
   flarePluginCheckInput,
@@ -33,6 +35,7 @@ import {
   flarePluginNativeIntoKey,
   flarePluginLocationValue,
   type FlarePluginFormError,
+  type FlarePluginFormSection,
   type FlarePluginInput,
   type FlarePluginMember,
   type FlarePluginReferenceRequest,
@@ -56,14 +59,22 @@ const props = withDefaults(
     baselineValues?: Record<string, unknown>;
     /** The host's errors (UiFormError). */
     errors?: FlarePluginFormError[];
+    /** Local business validation against the current form values, including sibling fields. */
+    validateField?: (id: string, values: Readonly<Record<string, unknown>>) => string | undefined;
     submitLabel?: string;
     cancelLabel?: string;
     /** Same typed inputs/validation; compact query presentation for administrative filters. */
     presentation?: "form" | "filters";
     /** Host-only control presentation for administrative action forms; not a plugin wire field. */
     selectPresentation?: "radio" | "dropdown";
+    /** Optional host layout. Unlisted fields remain visible; empty sections disappear. */
+    sections?: readonly FlarePluginFormSection[];
+    columns?: 1 | 2;
     /** Page-owned form: no sheet insets or cancel key; the page owns navigation. */
     embedded?: boolean;
+    /** Full-height editor: fields scroll while the error and action area stay visible. */
+    layout?: "content" | "page";
+    autofocus?: boolean;
     busy?: boolean;
     /** Editing an existing record may require an actual typed value change. */
     requireChange?: boolean;
@@ -86,7 +97,10 @@ const props = withDefaults(
     submitLabel: undefined,
     presentation: "form",
     selectPresentation: "radio",
+    columns: 1,
     embedded: false,
+    layout: "content",
+    autofocus: false,
     busy: false,
     error: undefined,
     members: () => [],
@@ -107,6 +121,12 @@ const emit = defineEmits<{
 const { t } = useFlareI18nOptional();
 const slots = useSlots();
 const instance = getCurrentInstance();
+const fieldsElement = ref<HTMLFieldSetElement | null>(null);
+onMounted(async () => {
+  if (!props.autofocus) return;
+  await nextTick();
+  fieldsElement.value?.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])')?.focus({ preventScroll: true });
+});
 
 const strings = computed<FlarePluginStrings>(() => ({
   deadlinePassed: t("pluginView.deadlinePassed"),
@@ -151,6 +171,54 @@ function fileState(input: FlarePluginInput): FlarePluginFileState {
   const value = draft[input.id];
   return { scope: fileScope.value, generation, phase: flarePluginFileValue(value) ? "uploaded" : "empty",
     ...(flarePluginFileValue(value) ? { value } : {}) };
+}
+/** R6: an upload in flight keeps submit off and says how far the form's uploads are ({done}/{total}). */
+const uploads = computed(() => {
+  const states = visibleInputs.value.filter((input) => flarePluginIsUpload(input.kind)).map(fileState).filter((state) => state.phase !== "empty");
+  return states.some((state) => state.phase === "uploading")
+    ? { done: states.filter((state) => state.phase === "uploaded").length, total: states.length } : undefined;
+});
+/** R6: a select with nothing to choose blocks submit (form presentation; directory selections load their own). */
+const noChoices = computed(() => props.presentation === "form" && visibleInputs.value.some((input) =>
+  input.kind === "select" && !selectionOf(input) && !(input.choices?.length)));
+/** §6.3: consecutive document inputs share one grid of capture slots (2 columns on a phone, 3 elsewhere). */
+function groupFields(inputs: FlarePluginInput[]) {
+  const out: Array<{ key: string; documents: boolean; inputs: FlarePluginInput[] }> = [];
+  for (const input of inputs) {
+    const documents = input.kind === "document" && props.presentation !== "filters";
+    const last = out.at(-1);
+    if (documents && last?.documents) last.inputs.push(input);
+    else out.push({ key: input.id, documents, inputs: [input] });
+  }
+  return out;
+}
+const formId = useId();
+const fieldSections = computed(() => {
+  const remaining = new Set(visibleInputs.value.map(input => input.id));
+  const sections = (props.presentation === "filters" ? [] : props.sections ?? []).flatMap(section => {
+    const inputs = visibleInputs.value.filter(input => section.fields.includes(input.id) && remaining.delete(input.id));
+    return inputs.length ? [{ key: section.id, title: section.title, groups: groupFields(inputs) }] : [];
+  });
+  const unlisted = visibleInputs.value.filter(input => remaining.has(input.id));
+  if (unlisted.length) sections.push({ key: "unlisted", title: "", groups: groupFields(unlisted) });
+  return sections;
+});
+/** §6.3: required photos still missing — submit waits for them and says how many (realname.photosNeeded). */
+const photosMissing = computed(() => props.presentation === "filters" ? 0 : visibleInputs.value.filter((input) =>
+  input.kind === "document" && input.required && fileState(input).phase !== "uploaded").length);
+/** A run of ordinary fields, drawn in place (no wrapper), so the fieldset keeps its single column. */
+const FieldRun: FunctionalComponent = (_, { slots: children }) => children.default?.();
+const photosId = `${useId()}-photos`;
+const platform = useFlarePlatformSafe();
+/** The phone form factor: an inline form's submit is pinned to the bottom (R2.2). */
+const phone = computed(() => platform.capabilities.value.bottomSheet);
+/** R11: Enter in a single-line field submits the form (never in a textarea, mid-composition or on a key). */
+function enterSubmits(event: KeyboardEvent): void {
+  const target = event.target;
+  if (event.isComposing || event.keyCode === 229 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || !(target instanceof HTMLInputElement)) return;
+  if (["button", "checkbox", "radio", "file", "range", "submit", "reset"].includes(target.type)) return;
+  event.preventDefault();
+  if (!photosMissing.value) submit();
 }
 const filesPending = computed(() => visibleInputs.value.some((input) => {
   if (!flarePluginIsUpload(input.kind)) return false;
@@ -266,7 +334,11 @@ watch(() => props.fileStates, () => {
 onBeforeUnmount(() => { for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate"); });
 watch(
   () => JSON.stringify(props.errors),
-  () => editedSinceErrors.clear(),
+  () => {
+    editedSinceErrors.clear();
+    const first = visibleInputs.value.find(input => props.errors.some(error => error.input === input.id));
+    if (first) void focusField(first.id);
+  },
 );
 
 // A reference input is a directory the host fills: closed until the host answers and its parents hold values, so
@@ -339,6 +411,8 @@ function errorText(input: FlarePluginInput): string | undefined {
   const directory = selectionOf(input);
   if (directory?.error || directory?.invalid)
     return directory.error || directory.invalid;
+  const contextual = props.validateField?.(input.id, draft);
+  if (contextual) return contextual;
   if (!attempted.value && !edited.has(input.id)) return undefined;
   if (directory && !directory.loading && !validSelection(input))
     return props.selectionLabels?.unavailable || strings.value.invalid;
@@ -346,16 +420,23 @@ function errorText(input: FlarePluginInput): string | undefined {
   return issue ? flarePluginIssueText(issue, input, strings.value) : undefined;
 }
 
+async function focusField(id: string): Promise<void> {
+  await nextTick();
+  if (props.busy) return;
+  const field = [...(fieldsElement.value?.querySelectorAll<HTMLElement>('[data-input-id]') ?? [])].find(node => node.dataset.inputId === id);
+  const control = field?.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex="0"]');
+  control?.focus({ preventScroll: true });
+  field?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+}
+
 function submit(): void {
-  if (props.busy || unchanged.value || filesPending.value) return;
+  if (props.busy || unchanged.value || filesPending.value || noChoices.value) return;
   attempted.value = true;
-  if (
-    visibleInputs.value.some(
+  const firstInvalid = visibleInputs.value.find(
       (input) =>
-        flarePluginCheckInput(input, draft[input.id]) || !validSelection(input),
-    )
-  )
-    return;
+        flarePluginCheckInput(input, draft[input.id]) || !validSelection(input) || props.validateField?.(input.id, draft),
+  );
+  if (firstInvalid) { void focusField(firstInvalid.id); return; }
   const values = flarePluginFormValues(props.inputs, draft);
   for (const input of props.inputs)
     if (input.kind === "password") draft[input.id] = "";
@@ -484,6 +565,13 @@ const memberEntries = computed<FlareContactPickerEntry[]>(() =>
     avatarUrl: m.avatarUrl,
   })),
 );
+const initialMembers = computed<FlareContactPickerEntry[]>(() => {
+  const ids = picking.value && draft[picking.value.id];
+  return Array.isArray(ids)
+    ? ids.map(userId => memberEntries.value.find(entry => entry.userId === userId)
+      ?? chosenMembers.value[userId] ?? { userId, name: userId })
+    : [];
+});
 const chosenNames = (id: string) => {
   const ids = Array.isArray(draft[id]) ? (draft[id] as string[]) : [];
   return ids
@@ -498,7 +586,8 @@ function pickMembers(entries: FlareContactPickerEntry[]): void {
   const input = picking.value;
   picking.value = null;
   if (input) {
-    const selected = entries.flatMap(entry => props.members.find(member => member.userId === entry.userId) ?? []).slice(0, flarePluginMaxItems(input));
+    // Each remote search page is partial. The picker retains selections from pages in this scope.
+    const selected = entries.slice(0, flarePluginMaxItems(input));
     for (const member of selected) chosenMembers.value[member.userId] = member;
     set(
       input.id,
@@ -552,6 +641,13 @@ const fieldState: PluginFormInputState = {
   selectionSearch: (id, query) => emit("selection-search", id, query),
   selectionRetry: (id) => emit("selection-retry", id),
   selectionMore: (id) => emit("selection-more", id),
+  pinComplete(input) {
+    const visible = visibleInputs.value;
+    const at = visible.findIndex((candidate) => candidate.id === input.id);
+    if (at < 0) return;
+    if (!visible.slice(at + 1).some((candidate) => candidate.required)) submit();
+    else void focusField(visible[at + 1].id);
+  },
 };
 const bareFields = computed(() =>
   visibleInputs.value.map((input) => {
@@ -606,33 +702,39 @@ defineExpose({ submit, nativeInto });
     :class="{
       'flare-plugin-form--filters': presentation === 'filters',
       'is-embedded': embedded,
+      'is-page': layout === 'page',
+      'is-phone': phone,
+      'is-materials': visibleInputs.length > 1 && visibleInputs.every(input => flarePluginIsUpload(input.kind) && input.kind !== 'document'),
     }"
     :aria-busy="busy"
     novalidate
     @submit.prevent="submit"
+    @keydown.enter="enterSubmits"
   >
-    <fieldset class="flare-plugin-form__fields" :disabled="busy">
-      <PluginFormInput
-        v-for="input in visibleInputs"
-        :key="input.id"
-        :input="input"
-        :state="fieldState"
-      >
-        <template
-          v-if="slots[`field-${input.id}`] || slots.field"
-          #default="field"
-        >
-          <slot
-            :name="slots[`field-${input.id}`] ? `field-${input.id}` : 'field'"
-            v-bind="field"
-          />
-        </template>
-      </PluginFormInput>
+    <fieldset ref="fieldsElement" class="flare-plugin-form__fields" :disabled="busy">
+      <component v-for="section in fieldSections" :key="section.key"
+        :is="section.title ? 'section' : FieldRun"
+        v-bind="section.title ? { class: 'flare-plugin-form__section', role: 'group', 'aria-labelledby': `${formId}-${section.key}` } : {}">
+        <h3 v-if="section.title" :id="`${formId}-${section.key}`" class="flare-plugin-form__section-title">{{ section.title }}</h3>
+        <component :is="section.title ? 'div' : FieldRun"
+          v-bind="section.title ? { class: ['flare-plugin-form__section-fields', { 'has-columns': columns === 2 }] } : {}">
+          <component v-for="group in section.groups" :key="group.key" :is="group.documents ? 'div' : FieldRun"
+            v-bind="group.documents ? { class: ['flare-plugin-form__documents', { 'is-phone': phone }], 'data-document-grid': 'true' } : {}">
+            <component v-for="input in group.inputs" :key="input.id" :is="section.title ? 'div' : FieldRun"
+              v-bind="section.title ? { class: ['flare-plugin-form__field', { 'is-wide': !group.documents && ['textarea', 'members', 'options', 'image', 'file'].includes(input.kind) }] } : {}">
+              <PluginFormInput :input="input" :state="fieldState">
+                <template v-if="slots[`field-${input.id}`] || slots.field" #default="field">
+                  <slot :name="slots[`field-${input.id}`] ? `field-${input.id}` : 'field'" v-bind="field" />
+                </template>
+              </PluginFormInput>
+            </component>
+          </component>
+        </component>
+      </component>
     </fieldset>
-    <p v-if="error" class="flare-plugin-form__error" role="alert">
-      {{ error }}
-    </p>
-    <footer class="flare-plugin-form__actions">
+    <!-- R6: a form-level error is a danger banner right above submit; field errors stay under their fields. -->
+    <FlareStatusBanner v-if="error" class="flare-plugin-form__error" role="alert" :text="error" tone="danger" />
+    <footer class="flare-plugin-form__actions" :class="{ 'is-phone': phone }">
       <FlareButton
         v-if="!embedded"
         variant="secondary"
@@ -647,12 +749,17 @@ defineExpose({ submit, nativeInto });
         :size="presentation === 'filters' ? 'sm' : undefined"
         :label="submitLabel ?? t('pluginView.submit')"
         :loading="busy"
-        :disabled="busy || unchanged || filesPending"
+        :disabled="busy || unchanged || filesPending || noChoices || photosMissing > 0"
+        :aria-describedby="photosMissing ? photosId : undefined"
         data-form-submit="true"
         @click="submit"
       />
       <slot name="actions" />
     </footer>
+    <p v-if="photosMissing" :id="photosId" class="flare-plugin-form__photos" data-form-photos-needed="true">{{ t("realname.photosNeeded", { count: photosMissing }) }}</p>
+    <p v-if="uploads" class="flare-plugin-form__uploading" role="status" data-form-uploading="true">
+      {{ t("pluginView.uploading", uploads) }}
+    </p>
   </form>
   <!-- fill: the picker takes the sheet's height and brings its own header, so the sheet's title is its name only. -->
   <FlareBottomSheet
@@ -668,10 +775,12 @@ defineExpose({ submit, nativeInto });
         { id: 'members', label: picking.label, entries: memberEntries },
       ]"
       :multiple="flarePluginMaxItems(picking) !== 1"
+      :initial-selected="initialMembers"
+      :max-selected="flarePluginMaxItems(picking)"
       :loading="membersLoading"
       :error="membersError"
-      :on-search="onMemberSearch"
-      :on-retry="onMembersRetry"
+      :onSearch="onMemberSearch"
+      :onRetry="onMembersRetry"
       :title="picking.label"
       @select="pickMembers"
       @cancel="picking = null"
@@ -680,7 +789,9 @@ defineExpose({ submit, nativeInto });
 </template>
 
 <style scoped>
+/* R6: a plugin form's labels are text.primary (the kit's form-label seam). */
 .flare-plugin-form {
+  --flare-component-form-label-color: var(--flare-color-text-primary);
   display: flex;
   flex-direction: column;
   gap: var(--flare-size-spacing-lg);
@@ -689,22 +800,78 @@ defineExpose({ submit, nativeInto });
   padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg)
     var(--flare-size-spacing-xl);
 }
+/* R6: fields 16 apart. */
 .flare-plugin-form__fields {
   display: flex;
   flex-direction: column;
-  gap: var(--flare-size-spacing-md);
+  gap: var(--flare-size-spacing-lg);
   min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
 }
+.flare-plugin-form__section { min-width: 0; flex: none; }
+.flare-plugin-form__section + .flare-plugin-form__section { margin-top: var(--flare-size-spacing-sm); }
+.flare-plugin-form__section-title { margin: 0 0 var(--flare-size-spacing-md); color: var(--flare-color-text-primary); font-size: var(--flare-size-font-size-md); font-weight: var(--flare-size-font-weight-semibold); }
+.flare-plugin-form__section-fields { display: flex; flex-direction: column; gap: var(--flare-size-spacing-lg); }
+.flare-plugin-form__section-fields.has-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--flare-size-layout-primary-pane-min-width), calc((100% - var(--flare-size-spacing-lg)) / 2))), 1fr)); align-items: start; }
+.flare-plugin-form__field { min-width: 0; }
+.flare-plugin-form__field.is-wide, .flare-plugin-form__section-fields > .flare-plugin-form__documents { grid-column: 1 / -1; }
+.flare-plugin-form.is-materials .flare-plugin-form__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--flare-size-layout-primary-pane-min-width)), 1fr));
+  align-items: start;
+}
 .flare-plugin-form.is-embedded {
   padding: 0;
 }
+/* §12.9: inputs are 48 high on a phone (the kit Input's large size), 40 on a pointer. */
+.flare-plugin-form.is-phone:not(.flare-plugin-form--filters) :deep(.flare-input__field.is-single-line) { min-height: var(--flare-size-layout-control-height-lg); }
+/* §6.3: capture slots in a grid, 2 columns on a phone and 3 elsewhere, 12 apart. */
+.flare-plugin-form__documents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--flare-size-spacing-md); min-width: 0; }
+.flare-plugin-form__documents.is-phone { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.flare-plugin-form__photos { margin: 0; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+/* R2.2 / R6: an inline form's submit — natural width, at least 120, on a pointer; on a phone pinned to the bottom
+   over the safe area, full width 48. */
+.flare-plugin-form.is-embedded:not(.flare-plugin-form--filters) .flare-plugin-form__actions { flex-wrap: wrap; }
+.flare-plugin-form.is-embedded:not(.flare-plugin-form--filters) .flare-plugin-form__actions:not(.is-phone) > .flare-button { flex: none; min-width: var(--flare-size-component-action-min-width); }
+.flare-plugin-form.is-embedded:not(.flare-plugin-form--filters) .flare-plugin-form__actions.is-phone {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--flare-z-index-sticky);
+  margin-inline: calc(var(--flare-size-spacing-lg) * -1);
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) calc(var(--flare-size-spacing-md) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--flare-color-border-secondary);
+  background: var(--flare-color-bg-primary);
+}
+.flare-plugin-form.is-embedded:not(.flare-plugin-form--filters) .flare-plugin-form__actions.is-phone > .flare-button { min-height: var(--flare-size-layout-control-height-lg); }
+.flare-plugin-form.is-page {
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+}
+.flare-plugin-form.is-page .flare-plugin-form__fields {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg);
+}
+.flare-plugin-form.is-page .flare-plugin-form__uploading { margin: 0; text-align: end; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.flare-plugin-form__error {
+  flex: none;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg);
+}
+.flare-plugin-form.is-page .flare-plugin-form__actions {
+  flex: none;
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg);
+  padding-bottom: max(var(--flare-size-spacing-md), env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--flare-color-border-primary);
+  background: var(--flare-color-bg-primary);
+}
 .flare-plugin-form__error {
   margin: 0;
-  font-size: var(--flare-size-font-size-sm);
-  color: var(--flare-color-error-text);
 }
 .flare-plugin-form__actions {
   display: flex;

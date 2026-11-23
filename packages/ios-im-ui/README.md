@@ -100,6 +100,33 @@ for product types and `FlareContentRegistry.register(type) { content, ctx in Any
 
 ## Develop
 
+### Localized component copy (2.0 RC)
+
+Install copy once at the app root. `FlareStrings()` keeps the Chinese defaults;
+`FlareStrings.english` is the generated English preset. Override any typed string
+or formatter with a configuration closure:
+
+```swift
+let copy = FlareStrings { strings in
+    strings.send = "Send"
+    strings.readTab = { "Read (\($0))" }
+}
+ContentView().flareStrings(copy)
+
+var brandedEnglish = FlareStrings.english
+brandedEnglish.send = "Send securely"
+```
+
+The 2.0 RC replaces the former oversized named-argument initializer with this
+closure. Existing default construction, property reads/writes and key paths remain
+available; copied values stay isolated through copy-on-write storage. See the
+[migration note](../../docs/release/migration/2.0-rc-to-2.0.md#swiftui-localization-initialization).
+Chinese defaults live on `FlareStringsTable` properties; English text comes from
+`strings/en.json` and formatter presets from `strings/en-formats.json`. Run
+`npm run generate` at the repository root after changing them.
+
+### Build and test
+
 ```bash
 swift build     # compiles on the Mac host
 swift test      # smoke tests

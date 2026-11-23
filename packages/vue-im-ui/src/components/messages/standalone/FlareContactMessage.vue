@@ -30,7 +30,7 @@ const initials = computed(() => {
     <img v-if="avatarUrl" class="av img" :src="avatarUrl" :alt="name" />
     <span v-else class="av" :style="{ background: av.bg, color: av.fg }">{{ initials }}</span>
     <span class="meta"><b>{{ name }}</b><small v-if="subtitle">{{ subtitle }}</small></span>
-    <MsgIcon v-if="interactive" name="chevronRight" :size="16" class="chev" />
+    <MsgIcon v-if="interactive" name="chevronRight" size="sm" class="chev" />
   </component>
 </template>
 <style scoped>

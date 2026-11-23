@@ -197,15 +197,20 @@ class IconControlAccessibilityTest {
     @Test fun videoCallControlsNameEveryKeyAndReportDeviceState() {
         val live = callControlKeys(zh, muted = false, cameraOn = true, speakerOn = false, mode = FlareCallMode.Video, canAddMember = true)
         assertNamedWithRegistryGlyphs(live)
-        assertEquals(listOf("microphone", "camera", "flipCamera", "addMember", "hangUp"), live.map { it.id })
-        assertEquals(listOf("mic", "video", "switch-camera", "person-add", "end-call"), live.map { it.icon })
-        assertEquals(listOf("麦克风", "摄像头", "翻转", "加成员", "挂断"), labels(live))
-        assertEquals(listOf(true, true, null, null, null), live.map { it.checked })
+        // 3.3: the speaker shows in a video call too.
+        assertEquals(listOf("microphone", "speaker", "camera", "flipCamera", "addMember", "hangUp"), live.map { it.id })
+        assertEquals(listOf("mic", "speaker-off", "video", "switch-camera", "person-add", "end-call"), live.map { it.icon })
+        assertEquals(listOf("麦克风", zh.speaker, "摄像头", "翻转", "加成员", "挂断"), labels(live))
+        assertEquals(listOf(true, false, true, null, null, null), live.map { it.checked })
 
         val muted = callControlKeys(en, muted = true, cameraOn = false, speakerOn = false, mode = FlareCallMode.Video, canAddMember = false)
-        assertEquals(listOf("mic-off", "camera-off", "switch-camera", "end-call"), muted.map { it.icon })
-        assertEquals(listOf("Microphone", "Camera", "Flip camera", "Hang up"), labels(muted))
-        assertEquals(listOf(false, false, null, null), muted.map { it.checked })
+        assertEquals(listOf("mic-off", "speaker-off", "camera-off", "switch-camera", "end-call"), muted.map { it.icon })
+        assertEquals(listOf("Microphone", en.speaker, "Camera", "Flip camera", "Hang up"), labels(muted))
+        assertEquals(listOf(false, false, false, null, null), muted.map { it.checked })
+
+        // §3.3: a wide window's video bar has no flip (only a phone flips the camera).
+        val wide = callControlKeys(zh, muted = false, cameraOn = true, speakerOn = false, mode = FlareCallMode.Video, canAddMember = true, phone = false)
+        assertEquals(listOf("microphone", "speaker", "camera", "addMember", "hangUp"), wide.map { it.id })
     }
 
     @Test fun audioCallControlsSwapCameraForSpeaker() {
@@ -228,7 +233,7 @@ class IconControlAccessibilityTest {
     }
 
     @Test fun iconControlLabelsAreKitStringsWithChineseDefaults() {
-        assertEquals("最小化通话", zh.callMinimize)
+        assertEquals("最小化", zh.callMinimize)
         assertEquals("返回通话", zh.callReturn)
         assertEquals("移除图片", zh.removeImage)
         assertEquals("暂停", zh.pause)

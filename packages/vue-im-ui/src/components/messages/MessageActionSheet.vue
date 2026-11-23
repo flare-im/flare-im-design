@@ -71,7 +71,7 @@ function onAction(key: string): void {
         :aria-label="t('messageMenu.moreEmojiAria')"
         @click="setEmojiPanelOpen(!emojiPanelOpen)"
       >
-        <n-icon aria-hidden="true" :component="EllipsisHorizontalOutline" />
+        <n-icon size="var(--flare-size-icon-size-lg)" aria-hidden="true" :component="EllipsisHorizontalOutline" />
       </button>
     </section>
 
@@ -96,7 +96,7 @@ function onAction(key: string): void {
         @click="onAction(item.key)"
       >
         <span class="msg-ctx-sheet__quick-icon" aria-hidden="true">
-          <n-icon aria-hidden="true" v-if="iconFor(item)" :component="iconFor(item)!" />
+          <n-icon size="var(--flare-size-icon-size-lg)" aria-hidden="true" v-if="iconFor(item)" :component="iconFor(item)!" />
         </span>
         <span class="msg-ctx-sheet__quick-label">{{ item.label }}</span>
       </button>
@@ -117,7 +117,7 @@ function onAction(key: string): void {
         @click="onAction(item.key)"
       >
         <span class="msg-ctx-sheet__list-icon" aria-hidden="true">
-          <n-icon aria-hidden="true" v-if="iconFor(item)" :component="iconFor(item)!" />
+          <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" v-if="iconFor(item)" :component="iconFor(item)!" />
         </span>
         <span class="msg-ctx-sheet__list-label">{{ item.label }}</span>
       </button>

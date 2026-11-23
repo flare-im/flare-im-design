@@ -146,18 +146,19 @@ internal fun MessageMetaContent(
         when {
             failedText -> Unit
             summary != null -> {
-                val text = summary.text(strings)
-                val color = if (summary.allRead) palette.read else palette.text
                 val open = onReadReceiptOpen
-                if (open != null) {
-                    Box(
-                        touchTarget
-                            .clickable(role = Role.Button) { open() }
-                            .semantics { contentDescription = text },
-                        contentAlignment = Alignment.Center,
-                    ) { Text(text, color = color, fontSize = FlareSizes.fontSizeXs.value.sp, maxLines = 1) }
-                } else {
-                    Text(text, color = color, fontSize = FlareSizes.fontSizeXs.value.sp, maxLines = 1)
+                val action = if (open != null) touchTarget.clickable(role = Role.Button) { open() } else Modifier
+                val semantics = if (open == null && inRow) decorative else Modifier.semantics {
+                    contentDescription = summary.text(strings)
+                }
+                Box(action.then(semantics), contentAlignment = Alignment.Center) {
+                    Box(Modifier.clearAndSetSemantics {}) {
+                        MessageStatus(
+                            status = if (summary.allRead) FlareMessageDeliveryStatus.Read else FlareMessageDeliveryStatus.Sent,
+                            variant = FlareMessageStatusVariant.Compact,
+                            tint = if (summary.allRead) palette.read else palette.glyph,
+                        )
+                    }
                 }
             }
             effective != null -> {

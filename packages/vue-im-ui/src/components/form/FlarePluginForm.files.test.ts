@@ -7,6 +7,7 @@ import { nextTick } from "vue";
 import FlarePluginForm from "./FlarePluginForm.vue";
 import PluginFormInput from "./PluginFormInput.vue";
 import FlareFileUpload from "../media/FlareFileUpload.vue";
+import FlareDocumentSlot from "../messages/FlareDocumentSlot.vue";
 import FlarePluginView from "../messages/FlarePluginView.vue";
 import FlarePluginPage from "../messages/FlarePluginPage.vue";
 import FlareAccountView from "../messages/account/FlareAccountView.vue";
@@ -31,6 +32,15 @@ function setup(optional = false, fileFirst = false) {
 }
 const submit = async (wrapper: ReturnType<typeof setup>["wrapper"]) => wrapper.get("form").trigger("submit");
 describe("protected plugin file form", () => {
+  it.each([["证件正面", "证件正面"], ["认证材料", "认证材料 · 证件正面"]])("names %s once while retaining a missing document side", (label, expected) => {
+    const wrapper = mount(FlarePluginForm, { props: {
+      inputs: [{ id: "front", kind: "document", side: "front", label, file: inputs.find(i => i.id === "qr")!.file }],
+      onFileAction: () => {},
+    } });
+    // §6.3: a document input is its capture slot, not a file upload row.
+    expect(wrapper.findComponent(FlareFileUpload).exists()).toBe(false);
+    expect(wrapper.getComponent(FlareDocumentSlot).props("label")).toBe(expected);
+  });
   it("shares strict visible values and opaque receipt vectors", () => {
     expect(flareMessages["zh-CN"].pluginFileRejected).toContain("格式");
     expect(flareMessages["en-US"].pluginFileFailed).toContain("Retry");
@@ -141,7 +151,7 @@ describe("protected plugin file form", () => {
   });
   it("forwards state and intents through the wallet page account route", () => {
     const states = { qr: { scope: "test", generation: 1, phase: "uploading" as const } };
-    const wrapper = mount(FlarePluginPage, { props: { page: { pluginId: "flare.wallet", page: "home" }, appearance: "account", onFileAction: () => {}, view: { available: true, title: "钱包", fields: [], actions: [] }, fileStates: states } });
+    const wrapper = mount(FlarePluginPage, { props: { page: { pluginId: "flare.wallet", page: "home" }, appearance: "account", onFileAction: () => {}, view: { available: true, title: "钱包", fields: [], actions: [], presentation: { renderer: "account", props: { layout: "wallet" }, actions: {} } }, fileStates: states } });
     const account = wrapper.getComponent(FlareAccountView);
     expect(account.props("fileStates")).toEqual(states);
     const event = { action: "choose", inputId: "qr", scope: "test", generation: 1, input: inputs[4], formValues: values };

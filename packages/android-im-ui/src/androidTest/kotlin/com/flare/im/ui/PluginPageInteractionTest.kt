@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -38,11 +39,12 @@ class PluginPageInteractionTest {
     private val walletRef = PluginPageRef("flare.redpacket", "flare.redpacket.wallet")
     private val tasksRef = PluginPageRef("x.tasks", "x.tasks.mine")
 
-    private fun rowsJson(rows: String) = """{"kind":"rows","source":"flare.redpacket.wallet",
+    // The ledger declares its icon, so its rows draw as records with the U+2212 minus (rules.rowsIcon, §12.24).
+    private fun rowsJson(rows: String) ="""{"kind":"rows","source":"flare.redpacket.wallet",
         "columns":[{"label":"金额","format":"text"},{"label":"对方","format":"text"},{"label":"时间","format":"time"}],
         "rows":[$rows],
         "actions":[{"id":"open","label":"查看","target":{"kind":"page","page":"flare.redpacket.packet"},"input":{"packetId":"/packetId"}}],
-        "filters":["kind"],"emptyText":"还没有明细"}"""
+        "filters":["kind"],"emptyText":"还没有明细","icon":"red-packet"}"""
 
     private val walletRows = """
         {"key":"l1","cells":[{"text":"+¥1.00"},{"text":"Alice"},{"text":"1792546200000","timeMs":1792546200000}],"actions":[{"id":"open","input":{"packetId":"p1"}}],"badge":{"text":"收到红包","tone":"success"}},
@@ -81,8 +83,10 @@ class PluginPageInteractionTest {
         }
         list().performScrollToNode(hasText("全部明细"))
         compose.onNodeWithText("全部明细").performClick()
-        // The second row's key: the page, its data and that row's bound input.
-        compose.onAllNodesWithText("查看")[1].performClick()
+        // The second row, one control (rules.rowTap: its only action opens a page): the page, its data and that row's
+        // bound input.
+        compose.onAllNodesWithText("查看").assertCountEquals(0)
+        compose.onNode(hasText("\u2212¥5.00") and hasClickAction()).performClick()
         compose.runOnIdle {
             val data = mapOf<String, Any?>("balanceText" to "¥128.50", "currency" to "CNY")
             assertEquals(listOf("history" to PluginPageActionPayload(walletRef, data),
@@ -128,17 +132,21 @@ class PluginPageInteractionTest {
         // A lazy list with a repeated key would throw: the first l1 stays, the second is not drawn.
         compose.onNodeWithText("+¥1.00", useUnmergedTree = true).assertExists()
         compose.onNodeWithText("+¥9.99", useUnmergedTree = true).assertDoesNotExist()
-        list().performScrollToNode(hasText(FlareStrings().myInviteLoadMore))
-        compose.onNodeWithText(FlareStrings().myInviteLoadMore).performClick()
-        compose.onNodeWithText(FlareStrings().myInviteLoadMore).performClick()
+        list().performScrollToNode(hasText(FlareStrings().pluginViewLoadMore))
+        compose.onNodeWithText(FlareStrings().pluginViewLoadMore).performClick()
+        compose.onNodeWithText(FlareStrings().pluginViewLoadMore).performClick()
         compose.runOnIdle { assertEquals(listOf("c2"), asked) }
         // The merged view: the new row follows, the last page draws no key.
         compose.runOnIdle {
             view = wallet(walletRows + """,{"key":"l6","cells":[{"text":"-¥2.00"},{"text":"Bob"},{"text":""}],"actions":[]}""", cursor = null)
         }
-        list().performScrollToNode(hasText("-¥2.00"))
-        compose.onNodeWithText("-¥2.00", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText(FlareStrings().myInviteLoadMore).assertDoesNotExist()
+        // R10: spending reads with the minus sign (U+2212), not the hyphen the row carries.
+        list().performScrollToNode(hasText("\u2212¥2.00"))
+        compose.onNodeWithText("\u2212¥2.00", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText(FlareStrings().pluginViewLoadMore).assertDoesNotExist()
+        // 5.8: a list that paged says at its end that is everything.
+        list().performScrollToNode(hasText(FlareStrings().pluginViewEndOfList))
+        compose.onNodeWithText(FlareStrings().pluginViewEndOfList).assertExists()
     }
 
     @Test fun filterTabsSetTheHostsFiltersAndWaitWhileThePageReloads() {

@@ -6,7 +6,10 @@
 // confirmation is NOT here: the host wraps `clear` in DangerConfirm.
 // A category whose size the host has not measured reads "未知", never 0 B.
 import { computed } from "vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import { NIcon } from "naive-ui";
+import FlareButton from "../general/FlareButton.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
 import {
   AlertCircleOutline,
   CloseOutline,
@@ -61,6 +64,7 @@ const props = withDefaults(
   },
 );
 const { t } = useFlareI18n();
+const screen = useScreenLayout();
 const strings = computed(() => ({
   title: props.title ?? t("storageUsage.title"),
   unknownText: props.unknownText ?? t("storageUsage.unknown"),
@@ -134,23 +138,15 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
   <section class="flare-storage" :aria-label="strings.title">
     <header class="flare-storage__head">
       <div class="flare-storage__headline">
-        <h3 class="flare-storage__title">{{ strings.title }}</h3>
-        <p class="flare-storage__totals">
+        <h3 v-if="screen.title.value !== strings.title" class="flare-storage__title">{{ strings.title }}</h3>
+        <p class="flare-storage__totals" :class="{ 'is-summary': screen.sectioned.value }">
           <span class="flare-storage__total">{{ strings.totalText }} {{ totalValueText }}</span>
           <span v-if="deviceFreeLabel" class="flare-storage__free">
-            · {{ strings.deviceFreeText }} {{ deviceFreeLabel }}
+            <template v-if="!screen.sectioned.value">· </template>{{ strings.deviceFreeText }} {{ deviceFreeLabel }}
           </span>
         </p>
       </div>
-      <button
-        type="button"
-        class="flare-storage__btn"
-        :disabled="loading"
-        @click="emit('reload')"
-      >
-        <n-icon :size="14" :component="RefreshOutline" aria-hidden="true" />
-        <span>{{ strings.reloadText }}</span>
-      </button>
+      <FlareButton class="flare-storage__btn" size="sm" variant="secondary" :icon="RefreshOutline" :label="strings.reloadText" :disabled="loading" @click="emit('reload')" />
     </header>
 
     <p v-if="loading" class="flare-storage__loading" role="status">
@@ -159,21 +155,10 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
     </p>
 
     <div v-if="error" class="flare-storage__error flare-storage__error--global" role="alert">
-      <n-icon :size="14" :component="AlertCircleOutline" class="flare-storage__error-icon" aria-hidden="true" />
+      <n-icon size="var(--flare-size-icon-size-sm)" :component="AlertCircleOutline" class="flare-storage__error-icon" aria-hidden="true" />
       <span class="flare-storage__error-text">{{ error }}</span>
-      <button type="button" class="flare-storage__btn" :disabled="loading" @click="emit('reload')">
-        <n-icon :size="14" :component="RefreshOutline" aria-hidden="true" />
-        <span>{{ strings.reloadText }}</span>
-      </button>
-      <button
-        type="button"
-        class="flare-storage__btn flare-storage__btn--icon"
-        :aria-label="strings.dismissErrorText"
-        :title="strings.dismissErrorText"
-        @click="emit('dismissError', null)"
-      >
-        <n-icon :size="14" :component="CloseOutline" aria-hidden="true" />
-      </button>
+      <FlareButton class="flare-storage__btn" size="sm" variant="secondary" :icon="RefreshOutline" :label="strings.reloadText" :disabled="loading" @click="emit('reload')" />
+      <FlareIconButton class="flare-storage__btn--icon" size="sm" :icon="CloseOutline" :ariaLabel="strings.dismissErrorText" @click="emit('dismissError', null)" />
     </div>
 
     <ul v-if="showSkeleton" class="flare-storage__rows" aria-hidden="true">
@@ -195,7 +180,7 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
       >
         <div class="flare-storage__main">
           <span class="flare-storage__icon" aria-hidden="true">
-            <n-icon aria-hidden="true" :size="18" :component="DocumentOutline" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="DocumentOutline" />
           </span>
           <div class="flare-storage__text">
             <span class="flare-storage__label">{{ row.category.label }}</span>
@@ -209,16 +194,13 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
             <span class="flare-storage__spinner" aria-hidden="true" />
             <span>{{ strings.clearingText }}</span>
           </span>
-          <button
+          <FlareButton
             v-else-if="row.canClear"
-            type="button"
+            size="sm" variant="danger" appearance="text" :icon="TrashOutline" :label="strings.clearText"
             class="flare-storage__clear"
             :aria-label="`${strings.clearText} ${row.category.label}`"
             @click="clear(row.category.id, row.busy, row.canClear)"
-          >
-            <n-icon :size="14" :component="TrashOutline" aria-hidden="true" />
-            <span>{{ strings.clearText }}</span>
-          </button>
+          />
         </div>
 
         <div v-if="row.share !== null" class="flare-storage__bar" aria-hidden="true">
@@ -226,27 +208,16 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
         </div>
 
         <div v-if="row.error" class="flare-storage__error" role="alert">
-          <n-icon :size="14" :component="AlertCircleOutline" class="flare-storage__error-icon" aria-hidden="true" />
+          <n-icon size="var(--flare-size-icon-size-sm)" :component="AlertCircleOutline" class="flare-storage__error-icon" aria-hidden="true" />
           <span class="flare-storage__error-text">{{ row.error }}</span>
-          <button
+          <FlareButton
             v-if="row.canClear"
-            type="button"
+            size="sm" variant="secondary" :icon="RefreshOutline" :label="strings.retryText"
             class="flare-storage__btn"
             :disabled="row.busy"
             @click="clear(row.category.id, row.busy, row.canClear)"
-          >
-            <n-icon :size="14" :component="RefreshOutline" aria-hidden="true" />
-            <span>{{ strings.retryText }}</span>
-          </button>
-          <button
-            type="button"
-            class="flare-storage__btn flare-storage__btn--icon"
-            :aria-label="strings.dismissErrorText"
-            :title="strings.dismissErrorText"
-            @click="emit('dismissError', row.category.id)"
-          >
-            <n-icon :size="14" :component="CloseOutline" aria-hidden="true" />
-          </button>
+          />
+          <FlareIconButton class="flare-storage__btn--icon" size="sm" :icon="CloseOutline" :ariaLabel="strings.dismissErrorText" @click="emit('dismissError', row.category.id)" />
         </div>
       </li>
     </ul>
@@ -285,6 +256,13 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
 }
 .flare-storage__total { font-weight: 500; }
 .flare-storage__free { color: var(--flare-color-text-tertiary); }
+.flare-storage__totals.is-summary { display: grid; gap: var(--flare-size-spacing-3xs); }
+.flare-storage__totals.is-summary .flare-storage__total {
+  color: var(--flare-color-text-primary);
+  font-size: var(--flare-size-font-size-lg);
+  font-weight: var(--flare-size-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
 .flare-storage__loading,
 .flare-storage__busy {
   display: inline-flex;
@@ -388,29 +366,7 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
 .flare-storage__ghost--bar { width: 100%; height: 8px; }
 @keyframes flare-storage-pulse { 50% { opacity: 0.55; } }
 @media (prefers-reduced-motion: reduce) { .flare-storage__ghost { animation: none; } }
-.flare-storage__clear {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-  min-height: 40px;
-  padding: 0 var(--flare-size-spacing-2sm);
-  border: 1px solid color-mix(in srgb, var(--flare-color-error) 40%, transparent);
-  border-radius: var(--flare-size-radius-md);
-  background: color-mix(in srgb, var(--flare-color-error) 8%, var(--flare-color-bg-primary));
-  color: var(--flare-color-error-text);
-  font: inherit;
-  font-size: var(--flare-size-font-size-md);
-  cursor: pointer;
-}
-@media (pointer: coarse) {
-  .flare-storage__clear { min-height: var(--flare-size-layout-touch-target); }
-}
-.flare-storage__clear:focus-visible,
-.flare-storage__btn:focus-visible {
-  outline: 2px solid var(--flare-color-border-selected);
-  outline-offset: 2px;
-}
+.flare-storage__clear { flex: none; }
 .flare-storage__error {
   display: flex;
   align-items: center;
@@ -430,21 +386,5 @@ function clear(id: string, busy: boolean, canClear: boolean): void {
   overflow-wrap: anywhere;
   flex: 1 1 auto;
 }
-.flare-storage__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 0 8px;
-  border: none;
-  border-radius: var(--flare-size-radius-sm);
-  background: var(--flare-color-bg-secondary);
-  color: var(--flare-color-text-primary);
-  font: inherit;
-  font-size: var(--flare-size-font-size-sm);
-  cursor: pointer;
-  flex: none;
-}
-.flare-storage__btn:disabled { opacity: 0.5; cursor: progress; }
-.flare-storage__btn--icon { padding: 0 6px; }
+.flare-storage__btn, .flare-storage__btn--icon { flex: none; }
 </style>

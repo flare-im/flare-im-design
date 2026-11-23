@@ -51,8 +51,7 @@ final Map<String, _Call> _calls = {
       s.permissionRestrictedDescription(_s(a[0]), _s(a[1])),
   'permissionUnavailableDescription': (s, a) =>
       s.permissionUnavailableDescription(_s(a[0]), _s(a[1])),
-  'messageRecalledGroupOther': (s, a) =>
-      s.messageRecalledGroupOther(_s(a[0])),
+  'messageRecalledGroupOther': (s, a) => s.messageRecalledGroupOther(_s(a[0])),
   'quotedMessage': (s, a) => s.quotedMessage(_s(a[0]), _s(a[1])),
   'jumpedToMessage': (s, a) => s.jumpedToMessage(_s(a[0]), _s(a[1])),
   'previewImageNamed': (s, a) => s.previewImageNamed(_s(a[0])),
@@ -88,8 +87,7 @@ final Map<String, _Call> _calls = {
   'connectionRetryIn': (s, a) => s.connectionRetryIn(_i(a[0])),
   'groupDetailMembersTitle': (s, a) => s.groupDetailMembersTitle(_i(a[0])),
   'profilePanelEditProfile': (s, a) => s.profilePanelEditProfile(_s(a[0])),
-  'momentReplyToComment': (s, a) =>
-      s.momentReplyToComment(_s(a[0]), _s(a[1])),
+  'momentReplyToComment': (s, a) => s.momentReplyToComment(_s(a[0]), _s(a[1])),
   'inAppNotificationCount': (s, a) => s.inAppNotificationCount(_i(a[0])),
   'quietHoursNextDay': (s, a) => s.quietHoursNextDay(_s(a[0])),
 };
@@ -101,12 +99,13 @@ void main() {
   ];
 
   /// The function fields FlareStrings declares, read from its source.
-  final declared = RegExp(
-    r'^  final String Function\([^)]*\)\s*(\w+);',
-    multiLine: true,
-  ).allMatches(
-    File('lib/src/tokens/flare_strings.dart').readAsStringSync(),
-  ).map((m) => m.group(1)!).toSet();
+  final declared =
+      RegExp(r'^  final String Function\([^)]*\)\s*(\w+);', multiLine: true)
+          .allMatches(
+            File('lib/src/tokens/flare_strings.dart').readAsStringSync(),
+          )
+          .map((m) => m.group(1)!)
+          .toSet();
 
   test('every function field has a case, in English and Chinese', () {
     expect(declared, isNotEmpty);

@@ -153,6 +153,12 @@ watch(() => props.title, () => {
 .flare-auth-shell__content { min-width: 0; }
 .flare-auth-shell__footer { margin-top: var(--flare-size-spacing-2xl); padding-top: var(--flare-size-spacing-lg); border-top: 1px solid var(--flare-color-border-secondary); color: var(--flare-color-text-secondary); font-size: var(--flare-size-font-size-sm); line-height: 1.7; overflow-wrap: anywhere; }
 .flare-auth-shell--split .flare-auth-shell__stage { align-items: safe center; }
+.flare-auth-shell--split {
+  --flare-auth-brand-surface: color-mix(in srgb, var(--flare-color-primary-active) 42%, var(--flare-color-text-primary));
+}
+:global([data-flare-theme="dark"] .flare-auth-shell--split) {
+  --flare-auth-brand-surface: color-mix(in srgb, var(--flare-color-primary-active) 34%, var(--flare-color-bg-secondary));
+}
 .flare-auth-shell--split .flare-auth-shell__title:focus-visible {
   outline: 2px solid var(--flare-color-border-selected);
   outline-offset: var(--flare-size-spacing-xs);
@@ -170,14 +176,12 @@ watch(() => props.title, () => {
 
 @media (min-width: 900px) {
   .flare-auth-shell--split .flare-auth-shell__stage {
-    align-items: start;
     padding: var(--flare-size-spacing-2xl);
-    background: var(--flare-color-bg-primary);
   }
   .flare-auth-shell--split .flare-auth-shell__frame {
-    width: min(100%, 1440px);
-    min-height: 100%;
-    border: 0;
+    width: min(100%, 1160px);
+    min-height: min(100%, 720px);
+    border: 1px solid var(--flare-color-border-primary);
   }
   .flare-auth-shell--split .flare-auth-shell__brand {
     display: grid;
@@ -185,7 +189,8 @@ watch(() => props.title, () => {
     justify-content: stretch;
     gap: var(--flare-size-spacing-2xl);
     padding: clamp(32px, 4vw, 64px);
-    border-radius: var(--flare-size-radius-2xl);
+    border-start-start-radius: inherit;
+    border-end-start-radius: inherit;
   }
   .flare-auth-shell--split .flare-auth-shell__story { padding-top: 0; }
   .flare-auth-shell--split .flare-auth-shell__story::before { display: none; }
@@ -226,7 +231,7 @@ watch(() => props.title, () => {
   .flare-auth-shell__bubble--front {
     inset: auto 0 10px auto;
     --flare-auth-bubble-line: color-mix(in srgb, var(--flare-auth-brand-ink) 36%, transparent);
-    --flare-auth-bubble-surface: color-mix(in srgb, var(--flare-auth-brand-ink) 15%, var(--flare-auth-brand-surface));
+    --flare-auth-bubble-surface: color-mix(in srgb, var(--flare-color-primary) 50%, var(--flare-auth-brand-surface));
   }
   .flare-auth-shell__bubble--front::after { inset-inline-end: 25%; }
   .flare-auth-shell__dots {

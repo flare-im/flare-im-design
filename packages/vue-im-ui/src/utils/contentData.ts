@@ -1,3 +1,5 @@
+import { formatBytes } from "../shared/contracts/storage-usage";
+
 export function readString(source: Record<string, unknown>, ...keys: string[]): string {
   for (const key of keys) {
     const value = source[key];
@@ -24,10 +26,7 @@ export function readArray(source: Record<string, unknown>, ...keys: string[]): u
 }
 
 export function formatFileSize(bytes: number): string {
-  if (!bytes) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return bytes > 0 ? (formatBytes(bytes) ?? "") : "";
 }
 
 export function asRecord(value: unknown): Record<string, unknown> {

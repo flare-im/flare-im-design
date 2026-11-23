@@ -53,7 +53,8 @@ function decide(decision: FlareCapabilityConsentDecision): void {
 </script>
 
 <template>
-  <FlareBottomSheet :open="open" :title="t('capability.consentTitle', { plugin: pluginName })" :dismissible="!busy" @close="decide('deny')">
+  <!-- §6.5: on a wide window a 400 dialog, the payment sheet's width. -->
+  <FlareBottomSheet :open="open" :title="t('capability.consentTitle', { plugin: pluginName })" :dismissible="!busy" dialog-width="var(--flare-size-component-payment-dialog-width)" @close="decide('deny')">
     <div class="flare-consent" :data-capability="capability">
       <div class="flare-consent__what">
         <span class="flare-consent__icon" aria-hidden="true"><FlareIcon :name="icon" /></span>

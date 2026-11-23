@@ -23,23 +23,29 @@
   }
 }
 
-/* Pinned messages sit above the timeline as a compact bar: the conversation keeps the space and the
-   pins stay one tap away. Several pins scroll inside the bar. */
+/* The preview locates its message; a separate count opens the complete list. */
 .pinned-panel {
   flex: none;
-  max-height: 132px;
   min-height: 0;
-  overflow: auto;
-  padding: 6px var(--flare-size-spacing-md);
+  padding: 0 var(--flare-size-spacing-sm);
   border-bottom: 1px solid var(--flare-color-border-secondary);
   color: var(--flare-color-text-primary);
   background: var(--flare-color-bg-primary);
 }
-.pinned-panel__header {
+.pinned-panel__bar { display: flex; align-items: center; min-width: 0; }
+.pinned-panel__summary {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 2px;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--flare-size-layout-touch-target);
+  padding: var(--flare-size-spacing-xs);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
   color: var(--flare-color-text-secondary);
 }
 .pinned-panel__icon {
@@ -50,25 +56,27 @@
   color: var(--flare-color-pinned);
   font-size: 14px;
 }
-.pinned-panel__header strong {
+.pinned-panel__summary strong {
+  flex: none;
   font-size: var(--flare-size-font-size-sm);
   font-weight: 600;
 }
-.pinned-panel__header small {
-  color: var(--flare-color-text-tertiary);
-  font-size: var(--flare-size-font-size-sm);
-}
+.pinned-panel__all { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: var(--flare-size-spacing-xs); min-width: var(--flare-size-layout-touch-target); min-height: var(--flare-size-layout-touch-target); padding-inline: var(--flare-size-spacing-sm); border: 0; border-radius: var(--flare-size-radius-md); background: transparent; color: var(--flare-color-text-secondary); font: inherit; font-size: var(--flare-size-font-size-sm); cursor: pointer; }
+.pinned-panel__all:hover { background: var(--flare-color-bg-hover); }
 .pinned-panel__list {
   display: grid;
   gap: 2px;
 }
+.pinned-panel__summary:focus-visible, .pinned-panel__all:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
+.pinned-panel__preview { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--flare-size-font-size-sm); color: var(--flare-color-text-secondary); }
+.pinned-panel__list--sheet { max-height: min(50dvh, 360px); overflow-y: auto; overscroll-behavior: contain; padding: var(--flare-size-spacing-sm); }
 .pinned-panel__item {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  min-height: 40px;
+  min-height: calc(var(--flare-size-layout-touch-target) + var(--flare-size-spacing-md));
   padding: 4px 8px;
   border: 0;
   border-radius: var(--flare-size-radius-md);
@@ -94,10 +102,9 @@
   font-weight: 600;
 }
 .pinned-panel__body {
-  display: flex;
-  align-items: baseline;
+  display: grid;
   min-width: 0;
-  gap: 6px;
+  gap: var(--flare-size-spacing-3xs);
 }
 .pinned-panel__body b,
 .pinned-panel__body span {
@@ -108,9 +115,8 @@
 }
 .pinned-panel__body b {
   flex: none;
-  max-width: 40%;
   color: var(--flare-color-text-primary);
-  font-size: var(--flare-size-font-size-md);
+  font-size: var(--flare-size-font-size-sm);
   font-weight: 600;
 }
 .pinned-panel__body span {
@@ -157,6 +163,11 @@
   min-height: 100%;
   /* The timeline owns one gutter; only individual bubbles have a reading width. */
   padding-inline: var(--flare-component-message-gutter-inline);
+}
+
+.message-list-root--readable .message-list-content {
+  max-inline-size: var(--flare-size-layout-message-timeline-content-max-width);
+  margin-inline: auto;
 }
 
 /* 时间线顶部只有一个位置，三种状态（正在加载更早 / 可加载更早 / 已到开头）共用它。

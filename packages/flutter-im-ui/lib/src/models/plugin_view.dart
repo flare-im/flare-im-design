@@ -5,7 +5,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../tokens/flare_strings.dart';
+import 'capability_ui.dart' show flarePaymentAmountText;
 import 'display_name.dart';
+import 'plugin_layout.dart' show flarePluginShowsCounter;
+import '../components/flare_icon.dart' show flareIconNames;
 import 'plural.dart';
 import 'server_clock.dart';
 
@@ -297,12 +300,16 @@ class FlarePluginField {
     required this.label,
     required this.value,
     this.format,
+    this.tone,
+    this.unmapped = false,
   });
   factory FlarePluginField.fromJson(Map<String, Object?> json) =>
       FlarePluginField(
         label: _string(json['label']),
         value: _string(json['value']),
         format: _optMap(json['format']),
+        tone: json['tone'] == null ? null : flarePluginBadgeTone(json['tone']),
+        unmapped: _bool(json['unmapped']),
       );
   final String label;
   final String value;
@@ -310,6 +317,18 @@ class FlarePluginField {
   /// What the resolved format adds to [value] (ResolvedUiFormat, as JSON);
   /// read through [flarePluginFormatText]. The text alone is always right.
   final Map<String, Object?>? format;
+
+  /// The tone its value label declares: drawn as the kit tag
+  /// (rules.statusValues); null draws the text.
+  final FlarePluginTone? tone;
+
+  /// The plugin declared values and this one is not among them: drawn as
+  /// pluginView.unknownStatus, never the raw value.
+  final bool unmapped;
+
+  /// A `format: reference` field (an order or proof id): folded under
+  /// pluginView.references (rules.references).
+  bool get isReference => format?['kind'] == 'reference';
 }
 
 /// A resolved action. Its target and input stay with the core SDK; the kit
@@ -323,12 +342,18 @@ class FlarePluginAction {
     this.confirm,
     this.form = const [],
     this.target,
+    this.group,
+    this.icon,
+    this.disabledReason,
   });
   factory FlarePluginAction.fromJson(Map<String, Object?> json) =>
       FlarePluginAction(
         id: _string(json['id']),
         label: _string(json['label']),
         style: _enum(FlarePluginActionStyle.values, json['style']),
+        group: _optString(json['group']),
+        icon: _optString(json['icon']),
+        disabledReason: _optString(json['disabledReason']),
         confirm: _optString(json['confirm']),
         form: [
           for (final id
@@ -343,6 +368,18 @@ class FlarePluginAction {
   final String id;
   final String label;
   final FlarePluginActionStyle? style;
+
+  /// The list group a destination joins on an overview page: `common` or
+  /// `records` (rules.actionRoles); null joins common.
+  final String? group;
+
+  /// A kit icon name drawn in the action's list row (none leaves no gap).
+  final String? icon;
+
+  /// Why the action cannot run now (R2.5; the core resolves disabledWhen and
+  /// sends the translated reason): its key is disabled, not hidden, and the
+  /// reason is written under it.
+  final String? disabledReason;
 
   /// Asked first in the kit DangerConfirm.
   final String? confirm;
@@ -423,23 +460,30 @@ class FlarePluginBadge {
   const FlarePluginBadge({
     required this.text,
     this.tone = FlarePluginTone.neutral,
+    this.unmapped = false,
   });
   static FlarePluginBadge? fromJson(Object? json) => json is Map
       ? FlarePluginBadge(
           text: _string(json['text']),
           tone: flarePluginBadgeTone(json['tone']),
+          unmapped: _bool(json['unmapped']),
         )
       : null;
 
   /// The words, translated; an unmapped value as the plugin sent it.
   final String text;
   final FlarePluginTone tone;
+
+  /// Not among the plugin's declared values: drawn as
+  /// pluginView.unknownStatus (rules.statusValues).
+  final bool unmapped;
 }
 
-/// A badge's tone as drawn: one of [FlarePluginTone], anything else neutral
-/// (a tone from a newer protocol).
-FlarePluginTone flarePluginBadgeTone(Object? tone) =>
-    _enum(FlarePluginTone.values, tone) ?? FlarePluginTone.neutral;
+/// A badge's tone as drawn: one of [FlarePluginTone], brand as info,
+/// anything else neutral (a tone from a newer protocol).
+FlarePluginTone flarePluginBadgeTone(Object? tone) => tone == 'brand'
+    ? FlarePluginTone.info
+    : _enum(FlarePluginTone.values, tone) ?? FlarePluginTone.neutral;
 
 /// One display block of a resolved view; kinds the kit does not know are
 /// skipped.
@@ -532,9 +576,18 @@ sealed class FlarePluginBlock {
         return FlarePluginStatusBlock(
           label: _optString(json['label']),
           text: _string(json['text']),
-          tone:
-              _enum(FlarePluginTone.values, json['tone']) ??
-              FlarePluginTone.neutral,
+          tone: flarePluginBadgeTone(json['tone']),
+          unmapped: _bool(json['unmapped']),
+        );
+      case 'result':
+        return FlarePluginResultBlock(
+          state: _string(json['state']),
+          title: _string(json['title']),
+          tone: flarePluginBadgeTone(json['tone']),
+          unmapped: _bool(json['unmapped']),
+          amount: _optString(json['amount']),
+          format: _optMap(json['format']),
+          description: _optString(json['description']),
         );
       case 'progress':
         return FlarePluginProgressBlock(
@@ -582,6 +635,11 @@ sealed class FlarePluginBlock {
                     FlarePluginRowCell(
                       text: _string(cell['text']),
                       timeMs: flarePluginInstant(cell['timeMs']),
+                      format: _optMap(cell['format']),
+                      tone: cell['tone'] == null
+                          ? null
+                          : flarePluginBadgeTone(cell['tone']),
+                      unmapped: _bool(cell['unmapped']),
                     ),
                 ],
                 actions: [
@@ -597,6 +655,10 @@ sealed class FlarePluginBlock {
           ],
           emptyText: _optString(json['emptyText']),
           groupByDay: _bool(json['groupByDay']),
+          // A name the kit draws; any other draws the plain list.
+          icon: flareIconNames.contains(json['icon'])
+              ? json['icon']! as String
+              : null,
           filters: filters is List
               ? [
                   for (final id in filters)
@@ -921,10 +983,39 @@ final class FlarePluginStatusBlock extends FlarePluginBlock {
     this.label,
     required this.text,
     this.tone = FlarePluginTone.neutral,
+    this.unmapped = false,
   });
   final String? label;
   final String text;
   final FlarePluginTone tone;
+
+  /// Not among the plugin's declared values (rules.statusValues).
+  final bool unmapped;
+}
+
+/// The outcome of a money action, a verification submit or a failed send
+/// (rules.result): drawn as `FlareResultView` at the top of the page.
+final class FlarePluginResultBlock extends FlarePluginBlock {
+  const FlarePluginResultBlock({
+    required this.state,
+    required this.title,
+    this.tone = FlarePluginTone.neutral,
+    this.unmapped = false,
+    this.amount,
+    this.format,
+    this.description,
+  });
+
+  /// The raw state (`pending` polls).
+  final String state;
+
+  /// The state's label.
+  final String title;
+  final FlarePluginTone tone;
+  final bool unmapped;
+  final String? amount;
+  final Map<String, Object?>? format;
+  final String? description;
 }
 
 /// A bar with value/total.
@@ -981,11 +1072,35 @@ class FlarePluginColumn {
 
 @immutable
 class FlarePluginRowCell {
-  const FlarePluginRowCell({required this.text, this.timeMs});
+  const FlarePluginRowCell({
+    required this.text,
+    this.timeMs,
+    this.tone,
+    this.unmapped = false,
+    this.format,
+  });
   final String text;
+
+  /// What the resolved format adds to [text] (`{kind: person, userId}` for a
+  /// person, money, …).
+  final Map<String, Object?>? format;
+
+  /// A person cell's user: drawn as the person's name, never the id
+  /// (rules.rowsIcon).
+  String? get userId =>
+      format?['kind'] == 'person' && format?['userId'] is String
+      ? format!['userId']! as String
+      : null;
 
   /// Set in a time column: the instant, drawn in the device zone.
   final int? timeMs;
+
+  /// A status column's tone: the cell draws as the kit tag
+  /// (rules.statusValues).
+  final FlarePluginTone? tone;
+
+  /// Not among the column's declared values.
+  final bool unmapped;
 }
 
 /// What a row action carries: the row's key and the input the view bound for
@@ -1026,7 +1141,12 @@ final class FlarePluginRowsBlock extends FlarePluginBlock {
     this.emptyText,
     this.filters,
     this.groupByDay = false,
+    this.icon,
   });
+
+  /// A kit icon name: each row draws as a record, the 5.8 ledger line
+  /// ([flarePluginRecordLine]).
+  final String? icon;
 
   /// The query operation the rows come from.
   final String source;
@@ -1376,6 +1496,7 @@ class FlarePluginInput {
     this.money,
     this.side,
     this.precision,
+    this.help,
   });
   static FlarePluginInput? fromJson(Map<String, Object?> json) {
     final kind = _enum(FlarePluginInputKind.values, json['kind']);
@@ -1411,6 +1532,9 @@ class FlarePluginInput {
           : null,
       side: _enum(FlarePluginDocumentSide.values, json['side']),
       precision: _enum(FlarePluginLocationPrecision.values, json['precision']),
+      help: _optString(json['help'])?.trim().isNotEmpty == true
+          ? json['help'] as String
+          : null,
     );
   }
 
@@ -1443,6 +1567,9 @@ class FlarePluginInput {
 
   /// location only: how precise a fix it takes.
   final FlarePluginLocationPrecision? precision;
+
+  /// Help under the input (R6: caption, text.secondary), already translated.
+  final String? help;
 }
 
 @immutable
@@ -1537,6 +1664,7 @@ class FlarePluginFileState {
     this.error,
     this.preview = false,
     this.previewLoading = false,
+    this.image,
   });
   final String scope;
   final int generation;
@@ -1545,6 +1673,10 @@ class FlarePluginFileState {
   final String? fileName, error;
   final double? progress;
   final bool preview, previewLoading;
+
+  /// The picture the viewer picked or captured, held in memory by the host
+  /// so a document slot can show it (§6.3); never uploaded from here.
+  final Uint8List? image;
 }
 
 @immutable
@@ -1849,6 +1981,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     super.minBuild,
     this.data,
     this.refreshMs,
+    this.tabs = const [],
   });
 
   FlarePluginPageViewModel._json({
@@ -1865,6 +1998,7 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
     required super.minBuild,
     required this.data,
     required this.refreshMs,
+    required this.tabs,
     required super.source,
   }) : super._json(detail: false);
 
@@ -1885,6 +2019,15 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
       minBuild: view.minBuild,
       data: data is Map ? data.cast<String, Object?>() : null,
       refreshMs: (json['refreshMs'] as num?)?.toInt(),
+      tabs: [
+        for (final t in _maps(json['tabs']))
+          if (_string(t['page']).isNotEmpty)
+            FlarePluginPageTab(
+              page: _string(t['page']),
+              label: _string(t['label']),
+              selected: _bool(t['selected']),
+            ),
+      ],
       source: jsonEncode(json),
     );
   }
@@ -1894,6 +2037,121 @@ class FlarePluginPageViewModel extends FlarePluginViewModel {
   /// actions carry it back unchanged.
   final Map<String, Object?>? data;
   final int? refreshMs;
+
+  /// Sibling pages of the plugin shown as tabs at the top (§4.7,
+  /// rules.pageTabs); part of the view's source, so of its equality.
+  final List<FlarePluginPageTab> tabs;
+}
+
+/// One tab of a page view (rules.pageTabs): a sibling page of the plugin.
+@immutable
+class FlarePluginPageTab {
+  const FlarePluginPageTab({
+    required this.page,
+    required this.label,
+    this.selected = false,
+  });
+  final String page;
+  final String label;
+  final bool selected;
+
+  FlarePluginPageTab copyWith({bool? selected}) => FlarePluginPageTab(
+    page: page,
+    label: label,
+    selected: selected ?? this.selected,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlarePluginPageTab &&
+      other.page == page &&
+      other.label == label &&
+      other.selected == selected;
+
+  @override
+  int get hashCode => Object.hash(page, label, selected);
+}
+
+/// The tabs a page draws (rules.pageTabs): the view's own when it is
+/// available with ≥ 2; before [page] has a view, the [last] ones drawn with
+/// [page] selected; otherwise none.
+List<FlarePluginPageTab> flarePluginPageTabs(
+  FlarePluginPageViewModel? view,
+  String page,
+  List<FlarePluginPageTab> last,
+) {
+  if (view != null) {
+    return view.available && view.tabs.length >= 2 ? view.tabs : const [];
+  }
+  if (!last.any((tab) => tab.page == page)) return const [];
+  return [for (final tab in last) tab.copyWith(selected: tab.page == page)];
+}
+
+/// The page segment [index] opens: an unselected tab's; the selected one
+/// opens nothing.
+String? flarePluginPageTabChoice(List<FlarePluginPageTab> tabs, int index) {
+  final tab = index >= 0 && index < tabs.length ? tabs[index] : null;
+  return tab == null || tab.selected ? null : tab.page;
+}
+
+/// A record row's words (5.8, rules.rowsIcon): the second cell titles it,
+/// the other cells but the first and the toned or unmapped ones make the
+/// line under it, the first cell is the value and the toned cells its Tags
+/// (a completed — success — one stays quiet). A person cell reads as
+/// [nameOf] its user (the fallback name by default).
+({String title, String? line, String value, List<FlarePluginRowCell> tags})
+flarePluginRecordLine(
+  FlarePluginRowsBlock block,
+  FlarePluginRow row,
+  int nowMs,
+  FlareStrings strings, {
+  String Function(String userId)? nameOf,
+}) {
+  String words(FlarePluginRowCell cell) => switch (cell.userId) {
+    final id? => (nameOf ?? flarePluginFallbackName)(id),
+    null => cell.text,
+  };
+  final tagged = {
+    for (final (i, cell) in row.cells.indexed)
+      if (i > 0 && (cell.tone != null || cell.unmapped)) i,
+  };
+  final kept = [
+    for (var i = 1; i < block.columns.length; i += 1)
+      if (!tagged.contains(i)) i,
+  ];
+  final lines = flarePluginRowLines(
+    FlarePluginRowsBlock(columns: [for (final i in kept) block.columns[i]]),
+    FlarePluginRow(
+      key: row.key,
+      cells: [
+        for (final i in kept)
+          if (row.cells.elementAtOrNull(i) case final cell?)
+            FlarePluginRowCell(
+              text: words(cell),
+              timeMs: cell.timeMs,
+              format: cell.format,
+            )
+          else
+            const FlarePluginRowCell(text: ''),
+      ],
+    ),
+    nowMs,
+    strings,
+  );
+  final first = row.cells.firstOrNull;
+  return (
+    title: lines.primary,
+    line: lines.secondary,
+    value: first == null
+        ? ''
+        : flarePluginFormatText(words(first), first.format, strings),
+    tags: [
+      for (final i in tagged.toList()..sort())
+        if (row.cells[i].unmapped ||
+            row.cells[i].tone != FlarePluginTone.success)
+          row.cells[i],
+    ],
+  );
 }
 
 /// What `FlarePluginPage`'s onAction carries: the request invokePageAction
@@ -2231,7 +2489,12 @@ List<FlarePluginRow> flarePluginRowsOnce(List<FlarePluginRow> rows) {
             strings,
             utcOffsetMinutes: utcOffsetMinutes,
           ),
-        (_, final cell) => cell?.text ?? '',
+        (_, final cell?) => flarePluginFormatText(
+          cell.text,
+          cell.format,
+          strings,
+        ),
+        (_, null) => '',
       },
   ];
   final rest = texts.skip(1).where((text) => text.trim().isNotEmpty).toList();
@@ -2661,8 +2924,10 @@ String? flarePluginCounter(FlarePluginInput input, Object? draft) {
   if (input.kind != FlarePluginInputKind.text &&
       input.kind != FlarePluginInputKind.textarea)
     return null;
-  final limit = flarePluginMaxLength(input);
-  return limit == null ? null : '${_codePoints('${draft ?? ''}')}/$limit';
+  // R6: only a declared limit ≤ 200, and only once something is typed.
+  final limit = input.maxLength;
+  final length = _codePoints('${draft ?? ''}');
+  return flarePluginShowsCounter(limit, length) ? '$length/$limit' : null;
 }
 
 // ── vocabulary 2: formats, blocks and the upgrade notice ───────────────────
@@ -2725,14 +2990,28 @@ String flarePluginDurationText(
 }
 
 /// The text of a value with its resolved format: count and duration in the
-/// viewer's language, everything else (percent, bytes, money, an unknown
-/// format) the plain text the core SDK wrote.
+/// viewer's language, money with its currency as the payment confirmation
+/// writes it (R10), everything else (percent, bytes, money without a currency
+/// or scale, an unknown format) the plain text the core SDK wrote.
 String flarePluginFormatText(
   String text,
   Map<String, Object?>? format,
   FlareStrings strings,
 ) {
   switch (format?['kind']) {
+    case 'money':
+      // With a scale the core SDK already wrote the decimal ("-5.00").
+      final currency = format!['currency'];
+      if (currency is! String || currency.isEmpty || format['scale'] is! num) {
+        return text;
+      }
+      // A leading minus, or the explicit plus of money in, stays in front.
+      final sign = text.startsWith('-') || text.startsWith('+') ? text[0] : '';
+      final amount = flarePaymentAmountText(
+        text.substring(sign.length),
+        currency,
+      );
+      return amount == null ? text : '$sign$amount';
     case 'count':
       final count = format!['count'];
       return count is num && count.isFinite

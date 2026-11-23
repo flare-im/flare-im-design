@@ -1,6 +1,11 @@
 package com.flare.im.ui
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.background
@@ -20,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +40,7 @@ import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -43,10 +50,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -128,15 +137,30 @@ fun Button(
 
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+    val down by interactionSource.collectIsPressedAsState()
+    // Hover only ever comes from a pointer (mouse, stylus), so touch never sees the hover fill.
+    val hovered by interactionSource.collectIsHoveredAsState()
     val textFocus = appearance == FlareButtonAppearance.Text && focused && !off
     val background = if (textFocus) fg.copy(alpha = 0.1f) else fill
+    val (hoverFill, pressedFill) = buttonFeedbackFills(variant, appearance, colors)
+    // §7 / §12.10: pressed takes the pressed fill and 0.98 (`transitions.fast`); reduced motion keeps the colour only.
+    val shownFill by animateColorAsState(
+        when { off -> background; down -> pressedFill; hovered -> hoverFill; else -> background },
+        tween(FlareMotion.fast, easing = FlareMotion.fastEasing), label = "button-fill",
+    )
+    val reducedMotion = flareReducedMotion()
+    val scale by animateFloatAsState(if (down && !off && !reducedMotion) FlareSizes.componentPressScale else 1f,
+        tween(FlareMotion.fast, easing = FlareMotion.fastEasing), label = "button-scale")
 
     var m = Modifier
         .then(if (block) Modifier.fillMaxWidth() else Modifier)
         .then(if (maintainTouchTarget) Modifier.minimumInteractiveComponentSize() else Modifier)
-        .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else size.visualHeight(), minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp).clip(shape).background(background)
-        .border(1.dp, borderColor, shape)
+        .defaultMinSize(minHeight = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else size.visualHeight(), minWidth = if (appearance == FlareButtonAppearance.Text) FlareSizes.touchTarget else 0.dp)
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        // Before the fill: a disabled button fades whole, fill and label, like the web's `opacity`.
         .flareDimmed(if (disabled || onClick == null) 0.5f else 1f)
+        .clip(shape).background(shownFill)
+        .border(1.dp, borderColor, shape)
     m = m.clickable(interactionSource = interactionSource, indication = androidx.compose.foundation.LocalIndication.current,
         enabled = !off, role = androidx.compose.ui.semantics.Role.Button) { onClick?.invoke() }
     m = m.padding(horizontal = if (appearance == FlareButtonAppearance.Text) 0.dp else spec.hPad, vertical = FlareSizes.spacing2xs)
@@ -168,6 +192,18 @@ fun Button(
 }
 
 /**
+ * The fills a button turns while hovered and while pressed (§12.10): primary → primaryHover / primaryActive (a red
+ * packet's money key re-tints these to `redPacketEndHover` / `Active`), danger → errorHover / errorActive, and the
+ * secondary-like rest → bgHover.
+ */
+internal fun buttonFeedbackFills(variant: FlareButtonVariant, appearance: FlareButtonAppearance, colors: FlareColors): Pair<Color, Color> = when {
+    appearance == FlareButtonAppearance.Text -> colors.bgHover to colors.bgHover
+    variant == FlareButtonVariant.Primary -> colors.primaryHover to colors.primaryActive
+    variant == FlareButtonVariant.Danger -> colors.errorHover to colors.errorActive
+    else -> colors.bgHover to colors.bgHover
+}
+
+/**
  * Dims what follows in the chain to [alpha], keeping one layer whatever the value. `Modifier.alpha(1f)` drops its layer,
  * and dropping a layer below a fill as a control becomes enabled left the fill undrawn — a submit lost its colour as its
  * form became valid, only its label staying on the page.
@@ -176,7 +212,12 @@ internal fun Modifier.flareDimmed(alpha: Float): Modifier = graphicsLayer { this
 
 // MARK: - IconButton
 
-/** Icon-only button. Spec: General/IconButton. */
+internal val LocalFlareHeaderIcons = staticCompositionLocalOf { false }
+
+/**
+ * Icon-only button. Spec: General/IconButton. [dot] marks something new behind it (an unread count the key does not
+ * spell out): a small error-coloured dot on the disc's top end, decorative — [contentDescription] says what it opens.
+ */
 @Composable
 fun IconButton(
     /** A semantic icon name from the registry (`docs/ICON-LIBRARY.md`), not a platform glyph. */
@@ -190,12 +231,22 @@ fun IconButton(
     tint: Color? = null,
     background: Color? = null,
     customSize: Dp? = null,
+    // Before [onClick], so a trailing lambda is still the click.
+    dot: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = flareColors()
-    val dimDp: Dp = customSize ?: when (size) { FlareControlSize.Sm -> FlareSizes.componentIconButtonSideSm; FlareControlSize.Md -> FlareSizes.componentIconButtonSideMd; FlareControlSize.Lg -> FlareSizes.componentIconButtonSideLg }
-    val glyphDp: Dp = if (customSize != null) (customSize.value * 0.46f).roundToInt().dp
+    val phone = flareCompactOverlays()
+    val header = phone && LocalFlareHeaderIcons.current
+    val baseSide: Dp = customSize ?: when (size) { FlareControlSize.Sm -> FlareSizes.componentIconButtonSideSm; FlareControlSize.Md -> FlareSizes.componentIconButtonSideMd; FlareControlSize.Lg -> FlareSizes.componentIconButtonSideLg }
+    val dimDp = if (header) maxOf(baseSide, FlareSizes.touchTarget) else baseSide
+    val baseGlyph: Dp = if (customSize != null) (customSize.value * 0.46f).roundToInt().dp
         else when (size) { FlareControlSize.Sm -> FlareSizes.componentIconButtonGlyphSm; FlareControlSize.Md -> FlareSizes.componentIconButtonGlyphMd; FlareControlSize.Lg -> FlareSizes.componentIconButtonGlyphLg }
+    val glyphDp = when {
+        header -> maxOf(baseGlyph, FlareSizes.iconSizeLg)
+        phone -> maxOf(baseGlyph, FlareSizes.iconSizeMd)
+        else -> baseGlyph
+    }
     val shape: Shape = if (square) RoundedCornerShape(FlareSizes.radiusMd) else CircleShape
     val (bgDerived, fgDerived) = when {
         active -> colors.bgSelected to colors.primary
@@ -203,8 +254,21 @@ fun IconButton(
         variant == FlareIconButtonVariant.Tinted -> colors.bgSecondary to colors.textSecondary
         else -> Color.Transparent to colors.textSecondary
     }
-    val bg = background ?: bgDerived
     val fg = tint ?: fgDerived
+    val source = remember { MutableInteractionSource() }
+    val down by source.collectIsPressedAsState()
+    val hovered by source.collectIsHoveredAsState()
+    val live = onClick != null && !disabled
+    // §12.10: pressed or hovered (a pointer) the disc takes its pressed fill; pressed it also scales to 0.98 unless
+    // motion is reduced. A host-given background keeps its colour.
+    val pressedFill = if (variant == FlareIconButtonVariant.Solid && !active) colors.primaryActive else colors.bgHover
+    val bg by animateColorAsState(
+        background ?: if (live && (down || hovered)) pressedFill else bgDerived,
+        tween(FlareMotion.fast, easing = FlareMotion.fastEasing), label = "icon-button-fill",
+    )
+    val reducedMotion = flareReducedMotion()
+    val scale by animateFloatAsState(if (live && down && !reducedMotion) FlareSizes.componentPressScale else 1f,
+        tween(FlareMotion.fast, easing = FlareMotion.fastEasing), label = "icon-button-scale")
     // 外层拿触达区与语义,内层只画那个圆盘。两件事从前挤在一个节点上,后果有两个:
     //  · 整个节点就是 30/38/46 的圆盘,低于 48dp —— 只剩 Compose 那点隐式命中扩张兜着,
     //    而隐式扩张的优先级低于任何自身边界包住该点的兄弟节点,恰恰在密集行里先失效;
@@ -214,13 +278,17 @@ fun IconButton(
     Box(
         Modifier
             .sizeIn(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget)
-            .then(if (onClick != null) Modifier.clickable(enabled = !disabled, role = Role.Button) { onClick() } else Modifier),
+            .then(if (onClick != null) Modifier.clickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current, enabled = !disabled, role = Role.Button) { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            Modifier.size(dimDp).clip(shape).background(bg).flareDimmed(if (disabled) 0.45f else 1f),
+            Modifier.size(dimDp).graphicsLayer { scaleX = scale; scaleY = scale }.flareDimmed(if (disabled) 0.45f else 1f).clip(shape).background(bg),
             contentAlignment = Alignment.Center,
         ) { FlareIcon(name = icon, size = glyphDp, tint = fg, contentDescription = contentDescription) }
+        if (dot) Box(
+            Modifier.align(Alignment.Center).offset(x = dimDp / 2 - 6.dp, y = -dimDp / 2 + 6.dp)
+                .size(8.dp).clip(CircleShape).background(colors.error),
+        )
     }
 }
 
@@ -233,20 +301,26 @@ fun FormField(
     required: Boolean = false,
     hint: String? = null,
     error: String? = null,
+    /** A count drawn at the end of the label row ("3/24"), as the Vue field's `counter`. */
+    counter: String? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = flareColors()
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs)) {
-        if (label != null) {
-            Row {
-                Text(label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                if (required) Text("*", color = colors.errorText, fontSize = 13.sp, modifier = Modifier.padding(start = 2.dp))
+        if (label != null || counter != null) {
+            Row(Modifier.fillMaxWidth()) {
+                if (label != null) Text(label, color = colors.textSecondary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeMd)
+                if (required) Text("*", color = colors.errorText, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.padding(start = 2.dp))
+                if (counter != null) {
+                    Spacer(Modifier.weight(1f))
+                    Text(counter, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
+                }
             }
         }
         content()
         when {
-            error != null -> Text(error, color = colors.errorText, fontSize = 12.sp)
-            hint != null -> Text(hint, color = colors.textTertiary, fontSize = 12.sp)
+            error != null -> Text(error, color = colors.errorText, fontSize = FlareSizes.fontSizeSm)
+            hint != null -> Text(hint, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm)
         }
     }
 }
@@ -319,11 +393,18 @@ fun Checkbox(
             if (indeterminate) Icon(Icons.Outlined.Remove, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
             else if (value) Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(13.dp))
         }
-        label?.let { Text(it, color = colors.textPrimary, fontSize = 14.sp) }
+        label?.let { Text(it, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg) }
     }
 }
 
 // MARK: - RadioGroup
+
+/**
+ * How a [RadioGroup] lays out its options (RadioGroup `optionLayout`): [Compact] inline (or stacked with `vertical`);
+ * [List] full-width 48 rows with the selected tint; [Cards] one 48-high card per option with the selected border and a
+ * check, stacked on a phone and in equal columns on a wide window (a plugin form's select of at most 4 choices).
+ */
+enum class FlareRadioOptionLayout { Compact, List, Cards }
 
 /** Single-choice radio group. Spec: Form/RadioGroup. */
 @Composable
@@ -332,8 +413,55 @@ fun RadioGroup(
     value: String,
     vertical: Boolean = false,
     onSelect: ((String) -> Unit)? = null,
+    optionLayout: FlareRadioOptionLayout = FlareRadioOptionLayout.Compact,
+    grouped: Boolean = false,
 ) {
     val colors = flareColors()
+    if (optionLayout != FlareRadioOptionLayout.Compact) {
+        val cards = optionLayout == FlareRadioOptionLayout.Cards
+        val groupedList = grouped && !cards
+        val shape = RoundedCornerShape(FlareSizes.radiusLg)
+        val option: @Composable (FlareSelectOption, Modifier) -> Unit = { o, modifier ->
+            val on = o.value == value
+            Row(
+                modifier.heightIn(min = FlareSizes.touchTarget)
+                    .then(if (cards) Modifier.clip(shape).background(colors.bgSecondary)
+                        .border(if (on) 1.5.dp else 1.dp, if (on) colors.borderSelected else colors.borderPrimary, shape)
+                    else Modifier.background(if (on && !groupedList) colors.bgSelected else Color.Transparent))
+                    .flareDimmed(if (o.disabled) FlareOpacity.disabled else 1f)
+                    .selectable(selected = on, enabled = !o.disabled && onSelect != null, role = Role.RadioButton) { onSelect?.invoke(o.value) }
+                    .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs)) {
+                    Text(o.label, color = if (on && groupedList) colors.primaryText else colors.textPrimary,
+                        fontSize = FlareSizes.fontSizeLg, fontWeight = if (on || groupedList) FontWeight.SemiBold else FontWeight.Normal)
+                    o.description?.let { Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm) }
+                }
+                if (on) FlareIcon("check", size = FlareSizes.iconSizeSm, tint = colors.primaryText)
+            }
+        }
+        if (cards && !flareCompactOverlays()) {
+            Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
+                options.forEach { option(it, Modifier.weight(1f)) }
+            }
+        } else {
+            Column(
+                Modifier.fillMaxWidth().selectableGroup().then(
+                    if (groupedList) Modifier.clip(shape).background(colors.bgElevated).border(1.dp, colors.borderPrimary, shape)
+                    else Modifier
+                ),
+                verticalArrangement = Arrangement.spacedBy(if (cards) FlareSizes.spacingSm else 0.dp),
+            ) {
+                options.forEachIndexed { index, item ->
+                    if (groupedList && index > 0) HorizontalDivider(color = colors.borderSecondary)
+                    option(item, Modifier.fillMaxWidth())
+                }
+            }
+        }
+        return
+    }
     val row: @Composable (FlareSelectOption) -> Unit = { o ->
         val on = o.value == value
         Row(
@@ -347,7 +475,7 @@ fun RadioGroup(
                     .border(1.5.dp, if (on) colors.primary else colors.borderHover, CircleShape),
                 contentAlignment = Alignment.Center,
             ) { if (on) Box(Modifier.size(FlareSizes.componentRadioDot).clip(CircleShape).background(colors.primary)) }
-            Text(o.label, color = colors.textPrimary, fontSize = 14.sp)
+            Text(o.label, color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg)
         }
     }
     if (vertical) Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) { options.forEach { row(it) } }
@@ -378,14 +506,29 @@ fun Select(
     val spec = sizeSpec(size)
     val current = options.firstOrNull { it.value == value }
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
+    val source = remember { MutableInteractionSource() }
+    val active = (open || source.collectIsFocusedAsState().value) && !disabled
+    val halo = colors.focusRing
 
     Row(
-        Modifier.height(size.visualHeight()).defaultMinSize(minWidth = 160.dp).clip(shape).background(colors.bgSecondary)
-            .border(1.dp, if (open) colors.primary else colors.borderPrimary, shape)
+        Modifier.height(size.visualHeight()).defaultMinSize(minWidth = 160.dp)
+            // §12.22: open or focused, a 1px `borderSelected` edge plus a 3px `focusRing` halo (Vue Select).
+            .drawBehind {
+                if (active) {
+                    val width = 3.dp.toPx()
+                    drawRoundRect(halo, topLeft = androidx.compose.ui.geometry.Offset(-width / 2, -width / 2),
+                        size = androidx.compose.ui.geometry.Size(this.size.width + width, this.size.height + width),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(FlareSizes.radiusLg.toPx() + width / 2),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(width))
+                }
+            }
+            .clip(shape).background(colors.bgSecondary)
+            .border(1.dp, if (active) colors.borderSelected else colors.borderPrimary, shape)
             .flareDimmed(if (disabled) 0.55f else 1f)
             // 停用要写进 clickable 里,而不是把整条 clickable 换掉 —— 换掉就连
             // Role.Button 和 disabled 状态一起丢了,读屏会把它念成普通一行文字。
-            .clickable(enabled = !disabled, role = Role.Button) { open = true }
+            .clickable(interactionSource = source, indication = androidx.compose.foundation.LocalIndication.current,
+                enabled = !disabled, role = Role.Button) { open = true }
             .padding(horizontal = selectHPad(size).dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -395,9 +538,9 @@ fun Select(
             fontSize = spec.font.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(FlareSizes.spacingSm))
         Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textTertiary,
-            modifier = Modifier.size(16.dp).rotate(if (open) 180f else 0f))
+            modifier = Modifier.size(FlareSizes.iconSizeSm).rotate(if (open) 180f else 0f))
     }
 
     if (open) {
@@ -410,7 +553,7 @@ fun Select(
             if (heading != null) {
                 Text(
                     heading,
-                    color = colors.textTertiary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                    color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.Medium,
                     modifier = Modifier.fillMaxWidth().padding(bottom = FlareSizes.spacing2sm), textAlign = TextAlign.Center,
                 )
             }
@@ -425,12 +568,12 @@ fun Select(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(o.label, color = if (selected) colors.primaryText else colors.textPrimary,
-                            fontSize = 16.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            fontSize = FlareSizes.fontSize2xl, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                             modifier = Modifier.weight(1f))
                         if (selected) Icon(Icons.Outlined.Check, contentDescription = null, tint = colors.primaryText, modifier = Modifier.size(19.dp))
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(FlareSizes.spacingSm))
             }
         }
     }

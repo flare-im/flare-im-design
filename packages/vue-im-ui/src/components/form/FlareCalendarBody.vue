@@ -66,11 +66,11 @@ function isDisabled(d: number): boolean {
   <div class="flare-cal">
     <div class="flare-cal__head">
       <button type="button" class="flare-cal__nav" :aria-label="t('calendarBody.previousMonth')" @click="emit('nav', -1)">
-        <n-icon aria-hidden="true" :size="18" :component="ChevronBackOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="ChevronBackOutline" />
       </button>
       <span class="flare-cal__label">{{ monthLabel }}</span>
       <button type="button" class="flare-cal__nav" :aria-label="t('calendarBody.nextMonth')" @click="emit('nav', 1)">
-        <n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="ChevronForwardOutline" />
       </button>
     </div>
 

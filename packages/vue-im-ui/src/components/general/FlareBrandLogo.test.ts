@@ -5,15 +5,14 @@ import { describe, expect, it } from "vitest";
 import FlareBrandLogo from "./FlareBrandLogo.vue";
 
 /**
- * The mark is an image with a name, sized by the host, in two treatments. Two instances on one page
- * must not share a gradient id — a duplicate id makes the second one paint with the first one's
- * fill. Release criterion §1 (component tests).
+ * The logo is named and sized by the host. Gradient instances use distinct IDs so each one paints
+ * its own fill. Release criterion §1 (component tests).
  */
 describe("FlareBrandLogo", () => {
   it("is an image with a name, not a decorative div", () => {
     const wrapper = mount(FlareBrandLogo);
     expect(wrapper.attributes("role")).toBe("img");
-    expect(wrapper.attributes("aria-label")).toBe("flare IM");
+    expect(wrapper.attributes("aria-label")).toBe("IM");
   });
 
   it("takes its size from the host, in both axes", () => {
@@ -42,5 +41,12 @@ describe("FlareBrandLogo", () => {
     expect(ids).toHaveLength(2);
     expect(ids[0]).toBeTruthy();
     expect(new Set(ids).size).toBe(2);
+  });
+
+  it("renders the mark with the host ink and no plate", () => {
+    const mark = mount(FlareBrandLogo, { props: { variant: "mark" } });
+    expect(mark.find("linearGradient").exists()).toBe(false);
+    expect(mark.findAll("path")).toHaveLength(1);
+    expect(mark.get("g").attributes("fill")).toBe("currentColor");
   });
 });

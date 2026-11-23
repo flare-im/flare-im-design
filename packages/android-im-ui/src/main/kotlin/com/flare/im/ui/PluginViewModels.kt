@@ -13,7 +13,15 @@ import java.time.ZoneOffset
  * A label/value row (v1 `fields`, and the `fields` block). [value] is the plain text; [format] is what the kit may write
  * instead ([PluginFormatRules]: a compact count, a duration in the viewer's words).
  */
-data class PluginViewField(val label: String, val value: String, val format: PluginValueFormat? = null)
+data class PluginViewField(
+    val label: String,
+    val value: String,
+    val format: PluginValueFormat? = null,
+    /** The tone its value label declared (`{label, tone}` values, an enum format): the kit draws it as a Tag (R3). */
+    val tone: PluginTone? = null,
+    /** The plugin declared values and this one is not among them: drawn as the unknown status, never the raw [value]. */
+    val unmapped: Boolean = false,
+)
 
 /** How an action key is drawn; none is the secondary key. */
 enum class PluginActionStyle(val wire: String) {
@@ -37,6 +45,12 @@ data class PluginViewAction(
     val confirm: String? = null,
     val form: List<String>? = null,
     val target: PluginActionTarget? = null,
+    /** Which titled list an overview's destination joins: `common` or `records` (R2.1); null joins common. */
+    val group: String? = null,
+    /** A kit icon name drawn in the list row's leading slot; none leaves no gap. */
+    val icon: String? = null,
+    /** Why the action cannot run now (R2.5): its key is disabled and says this under it. */
+    val disabledReason: String? = null,
 )
 
 /** An action's target (flare-plugin-protocol UiActionTarget): `native` ([capability], [params], [into]), `operation` or `page`. */
@@ -71,7 +85,8 @@ enum class PluginTone(val wire: String) {
     Neutral("neutral"), Info("info"), Success("success"), Warning("warning"), Danger("danger");
 
     companion object {
-        fun fromWire(value: String?): PluginTone? = entries.firstOrNull { it.wire == value }
+        /** `brand` draws info (R3); a tone the kit does not know is null (its reader decides, mostly neutral). */
+        fun fromWire(value: String?): PluginTone? = if (value == "brand") Info else entries.firstOrNull { it.wire == value }
     }
 }
 
@@ -87,7 +102,7 @@ enum class PluginTextStyle(val wire: String) {
  * An entry's or a row's enumerated value as words and a tone (the plugin's `valueLabels`, already translated), such as
  * a ledger line's kind. Drawn as the kit tag; a tone the kit does not know reads as [PluginTone.Neutral].
  */
-data class PluginBadge(val text: String, val tone: PluginTone = PluginTone.Neutral)
+data class PluginBadge(val text: String, val tone: PluginTone = PluginTone.Neutral, val unmapped: Boolean = false)
 
 /** One option of a choices block; [count] and [percent] only while results show. */
 data class PluginChoice(
@@ -187,7 +202,7 @@ data class PluginPeopleBlock(val groups: List<PluginPeopleGroup>) : PluginBlock 
 }
 
 /** `status`: a badge. */
-data class PluginStatusBlock(val label: String? = null, val text: String, val tone: PluginTone = PluginTone.Neutral) : PluginBlock {
+data class PluginStatusBlock(val label: String? = null, val text: String, val tone: PluginTone = PluginTone.Neutral, val unmapped: Boolean = false) : PluginBlock {
     override val kind: String get() = "status"
 }
 
@@ -222,7 +237,15 @@ enum class PluginRowsFormat(val wire: String) {
 data class PluginRowsColumn(val label: String, val format: PluginRowsFormat = PluginRowsFormat.Text)
 
 /** One cell of a row; a time column's cell carries [timeMs]; [format] is what the column's `valueFormat` adds to the text. */
-data class PluginRowCell(val text: String, val timeMs: Long? = null, val format: PluginValueFormat? = null)
+data class PluginRowCell(
+    val text: String,
+    val timeMs: Long? = null,
+    val format: PluginValueFormat? = null,
+    /** The tone its value label declared: the row draws the cell as a Tag (R3). */
+    val tone: PluginTone? = null,
+    /** Outside the declared values: the unknown status Tag, never the raw [text]. */
+    val unmapped: Boolean = false,
+)
 
 /** A row's action: the id of one of the block's actions and the input the view bound for it, handed back as is. */
 data class PluginRowAction(val id: String, val input: Any? = null)
@@ -233,6 +256,8 @@ data class PluginRow(
     val cells: List<PluginRowCell>,
     val actions: List<PluginRowAction> = emptyList(),
     val badge: PluginBadge? = null,
+    /** A kit icon name for a ledger row's leading circle (recharge `add`, withdrawal `download`); none: by the amount's sign. */
+    val icon: String? = null,
 )
 
 /**
@@ -249,6 +274,8 @@ data class PluginRowsBlock(
     val filters: List<String>? = null,
     /** Day headings over the rows by the first time column ([pluginRowDayHeadings]). */
     val groupByDay: Boolean = false,
+    /** A kit icon name: every page row is a record, drawn as a ledger line led by it (spec rules.rowsIcon). */
+    val icon: String? = null,
 ) : PluginBlock {
     override val kind: String get() = "rows"
 }
@@ -296,6 +323,8 @@ data class PluginInput(
     val side: PluginDocumentSide? = null,
     /** location only: how precise a fix it takes. */
     val precision: PluginLocationPrecision? = null,
+    /** A line drawn under the input (R6 help, already translated); null draws none. */
+    val help: String? = null,
 )
 
 /** What is wrong with a submitted value (UiFormIssue). */
@@ -366,6 +395,8 @@ data class PluginPageViewModel(
     val view: PluginViewModel,
     val data: Map<String, Any?>? = null,
     val refreshMs: Long? = null,
+    /** Sibling pages drawn as a segmented control (spec rules.pageTabs); empty: none. */
+    val tabs: List<PluginPageTab> = emptyList(),
 ) {
     /** Receipt time is monotonic and belongs to this resolved snapshot, never the device wall clock. */
     val receivedAtNanos: Long = System.nanoTime()
@@ -381,9 +412,17 @@ data class PluginPageViewModel(
             view = PluginViewModel.fromMap(map),
             data = (map["data"] as? Map<*, *>)?.entries?.associate { (k, v) -> k.toString() to v },
             refreshMs = (map["refreshMs"] as? Number)?.toLong()?.takeIf { it in 3_000L..60_000L },
+            tabs = (map["tabs"] as? List<*>).orEmpty().mapNotNull { raw ->
+                val tab = raw as? Map<*, *> ?: return@mapNotNull null
+                val page = tab.string("page")?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                PluginPageTab(page, tab.string("label").orEmpty(), tab.bool("selected") ?: false)
+            },
         )
     }
 }
+
+/** One tab of a page: a sibling page of the same plugin, its label, and whether it is the page shown. */
+data class PluginPageTab(val page: String, val label: String, val selected: Boolean)
 
 /**
  * What [FlarePluginPage]'s `onAction(id, payload)` carries: the core SDK's page action request without the platform
@@ -505,7 +544,8 @@ private fun Map<*, *>.bool(key: String): Boolean? = this[key] as? Boolean
 
 private fun Map<*, *>.field(): PluginViewField? {
     val label = string("label") ?: return null
-    return PluginViewField(label, string("value") ?: "", pluginValueFormat(this["format"]))
+    return PluginViewField(label, string("value") ?: "", pluginValueFormat(this["format"]), PluginTone.fromWire(string("tone"))
+        ?: string("tone")?.let { PluginTone.Neutral }, bool("unmapped") ?: false)
 }
 
 /** A block as the core writes it (a section's children read the same way); null for a kind the kit does not know. */
@@ -518,7 +558,9 @@ private fun Map<*, *>.action(): PluginViewAction? {
     val id = string("id") ?: return null
     val label = string("label") ?: return null
     return PluginViewAction(id, label, PluginActionStyle.fromWire(string("style")), string("confirm"),
-        (this["form"] as? List<*>)?.filterIsInstance<String>(), (this["target"] as? Map<*, *>)?.actionTarget())
+        (this["form"] as? List<*>)?.filterIsInstance<String>(), (this["target"] as? Map<*, *>)?.actionTarget(),
+        string("group")?.takeIf { it == "common" || it == "records" }, string("icon")?.takeIf { it in flareIconNames },
+        string("disabledReason")?.takeIf { it.isNotBlank() })
 }
 
 private fun Map<*, *>.actionTarget(): PluginActionTarget? {
@@ -558,7 +600,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
         val ids = g.list("userIds").filterIsInstance<String>()
         PluginPeopleGroup(g.string("label") ?: "", ids, g.int("count") ?: ids.size, PluginTone.fromWire(g.string("tone")))
     })
-    "status" -> string("text")?.let { PluginStatusBlock(string("label"), it, PluginTone.fromWire(string("tone")) ?: PluginTone.Neutral) }
+    "status" -> string("text")?.let { PluginStatusBlock(string("label"), it, PluginTone.fromWire(string("tone")) ?: PluginTone.Neutral, bool("unmapped") ?: false) }
     "progress" -> {
         val value = double("value") ?: 0.0
         val total = double("total") ?: 0.0
@@ -580,16 +622,19 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
                 key = key,
                 cells = r.list("cells").map { cell ->
                     val c = cell as? Map<*, *>
-                    PluginRowCell(c?.string("text") ?: "", pluginInstant(c?.get("timeMs")), pluginValueFormat(c?.get("format")))
+                    PluginRowCell(c?.string("text") ?: "", pluginInstant(c?.get("timeMs")), pluginValueFormat(c?.get("format")),
+                        c?.string("tone")?.let { PluginTone.fromWire(it) ?: PluginTone.Neutral }, c?.bool("unmapped") ?: false)
                 },
                 actions = r.list("actions").mapNotNull { a -> (a as? Map<*, *>)?.let { m -> m.string("id")?.let { PluginRowAction(it, m["input"]) } } },
                 badge = r.badge(),
+                icon = r.string("icon")?.takeIf { it in flareIconNames },
             )
         },
         actions = list("actions").mapNotNull { (it as? Map<*, *>)?.action() },
         emptyText = string("emptyText"),
         filters = (this["filters"] as? List<*>)?.filterIsInstance<String>(),
         groupByDay = bool("groupByDay") ?: false,
+        icon = string("icon")?.takeIf { it in flareIconNames },
     )
     else -> pluginExtraBlock(this)
 }
@@ -598,7 +643,7 @@ private fun Map<*, *>.block(): PluginBlock? = when (string("kind")) {
 private fun Map<*, *>.badge(): PluginBadge? {
     val badge = this["badge"] as? Map<*, *> ?: return null
     val text = badge.string("text")?.takeIf { it.isNotEmpty() } ?: return null
-    return PluginBadge(text, PluginTone.fromWire(badge.string("tone")) ?: PluginTone.Neutral)
+    return PluginBadge(text, PluginTone.fromWire(badge.string("tone")) ?: PluginTone.Neutral, badge.bool("unmapped") ?: false)
 }
 
 private fun Map<*, *>.input(): PluginInput? {
@@ -635,6 +680,7 @@ private fun Map<*, *>.input(): PluginInput? {
             PluginInputChoice(c.string("value") ?: return@mapNotNull null, c.string("label") ?: "")
         },
         file = file, showWhen = showWhen, money = money, side = side, precision = precision,
+        help = string("help")?.takeIf { it.isNotBlank() },
     )
 }
 
@@ -702,6 +748,11 @@ internal object PluginViewFormat {
     /** The user drawn for an id: the host's answer, else initials over the fallback name. */
     fun user(userId: String, resolved: Map<String, PluginUser>): PluginUser = resolved[userId] ?: PluginUser(fallbackName(userId))
 
+    /** A row whose person cells read as the person's name (spec rules.rowsIcon), never the user id. */
+    fun namedRow(row: PluginRow, resolved: Map<String, PluginUser>): PluginRow =
+        if (row.cells.none { it.format is PluginValueFormat.Person }) row
+        else row.copy(cells = row.cells.map { cell -> (cell.format as? PluginValueFormat.Person)?.let { cell.copy(text = user(it.userId, resolved).name) } ?: cell })
+
     /** An entry's name: its own, else the resolved user's, else the fallback; null when it names no one. */
     fun entryName(entry: PluginEntry, resolved: Map<String, PluginUser>): String? {
         entry.name?.takeIf { it.isNotEmpty() }?.let { return it }
@@ -718,6 +769,7 @@ internal object PluginViewFormat {
                 val id = e.userId
                 if (!id.isNullOrEmpty() && e.name.isNullOrEmpty()) ids.add(id)
             }
+            is PluginRowsBlock -> block.rows.forEach { row -> row.cells.forEach { (it.format as? PluginValueFormat.Person)?.let { p -> ids.add(p.userId) } } }
             else -> Unit
         }
         return ids.toList()
@@ -799,6 +851,15 @@ internal object PluginViewFormat {
     /** A row's action keys: the block actions it lists, each with the input the view bound for it. */
     fun rowActions(block: PluginRowsBlock, row: PluginRow): List<Pair<PluginViewAction, PluginRowAction>> =
         row.actions.mapNotNull { bound -> block.actions.firstOrNull { it.id == bound.id }?.let { it to bound } }
+
+    /**
+     * R2.3 (spec rules.rowTap): what a tap on the whole row runs — its only action when that opens a page without a form
+     * and is not danger — or null, and the row keeps its keys.
+     */
+    fun rowTap(block: PluginRowsBlock, row: PluginRow): Pair<PluginViewAction, PluginRowAction>? =
+        rowActions(block, row).singleOrNull()?.takeIf { (action, _) ->
+            action.target?.kind == "page" && action.form.isNullOrEmpty() && action.style != PluginActionStyle.Danger
+        }
 
     /** A rows block without rows says so: its own text, else the kit's. */
     fun rowsEmpty(block: PluginRowsBlock, strings: FlareStrings): String? =
@@ -1321,11 +1382,12 @@ internal object PluginFormRules {
         else -> strings.pluginFormInvalid
     }
 
-    /** "{length}/{maxLength}" under a text or textarea. */
+    /** "{length}/{maxLength}" under a text or textarea: only with a declared limit of at most 200 and a typed value (R6). */
     fun counter(input: PluginInput, draft: Any?): String? {
         if (input.kind != PluginInputKind.Text && input.kind != PluginInputKind.Textarea) return null
-        val limit = maxLength(input) ?: return null
-        return "${length(trimmed(draft as? String ?: ""))}/$limit"
+        val length = length(trimmed(draft as? String ?: ""))
+        if (!pluginFormCounterShows(input.maxLength, length)) return null
+        return "$length/${input.maxLength}"
     }
 }
 

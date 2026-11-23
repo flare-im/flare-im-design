@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,10 +84,29 @@ fun QRCard(
                 modifier = Modifier.fillMaxWidth().padding(top = FlareSizes.spacingMd),
                 textAlign = TextAlign.Center)
         }
-        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(FlareSizes.spacingSm)) {
-            if (symbol == null && phase !in listOf("loading", "refreshing") && onRefresh != null) Button(label = strings.retry, variant = FlareButtonVariant.Quiet, onClick = onRefresh)
-            if (symbol != null && onSave != null) Button(label = strings.scanSaveCode, variant = FlareButtonVariant.Quiet, onClick = onSave)
-            if (symbol != null && onShare != null) Button(label = strings.scanShareCode, variant = FlareButtonVariant.Quiet, onClick = onShare)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            QrCardAction(
+                label = if (symbol == null) strings.retry else strings.pluginPageRefresh,
+                alignment = Alignment.CenterStart,
+                action = onRefresh.takeUnless { phase == "loading" || phase == "refreshing" },
+            )
+            QrCardAction(strings.messageActionSave, Alignment.Center, onSave.takeIf { symbol != null })
+            QrCardAction(strings.myInviteShare, Alignment.CenterEnd, onShare.takeIf { symbol != null })
+        }
+    }
+}
+
+@Composable
+private fun RowScope.QrCardAction(label: String, alignment: Alignment, action: (() -> Unit)?) {
+    Box(Modifier.weight(1f), contentAlignment = alignment) {
+        if (action != null) {
+            Button(
+                label = label,
+                variant = FlareButtonVariant.Quiet,
+                size = FlareControlSize.Sm,
+                appearance = FlareButtonAppearance.Text,
+                onClick = action,
+            )
         }
     }
 }

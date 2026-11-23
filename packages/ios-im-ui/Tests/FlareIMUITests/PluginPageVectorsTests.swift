@@ -58,7 +58,7 @@ final class PluginPageVectorsTests: XCTestCase {
         FlarePluginPage(page: c.ref, title: c.title, view: view ?? c.view, filters: filters ?? c.filters,
                         loading: false, error: error, refreshing: refreshing, loadingMore: loadingMore,
                         resolveUser: nil, viewerId: nil, busyActionId: busyActionId, actionError: nil, formErrors: [],
-                        members: [], settleToken: 0, onBack: nil, onRefresh: {}, onRetry: onRetry,
+                        members: [], settleToken: 0, onBack: nil, onRefresh: { _ in }, onRetry: onRetry,
                         onLoadMore: onLoadMore, onFilter: onFilter, onAction: onAction,
                         clock: PluginVectors.clock(table))
     }
@@ -146,13 +146,17 @@ final class PluginPageVectorsTests: XCTestCase {
             // The view's actions and then its menu actions, as keys.
             let actions = loaded ? PluginView.actionRow(view, embedded: true) : []
             let actionFacts = expect["actions"]?.arrayValue ?? []
+            // A records page's header key goes up to the page header through a preference, which ViewInspector does
+            // not follow: the rule places it there, and the drawn-text check below leaves it out.
+            let headerIds = loaded ? Set(PluginExperienceRules.places(view, embedded: true, inlineFormActionId: nil)
+                .header.map(\.id)) : []
             XCTAssertEqual(actions.map(\.id), actionFacts.compactMap { $0["id"]?.stringValue }, "\(id) actions")
             for (action, fact) in zip(actions, actionFacts) {
                 XCTAssertEqual(action.label, fact["label"]?.stringValue, "\(id) \(action.id)")
                 XCTAssertEqual(PluginVectors.variant(action), fact["variant"]?.stringValue, "\(id) \(action.id) variant")
                 XCTAssertEqual(action.confirm, fact["confirm"]?.stringValue, "\(id) \(action.id) confirm")
                 XCTAssertEqual(!(action.form ?? []).isEmpty, fact["form"]?.boolValue, "\(id) \(action.id) form")
-                shown.append(action.label)
+                if !headerIds.contains(action.id) { shown.append(action.label) }
             }
 
             let filters = loaded ? PluginPageRules.filters(view, values: c.filters, all: s.pluginViewAll) : []
@@ -183,9 +187,9 @@ final class PluginPageVectorsTests: XCTestCase {
                 XCTAssertNoThrow(try tree.find(text: text), "\(id) draws \(text)")
             }
             if loadMore {
-                XCTAssertNoThrow(try tree.find(button: s.myInviteLoadMore), "\(id) load more")
+                XCTAssertNoThrow(try tree.find(button: s.pluginViewLoadMore), "\(id) load more")
             } else {
-                XCTAssertThrowsError(try tree.find(button: s.myInviteLoadMore), "\(id) no load more")
+                XCTAssertThrowsError(try tree.find(button: s.pluginViewLoadMore), "\(id) no load more")
             }
             if retry {
                 try tree.find(button: s.retry).tap()
@@ -197,7 +201,10 @@ final class PluginPageVectorsTests: XCTestCase {
             let refreshKey = tree.findAll(ViewType.Button.self, where: {
                 (try? $0.accessibilityLabel().string()) == self.s.pluginPageRefresh
             })
-            XCTAssertEqual(!refreshKey.isEmpty, loaded, "\(id): a pointer refreshes a shown page from the header")
+            // R1: only a data page (or an account page) has the key (spec plugin-view-vectors.json refreshKey).
+            let dataPage = PluginExperienceRules.appearance(nil, view) == .account
+                || PluginExperienceRules.showsRefreshKey(view, inlineFormActionId: PluginExperienceRules.pageInlineForm(view, hasAction: true))
+            XCTAssertEqual(!refreshKey.isEmpty, loaded && dataPage, "\(id): a pointer refreshes a shown data page from the header")
             #endif
             XCTAssertEqual(tree.findAll(FilterTabsView.self).count, filters.count, "\(id): one tab row per select filter")
             if !loaded {
@@ -315,7 +322,8 @@ final class PluginPageVectorsTests: XCTestCase {
                 }
                 if let on = step["rowKeysEnabled"]?.boolValue {
                     let tree = try page(c, table: table, busyActionId: busyActionId).inspect()
-                    XCTAssertEqual(try key(tree, "查看").isDisabled(), !on, "\(label) row keys")
+                    // The ledger rows' only action opens a page (rules.rowTap): the row is the key.
+                    XCTAssertEqual(try key(tree, "+¥1.00").isDisabled(), !on, "\(label) row keys")
                 }
                 guard let want = step["emit"] else { continue }
                 if want == .null {
@@ -339,13 +347,23 @@ final class PluginPageVectorsTests: XCTestCase {
         let actionId = tap["action"]?.stringValue ?? ""
         let view = c.view.view
         let button: InspectableView<ViewType.Button>
-        if let rowKey = tap["row"]?.stringValue, let rows = view.rowsBlock {
+        if let rowKey = tap["row"]?.stringValue, let rows = view.rowsBlock,
+           let row = rows.rows.first(where: { $0.key == rowKey }), PluginViewFormat.rowTap(rows, row) != nil {
+            // rules.rowTap: the row whose only action opens a page is itself the key, found by its first line.
+            let clock = PluginVectors.clock(table)
+            button = try key(tree, PluginViewFormat.rowLines(rows, row, nowMs: clock.now(), s,
+                                                             utcOffsetMinutes: clock.utcOffsetMinutes).primary)
+        } else if let rowKey = tap["row"]?.stringValue, let rows = view.rowsBlock {
             let offering = PluginViewFormat.rowsOnce(rows.rows).filter {
                 PluginViewFormat.rowKeys(rows, $0).contains { $0.action.id == actionId }
             }
             let action = try XCTUnwrap(rows.actions.first { $0.id == actionId })
             button = try key(tree, action.label, occurrence: try XCTUnwrap(offering.firstIndex { $0.key == rowKey }))
         } else {
+            // A header key reaches the page header through a preference ViewInspector does not follow; the flow
+            // above has run it through the rules, so only the drawn tap is left out for it.
+            let header = PluginExperienceRules.places(view, embedded: true, inlineFormActionId: nil).header
+            if header.contains(where: { $0.id == actionId }) { return }
             let action = try XCTUnwrap(PluginView.actionRow(view, embedded: true).first { $0.id == actionId })
             button = try key(tree, action.label)
         }
@@ -429,9 +447,9 @@ final class PluginPageVectorsTests: XCTestCase {
         let table = try PluginVectors.table()
         let wallet = try XCTUnwrap(try pages(table)["wallet"])
         var asked: [String] = []
-        try page(wallet, table: table, onLoadMore: { asked.append($0) }).inspect().find(button: s.myInviteLoadMore).tap()
+        try page(wallet, table: table, onLoadMore: { asked.append($0) }).inspect().find(button: s.pluginViewLoadMore).tap()
         XCTAssertEqual(asked, ["c2"])
-        let spinning = try page(wallet, table: table, loadingMore: true).inspect().find(button: s.myInviteLoadMore)
+        let spinning = try page(wallet, table: table, loadingMore: true).inspect().find(button: s.pluginViewLoadMore)
         XCTAssertTrue(spinning.isDisabled())
         XCTAssertNoThrow(try spinning.labelView().find(ViewType.ProgressView.self))
     }
@@ -689,11 +707,14 @@ final class PluginPageVectorsTests: XCTestCase {
     func testARowKeyIsOffWhileTheViewIsBusyAndOnACopy() throws {
         let table = try PluginVectors.table()
         let wallet = try XCTUnwrap(try pages(table)["wallet"])
+        // Each ledger row's only action opens a page (rules.rowTap): the row itself is the key.
         let busy = try page(wallet, table: table, busyActionId: "history").inspect()
-        XCTAssertTrue(try key(busy, "查看").isDisabled(), "busy holds every row key")
+        XCTAssertTrue(try key(busy, "+¥1.00").isDisabled(), "busy holds every row")
         let copy = PluginViewModel(available: true, title: "钱包", blocks: wallet.view.blocks, unavailableReason: .unboundCopy)
         var calls = 0
         let tree = try PluginView(view: copy, embedded: true, onAction: { _, _ in calls += 1 }).inspect()
+        // Off a page (rules.rowTap is a page list's) the row keeps its key: that key is off on a copy.
+        XCTAssertThrowsError(try key(tree, "+¥1.00"), "a row off a page is not one control")
         XCTAssertTrue(try key(tree, "查看").isDisabled(), "a read-only copy's rows do not act")
         XCTAssertEqual(calls, 0)
     }

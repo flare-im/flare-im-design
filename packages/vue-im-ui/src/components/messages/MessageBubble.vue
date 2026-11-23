@@ -6,7 +6,6 @@ import {
   DownloadOutline,
   EllipsisHorizontalOutline,
   FolderOpenOutline,
-  PinOutline,
   RefreshOutline,
 } from "../../shared/icon-glyphs";
 import { NIcon } from "naive-ui";
@@ -14,6 +13,7 @@ import type { DropdownOption } from "naive-ui";
 import { messageContentTypeForUi } from "../../utils/messageContent";
 import { avatarTint } from "../../shared/avatar-tint";
 import { useLongPress } from "../../composables/useLongPress";
+import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
 import { useMessageMenuInteraction } from "../../composables/chat/useMessageMenuInteraction";
 import MessageContentView from "./MessageContentView.vue";
 import type { FlareLocationValue } from "../../shared/contracts/location";
@@ -114,6 +114,8 @@ const emit = defineEmits<{
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
   /** The group read summary was tapped ("3 unread"); the host opens ReadReceiptSheet. Without a listener it is text. */
   (event: "readReceiptOpen", messageId: string): void;
+  /** A file card's body was opened: the host opens the file. Without a listener, or while selecting, it only displays. */
+  (event: "openFile", messageId: string): void;
 }>();
 
 const { profile } = useMessageMenuInteraction();
@@ -137,6 +139,7 @@ const bodyIntentListeners = computed(() => {
     ...(listeners?.onLocationOpen
       ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", messageId(), location) }
       : {}),
+    ...(listeners?.onOpenFile ? { openFile: () => emit("openFile", messageId()) } : {}),
   };
 });
 
@@ -275,9 +278,9 @@ const messageEphemeral = computed(() => {
   return value === "readOnce" || value === "burnAfterRead" || value === "expired" ? value : "none";
 });
 const showReactionFooter = computed(() => !isSystemLike.value && reactions.value.length > 0);
-const showMessageMeta = computed(() => Boolean(messageTimeText.value || isEdited.value || messageEphemeral.value !== "none" || showMessageStatus.value));
-// Where the time and receipt sit (C2): inline after a text, inside other bubbles, below a picture or a card.
-const metaPlacement = computed(() => flareMessageMetaPlacement(surface.value, contentType.value));
+const showMessageMeta = computed(() => Boolean(messageTimeText.value || isEdited.value || messagePinned.value || messageEphemeral.value !== "none" || showMessageStatus.value));
+// A failed delivery needs a visible recovery key on the original message.
+const metaPlacement = computed(() => isFailed.value && showMessageStatus.value ? "below" : flareMessageMetaPlacement(surface.value, contentType.value));
 const metaTone = computed(() => flareMessageMetaTone(metaPlacement.value, Boolean(props.self), deliveryStatus.value));
 // The SDK's read summary belongs to the viewer's own group messages only (C3).
 const readSummary = computed(() =>
@@ -369,6 +372,7 @@ const ReactionFooter = () => h(
     trailing: () => showMessageMeta.value ? h(MessageMeta, {
       timestamp: messageTimeText.value,
       edited: isEdited.value,
+      pinned: messagePinned.value,
       ephemeral: messageEphemeral.value,
       status: showMessageStatus.value ? deliveryStatus.value : undefined,
       tone: "default",
@@ -440,13 +444,22 @@ const resolvedMediaActionId = computed<MessageMenuMediaAction | null>(() => {
   return id;
 });
 
+const messagePlatform = useFlarePlatformSafe();
 const mediaHoverAction = computed<MediaHoverActionModel | null>(() => {
+  // On phones, voice saving remains in the long-press menu.
+  if (contentType.value === "audio" && messagePlatform.capabilities.value.bottomSheet) return null;
   if (!["image", "video", "audio"].includes(contentType.value)) {
     return null;
   }
   const stateModel = mediaStateModel(props.mediaDownloadState ?? "idle");
   if (stateModel) return stateModel;
   return resolvedMediaActionId.value ? mediaActionModel(resolvedMediaActionId.value) : null;
+});
+const mediaActionClassNames = computed(() => {
+  const action = mediaHoverAction.value;
+  if (!action) return [];
+  const surface = contentType.value === "audio" ? "message-voice-action" : "message-media-hover-action";
+  return [surface, `${surface}--${action.state}`, { [`${surface}--folder`]: action.action === "openFolder" }];
 });
 
 // Files show the action inline; pictures and videos offer it inside their full-screen preview and player.
@@ -479,6 +492,7 @@ const bubbleClassNames = computed(() => [
     "message-bubble--pinned": isPinned(props.message),
     "message-bubble--chromeless-media": isChromelessMedia.value,
     "message-bubble--chromeless-card": isChromelessCard.value,
+    "message-bubble--audio-with-action": contentType.value === "audio" && Boolean(mediaHoverAction.value),
   },
 ]);
 
@@ -656,6 +670,7 @@ function onRowClick(event: MouseEvent): void {
           :presentation="profile.menuPresentation"
           :enable-context-menu="profile.enableContextMenu"
           :suppress-menu="!showMenuChrome"
+          :has-reactions="showReactionFooter"
           :menu-config="menuConfig"
           :actions="actions"
           :dropdown-placement="dropdownPlacement"
@@ -721,23 +736,20 @@ function onRowClick(event: MouseEvent): void {
             <button
               v-if="mediaHoverAction"
               type="button"
-              class="message-media-hover-action"
-              :class="{
-                'message-media-hover-action--folder':
-                  mediaHoverAction.action === 'openFolder',
-                [`message-media-hover-action--${mediaHoverAction.state}`]: true,
-              }"
+              :class="mediaActionClassNames"
               :aria-label="mediaHoverAction.label"
+              :title="mediaHoverAction.label"
               :tabindex="hoverControlsTabbable ? undefined : -1"
               :disabled="!mediaHoverAction.action"
               @click.stop="emitMediaHoverAction"
             >
-              <n-icon aria-hidden="true" :component="mediaHoverAction.icon" />
+              <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="mediaHoverAction.icon" />
             </button>
             <MessageMeta
               v-if="showMessageMeta && !showReactionFooter"
               :timestamp="messageTimeText"
               :edited="isEdited"
+              :pinned="messagePinned"
               :ephemeral="messageEphemeral"
               :status="showMessageStatus ? deliveryStatus : undefined"
               :tone="metaTone"
@@ -759,13 +771,6 @@ function onRowClick(event: MouseEvent): void {
               </span>
               <span class="message-upload-progress__text">{{ uploadProgress }}%</span>
             </div>
-            <span
-              v-if="messagePinned"
-              class="message-pin-marker"
-              :title="t('message.pinnedTitle')"
-            >
-              <n-icon aria-hidden="true" :component="PinOutline" />
-            </span>
           </div>
           <ReactionFooter v-if="showReactionFooter" />
         </MessageMenu>
@@ -803,6 +808,7 @@ function onRowClick(event: MouseEvent): void {
           :presentation="profile.menuPresentation"
           :enable-context-menu="profile.enableContextMenu"
           :suppress-menu="!showMenuChrome"
+          :has-reactions="showReactionFooter"
           :menu-config="menuConfig"
           :actions="actions"
           :dropdown-placement="dropdownPlacement"
@@ -868,23 +874,20 @@ function onRowClick(event: MouseEvent): void {
             <button
               v-if="mediaHoverAction"
               type="button"
-              class="message-media-hover-action"
-              :class="{
-                'message-media-hover-action--folder':
-                  mediaHoverAction.action === 'openFolder',
-                [`message-media-hover-action--${mediaHoverAction.state}`]: true,
-              }"
+              :class="mediaActionClassNames"
               :aria-label="mediaHoverAction.label"
+              :title="mediaHoverAction.label"
               :tabindex="hoverControlsTabbable ? undefined : -1"
               :disabled="!mediaHoverAction.action"
               @click.stop="emitMediaHoverAction"
             >
-              <n-icon aria-hidden="true" :component="mediaHoverAction.icon" />
+              <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="mediaHoverAction.icon" />
             </button>
             <MessageMeta
               v-if="showMessageMeta && !showReactionFooter"
               :timestamp="messageTimeText"
               :edited="isEdited"
+              :pinned="messagePinned"
               :ephemeral="messageEphemeral"
               :status="showMessageStatus ? deliveryStatus : undefined"
               :tone="metaTone"
@@ -906,13 +909,6 @@ function onRowClick(event: MouseEvent): void {
               </span>
               <span class="message-upload-progress__text">{{ uploadProgress }}%</span>
             </div>
-            <span
-              v-if="messagePinned"
-              class="message-pin-marker"
-              :title="t('message.pinnedTitle')"
-            >
-              <n-icon aria-hidden="true" :component="PinOutline" />
-            </span>
           </div>
           <ReactionFooter v-if="showReactionFooter" />
         </MessageMenu>
@@ -929,7 +925,7 @@ function onRowClick(event: MouseEvent): void {
           :tabindex="hoverControlsTabbable ? undefined : -1"
           @click.stop="openTouchMenu"
         >
-          <n-icon aria-hidden="true" :component="EllipsisHorizontalOutline" />
+          <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="EllipsisHorizontalOutline" />
         </button>
       </template>
     </div>

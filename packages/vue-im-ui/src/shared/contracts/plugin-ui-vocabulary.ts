@@ -17,7 +17,7 @@ export interface FlarePluginUiVocabulary {
  * reports to Core only what both the engine and this kit read.
  */
 export const PLUGIN_UI_VOCABULARY: FlarePluginUiVocabulary = Object.freeze({
-  version: 2,
+  version: 3,
   blocks: Object.freeze([
     "banner",
     "chart",
@@ -32,6 +32,7 @@ export const PLUGIN_UI_VOCABULARY: FlarePluginUiVocabulary = Object.freeze({
     "progress",
     "protected-media",
     "qr",
+    "result",
     "rows",
     "section",
     "stats",
@@ -86,6 +87,10 @@ export const PLUGIN_UI_VOCABULARY: FlarePluginUiVocabulary = Object.freeze({
   ]),
   renderers: Object.freeze([
     "redPacket.card",
+    "redPacket.compose",
+    "redPacket.detail",
+    "redPacket.review",
+    "status.card",
   ]),
   kinds: Object.freeze([
     "account-entry",

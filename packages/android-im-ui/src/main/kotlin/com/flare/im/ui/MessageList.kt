@@ -900,6 +900,10 @@ fun MessageList(
                 val owner = currentMessages.firstOrNull { it.id == item.messageId }
                 if (owner != null) currentDownload?.invoke(owner, item.image)
             }),
+            stateKey = { item ->
+                val owner = currentMessages.firstOrNull { it.id == item.messageId }
+                owner?.let { flareMediaDownloadStateKey(it, item.image) } ?: item.messageId
+            },
         )
     }
     CompositionLocalProvider(
@@ -925,11 +929,11 @@ fun MessageList(
             } else BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
                 // Bubbles size against this pane (the timeline column), not the screen.
                 val pane = minOf(maxWidth, FlareSizes.messageTimelineContentMaxWidth)
-                // Bottom arrangement: a conversation shorter than the screen sits at the bottom, by the composer.
+                // Top arrangement: a conversation shorter than the screen starts under the header, as on Vue.
                 CompositionLocalProvider(LocalFlareTimelinePaneWidth provides pane) { LazyColumn(
                     Modifier.fillMaxHeight().widthIn(max = FlareSizes.messageTimelineContentMaxWidth),
                     state = listState,
-                    verticalArrangement = Arrangement.Bottom,
+                    verticalArrangement = Arrangement.Top,
                 ) {
                     val longPress = messageListLongPressEnabled(multiSelectMode, onMessageLongPress != null)
                     items(rows, key = { row -> row.key }, contentType = { row -> row.contentType }) { row ->

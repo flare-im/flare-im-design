@@ -19,4 +19,15 @@ final class PluginRefreshVectorsTests: XCTestCase {
             XCTAssertEqual(allowed, item["expect"] as? Bool, item["name"] as? String ?? "")
         }
     }
+
+    /// §12.1: done lands on the nearest overview or records page below the top one, else closes.
+    func testDoneTargetMatchesSharedVectors() throws {
+        let rows = try XCTUnwrap(try table("plugin-refresh-vectors")["doneTarget"] as? [[String: Any]])
+        XCTAssertFalse(rows.isEmpty)
+        for row in rows {
+            let stack = try XCTUnwrap(row["stack"] as? [String]).map { try XCTUnwrap(PluginPageKind(rawValue: $0)) }
+            let expect = try XCTUnwrap(row["expect"] as? [String: Any])
+            XCTAssertEqual(PluginRefreshRules.doneTarget(stack), expect["target"] as? Int, row["name"] as? String ?? "")
+        }
+    }
 }

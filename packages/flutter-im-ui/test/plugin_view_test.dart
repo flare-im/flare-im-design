@@ -1091,7 +1091,9 @@ void main() {
           ),
         ),
       );
-      await tester.ensureVisible(find.byKey(const ValueKey('flare-plugin-action-join')));
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('flare-plugin-action-join')),
+      );
       await tester.tap(find.byKey(const ValueKey('flare-plugin-action-join')));
       await tester.pumpAndSettle();
       expect(find.byType(FlarePluginForm), findsOneWidget);
@@ -1151,7 +1153,9 @@ void main() {
       if (before != null) {
         await before();
       } else {
-        await tester.ensureVisible(find.byKey(ValueKey('flare-plugin-action-$action')));
+        await tester.ensureVisible(
+          find.byKey(ValueKey('flare-plugin-action-$action')),
+        );
         await tester.tap(find.byKey(ValueKey('flare-plugin-action-$action')));
       }
       await tester.pumpAndSettle();
@@ -1204,23 +1208,26 @@ void main() {
       expect(find.text('不能重复'), findsOneWidget);
     });
 
-    testWidgets('settling a form preserves the next page already pushed by the host', (
-      tester,
-    ) async {
-      final host = await submitted(tester);
-      final navigator = Navigator.of(host.context);
-      navigator.push(MaterialPageRoute<void>(
-        builder: (_) => const Scaffold(body: Text('Wallet authorization')),
-      ));
-      host.update(() => host.settle += 1);
-      await tester.pumpAndSettle();
-      expect(find.text('Wallet authorization'), findsOneWidget);
-      expect(find.byType(FlarePluginForm, skipOffstage: false), findsNothing);
-      navigator.pop();
-      await tester.pumpAndSettle();
-      expect(find.byType(FlarePluginView), findsOneWidget);
-      expect(find.byType(FlarePluginForm), findsNothing);
-    });
+    testWidgets(
+      'settling a form preserves the next page already pushed by the host',
+      (tester) async {
+        final host = await submitted(tester);
+        final navigator = Navigator.of(host.context);
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => const Scaffold(body: Text('Wallet authorization')),
+          ),
+        );
+        host.update(() => host.settle += 1);
+        await tester.pumpAndSettle();
+        expect(find.text('Wallet authorization'), findsOneWidget);
+        expect(find.byType(FlarePluginForm, skipOffstage: false), findsNothing);
+        navigator.pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(FlarePluginView), findsOneWidget);
+        expect(find.byType(FlarePluginForm), findsNothing);
+      },
+    );
 
     testWidgets(
       'keeps the form open with the host\'s error and shows it there',
@@ -1469,8 +1476,16 @@ void main() {
           // The key shares the footer, or sits in the header without actions.
           final view = FlarePluginViewModel.fromJson(json);
           for (final action in view.actions) {
-            expect(tester.getRect(key).overlaps(tester.getRect(
-              find.byKey(ValueKey('flare-plugin-action-${action.id}')))), isFalse);
+            expect(
+              tester
+                  .getRect(key)
+                  .overlaps(
+                    tester.getRect(
+                      find.byKey(ValueKey('flare-plugin-action-${action.id}')),
+                    ),
+                  ),
+              isFalse,
+            );
           }
         }
         if (expected.containsKey('seeAll')) {
@@ -1570,7 +1585,26 @@ void main() {
       for (final input in formInputs()) {
         expect(errorOf(tester, input.id), isNull);
       }
-      final counters = (form['initial'] as Map)['counters'] as Map;
+      // formCounter: an empty value draws no counter (counters is null).
+      final counters =
+          ((form['initial'] as Map)['counters'] as Map?) ?? const {};
+      for (final input in formInputs().where(
+        (i) =>
+            i.kind == FlarePluginInputKind.text ||
+            i.kind == FlarePluginInputKind.textarea,
+      )) {
+        expect(
+          tester
+              .widget<FlareFormField>(
+                find.descendant(
+                  of: field(input.id),
+                  matching: find.byType(FlareFormField),
+                ),
+              )
+              .counter,
+          counters[input.id],
+        );
+      }
       for (final entry in counters.entries) {
         expect(
           tester
@@ -1580,7 +1614,7 @@ void main() {
                   matching: find.byType(FlareFormField),
                 ),
               )
-              .hint,
+              .counter,
           entry.value,
         );
       }

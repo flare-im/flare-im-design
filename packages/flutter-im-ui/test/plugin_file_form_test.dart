@@ -156,17 +156,23 @@ void main() {
       expect(actions.last.generation, action.generation);
       update(() => states = {});
       await tester.pump();
-      final refreshed = tester.widget<FlareFileUpload>(find.byType(FlareFileUpload));
+      final refreshed = tester.widget<FlareFileUpload>(
+        find.byType(FlareFileUpload),
+      );
       expect(refreshed.state, FlareImageUploadState.uploaded);
       expect(refreshed.fileName, 'receipt.png');
-      expect(refreshed.preview, isFalse);
+      expect(refreshed.previewLabel, isNull);
       await submit();
       expect(submitted, hasLength(2));
       expect(submitted.last['qr'], {'fileId': 'material_1'});
       refreshed.onRemove!();
       await tester.pump();
       // The original completion cannot resurrect a deliberately cleared ticket.
-      await accept(action.scope, action.generation, FlarePluginFilePhase.uploaded);
+      await accept(
+        action.scope,
+        action.generation,
+        FlarePluginFilePhase.uploaded,
+      );
       await submit();
       expect(submitted.last, _values);
     },
@@ -274,7 +280,12 @@ void main() {
               body: FlareFileUpload(
                 title: '凭证',
                 state: phase,
-                preview: preview,
+                statusText: '上传状态',
+                previewLabel: preview ? FlareStrings().pluginFilePreview : null,
+                cancelLabel: FlareStrings().cancel,
+                retryLabel: FlareStrings().retry,
+                replaceLabel: FlareStrings().pluginFileReplace,
+                removeLabel: FlareStrings().pluginFileRemove,
                 progress: 50,
                 onCancel: () => taps.add('cancel'),
                 onRetry: () => taps.add('retry'),
@@ -317,6 +328,46 @@ void main() {
       await show(FlareImageUploadState.uploaded, preview: true);
       await tester.tap(find.text(s.pluginFilePreview));
       expect(taps, ['cancel', 'retry', 'replace', 'remove', 'preview']);
+    },
+  );
+  testWidgets(
+    'file actions require explicit labels and selected upload is host owned',
+    (tester) async {
+      var uploads = 0;
+      Future<void> show(
+        FlareImageUploadState state, {
+        String? label,
+        bool disabled = false,
+      }) => tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FlareFileUpload(
+              title: 'Material',
+              state: state,
+              statusText: 'Host supplied status',
+              uploadLabel: label,
+              disabled: disabled,
+              onUpload: () => uploads++,
+            ),
+          ),
+        ),
+      );
+      await show(FlareImageUploadState.selected);
+      expect(find.text('Host supplied status'), findsOneWidget);
+      expect(find.byType(FlareButton), findsNothing);
+      await show(FlareImageUploadState.selected, label: 'Upload material');
+      expect(uploads, 0);
+      await tester.tap(find.text('Upload material'));
+      expect(uploads, 1);
+      await show(
+        FlareImageUploadState.selected,
+        label: 'Upload material',
+        disabled: true,
+      );
+      await tester.tap(find.text('Upload material'));
+      expect(uploads, 1);
+      await show(FlareImageUploadState.uploaded, label: 'Upload material');
+      expect(find.text('Upload material'), findsNothing);
     },
   );
 }

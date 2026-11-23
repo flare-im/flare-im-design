@@ -143,7 +143,7 @@ void main() {
         expect(box.padding, const EdgeInsets.symmetric(horizontal: 2));
         final inner = box.child! as Text;
         expect(inner.data, label);
-        expect(inner.style!.fontWeight, FontWeight.w500);
+        expect(inner.style!.fontWeight, FontWeight.w600);
         expect(inner.style!.color, colors.primaryText);
       }
       expect(find.text('@me'), findsOneWidget);

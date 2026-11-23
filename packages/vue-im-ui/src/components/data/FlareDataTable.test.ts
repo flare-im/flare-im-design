@@ -72,6 +72,14 @@ describe("FlareDataTable", () => {
     host.unmount();
   });
 
+  it("pins keyed action columns as well as the row-actions slot", () => {
+    const { host, table } = mountTable({ columns: [{ key: "name", title: "Name" }, { key: "actions", title: "Actions" }] });
+    expect(table.classes()).toContain("is-sticky-actions");
+    expect(table.get("th:last-child").classes()).toContain("flare-data-table__th--actions");
+    expect(table.get("tbody td:last-child").classes()).toContain("flare-data-table__td--actions");
+    host.unmount();
+  });
+
   it("reports the next sort and never sorts itself: ascending, descending, then the host's order", async () => {
     const { host, table, set } = mountTable();
     await table.get("th button").trigger("click");
@@ -423,12 +431,13 @@ describe("FlareDataTable", () => {
     const opened: unknown[] = [];
     const acted: string[] = [];
     try {
-      const { host, table, set } = mountTable({ responsive: "scroll", stickyActions: true, selectable: true,
+      const { host, table, set } = mountTable({ responsive: "scroll", selectable: true,
         selectedKeys: ["u2"], onRowClick: (row: unknown) => opened.push(row) }, {
         "row-actions": ({ row }: { row: { id: string } }) => h("button", { onClick: () => acted.push(row.id) }, "Manage"),
       });
       report!([{ contentRect: { width: 390 } }]);
       await nextTick();
+      expect(table.classes()).toContain("is-sticky-actions");
       const firstRow = table.get("tbody tr").element;
       expect(table.find("thead button").exists()).toBe(true);
       expect(table.find("thead [role=checkbox]").exists()).toBe(true);

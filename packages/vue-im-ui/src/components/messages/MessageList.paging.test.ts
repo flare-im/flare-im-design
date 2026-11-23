@@ -30,6 +30,7 @@ function mountList(initial: { messages: MessageLike[]; hasNewer?: boolean; hasOl
   const messages = ref(initial.messages);
   const hasNewer = ref(initial.hasNewer ?? false);
   const hasOlder = ref(initial.hasOlder ?? false);
+  const loadingOlder = ref(false);
   const loadingNewer = ref(false);
   const newerError = ref<string | undefined>(undefined);
   const host = mount(FlareUiProvider, {
@@ -37,14 +38,14 @@ function mountList(initial: { messages: MessageLike[]; hasNewer?: boolean; hasOl
     slots: {
       default: () => h(MessageList as Component, {
         currentUserId: "me", messages: messages.value, hasOlder: hasOlder.value, hasNewer: hasNewer.value,
-        loadingNewer: loadingNewer.value, newerError: newerError.value, ...listeners,
+        loadingOlder: loadingOlder.value, loadingNewer: loadingNewer.value, newerError: newerError.value, ...listeners,
       }),
     },
   });
   const scroller = host.get(".message-list").element as HTMLElement;
   Object.defineProperty(scroller, "clientHeight", { configurable: true, value: VIEWPORT_PX });
   Object.defineProperty(scroller, "scrollHeight", { configurable: true, get: () => messages.value.length * ROW_PX });
-  return { host, scroller, messages, hasNewer, hasOlder, loadingNewer, newerError };
+  return { host, scroller, messages, hasNewer, hasOlder, loadingOlder, loadingNewer, newerError };
 }
 
 async function settle(): Promise<void> {
@@ -135,6 +136,18 @@ describe("MessageList newer end", () => {
     expect(asked).toEqual([]);
     await scrollTo(scroller, 140);
     expect(asked).toEqual(["older"]);
+    host.unmount();
+  });
+
+  it("distinguishes the earlier history action from in-progress loading", async () => {
+    const { host, loadingOlder } = mountList({ messages: range(1, 20), hasOlder: true }, { onLoadOlder: () => {} });
+    await settle();
+    expect(host.get(".message-list-pagination button").text()).toBe("View earlier messages");
+    expect(host.find(".message-list-load-older").exists()).toBe(false);
+    loadingOlder.value = true;
+    await nextTick();
+    expect(host.get(".message-list-load-older").text()).toBe("Loading earlier messages…");
+    expect(host.find(".message-list-pagination button").exists()).toBe(false);
     host.unmount();
   });
 

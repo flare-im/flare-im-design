@@ -36,7 +36,7 @@ void main() {
     expect(size.height, lessThanOrEqualTo(34));
   });
 
-  testWidgets('a non-mobile shell uses the Web 72px conversation row', (
+  testWidgets('a non-mobile shell uses the Web 64px pane conversation row', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -60,7 +60,8 @@ void main() {
 
     expect(
       tester.getSize(find.byType(FlareConversationRow)).height,
-      FlareSizes.sessionItemHeight,
+      // Vue `conversationRowDesktopHeight`.
+      FlareSizes.conversationRowDesktopHeight,
     );
   });
 }

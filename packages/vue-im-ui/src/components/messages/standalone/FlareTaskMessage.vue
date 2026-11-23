@@ -28,7 +28,7 @@ const canToggle = () => Boolean(instance?.vnode.props?.onToggle);
       :aria-label="title"
       @click="canToggle() && emit('toggle')"
     >
-      <MsgIcon v-if="done" name="check" :size="13" />
+      <MsgIcon v-if="done" name="check" size="sm" />
     </component>
     <span class="meta"><b :class="{ done }">{{ title }}</b><small v-if="meta">{{ meta }}</small></span>
   </div>

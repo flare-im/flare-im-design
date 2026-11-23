@@ -113,7 +113,7 @@ class FlareRedPacketCard extends StatelessWidget {
                       height: FlareSizes.lineHeightSnug,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: FlareSizes.spacing3xs),
                   Text(
                     status,
                     softWrap: true,
@@ -232,13 +232,7 @@ class FlareRedPacketCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
           boxShadow: dimmed
               ? null
-              : [
-                  BoxShadow(
-                    color: colors.redPacketEnd.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+              : FlareShadows.of(Theme.of(context).brightness).md,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -290,18 +284,20 @@ class FlareRedPacketCard extends StatelessWidget {
 /// spent.
 class _Palette {
   _Palette(FlareColors colors, {required bool faded})
-    : start = _tone(colors.redPacketStart, colors, faded),
-      middle = _tone(colors.redPacketMiddle, colors, faded),
+    : start = faded
+          ? _tone(colors.redPacketStart, colors, true)
+          : colors.redPacketEnd,
+      middle = faded
+          ? _tone(colors.redPacketMiddle, colors, true)
+          : colors.redPacketEnd,
       end = _tone(colors.redPacketEnd, colors, faded),
       gold = _tone(colors.redPacketGold, colors, faded),
       goldDeep = _tone(colors.redPacketGoldDeep, colors, faded),
-      text = faded ? colors.redPacketFadedInk : Colors.white,
-      status = faded
-          ? colors.redPacketFadedInk
-          : colors.redPacketOnSurface.withValues(alpha: 0.85),
+      text = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface,
+      status = faded ? colors.redPacketFadedInk : colors.redPacketOnSurface,
       soft = faded
           ? colors.redPacketFadedInk.withValues(alpha: 0.72)
-          : colors.redPacketOnSurface.withValues(alpha: 0.6),
+          : colors.redPacketOnSurface,
       rule = faded
           ? colors.redPacketFadedInk.withValues(alpha: 0.18)
           : colors.redPacketOnSurface.withValues(alpha: 0.28),

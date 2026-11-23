@@ -13,6 +13,8 @@ type LabelledAction = FlareComposerAction<string | Component> & { label: string 
 const props = defineProps<{
   actions: ReadonlyArray<LabelledAction>;
   formFactor?: FlareComposerPanelFormFactor;
+  /** Plugin items still loading: the grid shows Skeleton squares for them. */
+  loading?: boolean;
   searchVisible?: boolean;
   titleVisible?: boolean;
   closeVisible?: boolean;
@@ -30,9 +32,9 @@ watch(() => props.searchVisible, (visible) => { if (!visible) query.value = ""; 
     <header v-if="searchVisible || titleVisible || closeVisible" class="composer-more-header">
       <input v-if="searchVisible" v-model="query" class="composer-panel-search" :placeholder="t('composer.searchActions')" :aria-label="t('composer.searchActions')" />
       <span v-else-if="titleVisible">{{ t('composer.more') }}</span>
-      <button v-if="closeVisible" type="button" class="composer-more-close" :aria-label="t('composer.closePanel')" @click="emit('close')"><n-icon aria-hidden="true" :component="CloseOutline" /></button>
+      <button v-if="closeVisible" type="button" class="composer-more-close" :aria-label="t('composer.closePanel')" @click="emit('close')"><n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="CloseOutline" /></button>
     </header>
-    <FlareComposerActionPanel v-if="filtered.length" class="composer-more-grid" :actions="filtered" :columns="4" :form-factor="formFactor ?? 'desktop'" @action="emit('select', $event)" />
+    <FlareComposerActionPanel v-if="filtered.length || loading" class="composer-more-grid" :actions="filtered" :loading="loading" :columns="4" :form-factor="formFactor ?? 'desktop'" @action="emit('select', $event)" />
     <p v-else role="status">{{ t('composer.noResults') }}</p>
   </section>
 </template>

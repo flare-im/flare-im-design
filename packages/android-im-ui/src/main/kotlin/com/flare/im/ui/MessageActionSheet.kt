@@ -3,6 +3,7 @@ package com.flare.im.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -24,8 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -180,18 +183,24 @@ fun MessageActionSheet(
             )
             .semantics { contentDescription = sheetLabel },
     ) {
+        // Vue's H5 sheet: white blocks on the sheet — a reaction strip of tiles, the primary actions as a tile grid, the
+        // rest as one list of tinted icon discs (destructive in red).
+        val block = Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radius2xl)).background(colors.bgPrimary)
         if (strip.isNotEmpty()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                block.horizontalScroll(rememberScrollState()).padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
+            ) {
                 strip.forEach { reaction ->
                     Box(
-                        Modifier.size(FlareSizes.touchTarget).clip(RoundedCornerShape(FlareSizes.radiusFull))
+                        Modifier.size(FlareSizes.touchTarget).clip(RoundedCornerShape(FlareSizes.radiusXl)).background(colors.bgTertiary)
                             .clickable(enabled = onReact != null) { onReact?.invoke(reaction) }
                             .semantics { contentDescription = reaction },
                         contentAlignment = Alignment.Center,
-                    ) { Text(reaction, fontSize = FlareSizes.iconSizeLg.value.sp) }
+                    ) { Text(reaction, fontSize = 28.sp) }
                 }
             }
-            Spacer(Modifier.height(FlareSizes.spacingMd))
+            Spacer(Modifier.height(FlareSizes.spacing2sm))
         }
         if (groups.isEmpty() && strip.isEmpty()) {
             Text(
@@ -201,34 +210,54 @@ fun MessageActionSheet(
                 textAlign = TextAlign.Center,
             )
         }
-        // The overlay bounds its content; the grouped actions scroll inside it when a long list outgrows the cap
+        val quick = groups.firstOrNull()?.takeIf { it.first().group == FlareMessageMenuGroup.Primary }.orEmpty()
+        val list = groups.drop(if (quick.isEmpty()) 0 else 1).flatten()
+        // The overlay bounds its content; the actions scroll inside it when a long list outgrows the cap
         // (a sheet on a short landscape window), with the reaction strip kept in view.
         Column(if (inSheet) Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()) else Modifier) {
-            groups.forEachIndexed { index, entries ->
-                if (index > 0) Spacer(Modifier.height(FlareSizes.spacingSm))
-                Column(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusLg))
-                        .background(colors.bgPrimary)
-                        .border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusLg)),
-                ) {
-                    entries.forEachIndexed { rowIndex, entry ->
-                        if (rowIndex > 0) HorizontalDivider(color = colors.borderSecondary)
-                        val destructive = entry.group == FlareMessageMenuGroup.Destructive
-                        val foreground = when {
-                            !entry.enabled -> colors.textTertiary
-                            destructive -> colors.error
-                            else -> colors.textPrimary
-                        }
-                        Row(
-                            Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+            if (quick.isNotEmpty()) {
+                Row(block.padding(start = FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacing2md, bottom = FlareSizes.spacingMd)) {
+                    quick.forEach { entry ->
+                        val tint = if (entry.enabled) colors.primaryText else colors.textTertiary
+                        Column(
+                            Modifier.weight(1f).clip(RoundedCornerShape(FlareSizes.radiusLg))
                                 .clickable(enabled = entry.enabled && onAction != null) { onAction?.invoke(entry.id) }
-                                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
-                            verticalAlignment = Alignment.CenterVertically,
+                                .padding(horizontal = FlareSizes.spacing2xs, vertical = FlareSizes.spacingXs),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
                         ) {
-                            FlareIcon(name = entry.icon, size = FlareSizes.iconSizeMd, tint = foreground)
-                            Spacer(Modifier.width(FlareSizes.spacingMd))
-                            Text(entry.label, color = foreground, fontSize = FlareSizes.fontSizeXl.value.sp)
+                            Box(
+                                Modifier.size(52.dp).clip(RoundedCornerShape(FlareSizes.radiusBubble)).background(colors.primary.copy(alpha = 0.10f).compositeOver(colors.bgPrimary)),
+                                contentAlignment = Alignment.Center,
+                            ) { FlareIcon(name = entry.icon, size = FlareSizes.iconSizeLg, tint = tint) }
+                            Text(entry.label, color = if (entry.enabled) colors.textPrimary else colors.textTertiary, fontSize = FlareSizes.fontSizeMd, fontWeight = FontWeight.SemiBold)
                         }
+                    }
+                }
+                if (list.isNotEmpty()) Spacer(Modifier.height(FlareSizes.spacing2sm))
+            }
+            if (list.isNotEmpty()) Column(block.padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs)) {
+                list.forEachIndexed { rowIndex, entry ->
+                    if (rowIndex > 0) HorizontalDivider(color = colors.borderPrimary.copy(alpha = 0.55f))
+                    val destructive = entry.group == FlareMessageMenuGroup.Destructive
+                    val foreground = when {
+                        !entry.enabled -> colors.textTertiary
+                        destructive -> colors.errorText
+                        else -> colors.textPrimary
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(FlareSizes.radiusXl))
+                            .clickable(enabled = entry.enabled && onAction != null) { onAction?.invoke(entry.id) }
+                            .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingMd),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            Modifier.size(FlareSizes.touchTargetMin).clip(RoundedCornerShape(FlareSizes.radiusFull))
+                                .background(if (destructive) colors.error.copy(alpha = 0.12f).compositeOver(colors.bgPrimary) else colors.bgSelected),
+                            contentAlignment = Alignment.Center,
+                        ) { FlareIcon(name = entry.icon, size = FlareSizes.iconSizeMd, tint = if (destructive) colors.errorText else if (entry.enabled) colors.primaryText else colors.textTertiary) }
+                        Spacer(Modifier.width(FlareSizes.spacingMd))
+                        Text(entry.label, color = foreground, fontSize = FlareSizes.fontSize2xl, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

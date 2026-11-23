@@ -162,7 +162,7 @@ function onKeydown(event: KeyboardEvent): void {
         <span class="flare-mrs__meta">
           <span class="flare-mrs__role" :class="`flare-mrs__role--${member.role}`">{{ roleText }}</span>
           <span v-if="member.muted" class="flare-mrs__muted">
-            <n-icon :size="12" :component="flareIcons.silence" aria-hidden="true" />
+            <n-icon size="var(--flare-size-icon-size-sm)" :component="flareIcons.silence" aria-hidden="true" />
             <span>{{ strings.mutedText }}</span>
           </span>
         </span>

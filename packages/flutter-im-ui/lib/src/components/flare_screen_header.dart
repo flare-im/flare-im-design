@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
+import 'flare_icon_button.dart';
 
 /// Screen-level large-title header — the quiet top bar for a tab surface
 /// (inbox / directory / me). Distinct from the chat header (conversation
@@ -49,7 +50,7 @@ class FlareScreenHeader extends StatelessWidget {
               ),
             ),
           ),
-          ...actions,
+          for (final action in actions) FlareHeaderIconScope(child: action),
         ],
       ),
     );

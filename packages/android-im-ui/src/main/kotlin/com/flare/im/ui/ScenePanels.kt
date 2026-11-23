@@ -24,13 +24,14 @@ data class FlareNotificationPreference(val id:String,val title:String,val detail
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SceneList(title:String,items:List<FlareSceneEntry>,loading:Boolean=false,error:String?=null,onAction:((String,String)->Unit)?=null,onReload:(()->Unit)?=null) {
+private fun SceneList(title:String,items:List<FlareSceneEntry>,loading:Boolean=false,error:String?=null,onAction:((String,String)->Unit)?=null,onReload:(()->Unit)?=null,hint:String?=null,emptyText:String?=null) {
  val strings = flareStrings()
  Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(FlareSizes.spacingSm)) {
   Text(title,style=MaterialTheme.typography.titleMedium)
+  if(hint!=null&&items.isNotEmpty()) Text(hint,color=flareColors().textSecondary,fontSize=FlareSizes.fontSizeSm)
   if(loading) LinearProgressIndicator(Modifier.fillMaxWidth())
   if(error!=null) StatusBanner(error,tone=FlareStatusTone.Danger,actionText=strings.retry,onAction=if(loading)null else onReload)
-  if(items.isEmpty()&&!loading&&error==null) Text(strings.noContent,Modifier.padding(FlareSizes.spacingLg))
+  if(items.isEmpty()&&!loading&&error==null) Text(emptyText ?: strings.noContent,Modifier.padding(FlareSizes.spacingLg))
   items.forEach { item ->
    Column(Modifier.fillMaxWidth().padding(vertical=FlareSizes.spacingMd)) {
     Text(item.title,style=MaterialTheme.typography.titleSmall)
@@ -56,7 +57,9 @@ fun DeviceSessions(items:List<FlareDeviceSessionEntry>,title:String?=null,curren
  val strings = flareStrings()
  val title = title ?: strings.loginDevices
  val currentText = currentText ?: strings.currentDevice
- SceneList(title,items.map { if(it.current) it.entry.copy(badge=currentText,actions=emptyList()) else it.entry },loading,error,onAction,onReload)
+ // As FlareDeviceSessions.vue: the current device first and without actions, a hint over a non-empty list.
+ SceneList(title,items.sortedByDescending { it.current }.map { if(it.current) it.entry.copy(badge=currentText,actions=emptyList()) else it.entry },loading,error,onAction,onReload,
+  hint=strings.deviceSessionsHint,emptyText=strings.deviceSessionsEmpty)
 }
 @Suppress("NAME_SHADOWING")
 @Composable

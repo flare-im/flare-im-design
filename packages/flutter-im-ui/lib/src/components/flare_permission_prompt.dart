@@ -38,10 +38,7 @@ enum FlarePermissionChoice { request, openSettings, dismiss }
 /// [FlarePermissionState.granted]. A soft-ask is an invitation the person can
 /// act on, so it shows only while the permission can be asked for or turned
 /// on in settings.
-bool permissionPromptShows(
-  FlarePermissionState state, {
-  bool softAsk = false,
-}) {
+bool permissionPromptShows(FlarePermissionState state, {bool softAsk = false}) {
   switch (state) {
     case FlarePermissionState.granted:
       return false;
@@ -329,7 +326,8 @@ class FlarePermissionPrompt extends StatelessWidget {
   final String? detail;
   final bool busy;
 
-  /// Inline single-row mode for placing above a composer; default is a card.
+  /// Inline layout with content-width actions. Narrow cards place the actions
+  /// under the description and wrap them when large text needs more space.
   final bool compact;
 
   /// The non-blocking invitation: no state chip, "Not now", shown only while
@@ -404,11 +402,9 @@ class FlarePermissionPrompt extends StatelessWidget {
             ? () => Navigator.of(sheet).pop(FlarePermissionChoice.request)
             : null,
         onOpenSettings: openSettings
-            ? () =>
-                  Navigator.of(sheet).pop(FlarePermissionChoice.openSettings)
+            ? () => Navigator.of(sheet).pop(FlarePermissionChoice.openSettings)
             : null,
-        onDismiss: () =>
-            Navigator.of(sheet).pop(FlarePermissionChoice.dismiss),
+        onDismiss: () => Navigator.of(sheet).pop(FlarePermissionChoice.dismiss),
       ),
     );
     return choice ?? FlarePermissionChoice.dismiss;
@@ -661,7 +657,7 @@ class FlarePermissionPrompt extends StatelessWidget {
     child: FlareButton(
       label: label,
       size: FlareControlSize.lg,
-      block: true,
+      block: !compact,
       loading: busy,
       onPressed: onPressed,
     ),

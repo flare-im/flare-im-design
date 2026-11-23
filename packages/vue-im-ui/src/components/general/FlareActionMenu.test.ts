@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from "@vue/test-utils";
-import { h, nextTick, type Component } from "vue";
+import { h, nextTick, ref, type Component } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import FlareUiProvider from "../../design-system/provider/FlareUiProvider.vue";
 import type { FlareActionItem } from "../../shared/contracts/action-menu";
@@ -115,6 +115,40 @@ describe("FlareActionMenu", () => {
     expect(sheet?.querySelector(".flare-sheet__title")).toBeNull();
     expect(sheet?.querySelector('[role="menu"]')).not.toBeNull();
     host.unmount();
+  });
+
+  it('restores focus to the current trigger when a controlled close replaces its DOM', async () => {
+    const open = ref(false);
+    const host = mount(FlareUiProvider, {
+      props: { layoutMode: 'pc' },
+      slots: { default: () => h(FlareActionMenu, {
+        items, label: 'More', open: open.value,
+        'onUpdate:open': (value: boolean) => { open.value = value; },
+      }, { default: () => h('button', { key: open.value ? 'open' : 'closed', class: 'trigger' }, 'More') }) },
+      attachTo: document.body,
+    });
+    try {
+      await host.get('.trigger').trigger('click');
+      await flushPromises();
+      menu()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await flushPromises();
+      expect(document.activeElement).toBe(host.get('.trigger').element);
+    } finally { host.unmount(); }
+  });
+
+  it('supports a horizontal anchored strip on phones with left/right keyboard movement', async () => {
+    const host = mountMenu({ orientation: 'horizontal', presentation: 'anchored', placement: 'left' }, 'h5');
+    try {
+      await host.get('.trigger').trigger('click');
+      await flushPromises();
+      expect(menu()?.getAttribute('aria-orientation')).toBe('horizontal');
+      expect(document.body.querySelector('[data-flare-presentation="sheet"]')).toBeNull();
+      expect(document.activeElement).toBe(menuItems()[0]);
+      menu()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      expect(document.activeElement).toBe(menuItems()[1]);
+      menu()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+      expect(document.activeElement).toBe(menuItems()[0]);
+    } finally { host.unmount(); }
   });
 
   it("follows a controlled open state at a point and never opens without visible items", async () => {

@@ -102,7 +102,10 @@ void main() {
         );
         final want = row['expect'] as Map<String, dynamic>;
         expect(result.emoji.map(emojiJson).toList(), want['emoji']);
-        expect(result.stickerPacks.map(packJson).toList(), want['stickerPacks']);
+        expect(
+          result.stickerPacks.map(packJson).toList(),
+          want['stickerPacks'],
+        );
       });
     }
 
@@ -194,10 +197,7 @@ void main() {
     test('hands back the same object when it has nothing to say', () {
       expect(
         identical(
-          FlareResourceOverlay.empty.strings(
-            flareStringsEnglish,
-            locale: 'en',
-          ),
+          FlareResourceOverlay.empty.strings(flareStringsEnglish, locale: 'en'),
           flareStringsEnglish,
         ),
         isTrue,
@@ -234,57 +234,60 @@ void main() {
   });
 
   group('what is on screen follows', () {
-    testWidgets('a mounted subtree takes the copy and colours that arrive later', (
-      tester,
-    ) async {
-      final overlay = ValueNotifier<FlareResourceOverlay>(
-        FlareResourceOverlay.empty,
-      );
-      addTearDown(overlay.dispose);
+    testWidgets(
+      'a mounted subtree takes the copy and colours that arrive later',
+      (tester) async {
+        final overlay = ValueNotifier<FlareResourceOverlay>(
+          FlareResourceOverlay.empty,
+        );
+        addTearDown(overlay.dispose);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ValueListenableBuilder<FlareResourceOverlay>(
-            valueListenable: overlay,
-            builder: (context, value, child) => FlareStringsScope(
-              strings: value.strings(flareStringsEnglish, locale: 'en'),
-              child: FlareTheme(
-                mode: FlareThemeMode.light,
-                colors: value.colors(FlareColors.light, dark: false),
-                child: child!,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ValueListenableBuilder<FlareResourceOverlay>(
+              valueListenable: overlay,
+              builder: (context, value, child) => FlareStringsScope(
+                strings: value.strings(flareStringsEnglish, locale: 'en'),
+                child: FlareTheme(
+                  mode: FlareThemeMode.light,
+                  colors: value.colors(FlareColors.light, dark: false),
+                  child: child!,
+                ),
               ),
-            ),
-            child: Builder(
-              builder: (context) => Text(
-                FlareStringsScope.of(context).send,
-                style: TextStyle(color: FlareColors.of(context).primary),
+              child: Builder(
+                builder: (context) => Text(
+                  FlareStringsScope.of(context).send,
+                  style: TextStyle(color: FlareColors.of(context).primary),
+                ),
               ),
             ),
           ),
-        ),
-      );
-      expect(find.text(flareStringsEnglish.send), findsOneWidget);
+        );
+        expect(find.text(flareStringsEnglish.send), findsOneWidget);
 
-      overlay.value = FlareResourceOverlay([
-        stringsPack({
-          'en': {'send': 'Post'},
-        }),
-        tokensPack({
-          'colors': {'primary': '#112233'},
-        }),
-      ]);
-      await tester.pump();
+        overlay.value = FlareResourceOverlay([
+          stringsPack({
+            'en': {'send': 'Post'},
+          }),
+          tokensPack({
+            'colors': {'primary': '#112233'},
+          }),
+        ]);
+        await tester.pump();
 
-      expect(find.text('Post'), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.text('Post')).style?.color,
-        const Color(0xFF112233),
-      );
-    });
+        expect(find.text('Post'), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.text('Post')).style?.color,
+          const Color(0xFF112233),
+        );
+      },
+    );
   });
 
   group('FlareTheme.darkColors', () {
-    final lightSet = FlareColors.light.copyWith(primary: const Color(0xFF112233));
+    final lightSet = FlareColors.light.copyWith(
+      primary: const Color(0xFF112233),
+    );
     final darkSet = FlareColors.dark.copyWith(primary: const Color(0xFF445566));
 
     Widget probed(Brightness brightness, FlareTheme Function(Widget) theme) =>

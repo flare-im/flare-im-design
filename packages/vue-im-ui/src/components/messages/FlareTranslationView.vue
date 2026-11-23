@@ -24,13 +24,13 @@ const showOriginal = ref(false);
 <template>
   <div class="flare-translation" :class="{ 'is-pending': pending }">
     <p v-if="pending" class="flare-translation__pending">
-      <n-icon aria-hidden="true" :size="14" :component="flareIcons.translate" class="is-spin" />{{ t("translation.translating") }}
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="flareIcons.translate" class="is-spin" />{{ t("translation.translating") }}
     </p>
     <template v-else>
       <p class="flare-translation__text">{{ translated }}</p>
       <div class="flare-translation__footer">
         <span class="flare-translation__by">
-          <n-icon aria-hidden="true" :size="12" :component="flareIcons.translate" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="flareIcons.translate" />
           {{ provider ? t("translation.byProvider", { provider }) : t("translation.by") }}
         </span>
         <button
@@ -40,7 +40,7 @@ const showOriginal = ref(false);
           @click="showOriginal = !showOriginal"
         >
           {{ showOriginal ? t("translation.hideOriginal") : t("translation.showOriginal") }}
-          <n-icon aria-hidden="true" :size="12" :component="flareIcons['chevron-down']" :class="{ 'is-up': showOriginal }" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="flareIcons['chevron-down']" :class="{ 'is-up': showOriginal }" />
         </button>
       </div>
       <p v-if="original && showOriginal" class="flare-translation__original">{{ original }}</p>

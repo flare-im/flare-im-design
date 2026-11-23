@@ -1,3 +1,4 @@
+import '../tokens/flare_tokens.dart';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -115,7 +116,9 @@ class FlarePaymentOrder {
   final String? operation;
 }
 
-const _currencyPrefix = {
+/// The currency symbols the kit writes before an amount (R10); any other
+/// code goes after the number ("3 LABPOINT"). One table for every amount.
+const Map<String, String> flareCurrencyPrefix = {
   'CNY': '¥',
   'USD': r'$',
   'EUR': '€',
@@ -140,7 +143,7 @@ String? flarePaymentAmountText(String amount, String currency) {
   final fraction = match.group(2);
   final number = fraction == null ? '$whole' : '$whole.$fraction';
   final code = currency.trim().toUpperCase();
-  final prefix = _currencyPrefix[code];
+  final prefix = flareCurrencyPrefix[code];
   if (prefix != null) return '$prefix$number';
   return code.isEmpty ? number : '$number $code';
 }
@@ -170,7 +173,9 @@ enum FlareDocumentSide { front, back, holding }
 /// The viewfinder frame's width over height: an ID-1 card for front and back,
 /// 3:4 portrait for holding.
 double flareDocumentFrameAspect(FlareDocumentSide side) =>
-    side == FlareDocumentSide.holding ? 0.75 : 1.585;
+    side == FlareDocumentSide.holding
+    ? 0.75
+    : FlareSizes.componentDocumentFrameRatio;
 
 /// The (longest edge, JPEG quality 0..1) steps the kit tries until the photo
 /// fits; none fits: too large.

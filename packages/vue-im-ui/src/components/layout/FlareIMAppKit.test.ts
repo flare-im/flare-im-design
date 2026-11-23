@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, ref, type Component } from "vue";
 import type { FlareIMAppConfiguration } from "../../shared/contracts/application";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
@@ -26,6 +26,7 @@ function stubWidth(width: number): void {
   Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get() { return width; } });
 }
 afterEach(() => {
+  vi.unstubAllGlobals();
   delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
 });
 
@@ -72,6 +73,28 @@ describe("FlareIMAppKit", () => {
     expect(phone.get(".flare-im-app-kit").attributes("data-responsive-mode")).toBe("mobile");
     expect(phone.getComponent(FlareAdaptiveNavigation).props("presentation")).toBe("bottom");
     phone.unmount();
+  });
+
+  it("keeps the mobile bar out of the area above an onscreen keyboard", async () => {
+    const viewport = Object.assign(new EventTarget(), { height: 844, scale: 1 });
+    vi.stubGlobal("visualViewport", viewport);
+    vi.stubGlobal("innerHeight", 844);
+    const shell = await mountShell(390, { activeNavigationId: "contacts" }, () => h("input", { type: "search" }));
+    const field = shell.get("input").element as HTMLInputElement;
+    field.focus();
+    expect(shell.findComponent(FlareAdaptiveNavigation).exists()).toBe(true);
+    viewport.height = 530;
+    viewport.dispatchEvent(new Event("resize"));
+    await shell.vm.$nextTick();
+    expect(shell.findComponent(FlareAdaptiveNavigation).exists()).toBe(false);
+    expect(shell.get(".flare-im-app-kit").attributes("style")).toContain("530px");
+
+    viewport.height = 844;
+    field.blur();
+    viewport.dispatchEvent(new Event("resize"));
+    await shell.vm.$nextTick();
+    expect(shell.findComponent(FlareAdaptiveNavigation).exists()).toBe(true);
+    shell.unmount();
   });
 
   it("keeps a destination it has shown, with its state, while another is active", async () => {

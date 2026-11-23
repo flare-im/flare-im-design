@@ -46,9 +46,9 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
       :aria-label="item.name"
       @update:model-value="emit('toggleSelect')"
     >
-      <FlareAvatar :user-id="item.id" :display-name="item.name" :avatar-url="item.avatarUrl" :size="40" :presence="showPresence ? item.presence : undefined" />
+      <FlareAvatar :user-id="item.id" :display-name="item.name" :avatar-url="item.avatarUrl" :size="40" :presence="showPresence ? item.presence : undefined" :aria-hidden="!showPresence || undefined" />
       <span class="flare-contact-item__body">
-        <span class="flare-contact-item__name">{{ item.name }}</span>
+        <span class="flare-contact-item__name" :title="item.name">{{ item.name }}</span>
         <span v-if="item.signature" class="flare-contact-item__sig">{{ item.signature }}</span>
       </span>
     </FlareCheckbox>
@@ -60,9 +60,9 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
       :class="{ 'is-interactive': interactive }"
       @click="interactive && emit('select')"
     >
-      <FlareAvatar :user-id="item.id" :display-name="item.name" :avatar-url="item.avatarUrl" :size="40" :presence="showPresence ? item.presence : undefined" />
+      <FlareAvatar :user-id="item.id" :display-name="item.name" :avatar-url="item.avatarUrl" :size="40" :presence="showPresence ? item.presence : undefined" :aria-hidden="!showPresence || undefined" />
       <span class="flare-contact-item__body">
-        <span class="flare-contact-item__name">{{ item.name }}</span>
+        <span class="flare-contact-item__name" :title="item.name">{{ item.name }}</span>
         <span v-if="item.signature" class="flare-contact-item__sig">{{ item.signature }}</span>
       </span>
     </component>
@@ -129,6 +129,9 @@ const interactive = computed(() => Boolean(instance?.vnode.props?.onSelect));
   color: var(--flare-color-text-primary);
   font-size: var(--flare-size-font-size-lg);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .flare-contact-item__sig {
   font-size: var(--flare-size-font-size-sm);

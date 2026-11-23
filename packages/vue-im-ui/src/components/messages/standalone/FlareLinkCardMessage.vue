@@ -6,11 +6,11 @@ const emit = defineEmits<{ (e: "open"): void }>();
 </script>
 <template>
   <div class="fm-link" @click="emit('open')">
-    <div class="thumb"><img v-if="thumb" :src="thumb" alt="" /><MsgIcon v-else name="image" :size="22" /></div>
+    <div class="thumb"><img v-if="thumb" :src="thumb" alt="" /><MsgIcon v-else name="image" size="lg" /></div>
     <div class="meta">
       <b>{{ title }}</b>
       <span v-if="description" class="desc">{{ description }}</span>
-      <small><MsgIcon name="link" :size="12" />{{ domain }}</small>
+      <small><MsgIcon name="link" size="sm" />{{ domain }}</small>
     </div>
   </div>
 </template>

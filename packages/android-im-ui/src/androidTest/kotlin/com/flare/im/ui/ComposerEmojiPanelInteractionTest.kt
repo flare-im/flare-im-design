@@ -7,6 +7,8 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
@@ -29,7 +31,8 @@ class ComposerEmojiPanelInteractionTest {
         // The key reports the composer's own panel state: closed, then open, then closed again.
         compose.onNodeWithContentDescription(strings.composerEmoji).assertIsOff().performClick()
         compose.waitForIdle()
-        compose.onNodeWithContentDescription(strings.composerEmoji).assertIsOn().performClick()
+        // The open panel's emoji tab reads the same name; the composer's key is the toggle.
+        compose.onNode(hasContentDescription(strings.composerEmoji) and isToggleable()).assertIsOn().performClick()
         compose.waitForIdle()
         compose.onNodeWithContentDescription(strings.composerEmoji).assertIsOff()
     }

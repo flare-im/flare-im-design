@@ -62,9 +62,10 @@ class AccountViewInteractionTest {
         compose.onNodeWithText("状态").assertIsDisplayed()
         compose.onNodeWithText("提现").performClick()
         compose.runOnIdle { assertEquals(mapOf("status" to "pending", "kind" to "withdrawal"), changed.single()) }
-        list().performScrollToNode(hasText("零钱钱包"))
-        compose.onNodeWithText("零钱钱包").assertIsDisplayed()
-        compose.onNodeWithText("零钱钱包").performClick()
+        // R11: a ledger row is one button read as one line, so it is found by what it reads.
+        list().performScrollToNode(hasContentDescription("零钱钱包", substring = true))
+        compose.onNode(hasContentDescription("零钱钱包", substring = true)).assertIsDisplayed()
+        compose.onNode(hasContentDescription("零钱钱包", substring = true)).performClick()
         compose.runOnIdle {
             assertEquals(mapOf("revision" to "original"), opened.single().data)
             assertEquals(PluginActionRow("request-1", mapOf("requestId" to "opaque-request")), opened.single().row)
@@ -80,7 +81,7 @@ class AccountViewInteractionTest {
             pagingToken = token.value, refreshing = refreshing.value, error = "同一分页错误",
             busyActionId = "financial", actionError = "支付待确认", settleToken = 0,
             onLoadMore = { pages++; token.value++ }, onRefresh = { retries++ }) } }
-        val label = FlareStrings().myInviteLoadMore
+        val label = FlareStrings().pluginViewLoadMore
         repeat(2) { list().performScrollToNode(hasText(label)); compose.onNodeWithText(label).performClick(); compose.waitForIdle() }
         compose.runOnIdle { assertEquals(2, pages); refreshing.value = true }
         list().performScrollToNode(hasText(label)); compose.onNodeWithText(label).assertIsNotEnabled()
@@ -121,20 +122,22 @@ class AccountViewInteractionTest {
         } } }
         compose.onNodeWithText("暂时无法更新").assertExists()
         compose.onNodeWithContentDescription("隐藏余额").performClick()
-        compose.onNodeWithContentDescription("¥1,288.66").assertDoesNotExist()
+        // R11: the balance reads its currency by name ("1,288.66 人民币"), never the bare "¥".
+        compose.onNode(hasContentDescription("1,288.66", substring = true)).assertDoesNotExist()
         compose.onNodeWithText("¥68.00").assertDoesNotExist()
-        list().performScrollToNode(hasText("+¥88.88"))
-        compose.onNodeWithText("+¥88.88").assertExists()
+        list().performScrollToNode(hasContentDescription("88.88", substring = true))
+        compose.onNode(hasContentDescription("88.88", substring = true)).assertExists()
         list().performScrollToNode(hasContentDescription("显示余额"))
         compose.onNodeWithContentDescription("显示余额").performClick()
-        compose.onNodeWithContentDescription("¥1,288.66").assertExists()
+        compose.onNode(hasContentDescription("1,288.66", substring = true)).assertExists()
+        compose.onNodeWithContentDescription("¥1,288.66").assertDoesNotExist()
     }
     @Test fun detailActionKeepsOriginalPageDataAndBoundRow() {
         val sent = mutableListOf<PluginPageActionPayload>()
         compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = wallet(), appearance = FlarePluginPageAppearance.Account,
             onAction = { _, payload -> sent += payload }) } }
-        list().performScrollToNode(hasText("周五快乐"))
-        compose.onNodeWithText("周五快乐").performClick()
+        list().performScrollToNode(hasContentDescription("周五快乐", substring = true))
+        compose.onNode(hasContentDescription("周五快乐", substring = true)).performClick()
         compose.onNodeWithText("tx-01").assertExists()
         val bounds = compose.onNodeWithText("查看红包").getUnclippedBoundsInRoot()
         assertTrue((bounds.bottom - bounds.top).value >= FlareSizes.touchTarget.value)
@@ -145,8 +148,8 @@ class AccountViewInteractionTest {
     }
     @Test fun entryWithoutPacketActionStillHasLocalDetailsAndClose() {
         compose.setContent { FlareThemeProvider { FlarePluginPage(page = ref, view = wallet(deposit = true), appearance = FlarePluginPageAppearance.Account) } }
-        list().performScrollToNode(hasText("周五快乐"))
-        compose.onNodeWithText("周五快乐").performClick()
+        list().performScrollToNode(hasContentDescription("周五快乐", substring = true))
+        compose.onNode(hasContentDescription("周五快乐", substring = true)).performClick()
         compose.onNodeWithText("tx-01").assertExists()
         compose.onNodeWithText("查看红包").assertDoesNotExist()
         compose.onAllNodesWithContentDescription("关闭").onLast().performClick()
@@ -230,7 +233,9 @@ class AccountViewInteractionTest {
         val sent = mutableListOf<PluginPageActionPayload>()
         compose.setContent {
             val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density / if (wide.value) 3f else 1f, 1f)) {
+            // 5.1: the phone layout follows the form factor, not the box; the wide pass says it is a desktop shell.
+            CompositionLocalProvider(LocalDensity provides Density(density.density / if (wide.value) 3f else 1f, 1f),
+                LocalFlareShellResponsiveMode provides (if (wide.value) FlareApplicationResponsiveMode.Desktop else null)) {
                 FlareThemeProvider(mode = if (wide.value) FlareThemeMode.Dark else FlareThemeMode.Light) {
                     Box(Modifier.width(if (wide.value) 1100.dp else phoneWidth.value)) {
                         FlarePluginPage(page = page, view = view, onAction = { _, payload -> sent += payload })
@@ -255,15 +260,23 @@ class AccountViewInteractionTest {
         compose.onNodeWithText("账户信息").performClick()
         compose.onNodeWithText("900.00").assertExists()
         compose.onNodeWithContentDescription("1000.00").assertExists()
-        compose.onNodeWithText("账户信息").performClick()
+        // 5.1: the information opens as a panel titled like its row; its close key closes it.
+        compose.onAllNodesWithContentDescription("关闭").onLast().performClick()
         compose.runOnIdle { wide.value = true }
         val first = compose.onNodeWithText("零钱钱包").getUnclippedBoundsInRoot()
         val second = compose.onNodeWithText("旅行钱包").getUnclippedBoundsInRoot()
         assertEquals(first.top.value, second.top.value, 0.5f)
         assertTrue(second.left > first.left)
+        // §12.23: a PC has no title row; the eye ends the quick-key row, on the keys' line.
+        compose.onAllNodesWithText("我的钱包").assertCountEquals(0)
+        val key = compose.onNodeWithText("充值").getUnclippedBoundsInRoot()
+        val eye = compose.onNodeWithContentDescription("隐藏余额").getUnclippedBoundsInRoot()
+        assertEquals((key.top + key.bottom).value / 2, (eye.top + eye.bottom).value / 2, 1f)
+        assertTrue(eye.left > key.right)
         capture("wallet-multiple-android-desktop-dark.png")
         compose.onNodeWithText("旅行钱包").performClick()
-        compose.onNode(hasText("钱包") and hasClickAction()).performClick()
+        // The local detail offers the row's bound action by its own label (spec/wallet-card-vectors.json: 查看明细).
+        compose.onNode(hasText("查看明细") and hasClickAction()).performClick()
         compose.runOnIdle {
             assertEquals(1, sent.size)
             assertEquals(page, sent.single().page)

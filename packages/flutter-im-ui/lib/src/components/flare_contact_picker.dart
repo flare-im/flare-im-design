@@ -42,9 +42,17 @@ class FlareContactPicker extends StatefulWidget implements FlareSheetOwnHeader {
     this.onRetry,
     this.onSelect,
     this.onCancel,
+    this.emptyTitle,
+    this.emptyDescription,
   });
 
   final List<FlareContactPickerGroup> groups;
+
+  /// What the empty list says while nothing is searched (a picker of friends
+  /// for a new chat: "no friends yet", and where to add some); the kit's
+  /// "no contacts" when null. A search with no match keeps the kit's words.
+  final String? emptyTitle;
+  final String? emptyDescription;
   final bool searchable;
   final bool multiple;
   final int? maxSelected;
@@ -316,7 +324,12 @@ class _FlareContactPickerState extends State<FlareContactPicker> {
                       )
                     : entries.isEmpty
                     ? FlareEmptyState(
-                        title: strings.contactPickerEmpty,
+                        title: _query.text.trim().isEmpty
+                            ? widget.emptyTitle ?? strings.contactPickerEmpty
+                            : strings.contactPickerEmpty,
+                        description: _query.text.trim().isEmpty
+                            ? widget.emptyDescription
+                            : null,
                         icon: _query.text.trim().isEmpty ? 'people' : 'search',
                       )
                     : ListView.builder(

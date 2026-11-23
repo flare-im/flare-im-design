@@ -84,9 +84,8 @@ void main() {
     });
   }
 
-  final windows =
-      ((table['windows'] as Map<String, dynamic>)['cases'] as List)
-          .cast<Map<String, dynamic>>();
+  final windows = ((table['windows'] as Map<String, dynamic>)['cases'] as List)
+      .cast<Map<String, dynamic>>();
   test('the window table has its cases', () {
     expect(windows.length, greaterThanOrEqualTo(17));
   });

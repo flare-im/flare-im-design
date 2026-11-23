@@ -5,6 +5,9 @@
 // the relation, never retries, and keeps the previous failure reason on screen
 // until the host or the user dismisses it.
 import { computed, ref, watch } from "vue";
+import FlareButton from "../general/FlareButton.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import { NIcon } from "naive-ui";
 import {
   AlertCircleOutline,
@@ -55,6 +58,7 @@ const props = withDefaults(
   },
 );
 const { t } = useFlareI18n();
+const { detail } = useScreenLayout();
 const strings = computed(() => ({
   addText: props.addText ?? t("relationActionBar.add"),
   acceptText: props.acceptText ?? t("relationActionBar.accept"),
@@ -124,20 +128,11 @@ function dismiss(): void {
 </script>
 
 <template>
-  <div class="flare-relation-bar" :class="{ 'flare-relation-bar--busy': busy }" :aria-busy="busy || undefined">
+  <div class="flare-relation-bar" :class="{ 'flare-relation-bar--busy': busy, 'is-detail': detail }" :aria-busy="busy || undefined">
     <div v-if="error" class="flare-relation-bar__error" role="alert">
       <n-icon :size="16" :component="AlertCircleOutline as any" class="flare-relation-bar__error-icon" aria-hidden="true" />
       <span class="flare-relation-bar__error-text">{{ error }}</span>
-      <button
-        type="button"
-        class="flare-relation-bar__btn flare-relation-bar__btn--icon"
-        :disabled="busy"
-        :aria-label="strings.dismissErrorText"
-        :title="strings.dismissErrorText"
-        @click="dismiss"
-      >
-        <n-icon aria-hidden="true" :size="16" :component="CloseOutline as any" />
-      </button>
+      <FlareIconButton :icon="CloseOutline" :ariaLabel="strings.dismissErrorText" size="sm" :disabled="busy" @click="dismiss" />
     </div>
 
     <div class="flare-relation-bar__row" role="group" :aria-label="pendingNotice ? strings.pendingText : undefined">
@@ -148,38 +143,23 @@ function dismiss(): void {
 
       <p v-if="isEmpty" class="flare-relation-bar__empty" role="status">{{ strings.emptyText }}</p>
 
-      <button
-        v-for="entry in safe"
-        :key="entry.action"
-        type="button"
-        class="flare-relation-bar__btn"
-        :class="{ 'flare-relation-bar__btn--primary': entry.primary, 'flare-relation-bar__btn--pending': busy && pending === entry.action }"
-        :disabled="busy"
-        :aria-busy="busy && pending === entry.action"
+      <FlareButton
+        v-for="entry in safe" :key="entry.action" size="sm"
+        class="flare-relation-bar__btn" :class="{ 'flare-relation-bar__btn--primary': entry.primary }"
+        :variant="entry.primary ? 'primary' : 'secondary'" :icon="glyphs[entry.action] as any"
+        :label="labelFor(entry.action)" :loading="busy && pending === entry.action" :disabled="busy"
         :aria-label="busy && pending === entry.action ? `${labelFor(entry.action)} · ${strings.busyText}` : undefined"
         @click="trigger(entry.action)"
-      >
-        <span v-if="busy && pending === entry.action" class="flare-relation-bar__spinner" aria-hidden="true" />
-        <n-icon aria-hidden="true" v-else :size="16" :component="glyphs[entry.action] as any" />
-        <span>{{ labelFor(entry.action) }}</span>
-      </button>
+      />
 
       <div v-if="destructive.length" class="flare-relation-bar__danger-group">
-        <button
-          v-for="entry in destructive"
-          :key="entry.action"
-          type="button"
-          class="flare-relation-bar__btn flare-relation-bar__btn--danger"
-          :class="{ 'flare-relation-bar__btn--pending': busy && pending === entry.action }"
-          :disabled="busy"
-          :aria-busy="busy && pending === entry.action"
+        <FlareButton
+          v-for="entry in destructive" :key="entry.action" size="sm" variant="danger" appearance="text"
+          class="flare-relation-bar__btn" :icon="glyphs[entry.action] as any" :label="labelFor(entry.action)"
+          :loading="busy && pending === entry.action" :disabled="busy"
           :aria-label="busy && pending === entry.action ? `${labelFor(entry.action)} · ${strings.busyText}` : undefined"
           @click="trigger(entry.action)"
-        >
-          <span v-if="busy && pending === entry.action" class="flare-relation-bar__spinner" aria-hidden="true" />
-          <n-icon aria-hidden="true" v-else :size="16" :component="glyphs[entry.action] as any" />
-          <span>{{ labelFor(entry.action) }}</span>
-        </button>
+        />
       </div>
     </div>
   </div>
@@ -239,7 +219,7 @@ function dismiss(): void {
   align-items: center;
   gap: 6px;
   margin: 0;
-  min-height: var(--flare-size-layout-touch-target);
+  min-height: var(--flare-size-layout-control-height-sm);
   min-width: 0;
   font-size: var(--flare-size-font-size-md);
   color: var(--flare-color-text-tertiary);
@@ -253,70 +233,8 @@ function dismiss(): void {
   color: var(--flare-color-text-tertiary);
   font-weight: 600;
 }
-/* 几何对齐它上面那一列的按钮:同样的 radius-lg 和高度。原来是 radius-md(8) + 48 高 + 灰底,
-   和上面 radius-lg(10) + 47 高 + 白底描边并排,读起来像两个组件各说各的。 */
-.flare-relation-bar__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 47px;
-  min-width: var(--flare-size-layout-touch-target);
-  padding: 0 var(--flare-size-spacing-md);
-  border: none;
-  border-radius: var(--flare-size-radius-lg);
-  background: var(--flare-color-bg-secondary);
-  color: var(--flare-color-text-primary);
-  font: inherit;
-  font-size: var(--flare-size-font-size-md);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: filter var(--flare-transition-fast);
-}
-.flare-relation-bar__btn:hover:not(:disabled) {
-  filter: brightness(0.97);
-}
-.flare-relation-bar__btn:focus-visible {
-  outline: 2px solid var(--flare-color-border-selected);
-  outline-offset: 2px;
-}
-.flare-relation-bar__btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.flare-relation-bar__btn:disabled.flare-relation-bar__btn--pending {
-  opacity: 0.85;
-  cursor: progress;
-}
-.flare-relation-bar__btn--primary {
-  flex: 1 1 0;
-  background: var(--flare-color-primary);
-  color: #fff;
-}
-.flare-relation-bar__btn--danger {
-  color: var(--flare-color-error-text);
-  background: color-mix(in srgb, var(--flare-color-error) 10%, var(--flare-color-bg-primary));
-}
-.flare-relation-bar__btn--icon {
-  flex: none;
-  padding: 0 var(--flare-size-spacing-sm);
-  background: transparent;
-  color: var(--flare-color-text-secondary);
-}
-.flare-relation-bar__spinner {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  animation: flare-relation-bar-spin 0.8s linear infinite;
-  flex: none;
-}
-@keyframes flare-relation-bar-spin {
-  to { transform: rotate(360deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .flare-relation-bar__spinner { animation-duration: 2s; }
-}
+.flare-relation-bar__btn--primary { flex: 1 1 0; }
+.flare-relation-bar.is-detail { background: transparent; }
+.flare-relation-bar.is-detail .flare-relation-bar__row,
+.flare-relation-bar.is-detail .flare-relation-bar__error { padding-inline: 0; }
 </style>

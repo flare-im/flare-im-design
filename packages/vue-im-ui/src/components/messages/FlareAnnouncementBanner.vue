@@ -39,7 +39,7 @@ const showToggle = computed(() => props.collapsible && props.text.length > 40);
         @click="expanded = !expanded"
       >
         {{ expanded ? t("announcement.collapse") : t("announcement.expand") }}
-        <n-icon aria-hidden="true" :size="13" :component="ChevronDownOutline" :class="{ 'is-up': expanded }" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="ChevronDownOutline" :class="{ 'is-up': expanded }" />
       </button>
     </div>
     <button

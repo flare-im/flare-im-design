@@ -107,7 +107,9 @@ const overrideStyle = computed(() => {
   }
 }
 .flare-icon-button:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
-.flare-icon-button:active:not(:disabled) { transform: scale(0.92); }
+/* §12.10: pressed scales to 0.98 with the pressed fill; reduced motion keeps only the colour. */
+.flare-icon-button:active:not(:disabled) { transform: scale(var(--flare-size-component-press-scale)); }
+@media (prefers-reduced-motion: reduce) { .flare-icon-button:active:not(:disabled) { transform: none; } }
 .flare-icon-button:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
 .is-circle { border-radius: 50%; }
 .is-square { border-radius: var(--flare-size-radius-md); }

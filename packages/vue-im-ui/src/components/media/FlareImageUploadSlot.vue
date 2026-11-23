@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useId } from "vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareIcon from "../general/FlareIcon.vue";
 import type { FlareIconName } from "../../shared/icons";
@@ -28,6 +28,7 @@ const props = withDefaults(
   { disabled: false, previewLoading: false, previewDisabled: false },
 );
 const emit = defineEmits<{ choose: []; action: []; preview: [] }>();
+const statusId = useId();
 const previewMode = computed(
   () => props.state === "uploaded" && !!props.previewLabel,
 );
@@ -63,6 +64,8 @@ function activate() {
       type="button"
       class="flare-image-upload__picker"
       :disabled="bodyDisabled"
+      :aria-describedby="statusId"
+      :aria-invalid="state === 'failed' || undefined"
       :aria-label="`${previewMode ? previewLabel : pickLabel}: ${title}`"
       @click="activate"
     >
@@ -77,7 +80,7 @@ function activate() {
       <template v-else>
         <FlareIcon
           :name="state === 'uploaded' ? 'check' : (icon ?? 'camera')"
-          :size="28"
+          size="xl"
         />
         <span>{{
           previewMode
@@ -95,7 +98,7 @@ function activate() {
       />
     </button>
     <div class="flare-image-upload__footer">
-      <span role="status" class="flare-image-upload__status">{{
+      <span :id="statusId" :role="state === 'failed' ? 'alert' : 'status'" class="flare-image-upload__status">{{
         statusText
       }}</span>
       <slot name="actions">

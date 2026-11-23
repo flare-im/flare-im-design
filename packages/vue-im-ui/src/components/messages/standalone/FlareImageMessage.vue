@@ -21,7 +21,7 @@ const props = withDefaults(
   }>(),
   { src: "", width: 132, height: 92, alt: "", badge: "", loading: false },
 );
-const emit = defineEmits<{ (e: "click"): void }>();
+const emit = defineEmits<{ click: []; "load-error": [url: string] }>();
 const { t } = useFlareI18nOptional();
 
 const failed = ref(false);
@@ -77,10 +77,10 @@ function onClick(): void {
       :alt="alt"
       loading="lazy"
       decoding="async"
-      @error="failed = true"
+      @error="failed = true; emit('load-error', src)"
     />
     <span v-else class="ph">
-      <MsgIcon name="image" :size="26" />
+      <MsgIcon name="image" size="lg" />
       <small v-if="placeholderText">{{ placeholderText }}</small>
     </span>
     <span v-if="badge && showImage" class="badge">{{ badge }}</span>

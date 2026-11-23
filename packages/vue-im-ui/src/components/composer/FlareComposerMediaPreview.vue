@@ -13,31 +13,59 @@ export interface FlareComposerMediaPreviewItem {
 // 发送前的附件确认 —— 走组件库自己的模态面(`presentation="auto"`):手机上是底部
 // 面板,指针设备上是居中弹窗。以前这里是一张写死的 naive 模态卡片,于是手机上也弹出
 // 一张桌面卡片;而且它不在共用的模态栈里,滚动锁和 Escape 的层序都各算各的。
-import { computed, ref, watch } from "vue";
+import { computed, getCurrentInstance, ref, watch } from "vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
 import FlareButton from "../general/FlareButton.vue";
+import FlareIcon from "../general/FlareIcon.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
+import FlareStatusBanner from "../general/FlareStatusBanner.vue";
+import FlareMediaUpload from "../media/FlareMediaUpload.vue";
+import ImagePreviewModal from "../message-preview/ImagePreviewModal.vue";
 import FlareTextarea from "../form/FlareTextarea.vue";
+import { flareIcons } from "../../shared/icons";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 const { t } = useFlareI18n();
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   show: boolean;
   kind: string;
   items: readonly FlareComposerMediaPreviewItem[];
   loading?: boolean;
-}>();
+  /** Seed the field when reopening a selection after a failed send. */
+  initialDescription?: string;
+  showDescription?: boolean;
+  notice?: string;
+  error?: string;
+}>(), { initialDescription: "", showDescription: true });
 
 const emit = defineEmits<{
   (event: "update:show", value: boolean): void;
   (event: "cancel"): void;
+  (event: "remove", id: string): void;
   (event: "submit", description: string): void;
 }>();
 
-const description = ref("");
+const instance = getCurrentInstance();
+const canRemove = computed(() => !!instance?.vnode.props?.onRemove);
+const uploadItems = computed(() => props.items.map(item => ({ ...item, state: "selected" as const, statusText: t("pluginFileSelected") })));
+const description = ref(props.initialDescription);
+const previewId = ref<string | null>(null);
+const isImage = (item: FlareComposerMediaPreviewItem) => item.kind === "image" || item.kind === "imageGroup";
+const previewImages = computed(() => props.items.filter(item => isImage(item) && item.previewUrl));
+const previewIndex = computed(() => previewImages.value.findIndex(item => item.id === previewId.value));
+const previewItem = computed(() => previewImages.value[previewIndex.value]);
+watch([() => props.show, previewItem], () => { if (!props.show || !previewItem.value) previewId.value = null; });
+function movePreview(offset: number) {
+  const item = previewImages.value[previewIndex.value + offset];
+  if (item) previewId.value = item.id;
+}
 
-const mediaCount = computed(() => props.items.length);
-const isSingle = computed(() => mediaCount.value === 1);
-const primaryItem = computed(() => props.items[0]);
+const primaryItem = computed(() => props.items.length === 1 ? props.items[0] : undefined);
+const title = computed(() => {
+  if (props.kind === "image" || props.kind === "imageGroup") return t("composer.imageAttachmentPreview");
+  if (props.kind === "video") return t("composer.videoAttachmentPreview");
+  return t("composer.attachmentPreview");
+});
 const descriptionPlaceholder = computed(() => {
   if (props.kind === "file") return t("composer.fileCaption");
   if (props.kind === "video") return t("composer.videoCaption");
@@ -48,7 +76,7 @@ const descriptionPlaceholder = computed(() => {
 watch(
   () => props.show,
   (open) => {
-    if (open) description.value = "";
+    if (open) description.value = props.initialDescription;
   },
 );
 
@@ -61,7 +89,7 @@ function close(): void {
 
 function submit(): void {
   if (props.loading || !props.items.length) return;
-  emit("submit", description.value.trim());
+  emit("submit", props.showDescription ? description.value.trim() : "");
 }
 
 function formatBytes(value: number): string {
@@ -80,135 +108,142 @@ function formatBytes(value: number): string {
 <template>
   <FlareBottomSheet
     :open="show"
-    :title="t('composer.attachmentPreview')"
+    :title="title"
     :dismissible="!loading"
     max-height="calc(100dvh - 32px)"
-    dialog-width="min(720px, calc(100vw - 32px))"
     @close="close"
   >
-    <div class="media-composer-preview__body">
-      <!-- 图片/视频:大预览 -->
-      <article
-        v-if="
-          isSingle &&
-          primaryItem &&
-          primaryItem.previewUrl &&
-          (primaryItem.kind === 'image' || primaryItem.kind === 'imageGroup' || primaryItem.kind === 'video')
-        "
-        class="media-composer-preview__hero"
-      >
-        <img
-          v-if="primaryItem.kind === 'image' || primaryItem.kind === 'imageGroup'"
-          :src="primaryItem.previewUrl"
-          :alt="primaryItem.name"
-        />
-        <video v-else :src="primaryItem.previewUrl" controls playsinline />
-        <div class="media-composer-preview__hero-caption">
-          <span>{{ primaryItem.name }}</span>
-          <small v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</small>
-        </div>
-      </article>
-
-      <!-- 文件:不做大预览,只显示文件名(+大小) -->
-      <div v-else-if="isSingle && primaryItem" class="media-composer-preview__filerow">
-        <span class="media-composer-preview__filerow-name">{{ primaryItem.name }}</span>
-        <small v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</small>
-      </div>
-
-      <div v-else class="media-composer-preview__gallery">
+    <div class="media-composer-preview" :aria-busy="loading || undefined">
+      <div class="media-composer-preview__body">
+        <FlareStatusBanner v-if="notice" :text="notice" />
+        <FlareMediaUpload v-if="kind === 'imageGroup'" :items="uploadItems" layout="images" :show-picker="false"
+          :title="title" :pick-label="t('pluginFileChoose')" :status-text="t('pluginFileSelected')"
+          :disabled="loading" :remove-label="canRemove ? t('pluginFileRemove') : undefined" :preview-label="t('pluginFilePreview')"
+          @remove="emit('remove', $event)" @preview="previewId = $event" />
         <article
-          v-for="(item, index) in items"
-          :key="item.id"
-          class="media-composer-preview__thumb"
+          v-else-if="primaryItem"
+          class="media-composer-preview__hero"
         >
-          <img
-            v-if="(item.kind === 'image' || item.kind === 'imageGroup') && item.previewUrl"
-            :src="item.previewUrl"
-            :alt="item.name"
-          />
-          <video
-            v-else-if="item.kind === 'video' && item.previewUrl"
-            :src="item.previewUrl"
-            controls
-            playsinline
-          />
-          <div v-else class="media-composer-preview__file">
-            <strong>{{ item.name }}</strong>
-            <span v-if="item.mimeType">{{ item.mimeType }}</span>
-            <span v-if="item.size">{{ formatBytes(item.size) }}</span>
+          <button
+            v-if="isImage(primaryItem) && primaryItem.previewUrl"
+            type="button"
+            class="media-composer-preview__image-button"
+            :aria-label="`${t('pluginFilePreview')}: ${primaryItem.name}`"
+            :disabled="loading"
+            @click="previewId = primaryItem.id"
+          >
+            <img :src="primaryItem.previewUrl" :alt="primaryItem.name" />
+          </button>
+          <video v-else-if="primaryItem.kind === 'video' && primaryItem.previewUrl" :src="primaryItem.previewUrl"
+            :aria-label="primaryItem.name" preload="metadata" controls playsinline />
+          <div class="media-composer-preview__details">
+            <FlareIcon v-if="!primaryItem.previewUrl || (!isImage(primaryItem) && primaryItem.kind !== 'video')"
+              :name="isImage(primaryItem) ? 'image' : primaryItem.kind === 'video' ? 'video' : 'file'" aria-hidden="true" />
+            <span>{{ primaryItem.name }}</span>
+            <small v-if="primaryItem.size">{{ formatBytes(primaryItem.size) }}</small>
+            <FlareIconButton
+              v-if="canRemove"
+              :class="{ 'media-composer-preview__remove--overlay': isImage(primaryItem) && primaryItem.previewUrl }"
+              size="sm"
+              variant="tinted"
+              :icon="flareIcons.close"
+              :ariaLabel="`${t('pluginFileRemove')}: ${primaryItem.name}`"
+              :disabled="loading"
+              @click="emit('remove', primaryItem.id)"
+            />
           </div>
-          <span class="media-composer-preview__index">{{ index + 1 }}</span>
-          <span class="media-composer-preview__name">{{ item.name }}</span>
         </article>
+
+        <div v-else-if="items.length" class="media-composer-preview__gallery">
+          <article v-for="item in items" :key="item.id" class="media-composer-preview__thumb">
+            <img v-if="isImage(item) && item.previewUrl" :src="item.previewUrl" :alt="item.name" />
+            <video v-else-if="item.kind === 'video' && item.previewUrl" :src="item.previewUrl"
+              :aria-label="item.name" preload="metadata" controls playsinline />
+            <div v-else class="media-composer-preview__file">
+              <strong>{{ item.name }}</strong>
+              <span v-if="item.mimeType">{{ item.mimeType }}</span>
+              <span v-if="item.size">{{ formatBytes(item.size) }}</span>
+            </div>
+            <span class="media-composer-preview__name">{{ item.name }}</span>
+          </article>
+        </div>
+
+        <FlareTextarea v-if="showDescription" v-model="description" :rows="2" :max-rows="5"
+          :placeholder="descriptionPlaceholder" :aria-label="t('composer.caption')" :disabled="loading" @enter="submit" />
+        <FlareStatusBanner v-if="error" :text="error" tone="danger" />
       </div>
 
-      <label class="media-composer-preview__caption">
-        <span>
-          {{ t("composer.caption") }}
-          <small>{{ t("composer.captionOptional") }}</small>
-        </span>
-        <FlareTextarea
-          v-model="description"
-          :rows="1"
-          :max-rows="5"
-          :placeholder="descriptionPlaceholder"
-          :disabled="loading"
-        />
-      </label>
-    </div>
-
-    <div class="media-composer-preview__footer">
-      <FlareButton variant="secondary" :disabled="loading" @click="close">{{ t("common.cancel") }}</FlareButton>
-      <FlareButton :loading="loading" :disabled="!items.length" @click="submit">
-        {{ t("composer.send") }}
-      </FlareButton>
+      <div class="media-composer-preview__footer">
+        <FlareButton variant="secondary" :disabled="loading" @click="close">{{ t("common.cancel") }}</FlareButton>
+        <FlareButton :loading="loading" :disabled="!items.length" @click="submit">
+          {{ t("composer.send") }}
+        </FlareButton>
+      </div>
     </div>
   </FlareBottomSheet>
+  <ImagePreviewModal v-if="previewItem" :show="true" :image-src="previewItem.previewUrl!" :alt="previewItem.name"
+    :loading-text="t('common.loading')" :error-text="t('mediaMessage.imageFailed')" :retry-text="t('common.retry')"
+    :gallery-index="previewIndex" :gallery-count="previewImages.length" @update:show="previewId = null"
+    @previous="movePreview(-1)" @next="movePreview(1)" />
 </template>
 
 <style scoped>
-/* 高度由面自己封顶(FlareBottomSheet 的 maxHeight),这里只负责在剩下的空间里滚。 */
 .media-composer-preview__body {
   display: grid;
   gap: var(--flare-size-spacing-md);
-  flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;
-  padding: 3px var(--flare-size-spacing-md);
-  overflow: auto;
-  overscroll-behavior: contain;
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-lg) var(--flare-size-spacing-md);
 }
 .media-composer-preview__hero {
+  position: relative;
   margin: 0;
   min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--flare-color-border-secondary);
+  border-radius: var(--flare-size-radius-md);
+  background: var(--flare-color-bg-secondary);
+}
+.media-composer-preview__image-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.media-composer-preview__image-button:focus-visible {
+  outline: 2px solid var(--flare-color-border-selected);
+  outline-offset: -2px;
+}
+.media-composer-preview__remove--overlay {
+  position: absolute;
+  inset-block-start: var(--flare-size-spacing-xs);
+  inset-inline-end: var(--flare-size-spacing-xs);
 }
 .media-composer-preview__hero img,
 .media-composer-preview__hero video {
   display: block;
   width: 100%;
-  max-height: min(48dvh, 460px);
-  border-radius: var(--flare-size-radius-md);
-  background: var(--flare-color-bg-secondary);
+  max-height: min(40dvh, var(--flare-size-component-media-image-max-width));
   object-fit: contain;
 }
-.media-composer-preview__hero-caption,
-.media-composer-preview__filerow {
+.media-composer-preview__details {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   min-width: 0;
   gap: var(--flare-size-spacing-sm);
-  padding-block: var(--flare-size-spacing-sm);
+  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
   color: var(--flare-color-text-secondary);
+  font-size: var(--flare-size-font-size-sm);
 }
-.media-composer-preview__hero-caption span,
-.media-composer-preview__filerow-name {
+.media-composer-preview__details > span {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.media-composer-preview__hero-caption small,
-.media-composer-preview__filerow small {
+.media-composer-preview__details small {
   flex-shrink: 0;
+  font-size: inherit;
 }
 .media-composer-preview__gallery {
   display: grid;
@@ -242,19 +277,6 @@ function formatBytes(value: number): string {
   font-size: var(--flare-size-font-size-sm);
   overflow-wrap: anywhere;
 }
-.media-composer-preview__index {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  display: grid;
-  place-items: center;
-  min-width: 24px;
-  height: 24px;
-  border-radius: var(--flare-size-radius-full);
-  color: var(--flare-color-text-primary);
-  background: var(--flare-color-bg-primary);
-  font-size: var(--flare-size-font-size-sm);
-}
 .media-composer-preview__name {
   min-width: 0;
   padding: var(--flare-size-spacing-sm);
@@ -264,29 +286,16 @@ function formatBytes(value: number): string {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.media-composer-preview__caption {
-  display: grid;
-  gap: var(--flare-size-spacing-sm);
-  min-width: 0;
-  color: var(--flare-color-text-secondary);
-}
-.media-composer-preview__caption > span {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--flare-size-spacing-xs);
-}
-.media-composer-preview__caption small {
-  font-size: var(--flare-size-font-size-sm);
-  color: var(--flare-color-text-tertiary);
-}
 .media-composer-preview__footer {
   display: flex;
-  flex: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
   gap: var(--flare-size-spacing-sm);
-  padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md)
-    calc(var(--flare-size-spacing-sm) + env(safe-area-inset-bottom, 0px));
+  margin-inline: var(--flare-size-spacing-lg);
+  padding-block: var(--flare-size-spacing-md) var(--flare-size-spacing-sm);
+  border-top: 1px solid var(--flare-color-border-secondary);
+  background: var(--flare-color-bg-primary);
 }
 /* 手机上这排键是这张面的底,拇指够得着才行:平分整行。桌面收在末端。 */
 [data-flare-presentation="sheet"] .media-composer-preview__footer > * {
@@ -294,14 +303,5 @@ function formatBytes(value: number): string {
 }
 [data-flare-presentation="dialog"] .media-composer-preview__footer {
   justify-content: flex-end;
-}
-/* The host decides where this mounts, so there is no container it is guaranteed to sit inside,
-   and a named container query that matches nothing applies nothing. It is sized against the
-   window on purpose (100vw / 100dvh below), so the window is what it asks. */
-@media (max-width: 639px) {
-  .media-composer-preview {
-    width: calc(100vw - 16px);
-    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
-  }
 }
 </style>

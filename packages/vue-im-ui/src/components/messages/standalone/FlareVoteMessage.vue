@@ -14,7 +14,7 @@ function percent(value: number | null | undefined) {
 </script>
 <template>
   <div class="fm-vote">
-    <div class="vt"><MsgIcon name="poll" :size="16" />{{ title }}</div>
+    <div class="vt"><MsgIcon name="poll" size="sm" />{{ title }}</div>
     <component :is="readOnly ? 'div' : 'button'" v-for="(o, i) in options" :key="i" class="opt"
       :type="readOnly ? undefined : 'button'" @click="!readOnly && emit('select', o, i)">
       <div v-if="percent(o.pct) !== null" class="bar" :style="{ width: percent(o.pct) + '%' }" aria-hidden="true" />

@@ -19,7 +19,9 @@ Map<String, Object?> walletJson() =>
 FlarePluginPageViewModel realFlow(String id) {
   final cases =
       (jsonDecode(
-                File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
+                File(
+                  '../../spec/wallet-flow-account-vectors.json',
+                ).readAsStringSync(),
               )
               as Map)['cases']
           as List;
@@ -157,20 +159,21 @@ void main() {
         );
         await tester.pumpAndSettle();
         final entries = flareAccountEntries(view);
+        final pc = width >= FlareSizes.appShellCompactMinWidth;
         expect(entries, hasLength(2));
-        expect(find.text('我的钱包'), findsOneWidget);
+        // §12.23: a PC draws no section title row (the page header names it).
+        expect(find.text('我的钱包'), pc ? findsNothing : findsOneWidget);
         expect(find.text('可用余额'), findsNothing);
         expect(find.text('900.00'), findsNothing);
-        expect(find.text('余额'), findsNWidgets(2));
-        for (final value in [
-          '零钱钱包',
-          '旅行钱包',
-          '1000.00',
-          '88.50',
-          'CNY · cash',
-          'USD · cash',
-        ]) {
+        // §5.1: a phone draws the other wallet as a "其他钱包" row (name,
+        // currency, balance), without the card's labels; §12.23: a PC card
+        // has no balance label and no plain details (资金类型与币种).
+        expect(find.text('余额'), pc ? findsNothing : findsOneWidget);
+        for (final value in ['零钱钱包', '旅行钱包', '1000.00', '88.50']) {
           expect(find.text(value), findsOneWidget);
+        }
+        for (final value in ['CNY · cash', 'USD · cash']) {
+          expect(find.text(value), pc ? findsNothing : findsOneWidget);
         }
         final first = find.byKey(ValueKey('account-entry:${entries.first.id}'));
         final second = find.byKey(ValueKey('account-entry:${entries.last.id}'));
@@ -200,22 +203,28 @@ void main() {
         expect(find.text('可用余额'), findsOneWidget);
         expect(find.text('900.00'), findsOneWidget);
         expect(find.text('1000.00'), findsOneWidget);
+        // W-06: the information is a panel; close it before the eye.
+        Navigator.of(tester.element(find.text('可用余额'))).pop();
+        await tester.pumpAndSettle();
         await tester.tap(
           find.byWidgetPredicate(
             (w) => w is FlareIconButton && w.semanticLabel == '隐藏余额',
           ),
         );
         await tester.pumpAndSettle();
+        final phone = width < FlareSizes.appShellCompactMinWidth;
         for (final value in [
           '1000.00',
           '88.50',
           '900.00',
           'CNY · cash',
-          'USD · cash',
+          if (!phone) 'USD · cash',
           'active',
         ]) {
           expect(find.text(value), findsNothing);
         }
+        // R10 masks amounts: a "其他钱包" row keeps its currency line.
+        if (phone) expect(find.text('USD · cash'), findsOneWidget);
         expect(find.text('零钱钱包'), findsOneWidget);
         expect(find.text('旅行钱包'), findsOneWidget);
         expect(tester.takeException(), isNull);
@@ -262,7 +271,7 @@ void main() {
     expect(payload!.page.page, 'fixture.home');
   });
 
-  testWidgets('wallet without rows retains its overview and empty state', (
+  testWidgets('wallet without rows draws the set-up state, no overview', (
     tester,
   ) async {
     surface(tester, 320);
@@ -274,8 +283,9 @@ void main() {
       host(page(FlarePluginPageViewModel.fromJson(json))),
     );
     await tester.pumpAndSettle();
-    expect(find.text('900.00'), findsOneWidget);
-    expect(find.text('尚未开通钱包'), findsOneWidget);
+    // §5.2 (W-01): no wallet draws no balance, only the set-up state.
+    expect(find.text('900.00'), findsNothing);
+    expect(find.text('开通钱包'), findsOneWidget);
     expect(find.text('零钱钱包'), findsNothing);
     expect(tester.takeException(), isNull);
   });

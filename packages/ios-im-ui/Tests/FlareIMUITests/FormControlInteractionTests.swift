@@ -5,14 +5,17 @@ import XCTest
 
 final class FormControlInteractionTests: XCTestCase {
     @MainActor
-    func testSwitchUsesButtonActionAndRespectsDisabledState() throws {
+    func testSwitchUsesNativeToggleSemanticsAndRespectsDisabledState() throws {
         var checked = false
         let binding = Binding(get: { checked }, set: { checked = $0 })
-        let button = try SwitchView(isOn: binding).inspect().find(ViewType.Button.self)
-        XCTAssertGreaterThanOrEqual(try button.labelView().flexFrame().minHeight, 44)
-        try button.tap()
+        let toggle = try SwitchView(isOn: binding).inspect().find(ViewType.Toggle.self)
+        let style = try XCTUnwrap(try toggle.toggleStyle() as? FlareSwitchStyle)
+        let target = try style.inspect(isOn: false).find(ViewType.Button.self)
+        XCTAssertGreaterThanOrEqual(try target.labelView().flexFrame().minHeight, 44)
+        XCTAssertGreaterThanOrEqual(try target.labelView().flexFrame().minWidth, 44)
+        try toggle.tap()
         XCTAssertTrue(checked)
-        let disabled = try SwitchView(isOn: binding, disabled: true).inspect().find(ViewType.Button.self)
+        let disabled = try SwitchView(isOn: binding, disabled: true).inspect().find(ViewType.Toggle.self)
         XCTAssertTrue(disabled.isDisabled())
         XCTAssertThrowsError(try disabled.tap())
         XCTAssertTrue(checked)

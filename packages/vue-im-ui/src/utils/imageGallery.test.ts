@@ -31,9 +31,9 @@ function message(raw: { id: string; kind: string; images?: string[]; recalled?: 
     : raw.kind === "video" ? { contentType: "video", video: { url: "https://cdn.example/v.mp4" } }
     : { contentType: "text", text: "see you tomorrow" };
   return {
-    serverId: `server-${raw.id}`, clientMsgId: raw.id, senderId: "u", senderDisplayName: "U",
+    serverId: raw.id, clientMsgId: `client-${raw.id}`, senderId: "u", senderDisplayName: "U",
     conversationSeq: 1, createdAt: 1, clientCreatedAt: 1, messageType: 1, content, status: "read",
-    isRecalled: raw.recalled === true, isRead: true, timelineKey: `client:${raw.id}`, timelineSortTs: 1, attributes: {},
+    isRecalled: raw.recalled === true, isRead: true, timelineKey: `server:${raw.id}`, timelineSortTs: 1, attributes: {},
   } as MessageLike;
 }
 

@@ -103,6 +103,7 @@ function setup(extra: Record<string, unknown> = {}) {
             actions: () => h(NButton, {}, () => "Create record"),
             tools: () => h(NButton, {}, () => "Export records"),
             "error-actions": () => h(NButton, {}, () => "Retry reading"),
+            ...(state.expandRows ? { "expanded-row": ({ row }: { row: { key: string } }) => h("p", {}, `Details of ${row.key}`) } : {}),
             ...(state.content ? { content: () => h("p", {}, "Rule diagram") } : {}),
           });
       },
@@ -164,6 +165,29 @@ function capturedClick(wrapper: ReturnType<typeof mount>, attribute: string) {
 }
 
 describe("FlarePluginAdminList / native operational list adapter", () => {
+  it("draws expanded details as a natural-height native table without query or toolbar", async () => {
+    const { list, state } = setup({ embedded: true, pagination: { page: 1, pageSize: 20, total: 3 } });
+    expect(list.findComponent(NDataTable).props("flexHeight")).toBe(false);
+    expect(list.findComponent(NForm).exists()).toBe(false);
+    expect(list.find(".flare-admin-list__toolbar").exists()).toBe(false);
+    expect(list.findComponent(NPagination).exists()).toBe(false);
+    expect(list.text()).toContain("Full untruncated record name");
+    expect(list.find('[data-row-detail]').exists()).toBe(true);
+    state.pagination = { page: 1, pageSize: 20, total: 21 };
+    await nextTick();
+    expect(list.findComponent(NPagination).exists()).toBe(true);
+  });
+  it("forwards lazy expansion with the original plugin row and embedded sizing", async () => {
+    const { list, adapter, state } = setup({ expandRows: true, embedded: true, expandedRowKeys: [] });
+    expect(list.props("embedded")).toBe(true);
+    expect(list.text()).not.toContain("Details of r1");
+    list.findComponent(NDataTable).vm.$emit("update:expandedRowKeys", ["r1"]);
+    await nextTick();
+    expect(adapter.emitted("update:expandedRowKeys")).toEqual([[["r1"]]]);
+    state.expandedRowKeys = ["r1"];
+    await nextTick();
+    expect(list.text()).toContain("Details of r1");
+  });
   it("keeps the query and actions when a host supplies the body", () => {
     const { wrapper } = setup({ content: true, searchText: "Run", pagination: undefined });
     expect(wrapper.text()).toContain("Rule diagram");

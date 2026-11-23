@@ -83,6 +83,8 @@
   --flare-component-shadow-panel: var(--flare-shadow-sm);
   --flare-component-sheet-width: var(--flare-size-component-sheet-width);
   --flare-component-unread: var(--flare-color-primary);
+  --flare-component-mention-bg: color-mix(in srgb, var(--flare-color-primary) 12%, transparent);
+  --flare-component-mention-text: color-mix(in srgb, var(--flare-color-primary-text) 84%, var(--flare-color-text-primary));
   /* Initial avatars: six identity tints (surface and initials), light values. */
   --flare-component-avatar-tint-1-bg: var(--flare-color-avatar-tint-blue-bg);
   --flare-component-avatar-tint-1-fg: var(--flare-color-avatar-tint-blue-fg);

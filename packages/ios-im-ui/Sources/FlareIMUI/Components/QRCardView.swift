@@ -55,10 +55,11 @@ public struct QRCardView: View {
                 Text(strings.scanToAddMe).font(.system(size: 12)).foregroundColor(colors.textTertiary)
                     .frame(maxWidth: .infinity)
             }
-            HStack {
-                if code == nil && !["loading", "refreshing"].contains(phase), let onRefresh { ButtonView(label: strings.retry, variant: .quiet, action: onRefresh) }
-                if code != nil, let onSave { ButtonView(label: strings.scanSaveCode, variant: .quiet, action: onSave) }
-                if code != nil, let onShare { ButtonView(label: strings.scanShareCode, variant: .quiet, action: onShare) }
+            HStack(spacing: 0) {
+                qrAction(code == nil ? strings.retry : strings.pluginPageRefresh, alignment: .leading,
+                         action: ["loading", "refreshing"].contains(phase) ? nil : onRefresh)
+                qrAction(strings.messageActionSave, alignment: .center, action: code == nil ? nil : onSave)
+                qrAction(strings.myInviteShare, alignment: .trailing, action: code == nil ? nil : onShare)
             }
         }
         .padding(18)
@@ -68,6 +69,17 @@ public struct QRCardView: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(colors.bgPrimary)
             .shadow(color: Color.black.opacity(0.14), radius: 24, y: 10)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.borderPrimary, lineWidth: 1)))
+    }
+
+    private func qrAction(_ label: String, alignment: Alignment, action: (() -> Void)?) -> some View {
+        Group {
+            if let action {
+                ButtonView(label: label, variant: .quiet, size: .sm, appearance: .text, action: action)
+            } else {
+                Color.clear.frame(height: 0)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment)
     }
 }
 

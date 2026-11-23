@@ -30,16 +30,45 @@ function render(props: Record<string, unknown>) {
 describe("FlareMomentAudienceSheet", () => {
   it("offers the three visibilities and marks the current one", () => {
     const wrapper = render({ visibility: "public" });
-    const rows = wrapper.findAll(".flare-moment-audience__options")[0].findAll(".flare-moment-audience__row");
-    expect(rows).toHaveLength(3);
-    expect(rows.filter((r) => r.classes().includes("is-active"))).toHaveLength(1);
-    expect(wrapper.findAll(".flare-moment-audience__check")).toHaveLength(1);
+    const tabs = wrapper.findAll('[role="tab"]');
+    expect(tabs).toHaveLength(3);
+    expect(tabs.map(tab => tab.attributes("aria-selected"))).toEqual(["false", "true", "false"]);
+    expect(wrapper.get(".flare-moment-audience__hint").text()).toBe("所有人可见");
   });
 
   it("reports a visibility change and changes nothing itself", async () => {
     const wrapper = render({ visibility: "friends" });
-    await wrapper.findAll(".flare-moment-audience__row")[1].trigger("click");
+    await wrapper.findAll('[role="tab"]')[1].trigger("click");
     expect(wrapper.findComponent(FlareMomentAudienceSheet).emitted("update:visibility")?.[0]).toEqual(["public"]);
+  });
+
+  it("exposes visibility, audience modes and people as native keyboard controls with selection state", () => {
+    const wrapper = render({ audienceMode: "include", audienceUserIds: ["u1"] });
+    const choice = wrapper.get('button[role="tab"][aria-selected="true"]');
+    expect(choice.attributes("type")).toBe("button");
+    expect(wrapper.get("button.is-include").attributes("aria-pressed")).toBe("true");
+    const people = wrapper.findAll("button.flare-moment-audience__contact");
+    expect(people.map(person => person.attributes("aria-pressed"))).toEqual(["true", "false"]);
+  });
+
+  it("searches the local list without losing selected people or changing the audience intent", async () => {
+    const wrapper = render({ audienceMode: "include", audienceUserIds: ["u1"] });
+    const search = wrapper.get('input');
+    await search.setValue("林夏");
+    expect(wrapper.findAll(".flare-moment-audience__contact-name").map(row => row.text())).toEqual(["林夏"]);
+    await wrapper.get(".flare-moment-audience__contact").trigger("click");
+    expect(wrapper.findComponent(FlareMomentAudienceSheet).emitted("update:audience")?.[0]).toEqual([{ mode: "include", userIds: ["u1", "u2"] }]);
+    await search.setValue("not-a-contact");
+    expect(wrapper.text()).toContain("没有找到相关结果");
+    await search.setValue("");
+    expect(wrapper.findAll(".flare-moment-audience__contact")).toHaveLength(2);
+  });
+
+  it("keeps Done in the header, and explains an empty contact list", async () => {
+    const wrapper = render({ audienceMode: "exclude", contacts: [] });
+    expect(wrapper.text()).toContain("暂无联系人");
+    await wrapper.get(".flare-moment-audience__head button").trigger("click");
+    expect(wrapper.findComponent(FlareMomentAudienceSheet).emitted("close")).toEqual([[]]);
   });
 
   it("hides the audience list for a private post, where a list would mean nothing", () => {

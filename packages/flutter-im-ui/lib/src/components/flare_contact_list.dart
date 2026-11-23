@@ -20,6 +20,8 @@ import 'flare_empty_state.dart';
 /// [trailingBuilder] adds content at the end of each row, such as an action.
 /// [empty] replaces the kit's own empty state, for a directory that is empty for
 /// a reason only the host knows (a filter, a permission, an invitation to add someone).
+/// [activeId] is the contact a neighbouring pane is showing; its row is marked
+/// current so a two-pane layout shows which row the detail belongs to.
 class FlareContactList extends StatefulWidget {
   const FlareContactList({
     super.key,
@@ -32,6 +34,7 @@ class FlareContactList extends StatefulWidget {
     this.onToggleSelect,
     this.trailingBuilder,
     this.empty,
+    this.activeId,
   });
 
   final List<FlareContact> items;
@@ -44,6 +47,7 @@ class FlareContactList extends StatefulWidget {
   final Widget Function(BuildContext context, FlareContact contact)?
   trailingBuilder;
   final Widget? empty;
+  final String? activeId;
 
   @override
   State<FlareContactList> createState() => _FlareContactListState();
@@ -162,6 +166,7 @@ class _FlareContactListState extends State<FlareContactList> {
                               ? null
                               : () => widget.onToggleSelect!(c),
                           trailing: widget.trailingBuilder?.call(context, c),
+                          current: widget.activeId == c.id,
                         ),
                     ],
                   ),

@@ -188,21 +188,19 @@ void main() {
     );
     expect(summary.center.dx, 720);
     expect(summary.left, greaterThan(240));
-    final title = find.descendant(
-      of: find.byKey(const ValueKey('flare-account-summary')),
-      matching: find.text('我的钱包'),
-    );
-    expect(
-      tester.getCenter(title).dy,
-      closeTo(
-        tester
-            .getCenter(
-              find.byKey(const ValueKey('flare-plugin-action-deposit')),
-            )
-            .dy,
-        1,
+    // §12.23: on PC even a single wallet's quick keys sit in the row under
+    // the cards (with the eye at its end), never inside the card.
+    final card = tester.getRect(
+      find.byKey(
+        ValueKey('account-entry:${flareAccountEntries(wallet()).first.id}'),
       ),
     );
+    final deposit = tester.getRect(
+      find.byKey(const ValueKey('flare-plugin-action-deposit')),
+    );
+    expect(card.contains(deposit.center), isFalse);
+    expect(deposit.top, greaterThan(card.bottom));
+    expect(summary.contains(deposit.center), isTrue);
     expect(tester.takeException(), isNull);
   });
 
@@ -360,7 +358,9 @@ void main() {
   FlarePluginPageViewModel sharedFixture(String id) {
     final vectors =
         jsonDecode(
-              File('../../spec/wallet-flow-account-vectors.json').readAsStringSync(),
+              File(
+                '../../spec/wallet-flow-account-vectors.json',
+              ).readAsStringSync(),
             )
             as Map;
     final item = (vectors['cases'] as List).cast<Map>().singleWhere(
@@ -454,12 +454,20 @@ void main() {
               findsOneWidget,
             );
           }
-          for (final text in [entry.title, entry.subtitle, entry.amount]) {
+          for (final text in [entry.title, entry.amount]) {
             expect(
               find.descendant(of: entryCard, matching: find.text(text)),
               findsOneWidget,
             );
           }
+          // §5.8: the details follow the time on the line under the title.
+          expect(
+            find.descendant(
+              of: entryCard,
+              matching: find.textContaining(entry.subtitle),
+            ),
+            findsOneWidget,
+          );
         }
         if (Platform.environment['FLARE_WALLET_SCREENSHOTS']
             case final output?) {
@@ -493,9 +501,10 @@ void main() {
       final entry = find.byKey(
         ValueKey('account-entry:${flareAccountEntries(view).first.id}'),
       );
+      // R8: an action failure leads the page, above the summary.
       expect(
-        tester.getBottomLeft(summary).dy,
-        lessThanOrEqualTo(tester.getTopLeft(error).dy),
+        tester.getBottomLeft(error).dy,
+        lessThanOrEqualTo(tester.getTopLeft(summary).dy),
       );
       expect(
         tester.getBottomLeft(error).dy,

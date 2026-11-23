@@ -239,7 +239,7 @@ void main() {
         faceOf(tester).first,
         v['dimmed'] as bool
             ? fadedToward(colors.redPacketStart, colors.redPacketFadedMixTarget)
-            : colors.redPacketStart,
+            : colors.redPacketEnd,
       );
       await tester.tap(find.byType(FlareRedPacketCard));
       expect(taps, v['tappable'] as bool ? 1 : 0);
@@ -431,13 +431,13 @@ void main() {
           );
           final colors = FlareColors.light;
           expect(faceOf(tester), [
-            colors.redPacketStart,
-            colors.redPacketMiddle,
+            colors.redPacketEnd,
+            colors.redPacketEnd,
             colors.redPacketEnd,
           ]);
           expect(
             tester.widget<Text>(find.text('恭喜发财')).style!.color,
-            Colors.white,
+            colors.redPacketOnSurface,
           );
           expect(find.text(flags.busy ? '处理中…' : '暂不可用'), findsOneWidget);
           final glyph = glyphOf(tester);
@@ -450,6 +450,27 @@ void main() {
       );
     }
   });
+
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    testWidgets('unclaimed white copy keeps text contrast in $brightness', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          home: const Scaffold(
+            body: Center(child: FlareRedPacketCard(blessing: '待领取')),
+          ),
+        ),
+      );
+      for (final background in faceOf(tester)) {
+        for (final copy in ['待领取', '领取红包', 'Flare 红包']) {
+          final foreground = tester.widget<Text>(find.text(copy)).style!.color!;
+          expect(contrast(background, foreground), greaterThanOrEqualTo(4.5));
+        }
+      }
+    });
+  }
 
   testWidgets('the glyph is the shared small envelope, taller than wide', (
     tester,

@@ -82,7 +82,7 @@ function onInput(e: Event) {
 
 <template>
   <div class="flare-input" :class="`flare-input--${rsize}`">
-    <div class="flare-input__field" :class="{ 'is-single-line': !multiline, 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix), 'is-monospace': monospace }">
+    <div class="flare-input__field" :class="{ 'is-single-line': !multiline, 'is-disabled': disabled, 'has-prefix': Boolean($slots.prefix), 'is-monospace': monospace, 'is-invalid': Boolean(control.invalid) }">
       <span v-if="$slots.prefix" class="flare-input__prefix" aria-hidden="true"><slot name="prefix" /></span>
       <textarea
         v-if="multiline"
@@ -129,6 +129,8 @@ function onInput(e: Event) {
         @focus="emit('focus')"
         @blur="emit('blur')"
       />
+      <!-- A unit after the value (a money input's currency, §5.5); the control's name carries it for readers. -->
+      <span v-if="$slots.suffix" class="flare-input__suffix" aria-hidden="true"><slot name="suffix" /></span>
       <button
         type="button"
         :aria-label="t('input.clear')"
@@ -184,6 +186,10 @@ function onInput(e: Event) {
   box-shadow: 0 0 0 2px var(--flare-color-focus-ring);
 }
 .flare-input__field.is-disabled { opacity: var(--flare-opacity-disabled); }
+.flare-input__suffix { flex: none; color: var(--flare-color-text-secondary); font-size: var(--flare-size-font-size-lg); }
+/* R6: a field in error is outlined in color.error, focused or not (the focus ring stays). */
+.flare-input__field.is-invalid,
+.flare-input__field.is-invalid:focus-within { border-color: var(--flare-color-error); }
 .flare-input__el {
   flex: 1;
   min-width: 0;
@@ -203,6 +209,7 @@ function onInput(e: Event) {
 .flare-input__reveal { border: 0; background: none; padding: var(--flare-size-spacing-xs); display: inline-flex; color: var(--flare-color-text-tertiary); cursor: pointer; }
 .flare-input__reveal[aria-pressed="true"] { color: var(--flare-color-text-secondary); }
 @media (pointer: coarse) {
+  .flare-input__field.is-single-line > .flare-input__suffix { padding-inline-end: var(--flare-size-spacing-md); }
   .flare-input:not(.flare-input--lg) .flare-input__field.is-single-line {
     min-height: var(--flare-size-layout-touch-target-min);
   }

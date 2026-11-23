@@ -1,160 +1,94 @@
 <script setup lang="ts">
-/**
- * 朋友圈可见性名单。
- *
- * 承载「不让他看我的」与「不看他的」两类规则的成员管理。
- *
- * **两类方向相反，同屏时必须视觉可分。** 设反了用户不会立刻察觉，
- * 却会造成「本想屏蔽对方，结果自己的动态对他可见」这类隐私后果 ——
- * 所以标题、空态文案、强调色都按 kind 分开，不共用一套措辞。
- */
-import { computed } from "vue";
-import { NButton, NEmpty, NIcon, NSkeleton } from "naive-ui";
-import { EyeOffOutline, PersonAddOutline, VolumeMuteOutline } from "../../shared/icon-glyphs";
+/** Two independent, directional moment visibility lists. The host owns every write. */
+import { computed, getCurrentInstance, useId } from "vue";
+import { PersonAddOutline } from "../../shared/icon-glyphs";
 import FlareAvatar from "../conversation/FlareAvatar.vue";
+import FlareButton from "../general/FlareButton.vue";
+import FlareIcon from "../general/FlareIcon.vue";
+import FlareSkeleton from "../general/FlareSkeleton.vue";
 import { useFlareI18n } from "../../shared/i18n";
-import type {
-  FlareContactBrief,
-  FlareMomentsVisibilityRuleKind,
-} from "../../shared/contracts";
+import type { FlareContactBrief, FlareMomentsVisibilityRuleKind } from "../../shared/contracts";
 
-const props = defineProps<{
-  kind: FlareMomentsVisibilityRuleKind;
-  members: FlareContactBrief[];
-  loading?: boolean;
-}>();
-
+const props = defineProps<{ kind: FlareMomentsVisibilityRuleKind; members: FlareContactBrief[]; loading?: boolean }>();
 const emit = defineEmits<{
   (e: "add"): void;
   (e: "remove", member: FlareContactBrief): void;
   (e: "selectMember", member: FlareContactBrief): void;
 }>();
-
 const { t } = useFlareI18n();
-
+const id = useId();
+const instance = getCurrentInstance();
+const selectable = computed(() => !!instance?.vnode.props?.onSelectMember);
 const isHideFrom = computed(() => props.kind === "hideFrom");
-
-// 文案按 kind 完全分开 —— 共用一套会让两个方向读起来一样，正是设反的根源。
-const title = computed(() =>
-  t(isHideFrom.value ? "momentsVisibility.hideFromTitle" : "momentsVisibility.muteTitle"),
-);
-const hint = computed(() =>
-  t(isHideFrom.value ? "momentsVisibility.hideFromHint" : "momentsVisibility.muteHint"),
-);
+const title = computed(() => t(isHideFrom.value ? "momentsVisibility.hideFromTitle" : "momentsVisibility.muteTitle"));
+const hint = computed(() => t(isHideFrom.value ? "momentsVisibility.hideFromHint" : "momentsVisibility.muteHint"));
 </script>
 
 <template>
-  <section class="flare-moments-visibility" :class="`is-${kind}`">
+  <section class="flare-moments-visibility" :class="`is-${kind}`" :aria-labelledby="`${id}-title`" :aria-describedby="`${id}-hint`" :aria-busy="!!loading">
     <header class="flare-moments-visibility__head">
-      <NIcon aria-hidden="true" :size="16" class="flare-moments-visibility__icon">
-        <EyeOffOutline v-if="isHideFrom" />
-        <VolumeMuteOutline v-else />
-      </NIcon>
+      <FlareIcon :name="isHideFrom ? 'eye-off' : 'mute'" size="md" class="flare-moments-visibility__icon" />
       <div class="flare-moments-visibility__titles">
-        <div class="flare-moments-visibility__title">{{ title }}</div>
-        <div class="flare-moments-visibility__hint">{{ hint }}</div>
+        <h2 :id="`${id}-title`" class="flare-moments-visibility__title">{{ title }}</h2>
+        <p :id="`${id}-hint`" class="flare-moments-visibility__hint">{{ hint }}</p>
       </div>
-      <NButton size="small" quaternary :disabled="loading" :aria-label="`${t('contactMatch.add')} · ${title}`" @click="emit('add')">
-        <template #icon>
-          <NIcon aria-hidden="true"><PersonAddOutline /></NIcon>
-        </template>
-      </NButton>
+      <FlareButton size="sm" variant="text" :icon="PersonAddOutline" :label="t('contactMatch.add')" :disabled="loading" :aria-label="`${t('contactMatch.add')} · ${title}`" @click="emit('add')" />
     </header>
-
-    <div v-if="loading" class="flare-moments-visibility__body">
-      <NSkeleton text :repeat="2" />
-    </div>
-
-    <NEmpty
-      v-else-if="!members.length"
-      size="small"
-      :description="t('momentsVisibility.empty')"
-      class="flare-moments-visibility__empty"
-    />
-
+    <div v-if="loading" class="flare-moments-visibility__body"><FlareSkeleton variant="text" :rows="2" /></div>
+    <p v-else-if="!members.length" class="flare-moments-visibility__empty" role="status">{{ t('momentsVisibility.empty') }}</p>
     <ul v-else class="flare-moments-visibility__body">
-      <li
-        v-for="m in members"
-        :key="m.userId"
-        class="flare-moments-visibility__row"
-      >
-        <button class="flare-moments-visibility__member" type="button" :disabled="loading" @click="emit('selectMember', m)">
-        <FlareAvatar :user-id="m.userId" :display-name="m.displayName" :avatar-url="m.avatarUrl" :size="32" />
-        <span class="flare-moments-visibility__name">{{ m.displayName }}</span>
-        </button>
-        <NButton size="small" quaternary :disabled="loading" :aria-label="`${t('momentsVisibility.remove')} ${m.displayName}`" @click="emit('remove', m)">
-          {{ t("momentsVisibility.remove") }}
-        </NButton>
+      <li v-for="m in members" :key="m.userId" class="flare-moments-visibility__row">
+        <component :is="selectable ? 'button' : 'div'" class="flare-moments-visibility__member" :class="{ 'is-interactive': selectable }" :type="selectable ? 'button' : undefined" @click="selectable && emit('selectMember', m)">
+          <FlareAvatar :user-id="m.userId" :display-name="m.displayName" :avatar-url="m.avatarUrl" :size="32" />
+          <span class="flare-moments-visibility__name" :title="m.displayName">{{ m.displayName }}</span>
+        </component>
+        <FlareButton size="sm" variant="quiet" :label="t('momentsVisibility.remove')" :aria-label="`${t('momentsVisibility.remove')} ${m.displayName}`" @click="emit('remove', m)" />
       </li>
     </ul>
   </section>
 </template>
 
 <style scoped>
+.flare-moments-visibility {
+  min-width: 0;
+  border: 1px solid var(--flare-color-border-secondary);
+  border-radius: var(--flare-size-radius-lg);
+  background: var(--flare-color-bg-primary);
+}
 .flare-moments-visibility__head {
   display: flex;
   align-items: flex-start;
   gap: var(--flare-size-spacing-sm);
   padding: var(--flare-size-spacing-md);
 }
-
-.flare-moments-visibility__icon {
-  margin-top: 2px;
-  flex: none;
-  color: var(--flare-color-text-secondary);
-}
-
-/* 两类用不同强调色，让同屏时一眼可分。 */
-.is-hideFrom .flare-moments-visibility__icon {
-  color: var(--flare-color-warning-text);
-}
-
-.is-mute .flare-moments-visibility__icon {
-  color: var(--flare-color-text-tertiary);
-}
-
-.flare-moments-visibility__titles {
-  flex: 1;
-  min-width: 0;
-}
-
+.flare-moments-visibility__icon { flex: none; color: var(--flare-color-text-secondary); }
+.is-hideFrom .flare-moments-visibility__icon { color: var(--flare-color-warning-text); }
+.flare-moments-visibility__titles { flex: 1; min-width: 0; }
 .flare-moments-visibility__title {
-  font-size: var(--flare-size-font-size-lg);
-  color: var(--flare-color-text-primary);
-}
-
-.flare-moments-visibility__hint {
-  font-size: var(--flare-size-font-size-sm);
-  color: var(--flare-color-text-tertiary);
-  margin-top: 2px;
-}
-
-.flare-moments-visibility__body {
-  padding: 0 var(--flare-size-spacing-md) var(--flare-size-spacing-sm);
   margin: 0;
-  list-style: none;
-}
-
-.flare-moments-visibility__row {
-  display: flex;
-  align-items: center;
-  gap: var(--flare-size-spacing-sm);
-  padding: 6px 0;
-  cursor: pointer;
-}
-
-.flare-moments-visibility__member { flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 8px; text-align: start; color: inherit; background: none; border: 0; cursor: pointer; }
-.flare-moments-visibility__member:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
-.flare-moments-visibility__name {
-  flex: 1;
-  min-width: 0;
   font-size: var(--flare-size-font-size-lg);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: var(--flare-size-font-weight-semibold);
+  line-height: var(--flare-size-line-height-snug);
+  color: var(--flare-color-text-primary);
+  overflow-wrap: anywhere;
 }
-
-.flare-moments-visibility__empty {
-  padding: var(--flare-size-spacing-lg) 0;
+.flare-moments-visibility__hint {
+  margin: var(--flare-size-spacing-xs) 0 0;
+  font-size: var(--flare-size-font-size-sm);
+  line-height: var(--flare-size-line-height-normal);
+  color: var(--flare-color-text-secondary);
+  overflow-wrap: anywhere;
 }
+.flare-moments-visibility__body { padding: 0 var(--flare-size-spacing-md) var(--flare-size-spacing-sm); margin: 0; list-style: none; }
+.flare-moments-visibility__row { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-height: var(--flare-size-layout-touch-target); }
+.flare-moments-visibility__row + .flare-moments-visibility__row { border-top: 1px solid var(--flare-color-border-secondary); }
+.flare-moments-visibility__member {
+  flex: 1; min-width: 0; min-height: var(--flare-size-layout-touch-target);
+  display: flex; align-items: center; gap: var(--flare-size-spacing-sm);
+  padding: 0; text-align: start; color: inherit; background: none; border: 0;
+}
+.flare-moments-visibility__member.is-interactive { cursor: pointer; }
+.flare-moments-visibility__member:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; border-radius: var(--flare-size-radius-md); }
+.flare-moments-visibility__name { flex: 1; min-width: 0; font-size: var(--flare-size-font-size-lg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flare-moments-visibility__empty { margin: 0; padding: 0 var(--flare-size-spacing-md) var(--flare-size-spacing-md); font-size: var(--flare-size-font-size-md); line-height: var(--flare-size-line-height-normal); color: var(--flare-color-text-tertiary); }
 </style>

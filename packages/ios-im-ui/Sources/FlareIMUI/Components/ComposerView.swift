@@ -105,6 +105,8 @@ public struct ComposerView: View {
     private let onSendSticker: ((_ packageId: String, _ stickerId: String) -> Void)?
     private let onCancelReply: (() -> Void)?
     private let actions: [FlareComposerAction]?
+    /// The host is still reading the menu: the "+" panel opens at once with skeleton squares for plugin items.
+    private let actionsLoading: Bool
     private let capabilities: FlareComposerCapabilities
     private let onAction: ((FlareComposerAction) -> Void)?
     private let onVoiceSend: ((URL, Int) async -> Bool)?
@@ -117,10 +119,16 @@ public struct ComposerView: View {
     private let voiceCancelLabel: String?
     private let sendAccent: AnyShapeStyle?
     private let mentionCandidates: [MentionCandidate]
+    private let editing: Bool
+    private let editPreview: String?
+    private let onClearEdit: (() -> Void)?
+    private let statusHint: String?
+    private let sendBlocked: Bool
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.flareCompactOverlays) private var compactOverlays
     @State private var localText = ""
     private let draft: Binding<String>?
     private let onImage: (() -> Void)?
@@ -169,6 +177,8 @@ public struct ComposerView: View {
         onSendSticker: ((_ packageId: String, _ stickerId: String) -> Void)? = nil,
         onCancelReply: (() -> Void)? = nil,
         actions: [FlareComposerAction]? = nil,
+        /// The menu is still being read (the panel draws skeleton squares for plugin items, it never waits).
+        actionsLoading: Bool = false,
         capabilities: FlareComposerCapabilities = FlareComposerCapabilities(),
         onAction: ((FlareComposerAction) -> Void)? = nil,
         enableVoice: Bool = false,
@@ -185,7 +195,17 @@ public struct ComposerView: View {
         /// typed at the start of a word open the kit ``MentionPickerView`` (everyone first),
         /// and picking someone puts "@name " into the text; `onSend` still sends the text, and the core
         /// finds the mentions in it. Empty keeps the key typing "@".
-        mentionCandidates: [MentionCandidate] = []
+        mentionCandidates: [MentionCandidate] = [],
+        /// The text holds a sent message being edited: an edit strip replaces the reply strip (its cancel calls
+        /// `onClearEdit`), the empty field reads ``FlareStrings/composerEditingPlaceholder`` and the send key saves.
+        /// `editPreview` is the strip's summary; without one the strip shows the text.
+        editing: Bool = false,
+        editPreview: String? = nil,
+        onClearEdit: (() -> Void)? = nil,
+        /// Why the conversation cannot be written to (read-only group, outdated build), shown above the field.
+        statusHint: String? = nil,
+        /// Sending is paused (no connection): the text can still be typed and kept, the send key is off.
+        sendBlocked: Bool = false
     ) {
         self.draft = text; self.onImage = onImage; self.onSendRich = onSendRich
         self.onUserInput = onUserInput
@@ -202,6 +222,7 @@ public struct ComposerView: View {
         self.onSendSticker = onSendSticker
         self.onCancelReply = onCancelReply
         self.actions = actions
+        self.actionsLoading = actionsLoading
         self.capabilities = capabilities
         self.onAction = onAction
         self.enableVoice = enableVoice
@@ -213,9 +234,14 @@ public struct ComposerView: View {
         self.onVoiceEnd = onVoiceEnd
         self.onVoiceCancel = onVoiceCancel
         self.mentionCandidates = mentionCandidates
+        self.editing = editing
+        self.editPreview = editPreview
+        self.onClearEdit = onClearEdit
+        self.statusHint = statusHint
+        self.sendBlocked = sendBlocked
     }
 
-    private var canSend: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !disabled }
+    private var canSend: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !disabled && !sendBlocked }
     private var resolvedActions: [FlareComposerAction] {
         resolveComposerActions(
             defaults: FlareComposerActionPanel.actions(for: strings),
@@ -223,7 +249,7 @@ public struct ComposerView: View {
             actions: actions
         )
     }
-    private var hasActionPanel: Bool { onAction != nil && !resolvedActions.isEmpty }
+    private var hasActionPanel: Bool { onAction != nil && (!resolvedActions.isEmpty || actionsLoading) }
     /// "+" with nothing to open or attach is hidden, not drawn disabled.
     private var plusShown: Bool { allows("attachments") && (hasActionPanel || onAttach != nil) }
     private var hasMentionPicker: Bool { capabilities.allowsTool("mention") && !mentionCandidates.isEmpty }
@@ -245,7 +271,7 @@ public struct ComposerView: View {
     }
     func resolveCopy(_ strings: FlareStrings) -> Copy {
         Copy(
-            placeholder: placeholder ?? strings.composerPlaceholder,
+            placeholder: placeholder ?? (editing ? strings.composerEditingPlaceholder : strings.composerPlaceholder),
             replyLabel: replyLabel ?? strings.composerReply,
             voiceLabel: voiceLabel ?? strings.voiceHoldButtonLabel,
             voiceRecordingLabel: voiceRecordingLabel ?? strings.voiceHoldButtonRecording,
@@ -258,10 +284,11 @@ public struct ComposerView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let m = ComposerMetrics.of(width: width, keys: toolKeyCount)
         VStack(spacing: 0) {
-            if let replyTo { replyStrip(replyTo, colors, m) }
+            if let statusHint, !statusHint.isEmpty { statusHintRow(statusHint, colors, m) }
+            if editing { editStrip(colors, m) } else if let replyTo { replyStrip(replyTo, colors, m) }
             if voiceMode, offersVoice, let onVoiceSend {
                 // The band runs edge to edge; the recorder is a framed row, so it keeps the band's side inset.
-                InlineVoiceComposerView(disabled: disabled, onKeyboard: { voiceMode = false }, onSend: onVoiceSend)
+                InlineVoiceComposerView(disabled: disabled || sendBlocked, onKeyboard: { voiceMode = false }, onSend: onVoiceSend)
                     .padding(.horizontal, m.band ? FlareSizes.spacingSm : 0)
                     .padding(.top, m.band ? FlareSizes.spacingXs : 0)
             } else {
@@ -335,6 +362,7 @@ public struct ComposerView: View {
         case .actions where hasActionPanel && allows("attachments"):
             FlareComposerActionPanel(actions: resolvedActions,
                                      formFactor: flareUsesMobileComposerPanels ? .mobile : .desktop,
+                                     loading: actionsLoading,
                                      onAction: activatePanelAction)
         default:
             EmptyView()
@@ -387,7 +415,8 @@ public struct ComposerView: View {
                 if distributed { Spacer(minLength: 0) }
             }
             if offersVoice {
-                iconButton("mic", label: strings.composerVoice, {
+                // Offline the recorder is off too (Vue `send-blocked`): a voice message could not go either.
+                iconButton("mic", label: strings.composerVoice, sendBlocked ? nil : {
                     FlareLayerPlatform.endEditing()
                     panelFlow.close()
                     voiceMode = true
@@ -424,7 +453,7 @@ public struct ComposerView: View {
                 )
                 if distributed { Spacer(minLength: 0) }
             }
-            FlareComposerSendButton(active: canSend, onSend: send)
+            FlareComposerSendButton(active: canSend, label: editing ? strings.composerSaveEdit : nil, onSend: send)
         }
         // With no key offered (a closed menu) the send key alone keeps the end of the row instead of the middle.
         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -518,13 +547,53 @@ public struct ComposerView: View {
         .overlay(alignment: .bottom) { if m.band { Rectangle().fill(colors.borderPrimary).frame(height: 1) } }
     }
 
+    /// The edit strip: the reply strip's frame, saying a sent message is being edited, with its cancel.
+    private func editStrip(_ colors: FlareColors, _ m: ComposerMetrics) -> some View {
+        let summary = [editPreview ?? "", text].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty } ?? strings.previewMessage
+        return HStack {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(strings.composerEditingMessage).font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                    .foregroundColor(colors.primaryText)
+                Text(summary).font(.system(size: FlareSizes.fontSizeSm))
+                    .foregroundColor(colors.textSecondary).lineLimit(1)
+            }
+            Spacer()
+            Button { onClearEdit?() } label: {
+                Image(systemName: flareIconSymbol("close")).font(.system(size: 14)).foregroundColor(colors.textTertiary)
+                    .flareTouchTarget()
+            }
+            .buttonStyle(.plain)
+            .flareCompactLayout(width: 14, height: 14)
+            .accessibilityLabel(strings.composerCancelEdit)
+        }
+        .padding(.horizontal, m.band ? 16 : FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
+        .background(
+            RoundedRectangle(cornerRadius: m.band ? 0 : FlareSizes.radiusMd)
+                .fill(m.band ? colors.bgPrimary : colors.bgSecondary)
+        )
+        .overlay(Rectangle().fill(colors.primary).frame(width: 3), alignment: .leading)
+        .overlay(alignment: .bottom) { if m.band { Rectangle().fill(colors.borderPrimary).frame(height: 1) } }
+    }
+
+    /// Why nothing can be sent here: a dot and the sentence, above the field (Vue `composer-status-hint`).
+    private func statusHintRow(_ hint: String, _ colors: FlareColors, _ m: ComposerMetrics) -> some View {
+        HStack(spacing: FlareSizes.spacingSm) {
+            Circle().fill(colors.textTertiary).frame(width: 6, height: 6).accessibilityHidden(true)
+            Text(hint).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, m.band ? 16 : FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
+        .accessibilityElement(children: .combine)
+    }
+
     /// A composer tool key: the kit icon `icon`, named `label`; `active` is its on state (the rich-text
     /// mode, the open action panel), shown in the brand colour and exposed as selected. Drawn through
     /// ``FlareIconImage``, so a kit-drawn name (the rich-text "T") is the kit's glyph, never a system symbol.
     private func iconButton(_ icon: String, label: String, _ action: (() -> Void)?, _ colors: FlareColors,
                             active: Bool = false) -> some View {
         Button { action?() } label: {
-            FlareIconImage(name: icon, size: 20)
+            FlareIconImage(name: icon, size: compactOverlays ? FlareSizes.iconSizeLg : FlareSizes.iconSizeMd)
                 .frame(width: FlareSizes.touchTargetMin, height: FlareSizes.touchTargetMin).contentShape(Rectangle())
                 .foregroundColor(active ? colors.primaryText : colors.textSecondary)
         }
@@ -535,7 +604,7 @@ public struct ComposerView: View {
 
     private func send() {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !disabled, !t.isEmpty, onSend != nil || onSendRich != nil else { return }
+        guard !disabled, !sendBlocked, !t.isEmpty, onSend != nil || onSendRich != nil else { return }
         if richOn, let onSendRich { onSendRich(formatted(t)) } else { onSend?(t) }
         text = ""
         panelFlow.close(.mention)

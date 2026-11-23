@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_icon_button.dart';
 import 'flare_shell_scope.dart';
 
 /// Page surface for [FlareScreen] — mirrors the Vue contract.
@@ -24,8 +26,17 @@ class FlareScreen extends StatelessWidget {
     this.scroll = true,
     this.footer,
     this.contentMaxWidth,
+    this.detail = false,
     required this.child,
   });
+
+  /// The page is the detail pane beside a list (Vue `layout="detail"`): kit
+  /// panels in it keep their keys at their own size instead of filling the row.
+  final bool detail;
+
+  /// The reading column of a readable page or a detail pane (Vue
+  /// `--flare-component-screen-reading-width`).
+  static const double readingWidth = 720;
 
   /// Large-title text. Omit for a headerless page.
   final String? title;
@@ -53,6 +64,17 @@ class FlareScreen extends StatelessWidget {
 
   final Widget child;
 
+  /// The title of the [FlareScreen] [context] is in, or null. A kit panel
+  /// leaves out its own heading when the screen already says it (Vue
+  /// `useScreenLayout().title`).
+  static String? titleOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ScreenTitle>()?.title;
+
+  /// Whether [context] is in a [FlareScreen] marked [detail].
+  static bool detailOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ScreenTitle>()?.detail ??
+      false;
+
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -69,6 +91,20 @@ class FlareScreen extends StatelessWidget {
             child: child,
           )
         : child;
+    body = _ScreenTitle(title: title, detail: detail, child: body);
+    // Vue `.flare-screen--detail`: the pane owns one 20 gutter and a reading
+    // column (720), start-aligned; kit children inside drop their own insets.
+    if (detail) {
+      body = Padding(
+        padding: const EdgeInsets.fromLTRB(
+          FlareSizes.spacingXl,
+          FlareSizes.spacingSm,
+          FlareSizes.spacingXl,
+          FlareSizes.spacingXl,
+        ),
+        child: body,
+      );
+    }
     if (scroll) body = SingleChildScrollView(child: body);
 
     // A page with a way back is not its destination's root: a shell hides its
@@ -100,12 +136,16 @@ class FlareScreen extends StatelessWidget {
                   : null,
             ),
             child: Align(
-              alignment: Alignment.topCenter,
+              alignment: detail
+                  ? AlignmentDirectional.topStart
+                  : Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth:
                       maxWidth != null && maxWidth.isFinite && maxWidth > 0
                       ? maxWidth
+                      : detail
+                      ? readingWidth + FlareSizes.spacingXl * 2
                       : double.infinity,
                 ),
                 child: SafeArea(
@@ -114,10 +154,14 @@ class FlareScreen extends StatelessWidget {
                     children: [
                       if (hasHeader)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            FlareSizes.spacingMd,
+                          padding: EdgeInsets.fromLTRB(
+                            detail
+                                ? FlareSizes.spacingXl
+                                : FlareSizes.spacingMd,
                             FlareSizes.spacingSm,
-                            FlareSizes.spacingMd,
+                            detail
+                                ? FlareSizes.spacingXl
+                                : FlareSizes.spacingMd,
                             FlareSizes.spacingSm,
                           ),
                           child: ConstrainedBox(
@@ -130,13 +174,17 @@ class FlareScreen extends StatelessWidget {
                                   IconButton(
                                     icon: Icon(
                                       Icons.arrow_back,
-                                      size: FlareSizes.iconSizeMd,
+                                      size:
+                                          FlareHeaderIconScope.phoneWidth(
+                                            context,
+                                          )
+                                          ? FlareSizes.iconSizeLg
+                                          : FlareSizes.iconSizeMd,
                                       color: colors.textPrimary,
                                     ),
                                     onPressed: onBack,
-                                    tooltip: MaterialLocalizations.of(
-                                      context,
-                                    ).backButtonTooltip,
+                                    // The kit's own word: a host without Material zh localizations would say "Back".
+                                    tooltip: FlareStrings.of(context).back,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(
                                       minWidth: FlareSizes.touchTarget,
@@ -155,15 +203,21 @@ class FlareScreen extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color: colors.textPrimary,
-                                          fontSize: FlareSizes.fontSize5xl,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: detail
+                                              ? FlareSizes.fontSize4xl
+                                              : FlareSizes.fontSize5xl,
+                                          fontWeight: detail
+                                              ? FontWeight.w600
+                                              : FontWeight.bold,
                                         ),
                                       ),
                                     ),
                                   )
                                 else
                                   const Spacer(),
-                                ...?actions,
+                                for (final action
+                                    in actions ?? const <Widget>[])
+                                  FlareHeaderIconScope(child: action),
                               ],
                             ),
                           ),
@@ -180,4 +234,19 @@ class FlareScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ScreenTitle extends InheritedWidget {
+  const _ScreenTitle({
+    required this.title,
+    required this.detail,
+    required super.child,
+  });
+
+  final String? title;
+  final bool detail;
+
+  @override
+  bool updateShouldNotify(_ScreenTitle oldWidget) =>
+      oldWidget.title != title || oldWidget.detail != detail;
 }

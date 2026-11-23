@@ -74,9 +74,10 @@ void main() {
     );
     expect(rect.left, FlareSizes.spacingMd);
     expect(rect.right, 800 - FlareSizes.spacingMd);
-    // The section cards share that inset.
-    expect(tester.getTopLeft(infoRow).dx, rect.left);
-    expect(tester.getTopRight(infoRow).dx, rect.right);
+    // The section cards share that inset (their rows sit inside the cards'
+    // hairline edge).
+    expect(tester.getTopLeft(infoRow).dx, rect.left + 1);
+    expect(tester.getTopRight(infoRow).dx, rect.right - 1);
 
     expect(find.descendant(of: _page, matching: slot), findsOneWidget);
     tester.view.physicalSize = const Size(800, 600);
@@ -89,7 +90,7 @@ void main() {
     expect(tester.getTopLeft(slot).dy, greaterThan(before));
   });
 
-  testWidgets('footer follows the message and leave buttons, inset like them', (
+  testWidgets('footer follows the leave buttons, inset like them', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -106,10 +107,7 @@ void main() {
     final leave = tester.getRect(
       find.widgetWithText(FlareButton, _labels.dissolve),
     );
-    final message = tester.getRect(
-      find.widgetWithText(FlareButton, _labels.message),
-    );
-    expect(message.bottom, lessThanOrEqualTo(leave.top));
+    // 发消息 leads the page under the title (Vue), not the footer.
     expect(slot.top, greaterThanOrEqualTo(leave.bottom));
     expect(slot.left, FlareSizes.spacingLg);
     expect(slot.left, leave.left);
@@ -146,8 +144,8 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(_host(const FlareGroupDetail(model: _model)));
-    await _scrollToEnd(tester);
     expect(find.widgetWithText(FlareButton, _labels.message), findsNothing);
+    await _scrollToEnd(tester);
     expect(find.widgetWithText(FlareButton, _labels.dissolve), findsOneWidget);
 
     final opened = <(List<String>, String)>[];
@@ -159,9 +157,17 @@ void main() {
         ),
       ),
     );
-    await _scrollToEnd(tester);
+    // The action stays at the bottom of the viewport while the details scroll.
+    tester.state<ScrollableState>(_page).position.jumpTo(0);
+    await tester.pumpAndSettle();
     final message = find.widgetWithText(FlareButton, _labels.message);
     expect(message, findsOneWidget);
+    expect(tester.widget<FlareButton>(message).block, isTrue);
+    expect(tester.widget<FlareButton>(message).size, FlareControlSize.lg);
+    expect(
+      tester.getTopLeft(message).dy,
+      greaterThan(tester.getTopLeft(find.text(_labels.announcement)).dy),
+    );
     await tester.tap(message);
     await tester.pump();
     expect(opened, hasLength(1));

@@ -39,6 +39,8 @@ data class ConversationRowData(
     val tags: List<ConversationRowTag> = emptyList(),
     val typing: Boolean = false,
     val failed: Boolean = false,
+    /** [FlareConversationKind.Group] puts the group mark on the row's avatar (Vue `FlareConversationRowModel.kind`). */
+    val kind: FlareConversationKind? = null,
 ) {
     val hasUnread: Boolean get() = unreadCount > 0
     val hasDraft: Boolean get() = !draftPreview.isNullOrBlank()

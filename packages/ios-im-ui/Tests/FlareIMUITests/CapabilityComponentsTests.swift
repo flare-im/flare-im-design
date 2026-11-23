@@ -205,4 +205,18 @@ final class CapabilityComponentsTests: XCTestCase {
         let bad = FlarePaymentOrder(orderId: "o", amount: "1e5", currency: "CNY", payee: "P", title: "", expiresAtMs: 10_000)
         XCTAssertFalse(FlarePaymentConfirmation.confirmEnabled(order: bad, nowMs: 0, busy: false, confirmDisabled: false))
     }
+
+    /// §12.19: a shortfall counts only above zero.
+    func testPaymentShortfallCountsOnlyAboveZero() {
+        let order = FlarePaymentOrder(orderId: "o", amount: "10.00", currency: "CNY", payee: "P", title: "", expiresAtMs: 10_000)
+        for none in ["0", "0.00", "¥0.00", "-¥1.00"] {
+            XCTAssertFalse(FlarePaymentConfirmation.owing(none), none)
+            XCTAssertNil(FlarePaymentConfirmation.insufficientText(none, strings: FlareStrings()), none)
+            XCTAssertTrue(FlarePaymentConfirmation.confirmEnabled(order: order, nowMs: 0, busy: false, confirmDisabled: false,
+                                                                  shortfall: none), none)
+        }
+        XCTAssertTrue(FlarePaymentConfirmation.owing("¥0.01"))
+        XCTAssertFalse(FlarePaymentConfirmation.confirmEnabled(order: order, nowMs: 0, busy: false, confirmDisabled: false,
+                                                               shortfall: "¥6.64"))
+    }
 }

@@ -13,6 +13,47 @@ const people = [
 const FOCUSABLE = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
 
 describe("FlareContactList selection", () => {
+  it("moves between row controls without selecting and leaves trailing actions alone", async () => {
+    const wrapper = mount(FlareContactList, {
+      props: { items: people, indexed: false, onSelect: () => {} },
+      slots: { trailing: () => h("button", { class: "remove" }, "Remove") },
+      attachTo: document.body,
+    });
+    const rows = wrapper.findAll("button.flare-contact-item__main");
+    expect(wrapper.vm.focusFirst()).toBe(true);
+    expect(document.activeElement).toBe(rows[0].element);
+    await rows[0].trigger("keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(rows[1].element);
+    await rows[1].trigger("keydown", { key: "Home" });
+    expect(document.activeElement).toBe(rows[0].element);
+    await rows[0].trigger("keydown", { key: "ArrowUp" });
+    expect(wrapper.emitted("focusSearch")).toEqual([[]]);
+    expect(wrapper.emitted("select")).toBeUndefined();
+    expect(wrapper.vm.focusContact("u2")).toBe(true);
+    expect(document.activeElement).toBe(rows[1].element);
+    expect(wrapper.vm.focusContact("missing")).toBe(false);
+    const trailing = wrapper.findAll("button.remove")[0];
+    (trailing.element as HTMLElement).focus();
+    await trailing.trigger("keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(trailing.element);
+    wrapper.unmount();
+  });
+
+  it("supports picker keyboard navigation without toggling checkboxes", async () => {
+    const wrapper = mount(FlareContactList, { props: { items: people, selectable: true, indexed: false }, attachTo: document.body });
+    const boxes = wrapper.findAll("[role=checkbox]");
+    wrapper.vm.focusLast();
+    expect(document.activeElement).toBe(boxes[1].element);
+    await boxes[1].trigger("keydown", { key: "ArrowUp", isComposing: true });
+    expect(document.activeElement).toBe(boxes[1].element);
+    await boxes[1].trigger("keydown", { key: "ArrowUp" });
+    expect(document.activeElement).toBe(boxes[0].element);
+    await boxes[0].trigger("keydown", { key: "End" });
+    expect(document.activeElement).toBe(boxes[1].element);
+    expect(wrapper.emitted("toggleSelect")).toBeUndefined();
+    wrapper.unmount();
+  });
+
   it("renders each selectable row as one checkbox named by the contact and toggles from anywhere on the row", async () => {
     const wrapper = mount(FlareContactList, {
       props: { items: people, indexed: false, selectable: true, selectedIds: ["u2"], onSelect: () => {} },
@@ -123,6 +164,20 @@ describe("FlareContactList index", () => {
 });
 
 describe("FlareContactList empty slot", () => {
+  it("announces first loading instead of a blank scroller or an empty result, and keeps rows during refresh", async () => {
+    const wrapper = mount(FlareContactList, { props: { items: [], loading: true }, slots: { empty: '<p class="host-empty">No matches</p>' } });
+    expect(wrapper.attributes("aria-busy")).toBe("true");
+    expect(wrapper.find('[role="status"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("加载中");
+    expect(wrapper.find('.host-empty').exists()).toBe(false);
+    await wrapper.setProps({ items: people });
+    expect(wrapper.findAll('.flare-contact-item')).toHaveLength(2);
+    expect(wrapper.find('[role="status"]').exists()).toBe(false);
+    await wrapper.setProps({ loading: false });
+    expect(wrapper.attributes("aria-busy")).toBe("false");
+    wrapper.unmount();
+  });
+
   it("draws the kit's own empty state when the host gives none", () => {
     const wrapper = mount(FlareContactList, { props: { items: [] } });
     expect(wrapper.find(".flare-empty").exists()).toBe(true);
@@ -145,4 +200,17 @@ describe("FlareContactList empty slot", () => {
     expect(wrapper.find(".host-empty").exists()).toBe(false);
     expect(wrapper.find(".flare-empty").exists()).toBe(false);
   });
+});
+
+it("keeps selected identities visible across filtered and empty pages, removing by stable id", async () => {
+  const selected = [{ id: "ivy", name: "Ivy" }, { id: "kim", name: "Kim" }];
+  const wrapper = mount(FlareContactList, { props: { items: [selected[0]], indexed: false, selectable: true, selectedIds: ["ivy", "kim"], selectedItems: selected } });
+  expect(wrapper.findAll(".flare-contact-list__chip").map(el => el.attributes("aria-label"))).toEqual(["移除已选成员 Ivy", "移除已选成员 Kim"]);
+  await wrapper.setProps({ items: [] });
+  expect(wrapper.findAll(".flare-contact-list__chip")).toHaveLength(2);
+  await wrapper.findAll(".flare-contact-list__chip")[1].trigger("click");
+  expect(wrapper.emitted("toggleSelect")).toEqual([["kim"]]);
+  await wrapper.setProps({ selectedIds: ["ivy"] });
+  expect(wrapper.findAll(".flare-contact-list__chip").map(el => el.attributes("aria-label"))).toEqual(["移除已选成员 Ivy"]);
+  wrapper.unmount();
 });

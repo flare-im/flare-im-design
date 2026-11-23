@@ -169,12 +169,14 @@ public struct FlareAuthShell<Content: View>: View {
             content
                 .padding(.top, FlareSizes.spacing2xl)
             if let footer {
+                // Vue `.flare-auth-shell__footer`: a hairline over it, start-aligned.
+                Divider().overlay(colors.borderSecondary)
+                    .padding(.top, FlareSizes.spacing2xl)
                 Text(footer)
                     .font(.system(size: captionSize))
                     .foregroundStyle(colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, FlareSizes.spacing2xl)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, FlareSizes.spacingLg)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

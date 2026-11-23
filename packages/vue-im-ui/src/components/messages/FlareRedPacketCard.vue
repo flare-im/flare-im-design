@@ -133,14 +133,14 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
 /* Every colour the card paints goes through these slots, so a spent packet is one block of overrides
    below rather than a second set of rules. */
 .flare-red-packet {
-  --rp-start: var(--flare-color-red-packet-start);
-  --rp-middle: var(--flare-color-red-packet-middle);
+  --rp-start: var(--flare-color-red-packet-end);
+  --rp-middle: var(--flare-color-red-packet-end);
   --rp-end: var(--flare-color-red-packet-end);
   --rp-gold: var(--flare-color-red-packet-gold);
   --rp-gold-deep: var(--flare-color-red-packet-gold-deep);
-  --rp-text: #fff;
-  --rp-status: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 85%, transparent);
-  --rp-soft: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 60%, transparent);
+  --rp-text: var(--flare-color-red-packet-on-surface);
+  --rp-status: var(--flare-color-red-packet-on-surface);
+  --rp-soft: var(--flare-color-red-packet-on-surface);
   --rp-rule: color-mix(in srgb, var(--flare-color-red-packet-on-surface) 28%, transparent);
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
   text-align: left;
   color: var(--rp-status);
   background: linear-gradient(135deg, var(--rp-start) 0%, var(--rp-middle) 52%, var(--rp-end) 100%);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--flare-color-red-packet-end) 32%, transparent);
+  box-shadow: var(--flare-shadow-md);
   position: relative;
   overflow: hidden;
   transition: transform var(--flare-transition-fast), filter var(--flare-transition-fast);
@@ -182,7 +182,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
 }
 .flare-red-packet.has-quote .flare-red-packet__open { padding-top: var(--flare-size-spacing-sm); }
 .flare-red-packet__open:hover:not(:disabled) { filter: brightness(1.03); }
-.flare-red-packet__open:active:not(:disabled) { transform: scale(0.98); }
+.flare-red-packet__open:active:not(:disabled) { transform: scale(var(--flare-size-component-press-scale)); }
 .flare-red-packet__open:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
 .flare-red-packet__open:disabled { cursor: default; }
 /* Opened, emptied or expired: the same envelope, quieter — every colour mixed with fadedMixTarget by the
@@ -225,7 +225,7 @@ const accessibleName = computed(() => t("redPacket.cardLabel", { blessing: props
 }
 .flare-red-packet__status {
   display: block;
-  margin-top: 3px;
+  margin-top: var(--flare-size-spacing-3xs);
   font-size: var(--flare-size-font-size-sm);
   line-height: var(--flare-size-line-height-snug);
   color: var(--rp-status);

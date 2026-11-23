@@ -139,6 +139,7 @@ class FlareComposerSendButton extends StatelessWidget {
     this.busy = false,
     this.onTap,
     this.compact = false,
+    this.label,
   });
 
   final bool active;
@@ -147,6 +148,10 @@ class FlareComposerSendButton extends StatelessWidget {
   final bool busy;
   final VoidCallback? onTap;
   final bool compact;
+
+  /// The key's name when it is not plain "send" (saving an edit); the kit's
+  /// "send" when null.
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -158,10 +163,11 @@ class FlareComposerSendButton extends StatelessWidget {
     // Web uses a 34px desktop column inside a 36px-high control. Keeping the
     // non-square footprint matters when seven actions sit at the right edge.
     final size = compact ? const Size(34, 36) : const Size(44, 44);
+    final glyph = compact ? FlareSizes.iconSizeMd : FlareSizes.iconSizeLg;
     return IconButton(
-      tooltip: busy ? strings.messageSending : strings.send,
+      tooltip: busy ? strings.messageSending : label ?? strings.send,
       onPressed: active && !busy ? onTap : null,
-      iconSize: FlareSizes.iconSizeMd,
+      iconSize: glyph,
       padding: EdgeInsets.zero,
       constraints: BoxConstraints.tight(size),
       // shrinkWrap, or Material pads the target out to 48 and the tool row
@@ -179,7 +185,7 @@ class FlareComposerSendButton extends StatelessWidget {
           : reduceMotion
           ? Icon(Icons.schedule_outlined, color: colors.primaryText)
           : SizedBox.square(
-              dimension: FlareSizes.iconSizeMd,
+              dimension: glyph,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: colors.primary,
@@ -197,15 +203,21 @@ class FlareComposerReplyStrip extends StatelessWidget {
     required this.summary,
     this.label = '回复',
     this.onCancel,
+    this.cancelLabel,
     this.flush = false,
   });
 
+  /// Who wrote the message the strip names; empty for a strip that names no
+  /// one (the message being edited is the user's own).
   final String senderName;
   final String summary;
 
   /// Leading text before the sender (host-provided, no baked-in language).
   final String label;
   final VoidCallback? onCancel;
+
+  /// The close control's name; the kit's "cancel reply" when null.
+  final String? cancelLabel;
 
   /// Part of the writing band rather than a card on top of it: full width, no
   /// rounding, closed by a hairline. What a phone composer passes.
@@ -241,7 +253,7 @@ class FlareComposerReplyStrip extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '$label $senderName',
+                  senderName.isEmpty ? label : '$label $senderName',
                   style: TextStyle(
                     color: colors.primaryText,
                     fontSize: FlareSizes.fontSizeXs,
@@ -261,7 +273,7 @@ class FlareComposerReplyStrip extends StatelessWidget {
             ),
           ),
           FlareIconControl(
-            label: FlareStrings.of(context).cancelReply,
+            label: cancelLabel ?? FlareStrings.of(context).cancelReply,
             onTap: onCancel,
             alignment: AlignmentDirectional.centerEnd,
             child: FlareIcon('close', size: 18, color: colors.textTertiary),

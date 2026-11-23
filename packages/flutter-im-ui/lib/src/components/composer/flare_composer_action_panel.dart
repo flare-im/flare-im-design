@@ -4,6 +4,7 @@ import '../../tokens/flare_strings.dart';
 import '../../tokens/flare_tokens.dart';
 import '../action_icon.dart';
 import '../flare_icon.dart' show flareIconMap;
+import '../flare_skeleton.dart';
 
 /// Where a "+" tile comes from: a built-in [feature] the tenant's feature
 /// switches control, or a [plugin] — the composer-action an authorised plugin
@@ -94,6 +95,15 @@ class FlareComposerAction {
       flareIconMap.containsKey(icon) ? icon : flareComposerPluginIcon;
 }
 
+/// Controls that remain available before the optional message menu arrives.
+const flareStandardComposerToolIds = {
+  'emoji',
+  'voice',
+  'image',
+  'richText',
+  'attachments',
+};
+
 /// Business availability supplied by the host. An omitted set allows all ids.
 class FlareComposerCapabilities {
   const FlareComposerCapabilities({
@@ -150,7 +160,9 @@ enum FlareComposerPanelFormFactor { mobile, desktop }
 /// mobile) the grid pages sideways, [rows] × [crossAxisCount] per page, with
 /// page dots; on a desktop it shows at most [rows] rows and scrolls. A new list
 /// keeps the page the reader is on (clamped when pages go away); a tile that
-/// appears fades in (150 ms, none with reduced motion).
+/// appears fades in (150 ms, none with reduced motion). While [loading], a row
+/// of skeleton squares holds the plugin items' place, so the panel opens at
+/// once (docs/plugin-experience.md §4.1).
 class FlareComposerActionPanel extends StatefulWidget {
   const FlareComposerActionPanel({
     super.key,
@@ -160,6 +172,7 @@ class FlareComposerActionPanel extends StatefulWidget {
     this.onAction,
     this.formFactor = FlareComposerPanelFormFactor.mobile,
     this.rows,
+    this.loading = false,
   }) : assert(crossAxisCount > 0),
        assert(rows == null || rows > 0);
 
@@ -172,6 +185,13 @@ class FlareComposerActionPanel extends StatefulWidget {
   /// (default 3).
   final int? rows;
   final void Function(FlareComposerAction action)? onAction;
+
+  /// The plugin items are still on their way: one row of skeleton squares
+  /// follows the other tiles until they arrive.
+  final bool loading;
+
+  /// A skeleton square (tests).
+  static const Key skeletonKey = ValueKey('flare-action-panel-skeleton');
 
   /// Height of one row of tiles.
   static const double rowExtent = 76;
@@ -247,10 +267,18 @@ class _FlareComposerActionPanelState extends State<FlareComposerActionPanel> {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final resolvedActions = resolveFlareComposerActions(
-      actions: widget.actions,
-      capabilities: widget.capabilities,
-    );
+    final skeletons = [
+      if (widget.loading)
+        for (var i = 0; i < widget.crossAxisCount; i++)
+          FlareComposerAction(id: '\u0000skeleton-$i', icon: ''),
+    ];
+    final resolvedActions = [
+      ...resolveFlareComposerActions(
+        actions: widget.actions,
+        capabilities: widget.capabilities,
+      ),
+      ...skeletons,
+    ];
     final fresh = {
       if (_built)
         for (final action in resolvedActions)
@@ -260,11 +288,13 @@ class _FlareComposerActionPanelState extends State<FlareComposerActionPanel> {
     _seen
       ..clear()
       ..addAll(resolvedActions.map((action) => action.id));
-    Widget tile(FlareComposerAction action) => _FadeIn(
-      key: ValueKey(action.id),
-      animate: fresh.contains(action.id) && !reduceMotion,
-      child: _tile(action, colors, strings),
-    );
+    Widget tile(FlareComposerAction action) => skeletons.contains(action)
+        ? _skeleton(strings, first: action == skeletons.first)
+        : _FadeIn(
+            key: ValueKey(action.id),
+            animate: fresh.contains(action.id) && !reduceMotion,
+            child: _tile(action, colors, strings),
+          );
     final height =
         _rows * FlareComposerActionPanel.rowExtent +
         (_rows - 1) * FlareSizes.spacingLg;
@@ -368,6 +398,25 @@ class _FlareComposerActionPanelState extends State<FlareComposerActionPanel> {
             ),
           ),
       ],
+    );
+  }
+
+  /// A kit skeleton square where a tile will be; the first one tells a screen
+  /// reader the panel is loading.
+  Widget _skeleton(FlareStrings strings, {required bool first}) {
+    const square = SizedBox.square(
+      key: FlareComposerActionPanel.skeletonKey,
+      dimension: 52,
+      child: FlareSkeleton(variant: FlareSkeletonVariant.tile),
+    );
+    return Align(
+      alignment: Alignment.topCenter,
+      child: first
+          ? Semantics(
+              label: strings.loading,
+              child: const ExcludeSemantics(child: square),
+            )
+          : const ExcludeSemantics(child: square),
     );
   }
 

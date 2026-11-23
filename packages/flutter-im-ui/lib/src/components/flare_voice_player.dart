@@ -177,8 +177,8 @@ class FlareVoicePlayer extends StatelessWidget {
             ),
             if (transcriptOpen)
               Container(
-                margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.only(top: 8),
+                margin: const EdgeInsets.only(top: FlareSizes.spacingSm),
+                padding: const EdgeInsets.only(top: FlareSizes.spacingSm),
                 decoration: BoxDecoration(
                   border: Border(
                     top: BorderSide(
@@ -295,7 +295,10 @@ class FlareVoicePlayer extends StatelessWidget {
     return GestureDetector(
       onTap: onCycleSpeed,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacingSm,
+          vertical: FlareSizes.spacingXs,
+        ),
         decoration: BoxDecoration(
           color: colors.bgSecondary,
           borderRadius: BorderRadius.circular(FlareSizes.radiusFull),

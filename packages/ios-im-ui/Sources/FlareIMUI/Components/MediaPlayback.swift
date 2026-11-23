@@ -376,8 +376,7 @@ final class FlareMediaSession: ObservableObject {
 
     /// Opens the picture at `index` of message `messageId`: inside a timeline (`gallery`) as the conversation's gallery
     /// starting at that picture, each picture downloadable with the timeline's handler; else — or when the picture is
-    /// not in the gallery — `image` alone, downloadable with `onDownload`, its key following `downloadId`. A picture of
-    /// an image message follows its message's state and can be revealed; an album's pictures keep the download key.
+    /// not in the gallery — `image` alone, downloadable with `onDownload`, its key following `downloadId`.
     func open(_ image: FlareImageContent, messageId: String?, index: Int, gallery: FlareImageGallerySource?,
               onDownload: (() -> Void)?, onReveal: (() -> Void)? = nil, downloadId: String? = nil) {
         let items = gallery.map { flareImageGalleryItems($0.messages) } ?? []
@@ -392,16 +391,14 @@ final class FlareMediaSession: ObservableObject {
         let images = items.map { item in
             let picture = flarePictureSource(item.image, preferThumbnail: false)
             let owner = owners[item.messageId]
-            // Only an image message has a state of its own; an album's state would stand for all of its pictures.
-            let single = owner?.content is FlareImageContent
             return FlareGalleryImage(url: picture.src, alt: item.image.alt, local: picture.local,
                                      onDownload: gallery.download.flatMap { download in
                                          owner.map { owner in { download(owner, item.image) } }
                                      },
-                                     downloadId: single ? item.messageId : nil,
-                                     onReveal: single ? gallery.reveal.flatMap { reveal in
+                                     downloadId: owner.flatMap { flareMediaDownloadStateKey($0, picked: item.image) },
+                                     onReveal: gallery.reveal.flatMap { reveal in
                                          owner.map { owner in { reveal(owner, item.image) } }
-                                     } : nil)
+                                     })
         }
         viewer.presentation = FlareMediaPresentation(.gallery(images: images, index: start))
     }
@@ -411,7 +408,8 @@ final class FlareMediaSession: ObservableObject {
     func present(_ video: FlareVideoContent, onDownload: (() -> Void)? = nil, onReveal: (() -> Void)? = nil,
                  downloadId: String? = nil) {
         voice.stop()
-        viewer.presentation = FlareMediaPresentation(.video(url: video.url, poster: video.poster), onDownload: onDownload,
+        let url = flareLocalVideoURL(video.localPath)?.absoluteString ?? video.url
+        viewer.presentation = FlareMediaPresentation(.video(url: url, poster: video.poster), onDownload: onDownload,
                                                      onReveal: onReveal, downloadId: downloadId)
     }
 

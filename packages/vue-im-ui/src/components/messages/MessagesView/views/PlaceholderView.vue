@@ -31,7 +31,7 @@ const preview = computed(() => {
 
 <template>
   <div class="im-placeholder">
-    <n-icon aria-hidden="true" :component="DocumentTextOutline" />
+    <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="DocumentTextOutline" />
     <span>{{ preview }}</span>
   </div>
 </template>

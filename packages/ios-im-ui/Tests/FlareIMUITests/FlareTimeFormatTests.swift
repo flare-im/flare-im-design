@@ -60,6 +60,8 @@ final class FlareTimeFormatTests: XCTestCase {
 
     func testYesterdayCopyComesFromTheStrings() {
         XCTAssertEqual(FlareStrings().yesterday, "昨天")
-        XCTAssertEqual(FlareStrings(yesterday: "Yesterday").yesterday, "Yesterday")
+        XCTAssertEqual(FlareStrings { copy in
+            copy.yesterday = "Yesterday"
+        }.yesterday, "Yesterday")
     }
 }

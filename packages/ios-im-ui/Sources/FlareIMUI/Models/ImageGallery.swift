@@ -1,5 +1,16 @@
 import Foundation
 
+/// Download state for one item, including each picture in an album.
+public func flareMediaDownloadStateKey(_ message: FlareMessageData, picked: FlareMessageContent) -> String? {
+    if let album = message.content as? FlareImageGroupContent {
+        guard let image = picked as? FlareImageContent,
+              let index = album.images.firstIndex(where: { $0.url == image.url && $0.localPath == image.localPath })
+        else { return nil }
+        return "\(message.id)#image:\(index)"
+    }
+    return picked is FlareImageContent || picked is FlareVideoContent || picked is FlareFileContent ? message.id : nil
+}
+
 // A conversation's image gallery: the pictures a full-screen preview opened from a timeline pages through. The rule
 // is shared with the other three kits (`spec/image-gallery-vectors.json`).
 

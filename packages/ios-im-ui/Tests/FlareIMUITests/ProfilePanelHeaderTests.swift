@@ -17,7 +17,9 @@ final class ProfilePanelHeaderTests: XCTestCase {
 
     func testTheEditLabelComesFromTheStringsTable() {
         XCTAssertEqual(s.profilePanelEditProfile("林夏"), "林夏，编辑资料")
-        XCTAssertEqual(FlareStrings(profilePanelEditProfile: { "\($0), edit profile" }).profilePanelEditProfile("Lin"), "Lin, edit profile")
+        XCTAssertEqual(FlareStrings { copy in
+            copy.profilePanelEditProfile = { "\($0), edit profile" }
+        }.profilePanelEditProfile("Lin"), "Lin, edit profile")
     }
 
     @MainActor
@@ -26,7 +28,8 @@ final class ProfilePanelHeaderTests: XCTestCase {
         let panel = ProfilePanelView(user: user, onEdit: { events.append("edit") }, onQr: { events.append("qr") })
         let identity = try button(panel, "林夏，编辑资料")
         XCTAssertTrue(try identity.labelView().findAll(ViewType.Button.self).isEmpty, "the QR key is not nested inside the identity row")
-        XCTAssertNoThrow(try identity.labelView().find(text: "产品设计"), "the row holds the avatar, name, signature and id")
+        let identityText = try identity.labelView().find(ViewType.VStack.self, where: { (try? $0.find(text: "林夏")) != nil })
+        XCTAssertNoThrow(try identityText.find(text: "产品设计"), "the name and signature share one text column")
         XCTAssertNoThrow(try identity.labelView().find(ViewType.Image.self, where: { try $0.actualImage().name() == "chevron.right" }))
         XCTAssertGreaterThanOrEqual(try identity.labelView().flexFrame().minHeight, FlareSizes.touchTargetMin)
 
@@ -44,7 +47,8 @@ final class ProfilePanelHeaderTests: XCTestCase {
         let view = try panel.inspect()
         XCTAssertEqual(try view.find(text: "林夏").attributes().foregroundColor(), colors.textPrimary)
         XCTAssertEqual(try view.find(text: "产品设计").attributes().foregroundColor(), colors.textSecondary)
-        XCTAssertEqual(try view.find(text: "Flare ID: lin").attributes().foregroundColor(), colors.textTertiary)
+        // Vue `.flare-profile__id`: the secondary text colour.
+        XCTAssertEqual(try view.find(text: "Flare ID: lin").attributes().foregroundColor(), colors.textSecondary)
         XCTAssertEqual(try view.find(ViewType.Image.self, where: { try $0.actualImage().name() == "chevron.right" }).foregroundColor(),
                        colors.textTertiary)
         XCTAssertNotEqual(colors.textPrimary, colors.messageOutgoingForeground, "the check tells the two apart")

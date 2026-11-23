@@ -214,7 +214,8 @@ public struct ScreenShareView: View {
                         primaryButton(copy.startText, icon: "screen-share", colors: colors) { onStart?() }
                     }
                     if actions.stop {
-                        outlinedButton(copy.stopText, icon: "block", tint: colors.error, colors: colors) { onStop?() }
+                        // Start and stop share one glyph (§3.9); the label and the error tint tell them apart.
+                        outlinedButton(copy.stopText, icon: "screen-share", tint: colors.error, colors: colors) { onStop?() }
                     }
                     if actions.cancel {
                         outlinedButton(copy.cancelText, icon: nil, tint: colors.textPrimary, colors: colors) { onCancel?() }

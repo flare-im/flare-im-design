@@ -196,6 +196,10 @@ void main() {
       expect(find.text(entry.label), findsOneWidget, reason: entry.id);
     }
     expect(find.text(strings.messageActionForward), findsNothing);
+    // The sheet's list rows are taller now (Vue's 44pt icon discs): bring the
+    // last one into view first.
+    await tester.ensureVisible(find.text('举报'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('举报'));
     await tester.pumpAndSettle();
     expect(log, ['perform m1 report']);

@@ -6,7 +6,7 @@ import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
 // Presentational — the host owns the file URL and does the actual fetch on
 // `download` (and `open` for the card); the component never touches the URL.
 // Override the leading icon via the `icon` slot. `state` mirrors the host's
-// download lifecycle so the trailing key and the meta line reflect it, and
+// download lifecycle so the trailing key reflects it, and
 // `embedded` drops the card chrome when the body sits inside a message bubble
 // (how the timeline dispatcher renders it). The trailing key is a download
 // until the file is saved (`openFolder`, or `downloaded` right after the save),
@@ -35,14 +35,7 @@ const instance = getCurrentInstance();
 const hasListener = (name: "onOpen" | "onDownload") => Boolean(instance?.vnode.props?.[name]);
 const saved = computed(() => props.state === "openFolder" || props.state === "downloaded");
 
-// Size and type stay on the line whatever the state; the state is said after them.
-const subline = computed(() => {
-  if (props.state === "unavailable") return t("mediaMessage.noDownloadUrl");
-  const facts = [props.size, props.ext].filter(Boolean);
-  if (props.state === "downloading") facts.push(t("messageMenu.downloadingMedia"));
-  else if (saved.value) facts.push(t("messageMenu.downloadedMedia"));
-  return facts.join(" · ");
-});
+const subline = computed(() => [props.size, props.ext].filter(Boolean).join(" · "));
 const actionLabel = computed(() => {
   if (saved.value) return t("messageMenu.openMediaFolder");
   switch (props.state) {
@@ -55,7 +48,7 @@ const actionLabel = computed(() => {
   }
 });
 const actionIcon = computed(() => (saved.value ? "folder" : "download"));
-const actionDisabled = computed(() => props.state === "downloading" || props.state === "unavailable");
+const actionDisabled = computed(() => props.state === "downloading");
 
 function onAction(): void {
   if (actionDisabled.value) return;
@@ -68,18 +61,22 @@ function onAction(): void {
     <component
       :is="hasListener('onOpen') ? 'button' : 'div'"
       :type="hasListener('onOpen') ? 'button' : undefined"
+      :title="name"
       class="main"
       @click="hasListener('onOpen') && emit('open')"
     >
-      <span class="ic"><slot name="icon"><MsgIcon name="file" :size="22" /></slot></span>
+      <span class="ic"><slot name="icon"><MsgIcon name="file" size="lg" /></slot></span>
       <span class="meta">
         <b>{{ name }}</b>
         <small v-if="description" class="desc">{{ description }}</small>
         <small v-if="subline" class="sub">{{ subline }}</small>
       </span>
     </component>
+    <span v-if="state === 'unavailable'" class="dl" role="img" :aria-label="actionLabel" :title="actionLabel">
+      <MsgIcon name="error" size="md" />
+    </span>
     <button
-      v-if="hasListener('onDownload')"
+      v-else-if="hasListener('onDownload')"
       type="button"
       class="dl"
       :disabled="actionDisabled"
@@ -88,7 +85,7 @@ function onAction(): void {
       @click.stop="onAction"
     >
       <span v-if="state === 'downloading'" class="spin" aria-hidden="true" />
-      <MsgIcon v-else :name="actionIcon" :size="18" />
+      <MsgIcon v-else :name="actionIcon" size="md" />
     </button>
     <span v-if="state === 'downloading'" class="bar" aria-hidden="true"><span /></span>
   </div>
@@ -140,7 +137,7 @@ button.main:focus-visible { outline: 2px solid var(--flare-color-border-selected
 .meta small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.35; }
 .meta b { font-size: var(--flare-size-font-size-lg); font-weight: 500; }
 .meta small { font-size: var(--flare-size-font-size-xs); color: var(--flare-color-text-tertiary); }
-.fm-file--embedded .meta small { color: color-mix(in srgb, currentColor 72%, transparent); }
+.fm-file--embedded .meta small { color: color-mix(in srgb, currentColor 84%, transparent); }
 .dl {
   display: grid;
   flex: none;
@@ -156,11 +153,25 @@ button.main:focus-visible { outline: 2px solid var(--flare-color-border-selected
   transition: background-color var(--flare-component-motion-fast), color var(--flare-component-motion-fast);
 }
 .fm-file--embedded .dl { color: inherit; }
+.fm-file--embedded .dl:focus-visible,
+.fm-file--embedded button.main:focus-visible { outline-color: currentColor; }
 .dl:hover:not(:disabled) { background: color-mix(in srgb, currentColor 10%, transparent); }
 .dl:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
 .dl:disabled { cursor: default; }
-.fm-file--unavailable .dl { opacity: 0.42; }
+.fm-file--unavailable .dl { color: var(--flare-color-message-status-failed); cursor: default; }
 .fm-file--unavailable .meta { opacity: 0.72; }
+@container flare-timeline (max-width: 479px) {
+  .fm-file--embedded .meta b {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .fm-file--embedded button.main { min-height: 44px; }
+  .fm-file--embedded .dl { width: 44px; height: 44px; }
+}
 /* A saved file's key is the folder, in the accent: the one thing on the card that goes somewhere else. */
 .fm-file--saved .dl { color: var(--flare-color-primary-text); }
 .fm-file--embedded.fm-file--saved .dl {

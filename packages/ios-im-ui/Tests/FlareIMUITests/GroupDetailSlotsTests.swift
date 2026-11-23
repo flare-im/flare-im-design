@@ -26,10 +26,10 @@ final class GroupDetailSlotsTests: XCTestCase {
         XCTAssertLessThan(try index(copy.sectionInfo), try index("READ BAR"))
         XCTAssertLessThan(try index(copy.members), try index("READ BAR"))
         XCTAssertLessThan(try index("READ BAR"), try index(copy.sectionMyInGroup))
-        // footer: after the message and leave buttons, last on the page.
-        XCTAssertLessThan(try index(copy.message), try index("REPORT"))
+        // The footer slot follows the management actions in the scrollable content.
         XCTAssertLessThan(try index(copy.leave), try index("REPORT"))
-        XCTAssertEqual(order.last, "REPORT")
+        XCTAssertLessThan(try index("REPORT"), try index(copy.message))
+        XCTAssertEqual(order.last, copy.message)
     }
 
     @MainActor
@@ -49,7 +49,7 @@ final class GroupDetailSlotsTests: XCTestCase {
         let detail = FlareGroupDetail(model: model, onOpenChat: { _, _ in })
         XCTAssertThrowsError(try detail.inspect().find(ViewType.AnyView.self))
         let order = try texts(detail)
-        XCTAssertEqual(order.last, copy.leave, "the leave button ends the page")
+        XCTAssertEqual(Array(order.suffix(2)), [copy.leave, copy.message])
     }
 
     @MainActor

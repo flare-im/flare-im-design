@@ -8,7 +8,7 @@
 import { computed, nextTick, onMounted, ref, type Component } from "vue";
 import { NIcon } from "naive-ui";
 import FlareIcon from "./FlareIcon.vue";
-import { flareIcons, type FlareIconName } from "../../shared/icons";
+import { flareIcons } from "../../shared/icons";
 import { actionMenuEntries, type FlareActionItem } from "../../shared/contracts/action-menu";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
@@ -19,6 +19,7 @@ const props = defineProps<{
   label: string;
   menuId?: string;
   presentation: "anchored" | "sheet";
+  orientation?: 'vertical' | 'horizontal';
 }>();
 const emit = defineEmits<{
   (e: "select", id: string): void;
@@ -32,14 +33,12 @@ const { t } = useFlareI18nOptional();
 const root = ref<HTMLElement | null>(null);
 const entries = computed(() => actionMenuEntries(props.items));
 
-function glyphName(icon: MenuAction["icon"]): FlareIconName | null {
-  return typeof icon === "string" && icon in flareIcons ? (icon as FlareIconName) : null;
-}
 function glyphComponent(icon: MenuAction["icon"]): Component | null {
+  if (typeof icon === "string") return flareIcons[icon as keyof typeof flareIcons] ?? null;
   return icon && typeof icon !== "string" ? icon : null;
 }
 // Labels line up when any item has an icon, so an item without one keeps the icon column.
-const iconColumn = computed(() => entries.value.some((entry) => entry.kind === "item" && (glyphName(entry.item.icon) || glyphComponent(entry.item.icon))));
+const iconColumn = computed(() => entries.value.some((entry) => entry.kind === "item" && glyphComponent(entry.item.icon)));
 
 function itemElements(): HTMLElement[] {
   return root.value ? Array.from(root.value.querySelectorAll<HTMLElement>("[data-action-menu-item]")) : [];
@@ -54,6 +53,14 @@ function onKeydown(event: KeyboardEvent): void {
   const elements = itemElements();
   const current = elements.indexOf(document.activeElement as HTMLElement);
   switch (event.key) {
+    case "ArrowRight":
+    case "ArrowLeft": {
+      if (props.orientation !== 'horizontal') break;
+      event.preventDefault();
+      const forward = event.key === 'ArrowRight' ? 1 : -1;
+      focusAt(current + (root.value && getComputedStyle(root.value).direction === 'rtl' ? -forward : forward));
+      break;
+    }
     case "ArrowDown":
       event.preventDefault();
       focusAt(current + 1);
@@ -99,9 +106,10 @@ onMounted(() => {
     :id="menuId"
     ref="root"
     role="menu"
+    :aria-orientation="orientation ?? 'vertical'"
     :aria-label="label"
     class="flare-action-menu"
-    :class="`flare-action-menu--${presentation}`"
+    :class="[`flare-action-menu--${presentation}`, { 'flare-action-menu--horizontal': orientation === 'horizontal' }]"
     @keydown="onKeydown"
   >
     <template v-for="entry in entries" :key="entry.kind === 'item' ? entry.item.id : entry.key">
@@ -121,8 +129,8 @@ onMounted(() => {
         @click="choose(entry.item)"
       >
         <span v-if="iconColumn" class="flare-action-menu__icon">
-          <FlareIcon v-if="glyphName(entry.item.icon)" :name="glyphName(entry.item.icon)!" />
-          <n-icon v-else-if="glyphComponent(entry.item.icon)" aria-hidden="true" :component="glyphComponent(entry.item.icon)!" />
+          <!-- Named and custom glyphs inherit the same token-sized icon column. -->
+          <n-icon v-if="glyphComponent(entry.item.icon)" size="inherit" aria-hidden="true" :component="glyphComponent(entry.item.icon)!" />
         </span>
         <span class="flare-action-menu__text">
           <span class="flare-action-menu__label">{{ entry.item.label }}</span>
@@ -161,6 +169,43 @@ onMounted(() => {
 }
 .flare-action-menu--sheet {
   padding-bottom: var(--flare-size-spacing-sm);
+}
+.flare-action-menu--horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  width: max-content;
+  min-width: 0;
+  padding: var(--flare-size-spacing-3xs);
+  overflow: visible;
+}
+.flare-action-menu--horizontal .flare-action-menu__item {
+  position: relative;
+  min-height: var(--flare-size-layout-control-height-sm);
+  width: auto;
+  gap: var(--flare-size-spacing-xs);
+  padding-inline: var(--flare-size-spacing-sm);
+  font-size: var(--flare-size-font-size-md);
+  white-space: nowrap;
+}
+.flare-action-menu--horizontal .flare-action-menu__item::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--flare-size-layout-touch-target));
+  height: max(100%, var(--flare-size-layout-touch-target));
+}
+.flare-action-menu--horizontal .flare-action-menu__icon {
+  width: var(--flare-size-icon-size-sm);
+  height: var(--flare-size-icon-size-sm);
+  font-size: var(--flare-size-icon-size-sm);
+}
+.flare-action-menu--horizontal .flare-action-menu__separator {
+  flex: 0 0 1px;
+  width: 1px;
+  height: auto;
+  margin: var(--flare-size-spacing-sm) var(--flare-size-spacing-xs);
+  align-self: stretch;
 }
 .flare-action-menu__item {
   display: flex;

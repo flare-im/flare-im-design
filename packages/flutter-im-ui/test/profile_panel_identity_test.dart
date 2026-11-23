@@ -90,9 +90,15 @@ void main() {
         tester.widget<Text>(find.text(text)).style!.color;
     expect(colorOf('林夏'), colors.textPrimary);
     expect(colorOf('保持好奇'), colors.textSecondary);
-    expect(colorOf('Flare ID: linxia'), colors.textTertiary);
+    final name = tester.getTopLeft(find.text('林夏'));
+    final signature = tester.getTopLeft(find.text('保持好奇'));
+    expect(signature.dx, name.dx);
+    expect(signature.dy, greaterThan(name.dy));
+    // Vue `.flare-profile__id`: the Flare ID in the secondary text colour.
+    expect(colorOf('Flare ID: linxia'), colors.textSecondary);
 
-    // The identity card and the entry group share one elevated decoration.
+    // The identity card and the entry group share one quiet decoration (Vue:
+    // one hairline edge, no stacked shadows).
     final surfaces = [
       for (final box in tester.widgetList<Container>(find.byType(Container)))
         if (box.decoration case final BoxDecoration d?
@@ -103,9 +109,10 @@ void main() {
     expect(surfaces.first, surfaces.last);
     expect(
       surfaces.first.borderRadius,
-      BorderRadius.circular(FlareSizes.radiusXl),
+      BorderRadius.circular(FlareSizes.radiusLg),
     );
-    expect(surfaces.first.boxShadow, isNotEmpty);
+    expect(surfaces.first.boxShadow, isNull);
+    expect(surfaces.first.border, Border.all(color: colors.borderSecondary));
     for (final box in tester.widgetList<Container>(find.byType(Container))) {
       final d = box.decoration;
       if (d is BoxDecoration) {

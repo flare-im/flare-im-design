@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../primitives/flare_presence_dot.dart';
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Presence state shown as a corner dot on [FlareAvatar].
@@ -24,6 +25,8 @@ class FlareAvatar extends StatelessWidget {
     this.size = FlareSizes.avatarSize,
     this.presence,
     this.onTap,
+    this.semanticLabel,
+    this.group = false,
   });
 
   /// Stable identity — seeds the fallback background colour.
@@ -41,8 +44,13 @@ class FlareAvatar extends StatelessWidget {
   /// Optional presence indicator.
   final FlarePresence? presence;
 
+  /// A group's avatar: a people mark in the corner, in place of the presence dot a
+  /// group never has (Vue `FlareAvatar` `group`).
+  final bool group;
+
   /// Opens whatever this avatar stands for (usually the person's profile).
   final VoidCallback? onTap;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +90,44 @@ class FlareAvatar extends StatelessWidget {
             ),
     );
 
+    if (group) {
+      // The avatar's palette inverted, ringed in the surface colour so it stands off any
+      // tint or photo; the filled two-person glyph, since an outlined one at this size is a smudge.
+      final mark = (size * 0.45).roundToDouble();
+      return _tappable(
+        SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              avatar,
+              Positioned(
+                right: -3,
+                bottom: -3,
+                child: Container(
+                  width: mark,
+                  height: mark,
+                  decoration: BoxDecoration(
+                    color: tint.$2,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: colors.bgPrimary, width: 2),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.people,
+                    size: (mark * 0.5).roundToDouble(),
+                    color: tint.$1,
+                    semanticLabel: FlareStrings.of(context).displayNameGroup,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (presence == null) return _tappable(avatar);
 
     final dot = size * 0.28;
@@ -115,7 +161,8 @@ class FlareAvatar extends StatelessWidget {
       container: true,
       // The initials are decoration once the avatar is a control: it is named by the person.
       excludeSemantics: true,
-      label: displayName,
+      label: semanticLabel ?? displayName,
+      onTap: onTap,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -130,16 +177,12 @@ class FlareAvatar extends StatelessWidget {
     );
   }
 
+  /// The name's first character, as the Vue `FlareAvatar` draws it ("Lab Bob"
+  /// → "L", "群签到" → "群").
   static String _initials(String name) {
-    final parts = name
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((p) => p.isNotEmpty)
-        .toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
-        .toUpperCase();
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    return String.fromCharCode(trimmed.runes.first).toUpperCase();
   }
 
   /// Soft pastel identity — matches the reference app (avatarPastelForKey): a
@@ -157,12 +200,23 @@ class FlareAvatar extends StatelessWidget {
       (colors.avatarTintAmberBg, colors.avatarTintAmberFg),
       (colors.avatarTintSlateBg, colors.avatarTintSlateFg),
     ];
-    var hash = 0;
-    for (final code in seed.codeUnits) {
-      hash = (hash * 31 + code) & 0x7fffffff;
-    }
-    return pairs[hash % pairs.length];
+    return pairs[flareAvatarTintIndex(seed)];
   }
+}
+
+/// The palette slot for [seed], the Vue kit's `avatarTint`
+/// (`shared/avatar-tint.ts`) to the bit, so one name is one colour on every
+/// kit: JS `hash = code + ((hash << 5) - hash)` over the seed's code points
+/// (each one's first UTF-16 unit), the shift on `ToInt32(hash)` while the sum
+/// stays a double; a blank seed hashes `"user"`; slot `abs(hash) % 6`.
+int flareAvatarTintIndex(String seed) {
+  var hash = 0.0;
+  for (final rune in (seed.trim().isEmpty ? 'user' : seed).runes) {
+    final unit = rune > 0xFFFF ? 0xD800 + ((rune - 0x10000) >> 10) : rune;
+    final int32 = (hash.truncate() & 0xFFFFFFFF).toSigned(32);
+    hash = unit + (((int32 << 5) & 0xFFFFFFFF).toSigned(32) - hash);
+  }
+  return (hash.abs() % 6).toInt();
 }
 
 /// Maps a presence to its token colour. Public so rows/cards can drive a

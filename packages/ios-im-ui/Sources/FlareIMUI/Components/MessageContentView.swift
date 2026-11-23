@@ -442,6 +442,7 @@ public struct MessageContentView: View {
                                   onOpen: albumOpener(c, session: session))
         case let c as FlareVideoContent:
             VideoMessageView(poster: c.poster, duration: c.durationSec > 0 ? Self.duration(c.durationSec) : "",
+                             localVideoPath: c.localPath,
                              onPlay: action ?? session.map { session in
                                  { session.present(c, onDownload: download, onReveal: reveal, downloadId: downloadId) }
                              })

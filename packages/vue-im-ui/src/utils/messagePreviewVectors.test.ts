@@ -55,6 +55,13 @@ describe("shared message preview vectors", () => {
   }
 });
 
+it("shows the video caption for both nested and flat content", () => {
+  const fields = { description: " ", caption: "版本演示", title: "video.webm" };
+  const nested = { contentType: "video", video: fields };
+  expect(previewTextFromMessageContent(nested, "zh-CN")).toBe(fields.caption);
+  expect(previewTextFromMessageContent({ contentType: "video", ...fields }, "zh-CN")).toBe(fields.caption);
+});
+
 /**
  * `stored` is the same table for the token the core keeps instead of a message (a conversation's last message, a
  * quote, a search hit): each token exactly as `preview_storage.rs` serializes it, and the line it reads as.

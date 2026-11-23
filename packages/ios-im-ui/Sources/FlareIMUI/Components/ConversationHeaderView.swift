@@ -290,6 +290,10 @@ public struct ConversationHeaderView: View {
         .accessibilityLabel(identity.accessibilityLabel ?? identity.title)
     }
 
+    @Environment(\.flareCompactOverlays) private var compactOverlays
+    private var glyphSize: CGFloat { compactOverlays ? FlareSizes.iconSizeLg : FlareSizes.iconSizeMd }
+    private var buttonSide: CGFloat { compactOverlays ? FlareSizes.touchTarget : FlareSizes.touchTargetMin }
+
     private func content(compact: Bool) -> some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let resolved = resolveConversationHeaderActions(
@@ -300,8 +304,12 @@ public struct ConversationHeaderView: View {
                                                  hasOnAction: onAction != nil)
         return HStack(spacing: 2) {
             if showBack {
-                // The 44pt frame belongs to the label: a borderless button is hit by its label only.
-                Button(action: { onBack?() }) { Image(systemName: flareIconSymbol("back")).flareTouchTarget() }
+                Button(action: { onBack?() }) {
+                    // In the header's own colour like its other keys, not the platform tint.
+                    Image(systemName: flareIconSymbol("back")).font(.system(size: glyphSize))
+                        .foregroundColor(colors.textSecondary)
+                        .frame(minWidth: buttonSide, minHeight: buttonSide).contentShape(Rectangle())
+                }
                     .disabled(onBack == nil)
                     .accessibilityLabel(strings.back)
             }
@@ -365,12 +373,11 @@ public struct ConversationHeaderView: View {
         let label = Self.localizedLabel(action, kind: identity.kind, strings: strings)
         return Button(action: { onAction?(action) }) {
             Group {
-                if let glyph { Image(systemName: flareIconSymbol(glyph)) }
+                if let glyph { Image(systemName: flareIconSymbol(glyph)).font(.system(size: glyphSize)) }
                 else if let actionIcon { actionIcon(action) }
-                else { Image(systemName: Self.symbol(action)) }
+                else { Image(systemName: Self.symbol(action)).font(.system(size: glyphSize)) }
             }
-            // The 44pt frame belongs to the label: a borderless button is hit by its label only.
-            .flareTouchTarget()
+            .frame(minWidth: buttonSide, minHeight: buttonSide).contentShape(Rectangle())
         }
         .foregroundColor(on ? colors.primaryText : colors.textSecondary)
         // A toggle that is on sits on the selected ground.
@@ -389,7 +396,8 @@ public struct ConversationHeaderView: View {
             if let action = actions.first(where: { $0.id == id }) { onAction?(action) }
         }) {
             Image(systemName: flareIconSymbol(icon))
-                .frame(minWidth: FlareSizes.touchTargetMin, minHeight: FlareSizes.touchTargetMin)
+                .font(.system(size: glyphSize))
+                .frame(minWidth: buttonSide, minHeight: buttonSide).contentShape(Rectangle())
                 .foregroundColor(colors.textSecondary)
         }
         .disabled(onAction == nil)

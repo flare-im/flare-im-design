@@ -108,7 +108,7 @@ const props = withDefaults(
     fill: false,
     density: "comfortable",
     responsive: "stack",
-    stickyActions: false,
+    stickyActions: true,
   },
 );
 /** Keys of the selected rows, across pages. */
@@ -441,7 +441,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
               role="columnheader"
               scope="col"
               class="flare-data-table__th"
-              :class="{ 'is-sortable': column.sortable, 'is-sorted': sort?.key === column.key }"
+              :class="{ 'is-sortable': column.sortable, 'is-sorted': sort?.key === column.key, 'flare-data-table__th--actions': column.key === 'actions' }"
               :data-align="column.align ?? 'start'"
               :aria-sort="dataTableAriaSort(sort, column)"
               :style="columnStyle(column)"
@@ -494,7 +494,7 @@ function onRowKeydown(event: KeyboardEvent, row: FlareDataTableRow, index: numbe
               :key="column.key"
               role="cell"
               class="flare-data-table__td"
-              :class="{ 'is-ellipsis': column.ellipsis }"
+              :class="{ 'is-ellipsis': column.ellipsis, 'flare-data-table__td--actions': column.key === 'actions' }"
               :data-align="column.align ?? 'start'"
               :data-label="column.title"
               :title="cellTitle(column, row)"

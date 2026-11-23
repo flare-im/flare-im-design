@@ -55,6 +55,26 @@ class PluginBlocksExtraTest {
     }
 
     @Test
+    fun aMoneyCellAndHeroWithACurrencyReadAsThePaymentAmount() {
+        val money = """{"kind":"money","minor":"123456","scale":2,"currency":"CNY"}"""
+        val view = PluginViewModel.fromJson(
+            """{"available":true,"title":"x","fields":[],"actions":[],"blocks":[
+              {"kind":"hero","value":"1234.56","amount":true,"format":$money,"tone":"neutral"},
+              {"kind":"rows","source":"wallets","columns":[{"label":"余额","format":"text"},{"label":"钱包","format":"text"}],
+              "rows":[{"key":"w1","cells":[{"text":"1234.56","format":$money},{"text":"余额钱包"}],"actions":[]}],"actions":[]}]}""",
+        )
+        val hero = view.blocks.filterIsInstance<PluginHeroBlock>().single()
+        assertEquals("¥1,234.56", PluginFormatRules.text(hero.value, hero.format, zh))
+        val rows = view.blocks.filterIsInstance<PluginRowsBlock>().single()
+        // §12.24: without an icon the block is a pageRows list, its first line the formatted amount; with one, a record's value.
+        assertFalse(pluginRowsAreRecords(rows))
+        assertEquals("¥1,234.56", PluginViewFormat.rowLines(rows, rows.rows[0], 0, zh, 0).primary)
+        val income = rows.copy(icon = "wallet", rows = listOf(rows.rows[0].copy(cells = listOf(
+            PluginRowCell("+5.00", format = PluginValueFormat.Money("+500", 2, currency = "CNY")), PluginRowCell("余额钱包")))))
+        assertEquals("+¥5.00", pluginLedgerLine(income, income.rows[0], 0, zh).value)
+    }
+
+    @Test
     fun everyVocabulary2BlockReads() {
         val view = PluginViewModel.fromJson(
             """{"available":true,"title":"Board","fields":[],"actions":[],"blocks":[
@@ -235,11 +255,15 @@ class PluginBlocksExtraTest {
         assertEquals(PluginUiVocabulary.blocks, (declared["blocks"] as List<*>).toSet())
         assertTrue("protected-media" in PluginUiVocabulary.blocks, "the owner's protected media is drawn natively now")
         assertEquals(PluginInputKind.entries.map { it.wire }.toSet(), PluginUiVocabulary.inputs)
-        assertEquals(setOf("redPacket.card"), PluginUiVocabulary.renderers)
+        assertTrue("redPacket.card" in PluginUiVocabulary.renderers)
+        assertTrue(setOf("redPacket.card", "redPacket.compose", "redPacket.detail", "redPacket.review", "status.card").containsAll(PluginUiVocabulary.renderers))
         assertTrue(PluginUiVocabulary.native.containsAll(setOf("documentCapture", "paymentConfirmation", "locationOnce")))
-        for (renderer in PluginUiVocabulary.renderers) {
+        // The renderers this kit draws (its omit list may still hide the newer ones from the engine).
+        for (renderer in listOf("redPacket.card", "redPacket.review")) {
             assertTrue(hasResolvedPresentation(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to renderer))), renderer)
         }
+        // status.card draws through the page's status card (rules.statusCard), not a compiled presentation.
+        assertTrue(pluginStatusCard(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to "status.card"))))
         for (renderer in listOf("redPacket.composer", "redPacket.detail", "account", "flare.qr", "redPacket.pay", "payment.confirm")) {
             assertFalse(hasResolvedPresentation(PluginViewModel(available = true, title = "x", presentation = mapOf("renderer" to renderer))), renderer)
         }

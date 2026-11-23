@@ -1,12 +1,16 @@
 import type { MessageLike } from "../shared/contracts/messageRow";
 
+export function localRow(row: MessageLike): boolean {
+  return row.conversationSeq === 0 && (Boolean(row.localState?.isLocal) || !row.serverId || row.serverId === row.clientMsgId);
+}
+
 function rowTimelineKey(message: MessageLike): string {
   const timelineKey = message.timelineKey.trim();
   if (timelineKey) return timelineKey;
-  const clientMsgId = message.clientMsgId.trim();
-  if (clientMsgId) return `client:${clientMsgId}`;
   const serverId = message.serverId.trim();
   if (serverId) return `server:${serverId}`;
+  const clientMsgId = message.clientMsgId.trim();
+  if (clientMsgId) return `client:${clientMsgId}`;
   const seq = Math.max(0, Number(message.conversationSeq) || 0);
   if (seq > 0) return `seq:${seq}`;
   return `ts:${Math.max(
@@ -23,7 +27,7 @@ function identityKeys(message: MessageLike): string[] {
   const timelineKey = rowTimelineKey(message);
   if (timelineKey) keys.add(`timeline:${timelineKey}`);
   const clientMsgId = message.clientMsgId.trim();
-  if (clientMsgId) keys.add(`client:${clientMsgId}`);
+  if (clientMsgId) keys.add(`client:${JSON.stringify([message.conversationId, message.senderId, clientMsgId])}`);
   const serverId = message.serverId.trim();
   if (serverId) keys.add(`server:${serverId}`);
   const seq = Math.max(0, Number(message.conversationSeq) || 0);
@@ -35,22 +39,8 @@ function mergeMessageRow(existing: MessageLike, incoming: MessageLike): MessageL
   const existingSeq = Math.max(0, Number(existing.conversationSeq) || 0);
   const incomingSeq = Math.max(0, Number(incoming.conversationSeq) || 0);
   const incomingAuthoritative = incomingSeq > 0 || incoming.serverId.trim() !== "";
-  const existingLocal = existing.localState ?? {
-    sending: false,
-    failed: false,
-    isLocal: false,
-    uploading: false,
-    uploadProgress: 0,
-    sortTs: 0,
-  };
-  const incomingLocal = incoming.localState ?? {
-    sending: false,
-    failed: false,
-    isLocal: false,
-    uploading: false,
-    uploadProgress: 0,
-    sortTs: 0,
-  };
+  const existingLocal = existing.localState ?? {};
+  const incomingLocal = incoming.localState ?? {};
   const sortTs =
     Number(existingLocal.sortTs) ||
     Number(incomingLocal.sortTs) ||
@@ -116,12 +106,19 @@ export function normalizeMessageRowsForVirtualList(
     for (const key of keys) {
       const index = indexByIdentity.get(key);
       if (index !== undefined) {
+        const stored = rows[index]!;
+        const sameServer = message.serverId && message.serverId === stored.serverId && !localRow(message) && !localRow(stored);
+        const sameSend = message.clientMsgId && message.clientMsgId === stored.clientMsgId
+          && message.senderId === stored.senderId && message.conversationId === stored.conversationId;
+        if (!sameServer && !(sameSend && (localRow(message) || localRow(stored)))) continue;
         existingIndex = index;
         break;
       }
     }
     if (existingIndex >= 0) {
-      rows[existingIndex] = mergeMessageRow(rows[existingIndex]!, message);
+      const stored = rows[existingIndex]!;
+      rows[existingIndex] = localRow(message) && stored.conversationSeq > 0
+        ? mergeMessageRow(message, stored) : mergeMessageRow(stored, message);
       remember(rows[existingIndex]!, existingIndex);
       continue;
     }

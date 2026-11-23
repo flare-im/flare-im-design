@@ -28,6 +28,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Text
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,7 +58,7 @@ import androidx.compose.ui.unit.sp
  * one composer with values in it rather than two layouts interleaved.
  *
  * [band] is a phone: the field runs the full width of the screen with the
- * rounding taken off, and the tools rest on the app ground below it. Anything
+ * rounding taken off, and the tools sit under it on the same surface. Anything
  * wider keeps the bordered card the desktop layout is built around.
  */
 private data class ComposerMetrics(
@@ -210,9 +214,24 @@ fun Composer(
     mentionCandidates: List<MentionCandidate> = emptyList(),
     /** The picker offers everyone first (a group where the viewer may mention all members). */
     mentionEveryone: Boolean = false,
+    /**
+     * Editing one of the user's messages (Vue `editing`): an edit strip stands where the reply strip would and reads
+     * the text as it is now, the placeholder (when the host gives none) and the send key say so, and [onClearEdit]
+     * is the strip's ×. The host routes the send to its edit.
+     */
+    editing: Boolean = false,
+    onClearEdit: (() -> Unit)? = null,
+    /** Nothing can go out now (Vue `sendBlocked`, offline): the text stays editable, the send and voice keys are off. */
+    sendBlocked: Boolean = false,
+    /** Why the composer is read-only, in a warning line above the input (Vue `statusHint`). */
+    statusHint: String? = null,
+    /** The "+" panel opened: a host reads its menu again (Vue reads the composer menu as the panel opens). */
+    onActionsOpen: (() -> Unit)? = null,
+    /** The "+" panel's plugin items are still being read: skeleton tiles hold their places (4.1). */
+    actionsLoading: Boolean = false,
 ) {
     val strings = flareStrings()
-    val placeholder = placeholder ?: strings.composerPlaceholder
+    val placeholder = placeholder ?: if (editing) strings.composerEditingPlaceholder else strings.composerPlaceholder
     val replyLabel = replyLabel ?: strings.composerReply
     val voiceLabel = voiceLabel ?: strings.voiceHoldButtonLabel
     val voiceRecordingLabel = voiceRecordingLabel ?: strings.voiceHoldButtonRecording
@@ -223,8 +242,8 @@ fun Composer(
     var localText by remember(conversationKey) { mutableStateOf("") }
     var mentionEdit by remember(conversationKey) { mutableStateOf<ComposerMentionEdit?>(null) }
     val text = value ?: localText
-    fun updateText(next: String, byUser: Boolean = true, mentionCursor: Int? = null) {
-        mentionEdit = mentionCursor?.let { ComposerMentionEdit(next, it) }
+    fun updateText(next: String, byUser: Boolean = true, mentionCursor: Int? = null, selectionEnd: Int? = null) {
+        mentionEdit = mentionCursor?.let { ComposerMentionEdit(next, it, selectionEnd ?: it) }
         if (value == null) localText = next
         onValueChange?.invoke(next)
         if (byUser) onUserInput?.invoke(next)
@@ -241,7 +260,9 @@ fun Composer(
     var activePanel by remember(conversationKey) { mutableStateOf<ComposerPanel?>(null) }
     var expanded by remember(conversationKey) { mutableStateOf(false) }
     var richMode by remember(conversationKey) { mutableStateOf(rich) }
-    var formats by remember(conversationKey) { mutableStateOf(setOf<String>()) }
+    // Rich text is Markdown in the field (Vue `useMarkdownShortcuts`): a format key edits the text around the selection.
+    var selection by remember(conversationKey) { mutableStateOf(0 to 0) }
+    var headingOpen by remember(conversationKey) { mutableStateOf(false) }
     // Each toolbar key the host offers. A key taken away closes what it opened at once — the effective flags below
     // hide it in the same frame, the effect clears the state — and the draft stays.
     val allows = capabilities::allowsTool
@@ -259,7 +280,7 @@ fun Composer(
     LaunchedEffect(activePanel, shownPanel) { if (shownPanel == null) activePanel = null }
     LaunchedEffect(offersVoice, capabilities) {
         if (!offersVoice) voiceMode = false
-        if (!allows("richText")) { richMode = false; formats = emptySet() }
+        if (!allows("richText")) { richMode = false; headingOpen = false }
     }
     FlareNativeBackEffect(enabled = shownPanel != null) { activePanel = null }
     fun togglePanel(panel: ComposerPanel) {
@@ -281,28 +302,19 @@ fun Composer(
         activePanel = null
         updateText(next, mentionCursor = cursor)
     })
-    val canSend = text.isNotBlank() && !disabled && (onSend != null || onSendRich != null)
+    val canSend = text.isNotBlank() && !disabled && !sendBlocked && (onSend != null || onSendRich != null)
     fun send() {
         if (!canSend) return
-        var orderedIndex = 0
-        if (richOn && onSendRich != null) onSendRich(text.trim().lines().mapIndexed { _, line ->
-            if (line.isBlank()) return@mapIndexed ""
-            orderedIndex++
-            var value = line
-            if ("link" in formats) value = "[$value](${if (value.startsWith("http://") || value.startsWith("https://")) value else "https://"})"
-            if ("code" in formats) value = "`$value`"
-            if ("bold" in formats) value = "**$value**"
-            if ("italic" in formats) value = "*$value*"
-            if ("strike" in formats) value = "~~$value~~"
-            when { "heading" in formats -> "## $value"; "quote" in formats -> "> $value"; "bullet" in formats -> "- $value"; "ordered" in formats -> "${orderedIndex}. $value"; else -> value }
-        }.joinToString("\n")) else onSend?.invoke(text.trim())
+        // Rich mode sends the Markdown as written; the core normalises it into a document.
+        if (richOn && onSendRich != null) onSendRich(text.trim()) else onSend?.invoke(text.trim())
         // The composer's own clear, not an edit: a host driving a typing signal must not read it as one.
         if (activePanel is ComposerPanel.Mention) activePanel = null
         updateText("", byUser = false)
     }
     @Composable fun tool(key: FlareIconControlSpec, active: Boolean = false, action: () -> Unit) {
         val glyph: @Composable () -> Unit = {
-            Icon(flareIconVector(key.icon), key.label, Modifier.size(20.dp), tint = if (!key.enabled) colors.textDisabled else if (active) colors.primaryText else colors.textSecondary)
+            val size = if (flareCompactOverlays()) FlareSizes.iconSizeLg else FlareSizes.iconSizeMd
+            Icon(flareIconVector(key.icon), key.label, Modifier.size(size), tint = if (!key.enabled) colors.textDisabled else if (active) colors.primaryText else colors.textSecondary)
         }
         // A toggle key reports whether it is on; its container stays transparent, as on the plain keys.
         val checked = key.checked
@@ -351,11 +363,14 @@ fun Composer(
                             updateText(composerTextWithinLimit(text + "@", maxLength))
                         }
                     }
-                    "voice" -> tool(key) { dismissKeyboard(); voiceMode = true; activePanel = null }
+                    "voice" -> tool(key.copy(enabled = key.enabled && !sendBlocked)) { dismissKeyboard(); voiceMode = true; activePanel = null }
                     "image" -> tool(key) { dismissKeyboard(); activePanel = null; (onImage ?: onAttach)?.invoke() }
-                    "richText" -> tool(key, active = richOn) { richMode = !richMode; if (!richMode) formats = emptySet(); activePanel = null }
+                    "richText" -> tool(key, active = richOn) { richMode = !richMode; headingOpen = false; activePanel = null }
                     "more" -> tool(key, active = shownPanel == ComposerPanel.More) {
-                        if (hasActionPanel) togglePanel(ComposerPanel.More) else {
+                        if (hasActionPanel) {
+                            if (shownPanel != ComposerPanel.More) onActionsOpen?.invoke()
+                            togglePanel(ComposerPanel.More)
+                        } else {
                             dismissKeyboard()
                             activePanel = null
                             onAttach?.invoke()
@@ -363,7 +378,7 @@ fun Composer(
                     }
                 }
             }
-            FlareComposerSendButton(active = canSend) { send() }
+            FlareComposerSendButton(active = canSend, label = if (editing) strings.composerSaveEdit else null) { send() }
         }
     }
     @Composable fun panel(m: ComposerMetrics) {
@@ -378,6 +393,7 @@ fun Composer(
             )
             ComposerPanel.More -> FlareComposerActionPanel(
                 resolvedActions,
+                loading = actionsLoading,
                 formFactor = if (m.band) FlareComposerPanelFormFactor.Mobile else FlareComposerPanelFormFactor.Desktop,
                 onAction = { action ->
                     if (disabled || !allows("attachments") || !action.enabled) return@FlareComposerActionPanel
@@ -408,16 +424,30 @@ fun Composer(
         val keys = 1 + listOf("emoji", "mention", "image", "richText", "attachments").count(allows) + if (offersVoice) 1 else 0
         val m = ComposerMetrics.of(maxWidth, keys = keys)
         Column(
-            Modifier.fillMaxWidth().background(if (m.band) colors.bgSecondary else colors.bgPrimary)
+            // One white surface for the field and its tools on a phone too, as Vue's H5 composer; the hairline above sets it off.
+            Modifier.fillMaxWidth().background(colors.bgPrimary)
                 // The one line between the composer and the timeline, as on every kit (Vue `--flare-component-composer-border`):
                 // the timeline is the same bg.primary as the band, so without it the field reads as part of the thread.
                 .drawBehind { drawLine(colors.borderPrimary, Offset(0f, 0.5.dp.toPx()), Offset(size.width, 0.5.dp.toPx()), 1.dp.toPx()) }
                 .then(if (m.band) Modifier.padding(bottom = FlareSizes.spacingXs) else Modifier.padding(horizontal = FlareSizes.spacingXs, vertical = FlareSizes.spacingSm))
         ) {
-            replyTo?.let { ReplyStrip(it, replyLabel, strings.cancelReply, colors, onCancelReply, m.band) }
+            statusHint?.let { hint ->
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 36.dp).padding(horizontal = FlareSizes.spacingMd),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(colors.warning))
+                    Spacer(Modifier.width(FlareSizes.spacingSm))
+                    Text(hint, color = colors.warningText, fontSize = FlareSizes.fontSizeSm.value.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            // The edit strip outranks the reply strip; it reads the text being edited as it is now (Vue passes no editPreview).
+            if (editing) ReplyStrip(strings.composerEditingMessage, text, strings.composerCancelEdit, colors, onClearEdit, m.band)
+            else replyTo?.let { ReplyStrip("$replyLabel ${flareQuoteSenderText(it, strings)}", it.summary, strings.cancelReply, colors, onCancelReply, m.band) }
             if (voiceMode && offersVoice) {
                 // The band runs edge to edge; the recorder is a framed row, so it keeps the band's side inset.
                 Box(if (m.band) Modifier.padding(start = FlareSizes.spacingSm, end = FlareSizes.spacingSm, top = FlareSizes.spacingXs) else Modifier) {
+                    // Offline keeps the recorder as it is: `disabled` would throw the clip away.
                     InlineVoiceComposer(conversationKey, disabled, onKeyboard = { voiceMode = false }, onSend = onVoiceSend)
                 }
             } else {
@@ -425,9 +455,46 @@ fun Composer(
                     Modifier.fillMaxWidth().background(colors.bgPrimary)
                         .then(if (m.band) Modifier else Modifier.border(1.dp, colors.borderPrimary, RoundedCornerShape(FlareSizes.radiusCard)))
                 ) {
-                    if (richOn) Row(Modifier.fillMaxWidth().height(m.stripKeyHeight).horizontalScroll(rememberScrollState()).padding(horizontal = m.stripInset)) {
-                        val styles = listOf("bold" to Icons.Outlined.FormatBold, "italic" to Icons.Outlined.FormatItalic, "strike" to Icons.Outlined.FormatStrikethrough, "code" to Icons.Outlined.Code, "link" to Icons.Outlined.Link, "heading" to Icons.Outlined.Title, "quote" to Icons.Outlined.FormatQuote, "bullet" to Icons.AutoMirrored.Outlined.FormatListBulleted, "ordered" to Icons.Outlined.FormatListNumbered)
-                        styles.forEach { (id, icon) -> val name = composerFormatName(id, strings); IconButton(onClick = { val blocks = setOf("heading", "quote", "bullet", "ordered"); formats = if (id in formats) formats - id else (if (id in blocks) formats - blocks else formats) + id }, enabled = !disabled, modifier = Modifier.size(m.stripKeyWidth, m.stripKeyHeight)) { Icon(icon, name, Modifier.size(FlareSizes.spacing2md), tint = if (id in formats) colors.primaryText else colors.textSecondary) } }
+                    if (richOn) Row(
+                        Modifier.fillMaxWidth().height(m.stripKeyHeight).horizontalScroll(rememberScrollState()).padding(horizontal = m.stripInset)
+                            .semantics { contentDescription = strings.composerFormatToolbar },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val (start, end) = selection
+                        fun applyEdit(edit: ComposerMarkdownEdit) {
+                            val next = composerTextWithinLimit(edit.text, maxLength)
+                            updateText(next, mentionCursor = edit.selectionStart.coerceAtMost(next.length), selectionEnd = edit.selectionEnd.coerceAtMost(next.length))
+                        }
+                        fun wrap(before: String, after: String, sample: String) = applyEdit(composerWrapSelection(text, start, end, before, after, sample))
+                        fun prefix(marker: String) = applyEdit(composerPrefixLine(text, start, end, marker))
+                        @Composable fun key(icon: ImageVector, label: String, active: Boolean = false, onClick: () -> Unit) {
+                            IconButton(onClick = onClick, enabled = !disabled, modifier = Modifier.size(m.stripKeyWidth, m.stripKeyHeight)) {
+                                Icon(icon, label, Modifier.size(FlareSizes.spacing2md), tint = if (active) colors.primaryText else colors.textSecondary)
+                            }
+                        }
+                        // 文本样式: on touch the levels open in place as keys of their own (Vue coarse pointer); 正文 changes nothing.
+                        key(Icons.Outlined.Title, strings.composerFormatTextStyle, active = headingOpen) { headingOpen = !headingOpen }
+                        if (headingOpen) (0..6).forEach { level ->
+                            val name = if (level == 0) strings.composerFormatParagraph else strings.composerFormatHeadingNumbered.replace("{level}", "$level")
+                            TextButton(
+                                onClick = { headingOpen = false; if (level > 0) prefix("#".repeat(level) + " ") },
+                                enabled = !disabled,
+                                modifier = Modifier.height(m.stripKeyHeight).semantics { contentDescription = name },
+                            ) { Text(if (level == 0) "P" else "H$level", color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp) }
+                        } else {
+                            key(Icons.Outlined.FormatBold, strings.composerFormatBold) { wrap("**", "**", strings.composerSampleBold) }
+                            key(Icons.Outlined.FormatStrikethrough, strings.composerFormatStrike) { wrap("~~", "~~", strings.composerSampleStrike) }
+                            key(Icons.Outlined.FormatItalic, strings.composerFormatItalic) { wrap("*", "*", strings.composerSampleItalic) }
+                            key(Icons.Outlined.FormatUnderlined, strings.composerFormatUnderline) { wrap("<u>", "</u>", strings.composerSampleUnderline) }
+                            key(Icons.Outlined.FormatListNumbered, strings.composerFormatOrdered) { prefix("1. ") }
+                            key(Icons.AutoMirrored.Outlined.FormatListBulleted, strings.composerFormatBullet) { prefix("- ") }
+                            key(Icons.Outlined.FormatQuote, strings.composerFormatQuote) { prefix("> ") }
+                            key(Icons.Outlined.Link, strings.composerFormatLink) { wrap("[", "](https://)", strings.composerSampleLink) }
+                            key(Icons.Outlined.Image, strings.composerFormatImage) { wrap("![", "](https://)", strings.composerSampleImage) }
+                            key(Icons.Outlined.Code, strings.composerFormatInlineCode) { wrap("`", "`", strings.composerSampleCode) }
+                            key(Icons.Outlined.DataObject, strings.composerFormatCodeBlock) { wrap("```\n", "\n```", strings.composerSampleCode) }
+                            key(Icons.Outlined.HorizontalRule, strings.composerFormatDivider) { applyEdit(composerInsertAtSelection(text, start, end, "\n---\n")) }
+                        }
                     }
                     // The row is the top of the same band; a hairline is all
                     // that separates it from the text it formats.
@@ -450,12 +517,14 @@ fun Composer(
                                 placeholder = placeholder,
                                 onFocus = { activePanel = null },
                                 expanded = expanded,
-                                textColor = if ("link" in formats) colors.primaryText else colors.textPrimary,
+                                textColor = colors.textPrimary,
                                 hintColor = colors.textTertiary,
-                                fontWeight = if ("bold" in formats) FontWeight.Bold else FontWeight.Normal,
-                                fontStyle = if ("italic" in formats) FontStyle.Italic else FontStyle.Normal,
-                                textDecoration = if ("strike" in formats) TextDecoration.LineThrough else if ("link" in formats) TextDecoration.Underline else TextDecoration.None,
+                                fontWeight = FontWeight.Normal,
+                                fontStyle = FontStyle.Normal,
+                                textDecoration = TextDecoration.None,
                                 cursorAfterReplacement = mentionEdit?.takeIf { it.text == text }?.cursor,
+                                selectionEndAfterReplacement = mentionEdit?.takeIf { it.text == text }?.end,
+                                onSelectionChange = { a, b -> selection = minOf(a, b) to maxOf(a, b) },
                                 modifier = Modifier.fillMaxWidth())
                         }
                         tool(composerExpandKey(strings, disabled, expanded)) { expanded = !expanded }
@@ -489,8 +558,35 @@ internal data class ComposerMentionTrigger(val prefix: String, val suffix: Strin
     }
 }
 
-/** A picked mention leaves the caret after the inserted label when the draft is rendered. */
-private data class ComposerMentionEdit(val text: String, val cursor: Int)
+/** A picked mention leaves the caret after the inserted label when the draft is rendered; a format key selects [cursor]..[end]. */
+private data class ComposerMentionEdit(val text: String, val cursor: Int, val end: Int = cursor)
+
+/** A format key's edit (Vue `useMarkdownShortcuts`): the new text and the range left selected. */
+internal data class ComposerMarkdownEdit(val text: String, val selectionStart: Int, val selectionEnd: Int)
+
+/** [before] and [after] around the selection [start]..[end] of [text], or around [sample] when nothing is selected; the selection (or sample) stays selected. */
+internal fun composerWrapSelection(text: String, start: Int, end: Int, before: String, after: String, sample: String): ComposerMarkdownEdit {
+    val s = start.coerceIn(0, text.length)
+    val e = end.coerceIn(s, text.length)
+    val selected = text.substring(s, e).ifEmpty { sample }
+    val at = s + before.length
+    return ComposerMarkdownEdit(text.substring(0, s) + before + selected + after + text.substring(e), at, at + selected.length)
+}
+
+/** [marker] at the start of the line the selection starts on; the selection moves with it. */
+internal fun composerPrefixLine(text: String, start: Int, end: Int, marker: String): ComposerMarkdownEdit {
+    val s = start.coerceIn(0, text.length)
+    val e = end.coerceIn(s, text.length)
+    val lineStart = text.lastIndexOf('\n', maxOf(0, s - 1)) + 1
+    return ComposerMarkdownEdit(text.substring(0, lineStart) + marker + text.substring(lineStart), s + marker.length, e + marker.length)
+}
+
+/** [insertion] in place of the selection, the caret after it. */
+internal fun composerInsertAtSelection(text: String, start: Int, end: Int, insertion: String): ComposerMarkdownEdit {
+    val s = start.coerceIn(0, text.length)
+    val e = end.coerceIn(s, text.length)
+    return ComposerMarkdownEdit(text.replaceRange(s, e, insertion), s + insertion.length, s + insertion.length)
+}
 
 /**
  * Where the user just typed "@" at the start of a word, as a pure one-character insertion from [previous] to
@@ -518,24 +614,11 @@ internal fun composerTextWithMention(text: String, name: String, typedAt: Int?, 
     return text + separator + mention
 }
 
-/** Screen-reader name of a rich-text format key ("bold", "italic", …) — never the raw id. */
-internal fun composerFormatName(id: String, strings: FlareStrings): String = when (id) {
-    "bold" -> strings.composerFormatBold
-    "italic" -> strings.composerFormatItalic
-    "strike" -> strings.composerFormatStrike
-    "code" -> strings.composerFormatCode
-    "link" -> strings.composerFormatLink
-    "heading" -> strings.composerFormatHeading
-    "quote" -> strings.composerFormatQuote
-    "bullet" -> strings.composerFormatBullet
-    "ordered" -> strings.composerFormatOrdered
-    else -> id
-}
-
+/** The strip above the input: [heading] (回复 + who, or 编辑消息) over [summary], and its × named [cancelLabel]. */
 @Composable
 private fun ReplyStrip(
-    reply: FlareReplyTarget,
-    label: String,
+    heading: String,
+    summary: String,
     cancelLabel: String,
     colors: FlareColors,
     onCancel: (() -> Unit)?,
@@ -560,8 +643,8 @@ private fun ReplyStrip(
         Box(Modifier.width(3.dp).size(width = 3.dp, height = 28.dp).background(colors.primary))
         Spacer(Modifier.width(FlareSizes.spacingSm))
         Column(Modifier.weight(1f)) {
-            Text("$label ${flareQuoteSenderText(reply, flareStrings())}", color = colors.primaryText, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
-            Text(reply.summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(heading, color = colors.primaryText, fontSize = FlareSizes.fontSizeXs.value.sp, fontWeight = FontWeight.SemiBold)
+            Text(summary, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         IconButton(onClick = { onCancel?.invoke() }) { Icon(Icons.Rounded.Close, cancelLabel, Modifier.size(18.dp), tint = colors.textTertiary) }
     }

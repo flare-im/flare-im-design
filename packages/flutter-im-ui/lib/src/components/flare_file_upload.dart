@@ -1,47 +1,58 @@
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
-import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_button.dart';
 import 'flare_image_upload_slot.dart';
 
-/// Controlled single-file surface. Picking, bytes, private previews and transfer
-/// remain with the host. No URL is accepted or fetched by this component.
+/// Controlled single-file surface. The host owns picking, validation, previews
+/// and transfer. Action labels explicitly offer the corresponding intent.
 class FlareFileUpload extends StatelessWidget {
   const FlareFileUpload({
     super.key,
     required this.title,
     required this.state,
+    required this.statusText,
     this.fileName,
     this.progress,
-    this.error,
-    this.policyHint,
-    this.preview = false,
+    this.image = false,
+    this.preview,
+    this.previewLabel,
     this.previewLoading = false,
     this.disabled = false,
     this.onChoose,
+    this.onUpload,
     this.onRetry,
     this.onCancel,
     this.onReplace,
     this.onRemove,
     this.onPreview,
     this.pickLabel,
-    this.icon = 'file',
+    this.uploadLabel,
+    this.replaceLabel,
+    this.retryLabel,
+    this.cancelLabel,
+    this.removeLabel,
+    this.icon,
   });
-  final String title;
-
-  /// The choose key's label; the kit's "选择文件" when null (an image input
-  /// says "选择图片", a document input "拍摄证件").
-  final String? pickLabel;
-
-  /// The slot's icon name.
-  final String icon;
+  final String title, statusText;
+  final String? fileName,
+      pickLabel,
+      uploadLabel,
+      replaceLabel,
+      retryLabel,
+      cancelLabel,
+      removeLabel,
+      previewLabel;
+  final String? icon;
   final FlareImageUploadState state;
-  final String? fileName, error, policyHint;
   final double? progress;
-  final bool preview, previewLoading, disabled;
+  final bool image, previewLoading, disabled;
+
+  /// Host-owned local content; this component never fetches a preview URL.
+  final Widget? preview;
   final VoidCallback? onChoose,
+      onUpload,
       onRetry,
       onCancel,
       onReplace,
@@ -50,16 +61,6 @@ class FlareFileUpload extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final strings = FlareStrings.of(context);
-    final status =
-        error ??
-        switch (state) {
-          FlareImageUploadState.empty => policyHint ?? strings.pluginFileChoose,
-          FlareImageUploadState.selected => strings.pluginFileSelected,
-          FlareImageUploadState.uploading => strings.pluginFileUploading,
-          FlareImageUploadState.uploaded => strings.pluginFileUploaded,
-          FlareImageUploadState.failed => strings.pluginFileFailed,
-        };
     Widget action(String label, VoidCallback? callback, {bool quiet = false}) =>
         FlareButton(
           label: label,
@@ -70,9 +71,9 @@ class FlareFileUpload extends StatelessWidget {
               : FlareButtonVariant.secondary,
           size: FlareControlSize.sm,
         );
-    final transferring =
-        state == FlareImageUploadState.uploading ||
-        state == FlareImageUploadState.selected;
+    final mutable =
+        state != FlareImageUploadState.empty &&
+        state != FlareImageUploadState.uploading;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,14 +81,19 @@ class FlareFileUpload extends StatelessWidget {
         FlareImageUploadSlot(
           title: title,
           state: state,
-          statusText: status,
-          icon: icon,
-          pickLabel: pickLabel ?? strings.pluginFileChoose,
+          statusText: statusText,
+          icon: icon ?? (image ? 'camera' : 'file'),
+          pickLabel: pickLabel,
+          preview: image ? preview : null,
           progress: progress,
           previewHeight: FlareSizes.touchTargetMin * 2.5,
           disabled: disabled,
-          onChoose: state == FlareImageUploadState.empty ? onChoose : onReplace,
-          previewLabel: preview ? strings.pluginFilePreview : null,
+          onChoose: state == FlareImageUploadState.empty
+              ? onChoose
+              : replaceLabel == null
+              ? null
+              : onReplace,
+          previewLabel: previewLabel,
           previewLoading: previewLoading,
           previewDisabled: disabled,
           onPreview: onPreview,
@@ -101,20 +107,31 @@ class FlareFileUpload extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-        if (state != FlareImageUploadState.empty)
+        if ((state == FlareImageUploadState.uploading ||
+                    state == FlareImageUploadState.selected) &&
+                cancelLabel != null ||
+            state == FlareImageUploadState.failed && retryLabel != null ||
+            state == FlareImageUploadState.selected && uploadLabel != null ||
+            mutable && (replaceLabel != null || removeLabel != null))
           Padding(
             padding: const EdgeInsets.only(top: FlareSizes.spacingSm),
             child: Wrap(
               spacing: FlareSizes.spacingSm,
               runSpacing: FlareSizes.spacingXs,
               children: [
-                if (transferring) action(strings.cancel, onCancel),
-                if (state == FlareImageUploadState.failed)
-                  action(strings.retry, onRetry),
-                if (state != FlareImageUploadState.uploading) ...[
-                  action(strings.pluginFileReplace, onReplace),
-                  action(strings.pluginFileRemove, onRemove, quiet: true),
-                ],
+                if ((state == FlareImageUploadState.uploading ||
+                        state == FlareImageUploadState.selected) &&
+                    cancelLabel != null)
+                  action(cancelLabel!, onCancel),
+                if (state == FlareImageUploadState.failed && retryLabel != null)
+                  action(retryLabel!, onRetry),
+                if (state == FlareImageUploadState.selected &&
+                    uploadLabel != null)
+                  action(uploadLabel!, onUpload),
+                if (mutable && replaceLabel != null)
+                  action(replaceLabel!, onReplace),
+                if (mutable && removeLabel != null)
+                  action(removeLabel!, onRemove, quiet: true),
               ],
             ),
           ),

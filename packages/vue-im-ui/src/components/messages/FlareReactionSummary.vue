@@ -44,7 +44,7 @@ function tooltip(group: FlareReactionGroup): string {
       :aria-label="t('reaction.add')"
       @click="emit('add')"
     >
-      <n-icon aria-hidden="true" :size="15" :component="HappyOutline" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="HappyOutline" />
     </button>
     <slot name="trailing" />
   </div>

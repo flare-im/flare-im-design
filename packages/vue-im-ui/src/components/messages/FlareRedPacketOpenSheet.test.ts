@@ -56,6 +56,13 @@ const details = () => surface().querySelector<HTMLButtonElement>(".flare-rp-open
 const headline = () => surface().querySelector(".flare-rp-open__headline")!.textContent;
 
 describe("FlareRedPacketOpenSheet", () => {
+  it("lets a host offer a read-only result check after an opening error", async () => {
+    const { events, state } = mountSheet({state:"error",message:"结果暂未确认",reviewOnError:true});
+    await nextTick();expect(coin()).not.toBeNull();expect(details()).not.toBeNull();
+    expect(details()!.textContent?.trim()).toBe("查看结果");
+    details()!.click();expect(events).toEqual(["viewDetails"]);
+    state.canViewDetails=false;await nextTick();expect(details()).toBeNull();
+  });
   it("is a named modal envelope over the shared scrim that renders nothing while closed", async () => {
     const { state } = mountSheet({ kindLabel: "拼手气红包" });
     await nextTick();
@@ -142,7 +149,7 @@ describe("FlareRedPacketOpenSheet", () => {
   it("keeps 開 for a retry after an error and shows why it failed", async () => {
     const { state, events } = mountSheet({ state: "error" });
     await nextTick();
-    expect(surface().querySelector('[role="alert"]')!.textContent).toBe("领取失败，请重试");
+    expect(surface().querySelector('[role="alert"]')!.textContent).toBe("没有领到，请重试");
     state.message = "网络不稳定";
     await nextTick();
     expect(surface().querySelector('[role="alert"]')!.textContent).toBe("网络不稳定");
@@ -162,13 +169,34 @@ describe("FlareRedPacketOpenSheet", () => {
     expect(events).toEqual(["close", "close", "close"]);
   });
 
+  it("cannot be closed while opening, and 開 answers Enter on the envelope (§12.12)", async () => {
+    const { events, state } = mountSheet({ state: "opening" });
+    await nextTick();
+    surface().parentElement!.click();
+    surface().querySelector<HTMLButtonElement>('[aria-label="关闭"]')!.click();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(events).toEqual([]);
+    state.state = "error";
+    await nextTick();
+    surface().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(events).toEqual(["open"]);
+  });
+
+  it("draws the sender avatar at 56 (§4.5)", async () => {
+    mountSheet();
+    await nextTick();
+    const avatar = surface().querySelector<HTMLElement>(".flare-rp-open__sender > *")!;
+    expect(avatar.outerHTML).toContain("56px");
+  });
+
   it("keeps the close key inside the focus trap", async () => {
     mountSheet({ state: "finished" });
     await nextTick();
     await nextTick();
     const close = surface().querySelector<HTMLButtonElement>('[aria-label="关闭"]')!;
     close.focus();
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab" }));
+    // §4.5: the close key is first in the focus order, so Shift+Tab from it wraps to the last key in the trap.
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey: true }));
     expect(document.activeElement).toBe(details());
   });
 
@@ -187,6 +215,8 @@ describe("FlareRedPacketOpenSheet", () => {
       expect((button.getAttribute("aria-label") ?? button.textContent ?? "").trim()).not.toBe("");
     }
     expect(surface().querySelector<HTMLButtonElement>('[aria-label="关闭"]')).not.toBeNull();
+    // §4.5: the close key is on the envelope (its top trailing corner), the envelope's first child.
+    expect(surface().querySelector(".flare-rp-open__envelope")!.firstElementChild?.getAttribute("aria-label")).toBe("关闭");
   });
 
   it("does not leave the page locked after it closes", async () => {

@@ -1194,8 +1194,8 @@ a.im-rich-message-card:focus-visible {
 }
 
 .composer-toolbar .n-button.is-selected {
-  color: var(--flare-color-message-outgoing-background);
-  background: color-mix(in srgb, var(--flare-color-message-outgoing-background) 12%, transparent);
+  color: var(--flare-color-primary-text);
+  background: var(--flare-color-bg-selected);
 }
 
 .composer-toolbar .n-button.is-cancel {

@@ -299,14 +299,17 @@ class FlareMessageActionSheet extends StatelessWidget {
     final strip = availability.canReact
         ? (reactions ?? flareQuickReactions)
         : const <String>[];
-    final grouped = FlareMessageMenuGroup.values
-        .map(
-          (group) => MapEntry(
-            group,
-            entries.where((entry) => entry.group == group).toList(),
-          ),
-        )
-        .where((entry) => entry.value.isNotEmpty)
+    // Vue `buildMessageContextSheetModel`: the primary group is the quick grid,
+    // the rest one list with delete last.
+    final ordered = [
+      for (final group in FlareMessageMenuGroup.values)
+        ...entries.where((entry) => entry.group == group),
+    ];
+    final quick = ordered
+        .where((entry) => entry.group == FlareMessageMenuGroup.primary)
+        .toList();
+    final list = ordered
+        .where((entry) => entry.group != FlareMessageMenuGroup.primary)
         .toList();
 
     // On a kit overlay the surface is the frame, the safe area and the name;
@@ -323,17 +326,8 @@ class FlareMessageActionSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (strip.isNotEmpty) ...[
-            Wrap(
-              alignment: WrapAlignment.spaceEvenly,
-              runSpacing: FlareSizes.spacingSm,
-              children: strip
-                  .map((reaction) => _reaction(reaction))
-                  .toList(growable: false),
-            ),
-            const SizedBox(height: FlareSizes.spacingMd),
-          ],
-          if (grouped.isEmpty && strip.isEmpty)
+          if (strip.isNotEmpty) _reactionStrip(strip, colors),
+          if (ordered.isEmpty && strip.isEmpty)
             Padding(
               padding: const EdgeInsets.all(FlareSizes.spacingLg),
               child: Text(
@@ -342,9 +336,14 @@ class FlareMessageActionSheet extends StatelessWidget {
                 style: TextStyle(color: colors.textSecondary),
               ),
             ),
-          for (var index = 0; index < grouped.length; index++) ...[
-            if (index > 0) const SizedBox(height: FlareSizes.spacingSm),
-            _actionGroup(grouped[index].value, colors),
+          if (quick.isNotEmpty) ...[
+            if (strip.isNotEmpty) const SizedBox(height: FlareSizes.spacing2sm),
+            _quickGrid(quick, colors),
+          ],
+          if (list.isNotEmpty) ...[
+            if (strip.isNotEmpty || quick.isNotEmpty)
+              const SizedBox(height: FlareSizes.spacing2sm),
+            _listBlock(list, colors),
           ],
         ],
       ),
@@ -368,19 +367,59 @@ class FlareMessageActionSheet extends StatelessWidget {
     );
   }
 
-  Widget _reaction(String reaction) {
+  /// One of the sheet's white blocks (Vue `.msg-ctx-sheet__block`).
+  Widget _block(FlareColors colors, Widget child) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: colors.bgPrimary,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A111318),
+          blurRadius: 2,
+          offset: Offset(0, 1),
+        ),
+      ],
+    ),
+    child: child,
+  );
+
+  /// Emoji on 48pt tiles, scrolling sideways when they do not fit (Vue `__reactions`).
+  Widget _reactionStrip(List<String> strip, FlareColors colors) => _block(
+    colors,
+    SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(
+        horizontal: FlareSizes.spacingMd,
+        vertical: FlareSizes.spacing2sm,
+      ),
+      child: Row(
+        children: [
+          for (var index = 0; index < strip.length; index++) ...[
+            if (index > 0) const SizedBox(width: FlareSizes.spacingSm),
+            _reaction(strip[index], colors),
+          ],
+        ],
+      ),
+    ),
+  );
+
+  Widget _reaction(String reaction, FlareColors colors) {
     return Semantics(
       button: true,
       label: reaction,
-      child: InkResponse(
-        onTap: onReact == null ? null : () => onReact!(reaction),
-        radius: FlareSizes.touchTarget / 2,
-        child: SizedBox.square(
-          dimension: FlareSizes.touchTarget,
-          child: Center(
-            child: Text(
-              reaction,
-              style: const TextStyle(fontSize: FlareSizes.iconSizeLg),
+      child: Material(
+        color: colors.bgTertiary,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onReact == null ? null : () => onReact!(reaction),
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox.square(
+            dimension: 48,
+            child: Center(
+              child: Text(
+                reaction,
+                style: const TextStyle(fontSize: 28, height: 1),
+              ),
             ),
           ),
         ),
@@ -388,31 +427,116 @@ class FlareMessageActionSheet extends StatelessWidget {
     );
   }
 
-  Widget _actionGroup(List<FlareMessageMenuEntry> entries, FlareColors colors) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.bgPrimary,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
-        border: Border.all(color: colors.borderPrimary),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var index = 0; index < entries.length; index++) ...[
-            if (index > 0) Divider(height: 1, color: colors.borderSecondary),
-            _action(entries[index], colors),
-          ],
-        ],
+  /// Reply, forward, recall, resend: tinted 52pt tiles with their names under
+  /// them, sharing the row (Vue `__quick`).
+  Widget _quickGrid(List<FlareMessageMenuEntry> entries, FlareColors colors) =>
+      _block(
+        colors,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            FlareSizes.spacingSm,
+            FlareSizes.spacing2md,
+            FlareSizes.spacingSm,
+            FlareSizes.spacingMd,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final entry in entries)
+                Expanded(child: _quickAction(entry, colors)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _quickAction(FlareMessageMenuEntry entry, FlareColors colors) {
+    // Vue marks recall as the danger quick action.
+    final danger = entry.id == 'recall';
+    return Semantics(
+      button: true,
+      enabled: entry.enabled,
+      label: entry.label,
+      child: Opacity(
+        opacity: entry.enabled ? 1 : 0.45,
+        child: InkWell(
+          onTap: entry.enabled && onAction != null
+              ? () => onAction!(entry.id)
+              : null,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: FlareSizes.spacingXs,
+              horizontal: FlareSizes.spacing2xs,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: (danger ? colors.error : colors.primary).withValues(
+                      alpha: 0.1,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    flareIconGlyph(entry.icon),
+                    color: danger ? colors.errorText : colors.primaryText,
+                    size: FlareSizes.iconSizeLg,
+                  ),
+                ),
+                const SizedBox(height: FlareSizes.spacingSm),
+                Text(
+                  entry.label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: danger ? colors.errorText : colors.textPrimary,
+                    fontSize: FlareSizes.fontSizeMd,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
+  /// The other actions as rows with a 44pt tinted icon disc and a hairline
+  /// between them (Vue `__list`).
+  Widget _listBlock(List<FlareMessageMenuEntry> entries, FlareColors colors) =>
+      _block(
+        colors,
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: FlareSizes.spacing2xs,
+            horizontal: FlareSizes.spacingSm,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var index = 0; index < entries.length; index++) ...[
+                if (index > 0)
+                  Divider(
+                    height: 1,
+                    color: colors.borderPrimary.withValues(alpha: 0.55),
+                  ),
+                _action(entries[index], colors),
+              ],
+            ],
+          ),
+        ),
+      );
+
   Widget _action(FlareMessageMenuEntry entry, FlareColors colors) {
     final destructive = entry.group == FlareMessageMenuGroup.destructive;
     final foreground = !entry.enabled
-        ? colors.textDisabled
+        ? colors.textTertiary
         : destructive
-        ? colors.error
+        ? colors.errorText
         : colors.textPrimary;
     return Semantics(
       button: true,
@@ -422,32 +546,42 @@ class FlareMessageActionSheet extends StatelessWidget {
         onTap: entry.enabled && onAction != null
             ? () => onAction!(entry.id)
             : null,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: FlareSizes.spacingMd,
-              vertical: FlareSizes.spacingSm,
-            ),
-            child: Row(
-              children: [
-                Icon(
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: FlareSizes.spacing2sm,
+            vertical: FlareSizes.spacingMd,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: FlareSizes.touchTargetMin,
+                height: FlareSizes.touchTargetMin,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: destructive
+                      ? colors.error.withValues(alpha: 0.12)
+                      : colors.bgSelected,
+                ),
+                child: Icon(
                   flareIconGlyph(entry.icon),
-                  color: foreground,
+                  color: destructive ? colors.errorText : colors.primaryText,
                   size: FlareSizes.iconSizeMd,
                 ),
-                const SizedBox(width: FlareSizes.spacingMd),
-                Expanded(
-                  child: Text(
-                    entry.label,
-                    style: TextStyle(
-                      color: foreground,
-                      fontSize: FlareSizes.fontSizeXl,
-                    ),
+              ),
+              const SizedBox(width: FlareSizes.spacingMd),
+              Expanded(
+                child: Text(
+                  entry.label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: FlareSizes.fontSize2xl,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

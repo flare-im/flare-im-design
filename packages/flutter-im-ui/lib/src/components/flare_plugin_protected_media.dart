@@ -6,6 +6,7 @@ import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_bottom_sheet.dart';
 import 'flare_button.dart';
+import 'flare_icon.dart';
 import 'flare_plugin_form.dart';
 
 /// A protected media block (spec Message/PluginView, protected-media): private
@@ -98,7 +99,25 @@ class FlarePluginProtectedMediaView extends StatelessWidget {
         ],
         if (block.items.isEmpty)
           Text(block.emptyText ?? strings.pluginViewEmpty, style: secondary)
-        else
+        else if (!block.asksReason) ...[
+          // §6.1: the owner's own documents are 16:10 tiles, veiled until
+          // tapped; a read picture opens under them.
+          Wrap(
+            spacing: FlareSizes.spacingSm,
+            runSpacing: FlareSizes.spacingSm,
+            children: [
+              for (final item in block.items)
+                _thumb(context, item, colors, strings),
+            ],
+          ),
+          const SizedBox(height: FlareSizes.spacingSm),
+          for (final item in block.items)
+            if (flarePluginProtectedMediaSource(states[item.id]?.url) != null ||
+                states[item.id]?.error != null) ...[
+              _item(context, item, colors, strings),
+              const SizedBox(height: FlareSizes.spacingSm),
+            ],
+        ] else
           for (final item in block.items) ...[
             _item(context, item, colors, strings),
             const SizedBox(height: FlareSizes.spacingSm),
@@ -110,6 +129,69 @@ class FlarePluginProtectedMediaView extends StatelessWidget {
           style: secondary,
         ),
       ],
+    );
+  }
+
+  Widget _thumb(
+    BuildContext context,
+    FlarePluginProtectedItem item,
+    FlareColors colors,
+    FlareStrings strings,
+  ) {
+    final state = states[item.id];
+    final ready = block.action != null && onRead != null && !busy;
+    return Semantics(
+      button: true,
+      enabled: ready,
+      label: strings.pluginProtectedMediaTapToView.replaceAll(
+        '{label}',
+        item.label,
+      ),
+      excludeSemantics: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            key: ValueKey('flare-protected-media-read-${item.id}'),
+            borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+            onTap: ready && state?.loading != true
+                ? () => _request(context, item)
+                : null,
+            child: Container(
+              width: FlareSizes.componentDocumentThumbHeight * 16 / 10,
+              height: FlareSizes.componentDocumentThumbHeight,
+              constraints: const BoxConstraints(
+                minHeight: FlareSizes.touchTargetMin,
+              ),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.bgTertiary,
+                borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+              ),
+              child: state?.loading == true
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : FlareIcon('eye', size: 16, color: colors.textSecondary),
+            ),
+          ),
+          const SizedBox(height: FlareSizes.spacing2xs),
+          SizedBox(
+            width: FlareSizes.componentDocumentThumbHeight * 16 / 10,
+            child: Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: FlareTextRoles.caption.fontSize,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

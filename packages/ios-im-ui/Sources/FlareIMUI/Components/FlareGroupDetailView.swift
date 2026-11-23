@@ -43,6 +43,9 @@ public struct FlareGroupDetailModel: Sendable {
     public var onlyAdminCanPin: Bool
     public var shareCardPermission: Bool
     public var forbidGroupFriendRequests: Bool?
+    /// The viewer's own remark for this group, shown in place of its name (Vue `myRemarkName`); nil when the host
+    /// did not read the viewer's settings for this group, so no 群备注 row shows.
+    public var myRemarkName: String?
 
     public init(groupId: String, name: String, avatarURL: String? = nil, memberCount: Int = 0,
                 announcement: String = "", members: [Contact] = [], ownerId: String = "",
@@ -53,7 +56,8 @@ public struct FlareGroupDetailModel: Sendable {
                 myPinned: Bool? = nil, discoverable: Bool = false,
                 joinPolicy: FlareGroupJoinPolicy? = nil, muteAll: Bool = false,
                 onlyAdminCanAtAll: Bool = false, onlyAdminCanPin: Bool = false,
-                shareCardPermission: Bool = false, forbidGroupFriendRequests: Bool? = nil) {
+                shareCardPermission: Bool = false, forbidGroupFriendRequests: Bool? = nil,
+                myRemarkName: String? = nil) {
         self.groupId = groupId; self.name = name; self.avatarURL = avatarURL
         self.memberCount = memberCount; self.announcement = announcement; self.members = members
         self.ownerId = ownerId; self.adminIds = adminIds; self.mutedIds = mutedIds
@@ -63,8 +67,12 @@ public struct FlareGroupDetailModel: Sendable {
         self.muteAll = muteAll; self.onlyAdminCanAtAll = onlyAdminCanAtAll
         self.onlyAdminCanPin = onlyAdminCanPin; self.shareCardPermission = shareCardPermission
         self.forbidGroupFriendRequests = forbidGroupFriendRequests
+        self.myRemarkName = myRemarkName
     }
 }
+
+/// What a ``FlareGroupDetail`` edit sheet writes (`submitEdit`).
+public enum FlareGroupEditField: String, Sendable { case name, announcement, nickname, remarkName }
 
 /// A pending group join request, resolved for display.
 public struct FlareGroupJoinRequestView: Identifiable, Sendable {
@@ -169,6 +177,18 @@ public struct FlareGroupDetailLabels: Sendable {
     public var cancel: String?
     public var save: String?
     public var done: String?
+    // Set after init (Vue kit copy the kit table does not carry yet); nil falls back as noted.
+    /// 群备注 row label and its editor's placeholder; without `myRemarkName` the row falls back to the nickname label.
+    public var myRemarkName: String?
+    public var remarkNamePlaceholder: String?
+    /// The invite link sheet while the link is being made; nil shows a spinner only.
+    public var generating: String?
+    /// Copies the invite link (shown with `inviteUrl`); nil falls back to `inviteLink`.
+    public var copyInviteLink: String?
+    /// The transfer confirmation's confirm key; nil falls back to `transferOwner`.
+    public var confirmTransfer: String?
+    /// The join-request and member sheets while they load; nil shows a spinner only.
+    public var loading: String?
 
     public init(
         title: String? = nil,
@@ -384,14 +404,14 @@ public extension FlareGroupDetailLabels {
 
 /// Group detail / management — hero, member grid, and Feishu-style settings sections
 /// (群信息 / 我在本群 / 群管理 / 群权限), plus member actions, join-request approval, invite picker
-/// and invite link, with the 发消息 / 退群 footer.
+/// and invite link. The message action stays at the bottom of the viewport.
 ///
 /// Every management entry follows the host's answer: `model.capabilities` through
 /// ``groupManagementEntries(_:)``, and each member's sheet through `model.memberActions`
 /// (``groupDetailMemberActions(model:memberId:)``). The kit reads no role or owner rule of its own.
 ///
 /// Hosts place their own content in two slots that scroll with the page at its horizontal inset:
-/// `afterInfo` after the group information section and `footer` after the message and leave
+/// `afterInfo` after the group information section and `footer` after the group management
 /// buttons; an absent slot draws nothing. The message button is drawn only when `onOpenChat` is set.
 ///
 /// Purely presentational: it renders ``FlareGroupDetailModel`` and emits intents through its
@@ -442,6 +462,12 @@ public struct FlareGroupDetail: View {
     /// Host actions the kit cannot know about, drawn above leaving the group (FR-046).
     private let extraActions: [FlareDetailExtraAction]
     private let onExtraAction: ((String) -> Void)?
+    /// Saves an edit sheet and closes it only once the write succeeded (Vue `submitEdit` / `submitRemarkName`): while
+    /// it runs the sheet is busy, a thrown error stays in the sheet with the draft. Without it the sheet emits the
+    /// matching `onUpdate…` and closes. The 群备注 row is editable only through it.
+    private let submitEdit: ((FlareGroupEditField, String) async throws -> Void)?
+    /// The scannable invite link: the invite sheet draws its QR card and a copy-link key from it.
+    private let inviteUrl: String?
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -451,6 +477,8 @@ public struct FlareGroupDetail: View {
     // Edit sheets (name / announcement / nickname)
     @State private var editKind: EditKind?
     @State private var editDraft = ""
+    @State private var editBusy = false
+    @State private var editError: String?
     // Join policy / requests / invite link / invite members
     @State private var joinPolicyPicker: JoinPolicyPicking?
     @State private var showJoinRequests = false
@@ -473,10 +501,13 @@ public struct FlareGroupDetail: View {
     @State private var memberSearchResult: (key: MemberSearchKey, members: [Contact])?
     @State private var memberSearchLoading = false
     @State private var memberSearchError: String?
+    /// Bumped by the failed search's retry: the same query runs again.
+    @State private var memberSearchRetry = 0
+    private struct MemberSearchRun: Equatable { let key: MemberSearchKey; let retry: Int }
     /// A member chosen in the members sheet; their dialog opens once the sheet is gone.
     @State private var pendingMemberAction: Contact?
 
-    private enum EditKind: Identifiable { case name, announcement, nickname; var id: Int { hashValue } }
+    private enum EditKind: Identifiable { case name, announcement, nickname, remark; var id: Int { hashValue } }
     /// The join-policy sheet, while it is shown.
     private enum JoinPolicyPicking: Identifiable { case shown; var id: Int { 0 } }
 
@@ -503,7 +534,9 @@ public struct FlareGroupDetail: View {
                 memberRosterRevision: UInt64 = 0,
                 onSearchMembers: ((String) async throws -> [Contact])? = nil,
                 onLeave: (() -> Void)? = nil,
-                extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil) {
+                extraActions: [FlareDetailExtraAction] = [], onExtraAction: ((String) -> Void)? = nil,
+                submitEdit: ((FlareGroupEditField, String) async throws -> Void)? = nil,
+                inviteUrl: String? = nil) {
         self.model = model; self.loading = loading; self.joinRequests = joinRequests
         self.loadingJoinRequests = loadingJoinRequests; self.inviteCode = inviteCode
         self.loadingInviteLink = loadingInviteLink; self.invitableContacts = invitableContacts
@@ -522,6 +555,7 @@ public struct FlareGroupDetail: View {
         self.memberRosterRevision = memberRosterRevision
         self.onSearchMembers = onSearchMembers; self.onLeave = onLeave
         self.extraActions = extraActions; self.onExtraAction = onExtraAction
+        self.submitEdit = submitEdit; self.inviteUrl = inviteUrl
     }
 
     /// Cells in the member preview, the add tile included: four rows of five (Vue `MEMBER_PREVIEW_CELLS`).
@@ -601,16 +635,23 @@ public struct FlareGroupDetail: View {
         }
         .background(colors.bgSecondary.ignoresSafeArea())
         // ── Edit name / announcement / nickname: the form draws its own title ──
-        .flareBottomSheet(item: $editKind, title: editAlertTitle, titleHidden: true) { kind in
-            FormSheetView(title: editAlertTitle, confirmLabel: copy.save, cancelLabel: copy.cancel,
+        .flareBottomSheet(item: $editKind, title: editAlertTitle, titleHidden: true, dismissible: !editBusy) { kind in
+            FormSheetView(title: editAlertTitle, confirmLabel: copy.save, cancelLabel: copy.cancel, busy: editBusy,
                           confirmEnabled: kind != .name || !editDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                           onConfirm: saveEdit, onClose: { editKind = nil }) {
-                InputView(text: $editDraft, multiline: kind == .announcement)
+                // Vue editor limits: name 30, announcement 200, nickname and remark 20.
+                FormFieldView(error: editError) {
+                    InputView(text: $editDraft, placeholder: editPlaceholder(kind), multiline: kind == .announcement,
+                              maxLength: kind == .announcement ? 200 : kind == .name ? 30 : 20)
+                }
             }
         }
+        .onChange(of: editKind) { _ in editError = nil }
         // ── Join policy: the current one selected (none when unknown); a pick closes and emits ──
         .flareBottomSheet(item: $joinPolicyPicker, title: copy.joinMode) { _ in
-            FlareGroupJoinPolicyPicker(policy: model?.joinPolicy, options: Self.joinPolicyOptions(copy)) { policy in
+            FlareGroupJoinPolicyPicker(policy: model?.joinPolicy, options: Self.joinPolicyOptions(copy),
+                                       cancelLabel: copy.cancel, saveLabel: copy.save,
+                                       onCancel: { joinPolicyPicker = nil }) { policy in
                 joinPolicyPicker = nil
                 onSetJoinPolicy?(policy)
             }
@@ -621,7 +662,7 @@ public struct FlareGroupDetail: View {
         }) { member in
             // The member's name heads the sheet from its content, so it stays while the sheet leaves.
             VStack(spacing: 0) {
-                Text(member.name)
+                Text(copy.memberManage)
                     .font(.system(size: FlareSizes.fontSizeMd, weight: .medium))
                     .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textTertiary)
                     .lineLimit(1)
@@ -638,7 +679,7 @@ public struct FlareGroupDetail: View {
         // ── Transfer owner confirm (without a feedback host) ──
         .flareBottomSheet(item: $transferTarget, title: copy.transferOwner, titleHidden: true) { target in
             DangerConfirmView(title: copy.transferOwner, description: String(format: copy.transferConfirm, target.name),
-                              target: "", confirmText: copy.transferOwner, cancelText: copy.cancel,
+                              target: "", confirmText: labels.confirmTransfer ?? copy.transferOwner, cancelText: copy.cancel,
                               onConfirm: { transferTarget = nil; onTransferOwner?(target.id) },
                               onCancel: { transferTarget = nil })
         }
@@ -659,17 +700,49 @@ public struct FlareGroupDetail: View {
         switch editKind {
         case .announcement: return copy.editAnnouncement
         case .nickname: return copy.myNickname
+        case .remark: return labels.myRemarkName ?? copy.myNickname
         default: return copy.editName
         }
     }
 
+    private func editPlaceholder(_ kind: EditKind) -> String {
+        switch kind {
+        case .name: return copy.groupName
+        case .announcement: return copy.announcement
+        case .nickname: return copy.nicknamePlaceholder
+        case .remark: return labels.remarkNamePlaceholder ?? ""
+        }
+    }
+
     private func saveEdit() {
-        let v = editDraft.trimmingCharacters(in: .whitespaces)
-        switch editKind {
+        let v = editDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let kind = editKind, !editBusy, kind != .name || !v.isEmpty else { return }
+        if let submitEdit {
+            let field: FlareGroupEditField
+            switch kind {
+            case .name: field = .name
+            case .announcement: field = .announcement
+            case .nickname: field = .nickname
+            case .remark: field = .remarkName
+            }
+            editBusy = true
+            editError = nil
+            Task { @MainActor in
+                defer { editBusy = false }
+                do {
+                    try await submitEdit(field, v)
+                    editKind = nil
+                } catch {
+                    editError = error.localizedDescription
+                }
+            }
+            return
+        }
+        switch kind {
         case .name: onUpdateName?(v)
         case .announcement: onUpdateAnnouncement?(v)
         case .nickname: onUpdateMyNickname?(v)
-        case .none: break
+        case .remark: break
         }
         editKind = nil
     }
@@ -709,15 +782,52 @@ public struct FlareGroupDetail: View {
             }
             .padding(.vertical, FlareSizes.spacingLg)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if let onOpenChat {
+                ButtonView(label: copy.message, variant: .primary, size: .lg, block: true, maintainTouchTarget: true) {
+                    onOpenChat(m.members.map(\.id), displayName(m))
+                }
+                .padding(.horizontal, FlareSizes.spacingLg)
+                .padding(.vertical, FlareSizes.spacingSm)
+                .background(colors.bgPrimary)
+            }
+        }
     }
 
+    /// My remark for the group, else its name, else the kit's group wording (Vue `groupName`).
+    private func displayName(_ m: FlareGroupDetailModel) -> String {
+        if let remark = m.myRemarkName, !remark.isEmpty { return remark }
+        return m.name.isEmpty ? copy.title : m.name
+    }
+
+    /// Avatar 52 beside the name. The name is the rename entry for a viewer who may rename (it is written once on
+    /// the page), with its own pencil key beside it.
     private func hero(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
-        VStack(spacing: FlareSizes.spacingSm) {
-            AvatarView(userId: m.groupId, displayName: m.name, avatarURL: m.avatarURL, size: 72)
-            Text(m.name.isEmpty ? copy.title : m.name)
-                .font(.system(size: FlareSizes.fontSize3xl, weight: .semibold)).foregroundColor(colors.textPrimary)
+        HStack(spacing: FlareSizes.spacingMd) {
+            AvatarView(userId: m.groupId, displayName: displayName(m), avatarURL: m.avatarURL, size: 52)
+            let title = Text(displayName(m)).font(.system(size: 18, weight: .semibold))
+                .foregroundColor(colors.textPrimary).lineLimit(2)
+            if can(.editName) {
+                Button(action: openRename) { title }.buttonStyle(.plain)
+                Button(action: openRename) {
+                    Image(systemName: flareIconSymbol("edit")).font(.system(size: 16)).foregroundColor(colors.textTertiary)
+                        .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(copy.editName)
+            } else {
+                title
+            }
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, FlareSizes.spacingLg)
+    }
+
+    private func openRename() {
+        guard can(.editName) else { return }
+        editDraft = model?.name ?? ""
+        editKind = .name
     }
 
     // MARK: - Settings cards
@@ -742,9 +852,8 @@ public struct FlareGroupDetail: View {
     }
 
     private func infoCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
+        // The name is the hero's own entry: not written twice on one page.
         card(copy.sectionInfo, [
-            FlareSettingsItem(key: "name", label: copy.groupName, icon: "tag",
-                              kind: can(.editName) ? .navigation : .value, detail: m.name.isEmpty ? "-" : m.name),
             FlareSettingsItem(key: "announcement", label: copy.announcement, icon: "announcement",
                               kind: can(.editAnnouncement) ? .navigation : .value,
                               detail: m.announcement.isEmpty ? copy.notSet : m.announcement),
@@ -752,7 +861,14 @@ public struct FlareGroupDetail: View {
     }
 
     private func myInGroupCard(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
-        card(copy.sectionMyInGroup, [
+        var items: [FlareSettingsItem] = []
+        // 群备注 only once the host read my settings for this group (Vue `myRemarkName !== undefined`).
+        if let remark = m.myRemarkName {
+            items.append(FlareSettingsItem(key: "myRemarkName", label: labels.myRemarkName ?? copy.myNickname, icon: "edit",
+                                           kind: submitEdit != nil ? .navigation : .value,
+                                           detail: remark.isEmpty ? copy.notSet : remark))
+        }
+        items += [
             FlareSettingsItem(key: "myNickname", label: copy.myNickname, icon: "edit",
                               kind: .navigation, detail: m.myNickname.isEmpty ? copy.notSet : m.myNickname),
             // A setting that could not be read claims neither state: an information row, not a switch.
@@ -764,7 +880,8 @@ public struct FlareGroupDetail: View {
                                                kind: .toggle, value: $0) }
                 ?? FlareSettingsItem(key: "myPinned", label: copy.pinGroup, icon: "pin",
                                      kind: .value, detail: copy.settingUnavailable),
-        ], colors)
+        ]
+        return card(copy.sectionMyInGroup, items, colors)
     }
 
     /// The 群管理 rows the viewer's capabilities name, in display order.
@@ -816,10 +933,10 @@ public struct FlareGroupDetail: View {
 
     private func onRowSelect(_ item: FlareSettingsItem) {
         switch item.key {
+        case "myRemarkName" where submitEdit != nil:
+            editDraft = model?.myRemarkName ?? ""; editKind = .remark
         case "myNickname":
             editDraft = model?.myNickname ?? ""; editKind = .nickname
-        case "name" where can(.editName):
-            editDraft = model?.name ?? ""; editKind = .name
         case "announcement" where can(.editAnnouncement):
             editDraft = model?.announcement ?? ""; editKind = .announcement
         case "joinPolicy" where can(.joinPolicy):
@@ -852,20 +969,13 @@ public struct FlareGroupDetail: View {
 
     private func bottomActions(_ colors: FlareColors, _ m: FlareGroupDetailModel) -> some View {
         VStack(spacing: FlareSizes.spacingSm) {
-            // Drawn only when the host opens the chat: no handler, no dead button.
-            if let onOpenChat {
-                ButtonView(label: copy.message, variant: .primary, size: .sm, block: true, maintainTouchTarget: true) {
-                    // Contract parity with Vue `openChat({ userIds, name })` / Flutter `(userIds, name)`.
-                    onOpenChat(m.members.map(\.id), m.name.isEmpty ? copy.title : m.name)
-                }
-            }
             ForEach(extraActions) { action in
-                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: .sm, block: true, maintainTouchTarget: true) {
+                ButtonView(label: action.label, variant: action.danger ? .danger : .secondary, size: .lg, block: true, maintainTouchTarget: true) {
                     onExtraAction?(action.id)
                 }
             }
             // Leaving is the host's to confirm: the tap is the intent.
-            ButtonView(label: can(.dissolve) ? copy.dissolve : copy.leave, variant: .danger, size: .sm, block: true, maintainTouchTarget: true) {
+            ButtonView(label: can(.dissolve) ? copy.dissolve : copy.leave, variant: .danger, size: .lg, block: true, maintainTouchTarget: true) {
                 onLeave?()
             }
         }
@@ -917,7 +1027,8 @@ public struct FlareGroupDetail: View {
     // host the view's own confirmation opens from the sheet's onDismiss.
 
     private func confirmTransfer(_ member: Contact) {
-        if !Self.confirm(Self.transferOptions(member, copy: copy, onTransferOwner: onTransferOwner), through: feedback) {
+        if !Self.confirm(Self.transferOptions(member, copy: copy, confirmTransferText: labels.confirmTransfer,
+                                              onTransferOwner: onTransferOwner), through: feedback) {
             pendingTransfer = member
         }
     }
@@ -931,10 +1042,10 @@ public struct FlareGroupDetail: View {
         return true
     }
 
-    static func transferOptions(_ member: Contact, copy: FlareGroupDetailLabels.Resolved,
+    static func transferOptions(_ member: Contact, copy: FlareGroupDetailLabels.Resolved, confirmTransferText: String? = nil,
                                 onTransferOwner: ((String) -> Void)?) -> FlareConfirmOptions {
         FlareConfirmOptions(title: copy.transferOwner, description: String(format: copy.transferConfirm, member.name),
-                            confirmText: copy.transferOwner, cancelText: copy.cancel,
+                            confirmText: confirmTransferText ?? copy.transferOwner, cancelText: copy.cancel,
                             action: { onTransferOwner?(member.id) })
     }
 
@@ -946,18 +1057,21 @@ public struct FlareGroupDetail: View {
             sheetHeader(copy.joinRequests) { showJoinRequests = false }
             Group {
                 if loadingJoinRequests {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if joinRequests.isEmpty {
-                    EmptyStateView(title: copy.noRequests, icon: "join-request")
+                    EmptyStateView(title: labels.loading ?? "", icon: "join-request", loading: true)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if joinRequests.isEmpty {
+                    Text(copy.noRequests).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
+                        .frame(maxWidth: .infinity).padding(.vertical, FlareSizes.spacing2xl)
+                    Spacer(minLength: 0)
                 } else {
                     List(joinRequests) { r in
                         HStack(spacing: FlareSizes.spacingMd) {
-                            AvatarView(userId: r.applicantId, displayName: r.applicantName, avatarURL: r.avatarURL, size: 42)
+                            AvatarView(userId: r.applicantId, displayName: r.applicantName, avatarURL: r.avatarURL, size: 36)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(r.applicantName).foregroundColor(colors.textPrimary)
-                                Text((r.message?.isEmpty == false ? r.message! : copy.requestDefaultMessage))
-                                    .font(.footnote).foregroundColor(colors.textTertiary).lineLimit(1)
+                                if let message = r.message, !message.isEmpty {
+                                    Text(message).font(.footnote).foregroundColor(colors.textTertiary).lineLimit(1)
+                                }
                             }
                             Spacer()
                             ButtonView(label: copy.reject, variant: .secondary, size: .sm) { onRespondRequest?(r.requestId, false) }
@@ -986,15 +1100,18 @@ public struct FlareGroupDetail: View {
                 .padding(.horizontal, FlareSizes.spacingLg)
                 .padding(.bottom, FlareSizes.spacingSm)
             if let memberSearchError {
-                Text(memberSearchError)
-                    .font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
-                    .frame(maxWidth: .infinity).padding(.vertical, FlareSizes.spacing2xl)
-                Spacer(minLength: 0)
+                EmptyStateView(title: memberSearchError, actionText: onSearchMembers != nil ? strings.retry : nil,
+                               icon: "warning", tone: .error,
+                               onAction: { memberSearchRetry &+= 1 })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if memberSearchLoading && matching.isEmpty {
+                EmptyStateView(title: labels.loading ?? "", icon: "people", loading: true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if matching.isEmpty {
-                Text(strings.groupDetailNoMatchingMembers)
-                    .font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
-                    .frame(maxWidth: .infinity).padding(.vertical, FlareSizes.spacing2xl)
-                Spacer(minLength: 0)
+                EmptyStateView(title: strings.groupDetailNoMatchingMembers,
+                               actionText: memberQuery.trimmingCharacters(in: .whitespaces).isEmpty ? nil : strings.clearSearch,
+                               icon: "search", onAction: { memberQuery = "" })
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
@@ -1009,7 +1126,7 @@ public struct FlareGroupDetail: View {
             }
         }
         .background(colors.bgPrimary.ignoresSafeArea())
-        .task(id: key) { await runMemberSearch(key) }
+        .task(id: MemberSearchRun(key: key, retry: memberSearchRetry)) { await runMemberSearch(key) }
     }
 
     @MainActor private func runMemberSearch(_ key: MemberSearchKey) async {
@@ -1046,16 +1163,23 @@ public struct FlareGroupDetail: View {
         return VStack(spacing: 0) {
             sheetHeader(copy.inviteLink) { showInviteLink = false }
             VStack(spacing: FlareSizes.spacingLg) {
+                Text(copy.inviteLinkHint)
+                    .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textSecondary)
+                    .multilineTextAlignment(.center)
                 if loadingInviteLink {
-                    ProgressView().padding(FlareSizes.spacing2xl)
+                    EmptyStateView(title: labels.generating ?? "", icon: "link", loading: true).frame(maxWidth: .infinity)
                 } else if let code = inviteCode, !code.isEmpty {
-                    Text(copy.inviteCodeTitle).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
+                    if let inviteUrl, !inviteUrl.isEmpty, let m = model {
+                        QRCardView(name: m.name.isEmpty ? displayName(m) : m.name, subtitle: copy.inviteLinkHint,
+                                   avatarURL: m.avatarURL, qrPayload: inviteUrl)
+                    }
                     InviteCodeCopyView(code: code, copyLabel: copy.copyCode, copiedLabel: copy.copied)
-                    Text(copy.inviteLinkHint)
-                        .font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
-                        .multilineTextAlignment(.center)
+                    if let inviteUrl, !inviteUrl.isEmpty {
+                        InviteCodeCopyView(code: inviteUrl, copyLabel: labels.copyInviteLink ?? copy.inviteLink,
+                                           copiedLabel: copy.copied, showsCode: false)
+                    }
                 } else {
-                    EmptyStateView(title: copy.cannotGenerate, description: copy.unavailableHint, icon: "link")
+                    Text(copy.cannotGenerate).font(.system(size: FlareSizes.fontSizeMd)).foregroundColor(colors.textTertiary)
                         .frame(maxWidth: .infinity)
                 }
                 Spacer()
@@ -1120,19 +1244,32 @@ private struct FlareGroupSheetRowStyle: ButtonStyle {
     }
 }
 
-/// The join-policy sheet's body: the choices as a kit radio group with the current policy selected —
-/// none when it is unknown — and picking one reports it.
+/// The join-policy sheet's body: the choices as a kit radio group starting at the current policy — none when it is
+/// unknown, and then save waits for a pick — over [cancel · save] (Vue); saving reports the pick.
 struct FlareGroupJoinPolicyPicker: View {
     let policy: FlareGroupJoinPolicy?
     let options: [FlareSelectOption]
+    var cancelLabel = ""
+    var saveLabel = ""
+    var onCancel: () -> Void = {}
     let onPick: (FlareGroupJoinPolicy) -> Void
+    @State private var draft: String?
 
     var body: some View {
-        RadioGroupView(options: options, selection: Binding(
-            get: { policy?.rawValue ?? "" },
-            set: { value in if let picked = FlareGroupJoinPolicy(rawValue: value) { onPick(picked) } }
-        ), vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        let picked = FlareGroupJoinPolicy(rawValue: draft ?? policy?.rawValue ?? "")
+        VStack(spacing: FlareSizes.spacingLg) {
+            RadioGroupView(options: options, selection: Binding(
+                get: { draft ?? policy?.rawValue ?? "" },
+                set: { draft = $0 }
+            ), vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: FlareSizes.spacingMd) {
+                ButtonView(label: cancelLabel, variant: .secondary, size: .sm, block: true, action: onCancel)
+                ButtonView(label: saveLabel, size: .sm, disabled: picked == nil, block: true) {
+                    if let picked { onPick(picked) }
+                }
+            }
+        }
         .padding(.horizontal, FlareSizes.spacingLg)
         .padding(.bottom, FlareSizes.spacingLg)
     }
@@ -1143,6 +1280,7 @@ private struct InviteCodeCopyView: View {
     let code: String
     let copyLabel: String
     let copiedLabel: String
+    var showsCode = true
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @State private var copied = false
@@ -1150,6 +1288,7 @@ private struct InviteCodeCopyView: View {
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         VStack(spacing: FlareSizes.spacingLg) {
+            if showsCode {
             Text(code)
                 .font(.system(size: FlareSizes.fontSize2xl, weight: .semibold, design: .monospaced))
                 .foregroundColor(colors.textPrimary)
@@ -1158,6 +1297,7 @@ private struct InviteCodeCopyView: View {
                 .frame(maxWidth: .infinity)
                 .background(colors.bgSecondary)
                 .cornerRadius(FlareSizes.radiusMd)
+            }
             ButtonView(label: copied ? copiedLabel : copyLabel, variant: copied ? .secondary : .primary,
                        block: true, icon: copied ? "check" : "copy") {
                 #if canImport(UIKit)
@@ -1165,6 +1305,12 @@ private struct InviteCodeCopyView: View {
                 #endif
                 copied = true
             }
+        }
+        // "Copied" for 1.6 s, then the key offers copying again (Vue).
+        .task(id: copied) {
+            guard copied else { return }
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            copied = false
         }
     }
 }

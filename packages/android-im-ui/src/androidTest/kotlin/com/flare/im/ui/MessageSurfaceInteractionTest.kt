@@ -15,7 +15,11 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -120,7 +124,9 @@ class MessageSurfaceInteractionTest {
         text.performClick()
         val glyph = compose.onNodeWithContentDescription("${zh.messageFailed}, ${zh.retry}", useUnmergedTree = true)
         val (gw, gh) = glyph.size()
-        assertTrue("glyph key $gw × $gh", gw >= FlareSizes.touchTarget && gh >= FlareSizes.touchTarget)
+        // The glyph's hit area reaches past its 16dp layout box, so its bounds carry px→dp float noise (47.99998).
+        val target = FlareSizes.touchTarget - 0.001.dp
+        assertTrue("glyph key $gw × $gh", gw >= target && gh >= target)
         glyph.performClick()
         compose.runOnIdle { assertEquals(2, resent) }
     }
@@ -164,7 +170,7 @@ class MessageSurfaceInteractionTest {
         assertEquals("and no failure fill", 0, count("sent", colors.messageFailedBackground))
     }
 
-    /** C3: a group's own message shows "N unread" as a key that opens the read list with the message's core id. */
+    /** The group receipt control opens the read list with the message’s core ID. */
     @Test fun theReadSummaryOpensTheReadList() {
         val opened = mutableListOf<String>()
         content {
@@ -179,8 +185,10 @@ class MessageSurfaceInteractionTest {
         assertTrue("summary key $w × $h", w >= FlareSizes.touchTarget && h >= FlareSizes.touchTarget)
         key.performClick()
         compose.runOnIdle { assertEquals(listOf("s1"), opened) }
-        // No check glyph next to the summary.
-        compose.onAllNodesWithContentDescription(zh.messageSent, useUnmergedTree = true).assertCountEquals(0)
+        compose.onNodeWithText("3 人未读").assertDoesNotExist()
+        // The visible check has one accessible name, supplied by the receipt control.
+        compose.onAllNodesWithContentDescription(zh.messageSent, useUnmergedTree = true).assertCountEquals(1)
+        compose.onAllNodesWithContentDescription(zh.messageSent).assertCountEquals(0)
     }
 
     /** menuActions: the ⋯ key opens the kit menu, whose item runs the action; embedded, they are keys. */
@@ -190,10 +198,15 @@ class MessageSurfaceInteractionTest {
         content { PluginView(view = poll, embedded = embedded.value, onAction = { id, _ -> actions += id }) }
         compose.onNodeWithContentDescription(zh.pluginViewMore).performClick()
         compose.onNodeWithText("结束投票").performClick()
+        // R2: a danger action always asks first (DangerConfirm, whose key repeats the label); nothing runs until then.
+        compose.runOnIdle { assertEquals(emptyList<String>(), actions) }
+        val confirm = compose.onNode(hasText("结束投票") and hasClickAction() and hasAnyAncestor(isDialog()))
+        confirm.performClick()
         compose.runOnIdle { assertEquals(listOf("close"), actions) }
         compose.runOnIdle { embedded.value = true }
         compose.onAllNodesWithContentDescription(zh.pluginViewMore).assertCountEquals(0)
         compose.onNodeWithText("结束投票").performClick()
+        confirm.performClick()
         compose.runOnIdle { assertEquals(listOf("close", "close"), actions) }
     }
 

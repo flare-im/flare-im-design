@@ -73,7 +73,8 @@ class _FlareInAppNotificationHostState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final screenReader = MediaQuery.maybeAccessibleNavigationOf(context) ?? false;
+    final screenReader =
+        MediaQuery.maybeAccessibleNavigationOf(context) ?? false;
     if (_revision == null) {
       _screenReader = screenReader;
       _seen();

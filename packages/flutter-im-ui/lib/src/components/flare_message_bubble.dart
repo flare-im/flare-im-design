@@ -50,9 +50,9 @@ enum FlareConversationKind { single, group, channel, ai, system }
 /// `spec/message-meta-placement-vectors.json`: after the last line of a text
 /// (or in its own row when the line is full), in its own row inside other
 /// bubbles, and under bare media and cards at the trailing edge in the default
-/// palette, where a failure is the key "发送失败，重试". In a group the
-/// viewer's own message shows the SDK's [FlareMessageData.readSummary] ("N
-/// 人未读" / "全部已读"); with [onReadReceiptOpen] it is a key. The retry and
+/// palette, where a failure is the key "发送失败，重试". Group receipts use
+/// the same checks as direct messages. [onReadReceiptOpen] opens the details.
+/// The retry and
 /// summary keys answer a tap anywhere in their `layout.touchTarget` square.
 ///
 /// The bubble is at most the pane's width (the space the row is given) times
@@ -160,7 +160,7 @@ class FlareMessageBubble extends StatelessWidget {
   final void Function(FlareMessageData message)? onReply;
 
   /// The read summary was tapped: the host opens the read receipt sheet for
-  /// the message. Without it the summary is plain text.
+  /// the message. Without it the glyph is passive.
   final void Function(FlareMessageData message)? onReadReceiptOpen;
 
   /// A tapped poll option, by its index; without it, or in multi-select mode
@@ -282,8 +282,12 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
         b.groupPosition == FlareMessageGroupPosition.single ||
         b.groupPosition == FlareMessageGroupPosition.last;
     final selecting = b.multiSelectMode;
+    // Vue hides the beside-bubble toolbar under a 900px window (message-menu.css):
+    // a phone-width window opens the menu by right-click or long-press instead.
     final toolbarAvailable =
         capabilities.hover &&
+        MediaQuery.sizeOf(context).width >=
+            FlareSizes.appShellCompactMinWidth &&
         !selecting &&
         (b.onReact != null || b.onReply != null || _hasMenu);
     final actionCount =
@@ -713,7 +717,11 @@ class _FlareMessageRowState extends State<_FlareMessageRow> {
     final ratio = pane < FlareSizes.navigationRailMinWidth
         ? FlareSizes.componentBubbleMaxWidthRatioCompact
         : FlareSizes.componentBubbleMaxWidthRatioRegular;
-    return (pane * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
+    // Vue takes the ratio of the room beside the avatar column, not of the row.
+    final content = b.rowPresentation.reserveAvatarSpace
+        ? pane - FlareSizes.componentMessageAvatarSize - FlareSizes.spacingSm
+        : pane;
+    return (content * ratio).clamp(0.0, FlareSizes.bubbleMaxWidth);
   }
 
   double _surfaceWidth(double pane) =>

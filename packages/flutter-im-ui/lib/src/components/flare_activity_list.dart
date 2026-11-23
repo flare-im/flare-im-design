@@ -21,18 +21,32 @@ class FlareActivityItem {
   final bool unread;
 }
 
+/// [compact] rows (avatar 32, tighter padding) suit an inbox in a side panel.
+/// While [disabled] the rows are inert (a read or an acknowledgement is under
+/// way). The empty state takes an optional [emptyDescription] and one action
+/// ([emptyActionText] / [onEmptyAction]).
 class FlareActivityList extends StatelessWidget {
   const FlareActivityList({
     super.key,
     required this.items,
     required this.emptyText,
+    this.emptyDescription,
+    this.emptyActionText,
+    this.onEmptyAction,
     this.onSelect,
     this.footer,
+    this.compact = false,
+    this.disabled = false,
   });
   final List<FlareActivityItem> items;
   final String emptyText;
+  final String? emptyDescription;
+  final String? emptyActionText;
+  final VoidCallback? onEmptyAction;
   final ValueChanged<String>? onSelect;
   final Widget? footer;
+  final bool compact;
+  final bool disabled;
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
@@ -43,19 +57,29 @@ class FlareActivityList extends StatelessWidget {
         itemCount:
             items.length + (footer == null ? 0 : 1) + (items.isEmpty ? 1 : 0),
         itemBuilder: (context, index) {
-          if (items.isEmpty && index == 0)
-            return FlareEmptyState(title: emptyText);
+          if (items.isEmpty && index == 0) {
+            return FlareEmptyState(
+              title: emptyText,
+              description: emptyDescription,
+              actionText: emptyActionText,
+              onAction: onEmptyAction,
+            );
+          }
           if (index >= items.length) return footer!;
           final item = items[index];
+          final select = disabled ? null : onSelect;
           return Semantics(
             button: onSelect != null,
+            enabled: select != null,
             label: item.unread
                 ? '${item.title}, ${FlareStrings.of(context).unreadTab(1)}'
                 : item.title,
             child: InkWell(
-              onTap: onSelect == null ? null : () => onSelect!(item.id),
+              onTap: select == null ? null : () => select(item.id),
               child: Padding(
-                padding: const EdgeInsets.all(FlareSizes.spacingLg),
+                padding: EdgeInsets.all(
+                  compact ? FlareSizes.spacingMd : FlareSizes.spacingLg,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -63,7 +87,7 @@ class FlareActivityList extends StatelessWidget {
                       userId: item.id,
                       displayName: item.title,
                       avatarUrl: item.avatarUrl,
-                      size: FlareSizes.avatarSize,
+                      size: compact ? 32 : FlareSizes.avatarSize,
                     ),
                     const SizedBox(width: FlareSizes.spacingMd),
                     Expanded(

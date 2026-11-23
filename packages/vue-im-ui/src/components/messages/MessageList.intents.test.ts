@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from "@vue/test-utils";
 import { h, type Component } from "vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import FlareUiProvider from "../../design-system/provider/FlareUiProvider.vue";
 import type { MessageLike } from "../../shared/contracts/messageRow";
 import MessageContentView from "./MessageContentView.vue";
@@ -30,7 +30,31 @@ function mountList(props: Record<string, unknown>) {
   });
 }
 
-describe("MessageList poll and task intents", () => {
+describe("MessageList host intents", () => {
+  it("reports file drops when enabled and suppresses navigation on blocked drops", async () => {
+    const file = new File(["hello"], "notes.txt", { type: "text/plain" });
+    const dataTransfer = { types: ["Files"], files: [file] };
+    const onFilesDrop = vi.fn();
+    const host = mountList({ fileDropEnabled: true, onFilesDrop });
+    const timeline = host.get(".message-list-root");
+    await timeline.trigger("dragenter", { dataTransfer });
+    expect(host.get(".message-list__drop-hint").text()).toBe("Drop to add attachments");
+    await timeline.trigger("drop", { dataTransfer });
+    expect(host.find(".message-list__drop-hint").exists()).toBe(false);
+    expect(onFilesDrop).toHaveBeenCalledExactlyOnceWith([file]);
+    host.unmount();
+
+    const blocked = mountList({ fileDropEnabled: true, fileDropBlocked: true, onFilesDrop });
+    const blockedTimeline = blocked.get(".message-list-root");
+    await blockedTimeline.trigger("dragenter", { dataTransfer });
+    const drop = Object.assign(new Event("drop", { bubbles: true, cancelable: true }), { dataTransfer });
+    blockedTimeline.element.dispatchEvent(drop);
+    expect(drop.defaultPrevented).toBe(true);
+    expect(blocked.find(".message-list__drop-hint").exists()).toBe(false);
+    expect(onFilesDrop).toHaveBeenCalledTimes(1);
+    blocked.unmount();
+  });
+
   it("draws polls and tasks read-only when nobody takes the intent", async () => {
     const host = mountList({});
     await flushPromises();
@@ -52,7 +76,7 @@ describe("MessageList poll and task intents", () => {
     expect(options).toHaveLength(3);
     await options[2].trigger("click");
     await host.get(".fm-task button.box").trigger("click");
-    expect(calls).toEqual([["vote", "client-1", 2], ["taskToggle", "client-2", true]]);
+    expect(calls).toEqual([["vote", "server-1", 2], ["taskToggle", "server-2", true]]);
     host.unmount();
   });
 
@@ -62,6 +86,26 @@ describe("MessageList poll and task intents", () => {
     expect(host.findAll(".fm-vote button.opt")).toHaveLength(0);
     expect(host.find(".fm-task button.box").exists()).toBe(false);
     host.unmount();
+  });
+
+  it("opens a file card's body through openFile only when the host listens, and keeps the download key", async () => {
+    const file = message("3", 2, { contentType: "file", file: { fileName: "spec.pdf", fileSize: 2048, url: "https://cdn.example.com/spec.pdf" } });
+    const quiet = mountList({ messages: [file] });
+    await flushPromises();
+    expect(quiet.find(".fm-file button.main").exists()).toBe(false);
+    quiet.unmount();
+
+    const opened: string[] = [];
+    const host = mountList({ messages: [file], onOpenFile: (id: string) => opened.push(id) });
+    await flushPromises();
+    await host.get(".fm-file button.main").trigger("click");
+    expect(opened).toEqual(["server-3"]);
+    host.unmount();
+
+    const selecting = mountList({ messages: [file], multiSelectMode: true, onOpenFile: () => opened.push("selecting") });
+    await flushPromises();
+    expect(selecting.find(".fm-file button.main").exists()).toBe(false);
+    selecting.unmount();
   });
 
   it("gives a body outside a list the same intents", async () => {

@@ -175,7 +175,7 @@ void main() {
     },
   );
 
-  testWidgets('authorized local video uses the shared player', (tester) async {
+  testWidgets('authorized local video shows a paused frame and plays locally', (tester) async {
     await tester.pumpWidget(
       _chat([
         _message(
@@ -184,10 +184,16 @@ void main() {
         ),
       ]),
     );
+    await tester.pumpAndSettle();
+    expect(find.byType(VideoPlayer), findsOneWidget);
+    expect(players.single.source, Uri.file('/cache/video.mp4'));
+    expect(players.single.plays, 0);
+
     await tester.tap(find.byType(FlareVideoMessage));
     await tester.pumpAndSettle();
-    expect(players.single.source, Uri.file('/cache/video.mp4'));
-    expect(players.single.plays, 1);
+    expect(players, hasLength(2));
+    expect(players.last.source, Uri.file('/cache/video.mp4'));
+    expect(players.last.plays, 1);
   });
 
   group('image', () {

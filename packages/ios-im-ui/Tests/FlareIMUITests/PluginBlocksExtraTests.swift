@@ -14,6 +14,8 @@ final class PluginBlocksExtraTests: XCTestCase {
     func testCountsAndDurationsAreWrittenInTheViewersWords() throws {
         let table = try PluginVectors.table()
         let cases = try XCTUnwrap(table["formats2"]?["cases"]?.arrayValue)
+        // §12.24: the explicit plus of money in is among the facts ("+5.00" → "+¥5.00").
+        XCTAssertTrue(cases.contains { $0["text"]?.stringValue?.hasPrefix("+") == true && $0["format"]?["kind"]?.stringValue == "money" })
         for item in cases {
             let format = try? PluginVectors.decode(PluginValueFormat.self, item["format"])
             let text = try XCTUnwrap(item["text"]?.stringValue)
@@ -270,13 +272,20 @@ final class PluginBlocksExtraTests: XCTestCase {
         XCTAssertEqual(blocks, FlarePluginUIVocabulary.blocks)
         XCTAssertTrue(blocks.contains("protected-media"), "the owner's protected media is drawn natively now")
         XCTAssertEqual(Set(PluginInputKind.allCases.map(\.rawValue)), FlarePluginUIVocabulary.inputs)
-        XCTAssertEqual(FlarePluginUIVocabulary.renderers, ["redPacket.card"])
+        // Version 3 adds the red packet page renderers (§4) and the status card (6.1) to the message card.
+        XCTAssertEqual(FlarePluginUIVocabulary.renderers,
+                       ["redPacket.card", "redPacket.compose", "redPacket.detail", "redPacket.review", "status.card"])
         XCTAssertTrue(FlarePluginUIVocabulary.native.isSuperset(of: ["documentCapture", "paymentConfirmation", "locationOnce"]))
-        for renderer in FlarePluginUIVocabulary.renderers {
-            let view = PluginViewModel(available: true, title: "x",
-                                       presentation: PluginPresentation(renderer: renderer, props: [:], actions: [:]))
-            XCTAssertTrue(flareHasResolvedPresentation(view), renderer)
+        func view(_ renderer: String) -> PluginViewModel {
+            PluginViewModel(available: true, title: "x",
+                            presentation: PluginPresentation(renderer: renderer, props: [:], actions: [:]))
         }
+        XCTAssertTrue(flareHasResolvedPresentation(view("redPacket.card")), "the message card is a resolved presentation")
+        // The page renderers are chosen by name and fall back to the plain document when their bindings are missing.
+        XCTAssertEqual(Set([FlareRedPacketPagePlan.composeRenderer, FlareRedPacketPagePlan.reviewRenderer,
+                            FlareRedPacketPagePlan.detailRenderer, "status.card", "redPacket.card"]),
+                       FlarePluginUIVocabulary.renderers)
+        XCTAssertTrue(PluginExperienceRules.statusCard(view("status.card")))
     }
 }
 

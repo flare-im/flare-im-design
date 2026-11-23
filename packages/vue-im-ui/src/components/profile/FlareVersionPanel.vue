@@ -4,6 +4,7 @@
 // in every kit. The component holds no SDK: it reports intent, and the row is disabled while work is under way or while
 // the host does not listen for what it would do.
 import { computed, getCurrentInstance } from "vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import type { FlareSettingsItem, FlareSettingsSection } from "../../shared/contracts";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
@@ -34,6 +35,7 @@ const emit = defineEmits<{
 }>();
 const instance = getCurrentInstance();
 const { t } = useFlareI18nOptional();
+const screen = useScreenLayout();
 const listens = (listener: string) => Boolean(instance?.vnode.props?.[listener]);
 
 const ROW_KEY = "update";
@@ -73,8 +75,13 @@ const sections = computed<FlareSettingsSection[]>(() => {
     const known = flareVersionChannelText(props.channel);
     items.push({ key: "channel", label: t("versionPanel.channel"), kind: "value", detail: known ? t(CHANNEL_TEXT[known]) : props.channel });
   }
-  items.push({ key: ROW_KEY, label: t(ROW_TEXT[model.value.row]), kind: "action", detail: detail.value, disabled: !handled.value });
-  return [{ title: t("versionPanel.title"), items }];
+  const action: FlareSettingsItem = { key: ROW_KEY, label: t(ROW_TEXT[model.value.row]), kind: "action", detail: detail.value, disabled: !handled.value };
+  if (screen.sectioned.value) return [
+    { items },
+    { title: t("versionPanel.updates"), items: [action] },
+  ];
+  items.push(action);
+  return [{ title: screen.title.value === t("versionPanel.title") ? undefined : t("versionPanel.title"), items }];
 });
 
 function select(item: FlareSettingsItem) {

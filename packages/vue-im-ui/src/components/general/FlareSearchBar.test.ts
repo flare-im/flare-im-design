@@ -29,6 +29,16 @@ afterEach(() => {
 });
 
 describe("FlareSearchBar", () => {
+  it("dismisses focus after an outside click and preserves the query", async () => {
+    const bar = setup({ modelValue: "Lab", dismissesKeyboardOnOutsideTap: true });
+    const field = bar.get("input").element as HTMLInputElement;
+    field.focus();
+    expect(document.activeElement).toBe(field);
+    document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(document.activeElement).not.toBe(field);
+    expect(field.value).toBe("Lab");
+  });
+
   it("searches once the typing settles, not once per keystroke", async () => {
     const search = vi.fn();
     const bar = setup({ modelValue: "" }, { onSearch: search });

@@ -46,62 +46,61 @@ class FlarePluginSectionHeader extends StatelessWidget {
     if (label == null || label.isEmpty) return const SizedBox.shrink();
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: FlareSizes.fontSizeMd,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary,
-                ),
+    // R1: the view puts 24 above a section; the heading adds none.
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              label,
+              // R1: textRole.section in secondary text, never the brand.
+              style: TextStyle(
+                fontSize: FlareTextRoles.section.fontSize,
+                fontWeight: FontWeight.w600,
+                color: colors.textSecondary,
               ),
             ),
           ),
-          Semantics(
-            button: true,
-            expanded: !collapsed,
-            child: InkWell(
-              key: const ValueKey('flare-plugin-section-toggle'),
-              borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
-              onTap: onToggle,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minHeight: FlareSizes.touchTargetMin,
+        ),
+        Semantics(
+          button: true,
+          expanded: !collapsed,
+          child: InkWell(
+            key: const ValueKey('flare-plugin-section-toggle'),
+            borderRadius: BorderRadius.circular(FlareSizes.radiusSm),
+            onTap: onToggle,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: FlareSizes.touchTargetMin,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacingXs,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: FlareSizes.spacingXs,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        collapsed ? strings.expand : strings.collapse,
-                        style: TextStyle(
-                          fontSize: FlareSizes.fontSizeSm,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(width: FlareSizes.spacing3xs),
-                      FlareIcon(
-                        collapsed ? 'chevron-down' : 'chevron-up',
-                        size: 14,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      collapsed ? strings.expand : strings.collapse,
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSizeSm,
                         color: colors.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: FlareSizes.spacing3xs),
+                    FlareIcon(
+                      collapsed ? 'chevron-down' : 'chevron-up',
+                      size: FlareSizes.iconSizeXs,
+                      color: colors.textSecondary,
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -793,11 +792,15 @@ class FlarePluginHeroView extends StatefulWidget {
     this.onAction,
     this.busy = false,
     this.busyActionId,
+    this.footer,
   });
   final FlarePluginHeroBlock block;
   final ValueChanged<FlarePluginAction>? onAction;
   final bool busy;
   final String? busyActionId;
+
+  /// The page's quick keys at the bottom of the overview card (R2.1).
+  final Widget? footer;
 
   /// The eye toggle of a maskable hero (rules.heroMask).
   static const maskKey = ValueKey('flare-plugin-hero-mask');
@@ -819,7 +822,10 @@ class _FlarePluginHeroViewState extends State<FlarePluginHeroView> {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
     final (surface, ink) = switch (block.tone) {
-      FlarePluginHeroTone.neutral => (colors.bgSecondary, colors.textPrimary),
+      // R10: the lead amount is never brand-coloured; §5.1 / R2.1: the
+      // overview card is bg.primary like the list cards.
+      FlarePluginHeroTone.neutral ||
+      FlarePluginHeroTone.brand => (colors.bgPrimary, colors.textPrimary),
       FlarePluginHeroTone.positive => (
         Color.lerp(colors.bgPrimary, colors.success, 0.08)!,
         colors.successText,
@@ -828,16 +834,13 @@ class _FlarePluginHeroViewState extends State<FlarePluginHeroView> {
         Color.lerp(colors.bgPrimary, colors.warning, 0.08)!,
         colors.warningText,
       ),
-      FlarePluginHeroTone.brand => (
-        Color.lerp(colors.bgPrimary, colors.primary, 0.08)!,
-        colors.primaryText,
-      ),
     };
     return Container(
       padding: const EdgeInsets.all(FlareSizes.spacingLg),
       decoration: BoxDecoration(
         color: surface,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+        borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
+        border: Border.all(color: colors.borderSecondary),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -862,21 +865,31 @@ class _FlarePluginHeroViewState extends State<FlarePluginHeroView> {
                   semanticLabel: _hidden
                       ? strings.accountShowBalance
                       : strings.accountHideBalance,
+                  // R10 / §12.4: the eye is a toggle (pressed = hidden).
+                  toggled: _hidden,
                   onPressed: () => setState(() => _hidden = !_hidden),
                 ),
             ],
           ),
           const SizedBox(height: FlareSizes.spacingXs),
-          Text(
-            block.maskable && _hidden
-                ? flarePluginMaskedValue
-                : flarePluginFormatText(block.value, block.format, strings),
-            key: const ValueKey('flare-plugin-hero-value'),
-            style: TextStyle(
-              fontSize: FlareSizes.fontSize5xl,
-              fontWeight: FontWeight.w600,
-              fontFeatures: const [FontFeature.tabularFigures()],
-              color: ink,
+          Semantics(
+            label: block.maskable && _hidden
+                ? strings.accountBalanceHidden
+                : null,
+            excludeSemantics: block.maskable && _hidden,
+            child: Text(
+              block.maskable && _hidden
+                  ? flarePluginMaskedValue
+                  : flarePluginFormatText(block.value, block.format, strings),
+              key: const ValueKey('flare-plugin-hero-value'),
+              style: TextStyle(
+                fontSize: block.amount
+                    ? FlareSizes.componentAmountHeroFontSize
+                    : FlareSizes.fontSize5xl,
+                fontWeight: block.amount ? FontWeight.w700 : FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                color: ink,
+              ),
             ),
           ),
           if (block.subtitle case final subtitle? when subtitle.isNotEmpty) ...[
@@ -914,6 +927,10 @@ class _FlarePluginHeroViewState extends State<FlarePluginHeroView> {
               ],
             ),
           ],
+          if (widget.footer case final footer?) ...[
+            const SizedBox(height: FlareSizes.spacingLg),
+            footer,
+          ],
         ],
       ),
     );
@@ -938,7 +955,10 @@ class FlarePluginStepsView extends StatelessWidget {
           Expanded(
             child: Semantics(
               key: ValueKey('flare-plugin-step-${step.state.name}'),
-              label: '${step.label}, ${_stepText(strings, step.state)}',
+              // §12.5: 第 N 步，共 M 步：label, state.
+              label:
+                  '${strings.pluginViewStepPosition.replaceAll('{index}', '${i + 1}').replaceAll('{count}', '${block.items.length}')}: '
+                  '${step.label}, ${_stepText(strings, step.state)}',
               excludeSemantics: true,
               child: Column(
                 children: [

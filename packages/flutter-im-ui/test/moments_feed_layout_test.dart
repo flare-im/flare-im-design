@@ -114,7 +114,7 @@ void main() {
     expect(_surface(tester).borderRadius, isNotNull);
   });
 
-  testWidgets('unavailable feed actions remain disabled', (tester) async {
+  testWidgets('unavailable actions are not offered', (tester) async {
     await tester.pumpWidget(
       _host(
         const FlareMomentCard(
@@ -123,16 +123,26 @@ void main() {
         ),
       ),
     );
+    // Nothing behind the ··· key: it is not drawn (the Vue kit's rule).
+    expect(find.byTooltip(const FlareStrings().momentActions), findsNothing);
+    await tester.pumpWidget(
+      _host(
+        FlareMomentCard(
+          moment: _moment,
+          presentation: FlareMomentPresentation.feed,
+          onComment: () {},
+        ),
+      ),
+    );
     await tester.tap(find.byTooltip(const FlareStrings().momentActions));
     await tester.pumpAndSettle();
-    for (final label in [
-      const FlareStrings().like,
-      const FlareStrings().comment,
-    ]) {
-      final button = tester.widget<FlareButton>(
-        find.widgetWithText(FlareButton, label),
-      );
-      expect(button.onPressed, isNull);
-    }
+    expect(
+      find.widgetWithText(FlareButton, const FlareStrings().like),
+      findsNothing,
+    );
+    expect(
+      find.widgetWithText(FlareButton, const FlareStrings().comment),
+      findsOneWidget,
+    );
   });
 }

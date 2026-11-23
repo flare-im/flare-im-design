@@ -35,7 +35,11 @@ const layers: ContextualLayer[] = [];
  */
 function isVisible(el: HTMLElement | null): boolean {
   if (!el) return true;
-  return el.isConnected && el.getClientRects().length > 0;
+  if (!el.isConnected || el.getClientRects().length === 0 || el.closest('[inert], [hidden], [aria-hidden="true"]')) return false;
+  // Kept shell destinations retain layout boxes to preserve scroll positions. Their inherited
+  // visibility is hidden, so a non-zero rectangle alone must not let a background selection consume Escape.
+  const visibility = getComputedStyle(el).visibility;
+  return visibility !== 'hidden' && visibility !== 'collapse';
 }
 
 function topLayer(within?: Element | null): ContextualLayer | undefined {
@@ -50,7 +54,7 @@ function topLayer(within?: Element | null): ContextualLayer | undefined {
 
 /** 任何**可见**的 aria-modal 对话框(naive-ui 的 NModal / NDrawer 都画这个属性;留在 DOM 里的隐藏对话框不算)。 */
 export function hasForeignModal(doc: Document): boolean {
-  return Array.from(doc.querySelectorAll<HTMLElement>('[aria-modal="true"]')).some((el) => el.getClientRects().length > 0);
+  return Array.from(doc.querySelectorAll<HTMLElement>('[aria-modal="true"]')).some(isVisible);
 }
 
 const NON_TEXT_INPUT_TYPES = new Set(["button", "submit", "reset", "checkbox", "radio", "range", "color", "file", "image"]);

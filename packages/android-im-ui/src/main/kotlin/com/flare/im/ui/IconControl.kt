@@ -1,6 +1,8 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.sizeIn
@@ -81,15 +83,18 @@ internal fun FlareIconControl(
     role: Role = if (checked == null) Role.Button else Role.Switch,
     shape: Shape = CircleShape,
     minSize: Dp = FlareSizes.touchTarget,
+    /** Lets the caller draw its own pressed, hovered and focused looks (the call keys' fills and ring). */
+    interactionSource: MutableInteractionSource? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val node = if (onClick == null) {
         Modifier
     } else {
+        val indication = LocalIndication.current
         val action = if (checked != null) {
-            Modifier.toggleable(value = checked, enabled = enabled, role = role) { onClick() }
+            Modifier.toggleable(value = checked, interactionSource = interactionSource, indication = indication, enabled = enabled, role = role) { onClick() }
         } else {
-            Modifier.clickable(enabled = enabled, role = role, onClick = onClick)
+            Modifier.clickable(interactionSource = interactionSource, indication = indication, enabled = enabled, role = role, onClick = onClick)
         }
         Modifier.clip(shape).then(action).semantics { contentDescription = label }
     }

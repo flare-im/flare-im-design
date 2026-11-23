@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../models/count_badge.dart';
 import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 import 'flare_icon.dart';
+import 'flare_screen.dart';
 import 'flare_status_banner.dart';
 import 'flare_switch.dart';
 import 'flare_tag.dart';
@@ -17,9 +19,14 @@ class FlareSettingsList extends StatelessWidget {
     this.onToggle,
     this.onSelect,
     this.shrinkWrap = false,
+    this.flush = false,
   });
 
   final List<FlareSettingsSection> sections;
+
+  /// Rows run edge to edge on the page's ground, with no card around them and
+  /// no inset (Vue `surface="flush"`): entry rows at the top of a list.
+  final bool flush;
   final void Function(FlareSettingsItem item, bool value)? onToggle;
   final ValueChanged<FlareSettingsItem>? onSelect;
 
@@ -30,56 +37,54 @@ class FlareSettingsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Vue `.flare-settings.is-detail`: the detail pane owns the gutter.
+    final inset = FlareScreen.detailOf(context) ? 0.0 : FlareSizes.spacingMd;
     return ListView(
       shrinkWrap: shrinkWrap,
       physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
-      padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
+      padding: flush
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
       children: [
         for (final section in sections) ...[
           if (section.title != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                FlareSizes.spacingLg,
+              // Vue `.flare-settings__title`: inset past the card's edge.
+              padding: EdgeInsets.fromLTRB(
+                inset + FlareSizes.spacingSm,
                 FlareSizes.spacingXs,
-                FlareSizes.spacingLg,
-                FlareSizes.spacingXs,
+                inset + FlareSizes.spacingSm,
+                FlareSizes.spacingSm,
               ),
               child: Text(
                 section.title!,
                 style: TextStyle(
-                  color: colors.textTertiary,
+                  color: colors.textSecondary,
                   fontSize: FlareSizes.fontSizeSm,
+                  fontWeight: FontWeight.w500,
+                  height: FlareSizes.lineHeightNormal,
                 ),
               ),
             ),
-          // Rows float together on one elevated grouped card.
+          // Vue `.flare-settings__group`: quiet groups with one shared edge, no stacked shadows.
           Container(
-            margin: EdgeInsets.fromLTRB(
-              FlareSizes.spacingMd,
-              0,
-              FlareSizes.spacingMd,
-              _hasFooter(section) ? FlareSizes.spacingXs : FlareSizes.spacingLg,
-            ),
-            decoration: BoxDecoration(
-              color: colors.bgElevated,
-              borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? const Color(0x80000000)
-                      : const Color(0x14151320),
-                  blurRadius: isDark ? 24 : 22,
-                  offset: const Offset(0, 8),
-                ),
-                if (isDark)
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.14),
-                    blurRadius: 12,
-                    offset: Offset(0, 2),
+            margin: flush
+                ? EdgeInsets.zero
+                : EdgeInsets.fromLTRB(
+                    inset,
+                    0,
+                    inset,
+                    _hasFooter(section)
+                        ? FlareSizes.spacingXs
+                        : FlareSizes.spacingLg,
                   ),
-              ],
-            ),
+            decoration: flush
+                ? BoxDecoration(color: colors.bgPrimary)
+                : BoxDecoration(
+                    color: colors.bgElevated,
+                    borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
+                    border: Border.all(color: colors.borderSecondary),
+                  ),
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
@@ -150,11 +155,17 @@ class FlareSettingsRow extends StatelessWidget {
     required this.item,
     this.onToggle,
     this.onSelect,
+    this.compact = false,
   });
 
   final FlareSettingsItem item;
   final void Function(FlareSettingsItem item, bool value)? onToggle;
   final ValueChanged<FlareSettingsItem>? onSelect;
+
+  /// A row of a sidebar menu (Vue `.flare-profile--sidebar` rows): 40 high,
+  /// 8 inset, 13px label, rounded.
+  // shortcut: Vue also draws a 2px start bar on the current sidebar row; Flutter cannot round a one-sided border, so only the tint shows.
+  final bool compact;
 
   /// Values longer than this many characters go under the label.
   static const stackAfterCharacters = 16;
@@ -170,6 +181,12 @@ class FlareSettingsRow extends StatelessWidget {
   /// the switch.
   static bool drawsBadge(FlareSettingsItem item) =>
       item.badge && item.kind != FlareSettingKind.toggle;
+
+  /// Whether [item] draws its count badge (which takes the dot's place): every
+  /// kind but a toggle, when [flareCountBadgeDrawn] says so.
+  static bool drawsCountBadge(FlareSettingsItem item) =>
+      item.kind != FlareSettingKind.toggle &&
+      flareCountBadgeDrawn(item.badgeCount, more: item.badgeMore);
 
   /// [item]'s tag when it draws one: every kind but a toggle, and only
   /// non-blank words.
@@ -188,6 +205,7 @@ class FlareSettingsRow extends StatelessWidget {
     final readOnly = item.kind == FlareSettingKind.value;
     final enabled =
         !item.disabled &&
+        !item.busy &&
         !readOnly &&
         (isToggle ? onToggle != null : onSelect != null);
     final stacked = stacks(item);
@@ -197,15 +215,29 @@ class FlareSettingsRow extends StatelessWidget {
       item.label,
       style: TextStyle(
         color: item.danger ? colors.error : colors.textPrimary,
-        fontSize: FlareSizes.fontSizeLg,
+        fontSize: compact ? FlareSizes.fontSizeMd : FlareSizes.fontSizeLg,
         fontWeight: item.kind == FlareSettingKind.select && item.value
             ? FontWeight.w700
             : FontWeight.w400,
       ),
     );
-    final chevron = Icon(Icons.chevron_right, color: colors.textTertiary);
+    // §12.3: every list row ends in the kit's chevron-right 16.
+    final chevron = FlareIcon(
+      'chevron-right',
+      color: colors.textTertiary,
+      size: FlareSizes.iconSizeSm,
+    );
     final detail = item.detail;
-    final badge = drawsBadge(item) ? const _Dot() : null;
+    final toggleDescription = isToggle && (detail?.trim().isNotEmpty ?? false)
+        ? detail!.trim()
+        : null;
+    final badge = drawsCountBadge(item)
+        ? _CountBadge(
+            text: flareCountBadgeText(item.badgeCount, more: item.badgeMore),
+          )
+        : drawsBadge(item)
+        ? const _Dot()
+        : null;
     final tagLabel = tagText(item);
     final tag = tagLabel == null
         ? null
@@ -221,14 +253,21 @@ class FlareSettingsRow extends StatelessWidget {
       if (readOnly) {
         // "label, detail" as one element, with no control semantics at all.
         return MergeSemantics(
-          child: Opacity(opacity: item.disabled ? 0.45 : 1, child: body),
+          child: Opacity(
+            opacity: item.disabled ? FlareOpacity.disabled : 1,
+            child: body,
+          ),
         );
       }
+      // R11: a row that does something reads "label, button"; a toggle is a
+      // switch (its toggled state) instead.
       return Semantics(
+        button: !isToggle,
         enabled: enabled,
         toggled: isToggle ? item.value : null,
+        selected: item.current ? true : null,
         child: Opacity(
-          opacity: item.disabled ? 0.45 : 1,
+          opacity: item.disabled ? FlareOpacity.disabled : 1,
           child: InkWell(
             onTap: !enabled
                 ? null
@@ -245,19 +284,61 @@ class FlareSettingsRow extends StatelessWidget {
       );
     }
 
+    final spinner = item.busy
+        ? const SizedBox.square(
+            key: ValueKey('flare-settings-row-busy'),
+            dimension: FlareSizes.iconSizeSm,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : null;
+    if (item.centered) {
+      return wrap(
+        Container(
+          constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
+          padding: const EdgeInsets.all(FlareSizes.spacingMd),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(child: label),
+              if (spinner != null) ...[
+                const SizedBox(width: FlareSizes.spacingSm),
+                spinner,
+              ],
+            ],
+          ),
+        ),
+      );
+    }
     return wrap(
       Container(
-        constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
-        padding: const EdgeInsets.symmetric(
-          horizontal: FlareSizes.spacingMd,
-          vertical: FlareSizes.spacingMd,
+        constraints: BoxConstraints(
+          minHeight: compact
+              ? FlareSizes.controlHeightMd
+              : FlareSizes.touchTarget,
+        ),
+        padding: EdgeInsets.all(
+          compact ? FlareSizes.spacingSm : FlareSizes.spacingMd,
+        ),
+        // The current row of an entry rail: its pane is the one beside the
+        // list.
+        decoration: BoxDecoration(
+          color: item.current ? colors.bgSelected : null,
+          borderRadius: compact
+              ? BorderRadius.circular(FlareSizes.radiusMd)
+              : null,
         ),
         child: stacked
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (icon != null) ...[
-                    Icon(flareIconMap[icon], color: colors.textSecondary),
+                    Icon(
+                      flareIconMap[icon],
+                      color: colors.textSecondary,
+                      // Vue `.flare-settings__ico`: icon-size-md.
+                      size: FlareSizes.iconSizeMd,
+                    ),
                     const SizedBox(width: FlareSizes.spacingMd),
                   ],
                   Expanded(
@@ -290,13 +371,70 @@ class FlareSettingsRow extends StatelessWidget {
                   ),
                 ],
               )
+            // A toggle's detail is its description under the label, the
+            // switch centred beside both and the icon at the top (Vue
+            // `.has-toggle-description`).
+            : toggleDescription != null
+            ? IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (icon != null) ...[
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Icon(
+                          flareIconMap[icon],
+                          color: colors.textSecondary,
+                          size: FlareSizes.iconSizeMd,
+                        ),
+                      ),
+                      const SizedBox(width: FlareSizes.spacingMd),
+                    ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          label,
+                          const SizedBox(height: FlareSizes.spacingXs),
+                          Text(
+                            toggleDescription,
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: FlareSizes.fontSizeSm,
+                              height: FlareSizes.lineHeightNormal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: FlareSizes.spacingMd),
+                    Center(
+                      child: ExcludeSemantics(
+                        child: IgnorePointer(
+                          child: FlareSwitch(
+                            value: item.value,
+                            size: FlareControlSize.sm,
+                            disabled: !enabled,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             // A short value keeps its own width up to 60% of the row, so the
             // label keeps the rest.
             : LayoutBuilder(
                 builder: (context, constraints) => Row(
                   children: [
                     if (icon != null) ...[
-                      Icon(flareIconMap[icon], color: colors.textSecondary),
+                      Icon(
+                        flareIconMap[icon],
+                        color: colors.textSecondary,
+                        // Vue `.flare-settings__ico`: icon-size-md.
+                        size: FlareSizes.iconSizeMd,
+                      ),
                       const SizedBox(width: FlareSizes.spacingMd),
                     ],
                     Expanded(child: label),
@@ -335,10 +473,11 @@ class FlareSettingsRow extends StatelessWidget {
                             ),
                           ?tag,
                           ?badge,
-                          chevron,
+                          spinner ?? chevron,
                         ],
                       ),
                     },
+                    if (item.kind != FlareSettingKind.navigation) ?spinner,
                     if (item.kind != FlareSettingKind.navigation) ?tag,
                     if (item.kind != FlareSettingKind.navigation) ?badge,
                   ],
@@ -370,6 +509,46 @@ class _Dot extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// The count of a [FlareSettingsItem.badgeCount]: the same red as the dot,
+/// with the count written as every count badge writes it. A screen reader
+/// hears the number with the row.
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    return Padding(
+      key: const ValueKey('flare-settings-row-count'),
+      padding: const EdgeInsetsDirectional.only(start: FlareSizes.spacingSm),
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+        padding: const EdgeInsets.symmetric(
+          horizontal: FlareSizes.spacing2xs,
+          vertical: FlareSizes.spacingXs,
+        ),
+        decoration: BoxDecoration(
+          color: colors.error,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: colors.messageOutgoingForeground,
+            fontSize: FlareSizes.fontSizeXs,
+            fontWeight: FontWeight.w600,
+            height: 1,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// A short value at the end of a row: one line, truncated when the row runs

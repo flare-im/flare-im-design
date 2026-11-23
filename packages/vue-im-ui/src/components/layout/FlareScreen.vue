@@ -15,15 +15,17 @@
  * (FlareUiProvider `theme-mode` / useFlareConfig().setThemeMode) and every screen
  * follows. No page-level colours are hard-coded; everything reads from tokens.
  */
-import { computed, getCurrentInstance, ref, useSlots } from "vue";
+import { computed, getCurrentInstance, provide, ref, useSlots } from "vue";
+import { screenLayoutKey } from "../../shared/screenLayout";
 import { NIcon } from "naive-ui";
-import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 import { ArrowBackOutline } from "../../shared/icon-glyphs";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
 import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlareDestinationDepth } from "../../composables/useFlareShell";
 import { useFlareSheetOwnHeader } from "../../shared/sheetHeader";
+import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
+import FlareScreenHeader from "./FlareScreenHeader.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -38,6 +40,8 @@ const props = withDefaults(
      *  - `brand`   canvas with a subtle current-theme accent wash at the top
      */
     surface?: "canvas" | "surface" | "brand";
+    /** Use the destination header for a root page with an avatar or other leading control. */
+    headerAppearance?: "destination";
     /** Pad the body (16px + safe-area). */
     padded?: boolean;
     /** Scrollable body. Default true. */
@@ -49,9 +53,18 @@ const props = withDefaults(
     readable?: boolean;
     /** Centre header, body and footer in one frame. Null/invalid widths leave the pane unconstrained. */
     contentMaxWidth?: number | null;
+    /** Detail pane: compact heading, leading reading column and one shared content inset. */
+    layout?: "page" | "detail";
+    /** Stack independent sections inside one scrollable inset. */
+    sectioned?: boolean;
   }>(),
-  { title: undefined, back: false, surface: "canvas", padded: false, scroll: true, readable: false },
+  { title: undefined, back: false, surface: "canvas", padded: false, scroll: true, readable: false, layout: "page" },
 );
+provide(screenLayoutKey, {
+  detail: computed(() => props.layout === "detail"),
+  sectioned: computed(() => props.sectioned),
+  title: computed(() => props.title),
+});
 const emit = defineEmits<{ (e: "back"): void }>();
 const { t } = useFlareI18nOptional();
 const { isH5 } = useFlareAdaptiveSafe();
@@ -76,13 +89,19 @@ useFlareDestinationDepth(() => props.back);
 
 const slots = useSlots();
 const hasHeader = computed(() => Boolean(props.title) || props.back || Boolean(slots.header));
+const destinationHeader = computed(() => props.headerAppearance === "destination" && Boolean(props.title) && !props.back);
 const contentWidth = computed(() => typeof props.contentMaxWidth === "number" && Number.isFinite(props.contentMaxWidth) && props.contentMaxWidth > 0 ? props.contentMaxWidth : undefined);
 </script>
 
 <template>
-  <section ref="root" class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--readable': readable && contentWidth === undefined, 'flare-screen--constrained': contentWidth !== undefined }]" :style="{ '--flare-screen-content-max-width': contentWidth === undefined ? undefined : `${contentWidth}px` }">
-    <header v-if="hasHeader" class="flare-screen__header">
+  <section ref="root" class="flare-screen" :class="[`flare-screen--${surface}`, { 'flare-screen--detail': layout === 'detail', 'flare-screen--readable': readable && contentWidth === undefined, 'flare-screen--constrained': contentWidth !== undefined }]" :style="{ '--flare-screen-content-max-width': contentWidth === undefined ? undefined : `${contentWidth}px` }">
+    <header v-if="hasHeader" class="flare-screen__header" :class="{ 'is-destination': destinationHeader }" data-flare-overlay-chrome>
       <slot name="header">
+        <FlareScreenHeader v-if="destinationHeader" as="div" appearance="destination" :title="title ?? ''">
+          <template v-if="$slots.leading" #leading><slot name="leading" /></template>
+          <template #actions><slot name="actions" /></template>
+        </FlareScreenHeader>
+        <template v-else>
         <button
           v-if="back"
           type="button"
@@ -94,10 +113,11 @@ const contentWidth = computed(() => typeof props.contentMaxWidth === "number" &&
         </button>
         <h1 v-if="title" class="flare-screen__title">{{ title }}</h1>
         <div class="flare-screen__actions" :class="{ 'flare-phone-header-actions': isH5 }"><slot name="actions" /></div>
+        </template>
       </slot>
     </header>
 
-    <div class="flare-screen__body" :class="{ 'is-scroll': scroll, 'is-padded': padded }">
+    <div class="flare-screen__body" :class="{ 'is-scroll': scroll, 'is-padded': padded || sectioned, 'is-sectioned': sectioned }">
       <slot />
     </div>
 
@@ -174,6 +194,11 @@ const contentWidth = computed(() => typeof props.contentMaxWidth === "number" &&
   align-items: center;
   gap: 6px;
 }
+.flare-screen__header.is-destination {
+  min-height: var(--flare-size-layout-header-height);
+  padding-block: var(--flare-size-spacing-2xs);
+  padding-block-start: calc(var(--flare-size-spacing-2xs) + env(safe-area-inset-top));
+}
 
 .flare-screen__body {
   flex: 1;
@@ -187,6 +212,13 @@ const contentWidth = computed(() => typeof props.contentMaxWidth === "number" &&
   padding: 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
+.flare-screen__body.is-sectioned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--flare-size-spacing-lg);
+  padding-block-end: max(var(--flare-size-spacing-xl), env(safe-area-inset-bottom));
+}
+.flare-screen__body.is-sectioned > :slotted(*) { flex-shrink: 0; }
 
 /* Reading column: padding centres the content (percentages resolve against the screen's width),
    so slotted layouts keep their own structure. */
@@ -214,4 +246,18 @@ const contentWidth = computed(() => typeof props.contentMaxWidth === "number" &&
   margin-inline: auto;
   box-sizing: border-box;
 }
+/* The detail pane owns the gutter once; participating kit children share its column. */
+.flare-screen--detail > .flare-screen__header,
+.flare-screen--detail > .flare-screen__body,
+.flare-screen--detail > .flare-screen__body.is-padded,
+.flare-screen--detail > .flare-screen__footer {
+  width: 100%;
+  max-width: calc(var(--flare-screen-content-max-width, var(--flare-component-screen-reading-width)) + var(--flare-size-spacing-xl) * 2);
+  margin-inline: 0;
+  box-sizing: border-box;
+  padding-inline: var(--flare-size-spacing-xl);
+}
+.flare-screen--detail > .flare-screen__header { min-height: var(--flare-size-layout-header-height); }
+.flare-screen--detail > .flare-screen__header .flare-screen__title { font-size: var(--flare-size-font-size-4xl); font-weight: var(--flare-size-font-weight-semibold); }
+.flare-screen--detail > .flare-screen__body { padding-top: var(--flare-size-spacing-sm); padding-bottom: max(var(--flare-size-spacing-xl), env(safe-area-inset-bottom)); }
 </style>

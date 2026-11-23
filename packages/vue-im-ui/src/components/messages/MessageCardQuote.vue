@@ -14,11 +14,11 @@ const text = computed(() => props.preview.trim() || t("preview.message"));
 
 <template>
   <button v-if="locate" type="button" class="message-card-quote is-clickable" data-card-quote="true" @click.stop="locate()">
-    <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
+    <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ReturnUpBackOutline" />
     <span class="message-card-quote__text">{{ text }}</span>
   </button>
   <div v-else class="message-card-quote" data-card-quote="true">
-    <n-icon aria-hidden="true" :component="ReturnUpBackOutline" />
+    <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ReturnUpBackOutline" />
     <span class="message-card-quote__text">{{ text }}</span>
   </div>
 </template>

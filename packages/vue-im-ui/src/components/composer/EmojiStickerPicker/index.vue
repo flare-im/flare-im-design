@@ -294,7 +294,7 @@ function onPanelSendClick(): void {
           :aria-pressed="activeTab === 'emoji'"
           @click="setTab('emoji')"
         >
-          <n-icon aria-hidden="true" :size="22">
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-lg)">
             <HappyOutline />
           </n-icon>
         </button>

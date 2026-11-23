@@ -35,8 +35,15 @@ void main() {
           ),
         ),
       );
+      // The ranges sit in the trailing 时间范围 capsule's menu (Vue).
+      await tester.tap(find.text('时间范围'));
+      await tester.pumpAndSettle();
+      // An invalid range is never offered.
+      expect(find.text('无效'), findsNothing);
       await tester.tap(find.text('指定日期'));
+      // The field's spinner runs while the search is out: no settling.
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(
         requests.single,
         const FlareSearchCriteria(
@@ -58,8 +65,9 @@ void main() {
           toTime: 100,
         ),
       );
-      await tester.tap(find.text('无效'));
-      await tester.pump();
+      // The first valid range counts as no narrowing (Vue: it is the
+      // 不限时间 slot), so the capsule keeps naming the category.
+      expect(find.text('时间范围'), findsOneWidget);
       expect(requests.length, 2);
     },
   );

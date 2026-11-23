@@ -73,7 +73,9 @@ public struct FlarePaymentOrder: Codable, Equatable, Sendable {
 }
 
 public enum FlarePaymentRules {
-    private static let prefix = ["CNY": "¥", "USD": "$", "EUR": "€", "GBP": "£", "JPY": "JP¥", "HKD": "HK$"]
+    /// The currency symbols the kit writes before an amount (R10); any other code goes after the number. One table for
+    /// every amount (red packets read it too).
+    public static let prefix = ["CNY": "¥", "USD": "$", "EUR": "€", "GBP": "£", "JPY": "JP¥", "HKD": "HK$"]
 
     /// The amount as the confirmation draws it: the currency's symbol (or the code after the number), the integer
     /// part grouped by three, the fraction exactly as written. Never a Double. nil: not a plain non-negative decimal.
@@ -116,7 +118,7 @@ public enum FlareDocumentSide: String, Codable, Sendable, CaseIterable {
     case front, back, holding
 
     /// The viewfinder frame's width over height: an ID-1 card for front and back, 3:4 portrait for holding.
-    public var frameAspect: CGFloat { self == .holding ? 0.75 : 1.585 }
+    public var frameAspect: CGFloat { self == .holding ? 0.75 : 1.586 } // tokens component.documentFrameRatio (85.60 × 53.98 mm)
     public var fileName: String { "document-\(rawValue).jpg" }
 }
 
@@ -125,6 +127,12 @@ public struct FlareCapturedDocument: Equatable, Sendable {
     public let fileName: String
     public let contentType: String
     public let bytes: Data
+    public init(fileName: String, contentType: String, bytes: Data) {
+        self.fileName = fileName
+        self.contentType = contentType
+        self.bytes = bytes
+    }
+
     /// The engine's `{file}` shape (bytes as a number list).
     public var json: [String: Any] { ["fileName": fileName, "contentType": contentType, "bytes": bytes.map { Int($0) }] }
 }
@@ -339,4 +347,11 @@ public struct PluginLocationAction: Equatable, Sendable {
     public let inputId: String
     public let input: PluginInput
     public let formValues: [String: PluginJSONValue]
+
+    public init(action: Kind, inputId: String, input: PluginInput, formValues: [String: PluginJSONValue]) {
+        self.action = action
+        self.inputId = inputId
+        self.input = input
+        self.formValues = formValues
+    }
 }

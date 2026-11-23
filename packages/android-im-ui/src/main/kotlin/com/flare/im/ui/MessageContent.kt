@@ -51,7 +51,7 @@ data class FlareImageGroupContent(val images: List<FlareImageContent>, val descr
     override val type get() = "imageGroup"
 }
 
-data class FlareVideoContent(val url: String, val poster: String? = null, val durationSec: Int = 0) : FlareMessageContent {
+data class FlareVideoContent(val url: String, val poster: String? = null, val durationSec: Int = 0, val localPath: String? = null) : FlareMessageContent {
     override val type get() = "video"
 }
 
@@ -59,7 +59,7 @@ data class FlareAudioContent(val url: String, val durationSec: Int = 0) : FlareM
     override val type get() = "audio"
 }
 
-data class FlareFileContent(val name: String, val url: String, val sizeBytes: Int = 0) : FlareMessageContent {
+data class FlareFileContent(val name: String, val url: String, val sizeBytes: Long = 0) : FlareMessageContent {
     override val type get() = "file"
 }
 
@@ -235,6 +235,8 @@ data class FlareMessageData(
      * large-group threshold and before the SDK has data — the kit never makes a number up.
      */
     val readSummary: FlareMessageReadSummary? = null,
+    /** Progress of the outgoing media upload, in percent. */
+    val uploadProgress: Int? = null,
 ) {
     val isSystem: Boolean get() = content is FlareNotificationContent
 

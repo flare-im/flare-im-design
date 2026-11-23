@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show SemanticsRole;
 
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,8 @@ import 'package:flutter_test/flutter_test.dart';
 final Map<String, dynamic> table =
     jsonDecode(File('../../spec/red-packet-vectors.json').readAsStringSync())
         as Map<String, dynamic>;
-final Map<String, dynamic> detailTable = table['detail'] as Map<String, dynamic>;
+final Map<String, dynamic> detailTable =
+    table['detail'] as Map<String, dynamic>;
 final int nowMs = detailTable['nowMs'] as int;
 final int offset = detailTable['utcOffsetMinutes'] as int;
 
@@ -23,7 +25,8 @@ Widget host(Widget child, {FlareStrings strings = const FlareStrings()}) =>
     );
 
 FlareRedPacketDetailsView detailsOf(String id) {
-  final v = (detailTable['cases'] as List).cast<Map<String, dynamic>>()
+  final v = (detailTable['cases'] as List)
+      .cast<Map<String, dynamic>>()
       .firstWhere((c) => c['id'] == id);
   return FlareRedPacketDetailsView.fromJson(
     (v['details'] as Map).cast<String, Object?>(),
@@ -66,8 +69,8 @@ FlareRedPacketDetail detail({
 void main() {
   test('every case: amount, deposited, headline, summary, claims, note', () {
     const zh = FlareStrings();
-    for (final v in (detailTable['cases'] as List)
-        .cast<Map<String, dynamic>>()) {
+    for (final v
+        in (detailTable['cases'] as List).cast<Map<String, dynamic>>()) {
       final got = flareRedPacketDetailPresentation(
         FlareRedPacketDetailsView.fromJson(
           (v['details'] as Map).cast<String, Object?>(),
@@ -90,8 +93,8 @@ void main() {
 
   test('claim rows: money and time', () {
     const zh = FlareStrings();
-    for (final v in (detailTable['claimRows'] as List)
-        .cast<Map<String, dynamic>>()) {
+    for (final v
+        in (detailTable['claimRows'] as List).cast<Map<String, dynamic>>()) {
       final claim = v['claim'] as Map<String, dynamic>;
       final expected = v['expect'] as Map<String, dynamic>;
       expect(
@@ -136,9 +139,14 @@ void main() {
     expect(find.text('小明的红包'), findsOneWidget);
     expect(find.text('拼手气'), findsOneWidget);
     expect(find.text('恭喜发财，大吉大利'), findsOneWidget);
-    final amount = tester.widget<Text>(find.byKey(FlareRedPacketDetail.amountKey));
+    final amount = tester.widget<Text>(
+      find.byKey(FlareRedPacketDetail.amountKey),
+    );
     expect(amount.data, '¥2.30');
-    expect(amount.style!.fontSize, FlareSizes.componentRedPacketAmountFontSize);
+    expect(
+      amount.style!.fontSize,
+      FlareSizes.componentRedPacketDetailAmountFontSize,
+    );
     expect(find.text('已存入钱包'), findsOneWidget);
     expect(find.text('已领取 2/5 个'), findsOneWidget);
   });
@@ -147,7 +155,9 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      host(detail(id: 'ineligible-named', designatedName: 'Bob', claims: claims)),
+      host(
+        detail(id: 'ineligible-named', designatedName: 'Bob', claims: claims),
+      ),
     );
     expect(find.text('仅 Bob 可领取'), findsOneWidget);
     expect(find.byKey(FlareRedPacketDetail.amountKey), findsNothing);
@@ -160,7 +170,9 @@ void main() {
   testWidgets('an eligible member who came too late sees the records only', (
     tester,
   ) async {
-    await tester.pumpWidget(host(detail(id: 'eligible-completed', claims: claims)));
+    await tester.pumpWidget(
+      host(detail(id: 'eligible-completed', claims: claims)),
+    );
     expect(find.text('手慢了，红包派完了'), findsOneWidget);
     expect(find.text('已领取 5/5 个'), findsOneWidget);
     expect(find.text('阿花'), findsOneWidget);
@@ -256,6 +268,118 @@ void main() {
     });
   }
 
+  testWidgets('long claim amounts and names stay readable on a narrow screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      host(
+        detail(
+          id: 'claimer-open',
+          claims: const [
+            FlareRedPacketClaim(
+              id: 'long',
+              name: '一个很长的领取人昵称不能挤掉金额',
+              amountMinor: '123456789012345678901234567890',
+              claimedAtMs: 1792632660000,
+              best: true,
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.text('一个很长的领取人昵称不能挤掉金额'), findsOneWidget);
+    // R10: grouped by three like every kit amount.
+    expect(
+      find.textContaining('1,234,567,890,123,456,789,012,345,678'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the deposit line opens the wallet when the host wires it', (
+    tester,
+  ) async {
+    var opens = 0;
+    await tester.pumpWidget(
+      host(
+        FlareRedPacketDetail(
+          senderName: '小明',
+          details: detailsOf('claimer-open'),
+          claims: claims,
+          nowMs: nowMs,
+          onDeposited: () => opens++,
+        ),
+      ),
+    );
+    final wallet = find.byKey(FlareRedPacketDetail.depositedKey);
+    expect(tester.getSize(wallet).height, greaterThanOrEqualTo(48));
+    await tester.tap(wallet);
+    expect(opens, 1);
+  });
+
+  testWidgets('a PC pane keeps the arch and the list in a 420 column', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host(detail(id: 'claimer-open', claims: claims)));
+    expect(find.byKey(FlareRedPacketDetail.depositedKey), findsNothing);
+    final arch = find.byWidgetPredicate(
+      (w) => w.runtimeType.toString() == 'FlareRedPacketArch',
+    );
+    expect(tester.getSize(arch).width, FlareSizes.detailPaneMaxWidth);
+    expect(tester.getCenter(arch).dx, 640);
+  });
+
+  testWidgets('§4.6 metrics: sender 56, claim rows 64 with a 40 avatar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(detail(id: 'claimer-open', claims: claims)));
+    final avatars = tester.widgetList<FlareAvatar>(find.byType(FlareAvatar));
+    expect(avatars.first.size, 56);
+    expect(
+      avatars.skip(1).map((a) => a.size),
+      everyElement(FlareSizes.componentMessageAvatarSize),
+    );
+    expect(
+      tester
+          .getSize(
+            find
+                .ancestor(
+                  of: find.text('阿花'),
+                  matching: find.byType(MergeSemantics),
+                )
+                .first,
+          )
+          .height,
+      greaterThanOrEqualTo(64),
+    );
+    final amount = tester.widget<Text>(find.text('¥0.62'));
+    expect(amount.style!.fontSize, FlareSizes.fontSize2xl);
+    expect(amount.style!.fontWeight, FontWeight.w600);
+    final best = tester.widget<Text>(find.text('手气最佳'));
+    expect(best.style!.fontSize, FlareSizes.fontSizeSm);
+  });
+
+  testWidgets('the page is a region named for the packet', (tester) async {
+    await tester.pumpWidget(host(detail()));
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Semantics &&
+            w.properties.role == SemanticsRole.region &&
+            w.properties.label == '小明的红包',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('no title bar unless the host passes onBack', (tester) async {
     await tester.pumpWidget(host(detail()));
     expect(find.text('红包详情'), findsNothing);
@@ -263,7 +387,9 @@ void main() {
   });
 
   for (final brightness in [Brightness.light, Brightness.dark]) {
-    testWidgets('onBack draws the red title bar ($brightness)', (tester) async {
+    testWidgets('onBack draws the neutral title bar ($brightness)', (
+      tester,
+    ) async {
       var backs = 0;
       await tester.pumpWidget(
         MaterialApp(
@@ -274,7 +400,10 @@ void main() {
         ),
       );
       final title = tester.widget<Text>(find.text('红包详情'));
-      expect(title.style!.color, Colors.white);
+      expect(
+        title.style!.color,
+        FlareColors.of(tester.element(find.text('红包详情'))).textPrimary,
+      );
       final bar = tester.widget<ColoredBox>(
         find
             .ancestor(of: find.text('红包详情'), matching: find.byType(ColoredBox))
@@ -283,7 +412,7 @@ void main() {
       final colors = brightness == Brightness.dark
           ? FlareColors.dark
           : FlareColors.light;
-      expect(bar.color, colors.redPacketEnd);
+      expect(bar.color, colors.bgPrimary);
       await tester.tap(find.byType(FlareIconButton));
       expect(backs, 1);
     });

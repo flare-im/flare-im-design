@@ -5,6 +5,7 @@ export { default as FlareStatusBanner } from "./components/general/FlareStatusBa
 export { default as FlareDataTable } from "./components/data/FlareDataTable.vue";
 export { default as FlareAdminList } from "./components/data/FlareAdminList.vue";
 export { default as FlareAdminActions } from "./components/data/FlareAdminActions.vue";
+export { default as FlareAdminBackButton } from "./components/data/FlareAdminBackButton.vue";
 export { default as FlareAdminRowActions } from "./components/data/FlareAdminRowActions.vue";
 export type { FlareAdminRowAction } from "./components/data/FlareAdminRowActions.vue";
 export { default as FlareAdminSettings } from "./components/data/FlareAdminSettings.vue";
@@ -112,6 +113,7 @@ export type {
   FlarePluginActionStyle,
   FlarePluginBlock,
   FlarePluginFormError,
+  FlarePluginFormSection,
   FlarePluginFormIssue,
   FlarePluginInput,
   FlarePluginInputKind,

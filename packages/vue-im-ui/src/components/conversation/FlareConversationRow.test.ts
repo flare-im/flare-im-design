@@ -29,8 +29,11 @@ describe("canonical conversation state combinations", () => {
   it("bolds the title only when the row needs attention", () => {
     const quiet = mountKit(FlareConversationRow, { item: { id: "quiet", muted: true, unreadCount: 3 } });
     expect(quiet.get(".im-conv-item").classes()).not.toContain("im-conv-item--strong");
+    expect(quiet.find(".im-conv-item__mention").exists()).toBe(false);
     const mention = mountKit(FlareConversationRow, { item: { id: "mention", muted: true, mentioned: true, unreadCount: 3 } });
     expect(mention.get(".im-conv-item").classes()).toContain("im-conv-item--strong");
+    expect(mention.get(".im-conv-item__mention").text()).toBe("@Me");
+    expect(mention.get(".im-conv-item__unread-pill").text()).toBe("3");
     const read = mountKit(FlareConversationRow, { item: { id: "read", mentioned: true } });
     expect(read.get(".im-conv-item").classes()).not.toContain("im-conv-item--strong");
   });

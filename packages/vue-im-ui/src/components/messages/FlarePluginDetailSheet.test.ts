@@ -46,7 +46,7 @@ describe("FlarePluginDetailSheet", () => {
     await flushPromises();
     expect(root().dataset.state).toBe("loading");
     expect(document.body.textContent).toContain("周末读书会报名");
-    expect(document.body.textContent).toContain("加载中");
+    expect(document.body.textContent).toContain("正在加载");
   });
 
   it("offers an explicit close control without changing the view", async () => {
@@ -96,6 +96,36 @@ describe("FlarePluginDetailSheet", () => {
     render({ view: detail });
     await flushPromises();
     expect(root().querySelector('footer')).toBeNull();
+  });
+
+  it("keeps records visible during refresh and after a read failure, without a dead deeper-detail key", async () => {
+    const sheet = render({ presentation: "page", view: { ...detail, blocks: [{ ...detail.blocks![0], more: true }], nextCursor: "next" } });
+    await flushPromises();
+    expect(root().classList.contains("is-page")).toBe(true);
+    expect(root().querySelector('[data-entries-see-all]')).toBeNull();
+    sheet.state.loading = true; await flushPromises();
+    expect(root().textContent).toContain("《三体》");
+    expect(root().getAttribute('aria-busy')).toBe('true');
+    expect((root().querySelector('[data-detail-load-more]') as HTMLButtonElement).disabled).toBe(true);
+    sheet.state.loading = false; sheet.state.error = "刷新失败"; await flushPromises();
+    expect(root().dataset.state).toBe("loaded");
+    expect(root().textContent).toContain("《三体》");
+    const retry = [...root().querySelectorAll('button')].find(b => b.textContent?.includes('重试'))!;
+    retry.click(); expect(sheet.retries()).toBe(1);
+  });
+
+  it("releases a same-cursor retry after identical immediate pagination failures", async () => {
+    const sheet = render({ view: { ...detail, nextCursor: "next" }, pagingToken: 0 });
+    await flushPromises();
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const key = root().querySelector('[data-detail-load-more]') as HTMLButtonElement;
+      expect(key.disabled).toBe(false); key.click(); await flushPromises();
+      sheet.state.paginationError = "下一页加载失败"; sheet.state.pagingToken = attempt; await flushPromises();
+      expect(key.disabled).toBe(false);
+      expect(key.textContent).toContain("重试");
+      expect(root().textContent).toContain("《三体》");
+    }
+    expect(sheet.pages).toEqual(["next", "next", "next"]);
   });
 
   it("hands the detail's action error, form errors, members and settle token to the embedded view", async () => {

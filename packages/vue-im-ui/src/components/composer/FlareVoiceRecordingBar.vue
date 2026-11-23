@@ -34,7 +34,7 @@ const bars = computed(() => {
 <template>
   <div class="flare-voice-rec" :class="{ 'is-cancelling': cancelling }" role="group">
     <button type="button" class="flare-voice-rec__cancel" :aria-label="t('recording.cancel')" @click="emit('cancel')">
-      <n-icon aria-hidden="true" :size="18" :component="TrashOutline" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="TrashOutline" />
     </button>
 
     <div class="flare-voice-rec__center">
@@ -53,7 +53,7 @@ const bars = computed(() => {
       :aria-label="t('recording.send')"
       @click="emit('send')"
     >
-      <n-icon aria-hidden="true" :size="18" :component="SendOutline" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="SendOutline" />
     </button>
   </div>
 </template>

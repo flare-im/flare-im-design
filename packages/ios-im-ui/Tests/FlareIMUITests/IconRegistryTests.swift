@@ -14,9 +14,9 @@ final class IconRegistryTests: XCTestCase {
         "mini-app",
     ]
 
-    func testTheRegistryHas109NamesAndEveryNameResolves() {
-        XCTAssertEqual(flareIconNames.count, 109)
-        XCTAssertEqual(flareIconNames.suffix(2), ["locate", "wallet"], "wallet follows locate on every kit")
+    func testTheRegistryHas111NamesAndEveryNameResolves() {
+        XCTAssertEqual(flareIconNames.count, 111)
+        XCTAssertEqual(flareIconNames.suffix(4), ["locate", "wallet", "scan", "flashlight"], "shared registry order includes scanning controls")
         XCTAssertEqual(Set(flareIconNames).count, flareIconNames.count, "names are unique")
         XCTAssertEqual(Set(flareIconMap.keys), Set(flareIconNames), "every name has exactly one symbol")
         XCTAssertEqual(added.count, 40)
@@ -51,10 +51,11 @@ final class IconRegistryTests: XCTestCase {
     }
 
     /// Concepts that were drawn under a name meaning something else, and now have their own.
-    func testConceptsDrawnUnderAnotherNameGotTheirOwn() {
+    func testConceptsDrawnUnderAnotherNameGotTheirOwn() throws {
         let expected = ["pin-self": "bookmark", "diagnostics": "ladybug", "card": "person.crop.rectangle",
                         "id": "number", "join-request": "tray.and.arrow.down", "storage": "internaldrive"]
-        XCTAssertEqual(Array(flareIconNames.suffix(10).dropLast(4)),
+        let start = try XCTUnwrap(flareIconNames.firstIndex(of: "pin-self"))
+        XCTAssertEqual(Array(flareIconNames.dropFirst(start).prefix(6)),
                        ["pin-self", "diagnostics", "card", "id", "join-request", "storage"])
         for (name, symbol) in expected { XCTAssertEqual(flareIconMap[name], symbol, name) }
         for (name, before) in [("pin-self", "pin"), ("card", "person"), ("id", "info"), ("id", "tag"),
@@ -174,7 +175,8 @@ final class IconRegistryTests: XCTestCase {
     /// the name falls back to the envelope.
     @MainActor
     func testRedPacketIsTheKitsOwnGlyph() throws {
-        XCTAssertEqual(Array(flareIconNames.suffix(4)), ["red-packet", "plugin", "locate", "wallet"])
+        let start = try XCTUnwrap(flareIconNames.firstIndex(of: "red-packet"))
+        XCTAssertEqual(Array(flareIconNames.dropFirst(start).prefix(4)), ["red-packet", "plugin", "locate", "wallet"])
         XCTAssertEqual(flareIconMap["red-packet"], "envelope")
         XCTAssertTrue(flareKitGlyphNames.contains("red-packet"))
         XCTAssertNoThrow(try IconView("red-packet").inspect().find(FlareRedPacketIcon.self))
@@ -187,16 +189,18 @@ final class IconRegistryTests: XCTestCase {
     /// `plugin` is the generic plugin glyph, a single-colour puzzle piece, which a plugin's "+" tile draws when its
     /// icon is not a registry name.
     func testPluginIsAPuzzlePiece() throws {
-        XCTAssertEqual(flareIconNames.dropLast(2).last, "plugin")
+        let start = try XCTUnwrap(flareIconNames.firstIndex(of: "plugin"))
+        XCTAssertEqual(Array(flareIconNames.dropFirst(start).prefix(2)), ["plugin", "locate"])
         XCTAssertEqual(flareIconMap["plugin"], "puzzlepiece.extension")
         XCTAssertFalse(flareKitGlyphNames.contains("plugin"), "SF Symbols has the concept")
         XCTAssertEqual(try IconView("plugin").inspect().image().actualImage().name(), "puzzlepiece.extension")
     }
 
     /// `locate` is the location picker's "use current location" key, a crosshair unlike the `location` pin; only
-    /// `wallet` follows it.
-    func testLocateIsTheLastNameAndACrosshair() throws {
-        XCTAssertEqual(flareIconNames.dropLast().last, "locate")
+    /// `wallet` follows it, before scanning controls.
+    func testLocatePrecedesWalletAndUsesACrosshair() throws {
+        let start = try XCTUnwrap(flareIconNames.firstIndex(of: "locate"))
+        XCTAssertEqual(Array(flareIconNames.dropFirst(start).prefix(2)), ["locate", "wallet"])
         XCTAssertEqual(flareIconMap["locate"], "scope")
         XCTAssertNotEqual(flareIconMap["locate"], flareIconMap["location"])
         XCTAssertEqual(try IconView("locate").inspect().image().actualImage().name(), "scope")

@@ -6,6 +6,8 @@ import java.io.ByteArrayOutputStream
 import java.net.URL
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.Placeholder
@@ -321,12 +325,18 @@ fun FlareEmojiStickerPicker(
     Column(modifier.fillMaxWidth().height(300.dp)) {
         Box(Modifier.weight(1f)) {
             if (current == 0) {
+                // Vue's grid: 52 cells from the start edge, 10 apart across and 8 down, a 36 glyph in each.
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(48.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(FlareSizes.spacing2sm),
-                    horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
-                    verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
+                    columns = GridCells.FixedSize(52.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2sm),
+                    horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm, Alignment.Start),
+                    verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm),
                 ) {
+                    // Vue's section heading over the grid: 12, semibold, tertiary.
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(strings.emojiStickerPickerAll, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+                            fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = FlareSizes.spacing3xs))
+                    }
                     items(FlareEmojiStickerCatalog.emojiKeys) { key ->
                         val preview = FlareEmojiStickerCatalog.emojiStaticPreviewBytes(key)
                         FlareStaticCatalogImage(
@@ -335,10 +345,10 @@ fun FlareEmojiStickerPicker(
                             remoteUrl = FlareEmojiStickerCatalog.emojiRuntimeUri(key),
                             contentDescription = key,
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(FlareSizes.radiusMd))
+                                .size(52.dp)
+                                .clip(RoundedCornerShape(FlareSizes.radiusLg))
                                 .clickable { onInsertEmoji?.invoke(key) }
-                                .padding(FlareSizes.spacingXs),
+                                .padding(FlareSizes.spacingSm),
                         )
                     }
                 }
@@ -367,28 +377,44 @@ fun FlareEmojiStickerPicker(
                 }
             }
         }
+        // Vue's tab bar: round tabs, the emoji glyph first and each pack's first sticker after it, the chosen one tinted.
+        FlareHairline()
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(44.dp)
-                .padding(horizontal = FlareSizes.spacingSm, vertical = FlareSizes.spacing2xs),
+                .background(colors.bgPrimary)
+                .padding(horizontal = FlareSizes.spacing2sm, vertical = FlareSizes.spacingXs),
             horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val labels = listOf(emojiLabel) + packs.map { it.title }
             labels.forEachIndexed { i, label ->
                 val selected = i == current
-                Text(
-                    label,
-                    color = if (selected) colors.textPrimary else colors.textSecondary,
-                    fontSize = FlareSizes.fontSizeSm.value.sp,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(FlareSizes.radiusMd))
-                        .background(if (selected) colors.bgHover else androidx.compose.ui.graphics.Color.Transparent)
-                        .clickable { tab = i }
-                        .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacing2xs),
-                )
+                Box(
+                    Modifier.size(40.dp).clip(CircleShape)
+                        .selectable(selected = selected, role = Role.Tab) { tab = i }
+                        .semantics { contentDescription = label },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        Modifier.size(36.dp).clip(CircleShape)
+                            .background(if (selected) colors.bgSelected else colors.bgSecondary)
+                            .border(2.dp, if (selected) colors.borderSelected else androidx.compose.ui.graphics.Color.Transparent, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        val pack = packs.getOrNull(i - 1)
+                        val first = pack?.stickerIds?.firstOrNull()
+                        if (pack == null || first == null) FlareIcon("emoji", size = FlareSizes.iconSizeMd, tint = if (selected) colors.primaryText else colors.textSecondary)
+                        else FlareStaticCatalogImage(
+                            assetPath = "${FlareEmojiStickerCatalog.ASSET_ROOT}/stickers/${FlareEmojiStickerCatalog.stickerSubdirForPackageId(pack.id)}/$first.webp"
+                                .takeIf { FlareEmojiStickerCatalog.stickerStaticPreviewBytes(first, pack.id) == null },
+                            previewBytes = FlareEmojiStickerCatalog.stickerStaticPreviewBytes(first, pack.id),
+                            remoteUrl = FlareEmojiStickerCatalog.stickerRuntimeUri(first, pack.id),
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp).clip(CircleShape),
+                        )
+                    }
+                }
             }
         }
     }

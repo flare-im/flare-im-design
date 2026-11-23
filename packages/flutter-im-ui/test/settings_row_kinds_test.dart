@@ -195,4 +195,47 @@ void main() {
       );
     }
   });
+
+  // R11 / §12.3: a row that does something reads "label, button"; its end is
+  // the kit's chevron-right 16; disabled rows fade to FlareOpacity.disabled.
+  testWidgets('navigation and action rows are buttons; a toggle is a switch', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    for (final (kind, button) in const [
+      (FlareSettingKind.navigation, true),
+      (FlareSettingKind.action, true),
+      (FlareSettingKind.toggle, false),
+    ]) {
+      await tester.pumpWidget(
+        _row(FlareSettingsItem(key: 'privacy', label: '隐私', kind: kind)),
+      );
+      final data = _rowSemantics(tester).getSemanticsData();
+      expect(data.flagsCollection.isButton, button, reason: '$kind');
+      expect(data.label, contains('隐私'), reason: '$kind');
+      expect(data.hasAction(SemanticsAction.tap), isTrue, reason: '$kind');
+    }
+    handle.dispose();
+  });
+
+  testWidgets('the chevron is the kit chevron-right 16', (tester) async {
+    await tester.pumpWidget(
+      _row(const FlareSettingsItem(key: 'privacy', label: '隐私')),
+    );
+    final chevron = tester.widget<FlareIcon>(find.byType(FlareIcon));
+    expect(chevron.name, 'chevron-right');
+    expect(chevron.size, FlareSizes.iconSizeSm);
+  });
+
+  testWidgets('a disabled row fades to the disabled opacity', (tester) async {
+    await tester.pumpWidget(
+      _row(
+        const FlareSettingsItem(key: 'privacy', label: '隐私', disabled: true),
+      ),
+    );
+    final fade = tester.widget<Opacity>(
+      find.ancestor(of: find.text('隐私'), matching: find.byType(Opacity)).first,
+    );
+    expect(fade.opacity, FlareOpacity.disabled);
+  });
 }

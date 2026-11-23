@@ -123,8 +123,8 @@ public enum FlareRedPacketCardRules {
 
 /// Amounts from minor units (`spec/red-packet-vectors.json` amount): integer string arithmetic, never floating point.
 public enum FlareRedPacketMoney {
-    /// The currency symbols the kit knows; any other currency is written "{CODE} {text}".
-    public static let symbols: [String: String] = ["CNY": "¥", "JPY": "¥", "USD": "$", "EUR": "€", "GBP": "£", "HKD": "HK$"]
+    /// The currency symbols the kit knows: the kit's one table (``FlarePaymentRules/prefix``, R10).
+    public static let symbols: [String: String] = FlarePaymentRules.prefix
 
     /// `minor` (ASCII digits) as a decimal with exactly `exponent` fraction digits, leading zeros folded, no
     /// grouping; nil for an empty or non-digit string.
@@ -138,11 +138,11 @@ public enum FlareRedPacketMoney {
         return "\(raw[..<split]).\(raw[split...])"
     }
 
-    /// The amount with its currency: the symbol before the text, or "{CODE} {text}".
+    /// The amount with its currency, by the kit's one amount formatter (``FlarePaymentRules/amountText(_:currency:)``,
+    /// R10): "¥1,000.00", "3 LABPOINT".
     public static func money(minor: String?, exponent: Int, currency: String) -> String? {
         guard let minor, let text = text(minor: minor, exponent: exponent) else { return nil }
-        if let symbol = symbols[currency.uppercased()] { return symbol + text }
-        return "\(currency) \(text)"
+        return FlarePaymentRules.amountText(text, currency: currency)
     }
 }
 

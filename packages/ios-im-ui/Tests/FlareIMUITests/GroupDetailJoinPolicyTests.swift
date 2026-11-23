@@ -37,13 +37,15 @@ final class GroupDetailJoinPolicyTests: XCTestCase {
     }
 
     @MainActor
-    func testPickingAPolicyReportsTheEnum() throws {
+    func testSavingReportsThePolicyAndWaitsForOneWhenUnknown() throws {
         var picked: [FlareGroupJoinPolicy] = []
-        let picker = FlareGroupJoinPolicyPicker(policy: nil, options: FlareGroupDetail.joinPolicyOptions(copy),
-                                                onPick: { picked.append($0) })
-        try picker.inspect().find(button: copy.joinInvite).tap()
-        try picker.inspect().find(button: copy.joinOpen).tap()
-        XCTAssertEqual(picked, [.invite, .open])
+        let known = FlareGroupJoinPolicyPicker(policy: .invite, options: FlareGroupDetail.joinPolicyOptions(copy),
+                                               saveLabel: copy.save, onPick: { picked.append($0) })
+        try known.inspect().find(button: copy.save).tap()
+        XCTAssertEqual(picked, [.invite])
+        let unknown = FlareGroupJoinPolicyPicker(policy: nil, options: FlareGroupDetail.joinPolicyOptions(copy),
+                                                 saveLabel: copy.save, onPick: { picked.append($0) })
+        XCTAssertTrue(try unknown.inspect().find(button: copy.save).isDisabled(), "save waits for a pick")
     }
 
     @MainActor

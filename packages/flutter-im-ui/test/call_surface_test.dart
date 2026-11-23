@@ -1,8 +1,27 @@
 import 'package:flare_im_ui/flare_im_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('a phone stage under the status bar asks for light icons', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FlareCallSurface(mode: FlareCallMode.audio, child: SizedBox()),
+      ),
+    );
+    final region = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
+      find.byType(AnnotatedRegion<SystemUiOverlayStyle>).last,
+    );
+    expect(region.value, SystemUiOverlayStyle.light);
+  });
+
   testWidgets(
     'voice keeps chat behind a bounded themed modal in either theme',
     (tester) async {

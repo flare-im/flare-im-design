@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, getCurrentInstance } from "vue";
 import type { ContentElem } from "../../../../utils/contentElem";
 import type { MessageMediaDownloadUiState } from "../../MessageBubble.vue";
 import { pickNestedPayload } from "../../../../utils/contentElem";
@@ -22,7 +22,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: "media-action", action: "download" | "openFolder"): void;
+  /** The card body was opened (the download and folder keys stay `media-action`). */
+  (event: "openFile"): void;
 }>();
+const instance = getCurrentInstance();
 
 const { t } = useFlareI18n();
 
@@ -74,6 +77,10 @@ function onReveal(): void {
 }
 // The key exists only when the host resolved a media action: a download, or the saved file's folder.
 const downloadListeners = computed(() => (props.mediaAction ? { download: onDownload, reveal: onReveal } : {}));
+// The card body is a key only while the host opens files; read at render time so a listener bound later counts.
+function bodyListeners(): Record<string, () => void> {
+  return instance?.vnode.props?.onOpenFile ? { open: () => emit("openFile") } : {};
+}
 </script>
 
 <template>
@@ -85,7 +92,7 @@ const downloadListeners = computed(() => (props.mediaAction ? { download: onDown
       :ext="fileExt"
       :description="description"
       :state="state"
-      v-on="downloadListeners"
+      v-on="{ ...downloadListeners, ...bodyListeners() }"
     />
   </div>
 </template>

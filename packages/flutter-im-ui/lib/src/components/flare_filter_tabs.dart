@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/count_badge.dart';
+import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 
 /// Visual treatment for a filter row. [quiet] is the persistent inbox style:
@@ -42,6 +43,7 @@ class FlareFilterTabs extends StatelessWidget {
     this.padding = const EdgeInsets.all(2),
     this.appearance = FlareFilterTabsAppearance.filled,
     this.enabled = true,
+    this.size = FlareControlSize.md,
   });
 
   final List<FlareFilterTabOption> options;
@@ -56,6 +58,11 @@ class FlareFilterTabs extends StatelessWidget {
   /// False while what the tabs filter is loading: the row dims to the
   /// disabled opacity and taps do nothing until it is enabled again.
   final bool enabled;
+
+  /// [FlareControlSize.sm] is the compact pill for a secondary condition (the
+  /// type row under a search field, Vue `size="sm"`): 30 high, 12px type, 8px
+  /// inset; its hit cell keeps the touch target.
+  final FlareControlSize size;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +86,7 @@ class FlareFilterTabs extends StatelessWidget {
                 active: options[i].value == selected,
                 appearance: appearance,
                 enabled: enabled,
+                compact: size == FlareControlSize.sm,
                 onTap: () => onSelect(options[i].value),
               ),
             ],
@@ -96,6 +104,7 @@ class _FilterTab extends StatelessWidget {
     required this.active,
     required this.appearance,
     required this.enabled,
+    required this.compact,
     required this.onTap,
   });
 
@@ -103,6 +112,7 @@ class _FilterTab extends StatelessWidget {
   final bool active;
   final FlareFilterTabsAppearance appearance;
   final bool enabled;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -110,9 +120,13 @@ class _FilterTab extends StatelessWidget {
     final colors = FlareColors.of(context);
     final quiet = appearance == FlareFilterTabsAppearance.quiet;
     final pill = Container(
+      constraints: compact ? const BoxConstraints(minHeight: 30) : null,
+      alignment: compact ? Alignment.center : null,
       padding: EdgeInsets.symmetric(
-        horizontal: quiet ? FlareSizes.spacingSm : FlareSizes.spacing2md,
-        vertical: 6,
+        horizontal: quiet || compact
+            ? FlareSizes.spacingSm
+            : FlareSizes.spacing2md,
+        vertical: compact ? 0 : 6,
       ),
       decoration: BoxDecoration(
         color: quiet
@@ -142,13 +156,35 @@ class _FilterTab extends StatelessWidget {
           Text(
             option.label,
             style: TextStyle(
-              color: active ? colors.primary : colors.textSecondary,
-              fontSize: FlareSizes.fontSizeMd,
+              color: active
+                  ? (quiet ? colors.primaryText : colors.primary)
+                  : colors.textSecondary,
+              fontSize: compact ? FlareSizes.fontSizeSm : FlareSizes.fontSizeMd,
               fontWeight: active ? FontWeight.w600 : FontWeight.w500,
               height: 1.2,
             ),
           ),
-          if (flareCountBadgeDrawn(option.badge, more: option.badgeMore)) ...[
+          // Quiet: the count is a footnote in the tab's own colour, not a
+          // badge (Vue `.flare-filter-tabs--quiet .flare-filter-tab__badge`).
+          if (quiet &&
+              flareCountBadgeDrawn(option.badge, more: option.badgeMore)) ...[
+            const SizedBox(width: 4),
+            Opacity(
+              opacity: 0.7,
+              child: Text(
+                flareCountBadgeText(option.badge, more: option.badgeMore),
+                style: TextStyle(
+                  color: active ? colors.primaryText : colors.textSecondary,
+                  fontSize: FlareSizes.fontSizeMd,
+                  fontWeight: FontWeight.w400,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ] else if (flareCountBadgeDrawn(
+            option.badge,
+            more: option.badgeMore,
+          )) ...[
             const SizedBox(width: 6),
             Container(
               constraints: const BoxConstraints(minWidth: 16),

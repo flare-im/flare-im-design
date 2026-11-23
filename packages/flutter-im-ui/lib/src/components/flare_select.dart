@@ -105,8 +105,18 @@ class _FlareSelectState extends State<FlareSelect> {
               color: colors.bgSecondary,
               borderRadius: BorderRadius.circular(FlareSizes.radiusLg),
               border: Border.all(
-                color: _open ? colors.primary : colors.borderPrimary,
+                // §12.22: open, a 1px border.selected border under the
+                // focus-ring halo, as FlareInput.
+                color: _open ? colors.borderSelected : colors.borderPrimary,
               ),
+              boxShadow: _open
+                  ? [
+                      BoxShadow(
+                        color: colors.focusRing,
+                        spreadRadius: FlareSizes.componentFocusRingWidth,
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [

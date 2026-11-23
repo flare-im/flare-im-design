@@ -65,20 +65,21 @@ public struct NotificationAlertSettingsView<SectionContent: View>: View {
         self.sectionContent = sectionContent
     }
 
-    /// The three sections: quiet hours, preview, and the other-device behaviour, each with its footer.
+    /// The three sections: quiet hours, preview, and the other-device behaviour, each with its footer; rows carry
+    /// Vue's icons (mute, clock, calendar, mention, eye, devices).
     var sections: [FlareSettingsSection] {
         let quiet = value.quietHours
-        var quietRows = [FlareSettingsItem(key: Self.quietHoursRow, label: strings.quietHoursLabel, kind: .toggle,
+        var quietRows = [FlareSettingsItem(key: Self.quietHoursRow, label: strings.quietHoursLabel, icon: "mute", kind: .toggle,
                                            value: quiet.enabled, disabled: disabled)]
         if quiet.enabled {
             quietRows += [
-                FlareSettingsItem(key: Self.startRow, label: strings.quietHoursStart,
+                FlareSettingsItem(key: Self.startRow, label: strings.quietHoursStart, icon: "clock",
                                   detail: formatMinuteOfDay(quiet.startMinute), disabled: disabled),
-                FlareSettingsItem(key: Self.endRow, label: strings.quietHoursEnd,
+                FlareSettingsItem(key: Self.endRow, label: strings.quietHoursEnd, icon: "clock",
                                   detail: quietHoursEndText(quiet, strings: strings), disabled: disabled),
-                FlareSettingsItem(key: Self.repeatRow, label: strings.quietHoursRepeat,
+                FlareSettingsItem(key: Self.repeatRow, label: strings.quietHoursRepeat, icon: "calendar",
                                   detail: weekdaySummaryText(quiet.weekdays, strings: strings), disabled: disabled),
-                FlareSettingsItem(key: Self.allowMentionsRow, label: strings.quietHoursAllowMentions, kind: .toggle,
+                FlareSettingsItem(key: Self.allowMentionsRow, label: strings.quietHoursAllowMentions, icon: "mention", kind: .toggle,
                                   value: quiet.allowMentions, disabled: disabled),
             ]
         }
@@ -86,14 +87,14 @@ public struct NotificationAlertSettingsView<SectionContent: View>: View {
             FlareSettingsSection(title: strings.quietHoursTitle, items: quietRows, footer: strings.quietHoursFooter),
             FlareSettingsSection(
                 title: strings.notificationPreviewTitle,
-                items: [FlareSettingsItem(key: Self.previewRow, label: strings.notificationPreviewLabel,
+                items: [FlareSettingsItem(key: Self.previewRow, label: strings.notificationPreviewLabel, icon: "eye",
                                           detail: notificationPreviewText(value.preview, strings: strings),
                                           disabled: disabled)],
                 footer: strings.notificationPreviewFooter
             ),
             FlareSettingsSection(
                 title: strings.multiDeviceTitle,
-                items: [FlareSettingsItem(key: Self.multiDeviceRow, label: strings.multiDeviceLabel,
+                items: [FlareSettingsItem(key: Self.multiDeviceRow, label: strings.multiDeviceLabel, icon: "devices",
                                           detail: multiDeviceAlertText(value.multiDevice, strings: strings),
                                           disabled: disabled)],
                 footer: strings.multiDeviceFooter

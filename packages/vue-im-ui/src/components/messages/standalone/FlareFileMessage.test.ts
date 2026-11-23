@@ -37,7 +37,7 @@ describe("FlareFileMessage trailing key", () => {
     expect(file.emitted("reveal")).toHaveLength(1);
     expect(file.emitted("download")).toBeUndefined();
     // Size and type stay on the card after the save.
-    expect(file.find(".sub").text()).toBe("8.5 KB · PDF · 已下载");
+    expect(file.find(".sub").text()).toBe("8.5 KB · PDF");
   });
 
   it("is a download again once the host passes idle for a file that is gone", async () => {
@@ -54,10 +54,19 @@ describe("FlareFileMessage trailing key", () => {
     expect(host.find("button.dl").attributes("aria-label")).toBe("下载");
   });
 
+  it("shows unavailable files with a passive, named icon", () => {
+    const file = mountFile({ state: "unavailable" });
+    expect(file.find(".sub").text()).toBe("8.5 KB · PDF");
+    expect(file.find("button.dl").exists()).toBe(false);
+    expect(file.get('[role="img"].dl').attributes("aria-label")).toBeTruthy();
+  });
+
   it("cannot be pressed while downloading", async () => {
     const file = mountFile({ state: "downloading" });
     const key = file.find("button.dl");
     expect(key.attributes("disabled")).toBeDefined();
+    expect(key.attributes("aria-label")).toBe("下载中");
+    expect(file.find(".sub").text()).toBe("8.5 KB · PDF");
     await key.trigger("click");
     expect(file.emitted("download")).toBeUndefined();
   });

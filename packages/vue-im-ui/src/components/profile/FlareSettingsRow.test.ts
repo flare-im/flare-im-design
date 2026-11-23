@@ -4,6 +4,19 @@ import { mount } from '@vue/test-utils';
 import Row from './FlareSettingsRow.vue';
 
 describe('shared settings row', () => {
+  it('associates toggle help with one named switch and keeps whole-row activation', async () => {
+    const item = { key: 'stranger', label: 'Messages', kind: 'toggle' as const, value: false, detail: 'People outside your contacts.' };
+    const row = mount(Row, { props: { item } });
+    const label = row.get('.flare-settings__label');
+    const description = row.get('.flare-settings__toggle-description');
+    expect(row.attributes('aria-labelledby')).toBe(label.attributes('id'));
+    expect(row.attributes('aria-describedby')).toBe(description.attributes('id'));
+    expect(row.attributes('role')).toBe('switch');
+    expect(row.element.querySelector('[role="switch"]')).toBeNull();
+    await description.trigger('click');
+    expect(row.emitted('toggle')).toEqual([[item, true]]);
+    row.unmount();
+  });
   it('reports one toggle from the entire row and respects disabled state', async () => {
     const item = { key: 'mute', label: '消息免打扰', kind: 'toggle' as const, value: false };
     const row = mount(Row, { props: { item } });

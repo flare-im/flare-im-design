@@ -41,7 +41,7 @@ function submit(): void {
     <header v-if="!embedded" class="flare-poll-composer__head">
       <span class="flare-poll-composer__title">{{ t("poll.create") }}</span>
       <button type="button" class="flare-poll-composer__close" :aria-label="t('poll.cancel')" @click="emit('cancel')">
-        <n-icon aria-hidden="true" :size="18" :component="CloseOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="CloseOutline" />
       </button>
     </header>
 

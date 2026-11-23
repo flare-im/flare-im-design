@@ -9,6 +9,7 @@
  * `groupManagementEntries`, and each member's sheet through `model.memberActions`
  * (`groupDetailMemberActions`). The kit reads no role or owner rule of its own.
  */
+import { useScreenLayout } from "../../shared/screenLayout";
 import { flareIcons } from "../../shared/icons";
 import { computed, getCurrentInstance, ref, watch } from "vue";
 import { NIcon } from "naive-ui";
@@ -42,6 +43,7 @@ import {
   type MemberRoleActionId,
 } from "../../shared/contracts/group-permissions";
 
+const { detail: detailLayout } = useScreenLayout();
 const props = defineProps<{
   model: FlareGroupDetailModel | null;
   loading?: boolean;
@@ -127,8 +129,13 @@ const settingsSections = computed<FlareSettingsSection[]>(() => {
       items: [
         // 群名称与群成员不在这里：它们已经分别由 hero 的标题和成员栅格的头部承担 ——
         // 名字在同一屏上写两遍、人数在同一屏上写两遍，是同一件事说两次，不是两条信息。
-        // Rows the viewer can change open their editor and carry a chevron; the rest read as values.
-        { key: "announcement", label: t("group.announcement"), icon: "announcement", kind: can("editAnnouncement") ? "navigation" : "value", detail: m.announcement || t("group.notSet") },
+        {
+          key: "announcement",
+          label: t("group.announcement"),
+          icon: "announcement",
+          kind: m.announcement || can("editAnnouncement") ? "navigation" : "value",
+          detail: m.announcement || t("group.notSet"),
+        },
       ],
     },
     {
@@ -176,6 +183,7 @@ const editKind = ref<"name" | "announcement" | "nickname" | "remark" | null>(nul
 const editDraft = ref("");
 const editBusy = ref(false);
 const editError = ref("");
+const announcementOpen = ref(false);
 watch(editKind, () => { editError.value = ""; });
 const editMeta = computed(() => {
   switch (editKind.value) {
@@ -198,6 +206,7 @@ async function saveEdit() {
     else if (kind === "announcement") emit("updateAnnouncement", v);
     else emit("updateMyNickname", v);
     editKind.value = null;
+    if (kind === "announcement" && !v) announcementOpen.value = false;
   } catch (error) {
     editError.value = error instanceof Error ? error.message : t("common.operationFailed");
   } finally {
@@ -217,6 +226,12 @@ function openRename() {
   editDraft.value = model.value?.name || "";
 }
 
+function openAnnouncementEditor() {
+  if (!can("editAnnouncement")) return;
+  editKind.value = "announcement";
+  editDraft.value = model.value?.announcement || "";
+}
+
 function onSettingSelect(item: FlareSettingsItem) {
   if (item.key === "myRemarkName" && props.submitRemarkName) {
     editKind.value = "remark";
@@ -229,9 +244,9 @@ function onSettingSelect(item: FlareSettingsItem) {
     editDraft.value = model.value?.myNickname || "";
     return;
   }
-  if (item.key === "announcement" && can("editAnnouncement")) {
-    editKind.value = "announcement";
-    editDraft.value = model.value?.announcement || "";
+  if (item.key === "announcement") {
+    if (model.value?.announcement) announcementOpen.value = true;
+    else openAnnouncementEditor();
   } else if (item.key === "joinPolicy" && can("joinPolicy")) {
     policyDraft.value = model.value?.joinPolicy ?? "";
     policyOpen.value = true;
@@ -303,8 +318,8 @@ function onMemberSelect(id: string) {
 }
 
 // ── Members: the grid previews the first rows; the members row opens everyone with search ──
-/** Cells in the preview grid, the add tile included: four rows of five. */
-const MEMBER_PREVIEW_CELLS = 20;
+/** Keep the preview to two rows of five, including the add tile. */
+const MEMBER_PREVIEW_CELLS = 10;
 const previewMembers = computed(() => {
   const members = model.value?.members ?? [];
   return members.slice(0, can("inviteMembers") ? MEMBER_PREVIEW_CELLS - 1 : MEMBER_PREVIEW_CELLS);
@@ -320,9 +335,14 @@ const matchingMembers = computed(() => {
   if (hasHostMemberSearch.value) return members;
   return query ? members.filter((member) => member.name.toLocaleLowerCase().includes(query)) : members;
 });
+function closeRoster() {
+  membersOpen.value = false;
+  // Restore the unfiltered presentation through the existing search intent.
+  memberQuery.value = "";
+}
 function onMemberListSelect(member: FlareContact) {
   if (!actionsFor(member.id).length && !model.value?.memberActions[member.id]?.canRequestFriend) return;
-  membersOpen.value = false;
+  closeRoster();
   memberSheet.value = member.id;
 }
 // Each intent carries the state the viewer asked for — the one its button named — so a host
@@ -388,7 +408,7 @@ function submitInvite() {
 </script>
 
 <template>
-  <div class="flare-group-detail">
+  <div class="flare-group-detail" :class="{ 'is-detail': detailLayout }">
     <FlareEmptyState v-if="!model && loading" class="flare-group-detail__empty" loading :title="t('group.loading')" />
     <FlareEmptyState
       v-else-if="!model"
@@ -400,7 +420,7 @@ function submitInvite() {
 
     <template v-else-if="model">
       <div class="flare-group-detail__hero">
-        <FlareAvatar :user-id="model.groupId" :display-name="groupName" :avatar-url="model.avatarUrl || undefined" :size="72" />
+        <FlareAvatar :user-id="model.groupId" :display-name="groupName" :avatar-url="model.avatarUrl || undefined" :size="52" />
         <!-- 标题本身就是改名入口（管理员）。原来标题下面还有一行「群名称 Team ›」，
              同一个名字在同一屏上写两遍；现在名字只有这一处，改名从它进去。 -->
         <div class="flare-group-detail__title" :class="{ 'is-interactive': canRename }">
@@ -426,6 +446,11 @@ function submitInvite() {
         </div>
       </div>
 
+      <FlareSettingsList :sections="settingsSections.slice(0, 1)" @select="onSettingSelect" @toggle="onSettingToggle" />
+      <div v-if="$slots['after-info']" class="flare-group-detail__slot">
+        <slot name="after-info" />
+      </div>
+
       <FlareGroupMemberGrid
         :members="previewMembers"
         :total="model.memberCount"
@@ -437,35 +462,37 @@ function submitInvite() {
         @view-all="openRoster"
       />
 
-      <!-- Host content that belongs with the group information (an announcement read bar) goes right after that section. -->
-      <template v-if="$slots['after-info']">
-        <FlareSettingsList :sections="settingsSections.slice(0, 1)" @select="onSettingSelect" @toggle="onSettingToggle" />
-        <div class="flare-group-detail__slot">
-          <slot name="after-info" />
-        </div>
-        <FlareSettingsList :sections="settingsSections.slice(1)" @select="onSettingSelect" @toggle="onSettingToggle" />
-      </template>
-      <FlareSettingsList v-else :sections="settingsSections" @select="onSettingSelect" @toggle="onSettingToggle" />
+      <FlareSettingsList :sections="settingsSections.slice(1)" @select="onSettingSelect" @toggle="onSettingToggle" />
 
       <div class="flare-group-detail__foot">
-        <FlareButton v-if="canOpenChat" size="sm" block @click="emit('openChat', model.members.map((m) => m.id), groupName)">
-          {{ t("group.message") }}
-        </FlareButton>
+
         <FlareButton
           v-for="action in extraActions ?? []"
           :key="action.id"
-          size="sm" block
+          size="lg" block
           :variant="action.danger ? 'danger' : 'secondary'"
           @click="emit('extraAction', action.id)"
         >{{ action.label }}</FlareButton>
-        <FlareButton variant="danger" size="sm" block @click="emit('leave')">
+        <FlareButton variant="danger" size="lg" block @click="emit('leave')">
           {{ can("dissolve") ? t("group.dissolve") : t("group.leave") }}
         </FlareButton>
       </div>
       <div v-if="$slots.footer" class="flare-group-detail__footer">
         <slot name="footer" />
       </div>
+      <div v-if="canOpenChat" class="flare-group-detail__actions">
+        <FlareButton size="lg" :block="!detailLayout" @click="emit('openChat', model.members.map((m) => m.id), groupName)">{{ t("group.message") }}</FlareButton>
+      </div>
     </template>
+
+    <FlareBottomSheet :open="announcementOpen" :title="t('group.announcement')" show-close @close="announcementOpen = false">
+      <div class="flare-group-detail__sheet">
+        <p class="flare-group-detail__announcement">{{ model?.announcement }}</p>
+        <FlareButton v-if="can('editAnnouncement')" variant="secondary" @click="openAnnouncementEditor">
+          {{ t("group.editAnnouncement") }}
+        </FlareButton>
+      </div>
+    </FlareBottomSheet>
 
     <!-- Edit name / announcement / nickname -->
     <FlareFormSheet :open="editKind !== null" :title="editMeta.title" :busy="editBusy"
@@ -478,9 +505,9 @@ function submitInvite() {
     <!-- Member management -->
     <FlareBottomSheet :open="memberSheet !== null" :title="t('group.memberManage')" @close="memberSheet = null">
       <div class="flare-group-detail__sheet flare-group-detail__member-actions">
-        <FlareButton v-if="memberSheet && model?.memberActions[memberSheet]?.canRequestFriend" variant="secondary" block
-          @click="requestMemberFriendship">{{ t("group.requestFriend") }}</FlareButton>
-        <FlareButton
+        <FlareButton size="sm" v-if="memberSheet && model?.memberActions[memberSheet]?.canRequestFriend" variant="secondary" block
+          @click="requestMemberFriendship">{{ t("relationActionBar.add") }}</FlareButton>
+        <FlareButton size="sm"
           v-for="entry in sheetActions"
           :key="entry.action"
           :variant="entry.action === 'remove' ? 'danger' : 'secondary'"
@@ -495,25 +522,26 @@ function submitInvite() {
       <div class="flare-group-detail__sheet">
         <p class="flare-group-detail__confirm">{{ t("group.transferConfirm", { name: transferName }) }}</p>
         <div class="flare-group-detail__sheet-actions">
-          <FlareButton variant="secondary" @click="transferTarget = null">{{ t("group.cancel") }}</FlareButton>
-          <FlareButton variant="danger" @click="confirmTransfer">{{ t("group.confirmTransfer") }}</FlareButton>
+          <FlareButton size="sm" variant="secondary" @click="transferTarget = null">{{ t("group.cancel") }}</FlareButton>
+          <FlareButton size="sm" variant="danger" @click="confirmTransfer">{{ t("group.confirmTransfer") }}</FlareButton>
         </div>
       </div>
     </FlareBottomSheet>
 
     <!-- All members -->
-    <FlareBottomSheet :open="membersOpen" :title="t('group.membersTitle', { count: model?.memberCount ?? 0 })" max-height="80vh" @close="membersOpen = false">
+    <FlareBottomSheet :open="membersOpen" :title="t('group.membersTitle', { count: model?.memberCount ?? 0 })" max-height="80vh" @close="closeRoster">
       <div class="flare-group-detail__sheet">
         <FlareSearchBar v-model="memberQuery" :placeholder="t('group.searchMembers')" :loading="memberSearchLoading" />
-        <div class="flare-group-detail__members">
-          <div v-if="memberSearchError" class="flare-group-detail__empty-row" role="alert">{{ memberSearchError }}</div>
+        <div class="flare-group-detail__members" :class="{ 'has-state': memberSearchError || !matchingMembers.length }">
+          <FlareEmptyState v-if="memberSearchError" role="alert" tone="error" icon="warning" :title="memberSearchError" :action-text="hasHostMemberSearch ? t('common.retry') : undefined" @action="emit('searchMembers', memberQuery)" />
+          <FlareEmptyState v-else-if="memberSearchLoading && !matchingMembers.length" loading :title="t('common.loading')" />
           <FlareContactList
             v-else-if="matchingMembers.length"
             :items="matchingMembers"
             :indexed="false"
             @select="onMemberListSelect"
           />
-          <div v-else class="flare-group-detail__empty-row">{{ t("group.noMatchingMembers") }}</div>
+          <FlareEmptyState v-else icon="search" :title="t('group.noMatchingMembers')" :action-text="memberQuery.trim() ? t('searchBar.clear') : undefined" @action="memberQuery = ''" />
         </div>
       </div>
     </FlareBottomSheet>
@@ -533,8 +561,8 @@ function submitInvite() {
           <div v-else class="flare-group-detail__empty-row">{{ t("group.inviteEmpty") }}</div>
         </div>
         <div class="flare-group-detail__sheet-actions">
-          <FlareButton variant="secondary" @click="inviteOpen = false">{{ t("group.cancel") }}</FlareButton>
-          <FlareButton :disabled="!invitePicked.size" @click="submitInvite">{{ t("group.invite") }}</FlareButton>
+          <FlareButton size="sm" variant="secondary" @click="inviteOpen = false">{{ t("group.cancel") }}</FlareButton>
+          <FlareButton size="sm" :disabled="!invitePicked.size" @click="submitInvite">{{ t("group.invite") }}</FlareButton>
         </div>
       </div>
     </FlareBottomSheet>
@@ -544,8 +572,8 @@ function submitInvite() {
       <div class="flare-group-detail__sheet">
         <FlareRadioGroup v-model="policyDraft" :options="policyOptions" />
         <div class="flare-group-detail__sheet-actions">
-          <FlareButton variant="secondary" @click="policyOpen = false">{{ t("group.cancel") }}</FlareButton>
-          <FlareButton :disabled="!policyDraft" @click="savePolicy">{{ t("group.save") }}</FlareButton>
+          <FlareButton size="sm" variant="secondary" @click="policyOpen = false">{{ t("group.cancel") }}</FlareButton>
+          <FlareButton size="sm" :disabled="!policyDraft" @click="savePolicy">{{ t("group.save") }}</FlareButton>
         </div>
       </div>
     </FlareBottomSheet>
@@ -586,8 +614,8 @@ function submitInvite() {
           />
           <div class="flare-group-detail__code">{{ inviteCode }}</div>
           <div class="flare-group-detail__sheet-actions">
-            <FlareButton block @click="copyInviteCode()">{{ copied ? t("group.copied") : t("group.copyCode") }}</FlareButton>
-            <FlareButton v-if="inviteUrl" block @click="copyInviteCode(inviteUrl)">{{ t("group.copyInviteLink") }}</FlareButton>
+            <FlareButton size="lg" block @click="copyInviteCode()">{{ copied ? t("group.copied") : t("group.copyCode") }}</FlareButton>
+            <FlareButton size="sm" v-if="inviteUrl" block @click="copyInviteCode(inviteUrl)">{{ t("group.copyInviteLink") }}</FlareButton>
           </div>
         </template>
         <div v-else class="flare-group-detail__empty-row">{{ t("group.cannotGenerate") }}</div>
@@ -597,9 +625,9 @@ function submitInvite() {
 </template>
 
 <style scoped>
-.flare-group-detail { display: flex; flex-direction: column; }
+.flare-group-detail { display: flex; flex-direction: column; min-height: 100%; }
 .flare-group-detail__empty { margin: 40px auto; }
-.flare-group-detail__hero { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-2sm); padding: 20px 16px 8px; }
+.flare-group-detail__hero { display: flex; align-items: center; gap: var(--flare-size-spacing-md); padding: var(--flare-size-spacing-md); }
 .flare-group-detail__title {
   display: inline-flex;
   align-items: center;
@@ -609,7 +637,7 @@ function submitInvite() {
   color: var(--flare-color-text-primary);
   font-size: 18px;
   font-weight: 600;
-  text-align: center;
+  text-align: start;
 }
 .flare-group-detail__title-text {
   min-width: 0;
@@ -658,12 +686,22 @@ function submitInvite() {
 .flare-group-detail__slot { margin: 0 var(--flare-size-spacing-md); }
 .flare-group-detail__footer { display: flex; flex-direction: column; align-items: center; gap: var(--flare-size-spacing-sm); padding: 0 var(--flare-size-spacing-lg) var(--flare-size-spacing-lg); }
 .flare-group-detail__sheet { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: var(--flare-size-spacing-2md); }
+.flare-group-detail__announcement {
+  margin: 0;
+  color: var(--flare-color-text-primary);
+  font-size: var(--flare-size-font-size-lg);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
 .flare-group-detail__sheet-actions { display: flex; gap: 12px; }
 .flare-group-detail__sheet-actions > * { flex: 1; }
 .flare-group-detail__member-actions { gap: var(--flare-size-spacing-2sm); }
 .flare-group-detail__confirm { margin: 0; color: var(--flare-color-text-secondary); font-size: 14px; line-height: 1.6; }
 .flare-group-detail__list { max-height: 46vh; overflow-y: auto; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); }
 .flare-group-detail__members { height: min(56vh, 520px); min-height: 0; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); overflow: hidden; }
+.flare-group-detail__members.has-state { height: auto; min-height: calc(var(--flare-size-layout-touch-target) * 3); }
 .flare-group-detail__row-name { flex: 1; min-width: 0; color: var(--flare-color-text-primary); }
 .flare-group-detail__empty-row { padding: 20px; text-align: center; color: var(--flare-color-text-tertiary); font-size: 13px; }
 .flare-group-detail__req { display: flex; align-items: center; gap: 12px; padding: var(--flare-size-spacing-2sm) 12px; }
@@ -671,6 +709,12 @@ function submitInvite() {
 .flare-group-detail__req-msg { font-size: 12px; color: var(--flare-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flare-group-detail__req-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .flare-group-detail__code { padding: var(--flare-size-spacing-2md) 16px; border-radius: var(--flare-size-radius-lg); background: var(--flare-color-bg-secondary); text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--flare-color-text-primary); word-break: break-all; }
+.flare-group-detail__actions { position: sticky; bottom: 0; z-index: 1; margin-block-start: auto; background: var(--flare-color-bg-primary); padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md) max(var(--flare-size-spacing-sm), env(safe-area-inset-bottom)); }
+.flare-group-detail.is-detail .flare-group-detail__hero { padding: 0 0 var(--flare-size-spacing-md); }
+.flare-group-detail.is-detail .flare-group-detail__actions { padding-inline: 0; }
+.flare-group-detail.is-detail .flare-group-detail__slot { margin-inline: 0; }
+.flare-group-detail.is-detail .flare-group-detail__foot { flex-direction: row; flex-wrap: wrap; padding-inline: 0; }
+.flare-group-detail.is-detail .flare-group-detail__foot > * { width: auto; }
 @media (pointer: coarse) {
   .flare-group-detail__foot {
     row-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm));

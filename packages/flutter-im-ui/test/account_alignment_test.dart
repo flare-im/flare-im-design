@@ -108,7 +108,8 @@ void main() {
         tester
             .widget<SingleChildScrollView>(find.byType(SingleChildScrollView))
             .padding,
-        const EdgeInsets.fromLTRB(16, 12, 16, 20),
+        // R1: 24 at the sides on PC.
+        const EdgeInsets.fromLTRB(24, 12, 24, 20),
       );
       expect(tester.takeException(), isNull);
     },
@@ -225,7 +226,8 @@ void main() {
       final scroll = tester.widget<SingleChildScrollView>(
         find.byType(SingleChildScrollView).first,
       );
-      expect(scroll.padding, const EdgeInsets.fromLTRB(16, 12, 16, 20));
+      // R1: 24 at the sides on PC.
+      expect(scroll.padding, const EdgeInsets.fromLTRB(24, 12, 24, 20));
       expect(tester.takeException(), isNull, reason: state);
     }
   });

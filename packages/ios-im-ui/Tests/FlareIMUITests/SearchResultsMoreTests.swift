@@ -10,8 +10,8 @@ final class SearchResultsMoreTests: XCTestCase {
 
     func testAKnownTotalIsCountedAndAnUnknownOneIsNot() {
         XCTAssertEqual(SearchResultGroup(kind: .contact, label: "联系人", items: [item], total: 9, hasMore: true).moreText(strings), strings.viewAll(9))
-        XCTAssertEqual(SearchResultGroup(kind: .contact, label: "联系人", items: [item], hasMore: true).moreText(strings), strings.more)
-        XCTAssertEqual(SearchResultGroup(kind: .contact, label: "联系人", items: [item], total: 1, hasMore: true).moreText(strings), strings.more)
+        XCTAssertEqual(SearchResultGroup(kind: .contact, label: "联系人", items: [item], hasMore: true).moreText(strings), strings.searchViewMore)
+        XCTAssertEqual(SearchResultGroup(kind: .contact, label: "联系人", items: [item], total: 1, hasMore: true).moreText(strings), strings.searchViewMore)
         XCTAssertNil(SearchResultGroup(kind: .contact, label: "联系人", items: [item], total: 1).moreText(strings))
         XCTAssertNil(SearchResultGroup(kind: .contact, label: "联系人", items: [item]).moreText(strings))
     }

@@ -192,12 +192,12 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
     func testCallControlsAreNamedAndReportTheirState() throws {
         let video = CallControlsView(muted: true, cameraOn: false, mode: .video, onToggleMute: {},
                                      onToggleCamera: {}, onSwitchCamera: {}, onHangup: {})
-        try assertNamedTarget(video, [s.microphone, s.camera, s.flipCamera, s.hangUp])
+        // The flip key is a phone's (compact width; CallStageTests covers the rule).
+        try assertNamedTarget(video, [s.microphone, s.camera, s.hangUp])
         XCTAssertEqual(try control(video, s.microphone).accessibilityValue().string(), s.callDeviceOff)
         XCTAssertEqual(try control(video, s.camera).accessibilityValue().string(), s.callDeviceOff)
         XCTAssertEqual(try symbol(control(video, s.microphone)), flareIconMap["mic-off"])
         XCTAssertEqual(try symbol(control(video, s.camera)), flareIconMap["camera-off"])
-        XCTAssertEqual(try symbol(control(video, s.flipCamera)), flareIconMap["switch-camera"])
         XCTAssertEqual(try symbol(control(video, s.hangUp)), flareIconMap["end-call"])
 
         let audio = CallControlsView(muted: false, speakerOn: true, mode: .audio, onToggleMute: {}, onToggleSpeaker: {})
@@ -221,8 +221,8 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
         XCTAssertEqual(hungUp, 1)
 
         let incoming = IncomingCallView(callerName: "Ada", mode: .audio, onAccept: {}, onReject: {})
-        try assertNamedTarget(incoming, [s.reject, s.accept])
-        XCTAssertEqual(try symbol(control(incoming, s.reject)), flareIconMap["end-call"])
+        try assertNamedTarget(incoming, [s.callDecline, s.accept])
+        XCTAssertEqual(try symbol(control(incoming, s.callDecline)), flareIconMap["end-call"])
 
         let group = GroupCallView(participants: [CallParticipant(id: "u1", name: "Ada")], mode: .video,
                                   state: .connected, onMinimize: {})
@@ -292,7 +292,8 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
         try assertNamedTarget(composer, [s.removeImage, s.addImage])
         try control(composer, s.removeImage).tap()
         XCTAssertEqual(removed, [0])
-        let card = MomentCardView(moment: Moment(id: "m1", author: MomentAuthor(id: "u1", name: "Ada"), text: "Hi"))
+        let card = MomentCardView(moment: Moment(id: "m1", author: MomentAuthor(id: "u1", name: "Ada"), text: "Hi"),
+                                  onLike: {})
         try assertNamedTarget(card, [s.momentActions])
         try assertNamedTarget(MomentsVisibilityRuleListView(kind: .hideFrom, members: [], onAdd: {}),
                               [s.momentsVisibilityRuleListAdd])
@@ -308,11 +309,11 @@ final class IconOnlyControlAccessibilityTests: XCTestCase {
     }
 
     @MainActor
-    func testStarredContactBadgeIsTheStarIconPlusItsLabel() throws {
+    func testStarredContactIsTheStarIconNamedByItsLabel() throws {
         let detail = FlareContactDetail(contact: Contact(id: "u1", name: "Ada"), starred: true)
         let inspected = try detail.inspect()
-        XCTAssertNoThrow(try inspected.find(text: s.contactDetailStar))
         XCTAssertThrowsError(try inspected.find(text: "★ \(s.contactDetailStar)"), "no text glyph")
-        XCTAssertNoThrow(try inspected.find(ViewType.Image.self, where: { try $0.actualImage().name() == flareIconMap["star"] }))
+        let star = try inspected.find(ViewType.Image.self, where: { try $0.actualImage().name() == flareIconMap["star"] })
+        XCTAssertEqual(try star.accessibilityLabel().string(), s.contactDetailStar)
     }
 }

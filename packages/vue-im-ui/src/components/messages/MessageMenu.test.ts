@@ -49,7 +49,7 @@ describe("MessageMenu dropdown", () => {
     const dropdown = await openDropdown(host);
     dropdown.vm.$emit("select", "forward");
     dropdown.vm.$emit("select", "action:translate");
-    expect(calls).toEqual([["forward", "client-1"], ["action", "translate", "client-1"]]);
+    expect(calls).toEqual([["forward", "server-1"], ["action", "translate", "server-1"]]);
     host.unmount();
   });
 
@@ -68,7 +68,7 @@ describe("MessageMenu dropdown", () => {
     (host.findComponent(MessageMenu).vm as unknown as { openMenu(): void }).openMenu();
     await flushPromises();
     host.findComponent(MessageActionSheet).vm.$emit("action", "recall");
-    expect(calls).toEqual([["recall", "client-1"]]);
+    expect(calls).toEqual([["recall", "server-1"]]);
     host.unmount();
   });
 
@@ -83,7 +83,7 @@ describe("MessageMenu dropdown", () => {
     dropdown.vm.$emit("select", "copy");
     await flushPromises();
     expect(writeText).toHaveBeenCalledWith("Ship it");
-    expect(copies).toEqual([["client-1", true], ["client-1", false]]);
+    expect(copies).toEqual([["server-1", true], ["server-1", false]]);
     host.unmount();
   });
 });

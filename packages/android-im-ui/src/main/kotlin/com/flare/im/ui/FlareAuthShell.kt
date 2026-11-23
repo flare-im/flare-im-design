@@ -203,10 +203,12 @@ private fun FormPanel(
                     Spacer(Modifier.size(FlareSizes.spacing2xl))
                     content()
                     footer?.takeIf(String::isNotBlank)?.let {
+                        Spacer(Modifier.size(FlareSizes.spacing2xl))
+                        FlareHairline()
                         Text(
                             it,
-                            modifier = Modifier.padding(top = FlareSizes.spacing2xl),
-                            color = colors.textTertiary,
+                            modifier = Modifier.padding(top = FlareSizes.spacingLg),
+                            color = colors.textSecondary,
                             fontSize = FlareSizes.fontSizeSm,
                             lineHeight = 18.sp,
                         )

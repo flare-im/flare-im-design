@@ -4,8 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
+import kotlin.math.roundToInt
 
 /** Presence state shown as a corner dot on [Avatar]. */
 enum class FlarePresence { Online, Offline, Busy, Away }
@@ -52,6 +58,8 @@ fun Avatar(
     presence: FlarePresence? = null,
     image: (@Composable () -> Unit)? = null,
     avatarUrl: String? = null,
+    /** A group's avatar: a people mark in the corner, in place of the presence dot a group never has (Vue `group`). */
+    group: Boolean = false,
 ) {
     val colors = flareColors()
     // Seed by the stable display name (not the id, which varies by surface — peer
@@ -84,7 +92,29 @@ fun Avatar(
                 AvatarSource.Initials -> initialsText()
             }
         }
-        if (presence != null) {
+        if (group) {
+            // The avatar's palette inverted, ringed in the surface colour so it stands off any tint or photo; the filled
+            // two-person glyph, since an outlined one at this size is a smudge.
+            val mark = (size.value * 0.45f).roundToInt().dp
+            Box(
+                Modifier
+                    .offset(3.dp, 3.dp)
+                    .size(mark)
+                    .clip(CircleShape)
+                    .background(colors.bgPrimary)
+                    .padding(2.dp)
+                    .clip(CircleShape)
+                    .background(tint.second),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.People,
+                    contentDescription = flareStrings().displayNameGroup,
+                    tint = tint.first,
+                    modifier = Modifier.size((mark.value * 0.5f).roundToInt().dp),
+                )
+            }
+        } else if (presence != null) {
             Box(
                 Modifier
                     .size(size * 0.28f)
@@ -96,11 +126,11 @@ fun Avatar(
     }
 }
 
+/** The first character of the name, as on the web and iOS (one glyph, so "Lab Bob" is "L", not "LB"). */
 internal fun initials(name: String): String {
-    val parts = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-    if (parts.isEmpty()) return "?"
-    if (parts.size == 1) return parts[0].take(1).uppercase()
-    return (parts.first().take(1) + parts.last().take(1)).uppercase()
+    val trimmed = name.trim()
+    if (trimmed.isEmpty()) return "?"
+    return trimmed.substring(0, trimmed.offsetByCodePoints(0, 1)).uppercase()
 }
 
 /**
@@ -129,9 +159,23 @@ internal fun seedTint(seed: String, colors: FlareColors): Pair<Color, Color> {
         colors.avatarTintAmberBg to colors.avatarTintAmberFg,
         colors.avatarTintSlateBg to colors.avatarTintSlateFg,
     )
-    var hash = 0
-    for (c in seed) hash = (hash * 31 + c.code) and 0x7fffffff
-    return pairs[hash % pairs.size]
+    return pairs[avatarTintIndex(seed)]
+}
+
+/**
+ * The palette slot for [seed], the Vue kit's `avatarTint` (`shared/avatar-tint.ts`) to the bit, so one name is one colour
+ * on every kit: JS `hash = code + ((hash << 5) - hash)` over the seed's code points (each one's first UTF-16 unit), the
+ * shift on `ToInt32(hash)` while the sum stays a double; a blank seed hashes `"user"`; slot `abs(hash) % 6`.
+ */
+internal fun avatarTintIndex(seed: String): Int {
+    val source = if (seed.isBlank()) "user" else seed
+    var hash = 0.0
+    var i = 0
+    while (i < source.length) {
+        hash = source[i].code + ((hash.toLong().toInt() shl 5).toDouble() - hash)
+        i += Character.charCount(source.codePointAt(i))
+    }
+    return (kotlin.math.abs(hash) % 6).toInt()
 }
 
 internal fun presenceColor(colors: FlareColors, presence: FlarePresence): Color = when (presence) {

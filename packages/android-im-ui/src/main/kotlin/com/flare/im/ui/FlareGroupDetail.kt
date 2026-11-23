@@ -1,6 +1,7 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +38,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -75,6 +80,11 @@ data class FlareGroupDetailModel(
     val memberActions: Map<String, FlareMemberActions> = emptyMap(),
     /** Viewer's own nickname in this group. */
     val myNickname: String? = null,
+    /**
+     * The name only the viewer sees for this group (Vue `myRemarkName`); null when the viewer's group settings were
+     * not read, which leaves the 群备注 row out. Saved through `submitEdit` ([FlareGroupDetailEditKind.Remark]).
+     */
+    val myRemarkName: String? = null,
     /**
      * Viewer's per-group notification / pin preference; **null when the host could not read it** — the row
      * then reads as unavailable instead of a switch claiming "off" for a setting nobody knows (Vue
@@ -124,6 +134,8 @@ data class FlareGroupDetailLabels(
     val announcement: String = "群公告",
     val members: String = "群成员",
     // 我在本群
+    val myRemarkName: String = FlareStrings().groupDetailMyRemarkName,
+    val remarkPlaceholder: String = FlareStrings().groupDetailRemarkPlaceholder,
     val myNickname: String = "我的群昵称",
     val muteNotif: String = "消息免打扰",
     val pinGroup: String = "置顶该群",
@@ -200,6 +212,8 @@ fun flareGroupDetailLabels(strings: FlareStrings): FlareGroupDetailLabels = Flar
     name = strings.groupDetailName,
     announcement = strings.groupDetailAnnouncement,
     members = strings.groupDetailMembers,
+    myRemarkName = strings.groupDetailMyRemarkName,
+    remarkPlaceholder = strings.groupDetailRemarkPlaceholder,
     myNickname = strings.groupDetailMyNickname,
     muteNotif = strings.groupDetailMuteNotif,
     pinGroup = strings.groupDetailPinGroup,
@@ -273,7 +287,7 @@ internal fun visibleGroupMembers(localMembers: List<Contact>, query: String, rem
     if (remoteEnabled) remoteMembers ?: groupMembersMatching(localMembers, query) else groupMembersMatching(localMembers, query)
 
 /** What a group detail editor changes: the group's name, its announcement, or the viewer's nickname in it. */
-enum class FlareGroupDetailEditKind { Name, Announcement, Nickname }
+enum class FlareGroupDetailEditKind { Name, Announcement, Nickname, Remark }
 
 /**
  * The prompt that edits [kind] of [model] (Vue `saveEdit`): it opens on the current value; a name cannot be saved
@@ -290,6 +304,7 @@ internal fun groupDetailEditPrompt(
         FlareGroupDetailEditKind.Name -> labels.editName
         FlareGroupDetailEditKind.Announcement -> labels.editAnnouncement
         FlareGroupDetailEditKind.Nickname -> labels.myNickname
+        FlareGroupDetailEditKind.Remark -> labels.myRemarkName
     }
     return FlarePromptOptions(
         title = title,
@@ -297,12 +312,17 @@ internal fun groupDetailEditPrompt(
             FlareGroupDetailEditKind.Name -> model.name
             FlareGroupDetailEditKind.Announcement -> model.announcement.orEmpty()
             FlareGroupDetailEditKind.Nickname -> model.myNickname.orEmpty()
+            FlareGroupDetailEditKind.Remark -> model.myRemarkName.orEmpty()
         },
-        placeholder = if (kind == FlareGroupDetailEditKind.Nickname) labels.nicknamePlaceholder else title,
+        placeholder = when (kind) {
+            FlareGroupDetailEditKind.Nickname -> labels.nicknamePlaceholder
+            FlareGroupDetailEditKind.Remark -> labels.remarkPlaceholder
+            else -> title
+        },
         maxLength = when (kind) {
             FlareGroupDetailEditKind.Name -> 30
             FlareGroupDetailEditKind.Announcement -> 200
-            FlareGroupDetailEditKind.Nickname -> 20
+            FlareGroupDetailEditKind.Nickname, FlareGroupDetailEditKind.Remark -> 20
         },
         multiline = kind == FlareGroupDetailEditKind.Announcement,
         allowEmpty = kind != FlareGroupDetailEditKind.Name,
@@ -329,6 +349,8 @@ internal suspend fun groupDetailSaveEdit(
         FlareGroupDetailEditKind.Name -> onUpdateName(value)
         FlareGroupDetailEditKind.Announcement -> onUpdateAnnouncement(value)
         FlareGroupDetailEditKind.Nickname -> onUpdateMyNickname(value)
+        // Only offered with `submitEdit` (the row needs the host's group settings), so there is nothing else to call.
+        FlareGroupDetailEditKind.Remark -> Unit
     }
 }
 
@@ -365,7 +387,7 @@ internal fun groupMemberCanRequestFriend(model: FlareGroupDetailModel?, userId: 
  * owns the busy and error states of the write. [headerActions] fills the end of the header row.
  *
  * Two slots place host content on the page: [afterInfo] after the group information section and
- * [footer] after the message and leave buttons. Both scroll with the page and keep its horizontal
+ * [footer] after the group management buttons. Both scroll with the page and keep its horizontal
  * inset; nothing is drawn for a null slot. The message button is drawn only when [onOpenChat] is set.
  *
  * Mirrors the Vue kit's `FlareGroupDetail.vue`.
@@ -386,6 +408,10 @@ fun FlareGroupDetail(
     onBack: (() -> Unit)? = null,
     /** Host controls at the end of the header row (e.g. an overflow menu). */
     headerActions: (@Composable RowScope.() -> Unit)? = null,
+    /** The header's title (the page's name, Vue `FlareScreen title`); null names it after the group. */
+    title: String? = null,
+    /** Host content under the header, over the page (e.g. a refresh-failed banner). */
+    notice: (@Composable () -> Unit)? = null,
     /** Host content after the group information section (e.g. the announcement read bar). */
     afterInfo: (@Composable () -> Unit)? = null,
     /** Host content after the message and leave buttons (e.g. a report entry). */
@@ -485,12 +511,14 @@ fun FlareGroupDetail(
                 Spacer(Modifier.width(FlareSizes.spacingMd))
             }
             Text(
-                model?.name ?: labels.fallbackTitle, color = colors.textPrimary,
-                fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl.value.sp,
+                // The same page title as FlareScreen's (and the web's sub-page headers).
+                title ?: model?.name ?: labels.fallbackTitle, color = colors.textPrimary,
+                fontWeight = FontWeight.Bold, fontSize = FlareSizes.fontSize5xl.value.sp,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
             )
             headerActions?.invoke(this)
         }
+        notice?.invoke()
 
         if (model == null) {
             if (loading) {
@@ -508,17 +536,29 @@ fun FlareGroupDetail(
         val offered = groupManagementEntries(m.capabilities).toSet()
         fun can(entry: FlareGroupManagementEntry) = entry in offered
 
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            // Hero
-            Column(
-                Modifier.fillMaxWidth().padding(top = FlareSizes.spacingXl, bottom = FlareSizes.spacingSm),
-                horizontalAlignment = Alignment.CenterHorizontally,
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+            // Hero, as on Vue: the avatar beside the name; the name (and the pencil after it) is the rename entry, so the
+            // name is written once on the page — there is no 群聊名称 row below.
+            val canRename = can(FlareGroupManagementEntry.EditName)
+            Row(
+                Modifier.fillMaxWidth().padding(FlareSizes.spacingMd),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
             ) {
-                Avatar(userId = m.groupId, displayName = groupName, size = 72.dp)
-                Spacer(Modifier.height(FlareSizes.spacing2sm))
-                Text(groupName, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl.value.sp)
+                Avatar(userId = m.groupId, displayName = groupName, size = 52.dp)
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
+                    Text(
+                        groupName, color = colors.textPrimary, fontWeight = FontWeight.SemiBold, fontSize = FlareSizes.fontSize3xl,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                            .then(if (canRename) Modifier.heightIn(min = FlareSizes.touchTarget).clip(RoundedCornerShape(FlareSizes.radiusMd))
+                                .clickable { edit(FlareGroupDetailEditKind.Name) }.wrapContentHeight().padding(horizontal = FlareSizes.spacingSm) else Modifier),
+                    )
+                    if (canRename) IconButton(onClick = { edit(FlareGroupDetailEditKind.Name) }, modifier = Modifier.size(FlareSizes.touchTarget)) {
+                        FlareIcon("edit", size = FlareSizes.iconSizeSm, tint = colors.textTertiary, contentDescription = labels.editName)
+                    }
+                }
             }
-
             val showAdd = can(FlareGroupManagementEntry.InviteMembers)
             GroupMemberGrid(
                 members = groupPreviewMembers(m.members, showAdd),
@@ -538,15 +578,9 @@ fun FlareGroupDetail(
             // 群信息
             SectionTitle(labels.infoSection)
             FlareGroupedCard {
-                val canRename = can(FlareGroupManagementEntry.EditName)
                 val canEditAnnouncement = can(FlareGroupManagementEntry.EditAnnouncement)
                 SettingsRow(
                     // A row the viewer can change opens its editor and carries a chevron; the rest read as values.
-                    item = SettingsItem("name", labels.name, icon = "tag", kind = if (canRename) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.name.ifEmpty { "-" }),
-                    onSelect = { if (canRename) edit(FlareGroupDetailEditKind.Name) },
-                )
-                FlareGroupedCardDivider()
-                SettingsRow(
                     item = SettingsItem("announcement", labels.announcement, icon = "announcement", kind = if (canEditAnnouncement) FlareSettingKind.Navigation else FlareSettingKind.Value, detail = m.announcement?.ifEmpty { null } ?: labels.notSet),
                     onSelect = { if (canEditAnnouncement) edit(FlareGroupDetailEditKind.Announcement) },
                 )
@@ -560,6 +594,13 @@ fun FlareGroupDetail(
             // 我在本群
             SectionTitle(labels.myInGroupSection)
             FlareGroupedCard {
+                m.myRemarkName?.let { remark ->
+                    SettingsRow(
+                        item = SettingsItem("myRemarkName", labels.myRemarkName, icon = "edit", kind = FlareSettingKind.Navigation, detail = remark.ifEmpty { labels.notSet }),
+                        onSelect = { edit(FlareGroupDetailEditKind.Remark) },
+                    )
+                    FlareGroupedCardDivider()
+                }
                 SettingsRow(
                     item = SettingsItem("myNickname", labels.myNickname, icon = "edit", kind = FlareSettingKind.Navigation, detail = m.myNickname?.ifEmpty { null } ?: labels.notSet),
                     onSelect = { edit(FlareGroupDetailEditKind.Nickname) },
@@ -660,29 +701,32 @@ fun FlareGroupDetail(
                 }
             }
 
-            // Footer: compact visuals with the standard mobile hit area.
+            // Management actions stay with the page content.
             Spacer(Modifier.height(FlareSizes.spacingLg))
             Column(Modifier.fillMaxWidth().padding(FlareSizes.spacingLg), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing2sm)) {
-                onOpenChat?.let { openChat ->
-                    Button(
-                        label = labels.message, size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
-                        onClick = { openChat(m.members.map { it.id }, m.name) },
-                    )
-                }
                 for (action in extraActions) {
                     Button(
                         label = action.label,
                         variant = if (action.danger) FlareButtonVariant.Danger else FlareButtonVariant.Secondary,
-                        size = FlareControlSize.Sm, block = true, maintainTouchTarget = true,
+                        size = FlareControlSize.Lg, block = true, maintainTouchTarget = true,
                         onClick = { onExtraAction?.invoke(action.id) },
                     )
                 }
                 Button(
                     label = if (can(FlareGroupManagementEntry.Dissolve)) labels.dissolve else labels.leave,
-                    variant = FlareButtonVariant.Danger, size = FlareControlSize.Sm, block = true,
+                    variant = FlareButtonVariant.Danger, size = FlareControlSize.Lg, block = true,
                     maintainTouchTarget = true, onClick = onLeave,
                 )
                 footer?.invoke()
+            }
+        }
+        onOpenChat?.let { openChat ->
+            Box(Modifier.fillMaxWidth().background(colors.bgPrimary)
+                .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm)) {
+                Button(
+                    label = labels.message, size = FlareControlSize.Lg, block = true, maintainTouchTarget = true,
+                    onClick = { openChat(m.members.map { it.id }, m.name) },
+                )
             }
         }
     }
@@ -902,7 +946,7 @@ private fun SectionTitle(title: String) {
     val colors = flareColors()
     Spacer(Modifier.height(FlareSizes.spacingMd))
     Text(
-        title, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm.value.sp,
+        title, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm.value.sp, fontWeight = FontWeight.Medium,
         modifier = Modifier.padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
     )
 }
@@ -925,6 +969,6 @@ private fun DangerBlockButton(text: String, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(FlareSizes.radiusLg),
         colors = ButtonDefaults.buttonColors(containerColor = colors.error),
-        modifier = Modifier.fillMaxWidth().height(48.dp),
+        modifier = Modifier.fillMaxWidth().height(FlareSizes.controlHeightLg),
     ) { Text(text, color = Color.White, fontSize = FlareSizes.fontSizeXl.value.sp) }
 }

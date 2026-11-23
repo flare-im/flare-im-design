@@ -173,6 +173,19 @@ function retry(): void {
   emit('search', { ...submitted.value });
 }
 const bar = ref<{ focus: () => void } | null>(null);
+const results = ref<InstanceType<typeof FlareSearchResults> | null>(null);
+// Keep standard search-field and button semantics. ArrowDown reaches results directly,
+// without tabbing through every type and time filter first.
+function onKeydown(event: KeyboardEvent): void {
+  if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || composing.value
+    || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (!(event.target instanceof HTMLInputElement) || event.target.type !== 'search') return;
+  if (waiting.value || draft.value.trim() !== shown.value?.query) return;
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    const moved = results.value?.focusResult(event.key === 'ArrowDown' ? 'first' : 'last');
+    if (moved) event.preventDefault();
+  }
+}
 /** The caret back in the field: what a slot action calls when it removes the thing that had focus. */
 function focusField(): void { bar.value?.focus(); }
 /**
@@ -195,7 +208,7 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
 }
 </script>
 <template>
-  <section class="flare-search-panel" :class="`flare-search-panel--${layout}`" @compositionstart="composing = true" @compositionend="onCompositionEnd">
+  <section class="flare-search-panel" :class="`flare-search-panel--${layout}`" @keydown="onKeydown" @compositionstart="composing = true" @compositionend="onCompositionEnd">
     <div class="flare-search-panel__head">
       <FlareSearchBar
         ref="bar"
@@ -207,8 +220,7 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
         @submit="submit"
         @clear="submit"
       />
-      <!-- 一排:类型胶囊 + 尾随的时间范围。类型横向滚动、不换行;时间范围点开才展开。 -->
-      <div v-if="filterOptions.length > 1 || rangeTabs.length" class="flare-search-panel__filters">
+      <div v-if="filterOptions.length > 1 || rangeTabs.length" class="flare-search-panel__filters" :class="{ 'has-range': rangeTabs.length }">
         <FlareFilterTabs
           v-if="filterOptions.length > 1"
           class="flare-search-panel__types"
@@ -233,7 +245,7 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
             :aria-expanded="rangeMenuOpen"
           >
             <span>{{ rangeChipLabel }}</span>
-            <FlareGlyph icon="chevron-down" :size="14" />
+            <FlareGlyph icon="chevron-down" size="sm" />
           </button>
         </FlareActionMenu>
       </div>
@@ -248,7 +260,7 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
       <template v-else-if="shown">
         <FlareStatusBanner v-if="current && snapshot.state === 'success' && snapshot.warning" class="flare-search-panel__banner" :text="snapshot.warning" tone="warning" :action-text="t('common.retry')" @action="retry" />
         <div class="flare-search-panel__results" :aria-busy="waiting">
-          <FlareSearchResults :groups="shown.groups" :query="shown.query" @open="emit('open', $event)" @view-all="onViewAll" />
+          <FlareSearchResults ref="results" :groups="shown.groups" :query="shown.query" @open="emit('open', $event)" @view-all="onViewAll" @focus-search="focusField" />
         </div>
       </template>
       <p v-else class="flare-search-panel__status" role="status">{{ strings.searching }}</p>
@@ -256,7 +268,7 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
   </section>
 </template>
 <style scoped>
-.flare-search-panel { min-width: 0; display: grid; align-content: start; gap: var(--flare-size-spacing-md); color: var(--flare-color-text-primary); }
+.flare-search-panel { container: flare-search / inline-size; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--flare-size-spacing-md); color: var(--flare-color-text-primary); }
 /* Inline: the head and the body are not boxes of their own, so the field, the type row and the results
    stay the grid's children and keep one gap between them. */
 .flare-search-panel__head,
@@ -290,6 +302,14 @@ function onViewAll(kind: FlareSearchResultGroup['kind']): void {
 /* 类型占满余下宽度并自己横滚;时间范围钉在行尾,不跟着滚走。 */
 .flare-search-panel__filters { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); min-width: 0; }
 .flare-search-panel__types { flex: 1 1 auto; min-width: 0; }
+@container flare-search (max-width: 440px) {
+  .flare-search-panel__filters.has-range {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+  .flare-search-panel__filters.has-range .flare-search-panel__types { width: 100%; }
+}
 .flare-search-panel__range {
   position: relative;
   display: inline-flex;

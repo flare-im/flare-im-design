@@ -46,6 +46,8 @@ class FlareColors {
     required this.messageReactionBackground,
     required this.messageReactionSelected,
     required this.error,
+    required this.errorHover,
+    required this.errorActive,
     required this.errorText,
     required this.focusRing,
     required this.important,
@@ -92,12 +94,31 @@ class FlareColors {
     required this.redPacketFadedInk,
     required this.redPacketFadedMixTarget,
     required this.redPacketAccent,
+    required this.redPacketEndHover,
+    required this.redPacketEndActive,
     required this.chartSeries1,
     required this.chartSeries2,
     required this.chartSeries3,
     required this.chartSeries4,
     required this.chartSeries5,
     required this.chartSeries6,
+    required this.callStage,
+    required this.callStageTint,
+    required this.callOnStage,
+    required this.callOnStageSecondary,
+    required this.callControl,
+    required this.callControlHover,
+    required this.callControlActive,
+    required this.callOnControlActive,
+    required this.callHangup,
+    required this.callHangupPressed,
+    required this.callAccept,
+    required this.callAcceptPressed,
+    required this.callSpeaking,
+    required this.callTile,
+    required this.callChip,
+    required this.callPopover,
+    required this.callErrorText,
   });
 
   final Color bgDisabled;
@@ -135,6 +156,8 @@ class FlareColors {
   final Color messageReactionBackground;
   final Color messageReactionSelected;
   final Color error;
+  final Color errorHover;
+  final Color errorActive;
   final Color errorText;
   final Color focusRing;
   final Color important;
@@ -181,12 +204,31 @@ class FlareColors {
   final Color redPacketFadedInk;
   final Color redPacketFadedMixTarget;
   final Color redPacketAccent;
+  final Color redPacketEndHover;
+  final Color redPacketEndActive;
   final Color chartSeries1;
   final Color chartSeries2;
   final Color chartSeries3;
   final Color chartSeries4;
   final Color chartSeries5;
   final Color chartSeries6;
+  final Color callStage;
+  final Color callStageTint;
+  final Color callOnStage;
+  final Color callOnStageSecondary;
+  final Color callControl;
+  final Color callControlHover;
+  final Color callControlActive;
+  final Color callOnControlActive;
+  final Color callHangup;
+  final Color callHangupPressed;
+  final Color callAccept;
+  final Color callAcceptPressed;
+  final Color callSpeaking;
+  final Color callTile;
+  final Color callChip;
+  final Color callPopover;
+  final Color callErrorText;
 
   FlareColors copyWith({
     Color? bgDisabled,
@@ -224,6 +266,8 @@ class FlareColors {
     Color? messageReactionBackground,
     Color? messageReactionSelected,
     Color? error,
+    Color? errorHover,
+    Color? errorActive,
     Color? errorText,
     Color? focusRing,
     Color? important,
@@ -270,12 +314,31 @@ class FlareColors {
     Color? redPacketFadedInk,
     Color? redPacketFadedMixTarget,
     Color? redPacketAccent,
+    Color? redPacketEndHover,
+    Color? redPacketEndActive,
     Color? chartSeries1,
     Color? chartSeries2,
     Color? chartSeries3,
     Color? chartSeries4,
     Color? chartSeries5,
     Color? chartSeries6,
+    Color? callStage,
+    Color? callStageTint,
+    Color? callOnStage,
+    Color? callOnStageSecondary,
+    Color? callControl,
+    Color? callControlHover,
+    Color? callControlActive,
+    Color? callOnControlActive,
+    Color? callHangup,
+    Color? callHangupPressed,
+    Color? callAccept,
+    Color? callAcceptPressed,
+    Color? callSpeaking,
+    Color? callTile,
+    Color? callChip,
+    Color? callPopover,
+    Color? callErrorText,
   }) => FlareColors(
     bgDisabled: bgDisabled ?? this.bgDisabled,
     bgElevated: bgElevated ?? this.bgElevated,
@@ -312,6 +375,8 @@ class FlareColors {
     messageReactionBackground: messageReactionBackground ?? this.messageReactionBackground,
     messageReactionSelected: messageReactionSelected ?? this.messageReactionSelected,
     error: error ?? this.error,
+    errorHover: errorHover ?? this.errorHover,
+    errorActive: errorActive ?? this.errorActive,
     errorText: errorText ?? this.errorText,
     focusRing: focusRing ?? this.focusRing,
     important: important ?? this.important,
@@ -358,12 +423,31 @@ class FlareColors {
     redPacketFadedInk: redPacketFadedInk ?? this.redPacketFadedInk,
     redPacketFadedMixTarget: redPacketFadedMixTarget ?? this.redPacketFadedMixTarget,
     redPacketAccent: redPacketAccent ?? this.redPacketAccent,
+    redPacketEndHover: redPacketEndHover ?? this.redPacketEndHover,
+    redPacketEndActive: redPacketEndActive ?? this.redPacketEndActive,
     chartSeries1: chartSeries1 ?? this.chartSeries1,
     chartSeries2: chartSeries2 ?? this.chartSeries2,
     chartSeries3: chartSeries3 ?? this.chartSeries3,
     chartSeries4: chartSeries4 ?? this.chartSeries4,
     chartSeries5: chartSeries5 ?? this.chartSeries5,
     chartSeries6: chartSeries6 ?? this.chartSeries6,
+    callStage: callStage ?? this.callStage,
+    callStageTint: callStageTint ?? this.callStageTint,
+    callOnStage: callOnStage ?? this.callOnStage,
+    callOnStageSecondary: callOnStageSecondary ?? this.callOnStageSecondary,
+    callControl: callControl ?? this.callControl,
+    callControlHover: callControlHover ?? this.callControlHover,
+    callControlActive: callControlActive ?? this.callControlActive,
+    callOnControlActive: callOnControlActive ?? this.callOnControlActive,
+    callHangup: callHangup ?? this.callHangup,
+    callHangupPressed: callHangupPressed ?? this.callHangupPressed,
+    callAccept: callAccept ?? this.callAccept,
+    callAcceptPressed: callAcceptPressed ?? this.callAcceptPressed,
+    callSpeaking: callSpeaking ?? this.callSpeaking,
+    callTile: callTile ?? this.callTile,
+    callChip: callChip ?? this.callChip,
+    callPopover: callPopover ?? this.callPopover,
+    callErrorText: callErrorText ?? this.callErrorText,
   );
 
   static const FlareColors violetLight = FlareColors(
@@ -402,6 +486,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFEDE9FE),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x576D28D9),
     important: Color(0xFFB45309),
@@ -448,12 +534,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors violetDark = FlareColors(
@@ -492,6 +597,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x4D8B5CF6),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x6BC4B5FD),
     important: Color(0xFFD97706),
@@ -538,12 +645,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors oceanLight = FlareColors(
@@ -582,6 +708,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFDBEAFE),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x572563EB),
     important: Color(0xFFB45309),
@@ -628,12 +756,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors oceanDark = FlareColors(
@@ -672,6 +819,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x4D3B82F6),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x6B93C5FD),
     important: Color(0xFFD97706),
@@ -718,12 +867,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors forestLight = FlareColors(
@@ -762,6 +930,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFDCFCE7),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x5716A34A),
     important: Color(0xFFB45309),
@@ -808,12 +978,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors forestDark = FlareColors(
@@ -852,6 +1041,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x4722C55E),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x6686EFAC),
     important: Color(0xFFD97706),
@@ -898,12 +1089,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors sunsetLight = FlareColors(
@@ -942,6 +1152,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFFFEDD5),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x57EA580C),
     important: Color(0xFFB45309),
@@ -988,12 +1200,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors sunsetDark = FlareColors(
@@ -1032,6 +1263,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x47F97316),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x66FDBA74),
     important: Color(0xFFD97706),
@@ -1078,12 +1311,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors roseLight = FlareColors(
@@ -1122,6 +1374,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFFFE4E6),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x52E11D48),
     important: Color(0xFFB45309),
@@ -1168,12 +1422,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors roseDark = FlareColors(
@@ -1212,6 +1485,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x47F43F5E),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x66FDA4AF),
     important: Color(0xFFD97706),
@@ -1258,12 +1533,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors graphiteLight = FlareColors(
@@ -1302,6 +1596,8 @@ class FlareColors {
     messageReactionBackground: Color(0xFFF1F2F5),
     messageReactionSelected: Color(0xFFE2E8F0),
     error: Color(0xFFC62828),
+    errorHover: Color(0xFFBC2626),
+    errorActive: Color(0xFFB22424),
     errorText: Color(0xFFC62828),
     focusRing: Color(0x57475569),
     important: Color(0xFFB45309),
@@ -1348,12 +1644,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFF5C140E),
     redPacketFadedMixTarget: Color(0xFFFFFFFF),
     redPacketAccent: Color(0xFFC8291F),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF2A78D6),
     chartSeries2: Color(0xFFEB6834),
     chartSeries3: Color(0xFF1BAF7A),
     chartSeries4: Color(0xFFEDA100),
     chartSeries5: Color(0xFFE87BA4),
     chartSeries6: Color(0xFF6250D6),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors graphiteDark = FlareColors(
@@ -1392,6 +1707,8 @@ class FlareColors {
     messageReactionBackground: Color(0x14FFFFFF),
     messageReactionSelected: Color(0x4794A3B8),
     error: Color(0xFFDC2626),
+    errorHover: Color(0xFFD12424),
+    errorActive: Color(0xFFC62222),
     errorText: Color(0xFFF87171),
     focusRing: Color(0x61CBD5E1),
     important: Color(0xFFD97706),
@@ -1438,12 +1755,31 @@ class FlareColors {
     redPacketFadedInk: Color(0xFFFBE3DE),
     redPacketFadedMixTarget: Color(0xFF2A1513),
     redPacketAccent: Color(0xFFFF7B6B),
+    redPacketEndHover: Color(0xFFB4251C),
+    redPacketEndActive: Color(0xFFA02119),
     chartSeries1: Color(0xFF3987E5),
     chartSeries2: Color(0xFFD95926),
     chartSeries3: Color(0xFF199E70),
     chartSeries4: Color(0xFFC98500),
     chartSeries5: Color(0xFFD55181),
     chartSeries6: Color(0xFF9085E9),
+    callStage: Color(0xFF17151D),
+    callStageTint: Color(0xFF2B2340),
+    callOnStage: Color(0xFFFFFFFF),
+    callOnStageSecondary: Color(0xB8FFFFFF),
+    callControl: Color(0x24FFFFFF),
+    callControlHover: Color(0x38FFFFFF),
+    callControlActive: Color(0xFFFFFFFF),
+    callOnControlActive: Color(0xFF17131C),
+    callHangup: Color(0xFFDC2626),
+    callHangupPressed: Color(0xFFB91C1C),
+    callAccept: Color(0xFF16A34A),
+    callAcceptPressed: Color(0xFF15803D),
+    callSpeaking: Color(0xFF34D17F),
+    callTile: Color(0x0FFFFFFF),
+    callChip: Color(0x6B000000),
+    callPopover: Color(0xFF22232B),
+    callErrorText: Color(0xFFF87171),
   );
 
   static const FlareColors light = violetLight;
@@ -1540,6 +1876,7 @@ abstract final class FlareSizes {
   static const double fontSize5xl = 24.0;
   static const double fontSizeAuthTitle = 28.0;
   static const double fontSizeAuthHeadline = 36.0;
+  static const double iconSizeXs = 14.0;
   static const double iconSizeLg = 24.0;
   static const double iconSizeMd = 20.0;
   static const double iconSizeSm = 16.0;
@@ -1573,6 +1910,11 @@ abstract final class FlareSizes {
   static const double sessionItemHeight = 72.0;
   static const double touchTarget = 48.0;
   static const double touchTargetMin = 44.0;
+  static const double conversationRowDesktopHeight = 64.0;
+  static const double conversationRowMobileHeight = 68.0;
+  static const double messageTimelinePaddingTop = 12.0;
+  static const double messageTimelinePaddingBottom = 12.0;
+  static const double readableWidth = 680.0;
   static const double lineHeightNone = 1.0;
   static const double lineHeightTight = 1.2;
   static const double lineHeightSnug = 1.4;
@@ -1611,8 +1953,8 @@ abstract final class FlareSizes {
   static const double componentIconButtonSideMd = 38.0;
   static const double componentIconButtonSideLg = 46.0;
   static const double componentIconButtonGlyphSm = 16.0;
-  static const double componentIconButtonGlyphMd = 19.0;
-  static const double componentIconButtonGlyphLg = 22.0;
+  static const double componentIconButtonGlyphMd = 20.0;
+  static const double componentIconButtonGlyphLg = 24.0;
   static const double componentRadioIndicator = 18.0;
   static const double componentRadioDot = 9.0;
   static const double componentBubblePaddingX = 14.0;
@@ -1646,6 +1988,62 @@ abstract final class FlareSizes {
   static const double componentRedPacketDetailHeaderHeight = 72.0;
   static const double componentRedPacketFadedMix = 0.4;
   static const double componentCallPreviewWidth = 112.0;
+  static const double componentMessageRowPaddingBlock = 2.0;
+  static const double componentMessageGroupStartPadding = 4.0;
+  static const double componentMessageGroupGap = 6.0;
+  static const double componentMessageBubblePaddingBlockCompact = 8.0;
+  static const double componentRedPacketDetailAmountFontSize = 32.0;
+  static const double componentQrCardWidth = 320.0;
+  static const double componentQrCodeSize = 220.0;
+  static const double componentCallControlSize = 56.0;
+  static const double componentCallHangupSize = 64.0;
+  static const double componentCallAvatarSize = 96.0;
+  static const double componentCallAvatarSizeWindow = 80.0;
+  static const double componentCallTileAvatar = 56.0;
+  static const double componentCallDockHeight = 56.0;
+  static const double componentCallWindowAudioWidth = 400.0;
+  static const double componentCallWindowAudioHeight = 560.0;
+  static const double componentCallWindowVideoWidth = 720.0;
+  static const double componentCallWindowVideoHeight = 540.0;
+  static const double componentCallIncomingBannerWidth = 360.0;
+  static const double componentAmountHeroFontSize = 32.0;
+  static const double componentResultIconSize = 56.0;
+  static const double componentDocumentFrameRatio = 1.586;
+  static const double componentCaptureShutterSize = 72.0;
+  static const double componentCapturePreviewWidth = 560.0;
+  static const double componentDocumentSlotHeight = 112.0;
+  static const double componentFormColumnWidth = 560.0;
+  static const double componentActionMinWidth = 120.0;
+  static const double componentRedPacketAmountFontSizeWide = 36.0;
+  static const double componentSkeletonCardHeight = 160.0;
+  static const double componentDocumentThumbHeight = 72.0;
+  static const double componentRedPacketFormRowHeight = 56.0;
+  static const double componentPinCellWidth = 44.0;
+  static const double componentPinCellHeight = 52.0;
+  static const double componentPaymentDialogWidth = 400.0;
+  static const double componentRedPacketArchCompactHeight = 32.0;
+  static const double componentRedPacketDetailAvatarSize = 56.0;
+  static const double componentRedPacketClaimRowHeight = 64.0;
+  static const double componentCallIncomingBannerHeight = 88.0;
+  static const double componentCallIncomingBannerAvatar = 48.0;
+  static const double componentCallFailedActionWidth = 160.0;
+  static const double componentCallDevicePanelWidth = 280.0;
+  static const double componentCallStripTileHeight = 96.0;
+  static const double componentRedPacketCloseSize = 36.0;
+  static const double componentAccountSetupActionWidth = 200.0;
+  static const double componentRecordRowHeight = 64.0;
+  static const double componentPinCellMinWidth = 36.0;
+  static const double componentCallDockAvatarSize = 40.0;
+  static const double componentCallDockKeySize = 36.0;
+  static const double componentFocusRingWidth = 2.0;
+  static const double componentFocusRingOffset = 3.0;
+  static const double componentCallDockNameMaxWidth = 140.0;
+  static const double componentRecordIconSize = 36.0;
+  static const double componentCaptureFrameStroke = 3.0;
+  static const double componentCapturePreviewRatio = 1.6;
+  static const double componentPressScale = 0.98;
+  static const double componentResultActionWidth = 240.0;
+  static const double componentEmptyStateIconSize = 44.0;
 }
 
 /// Const palette for const widget and ThemeData declarations.
@@ -1720,6 +2118,10 @@ abstract final class FlarePalette {
   static const Color darkMessageReactionSelected = Color(0x478B5CF6);
   static const Color lightError = Color(0xFFC62828);
   static const Color darkError = Color(0xFFDC2626);
+  static const Color lightErrorHover = Color(0xFFBC2626);
+  static const Color darkErrorHover = Color(0xFFD12424);
+  static const Color lightErrorActive = Color(0xFFB22424);
+  static const Color darkErrorActive = Color(0xFFC62222);
   static const Color lightErrorText = Color(0xFFC62828);
   static const Color darkErrorText = Color(0xFFF87171);
   static const Color lightFocusRing = Color(0x597047D6);
@@ -1812,6 +2214,10 @@ abstract final class FlarePalette {
   static const Color darkRedPacketFadedMixTarget = Color(0xFF2A1513);
   static const Color lightRedPacketAccent = Color(0xFFC8291F);
   static const Color darkRedPacketAccent = Color(0xFFFF7B6B);
+  static const Color lightRedPacketEndHover = Color(0xFFB4251C);
+  static const Color darkRedPacketEndHover = Color(0xFFB4251C);
+  static const Color lightRedPacketEndActive = Color(0xFFA02119);
+  static const Color darkRedPacketEndActive = Color(0xFFA02119);
   static const Color lightChartSeries1 = Color(0xFF2A78D6);
   static const Color darkChartSeries1 = Color(0xFF3987E5);
   static const Color lightChartSeries2 = Color(0xFFEB6834);
@@ -1824,6 +2230,40 @@ abstract final class FlarePalette {
   static const Color darkChartSeries5 = Color(0xFFD55181);
   static const Color lightChartSeries6 = Color(0xFF6250D6);
   static const Color darkChartSeries6 = Color(0xFF9085E9);
+  static const Color lightCallStage = Color(0xFF17151D);
+  static const Color darkCallStage = Color(0xFF17151D);
+  static const Color lightCallStageTint = Color(0xFF2B2340);
+  static const Color darkCallStageTint = Color(0xFF2B2340);
+  static const Color lightCallOnStage = Color(0xFFFFFFFF);
+  static const Color darkCallOnStage = Color(0xFFFFFFFF);
+  static const Color lightCallOnStageSecondary = Color(0xB8FFFFFF);
+  static const Color darkCallOnStageSecondary = Color(0xB8FFFFFF);
+  static const Color lightCallControl = Color(0x24FFFFFF);
+  static const Color darkCallControl = Color(0x24FFFFFF);
+  static const Color lightCallControlHover = Color(0x38FFFFFF);
+  static const Color darkCallControlHover = Color(0x38FFFFFF);
+  static const Color lightCallControlActive = Color(0xFFFFFFFF);
+  static const Color darkCallControlActive = Color(0xFFFFFFFF);
+  static const Color lightCallOnControlActive = Color(0xFF17131C);
+  static const Color darkCallOnControlActive = Color(0xFF17131C);
+  static const Color lightCallHangup = Color(0xFFDC2626);
+  static const Color darkCallHangup = Color(0xFFDC2626);
+  static const Color lightCallHangupPressed = Color(0xFFB91C1C);
+  static const Color darkCallHangupPressed = Color(0xFFB91C1C);
+  static const Color lightCallAccept = Color(0xFF16A34A);
+  static const Color darkCallAccept = Color(0xFF16A34A);
+  static const Color lightCallAcceptPressed = Color(0xFF15803D);
+  static const Color darkCallAcceptPressed = Color(0xFF15803D);
+  static const Color lightCallSpeaking = Color(0xFF34D17F);
+  static const Color darkCallSpeaking = Color(0xFF34D17F);
+  static const Color lightCallTile = Color(0x0FFFFFFF);
+  static const Color darkCallTile = Color(0x0FFFFFFF);
+  static const Color lightCallChip = Color(0x6B000000);
+  static const Color darkCallChip = Color(0x6B000000);
+  static const Color lightCallPopover = Color(0xFF22232B);
+  static const Color darkCallPopover = Color(0xFF22232B);
+  static const Color lightCallErrorText = Color(0xFFF87171);
+  static const Color darkCallErrorText = Color(0xFFF87171);
 }
 
 /// Opacity tokens (disabled / muted / tint overlays).
@@ -1832,6 +2272,7 @@ abstract final class FlareOpacity {
   static const double muted = 0.7;
   static const double tintWeak = 0.1;
   static const double tintStrong = 0.24;
+  static const double dim = 0.4;
 }
 
 /// Elevation tokens as [BoxShadow] lists; pick by [Brightness] with [FlareShadows.of].
@@ -1872,4 +2313,6 @@ abstract final class FlareMotion {
   static const Curve slowCurve = Cubic(0.22, 1, 0.36, 1);
   static const Duration spring = Duration(milliseconds: 360);
   static const Curve springCurve = Cubic(0.34, 1.4, 0.5, 1);
+  static const Duration refreshLoop = Duration(milliseconds: 1200);
+  static const Curve refreshLoopCurve = Cubic(0, 0, 1, 1);
 }

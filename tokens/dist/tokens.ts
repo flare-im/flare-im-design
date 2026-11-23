@@ -59,6 +59,8 @@ export const flareDesignTokens = {
       }
     },
     "error": "#C62828",
+    "errorHover": "#BC2626",
+    "errorActive": "#B22424",
     "errorText": "#C62828",
     "focusRing": "rgba(112, 71, 214, 0.35)",
     "important": "#B45309",
@@ -123,7 +125,9 @@ export const flareDesignTokens = {
       "onSurface": "#FFF5E6",
       "fadedInk": "#5C140E",
       "fadedMixTarget": "#FFFFFF",
-      "accent": "#C8291F"
+      "accent": "#C8291F",
+      "endHover": "#B4251C",
+      "endActive": "#A02119"
     },
     "chart": {
       "series1": "#2A78D6",
@@ -132,6 +136,25 @@ export const flareDesignTokens = {
       "series4": "#EDA100",
       "series5": "#E87BA4",
       "series6": "#6250D6"
+    },
+    "call": {
+      "stage": "#17151D",
+      "stageTint": "#2B2340",
+      "onStage": "#FFFFFF",
+      "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+      "control": "rgba(255, 255, 255, 0.14)",
+      "controlHover": "rgba(255, 255, 255, 0.22)",
+      "controlActive": "#FFFFFF",
+      "onControlActive": "#17131C",
+      "hangup": "#DC2626",
+      "hangupPressed": "#B91C1C",
+      "accept": "#16A34A",
+      "acceptPressed": "#15803D",
+      "speaking": "#34D17F",
+      "tile": "rgba(255, 255, 255, 0.06)",
+      "chip": "rgba(0, 0, 0, 0.42)",
+      "popover": "#22232B",
+      "errorText": "#F87171"
     }
   },
   "dark": {
@@ -193,6 +216,8 @@ export const flareDesignTokens = {
         }
       },
       "error": "#DC2626",
+      "errorHover": "#D12424",
+      "errorActive": "#C62222",
       "errorText": "#F87171",
       "focusRing": "rgba(167, 139, 250, 0.40)",
       "important": "#D97706",
@@ -295,6 +320,7 @@ export const flareDesignTokens = {
       "authHeadline": "36px"
     },
     "iconSize": {
+      "xs": "14px",
       "lg": "24px",
       "md": "20px",
       "sm": "16px",
@@ -329,7 +355,12 @@ export const flareDesignTokens = {
       "headerHeight": "60px",
       "sessionItemHeight": "72px",
       "touchTarget": "48px",
-      "touchTargetMin": "44px"
+      "touchTargetMin": "44px",
+      "conversationRowDesktopHeight": "64px",
+      "conversationRowMobileHeight": "68px",
+      "messageTimelinePaddingTop": "12px",
+      "messageTimelinePaddingBottom": "12px",
+      "readableWidth": "680px"
     },
     "lineHeight": {
       "none": "1",
@@ -376,8 +407,8 @@ export const flareDesignTokens = {
       "iconButtonSideMd": "38px",
       "iconButtonSideLg": "46px",
       "iconButtonGlyphSm": "16px",
-      "iconButtonGlyphMd": "19px",
-      "iconButtonGlyphLg": "22px",
+      "iconButtonGlyphMd": "20px",
+      "iconButtonGlyphLg": "24px",
       "radioIndicator": "18px",
       "radioDot": "9px",
       "bubblePaddingX": "14px",
@@ -410,7 +441,63 @@ export const flareDesignTokens = {
       "redPacketAmountFontSize": "44px",
       "redPacketDetailHeaderHeight": "72px",
       "redPacketFadedMix": "0.4",
-      "callPreviewWidth": "112px"
+      "callPreviewWidth": "112px",
+      "messageRowPaddingBlock": "2px",
+      "messageGroupStartPadding": "4px",
+      "messageGroupGap": "6px",
+      "messageBubblePaddingBlockCompact": "8px",
+      "redPacketDetailAmountFontSize": "32px",
+      "qrCardWidth": "320px",
+      "qrCodeSize": "220px",
+      "callControlSize": "56px",
+      "callHangupSize": "64px",
+      "callAvatarSize": "96px",
+      "callAvatarSizeWindow": "80px",
+      "callTileAvatar": "56px",
+      "callDockHeight": "56px",
+      "callWindowAudioWidth": "400px",
+      "callWindowAudioHeight": "560px",
+      "callWindowVideoWidth": "720px",
+      "callWindowVideoHeight": "540px",
+      "callIncomingBannerWidth": "360px",
+      "amountHeroFontSize": "32px",
+      "resultIconSize": "56px",
+      "documentFrameRatio": "1.586",
+      "captureShutterSize": "72px",
+      "capturePreviewWidth": "560px",
+      "documentSlotHeight": "112px",
+      "formColumnWidth": "560px",
+      "actionMinWidth": "120px",
+      "redPacketAmountFontSizeWide": "36px",
+      "skeletonCardHeight": "160px",
+      "documentThumbHeight": "72px",
+      "redPacketFormRowHeight": "56px",
+      "pinCellWidth": "44px",
+      "pinCellHeight": "52px",
+      "paymentDialogWidth": "400px",
+      "redPacketArchCompactHeight": "32px",
+      "redPacketDetailAvatarSize": "56px",
+      "redPacketClaimRowHeight": "64px",
+      "callIncomingBannerHeight": "88px",
+      "callIncomingBannerAvatar": "48px",
+      "callFailedActionWidth": "160px",
+      "callDevicePanelWidth": "280px",
+      "callStripTileHeight": "96px",
+      "redPacketCloseSize": "36px",
+      "accountSetupActionWidth": "200px",
+      "recordRowHeight": "64px",
+      "pinCellMinWidth": "36px",
+      "callDockAvatarSize": "40px",
+      "callDockKeySize": "36px",
+      "focusRingWidth": "2px",
+      "focusRingOffset": "3px",
+      "callDockNameMaxWidth": "140px",
+      "recordIconSize": "36px",
+      "captureFrameStroke": "3px",
+      "capturePreviewRatio": "1.6",
+      "pressScale": "0.98",
+      "resultActionWidth": "240px",
+      "emptyStateIconSize": "44px"
     },
     "textRole": {
       "title": {
@@ -450,7 +537,8 @@ export const flareDesignTokens = {
     "disabled": "0.5",
     "muted": "0.7",
     "tintWeak": "0.10",
-    "tintStrong": "0.24"
+    "tintStrong": "0.24",
+    "dim": "0.4"
   },
   "zIndex": {
     "base": "0",
@@ -473,7 +561,8 @@ export const flareDesignTokens = {
     "fast": "150ms cubic-bezier(0.22, 1, 0.36, 1)",
     "normal": "200ms cubic-bezier(0.22, 1, 0.36, 1)",
     "slow": "260ms cubic-bezier(0.22, 1, 0.36, 1)",
-    "spring": "360ms cubic-bezier(0.34, 1.4, 0.5, 1)"
+    "spring": "360ms cubic-bezier(0.34, 1.4, 0.5, 1)",
+    "refreshLoop": "1200ms cubic-bezier(0, 0, 1, 1)"
   },
   "themeNames": [
     "violet",
@@ -545,6 +634,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(109, 40, 217, 0.34)",
           "important": "#B45309",
@@ -609,7 +700,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -618,6 +711,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -680,6 +792,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(196, 181, 253, 0.42)",
           "important": "#D97706",
@@ -744,7 +858,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -753,6 +869,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }
@@ -818,6 +953,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(37, 99, 235, 0.34)",
           "important": "#B45309",
@@ -882,7 +1019,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -891,6 +1030,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -953,6 +1111,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(147, 197, 253, 0.42)",
           "important": "#D97706",
@@ -1017,7 +1177,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -1026,6 +1188,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }
@@ -1091,6 +1272,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(22, 163, 74, 0.34)",
           "important": "#B45309",
@@ -1155,7 +1338,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -1164,6 +1349,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -1226,6 +1430,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(134, 239, 172, 0.40)",
           "important": "#D97706",
@@ -1290,7 +1496,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -1299,6 +1507,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }
@@ -1364,6 +1591,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(234, 88, 12, 0.34)",
           "important": "#B45309",
@@ -1428,7 +1657,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -1437,6 +1668,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -1499,6 +1749,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(253, 186, 116, 0.40)",
           "important": "#D97706",
@@ -1563,7 +1815,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -1572,6 +1826,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }
@@ -1637,6 +1910,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(225, 29, 72, 0.32)",
           "important": "#B45309",
@@ -1701,7 +1976,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -1710,6 +1987,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -1772,6 +2068,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(253, 164, 175, 0.40)",
           "important": "#D97706",
@@ -1836,7 +2134,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -1845,6 +2145,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }
@@ -1910,6 +2229,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#C62828",
+          "errorHover": "#BC2626",
+          "errorActive": "#B22424",
           "errorText": "#C62828",
           "focusRing": "rgba(71, 85, 105, 0.34)",
           "important": "#B45309",
@@ -1974,7 +2295,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#5C140E",
             "fadedMixTarget": "#FFFFFF",
-            "accent": "#C8291F"
+            "accent": "#C8291F",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#2A78D6",
@@ -1983,6 +2306,25 @@ export const flareDesignTokens = {
             "series4": "#EDA100",
             "series5": "#E87BA4",
             "series6": "#6250D6"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       },
@@ -2045,6 +2387,8 @@ export const flareDesignTokens = {
             }
           },
           "error": "#DC2626",
+          "errorHover": "#D12424",
+          "errorActive": "#C62222",
           "errorText": "#F87171",
           "focusRing": "rgba(203, 213, 225, 0.38)",
           "important": "#D97706",
@@ -2109,7 +2453,9 @@ export const flareDesignTokens = {
             "onSurface": "#FFF5E6",
             "fadedInk": "#FBE3DE",
             "fadedMixTarget": "#2A1513",
-            "accent": "#FF7B6B"
+            "accent": "#FF7B6B",
+            "endHover": "#B4251C",
+            "endActive": "#A02119"
           },
           "chart": {
             "series1": "#3987E5",
@@ -2118,6 +2464,25 @@ export const flareDesignTokens = {
             "series4": "#C98500",
             "series5": "#D55181",
             "series6": "#9085E9"
+          },
+          "call": {
+            "stage": "#17151D",
+            "stageTint": "#2B2340",
+            "onStage": "#FFFFFF",
+            "onStageSecondary": "rgba(255, 255, 255, 0.72)",
+            "control": "rgba(255, 255, 255, 0.14)",
+            "controlHover": "rgba(255, 255, 255, 0.22)",
+            "controlActive": "#FFFFFF",
+            "onControlActive": "#17131C",
+            "hangup": "#DC2626",
+            "hangupPressed": "#B91C1C",
+            "accept": "#16A34A",
+            "acceptPressed": "#15803D",
+            "speaking": "#34D17F",
+            "tile": "rgba(255, 255, 255, 0.06)",
+            "chip": "rgba(0, 0, 0, 0.42)",
+            "popover": "#22232B",
+            "errorText": "#F87171"
           }
         }
       }

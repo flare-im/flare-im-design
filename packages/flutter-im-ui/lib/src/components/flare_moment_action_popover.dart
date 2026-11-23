@@ -6,8 +6,8 @@ import '../models/directory_data.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
 
-/// The dark capsule popover raised by a moment's ··· button: a Like/Unlike
-/// action and a Comment action, plus a destructive
+/// The action bar raised by a moment's ··· button: a Like/Unlike action and a
+/// Comment action (each only when the host takes it), plus a destructive
 /// Delete action shown only for the viewer's own moments ([canDelete]), or a
 /// Report action in the same slot for everyone else's ([canReport]).
 ///
@@ -73,19 +73,23 @@ class FlareMomentActionPopover extends StatelessWidget {
       // squeezing the labels or overflowing the post's content column.
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
+        // An action the host does not take is not offered at all (a tenant
+        // that turned likes off gets no Like), as on the other kits.
         children: [
-          _btn(
-            colors,
-            liked ? Icons.heart_broken_outlined : Icons.favorite_border,
-            liked ? (unlikeLabel ?? s.unlike) : (likeLabel ?? s.like),
-            onLike,
-          ),
-          _btn(
-            colors,
-            Icons.chat_bubble_outline,
-            commentLabel ?? s.comment,
-            onComment,
-          ),
+          if (onLike != null)
+            _btn(
+              colors,
+              liked ? Icons.heart_broken_outlined : Icons.favorite_border,
+              liked ? (unlikeLabel ?? s.unlike) : (likeLabel ?? s.like),
+              onLike,
+            ),
+          if (onComment != null)
+            _btn(
+              colors,
+              Icons.chat_bubble_outline,
+              commentLabel ?? s.comment,
+              onComment,
+            ),
           if (canDelete) ...[
             _btn(
               colors,

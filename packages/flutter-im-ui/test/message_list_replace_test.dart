@@ -123,10 +123,7 @@ void main() {
       // (6) The reader drags the list themselves.
       final moves = vector['readerMovesTo'] as String?;
       if (moves != null) {
-        await tester.drag(
-          list,
-          Offset(0, moves == 'top' ? 20000 : -20000),
-        );
+        await tester.drag(list, Offset(0, moves == 'top' ? 20000 : -20000));
         await tester.pumpAndSettle();
       }
       final view = tester.getRect(list);

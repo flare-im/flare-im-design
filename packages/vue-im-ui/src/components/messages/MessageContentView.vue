@@ -32,6 +32,8 @@ const emit = defineEmits<{
   (event: "taskToggle", done: boolean): void;
   (event: "cardOpen", userId: string): void;
   (event: "locationOpen", location: FlareLocationValue): void;
+  /** A file card's body was opened. Without a listener, or while selecting, the card body is not a control. */
+  (event: "openFile"): void;
 }>();
 
 // A poll's options and a task's checkbox are controls only while the host takes them.
@@ -43,6 +45,7 @@ const intentListeners = computed(() => (props.selectionMode ? {} : {
   ...(instance?.vnode.props?.onLocationOpen
     ? { locationOpen: (location: FlareLocationValue) => emit("locationOpen", location) }
     : {}),
+  ...(instance?.vnode.props?.onOpenFile ? { openFile: () => emit("openFile") } : {}),
 }));
 </script>
 

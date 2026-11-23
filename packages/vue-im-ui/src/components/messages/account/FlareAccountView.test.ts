@@ -5,9 +5,11 @@ import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, h, reactive } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../../shared/i18n/useFlareI18n";
+import { useFlareAdaptiveProvider } from "../../../composables/useAdaptiveMode";
 import type { FlarePluginActionPayload, FlarePluginFormError, FlarePluginPageActionPayload, FlarePluginPageViewModel } from "../../../shared/contracts/plugin-ui";
 import FlareAccountView from "./FlareAccountView.vue";
 import FlarePluginPage from "../FlarePluginPage.vue";
+import FlarePluginView from "../FlarePluginView.vue";
 import { flareAccountDayKey, flareAccountEntries } from "./account";
 const fixture = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/account-view-vectors.json"), "utf8"));
 const walletCases = JSON.parse(readFileSync(resolve(__dirname, "../../../../../../spec/wallet-flow-account-vectors.json"), "utf8")).cases as Array<{id: string; variant: string; locale: string; view: FlarePluginPageViewModel}>;
@@ -29,6 +31,33 @@ function render(view = model(), page = false) {
 }
 function button(label: string): HTMLButtonElement { return [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === label)!; }
 describe("account presentation", () => {
+  it("forwards member and file intents without inventing host capabilities", async () => {
+    const view = wallet("payout_profiles");
+    view.presentation!.props.formTitle = "添加收款方式";
+    const searches: string[] = [], files: unknown[] = [];
+    let retries = 0;
+    const wrapper = mount(FlareAccountView, {props: {view, onAction: () => {},
+      onMemberSearch: (query: string) => searches.push(query), onMembersRetry: () => { retries++; },
+      onFileAction: event => files.push(event)}});
+    const inner = wrapper.findAllComponents(FlarePluginView).find(child => child.props("onMemberSearch"));
+    expect(inner).toBeDefined();
+    inner!.props("onMemberSearch")!("account-or-nickname");
+    inner!.props("onMembersRetry")!();
+    const event = {inputId: "receipt", action: "preview", generation: 3, scope: "opaque-scope", formValues: {kind: "bank"}};
+    inner!.vm.$emit("fileAction", event);
+    expect(searches).toEqual(["account-or-nickname"]);
+    expect(retries).toBe(1);
+    expect(files).toEqual([event]);
+    expect(wrapper.emitted("memberSearch")).toEqual([["account-or-nickname"]]);
+    expect(wrapper.emitted("membersRetry")).toEqual([[]]);
+    expect(wrapper.emitted("fileAction")![0][0]).toBe(event);
+    const local = mount(FlareAccountView, {props: {view, onAction: () => {}}});
+    for (const child of local.findAllComponents(FlarePluginView)) {
+      expect(child.props("onMemberSearch")).toBeUndefined();
+      expect(child.props("onMembersRetry")).toBeUndefined();
+    }
+  });
+
   it.each(["recharge", "withdrawal", "payout_profiles"])("renders the final Rust-resolved %s form without submitting it", id => {
     const view = cashflow(id, "available");
     const {wrapper, actions} = render(view, true);
@@ -171,10 +200,66 @@ describe("account presentation", () => {
       useFlareI18nProvider("zh-CN");
       return () => h(FlarePluginPage, {page: {pluginId: "example", page: "wallet"}, view, appearance: "account"});
     }}), {attachTo: document.body});
-    expect(wrapper.find(".flare-account-view__wallet-card-entry").exists()).toBe(false);
+    expect(wrapper.find(".flare-account-view__wallet-card-link").exists()).toBe(false);
     await wrapper.get("[data-wallet-card]").trigger("click");
     await flushPromises();
     expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+  it("keeps a hidden wallet balance masked in the local detail and exposes the toggle state", async () => {
+    const view = wallet("home");
+    view.presentation!.props.rowEntryAction = undefined;
+    const {wrapper} = render(view);
+    const toggle = wrapper.get('button[aria-label="隐藏余额"]');
+    expect(toggle.attributes("aria-pressed")).toBe("false");
+    await toggle.trigger("click");
+    expect(wrapper.get('button[aria-label="显示余额"]').attributes("aria-pressed")).toBe("true");
+    await wrapper.get("[data-wallet-card]").trigger("click");
+    await flushPromises();
+    expect(document.body.querySelector('[role="dialog"] .flare-account-view__detail-amount')?.textContent).toBe("••••");
+  });
+  it("draws the wallet's slot primaries as solid quick keys in the overview card and a danger action in its own card (R2.1)", async () => {
+    const view = wallet("home");
+    view.actions = [{id:"danger",label:"关闭钱包",style:"danger"}, {id:"recharge",label:"充值",style:"primary",target:{kind:"page",page:"recharge"}}, {id:"withdraw",label:"提现",style:"primary",target:{kind:"page",page:"withdrawal"}}];
+    view.menuActions = [];
+    view.presentation!.actions = {primary:"recharge",secondary:"withdraw",tertiary:"danger"};
+    const {wrapper, actions} = render(view);
+    const quick = wrapper.findAll('[data-overview-card] [data-place="quick"] [data-action-id]');
+    expect(quick.map(node => [node.attributes("data-action-id"), node.attributes("data-action-variant")])).toEqual([["recharge","primary"],["withdraw","primary"]]);
+    const danger = wrapper.get('.flare-account-view__navigation [data-place="danger"] [data-action-id="danger"]');
+    expect(wrapper.find('[data-overview-card] [data-action-id="danger"]').exists()).toBe(false);
+    // §12.3: a danger row always asks first, with no confirm text declared.
+    await danger.trigger("click");
+    await flushPromises();
+    expect(actions).toEqual([]);
+    expect(document.body.querySelector('[role="dialog"], [role="alertdialog"]')).not.toBeNull();
+  });
+  it("puts grouped destinations into titled list cards with their icons (R2.1)", () => {
+    const view = wallet("home");
+    view.actions = [{id:"recharge",label:"充值",style:"primary",target:{kind:"page",page:"recharge"}}, {id:"history",label:"交易记录",group:"common",icon:"clock",target:{kind:"page",page:"history"}}, {id:"security",label:"支付密码",group:"records",icon:"lock",target:{kind:"page",page:"security"}}];
+    view.menuActions = [];
+    view.presentation!.actions = {primary:"recharge"};
+    const {wrapper} = render(view);
+    const lists = wrapper.findAll('.flare-account-view__navigation [data-place="list"]');
+    expect(lists.map(node => [node.attributes("data-group"), node.get("h2").text()])).toEqual([["common","常用"],["records","记录与设置"]]);
+    expect(lists[0].find('[data-action-id="history"] .flare-settings__ico').exists()).toBe(true);
+  });
+  it("draws the setup state with no account: no balance, no slot keys, the opening key and its progress key (§5.2)", async () => {
+    const view = wallet("home");
+    const rows = view.blocks!.find(block => block.kind === "rows")!;
+    if (rows.kind !== "rows") throw new Error("Missing wallet rows");
+    rows.rows = [];
+    const {wrapper, actions} = render(view);
+    const setup = wrapper.get("[data-account-setup]");
+    expect(setup.get("h2").text()).toBe("开通钱包");
+    expect(setup.text()).toContain("开通后可充值、提现、收付款和查看账单");
+    expect(wrapper.find("[data-account-balance]").exists()).toBe(false);
+    expect(wrapper.find('[data-action-id="recharge"]').exists()).toBe(false);
+    expect(wrapper.find('[data-action-id="withdrawal"]').exists()).toBe(false);
+    expect(setup.get('[data-action-id="create"]').attributes("data-action-variant")).toBe("primary");
+    const progress = setup.get('[data-action-id="openings"]');
+    expect(wrapper.findAll('[data-action-id="openings"]')).toHaveLength(1);
+    await progress.trigger("click");
+    expect(actions).toEqual([["openings", {}]]);
   });
   it("opens a wallet's declared ledger directly with its exact opaque input", async () => {
     const view = wallet("home");
@@ -203,7 +288,7 @@ describe("account presentation", () => {
     if (reason === "read-only") view.unavailableReason = "unbound_copy";
     if (reason === "missing-action") block.actions = [];
     const {wrapper, actions} = render(view);
-    expect(wrapper.get("[data-wallet-card]").find(".flare-account-view__wallet-card-entry").exists()).toBe(false);
+    expect(wrapper.get("[data-wallet-card]").find(".flare-account-view__wallet-card-link").exists()).toBe(false);
     await wrapper.get("[data-wallet-card]").trigger("click");
     await flushPromises();
     expect(actions).toEqual([]);
@@ -268,7 +353,8 @@ describe("account presentation", () => {
     expect(wrapper.get("[data-account-balance]").text()).toBe("••••");
     expect(wrapper.get(".flare-account-view__balance").text()).not.toContain("¥1,288.66");
     expect(wrapper.text()).toContain("+¥88.88");
-    expect(wrapper.get("details").attributes("open")).toBeUndefined();
+    expect(wrapper.find("[data-account-information]").exists()).toBe(true);
+    expect(document.body.querySelector("[data-account-information-panel]")).toBeNull();
   });
   it("opens record details even without a packet action, and never invents funding controls", async () => {
     const { wrapper, actions } = render();
@@ -318,15 +404,20 @@ describe("account presentation", () => {
   it("groups only visible declared funding actions and leaves metadata inside account information", async () => {
     const view = wallet("home");
     const { wrapper } = render(view);
-    expect(wrapper.findAll(".flare-account-view__wallet-header [data-action-id]").map(node => node.attributes("data-action-id"))).toEqual(["recharge", "withdrawal", "payoutProfiles"]);
+    // R2.1: the two primaries are the quick keys; the destination (收款方式) joins the list.
+    expect(wrapper.findAll('[data-overview-card] [data-place="quick"] [data-action-id]').map(node => node.attributes("data-action-id"))).toEqual(["recharge", "withdrawal"]);
+    expect(wrapper.find('.flare-account-view__navigation [data-action-id="payoutProfiles"]').exists()).toBe(true);
     expect(wrapper.findAll('.flare-account-view__navigation [data-action-id="recharge"]')).toHaveLength(0);
     expect(wrapper.findAll("[data-wallet-card]")).toHaveLength(1);
     expect(wrapper.find(".flare-account-view__ledger").exists()).toBe(false);
-    expect(wrapper.get("[data-wallet-card]").text()).toContain("CNY · cash");
-    expect(wrapper.get("details").text()).toContain("CNY · cash");
+    // §12.23: a PC card is name, balance and one foot line; the asset · currency stays in the information panel.
+    expect(wrapper.get("[data-wallet-card]").text()).not.toContain("CNY · cash");
+    await wrapper.get("[data-account-information]").trigger("click");
+    await flushPromises();
+    expect(document.body.querySelector("[data-account-information-panel]")?.textContent).toContain("CNY · cash");
     view.actions = view.actions.filter(action => action.id !== "recharge");
     const disabled = render(view).wrapper;
-    expect(disabled.find('.flare-account-view__wallet-header [data-action-id="recharge"]').exists()).toBe(false);
+    expect(disabled.find('[data-overview-card] [data-action-id="recharge"]').exists()).toBe(false);
     expect(disabled.findAll('[data-action-id="withdrawal"]')).toHaveLength(1);
   });
   it("promotes a visible replacement submit action without inventing a balance or ledger", () => {
@@ -389,15 +480,17 @@ describe("account presentation", () => {
     const { wrapper, actions } = render(view, true);
     expect(wrapper.findAll("[data-wallet-card]")).toHaveLength(2);
     expect(wrapper.findAll("[data-account-balance]").map(node => node.text())).toEqual(["1000.00", "88.50"]);
-    expect(wrapper.get("details").text()).toContain("900.00");
-    expect(wrapper.findAll("h2").filter(node => node.text() === "我的钱包")).toHaveLength(1);
-    const information = wrapper.get("details").element;
-    const services = wrapper.get(".flare-account-view__navigation").element;
-    expect(Boolean(information.compareDocumentPosition(services) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(wrapper.get(".flare-account-view__wallet-header h2").text()).toBe("我的钱包");
+    expect(wrapper.get(".flare-account-view__wallet-overview").attributes("aria-label")).toBe("我的钱包");
+    // The information is the first row of the destination list (W-06).
+    expect(wrapper.find(".flare-account-view__navigation [data-account-information]").exists()).toBe(true);
     await wrapper.get('[data-account-entry="usd-wallet"]').trigger("click");
     await flushPromises();
     expect(actions[0]).toEqual(["wallet", {page: {pluginId: "example", page: "wallet"}, row: {key: "usd-wallet", input: {walletId: "usd-wallet"}}}]);
     expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    await wrapper.get("[data-account-information]").trigger("click");
+    await flushPromises();
+    expect(document.body.querySelector("[data-account-information-panel]")?.textContent).toContain("900.00");
   });
   it("keeps inline page form values after a rejected submit and resets only after successful settlement", async () => {
     const view = wallet("transfer");
@@ -479,5 +572,149 @@ describe("account presentation", () => {
     await flushPromises();
     expect(guarded.actions).toEqual([]);
     expect(document.body.querySelector('[role="dialog"]')?.textContent).toContain("申请状态");
+  });
+});
+
+describe("wallet layout (§5.1 of docs/plugin-experience.md)", () => {
+  function twoWallets(): FlarePluginPageViewModel {
+    const view = wallet("home");
+    const rows = view.blocks!.find(block => block.kind === "rows")!;
+    if (rows.kind !== "rows") throw new Error("Missing wallet rows");
+    const first = rows.rows[0];
+    rows.rows = [first, { ...first, key: "usd-wallet", cells: [{ text: "88.50" }, { text: "旅行钱包" }, { text: "USD · cash" }, { text: "正常", tone: "success" }], actions: [{ id: "wallet", input: { walletId: "usd-wallet" } }] }];
+    return view;
+  }
+  function mountWith(view: FlarePluginPageViewModel, extra: Record<string, unknown> = {}, mode: "h5" | "pc" = "pc") {
+    const actions: Array<[string, FlarePluginActionPayload]> = [];
+    const wrapper = mount(defineComponent({ setup() {
+      useFlareI18nProvider("zh-CN");
+      useFlareAdaptiveProvider(mode);
+      return () => h(FlareAccountView, { view, ...extra, onAction: (id: string, payload: FlarePluginActionPayload) => actions.push([id, payload]) });
+    } }), { attachTo: document.body });
+    return { wrapper, actions };
+  }
+
+  it("on a phone keeps the default wallet in the overview card and lists the others", async () => {
+    const { wrapper, actions } = mountWith(twoWallets(), {}, "h5");
+    expect(wrapper.findAll("[data-wallet-card]")).toHaveLength(1);
+    const others = wrapper.get("[data-other-wallets]");
+    expect(others.get("h3").text()).toBe("其他钱包");
+    const row = others.get('[data-account-entry="usd-wallet"]');
+    expect(row.text()).toContain("旅行钱包");
+    expect(row.text()).toContain("USD · cash");
+    expect(row.text()).toContain("88.50");
+    await row.trigger("click");
+    expect(actions[0]).toEqual(["wallet", { row: { key: "usd-wallet", input: { walletId: "usd-wallet" } } }]);
+    // PC keeps the two-column card grid and no extra list.
+    const pc = mountWith(twoWallets()).wrapper;
+    expect(pc.findAll("[data-wallet-card]")).toHaveLength(2);
+    expect(pc.find("[data-other-wallets]").exists()).toBe(false);
+  });
+
+  it("on a phone closes the overview card with the quick keys and then 查看明细 (§5.1)", async () => {
+    const view = twoWallets();
+    view.presentation!.props.rowEntryAction = "wallet";
+    const rows = view.blocks!.find(block => block.kind === "rows")!;
+    if (rows.kind !== "rows") throw new Error("Missing wallet rows");
+    rows.actions = [{ id: "wallet", label: "查看明细" }];
+    const { wrapper, actions } = mountWith(view, {}, "h5");
+    const card = wrapper.get("[data-wallet-card]");
+    expect(card.text()).not.toContain("查看明细");
+    const quick = wrapper.get('[data-overview-card] [data-place="quick"]').element;
+    const entry = wrapper.get("[data-overview-card] [data-wallet-entry]");
+    expect(entry.text()).toBe("查看明细");
+    expect(quick.compareDocumentPosition(entry.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await entry.trigger("click");
+    expect(actions.map(([id]) => id)).toEqual(["wallet"]);
+    // PC keeps the line inside each wallet card, above the quick keys under the grid.
+    const pc = mountWith(view).wrapper;
+    expect(pc.find("[data-wallet-entry]").exists()).toBe(false);
+    expect(pc.findAll("[data-wallet-card]")[0].text()).toContain("查看明细");
+  });
+
+  it("keeps the balance toggle beside the overview title and leaves desktop quick actions separate", async () => {
+    const view = twoWallets();
+    view.presentation!.props.rowEntryAction = "wallet";
+    const rows = view.blocks!.find(block => block.kind === "rows")!;
+    if (rows.kind !== "rows") throw new Error("Missing wallet rows");
+    rows.actions = [{ id: "wallet", label: "查看明细" }];
+    const pc = mountWith(view).wrapper;
+    const overview = pc.get(".flare-account-view__wallet-header");
+    expect(overview.get("h2").text()).toBe("我的钱包");
+    const card = pc.findAll("[data-wallet-card]")[1];
+    expect(card.find(".flare-account-view__wallet-card-label").exists()).toBe(false);
+    expect(card.text()).not.toContain("USD · cash");
+    const foot = card.get("[data-wallet-card-foot]");
+    expect(foot.get("[data-wallet-status]").text()).toBe("正常");
+    expect(foot.text()).toBe("正常·查看明细");
+    const row = pc.get("[data-wallet-quick-row]");
+    const keys = row.findAll('[data-place="quick"] [data-action-id]').map(node => node.attributes("data-action-id"));
+    expect(keys).toEqual(["recharge", "withdrawal"]);
+    const eye = overview.get("[aria-pressed]");
+    expect(eye.attributes("aria-pressed")).toBe("false");
+    expect(pc.findAll('[aria-pressed]')).toHaveLength(1);
+    await eye.trigger("click");
+    expect(pc.findAll("[data-account-balance]").map(node => node.text())).toEqual(["••••", "••••"]);
+    // A phone keeps its title row with the eye, the balance label and the details.
+    const phone = mountWith(view, {}, "h5").wrapper;
+    expect(phone.get(".flare-account-view__wallet-header h2").text()).toBe("我的钱包");
+    expect(phone.find("[data-wallet-quick-row]").exists()).toBe(false);
+    expect(phone.get("[data-wallet-card]").find(".flare-account-view__wallet-card-label").exists()).toBe(true);
+  });
+
+  it("draws a toned wallet status as the kit Tag and an untoned one as text", () => {
+    const { wrapper } = mountWith(twoWallets());
+    const tags = wrapper.findAll("[data-wallet-status]");
+    expect(tags).toHaveLength(1);
+    expect(tags[0].text()).toBe("正常");
+    expect(wrapper.findAll("[data-wallet-card]")[0].find("[data-wallet-status]").exists()).toBe(false);
+  });
+
+  it("puts a warning banner (pending operations) above the overview with its own key", async () => {
+    const view = twoWallets();
+    view.blocks = [{ kind: "banner", tone: "warning", text: "有资金操作等待确认，请先查看原单，勿重新付款", action: { id: "recovery", label: "查看", target: { kind: "page", page: "flare.wallet.page.recovery" } } }, ...(view.blocks ?? [])];
+    const { wrapper, actions } = mountWith(view);
+    const notices = wrapper.get(".flare-account-view__wallet-notices").element;
+    const overview = wrapper.get(".flare-account-view__wallet-overview").element;
+    expect(Boolean(notices.compareDocumentPosition(overview) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(notices.textContent).toContain("有资金操作等待确认");
+    const key = [...notices.querySelectorAll("button")].find(button => button.textContent?.includes("查看"))!;
+    key.click();
+    await flushPromises();
+    expect(actions.map(([id]) => id)).toContain("recovery");
+  });
+
+  it("disables every action while offline and leaves the information readable", async () => {
+    const { wrapper } = mountWith(twoWallets(), { offline: true });
+    for (const key of wrapper.findAll("[data-action-id]")) expect(key.attributes("disabled"), key.attributes("data-action-id")).toBeDefined();
+    expect(wrapper.get('[data-account-entry="usd-wallet"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.get("[data-account-information]").attributes("disabled")).toBeUndefined();
+  });
+});
+
+describe("ledger rows (§5.8 and R10 of docs/plugin-experience.md)", () => {
+  it("draws the amount with the minus sign and no Tag for a completed (success) status", () => {
+    const view = wallet("cashflow_history");
+    view.presentation!.props.rowBadgePlacement = "separate";
+    const block = view.blocks!.find(block => block.kind === "rows")!;
+    if (block.kind !== "rows") throw new Error("Missing rows");
+    block.rows[0].badge = {text: "已完成", tone: "success"};
+    block.rows[0].cells = block.rows[0].cells.map((cell, index) => index === 0 ? {...cell, text: "-100.00"} : cell);
+    const row = render(view).wrapper.get('[data-account-entry="cashflow-fixture"]');
+    expect(row.find("[data-account-badge]").exists()).toBe(false);
+    expect(row.get("b").text()).toBe("−100.00");
+  });
+  it("leads with the sign's icon and puts the amount, then its status Tag, at the end (§5.8 record line)", () => {
+    const view = wallet("cashflow_history");
+    view.presentation!.props.rowBadgePlacement = "separate";
+    const block = view.blocks!.find(block => block.kind === "rows")!;
+    if (block.kind !== "rows") throw new Error("Missing rows");
+    block.rows[0].badge = {text: "处理中", tone: "warning"};
+    block.rows[0].cells = block.rows[0].cells.map((cell, index) => index === 0 ? {...cell, text: "+100.00"} : cell);
+    const row = render(view).wrapper.get('[data-account-entry="cashflow-fixture"]');
+    expect(row.get(".flare-account-view__entry-icon").classes()).toContain("is-in");
+    expect(row.get(".flare-account-view__entry-value b").classes()).toContain("is-positive");
+    expect(row.get(".flare-account-view__entry-value [data-account-badge]").text()).toBe("处理中");
+    expect(row.find(".flare-account-view__entry-main [data-account-badge]").exists()).toBe(false);
   });
 });

@@ -5,6 +5,7 @@
 // holds no SDK: it never reads the clipboard or the network, it reports intent and draws what the host feeds back.
 // An action is drawn only while the host listens for it.
 import { computed, getCurrentInstance, nextTick, ref, useId, watch } from "vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import type { ComponentPublicInstance } from "vue";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
@@ -38,6 +39,7 @@ const props = withDefaults(
     refreshing?: boolean;
     /** The `outcome` of the last `access.refresh`. */
     refreshOutcome?: string | null;
+    mirrorAttempts?: readonly { source: string; result: string; serial?: number }[];
     /** `access.importRecovery` is in flight. */
     importing?: boolean;
     /** The `outcome` of the last `access.importRecovery`. */
@@ -48,12 +50,15 @@ const props = withDefaults(
     exporting?: boolean;
     /** The host's word on the clipboard: `copied` or `failed`. */
     exportOutcome?: string | null;
+    /** Lead with recovery and disclose the detailed route tables on demand. */
+    compact?: boolean;
   }>(),
   {
     status: null,
     accessPoints: () => [],
     refreshing: false,
     refreshOutcome: null,
+    mirrorAttempts: () => [],
     importing: false,
     importOutcome: null,
     importCode: null,
@@ -70,12 +75,13 @@ const emit = defineEmits<{
 }>();
 const instance = getCurrentInstance();
 const { t } = useFlareI18nOptional();
+const { detail } = useScreenLayout();
 const uid = useId();
 const listens = (listener: string) => Boolean(instance?.vnode.props?.[listener]);
 
 const model = computed(() => flareAccessDiagnostics(props.status, props.accessPoints));
 const sections = computed(() =>
-  model.value.state === "recovering" ? (["recovery", "current", "lines"] as const) : (["current", "lines", "recovery"] as const),
+  props.compact || model.value.state === "recovering" ? (["recovery", "current", "lines"] as const) : (["current", "lines", "recovery"] as const),
 );
 
 const NOTICE_KEYS: Record<FlareAccessNoticeText, string> = {
@@ -176,6 +182,17 @@ const refreshFeedback = computed(() => {
   } as const;
   return { text: t(keys[feedback.text]), tone: feedback.tone };
 });
+const mirrorFacts = computed<FlareDescriptionItem[]>(() => props.mirrorAttempts.map((attempt, index) => {
+  let host: string;
+  try {
+    host = new URL(attempt.source.replace(/^https:(?=https:\/\/)/, "")).hostname;
+  } catch {
+    host = t("accessDiagnostics.mirror");
+  }
+  const key = ({ adopted: "refreshAdopted", sameSerial: "refreshUpToDate", notModified: "refreshUpToDate",
+    olderSerial: "mirrorOlder", rejected: "mirrorRejected" } as Record<string, string>)[attempt.result] ?? "mirrorUnavailable";
+  return { key: String(index), label: host, value: t("accessDiagnostics." + key) + (attempt.serial == null ? "" : " · v" + attempt.serial) };
+}));
 const importFeedback = computed(() => {
   const feedback = flareAccessImportFeedback(props.importOutcome, props.importCode);
   if (!feedback) return null;
@@ -233,7 +250,7 @@ watch(
 </script>
 
 <template>
-  <section class="flare-access-diagnostics" :data-flare-access-state="model.state" :aria-label="t('accessDiagnostics.title')">
+  <section class="flare-access-diagnostics" :class="{ 'is-detail': detail, 'is-compact': compact }" :data-flare-access-state="model.state" :aria-label="t('accessDiagnostics.title')">
     <span class="flare-access-diagnostics__spoken" role="status">{{ spoken }}</span>
     <div v-if="model.notices.length" class="flare-access-diagnostics__notices">
       <FlareStatusBanner
@@ -246,9 +263,11 @@ watch(
       />
     </div>
 
+    <slot name="preferences" />
+
     <template v-for="section in sections" :key="section">
-      <section v-if="section === 'current'" class="flare-access-diagnostics__section" :aria-labelledby="`${uid}-current`">
-        <h3 :id="`${uid}-current`" class="flare-access-diagnostics__title">{{ t("accessDiagnostics.current") }}</h3>
+      <component v-if="section === 'current'" :is="compact ? 'details' : 'section'" class="flare-access-diagnostics__section" :aria-labelledby="`${uid}-current`">
+        <component :is="compact ? 'summary' : 'h3'" :id="`${uid}-current`" class="flare-access-diagnostics__title">{{ t("accessDiagnostics.current") }}</component>
         <FlareDescriptionList :items="facts">
           <template #item-rtt>
             <FlareTag
@@ -259,10 +278,10 @@ watch(
             <span v-else class="flare-access-diagnostics__none">—</span>
           </template>
         </FlareDescriptionList>
-      </section>
+      </component>
 
-      <section v-else-if="section === 'lines'" class="flare-access-diagnostics__section" :aria-labelledby="`${uid}-lines`">
-        <h3 :id="`${uid}-lines`" class="flare-access-diagnostics__title">{{ t("accessDiagnostics.lines") }}</h3>
+      <component v-else-if="section === 'lines'" :is="compact ? 'details' : 'section'" class="flare-access-diagnostics__section" :aria-labelledby="`${uid}-lines`">
+        <component :is="compact ? 'summary' : 'h3'" :id="`${uid}-lines`" class="flare-access-diagnostics__title">{{ t("accessDiagnostics.lines") }}</component>
         <p v-if="!model.regions.length" class="flare-access-diagnostics__empty">{{ t("accessDiagnostics.noLines") }}</p>
         <div v-for="region in model.regions" :key="region.regionId ?? ''" class="flare-access-diagnostics__region">
           <h4 v-if="region.regionId" class="flare-access-diagnostics__region-title">{{ region.regionId }}</h4>
@@ -301,13 +320,16 @@ watch(
             </li>
           </ul>
         </div>
-      </section>
+      </component>
 
       <section v-else class="flare-access-diagnostics__section" :aria-labelledby="`${uid}-recovery`">
         <h3 :id="`${uid}-recovery`" class="flare-access-diagnostics__title">{{ t("accessDiagnostics.recovery") }}</h3>
+        <p v-if="listens('onRefresh') && !status?.developmentMode" class="flare-access-diagnostics__hint">{{ t("accessDiagnostics.mirrorHint") }}</p>
+        <FlareDescriptionList v-if="mirrorFacts.length" :aria-label="t('accessDiagnostics.mirror')" :items="mirrorFacts" />
         <div v-if="listens('onRefresh') || listens('onExportDiagnostics')" class="flare-access-diagnostics__actions">
           <FlareButton
             v-if="listens('onRefresh')"
+            size="sm"
             variant="secondary"
             :label="t('accessDiagnostics.refresh')"
             :loading="refreshing"
@@ -315,6 +337,7 @@ watch(
           />
           <FlareButton
             v-if="listens('onExportDiagnostics')"
+            size="sm"
             variant="secondary"
             :label="t('accessDiagnostics.export')"
             :loading="exporting"
@@ -349,6 +372,7 @@ watch(
               @submit="importLink"
             />
             <FlareButton
+              size="sm"
               :label="t('accessDiagnostics.import')"
               :loading="importing"
               :disabled="!importable"
@@ -371,6 +395,13 @@ watch(
 </template>
 
 <style scoped>
+summary.flare-access-diagnostics__title {
+  box-sizing: border-box;
+  align-content: center;
+  min-height: var(--flare-size-layout-touch-target-min);
+  cursor: pointer;
+}
+
 .flare-access-diagnostics {
   position: relative;
   display: flex;
@@ -379,6 +410,15 @@ watch(
   min-width: 0;
   color: var(--flare-color-text-primary);
 }
+.flare-access-diagnostics.is-detail { gap: var(--flare-size-spacing-lg); }
+.is-compact .flare-access-diagnostics__section {
+  padding: var(--flare-size-spacing-md);
+  border: 1px solid var(--flare-color-border-secondary);
+  border-radius: var(--flare-size-radius-lg);
+  background: var(--flare-color-bg-elevated);
+}
+.is-compact details.flare-access-diagnostics__section { padding-block: 0; }
+.is-compact details[open].flare-access-diagnostics__section { padding-block-end: var(--flare-size-spacing-md); }
 .flare-access-diagnostics__spoken {
   position: absolute;
   width: 1px;

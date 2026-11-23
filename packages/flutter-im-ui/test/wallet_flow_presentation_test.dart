@@ -271,7 +271,8 @@ void main() {
       ),
     );
     final form = find.byType(FlarePluginForm);
-    expect(tester.getSize(form).width, 1440);
+    // G-14: an untitled page form keeps the 560 form column.
+    expect(tester.getSize(form).width, FlareSizes.componentFormColumnWidth);
     final field = find.descendant(
       of: find.byKey(const ValueKey('flare-plugin-input-second')),
       matching: find.byType(TextField),
@@ -282,7 +283,7 @@ void main() {
       description = '\n ';
     });
     await tester.pumpAndSettle();
-    expect(tester.getSize(form).width, 1440);
+    expect(tester.getSize(form).width, FlareSizes.componentFormColumnWidth);
     expect(find.text('  '), findsNothing);
     expect(find.text('\n '), findsNothing);
     rebuild(() => title = 'New form title');

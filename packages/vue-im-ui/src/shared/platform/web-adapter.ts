@@ -58,7 +58,7 @@ function toPicked(file: File): FlarePickedFile {
   return { name: file.name, size: file.size, mimeType: file.type || undefined, file };
 }
 
-function pickViaInput(options: { multiple?: boolean; accept?: string }): Promise<FlarePlatformResult<FlarePickedFile[]>> {
+function pickViaInput(options: { multiple?: boolean; accept?: string; capture?: "environment" | "user" }): Promise<FlarePlatformResult<FlarePickedFile[]>> {
   if (typeof document === "undefined") return Promise.resolve(platformErr("UNSUPPORTED", "no document to host a file input"));
   return new Promise((resolve) => {
     const input = document.createElement("input");
@@ -66,6 +66,7 @@ function pickViaInput(options: { multiple?: boolean; accept?: string }): Promise
     input.hidden = true;
     input.multiple = Boolean(options.multiple);
     if (options.accept) input.accept = options.accept;
+    if (options.capture) input.setAttribute("capture", options.capture);
     input.dataset.flarePlatformPicker = "true";
     let settled = false;
     const done = (result: FlarePlatformResult<FlarePickedFile[]>) => {
@@ -168,6 +169,8 @@ export function createWebPlatformAdapter(options: FlareWebPlatformAdapterOptions
       return pickViaInput({ multiple: options.multiple, accept: options.accept?.join(",") });
     },
     pickImages(options: FlarePickImagesOptions = {}) {
+      // The camera takes one photo: an image input the phone opens in its rear camera.
+      if (options.camera) return pickViaInput({ accept: "image/*", capture: "environment" });
       return pickViaInput({ multiple: options.multiple, accept: options.video ? "image/*,video/*" : "image/*" });
     },
     async share(payload: FlareSharePayload) {

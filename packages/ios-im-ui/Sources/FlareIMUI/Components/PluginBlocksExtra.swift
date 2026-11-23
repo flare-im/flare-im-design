@@ -85,7 +85,8 @@ struct PluginStatsBlockView: View {
                 .foregroundColor(colors.textSecondary)
                 .lineLimit(1)
             Text(value)
-                .font(.system(size: FlareSizes.fontSize2xl * textScale, weight: .semibold).monospacedDigit())
+                // R10: a figure in the card is 18/600.
+                .font(.system(size: FlareSizes.fontSize3xl * textScale, weight: .semibold).monospacedDigit())
                 .foregroundColor(pluginStatColor(item.tone, colors))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -416,7 +417,8 @@ func pluginHeroColor(_ tone: PluginHeroTone, _ colors: FlareColors) -> Color {
     case .neutral: return colors.textPrimary
     case .positive: return colors.successText
     case .warning: return colors.warningText
-    case .brand: return colors.primaryText
+    // R10: a hero amount is never the brand colour.
+    case .brand: return colors.textPrimary
     }
 }
 
@@ -449,16 +451,20 @@ struct PluginHeroBlockView: View {
                                        accessibilityLabel: hidden ? strings.accountShowBalance
                                                                   : strings.accountHideBalance) { hidden.toggle() }
                             .accessibilityIdentifier("flare-plugin-hero-mask")
+                            // R10: the eye is a toggle: selected while the balance is hidden.
+                            .accessibilityAddTraits(hidden ? .isSelected : [])
                     }
                 }
             }
             Text(value)
                 .font(block.amount
-                      ? .system(size: FlareSizes.fontSize5xl * textScale, weight: .semibold).monospacedDigit()
+                      ? .system(size: FlareSizes.componentAmountHeroFontSize * textScale, weight: .bold).monospacedDigit()
                       : .system(size: FlareSizes.fontSize5xl * textScale, weight: .semibold))
                 .foregroundColor(pluginHeroColor(block.tone, colors))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
+                // R10: a hidden balance reads as hidden, never as the dots.
+                .accessibilityLabel(block.maskable && hidden ? strings.accountBalanceHidden : value)
             if let subtitle = block.subtitle, !subtitle.isEmpty {
                 Text(subtitle).font(.system(size: FlareSizes.fontSizeSm)).foregroundColor(colors.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -489,6 +495,12 @@ struct PluginStepsBlockView: View {
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
 
+    /// "第 {index} 步，共 {count} 步" for the step at `index` (from 0).
+    static func position(_ index: Int, of count: Int, _ strings: FlareStrings) -> String {
+        strings.pluginViewStepPosition.replacingOccurrences(of: "{index}", with: String(index + 1))
+            .replacingOccurrences(of: "{count}", with: String(count))
+    }
+
     static func words(_ state: PluginStepState, _ strings: FlareStrings) -> String {
         switch state {
         case .pending: return strings.pluginViewStepPending
@@ -518,7 +530,8 @@ struct PluginStepsBlockView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(step.label), \(Self.words(step.state, strings))")
+                // 6.1: "第 2 步，共 4 步, 核对资料, 进行中".
+                .accessibilityLabel("\(Self.position(index, of: block.items.count, strings)), \(step.label), \(Self.words(step.state, strings))")
             }
         }
     }
@@ -557,9 +570,11 @@ struct PluginBannerBlockView: View {
     let onAction: ((PluginViewAction) -> Void)?
 
     var body: some View {
-        let action = block.action.flatMap { onAction == nil || disabled ? nil : $0 }
+        // R8: a disabled key stays in view, dimmed; only a view that cannot act at all has none.
+        let action = block.action.flatMap { onAction == nil ? nil : $0 }
         StatusBannerView(text: block.text, tone: block.tone.status, actionText: action?.label,
-                         onAction: action.map { action -> () -> Void in { onAction?(action) } })
+                         onAction: action.map { action -> () -> Void in { if !disabled { onAction?(action) } } },
+                         actionDisabled: disabled)
     }
 }
 
@@ -576,10 +591,10 @@ struct PluginTimelineBlockView: View {
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         if block.items.isEmpty {
-            Text(block.emptyText.flatMap { $0.isEmpty ? nil : $0 } ?? strings.pluginViewEmpty)
-                .font(.system(size: FlareSizes.fontSizeMd * textScale))
-                .foregroundColor(colors.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // R8: the compact empty state in the block.
+            EmptyStateView(title: block.emptyText.flatMap { $0.isEmpty ? nil : $0 } ?? strings.pluginViewEmpty,
+                           icon: "clock", compact: true)
+                .frame(maxWidth: .infinity)
         } else {
             let now = clock.now()
             VStack(alignment: .leading, spacing: 0) {

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import FlareIcon from "../general/FlareIcon.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 // Reply strip — a composable composer part shown above the input when replying
 // (or, with `tone="edit"`, while editing a sent message). Left rail + label/sender
 // + summary + cancel. Labels default to the strings provider.
 const props = withDefaults(
-  defineProps<{ senderName: string; summary: string; label?: string; cancelLabel?: string; tone?: "default" | "warn" | "edit" }>(),
-  { tone: "default" },
+  defineProps<{ senderName: string; summary: string; disabled?: boolean; label?: string; cancelLabel?: string; tone?: "default" | "warn" | "edit" }>(),
+  { tone: "default", disabled: false },
 );
 const { t } = useFlareI18n();
 const strings = computed(() => ({
@@ -19,14 +20,11 @@ const emit = defineEmits<{ (e: "cancel"): void }>();
 <template>
   <div class="flare-reply" :class="`flare-reply--${tone}`">
     <div class="body">
-      <div class="who">{{ strings.label }} {{ senderName }}</div>
+      <div class="who" :title="`${strings.label} ${senderName}`">{{ strings.label }} {{ senderName }}</div>
       <div class="sum">{{ summary }}</div>
     </div>
-    <button type="button" class="x" :aria-label="strings.cancelLabel" :title="strings.cancelLabel" @click="emit('cancel')">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M6 6l12 12M18 6L6 18" />
-      </svg>
+    <button type="button" class="x" :disabled="disabled" :aria-label="strings.cancelLabel" :title="strings.cancelLabel" @click="!disabled && emit('cancel')">
+      <FlareIcon name="close" size="md" />
     </button>
   </div>
 </template>
@@ -43,7 +41,7 @@ const emit = defineEmits<{ (e: "cancel"): void }>();
 }
 .body { flex: 1; min-width: 0; }
 /* 回复条上的发信人用“文字版”品牌色：边框色 #8B5CF6 当文字只有 3.98:1。 */
-.who { font-size: 11px; line-height: 16px; font-weight: 600; color: var(--flare-color-primary-text); }
+.who { overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--flare-color-primary-text); }
 .sum {
   font-size: 12px;
   line-height: 18px;
@@ -70,6 +68,7 @@ const emit = defineEmits<{ (e: "cancel"): void }>();
   color: var(--flare-color-text-tertiary);
   cursor: pointer;
 }
-.x:hover { color: var(--flare-color-text-primary); background: var(--flare-color-bg-hover); }
+.x:disabled { cursor: default; opacity: 0.55; }
+.x:not(:disabled):hover { color: var(--flare-color-text-primary); background: var(--flare-color-bg-hover); }
 .x:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: -2px; }
 </style>

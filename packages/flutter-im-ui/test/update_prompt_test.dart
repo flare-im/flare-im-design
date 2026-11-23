@@ -468,10 +468,7 @@ void main() {
 
     testWidgets('reads its number to a screen reader', (tester) async {
       final handle = tester.ensureSemantics();
-      await pumpBar(
-        tester,
-        const FlareProgressBar(value: 0.42, label: '下载进度'),
-      );
+      await pumpBar(tester, const FlareProgressBar(value: 0.42, label: '下载进度'));
       final node = tester.getSemantics(find.byType(FlareProgressBar));
       expect(node.label, '下载进度');
       expect(node.value, '42%');

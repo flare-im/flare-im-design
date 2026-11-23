@@ -34,8 +34,7 @@ function message(id: string, senderId: string, minute: number): MessageLike {
   };
 }
 
-function mountList() {
-  const messages = [message("1", "ivy", 0), message("2", "me", 1), message("3", "ivy", 2)];
+function mountList(messages = [message("1", "ivy", 0), message("2", "me", 1), message("3", "ivy", 2)]) {
   const host = mount(FlareUiProvider, {
     // Attached, because moving the reading cursor is only observable on a document: a detached element
     // takes no focus, and `document.activeElement` would stay on the body whatever the list did.
@@ -53,6 +52,31 @@ const marked = (host: ReturnType<typeof mountList>["host"]) =>
 describe("the mark a located row wears", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
+
+  it("shows one confirmed row after a foreign client collision between pending and ACK", () => {
+    const pending = {...message("pending", "me", 0), serverId: "shared", clientMsgId: "shared", conversationId: "c", timelineKey: "client:shared", localState: {isLocal: true, sending: true}};
+    const foreign = {...message("foreign", "ivy", 1), clientMsgId: "shared", conversationId: "c"};
+    const ack = {...message("ack", "me", 2), clientMsgId: "shared", conversationId: "c"};
+    const {host} = mountList([pending, foreign, ack]);
+    const ids = host.findAll(".message-row[data-message-id]").map(row => row.attributes("data-message-id"));
+    expect(ids.sort()).toEqual(["server-ack", "server-foreign"]);
+    host.unmount();
+  });
+
+  it("prefers canonical targets over client aliases and refuses ambiguous aliases", async () => {
+    const rows = [
+      {...message("alias", "ivy", 1), clientMsgId: "server-target"},
+      {...message("target", "me", 2), clientMsgId: "shared"},
+      {...message("third", "ivy", 3), clientMsgId: "shared"},
+    ];
+    const {host, api} = mountList(rows);
+    expect(await api.scrollToMessage("server-target", false)).toBe(true);
+    expect(marked(host)).toEqual(["server-target"]);
+    expect(await api.scrollToMessage("shared", false)).toBe(false);
+    expect(await api.scrollToMessage("server:server-third", false)).toBe(true);
+    expect(marked(host)).toEqual(["server-third"]);
+    host.unmount();
+  });
 
   it("marks the row the list jumped to, and drops the mark when the window is over", async () => {
     const { host, api } = mountList();
@@ -115,7 +139,7 @@ describe("the mark a located row wears", () => {
     // The row itself now reads under the cursor — the ring says the same thing to everyone who can see it.
     const focused = document.activeElement as HTMLElement | null;
     expect(focused?.classList.contains("message-bubble--focusable")).toBe(true);
-    expect(focused?.closest("[data-message-id]")?.getAttribute("data-message-id")).toBe("client-2");
+    expect(focused?.closest("[data-message-id]")?.getAttribute("data-message-id")).toBe("server-2");
     host.unmount();
   });
 

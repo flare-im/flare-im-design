@@ -64,8 +64,10 @@ public enum PluginViewInset: String, Sendable, CaseIterable {
     case sheetTop
 }
 
-/// Visual arrangement only. Every arrangement uses the same guarded action/form runner.
-public enum PluginViewActionLayout: Sendable { case inline, compact, list }
+/// Visual arrangement only. Every arrangement uses the same guarded action/form runner. `page` is the plugin page's
+/// archetype layout (R2 of docs/plugin-experience.md, ``PluginExperienceRules/places(_:embedded:inlineFormActionId:)``):
+/// overview quick keys and list cards, a task's bar, a records page's header key and command row, the danger card.
+public enum PluginViewActionLayout: Sendable { case inline, compact, list, page }
 
 public struct PluginView: View {
     private let view: PluginViewModel
@@ -105,7 +107,14 @@ public struct PluginView: View {
     private var onLocationAction: ((PluginLocationAction) -> Void)?
     private var protectedMedia: [String: PluginProtectedMediaState] = [:]
     private var onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)?
+    /// R8: offline keeps the view and disables every action.
+    private var offline = false
+    /// R7: the result block's done key.
+    private var onDone: (() -> Void)?
     private let clock: PluginViewClock
+    @State private var references = false
+    /// A host drawing the task bar's keys itself (the account view's setup key) takes them on a pointer too.
+    @Environment(\.flarePluginHoistsBar) var hoistsBar
     @State private var interaction = PluginChoicesInteraction()
     @State private var users: [String: PluginUser]
     @State private var confirming: PluginActionRun?
@@ -122,6 +131,8 @@ public struct PluginView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    /// R3: the plugin and page a development warning names (set by ``FlarePluginPage``).
+    @Environment(\.flarePluginScope) private var scope
 
     /// - Parameters:
     ///   - displayName: The card envelope's `displayName` (the plugin's name): it leads the unavailable reason line.
@@ -160,7 +171,8 @@ public struct PluginView: View {
                 locationStates: [String: PluginLocationState] = [:],
                 onLocationAction: ((PluginLocationAction) -> Void)? = nil,
                 protectedMedia: [String: PluginProtectedMediaState] = [:],
-                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil) {
+                onProtectedMediaRead: ((PluginProtectedMediaRead) -> Void)? = nil,
+                offline: Bool = false, onDone: (() -> Void)? = nil) {
         self.init(view: view, icon: icon, displayName: displayName, viewerId: viewerId, busy: busy,
                   busyActionId: busyActionId, error: error, embedded: embedded,
                   inset: inset, actionLayout: actionLayout, showError: showError, labelRows: labelRows, inlineFormActionId: inlineFormActionId, inlineFormTitle: inlineFormTitle, inlineFormDescription: inlineFormDescription, resolveUser: resolveUser, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  formErrors: formErrors,
@@ -169,6 +181,14 @@ public struct PluginView: View {
                   onQrRefresh: onQrRefresh)
         self.locationStates = locationStates; self.onLocationAction = onLocationAction
         self.protectedMedia = protectedMedia; self.onProtectedMediaRead = onProtectedMediaRead
+        self.offline = offline; self.onDone = onDone
+    }
+
+    /// This view as a page's body (how ``FlarePluginPage`` passes its own on): offline and the result's done key.
+    func pageState(offline: Bool, onDone: (() -> Void)?) -> PluginView {
+        var copy = self
+        copy.offline = offline; copy.onDone = onDone
+        return copy
     }
 
     /// This view with the host's capability state: location inputs and protected media (how ``FlarePluginPage``
@@ -242,14 +262,19 @@ public struct PluginView: View {
     }
 
     /// Every action, choice and submit waits while the card or one of its actions is busy; a read-only copy never acts.
-    private var locked: Bool { busy || busyActionId != nil || view.readOnly || inlineForm.pending }
+    private var locked: Bool { busy || busyActionId != nil || view.readOnly || inlineForm.pending || offline }
 
+    /// An action whose form can show in place: every input it draws (block-bound ones left out, R6.1) is known and
+    /// none is a password.
     static func inlineAction(_ view: PluginViewModel, id: String?, hasAction: Bool) -> PluginViewAction? {
         guard view.available, !view.readOnly, hasAction, let id,
               let action = view.actions.first(where: { $0.id == id }), action.confirm?.isEmpty != false,
               let form = action.form, !form.isEmpty else { return nil }
-        let inputs = view.formInputs(for: action)
-        return inputs.count == form.count && !inputs.contains(where: { $0.kind == .password }) ? action : nil
+        let bound = PluginExperienceRules.boundInputs(view)
+        let drawn = form.filter { !bound.contains($0) }
+        let inputs = PluginExperienceRules.drawnInputs(view, action)
+        return !drawn.isEmpty && inputs.count == drawn.count && !inputs.contains(where: { $0.kind == .password })
+            ? action : nil
     }
     private var inlineAction: PluginViewAction? { Self.inlineAction(view, id: inlineFormActionId, hasAction: onAction != nil) }
 
@@ -263,9 +288,29 @@ public struct PluginView: View {
         return view.actions + (embedded ? view.menuActions : [])
     }
 
-    /// The ⋯ key is on the title row: a card (not embedded) with menu actions.
+    /// The ⋯ key is on the title row: a card (not embedded) with menu actions, or more than three footer actions
+    /// (R2.4: the fourth on go to the menu after the menu actions).
     static func showsMenuKey(_ view: PluginViewModel, embedded: Bool) -> Bool {
-        !embedded && view.available && !view.readOnly && !view.menuActions.isEmpty
+        !embedded && view.available && !view.readOnly
+            && !PluginExperienceRules.places(view, embedded: false, inlineFormActionId: nil).menu.isEmpty
+    }
+
+    /// Where this view's actions draw (R2); a status card's key leaves its other places.
+    private var places: PluginActionPlaces {
+        let places = PluginExperienceRules.places(view, embedded: embedded, inlineFormActionId: inlineAction?.id)
+        var drawn = statusCardKey.map { key in places.removing(key.id) } ?? places
+        // The page's own form submits through its own key (pinned on touch), never a second launcher.
+        if pageLayout, let inline = inlineAction { drawn = drawn.removing(inline.id) }
+        return drawn
+    }
+
+    private var pageLayout: Bool { embedded && actionLayout == .page && view.available && !view.readOnly }
+
+    /// The status card's primary key (6.1), on a page that draws one.
+    private var statusCardKey: PluginViewAction? {
+        guard embedded, actionLayout == .page, PluginExperienceRules.statusCard(view) else { return nil }
+        return PluginExperienceRules.topLevelActions(view, embedded: true)
+            .first { PluginExperienceRules.role($0) == .primary }
     }
 
     private var formPending: Bool {
@@ -278,11 +323,17 @@ public struct PluginView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let reason = PluginViewFormat.reasonLine(view, displayName: displayName, strings)
-        let keys = Self.actionRow(view, embedded: embedded).filter { $0.id != inlineAction?.id }
+        let places = self.places
+        // A card's footer holds its first three actions (R2.4); a page draws its places; the account view keeps its
+        // own arrangement.
+        // An unbound copy draws no keys at all.
+        let keys = view.readOnly ? [] : !embedded ? places.footer
+            : pageLayout ? [] : Self.actionRow(view, embedded: embedded).filter { $0.id != inlineAction?.id }
         let special = flareHasResolvedPresentation(view)
         let formTitle = Self.inlineHeading(inlineFormTitle)
         let formDescription = Self.inlineHeading(inlineFormDescription)
-        let content = VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+        // R1: a page's blocks are 16 apart (a card keeps its tighter rhythm).
+        let content = VStack(alignment: .leading, spacing: embedded ? FlareSizes.spacingLg : FlareSizes.spacingMd) {
             if !embedded && !special {
                 header(colors)
             } else if !view.available, !view.title.isEmpty {
@@ -304,10 +355,27 @@ public struct PluginView: View {
                 ResolvedPresentationView(view: view, busy: locked,
                     onRequest: { id in if let action = view.actions.first(where: { $0.id == id }) { run(action, PluginActionPayload()) } })
                 if view.readOnly, let reason { Text(reason).foregroundColor(colors.textTertiary) }
+            } else if view.available, pageLayout, let result = PluginExperienceRules.resultBlock(view) {
+                resultView(result)
             } else if view.available {
-                if !view.fields.isEmpty { PluginFieldRows(fields: view.fields) }
+                let card = pageLayout && PluginExperienceRules.statusCard(view)
+                if card { statusCardView(colors) }
+                let fields = card ? Self.statusCardRest(view).fields : view.fields
+                if !fields.isEmpty { PluginFieldRows(fields: fields) }
+                let skipped = (card ? Self.statusCardRest(view).skipped : [])
+                let quickAt = pageLayout ? Self.quickIndex(view) : nil
                 ForEach(Array(view.blocks.enumerated()), id: \.offset) { index, block in
-                    blockView(block, at: index)
+                    if index == quickAt {
+                        // R2.1: the overview card — the hero or stats with the quick keys at its foot.
+                        VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
+                            blockView(block, at: index)
+                            if !places.quick.isEmpty { quickRow(places.quick, colors) }
+                        }
+                        .padding(FlareSizes.spacingLg)
+                        .flarePluginCard(colors)
+                    } else if !skipped.contains(index) {
+                        blockView(block, at: index)
+                    }
                 }
                 if let action = inlineAction {
                     VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
@@ -320,26 +388,33 @@ public struct PluginView: View {
                             Text(description).font(.system(size: FlareSizes.fontSizeMd * textScale))
                                 .foregroundColor(colors.textSecondary).fixedSize(horizontal: false, vertical: true)
                         }
-                    PluginFormView(inputs: view.formInputs(for: action), errors: inlineForm.submitted ? formErrors : [],
-                                   submitLabel: action.label, busy: locked, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
+                    // R2.5: the key spins only while this form's own action runs; offline, another action or a
+                    // read-only view only disable it.
+                    let running = busy || busyActionId == action.id || inlineForm.pending
+                    PluginFormView(inputs: PluginExperienceRules.drawnInputs(view, action), errors: inlineForm.submitted ? formErrors : [],
+                                   submitLabel: action.label, busy: running, disabled: locked && !running, error: failure, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,  embedded: true,
                                    fileStates: fileStates, onFileAction: onFileAction,
                                    locationStates: locationStates, onLocationAction: onLocationAction,
-                                   nativeRequest: nativeRequest, onSubmit: { values in
+                                   nativeRequest: nativeRequest,
+                                   pinSubmit: pageLayout && !FlarePluginPage.refreshKeyInHeader, onSubmit: { values in
                         guard !locked, Self.inlineAction(view, id: action.id, hasAction: onAction != nil) != nil,
                               inlineForm.begin(action.id) else { return }
                         emit(PluginActionRun(action: action, payload: .empty, block: nil), formValues: values)
                     }).id("\(action.id)/\(inlineForm.revision)")
-                    }.frame(maxWidth: formTitle != nil || formDescription != nil ? FlareSizes.primaryPaneMaxWidth : .infinity, alignment: .leading)
+                    // R6: the form column is at most 560, at the leading side.
+                    }.frame(maxWidth: FlareSizes.componentFormColumnWidth, alignment: .leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                if !keys.isEmpty {
+                if pageLayout {
+                    pagePlaces(places, colors)
+                } else if !keys.isEmpty {
                     VStack(spacing: FlareSizes.spacing2xs) {
                         if !embedded { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
                         if actionLayout == .list {
                             VStack(spacing: 0) {
                                 ForEach(Array(keys.enumerated()), id: \.element.id) { index, action in
                                     if index > 0 { Divider() }
-                                    listAction(action)
+                                    listAction(action, colors)
                                 }
                                 if let onOpenDetail, PluginViewFormat.showsDetailKey(view, embedded: embedded) { detailKey(onOpenDetail) }
                             }
@@ -355,6 +430,10 @@ public struct PluginView: View {
                         }
                     }
                 }
+                // R2.5: why a footer key is off, under the keys.
+                ForEach(keys.filter { $0.disabledReason != nil }) { action in
+                    PluginCaption(text: action.disabledReason ?? "")
+                }
                 if view.readOnly, let reason {
                     Text(reason)
                         .font(.system(size: FlareSizes.fontSizeSm * textScale))
@@ -366,7 +445,9 @@ public struct PluginView: View {
                 StatusBannerView(text: failure, tone: .danger)
             }
         }
-        .frame(maxWidth: actionLayout == .compact ? nil : .infinity, alignment: .leading)
+        // A resolved presentation in the timeline (a red packet card) keeps its own width, so the message row can put an
+        // own card at the trailing edge (as Compose, Vue); everything else fills its place.
+        .frame(maxWidth: actionLayout == .compact || (special && !embedded) ? nil : .infinity, alignment: .leading)
         Group {
             if embedded || special {
                 content
@@ -393,14 +474,21 @@ public struct PluginView: View {
                               confirmText: request.action.label,
                               onConfirm: { confirming = nil; proceed(request) }, onCancel: { confirming = nil })
         }
-        .flareBottomSheet(item: $formRun, title: formRun?.action.label, dismissible: !formPending) { request in
-            PluginFormView(inputs: view.formInputs(for: request.action), errors: formSubmitted ? formErrors : [],
-                           busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
-                           fileStates: fileStates, onFileAction: onFileAction,
-                                   locationStates: locationStates, onLocationAction: onLocationAction,
-                           nativeRequest: nativeRequest, onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
-                           onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
+        // R6: up to four plain fields in a sheet; a longer form (or files, documents, members) as a page.
+        .flareBottomSheet(item: formRunBinding(.sheet), title: formRun?.action.label, dismissible: !formPending) { request in
+            actionForm(request, page: false)
         }
+        .flareFullScreen(item: formRunBinding(.page), label: formRun?.action.label, dismissible: !formPending) { request in
+            PluginPageFormLayer(title: request.action.label, onClose: { if !formPending { formRun = nil; formSubmitted = false } }) {
+                actionForm(request, page: true)
+            }
+        }
+        // R8: an open action form shows that action's failure itself; the page keeps no second banner behind it (as Vue).
+        .preference(key: PluginFormOpenKey.self, value: formRun != nil)
+        // A custom presentation or a result draws its own keys: nothing goes to the page's header or bar.
+        .preference(key: PluginPageChromeKey.self,
+                    value: !pageLayout || special ? nil
+                        : PluginExperienceRules.resultBlock(view) != nil ? resultChrome : pageChrome(places))
         .onChange(of: view) { _ in interaction.viewChanged() }
         .onChange(of: inlineAction?.id) { _ in inlineForm = PluginInlineFormState() }
         // A native request belongs to the form it was handed to: a later form starts without it.
@@ -419,21 +507,38 @@ public struct PluginView: View {
                     .foregroundColor(colors.primaryText)
                     .accessibilityHidden(true)
             }
+            // R5 (spec cardHeader): icon, the title taking the rest of the row on one line, then details and ⋯.
             Text(view.title)
                 .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .medium))
                 .foregroundColor(colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(1)
                 .accessibilityAddTraits(.isHeader)
-            if let onOpenDetail, Self.actionRow(view, embedded: embedded).isEmpty,
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let onOpenDetail, places.footer.isEmpty,
                PluginViewFormat.showsDetailKey(view, embedded: embedded) {
-                Spacer(minLength: FlareSizes.spacingSm)
-                detailKey(onOpenDetail)
+                headDetailKey(onOpenDetail, colors)
+                    .padding(.leading, FlareSizes.spacingXs)
             }
             if Self.showsMenuKey(view, embedded: embedded) {
-                Spacer(minLength: FlareSizes.spacingSm)
                 menuKey(colors)
             }
         }
+    }
+
+    /// R5: the head's details key — 13 secondary text and a 16 chevron, a 44 target.
+    private func headDetailKey(_ open: @escaping () -> Void, _ colors: FlareColors) -> some View {
+        Button(action: open) {
+            HStack(spacing: FlareSizes.spacing3xs) {
+                Text(strings.pluginViewDetail).font(.system(size: FlareSizes.fontSizeMd * textScale))
+                FlareIconImage(name: "chevron-right", size: FlareSizes.iconSizeSm, weight: .semibold)
+                    .accessibilityHidden(true)
+            }
+            .foregroundColor(colors.textSecondary)
+            .flareTouchTarget()
+        }
+        .buttonStyle(.plain)
+        .disabled(locked)
+        .fixedSize()
     }
 
     /// The menu actions as kit menu items, in order; style danger in the error colour.
@@ -441,15 +546,18 @@ public struct PluginView: View {
         view.menuActions.map { FlareActionItem(id: $0.id, label: $0.label, danger: $0.style == .danger) }
     }
 
-    /// The ⋯ key at the end of the title row: the kit action menu of the menu actions.
+    /// The ⋯ key at the end of the title row (R5: IconButton sm, 30 with a 16 glyph): the kit action menu of the menu
+    /// actions.
     private func menuKey(_ colors: FlareColors) -> some View {
-        let side = FlareSizes.iconSizeMd * textScale
-        return ActionMenuView(items: Self.menuItems(view), accessibilityLabel: strings.pluginViewMore,
+        let side = FlareControlSize.sm.square
+        let menu = places.menu
+        return ActionMenuView(items: menu.map { FlareActionItem(id: $0.id, label: $0.label, danger: $0.style == .danger) },
+                              accessibilityLabel: strings.pluginViewMore,
                               onSelect: { id in
-                                  guard let action = view.menuActions.first(where: { $0.id == id }) else { return }
+                                  guard let action = menu.first(where: { $0.id == id }) else { return }
                                   run(action, .empty)
                               }) {
-            FlareIconImage(name: "more", size: side, weight: .semibold)
+            FlareIconImage(name: "more", size: FlareControlSize.sm.glyph * textScale, weight: .medium)
                 .foregroundColor(colors.textSecondary)
                 .frame(width: side, height: side)
                 .flareTouchTarget()
@@ -486,7 +594,9 @@ public struct PluginView: View {
         case .note(let note): PluginNoteBlockView(block: note)
         case .rows(let rows):
             PluginRowsBlockView(block: rows, clock: clock, busyActionId: busyActionId, activeRow: activeRow,
-                                enabled: onAction != nil && !view.readOnly && !locked, labelRows: labelRows) { key, row in
+                                enabled: onAction != nil && !view.readOnly && !locked, labelRows: labelRows,
+                                pageRows: embedded && actionLayout == .page, users: users,
+                                emptyAction: emptyCreate.map { action in AnyView(placeKey(action, variant: .primary)) }) { key, row in
                 run(key.action, PluginActionPayload(row: PluginRowRef(key: row.key, input: key.input)))
             }
         case .section(let section):
@@ -494,6 +604,8 @@ public struct PluginView: View {
             PluginSectionBlockView(block: section) { child, block in
                 AnyView(blockView(block, at: Self.sectionChildIndex(section: index, child: child)))
             }
+            // R1: on a page a group starts 24 after what comes before it (16 + 8).
+            .padding(.top, embedded && index > 0 ? FlareSizes.spacing2xl - FlareSizes.spacingLg : 0)
         case .stats(let stats): PluginStatsBlockView(block: stats)
         case .chart(let chart): PluginChartBlockView(block: chart)
         case .image(let image): PluginImageBlockView(block: image, resolveImage: resolveImage)
@@ -510,6 +622,9 @@ public struct PluginView: View {
         case .protectedMedia(let media):
             PluginProtectedMediaBlockView(block: media, states: protectedMedia, busy: locked,
                                           onRead: view.readOnly ? nil : onProtectedMediaRead)
+        case .result(let result):
+            // A card or the account view: the outcome as its tag; a page draws FlareResultView instead.
+            PluginStatusBlockView(block: PluginStatusBlock(text: result.title, tone: result.tone, unmapped: result.unmapped))
         }
     }
 
@@ -525,25 +640,61 @@ public struct PluginView: View {
         ForEach(actions) { action in
             ButtonView(label: action.label, variant: PluginViewFormat.variant(action),
                        size: .sm, loading: busyActionId == action.id,
-                       disabled: (locked && busyActionId != action.id) || onAction == nil,
+                       disabled: (locked && busyActionId != action.id) || onAction == nil || action.disabledReason != nil,
                        block: actionLayout == .list,
-                       appearance: actionLayout == .inline ? .text : .standard,
+                       // A card's footer keys are buttons (R2.4, R2.6); only the account view keeps text keys.
+                       appearance: embedded && actionLayout == .inline ? .text : .standard,
                        maintainTouchTarget: true) { run(action, .empty) }
         }
     }
-    private func listAction(_ action: PluginViewAction) -> some View {
-        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let color = action.style == .danger ? colors.errorText : action.style == .primary ? colors.primaryText : colors.textSecondary
-        return Button { run(action, .empty) } label: {
-            HStack(spacing: FlareSizes.spacingSm) {
-                Text(action.label).font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: FlareSizes.spacingSm)
-                if busyActionId == action.id { ProgressView().controlSize(.small) }
-                else { FlareIconImage(name: "chevron-right", size: FlareSizes.iconSizeSm) }
-            }.foregroundColor(color).frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget, alignment: .leading)
-                .contentShape(Rectangle())
-        }.buttonStyle(.plain).disabled(locked || onAction == nil)
+    /// R2.1: an action as a kit settings row — the primary text whatever its role, its icon in the leading slot, a
+    /// chevron only on a destination. A danger row is centred in the error colour without a chevron (§12.3, as the
+    /// page's danger card, Vue `is-danger`, Compose `PluginDangerCard`) and always asks first.
+    @ViewBuilder
+    private func listAction(_ action: PluginViewAction, _ colors: FlareColors) -> some View {
+        let spinning = busyActionId == action.id
+        let off = !spinning && (locked || onAction == nil || action.disabledReason != nil)
+        if action.style == .danger {
+            Button { run(action.confirm == nil ? Self.confirming(action) : action, .empty) } label: {
+                Text(action.label)
+                    .font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
+                    .foregroundColor(colors.errorText)
+                    .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget)
+                    .overlay(alignment: .trailing) { if spinning { ProgressView().controlSize(.small) } }
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(off || spinning)
+            .opacity(off ? FlareOpacity.disabled : 1)
+        } else {
+            FlareSettingsRow(item: FlareSettingsItem(
+                key: action.id, label: action.label,
+                icon: action.icon.flatMap { flareIconNames.contains($0) ? $0 : nil },
+                kind: !spinning && PluginExperienceRules.role(action) == .destination ? .navigation : .action,
+                disabled: off),
+                onSelect: { _ in run(action, .empty) })
+                .overlay(alignment: .trailing) { if spinning { ProgressView().controlSize(.small) } }
+        }
+    }
+
+    /// Opens a form run in the place R6 gives it: the presenter of the other place sees nothing.
+    private func formRunBinding(_ placement: PluginFormPlacement) -> Binding<PluginActionRun?> {
+        Binding(get: { formRun.flatMap { Self.formPlacement(view, $0.action) == placement ? $0 : nil } },
+                set: { if $0 == nil { formRun = nil } })
+    }
+
+    /// An action's form: in a sheet with cancel and submit, or as a page whose submit is pinned on touch.
+    private func actionForm(_ request: PluginActionRun, page: Bool) -> some View {
+        PluginFormView(inputs: PluginExperienceRules.drawnInputs(view, request.action), errors: formSubmitted ? formErrors : [],
+                       submitLabel: request.action.label,
+                       busy: formPending, error: formSubmitted ? failure : nil, members: members, membersLoading: membersLoading, membersRevision: membersRevision, membersError: membersError, onMemberSearch: onMemberSearch, onMembersRetry: onMembersRetry,
+                       embedded: page,
+                       fileStates: fileStates, onFileAction: onFileAction,
+                       locationStates: locationStates, onLocationAction: onLocationAction,
+                       nativeRequest: nativeRequest, pinSubmit: page && !FlarePluginPage.refreshKeyInHeader,
+                       onSubmit: { values in formSubmitted = true; emit(request, formValues: values) },
+                       onCancel: { if !formPending { formRun = nil; formSubmitted = false } })
+            .pageForm()
     }
 
     // MARK: Behaviour
@@ -575,7 +726,8 @@ public struct PluginView: View {
 
     /// Confirm, then collect the form, then hand the action over.
     private func run(_ action: PluginViewAction, _ payload: PluginActionPayload, block: Int? = nil) {
-        guard !locked, onAction != nil else { return }
+        // R2.5: a disabled action runs nothing — no confirm, no form.
+        guard !locked, onAction != nil, action.disabledReason == nil else { return }
         // A native target writing `into` an input of a form on this view runs through that input's own key, so
         // the host's answer is written into the form's current scope (no earlier touch of the input needed).
         if payload.row == nil, let target = action.target {
@@ -661,6 +813,352 @@ public struct PluginView: View {
     }
 }
 
+// MARK: - Page places (R2, R5, R7, R8, 6.1)
+
+extension PluginView {
+    /// Where an action form opens (R6): a sheet for ≤ 4 drawn fields without files or members, else a page form (a
+    /// large sheet here).
+    static func formPlacement(_ view: PluginViewModel, _ action: PluginViewAction) -> PluginFormPlacement {
+        PluginExperienceRules.formPlacement(PluginExperienceRules.drawnInputs(view, action).map(\.kind), inline: false)
+    }
+
+    /// The top-level block the overview card's quick keys follow: the first hero or stats, or a section holding one.
+    static func quickIndex(_ view: PluginViewModel) -> Int? {
+        view.blocks.firstIndex { block in
+            switch block {
+            case .hero, .stats: return true
+            case .section(let section):
+                return section.blocks.contains { if case .hero = $0 { return true }; if case .stats = $0 { return true }; return false }
+            default: return false
+            }
+        }
+    }
+
+    /// What a status card (6.1) takes from the view: the status field, the description, the steps; the blocks it
+    /// replaces (the steps, the first text or note, banners) and the fields left to draw.
+    static func statusCardRest(_ view: PluginViewModel)
+        -> (status: PluginViewField?, description: String?, steps: PluginStepsBlock?, fields: [PluginViewField], skipped: Set<Int>) {
+        let status = view.fields.first { $0.tone != nil || $0.unmapped } ?? view.fields.first
+        var description: String?, steps: PluginStepsBlock?, skipped = Set<Int>()
+        for (index, block) in view.blocks.enumerated() {
+            switch block {
+            case .steps(let s) where steps == nil: steps = s; skipped.insert(index)
+            case .text(let t) where description == nil: description = t.text; skipped.insert(index)
+            case .note(let n) where description == nil: description = n.text; skipped.insert(index)
+            case .banner: skipped.insert(index)
+            default: break
+            }
+        }
+        var fields = view.fields
+        if let status, let at = fields.firstIndex(of: status) { fields.remove(at: at) }
+        return (status, description, steps, fields, skipped)
+    }
+
+    /// The create action an empty rows block offers on this page.
+    var emptyCreate: PluginViewAction? {
+        guard pageLayout else { return nil }
+        return PluginExperienceRules.emptyCreateAction(view, places: places)
+    }
+
+    /// R7 on touch: the result's done key pinned to the page's bottom bar.
+    var resultChrome: PluginPageChrome? {
+        guard !FlarePluginPage.refreshKeyInHeader, let onDone else { return nil }
+        return PluginPageChrome(header: [], bar: [PluginViewAction(id: "flare.result.done", label: strings.pluginViewDone,
+                                                                    style: .primary)],
+                                barSecondary: [], busyActionId: nil, locked: busy || busyActionId != nil, offline: false,
+                                run: { _ in onDone() })
+    }
+
+    /// The page chrome this view hands up: the header key, and on touch the pinned bar (R2.2, R2.3).
+    func pageChrome(_ places: PluginActionPlaces) -> PluginPageChrome {
+        let empty = emptyCreate?.id
+        let touch = !FlarePluginPage.refreshKeyInHeader || hoistsBar
+        return PluginPageChrome(header: places.header.filter { $0.id != empty },
+                                bar: touch ? places.bar : [], barSecondary: touch ? places.barSecondary : [],
+                                busyActionId: busyActionId, locked: locked || onAction == nil, offline: offline,
+                                run: { action in run(action, .empty) })
+    }
+
+    /// One action key of a page place; the busy action spins, the rest wait (R2.5).
+    func placeKey(_ action: PluginViewAction, variant: FlareButtonVariant, size: FlareControlSize = .md,
+                  block: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            ButtonView(label: action.label, variant: action.style == .danger ? .danger : variant, size: size,
+                       loading: busyActionId == action.id,
+                       disabled: (locked && busyActionId != action.id) || onAction == nil || action.disabledReason != nil,
+                       block: block) { run(action, .empty) }
+                .frame(minWidth: block ? nil : FlareSizes.componentActionMinWidth)
+            if let reason = action.disabledReason {
+                PluginCaption(text: reason)
+            }
+        }
+    }
+
+    /// R2.1: the overview card's quick keys — phone equal widths 48 high, pointer natural widths 40 high.
+    func quickRow(_ actions: [PluginViewAction], _ colors: FlareColors) -> some View {
+        let touch = !FlarePluginPage.refreshKeyInHeader
+        return VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            HStack(spacing: FlareSizes.spacingSm) {
+                ForEach(actions) { action in
+                    placeKey(action, variant: PluginExperienceRules.role(action) == .primary ? .primary : .secondary,
+                             size: touch ? .lg : .md, block: touch)
+                }
+                if !touch { Spacer(minLength: 0) }
+            }
+            if offline { PluginCaption(text: strings.pluginViewAvailableOnline) }
+        }
+    }
+
+    /// The places after the body: a pointer's task row, the command row, the list cards, more, danger.
+    @ViewBuilder func pagePlaces(_ places: PluginActionPlaces, _ colors: FlareColors) -> some View {
+        let touch = !FlarePluginPage.refreshKeyInHeader || hoistsBar
+        if !touch, !(places.bar + places.barSecondary).isEmpty {
+            VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    ForEach(places.bar) { placeKey($0, variant: .primary) }
+                    ForEach(places.barSecondary) { placeKey($0, variant: .secondary) }
+                }
+                if offline { PluginCaption(text: strings.pluginViewAvailableOnline) }
+            }
+            .padding(.top, FlareSizes.spacingMd)
+        }
+        if !places.commands.isEmpty {
+            FlareFlowLayout(spacing: FlareSizes.spacingSm, lineSpacing: FlareSizes.spacingSm) {
+                ForEach(places.commands) { placeKey($0, variant: .secondary) }
+            }
+        }
+        ForEach(Array(places.list.enumerated()), id: \.offset) { _, group in
+            listCard(group.group == "records" ? strings.pluginViewGroupRecords
+                     : group.group == "common" ? strings.pluginViewGroupCommon : nil, group.actions, colors)
+        }
+        if !places.more.isEmpty { listCard(strings.pluginViewMore, places.more, colors) }
+        if !places.danger.isEmpty { listCard(nil, places.danger, colors, danger: true) }
+    }
+
+    /// A kit list card of actions: rows in the primary text whatever the role, an action's icon in the leading slot,
+    /// a chevron only on a destination; danger rows in the error colour without one (always through DangerConfirm).
+    func listCard(_ title: String?, _ actions: [PluginViewAction], _ colors: FlareColors, danger: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+            if let title {
+                Text(title)
+                    .font(.system(size: FlareTextRoles.section.fontSize * textScale, weight: .semibold))
+                    .foregroundColor(colors.textSecondary)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            VStack(spacing: 0) {
+                ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
+                    if index > 0 { Divider().overlay(colors.borderSecondary) }
+                    let spinning = busyActionId == action.id
+                    let off = locked || onAction == nil || action.disabledReason != nil
+                    VStack(alignment: danger ? .center : .leading, spacing: 0) {
+                        if danger {
+                            // R2.1: a danger row is centred, in the error colour (§12.3), without a chevron.
+                            Button { run(action.confirm == nil ? Self.confirming(action) : action, .empty) } label: {
+                                Text(action.label)
+                                    .font(.system(size: FlareSizes.fontSizeLg * textScale, weight: .medium))
+                                    .foregroundColor(colors.errorText)
+                                    .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget)
+                                    .overlay(alignment: .trailing) { if spinning { ProgressView().controlSize(.small) } }
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(off)
+                            .opacity(off && !spinning ? FlareOpacity.disabled : 1)
+                        } else {
+                            FlareSettingsRow(item: FlareSettingsItem(
+                                key: action.id, label: action.label,
+                                icon: action.icon.flatMap { flareIconNames.contains($0) ? $0 : nil },
+                                // The running row trades its chevron for a spinner (R2.5).
+                                kind: !spinning && PluginExperienceRules.role(action) == .destination ? .navigation : .action,
+                                disabled: off, danger: false),
+                                onSelect: { _ in run(action, .empty) })
+                                .overlay(alignment: .trailing) { if spinning { ProgressView().controlSize(.small) } }
+                        }
+                        // R2.5: why the row is off, under its label (a danger row's too).
+                        if let reason = action.disabledReason {
+                            PluginCaption(text: reason)
+                                .padding(.leading, danger || action.icon == nil ? 0 : FlareSizes.iconSizeMd + FlareSizes.spacingMd)
+                                .padding(.bottom, FlareSizes.spacingSm)
+                        }
+                    }
+                    .padding(.horizontal, FlareSizes.spacingLg)
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            .flarePluginCard(colors)
+        }
+    }
+
+    /// A danger action with no confirm of its own still asks first (R2.1), in its own words.
+    static func confirming(_ action: PluginViewAction) -> PluginViewAction {
+        PluginViewAction(id: action.id, label: action.label, style: action.style, confirm: action.label,
+                         form: action.form, target: action.target, group: action.group, icon: action.icon,
+                         disabledReason: action.disabledReason)
+    }
+
+    /// R7: the result block as FlareResultView; the view's fields are its details and its actions follow as secondary
+    /// keys. The page polls while it is pending (``FlarePluginPage``).
+    func resultView(_ result: PluginResultBlock) -> some View {
+        let facts = PluginExperienceRules.resultFacts(result, unknownTitle: strings.pluginViewUnknownStatus)
+        let actions = PluginExperienceRules.topLevelActions(view, embedded: true)
+        return FlareResultView(
+            title: facts.title, tone: facts.tone,
+            amount: result.amount.map { PluginFormatRules.text($0, result.format, strings) },
+            description: result.description, details: view.fields, busy: locked,
+            // R7: on touch the done key is pinned to the page's bottom bar (``resultChrome``).
+            onDone: FlarePluginPage.refreshKeyInHeader ? onDone : nil,
+            actions: actions.isEmpty ? nil : AnyView(VStack(spacing: FlareSizes.spacingSm) {
+                ForEach(actions) { placeKey($0, variant: .secondary, size: .lg, block: true) }
+            }))
+    }
+
+    /// 6.1: the status card — a tone icon 48, the status as the title, a description line, the steps and the key.
+    func statusCardView(_ colors: FlareColors) -> some View {
+        let parts = Self.statusCardRest(view)
+        let draw = parts.status.map {
+            PluginExperienceRules.statusDraw(text: $0.value, tone: $0.tone, unmapped: $0.unmapped, context: "\(scope)statusCard:\($0.label)")
+        }
+        let tone = draw?.tone ?? .neutral
+        let title = draw.map { $0.unknown ? strings.pluginViewUnknownStatus : $0.text } ?? view.title
+        let icon = PluginExperienceRules.statusCardIcon(tone, unknown: draw?.unknown == true, hasKey: statusCardKey != nil)
+        // 6.1: a 24 icon in a 48 tone circle.
+        let circle = FlareSizes.iconSizeLg * 2
+        return VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+            HStack(spacing: FlareSizes.spacingMd) {
+                FlareIconImage(name: icon, size: FlareSizes.iconSizeLg, weight: .semibold)
+                    .foregroundColor(pluginToneText(tone, colors))
+                    .frame(width: circle, height: circle)
+                    .background(Circle().fill(pluginToneFill(tone, colors).opacity(FlareOpacity.tintWeak)))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                    Text(title).font(.system(size: FlareTextRoles.title.fontSize * textScale, weight: .bold))
+                        .foregroundColor(colors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    if let description = parts.description {
+                        Text(description).font(.system(size: FlareSizes.fontSizeLg * textScale))
+                            .foregroundColor(colors.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            if let steps = parts.steps { PluginStepsBlockView(block: steps) }
+            if let key = statusCardKey {
+                placeKey(key, variant: .primary, size: .lg, block: true)
+                if offline { PluginCaption(text: strings.pluginViewAvailableOnline) }
+            }
+        }
+        .padding(FlareSizes.spacingLg)
+        .flarePluginCard(colors)
+    }
+}
+
+/// R6: an action's long form as a page of its own — the action's name as the title, a back key that closes it while
+/// it is not running, the form in its 560 column, its submit pinned to the bottom on touch.
+struct PluginPageFormLayer<Content: View>: View {
+    let title: String
+    let onClose: () -> Void
+    @ViewBuilder let content: Content
+    @State private var submit: PluginFormSubmit?
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        FlareScreen(title: title, onBack: onClose, surface: .surface) {
+            content
+                .frame(maxWidth: FlareSizes.componentFormColumnWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, FlarePluginPage.pageMargin)
+                .padding(.vertical, FlareSizes.spacingMd)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if let submit {
+                VStack(spacing: FlareSizes.spacingSm) {
+                    ButtonView(label: submit.label, size: .lg, loading: submit.busy, disabled: submit.disabled, block: true,
+                               action: submit.submit)
+                    if let caption = submit.caption { PluginCaption(text: caption) }
+                }
+                .padding(.horizontal, FlareSizes.spacingLg)
+                .padding(.vertical, FlareSizes.spacingMd)
+                .background(colors.bgPrimary.ignoresSafeArea(edges: .bottom))
+                .overlay(alignment: .top) { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
+            }
+        }
+        .onPreferenceChange(PluginFormSubmitKey.self) { submit = $0 }
+    }
+}
+
+/// What a plugin page view hands its page: the header key and, on touch, the bottom bar's keys (R2.2, R2.3). The keys
+/// run through the view's own runner (confirm, form, settle).
+struct PluginPageChrome: Equatable {
+    var header: [PluginViewAction]
+    var bar: [PluginViewAction]
+    var barSecondary: [PluginViewAction]
+    var busyActionId: String?
+    var locked: Bool
+    var offline: Bool
+    var run: (PluginViewAction) -> Void
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.header == rhs.header && lhs.bar == rhs.bar && lhs.barSecondary == rhs.barSecondary
+            && lhs.busyActionId == rhs.busyActionId && lhs.locked == rhs.locked && lhs.offline == rhs.offline
+    }
+}
+
+/// Whether an action form (sheet or page) is open in a plugin view below: the page then leaves its failure to the form.
+struct PluginFormOpenKey: PreferenceKey {
+    static var defaultValue: Bool { false }
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
+}
+
+struct PluginPageChromeKey: PreferenceKey {
+    static var defaultValue: PluginPageChrome? { nil }
+    static func reduce(value: inout PluginPageChrome?, nextValue: () -> PluginPageChrome?) {
+        if value == nil { value = nextValue() }
+    }
+}
+
+/// A caption line under a key (R2.5 reasons, R8 offline).
+struct PluginCaption: View {
+    let text: String
+    @ScaledMetric(relativeTo: .caption) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+
+    var body: some View {
+        Text(text).font(.system(size: FlareTextRoles.caption.fontSize * textScale))
+            .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// A field's value (R3): a toned value as the kit Tag, an unmapped one as the unknown status (never the raw text),
+/// else the text through its format.
+struct PluginFieldValue: View {
+    let field: PluginViewField
+    var alignment: Alignment = .leading
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
+    @Environment(\.flarePluginScope) private var scope
+
+    var body: some View {
+        let draw = PluginExperienceRules.statusDraw(text: field.value, tone: field.tone, unmapped: field.unmapped,
+                                                    context: "\(scope)field:\(field.label)")
+        Group {
+            if draw.tag {
+                PluginBadgeView(badge: PluginBadge(text: draw.unknown ? strings.pluginViewUnknownStatus : draw.text,
+                                                   tone: draw.tone ?? .neutral))
+            } else {
+                Text(PluginFormatRules.text(field.value, field.format, strings))
+                    .foregroundColor(FlareColors.of(scheme, brand: flareBrandTheme).textPrimary)
+                    .multilineTextAlignment(alignment == .trailing ? .trailing : .leading)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: alignment)
+    }
+}
+
 /// An action on its way out: confirmation and form come first; `block` marks a choices submit.
 struct PluginActionRun: Identifiable {
     let id = UUID()
@@ -693,7 +1191,8 @@ func pluginToneGround(_ tone: PluginTone?, _ colors: FlareColors) -> Color {
     }
 }
 
-/// Label/value rows; a value with a `count` or `duration` format is written in the viewer's words.
+/// Label/value rows; a value with a `count` or `duration` format is written in the viewer's words, a toned or
+/// unmapped value as its Tag (R3). Reference fields fold into "单号与凭据" after the others, each with a copy key.
 struct PluginFieldRows: View {
     let fields: [PluginViewField]
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
@@ -703,16 +1202,65 @@ struct PluginFieldRows: View {
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        let split = PluginExperienceRules.splitReferences(fields)
         VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
-            ForEach(Array(fields.enumerated()), id: \.offset) { _, field in
+            ForEach(Array(split.main.enumerated()), id: \.offset) { _, field in
                 HStack(alignment: .firstTextBaseline, spacing: FlareSizes.spacingMd) {
                     Text(field.label).foregroundColor(colors.textSecondary)
                         .frame(minWidth: 56, alignment: .leading)
-                    Text(PluginFormatRules.text(field.value, field.format, strings)).foregroundColor(colors.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    PluginFieldValue(field: field)
                 }
                 .font(.system(size: FlareSizes.fontSizeLg * textScale))
                 .accessibilityElement(children: .combine)
+            }
+            if !split.references.isEmpty { PluginReferenceRows(fields: split.references) }
+        }
+    }
+}
+
+/// R3: the reference fields folded into "单号与凭据" — closed at first, each row with a copy key.
+struct PluginReferenceRows: View {
+    let fields: [PluginViewField]
+    @State private var referencesOpen = false
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
+
+    var body: some View {
+        let colors = FlareColors.of(scheme, brand: flareBrandTheme)
+        VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
+            if !fields.isEmpty {
+                Button { referencesOpen.toggle() } label: {
+                    HStack(spacing: FlareSizes.spacingXs) {
+                        Text(strings.pluginViewReferences)
+                            .font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
+                            .foregroundColor(colors.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        FlareIconImage(name: referencesOpen ? "chevron-up" : "chevron-down", size: FlareSizes.iconSizeSm)
+                            .foregroundColor(colors.textTertiary)
+                    }
+                    .frame(minHeight: FlareSizes.touchTargetMin)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityValue(referencesOpen ? strings.collapse : strings.expand)
+                if referencesOpen {
+                    ForEach(Array(fields.enumerated()), id: \.offset) { _, field in
+                        let value = PluginFormatRules.text(field.value, field.format, strings)
+                        HStack(alignment: .center, spacing: FlareSizes.spacingMd) {
+                            Text(field.label).foregroundColor(colors.textSecondary)
+                                .frame(minWidth: 56, alignment: .leading)
+                            Text(value).foregroundColor(colors.textPrimary).textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            IconButtonView(icon: "copy",
+                                           accessibilityLabel: strings.pluginViewCopyReference.replacingOccurrences(of: "{label}", with: field.label),
+                                           size: .sm) { flarePluginBundleCopy(value) }
+                        }
+                        .font(.system(size: FlareSizes.fontSizeMd * textScale))
+                    }
+                }
             }
         }
     }
@@ -900,8 +1448,9 @@ struct PluginEntriesBlockView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
             if block.items.isEmpty {
+                // R8: the block's empty text as the compact empty state.
                 if let empty = block.emptyText, !empty.isEmpty {
-                    Text(empty).font(.system(size: FlareSizes.fontSizeMd * textScale)).foregroundColor(colors.textTertiary)
+                    EmptyStateView(title: empty, icon: "clock", compact: true).frame(maxWidth: .infinity)
                 }
             } else {
                 // Positions, not indices: a grouped list numbers each group from 1, so an index repeats.
@@ -1000,12 +1549,17 @@ struct PluginBadgeView: View {
     @ScaledMetric(relativeTo: .caption) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flareStrings) private var strings
+    @Environment(\.flarePluginScope) private var scope
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let ink = pluginToneText(badge.tone, colors)
+        let draw = PluginExperienceRules.statusDraw(text: badge.text, tone: badge.tone, unmapped: badge.unmapped,
+                                                    context: "\(scope)badge")
+        let tone = draw.tone ?? .neutral
+        let ink = pluginToneText(tone, colors)
         let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusSm, style: .continuous)
-        Text(badge.text)
+        Text(draw.unknown ? strings.pluginViewUnknownStatus : draw.text)
             .font(.system(size: FlareTextRoles.caption.fontSize * textScale, weight: .medium))
             .foregroundColor(ink)
             .lineLimit(1)
@@ -1013,7 +1567,7 @@ struct PluginBadgeView: View {
             .padding(.vertical, FlareSizes.spacing3xs)
             .background(ZStack {
                 shape.fill(colors.bgPrimary)
-                shape.fill(pluginBadgeGround(badge.tone, colors))
+                shape.fill(pluginBadgeGround(tone, colors))
             })
             // Decoration only: the edge must not take a tap meant for the row around it.
             .overlay(shape.stroke(ink.opacity(0.18), lineWidth: 1).allowsHitTesting(false))
@@ -1031,42 +1585,123 @@ struct PluginRowsBlockView: View {
     let activeRow: String?
     let enabled: Bool
     var labelRows = false
+    /// On a plugin page (rules.pageRows): only there is a row whose only key opens a page the whole row (rules.rowTap);
+    /// a card's rows keep their keys, as on the other kits.
+    var pageRows = false
+    /// The host's names for the user ids person cells carry (spec rules.rowsIcon: a name, never the id).
+    var users: [String: PluginUser] = [:]
+    /// R8: the page's create action under the empty state.
+    var emptyAction: AnyView? = nil
     let onKey: (PluginRowKey, PluginRow) -> Void
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.flarePluginClearFilters) private var clearFilters
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let rows = PluginViewFormat.rowsOnce(block.rows)
-        if rows.isEmpty {
+        let rows = PluginViewFormat.rowsOnce(block.rows).map { PluginViewFormat.namedRow($0, resolved: users) }
+        if rows.isEmpty, let clearFilters {
+            // 5.8: nothing under the filter: say so and offer to clear it.
+            EmptyStateView(title: strings.pluginViewFilterEmpty, icon: block.icon ?? "clock",
+                           actions: AnyView(ButtonView(label: strings.pluginViewClearFilter, variant: .secondary, size: .sm,
+                                                       action: clearFilters)),
+                           compact: true)
+                .frame(maxWidth: .infinity)
+        } else if rows.isEmpty {
             let empty = block.emptyText.flatMap { $0.isEmpty ? nil : $0 } ?? strings.pluginViewEmpty
-            Text(empty)
-                .font(.system(size: FlareSizes.fontSizeMd * textScale))
-                .foregroundColor(colors.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            EmptyStateView(title: empty, icon: block.icon ?? "clock", actions: emptyAction, compact: true)
+                .frame(maxWidth: .infinity)
         } else {
             let now = clock.now()
             let days = PluginViewFormat.rowDayHeadings(
                 PluginRowsBlock(columns: block.columns, rows: rows, groupByDay: block.groupByDay),
                 nowMs: now, strings, utcOffsetMinutes: clock.utcOffsetMinutes)
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.element.key) { position, row in
-                    if let day = days[position] {
-                        Text(day)
-                            .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .semibold))
-                            .foregroundColor(colors.textSecondary)
-                            .padding(.top, position == 0 ? 0 : FlareSizes.spacingMd)
-                            .padding(.bottom, FlareSizes.spacingXs)
-                            .accessibilityAddTraits(.isHeader)
-                    } else if position > 0 { PluginDivider() }
-                    item(row, lines: PluginViewFormat.rowLines(block, row, nowMs: now, strings,
-                                                               utcOffsetMinutes: clock.utcOffsetMinutes), colors)
-                        .padding(.top, position == 0 ? 0 : FlareSizes.spacingSm)
-                        .padding(.bottom, position == rows.count - 1 ? 0 : FlareSizes.spacingSm)
+            // 5.8: a day heading sticks to the page's top edge while its rows scroll under it (as Vue, Compose); the
+            // heading's own ground hides the rows passing behind it.
+            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                ForEach(Self.daySections(days, count: rows.count), id: \.self) { section in
+                    Section {
+                        ForEach(section, id: \.self) { position in
+                            if position > 0 && days[position] == nil { PluginDivider() }
+                            line(rows[position], position: position, count: rows.count, now: now, colors)
+                        }
+                    } header: {
+                        if let first = section.first, let day = days[first] {
+                            Text(day)
+                                .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .semibold))
+                                .foregroundColor(colors.textSecondary)
+                                .padding(.top, first == 0 ? 0 : FlareSizes.spacingMd)
+                                .padding(.bottom, FlareSizes.spacingXs)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(colors.bgPrimary)
+                                .accessibilityAddTraits(.isHeader)
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    /// The row positions grouped under their day headings: a new group starts at each heading (the first group has
+    /// none when the rows are not grouped by day).
+    static func daySections(_ days: [String?], count: Int) -> [[Int]] {
+        (0..<count).reduce(into: [[Int]]()) { sections, position in
+            if sections.isEmpty || days[position] != nil { sections.append([position]) } else { sections[sections.count - 1].append(position) }
+        }
+    }
+
+    @ViewBuilder
+    private func line(_ row: PluginRow, position: Int, count rowCount: Int, now: Int64, _ colors: FlareColors) -> some View {
+        tappable(row, colors) {
+            if block.icon != nil && !labelRows {
+                record(row, line: PluginViewFormat.recordLine(block, row, nowMs: now, strings,
+                                                              utcOffsetMinutes: clock.utcOffsetMinutes), colors)
+            } else {
+                item(row, lines: PluginViewFormat.rowLines(block, row, nowMs: now, strings,
+                                                           utcOffsetMinutes: clock.utcOffsetMinutes), colors)
+            }
+        }
+        .padding(.top, position == 0 ? 0 : FlareSizes.spacingSm)
+        .padding(.bottom, position == rowCount - 1 ? 0 : FlareSizes.spacingSm)
+    }
+
+    private func rowTap(_ row: PluginRow) -> PluginRowKey? {
+        Self.rowTap(block, row, pageRows: pageRows, labelRows: labelRows)
+    }
+
+    /// rules.rowTap on a page's list only (Vue `rows-layout="list"` without label rows, Compose's page rows).
+    static func rowTap(_ block: PluginRowsBlock, _ row: PluginRow, pageRows: Bool, labelRows: Bool) -> PluginRowKey? {
+        pageRows && !labelRows ? PluginViewFormat.rowTap(block, row) : nil
+    }
+
+    /// R2.3 (rules.rowTap): a row whose only key opens a page is one button that runs it, ending with a 16 chevron;
+    /// it is off while the view is busy.
+    @ViewBuilder
+    private func tappable<Content: View>(_ row: PluginRow, _ colors: FlareColors,
+                                         @ViewBuilder _ content: () -> Content) -> some View {
+        if let tap = rowTap(row) {
+            Button { onKey(tap, row) } label: {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    content()
+                    // The row that ran its action spins in place of the chevron, as its key would.
+                    if Self.spins(tap, row: row, busyActionId: busyActionId, activeRow: activeRow) {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        FlareIconImage(name: "chevron-right", size: FlareSizes.iconSizeSm)
+                            .foregroundColor(colors.textTertiary)
+                            .accessibilityHidden(true)
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!enabled)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+        } else {
+            content()
         }
     }
 
@@ -1075,8 +1710,58 @@ struct PluginRowsBlockView: View {
         busyActionId == key.action.id && activeRow == row.key
     }
 
+    /// §4.7 / 5.8: a record row — the icon in a 36 circle, the title over its line, the value with its Tags at the end;
+    /// its keys follow as on any row.
+    private func record(_ row: PluginRow, line: PluginRecordLine, _ colors: FlareColors) -> some View {
+        let keys = rowTap(row) == nil ? PluginViewFormat.rowKeys(block, row) : []
+        let income = line.value.trimmingCharacters(in: .whitespaces).hasPrefix("+")
+        return HStack(spacing: FlareSizes.spacingMd) {
+            HStack(spacing: FlareSizes.spacingMd) {
+                FlareIconImage(name: PluginViewFormat.recordIcon(block.icon, value: line.value), size: FlareSizes.iconSizeMd)
+                    .foregroundColor(income ? colors.successText : colors.textSecondary)
+                    .frame(width: FlareSizes.componentRecordIconSize, height: FlareSizes.componentRecordIconSize)
+                    .background(Circle().fill(income ? colors.success.opacity(FlareOpacity.tintWeak) : colors.bgTertiary))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: FlareSizes.spacing3xs) {
+                    HStack(spacing: FlareSizes.spacingXs) {
+                        Text(line.title).font(.system(size: FlareSizes.fontSizeXl * textScale))
+                            .foregroundColor(colors.textPrimary).lineLimit(1)
+                        if let badge = row.badge { PluginBadgeView(badge: badge) }
+                    }
+                    if let secondary = line.line {
+                        Text(secondary).font(.system(size: FlareSizes.fontSizeSm * textScale))
+                            .foregroundColor(colors.textTertiary).lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .trailing, spacing: FlareSizes.spacing3xs) {
+                    Text(PluginViewFormat.signedValue(line.value))
+                        .font(.system(size: FlareSizes.fontSize2xl * textScale, weight: .semibold).monospacedDigit())
+                        .foregroundColor(income ? colors.successText : colors.textPrimary)
+                        .lineLimit(1)
+                    ForEach(Array(line.tags.enumerated()), id: \.offset) { _, cell in
+                        PluginBadgeView(badge: PluginBadge(text: cell.text, tone: cell.tone ?? .neutral, unmapped: cell.unmapped))
+                    }
+                }
+            }
+            // The record reads as one item; its keys stay their own controls.
+            .accessibilityElement(children: .combine)
+            if !keys.isEmpty {
+                HStack(spacing: FlareSizes.spacingXs) {
+                    ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
+                        let spinning = Self.spins(key, row: row, busyActionId: busyActionId, activeRow: activeRow)
+                        ButtonView(label: key.action.label, variant: PluginViewFormat.variant(key.action), size: .sm,
+                                   loading: spinning, disabled: !enabled && !spinning) { onKey(key, row) }
+                    }
+                }
+                .fixedSize()
+            }
+        }
+        .frame(minHeight: FlareSizes.componentRecordRowHeight)
+    }
+
     private func item(_ row: PluginRow, lines: PluginRowLines, _ colors: FlareColors) -> some View {
-        let keys = PluginViewFormat.rowKeys(block, row)
+        let keys = rowTap(row) == nil ? PluginViewFormat.rowKeys(block, row) : []
         return HStack(spacing: FlareSizes.spacingSm) {
             VStack(alignment: .leading, spacing: FlareSizes.spacingXs) {
                 if labelRows, let label = block.columns.first?.label, !label.isEmpty {
@@ -1088,6 +1773,10 @@ struct PluginRowsBlockView: View {
                         .font(.system(size: FlareSizes.fontSizeMd * textScale).monospacedDigit())
                         .foregroundColor(colors.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
+                    // R3: a cell with a tone (a status column) draws its Tag on the item.
+                    ForEach(Array(row.cells.enumerated()).filter { $0.element.tone != nil || $0.element.unmapped }, id: \.offset) { _, cell in
+                        PluginBadgeView(badge: PluginBadge(text: cell.text, tone: cell.tone ?? .neutral, unmapped: cell.unmapped))
+                    }
                 }
                 if labelRows {
                     PluginFieldRows(fields: PluginViewFormat.rowFields(block, row, nowMs: clock.now(), strings, utcOffsetMinutes: clock.utcOffsetMinutes))
@@ -1152,12 +1841,13 @@ struct PluginPeopleBlockView: View {
     }
 }
 
-/// A badge, after its label.
+/// A badge, after its label; a value outside the plugin's values reads the unknown status (R3).
 struct PluginStatusBlockView: View {
     let block: PluginStatusBlock
     @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @Environment(\.flarePluginScope) private var scope
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
@@ -1165,11 +1855,10 @@ struct PluginStatusBlockView: View {
             if let label = block.label, !label.isEmpty {
                 Text(label).font(.system(size: FlareSizes.fontSizeMd * textScale)).foregroundColor(colors.textSecondary)
             }
-            Text(block.text)
-                .font(.system(size: FlareSizes.fontSizeSm * textScale, weight: .semibold))
-                .foregroundColor(pluginToneText(block.tone, colors))
-                .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacing3xs)
-                .background(Capsule().fill(pluginToneGround(block.tone, colors)))
+            // R3: the one Tag look (``PluginBadgeView``), the unknown status for a value outside the declared ones.
+            PluginBadgeView(badge: PluginBadge(text: block.text, tone: block.tone, unmapped: block.unmapped))
+                .fixedSize()
+                .environment(\.flarePluginScope, "\(scope)status:\(block.label ?? ""):")
         }
         .accessibilityElement(children: .combine)
     }
@@ -1277,12 +1966,45 @@ struct PluginNoteBlockView: View {
 
     var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        Text(block.text)
-            .font(.system(size: FlareSizes.fontSizeMd * textScale))
-            .foregroundColor(block.tone == nil || block.tone == .neutral ? colors.textSecondary : pluginToneText(block.tone, colors))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
-            .background(RoundedRectangle(cornerRadius: FlareSizes.radiusSm, style: .continuous)
-                .fill(pluginToneGround(block.tone, colors)))
+        if block.tone == .info {
+            // R1: an info note is a caption in the secondary text, no ground.
+            Text(block.text)
+                .font(.system(size: FlareTextRoles.caption.fontSize * textScale))
+                .foregroundColor(colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text(block.text)
+                .font(.system(size: FlareSizes.fontSizeMd * textScale))
+                .foregroundColor(block.tone == nil || block.tone == .neutral ? colors.textSecondary : pluginToneText(block.tone, colors))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, FlareSizes.spacingSm).padding(.vertical, FlareSizes.spacingXs)
+                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusSm, style: .continuous)
+                    .fill(pluginToneGround(block.tone, colors)))
+        }
+    }
+}
+
+private struct FlarePluginHoistsBarKey: EnvironmentKey { static let defaultValue = false }
+private struct FlarePluginScopeKey: EnvironmentKey { static let defaultValue = "" }
+private struct FlarePluginClearFiltersKey: EnvironmentKey { static let defaultValue: (() -> Void)? = nil }
+
+extension EnvironmentValues {
+    /// 5.8: set while a page filter is applied — an empty list says "这个筛选下没有记录" with "清除筛选" running it.
+    var flarePluginClearFilters: (() -> Void)? {
+        get { self[FlarePluginClearFiltersKey.self] }
+        set { self[FlarePluginClearFiltersKey.self] = newValue }
+    }
+
+    /// R3: what a development warning about a plugin value names before its path — "pluginId page " on a page.
+    var flarePluginScope: String {
+        get { self[FlarePluginScopeKey.self] }
+        set { self[FlarePluginScopeKey.self] = newValue }
+    }
+
+    /// The task bar's keys go up in ``PluginPageChrome`` on every device: the host draws them (see `FlareAccountView`).
+    var flarePluginHoistsBar: Bool {
+        get { self[FlarePluginHoistsBarKey.self] }
+        set { self[FlarePluginHoistsBarKey.self] = newValue }
     }
 }

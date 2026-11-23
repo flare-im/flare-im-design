@@ -53,6 +53,9 @@ const paneMode = computed(() => resolvePaneMode(width.value ?? 0, props.hasDetai
 }));
 // A detail that is not beside the chat takes a pane's place when the host opens it.
 const detailMode = computed(() => paneMode.value === "triplePane" ? "inline" : props.hasDetail ? "route" : "hidden");
+const listVisible = computed(() => paneMode.value !== 'singlePane' || props.activePane === 'list');
+const detailVisible = computed(() => props.hasDetail && (paneMode.value === 'triplePane' || props.activePane === 'detail'));
+const chatVisible = computed(() => paneMode.value === 'triplePane' || (!detailVisible.value && (paneMode.value !== 'singlePane' || props.activePane !== 'list')));
 watch([paneMode, detailMode, () => width.value !== undefined], ([mode, detail, measured]) => {
   if (measured) emit("layoutChange", { paneMode: mode, detailMode: detail });
 }, { immediate: true });
@@ -75,26 +78,16 @@ const columns = computed(() => ({ '--list-width': `${Math.max(0, props.listWidth
 
 <template>
   <div ref="root" class="flare-rl" :class="{ 'flare-rl--single': paneMode === 'singlePane' }" :data-pane-mode="paneMode" :style="columns">
-    <template v-if="paneMode !== 'singlePane'">
-      <div class="flare-rl__list"><slot name="list" /></div>
-      <div class="flare-rl__chat">
-        <slot v-if="paneMode === 'dualPane' && activePane === 'detail' && hasDetail" name="detail" />
-        <slot v-else name="chat" />
-      </div>
-      <div v-if="paneMode === 'triplePane'" class="flare-rl__detail"><slot name="detail" /></div>
-    </template>
-    <slot v-else-if="activePane === 'list'" name="list" />
-    <template v-else>
-      <div v-if="!hideMobileBar" class="flare-rl__bar">
+      <div v-if="paneMode === 'singlePane' && activePane !== 'list' && !hideMobileBar" key="bar" class="flare-rl__bar">
         <button class="flare-rl__back" type="button" @click="goBack">
-          <n-icon aria-hidden="true" :size="18" :component="ChevronBackOutline" /><span>{{ strings.backLabel }}</span>
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="ChevronBackOutline" /><span>{{ strings.backLabel }}</span>
         </button>
       </div>
-      <div class="flare-rl__chat">
-        <slot v-if="activePane === 'detail' && hasDetail" name="detail" />
-        <slot v-else name="chat" />
-      </div>
-    </template>
+    <div v-if="listVisible" key="list" class="flare-rl__list"><slot name="list" /></div>
+    <div v-if="chatVisible" key="chat" class="flare-rl__chat"><slot name="chat" /></div>
+    <!-- The detail has one stable keyed location. Moving between inline and routed
+         layouts changes its dimensions, not its component or its navigation stack. -->
+    <div v-if="detailVisible" key="detail" class="flare-rl__detail" :class="{ 'is-route': paneMode !== 'triplePane' }"><slot name="detail" /></div>
   </div>
 </template>
 
@@ -105,7 +98,8 @@ const columns = computed(() => ({ '--list-width': `${Math.max(0, props.listWidth
 .flare-rl__list { width: var(--list-width); flex: none; box-sizing: border-box; border-inline-end: 1px solid var(--flare-color-border-primary); overflow: hidden; }
 .flare-rl__chat { flex: 1; min-width: 0; min-height: 0; }
 .flare-rl__detail { width: var(--detail-width); flex: none; box-sizing: border-box; border-inline-start: 1px solid var(--flare-color-border-primary); overflow: hidden; }
-.flare-rl--single .flare-rl__list { width: 100%; border: none; }
+.flare-rl__detail.is-route { width: auto; flex: 1; min-width: 0; min-height: 0; border: none; }
+.flare-rl--single .flare-rl__list { width: 100%; flex: 1; min-height: 0; border: none; }
 .flare-rl__bar { border-bottom: 1px solid var(--flare-color-border-primary); }
 .flare-rl__back {
   display: inline-flex; align-items: center; gap: 4px;

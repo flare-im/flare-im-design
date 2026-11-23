@@ -58,6 +58,12 @@ enum PluginViewFormat {
                 for entry in entries.items {
                     if let id = entry.userId, !id.isEmpty, (entry.name ?? "").isEmpty, !ids.contains(id) { ids.append(id) }
                 }
+            case .rows(let rows):
+                for row in rows.rows {
+                    for cell in row.cells {
+                        if case .person(let id)? = cell.format, !id.isEmpty, !ids.contains(id) { ids.append(id) }
+                    }
+                }
             default: break
             }
         }
@@ -321,6 +327,8 @@ enum PluginViewFormat {
         let texts = block.columns.indices.map { index -> String in
             guard row.cells.indices.contains(index) else { return "" }
             let cell = row.cells[index]
+            // A status cell draws as its Tag (R3), not in the lines.
+            if index > 0, cell.tone != nil || cell.unmapped { return "" }
             if block.columns[index].format == .time, let at = cell.timeMs {
                 return dateTime(at, nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes)
             }
@@ -343,12 +351,72 @@ enum PluginViewFormat {
         }
     }
 
+    /// A row whose person cells read as the person's name (spec rules.rowsIcon): the host's, else the fallback name;
+    /// never the user id.
+    static func namedRow(_ row: PluginRow, resolved: [String: PluginUser]) -> PluginRow {
+        guard row.cells.contains(where: { if case .person? = $0.format { return true }; return false }) else { return row }
+        let cells = row.cells.map { cell -> PluginRowCell in
+            guard case .person(let id)? = cell.format else { return cell }
+            return PluginRowCell(text: user(id, resolved: resolved).name, timeMs: cell.timeMs, format: cell.format,
+                                 tone: cell.tone, unmapped: cell.unmapped)
+        }
+        return PluginRow(key: row.key, cells: cells, actions: row.actions, badge: row.badge)
+    }
+
+    /// A record row (5.8, spec rules.rowsIcon): the first cell is the value, toned or unmapped cells its Tags (a
+    /// completed — success — status stays quiet), the second cell the title, the others (blank ones skipped, time cells
+    /// as the time blocks write them) the line under it.
+    static func recordLine(_ block: PluginRowsBlock, _ row: PluginRow, nowMs: Int64, _ strings: FlareStrings,
+                           utcOffsetMinutes: Int?) -> PluginRecordLine {
+        let tagged = Set(row.cells.indices.filter { $0 > 0 && (row.cells[$0].tone != nil || row.cells[$0].unmapped) })
+        let rest = tagged.union([0])
+        let keep = block.columns.indices.filter { !rest.contains($0) }
+        let lines = rowLines(PluginRowsBlock(columns: keep.map { block.columns[$0] }, rows: []),
+                             PluginRow(key: row.key, cells: keep.compactMap { row.cells.indices.contains($0) ? row.cells[$0] : nil }),
+                             nowMs: nowMs, strings, utcOffsetMinutes: utcOffsetMinutes)
+        let value = row.cells.first.map { PluginFormatRules.text($0.text, $0.format, strings) } ?? ""
+        let tags = tagged.sorted().map { row.cells[$0] }.filter { $0.unmapped || $0.tone != .success }
+        return PluginRecordLine(title: lines.primary, line: lines.secondary, value: value, tags: tags)
+    }
+
+    /// A record's value as drawn (R10): a leading hyphen is the minus sign, U+2212.
+    static func signedValue(_ value: String) -> String {
+        guard let first = value.firstIndex(where: { !$0.isWhitespace }), value[first] == "-" else { return value }
+        return value.replacingCharacters(in: first...first, with: "\u{2212}")
+    }
+
+    /// The record's leading glyph: the block's icon when the kit knows it, else the ledger's by the value's sign.
+    static func recordIcon(_ icon: String?, value: String) -> String {
+        if let icon, flareIconNames.contains(icon) { return icon }
+        let text = value.trimmingCharacters(in: .whitespaces)
+        if text.hasPrefix("+") { return "arrow-down" }
+        if text.hasPrefix("-") || text.hasPrefix("\u{2212}") { return "send" }
+        return "refresh"
+    }
+
     /// The keys of a row: the block actions it offers, in the row's order, each with the input the view bound for it.
     static func rowKeys(_ block: PluginRowsBlock, _ row: PluginRow) -> [PluginRowKey] {
         row.actions.compactMap { offered in
             block.actions.first { $0.id == offered.id }.map { PluginRowKey(action: $0, input: offered.input) }
         }
     }
+
+    /// R2.3 (spec rules.rowTap): a row's only key when it opens a page without a form and is not danger — the whole
+    /// row is then that key (no key drawn, a chevron at the end); nil keeps the row's keys.
+    static func rowTap(_ block: PluginRowsBlock, _ row: PluginRow) -> PluginRowKey? {
+        let keys = rowKeys(block, row)
+        guard keys.count == 1, let key = keys.first, key.action.target?.kind == "page",
+              (key.action.form ?? []).isEmpty, key.action.style != .danger else { return nil }
+        return key
+    }
+}
+
+/// A record row's words (5.8): the title and the line under it, the value at the end and its Tags.
+struct PluginRecordLine: Equatable, Sendable {
+    let title: String
+    let line: String?
+    let value: String
+    let tags: [PluginRowCell]
 }
 
 /// A row item's lines: the first cell, and the other cells joined (nil when none is left).
@@ -429,6 +497,13 @@ enum PluginPageRules {
 
     /// The host's filters after choosing `value` (nil: all) on `filter`: that input set, or removed for all; nil when
     /// the chosen tab is already the selected one (nothing to ask for).
+    /// 5.8: "清除筛选" — every filter of `filters` back to all; nil when none is set.
+    static func cleared(_ filters: [PluginPageFilter], in values: [String: PluginJSONValue]) -> [String: PluginJSONValue]? {
+        guard filters.contains(where: { $0.selected != nil }) else { return nil }
+        let ids = Set(filters.map(\.input.id))
+        return values.filter { !ids.contains($0.key) }
+    }
+
     static func choose(_ filter: PluginPageFilter, value: String?,
                        in values: [String: PluginJSONValue]) -> [String: PluginJSONValue]? {
         guard value != filter.selected else { return nil }
@@ -444,6 +519,20 @@ enum PluginPageRules {
 
     /// Only an unreachable catalog is worth asking again.
     static func unavailableRetry(_ view: PluginViewModel) -> Bool { view.unavailableReason == .catalogUnreachable }
+
+    /// The tabs a page draws (§4.7, spec rules.pageTabs): an available view's, when it has 2 or more; without a view,
+    /// the `last` ones drawn with `page` selected when it is one of them; else none.
+    static func tabs(view: PluginPageViewModel?, page: String, last: [PluginPageTab]) -> [PluginPageTab] {
+        if let view { return view.view.available && view.tabs.count >= 2 ? view.tabs : [] }
+        guard last.contains(where: { $0.page == page }) else { return [] }
+        return last.map { PluginPageTab(page: $0.page, label: $0.label, selected: $0.page == page) }
+    }
+
+    /// The page a chosen segment opens: an unselected tab's; the selected one opens nothing.
+    static func tabChoice(_ tabs: [PluginPageTab], index: Int) -> String? {
+        guard tabs.indices.contains(index), !tabs[index].selected else { return nil }
+        return tabs[index].page
+    }
 }
 
 // MARK: - Choices
@@ -787,9 +876,12 @@ enum PluginFormRules {
     }
 
     /// "{length}/{maxLength}" under a text or textarea.
+    /// R6: the "n/max" counter, only with a limit of at most 200 and something typed.
     static func counter(_ input: PluginInput, _ draft: PluginJSONValue?) -> String? {
         guard input.kind == .text || input.kind == .textarea, let limit = maxLength(input) else { return nil }
-        return "\(length(trimmed(draft?.stringValue ?? "")))/\(limit)"
+        let typed = length(trimmed(draft?.stringValue ?? ""))
+        guard PluginExperienceRules.showsCounter(maxLength: limit, length: typed) else { return nil }
+        return "\(typed)/\(limit)"
     }
 }
 

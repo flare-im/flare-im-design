@@ -21,6 +21,8 @@ export interface FlareConversationRowModel {
   id: string;
   displayName?: string;
   avatarUrl?: string;
+  /** `"group"` puts the group mark on the row's avatar. */
+  kind?: FlareConversationKind;
   updatedAt?: number | string;
   /** Host-formatted, locale/timezone-aware time; preferred over updatedAt. */
   timestampLabel?: string;

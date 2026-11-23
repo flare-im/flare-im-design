@@ -16,7 +16,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -33,13 +32,7 @@ fun SearchResults(
     val colors = flareColors()
     val nonEmpty = groups.filter { it.items.isNotEmpty() }
     if (nonEmpty.isEmpty()) {
-        Text(
-            flareStrings().noResults,
-            color = colors.textTertiary,
-            fontSize = FlareSizes.fontSizeSm.value.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
-        )
+        EmptyState(title = flareStrings().searchEmpty, description = flareStrings().searchEmptyHint, icon = "search")
         return
     }
     Column(Modifier.fillMaxWidth()) {
@@ -58,7 +51,7 @@ fun SearchResults(
                         .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Avatar(userId = item.id, displayName = item.title, size = 38.dp)
+                    Avatar(userId = item.id, displayName = item.title, size = 38.dp, avatarUrl = item.avatarUrl)
                     Spacer(Modifier.width(FlareSizes.spacingMd))
                     Column(Modifier.weight(1f)) {
                         Text(
@@ -71,7 +64,7 @@ fun SearchResults(
                         if (!item.subtitle.isNullOrEmpty()) {
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                highlightQuery(item.subtitle, query, colors),
+                                highlightQuery(if (item.kind == SearchResultKind.Message) flareSearchExcerpt(item.subtitle, query) else item.subtitle, query, colors),
                                 color = colors.textTertiary,
                                 fontSize = FlareSizes.fontSizeSm.value.sp,
                                 maxLines = 1,
@@ -101,10 +94,22 @@ fun SearchResults(
     }
 }
 
-/** The truncated group's last row: the counted "查看全部 N" when the total is known, the plain "更多" otherwise. */
+/** The truncated group's last row: the counted "查看全部 N" when the total is known, "查看更多" otherwise. */
 internal fun flareSearchMoreText(group: SearchResultGroup, strings: FlareStrings): String {
     val total = group.total
-    return if (total != null && total > group.items.size) strings.viewAll(total) else strings.more
+    return if (total != null && total > group.items.size) strings.viewAll(total) else strings.searchViewMore
+}
+
+/** Keeps a message hit's first match in view in a long sentence (the Vue kit's excerpt): 24 before it, 128 in all. */
+internal fun flareSearchExcerpt(text: String, query: String): String {
+    val q = query.trim()
+    val at = if (q.isEmpty()) -1 else text.indexOf(q, ignoreCase = true)
+    val points = text.codePoints().toArray()
+    if (at < 0 || points.size <= 128) return text
+    val from = text.codePointCount(0, at)
+    val start = maxOf(0, from - 24)
+    val end = minOf(points.size, maxOf(start + 128, from + q.codePointCount(0, q.length) + 24))
+    return (if (start > 0) "…" else "") + String(points, start, end - start) + (if (end < points.size) "…" else "")
 }
 
 internal fun highlightQuery(text: String, query: String, colors: FlareColors): AnnotatedString {

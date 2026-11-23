@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class FlareUiTest {
     @Test fun initialsFallback() {
-        assertEquals("HF", initials("Henry Ford"))
+        assertEquals("H", initials("Henry Ford"))
         assertEquals("I", initials("Ivy"))
         assertEquals("?", initials("   "))
     }
@@ -25,8 +25,18 @@ class FlareUiTest {
         val light = seedTint("u1", FlareColors.Light)
         val dark = seedTint("u1", FlareColors.Dark)
         assertTrue(light != dark)
-        assertEquals(FlareColors.Light.avatarTintBlueBg to FlareColors.Light.avatarTintBlueFg, seedTint("", FlareColors.Light))
-        assertEquals(FlareColors.Dark.avatarTintBlueBg to FlareColors.Dark.avatarTintBlueFg, seedTint("", FlareColors.Dark))
+        // A blank seed hashes "user", slot 3 (green), as on Vue.
+        assertEquals(FlareColors.Light.avatarTintGreenBg to FlareColors.Light.avatarTintGreenFg, seedTint("", FlareColors.Light))
+        assertEquals(FlareColors.Dark.avatarTintGreenBg to FlareColors.Dark.avatarTintGreenFg, seedTint("", FlareColors.Dark))
+    }
+
+    // Slots computed with the Vue kit's avatarTint (shared/avatar-tint.ts) in node: same name, same colour on every kit.
+    @Test fun avatarTintIndexIsTheVueHash() {
+        assertEquals(4, avatarTintIndex("Lab Bob"))
+        assertEquals(3, avatarTintIndex("Plugin Lab Group"))
+        assertEquals(2, avatarTintIndex("群签到验收 g2 m7df423d1d5"))
+        assertEquals(2, avatarTintIndex("😀a"))
+        assertEquals(3, avatarTintIndex("  "))
     }
 
     @Test fun byteAndDurationFormat() {

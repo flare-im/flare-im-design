@@ -431,13 +431,19 @@ public struct MessageBubbleView: View {
         VStack(alignment: isSelf ? .trailing : .leading, spacing: 2) {
             if rowPresentation.showSenderName {
                 Text(message.senderName)
-                    .font(.system(size: smallTextSize))
-                    .foregroundColor(colors.textTertiary)
+                    .font(.system(size: smallTextSize, weight: .semibold))
+                    .foregroundColor(colors.textSecondary)
             }
             if hasReactionFooter {
                 reactionFooter(colors)
             } else {
                 surfaceBody(colors)
+            }
+            if isSelf, let progress = message.uploadProgress {
+                ProgressView(value: Double(progress), total: 100)
+                    .tint(colors.primaryText)
+                    .frame(width: 112)
+                    .accessibilityLabel(strings.messageSending)
             }
         }
         .frame(maxWidth: bubbleMaxWidth, alignment: isSelf ? .trailing : .leading)
@@ -488,7 +494,7 @@ public struct MessageBubbleView: View {
         let receipt = flareMessageReceiptPresentation(conversationKind: conversationKind, isSelf: isSelf,
                                                       status: message.receiptStatus, readSummary: message.readSummary)
         return FlareTextTrailingReservation(
-            text: MessageMetaView.reservation(labels: labels, receipt: receipt, strings: strings), size: metaTextSize)
+            text: MessageMetaView.reservation(labels: labels, receipt: receipt), size: metaTextSize)
     }
 
     @ViewBuilder

@@ -349,23 +349,27 @@ final class MessageSurfaceVectorsTests: XCTestCase {
     }
 
     @MainActor
-    func testTheReadSummaryReplacesTheCheckAndOpensTheReceiptList() throws {
+    func testTheGroupReceiptCheckOpensTheReceiptList() throws {
         var opened: [String] = []
         let summary = FlareMessageReadSummary(readCount: 2, unreadCount: 3, total: 5)
         let group = MessageBubbleView(message: message(FlareTextContent("开会了"), readSummary: summary),
                                       currentUserId: "me", conversationKind: .group,
                                       onReadReceiptOpen: { opened.append($0.id) })
         let tree = try group.inspect()
-        try tree.find(button: "3 人未读").tap()
+        let control = try tree.find(ViewType.Button.self, where: {
+            (try? $0.accessibilityLabel().string()) == "3 人未读"
+        })
+        try control.tap()
         XCTAssertEqual(opened, ["m1"])
-        XCTAssertThrowsError(try tree.find(MessageStatusView.self), "the summary replaces the check")
-        // A single chat ignores a summary; without a listener the summary is plain text.
+        XCTAssertNoThrow(try control.labelView().find(MessageStatusView.self))
+        XCTAssertThrowsError(try tree.find(text: "3 人未读"))
         let single = try MessageBubbleView(message: message(FlareTextContent("x"), readSummary: summary),
                                            currentUserId: "me").inspect()
         XCTAssertThrowsError(try single.find(text: "3 人未读"))
         let plain = try MessageBubbleView(message: message(FlareTextContent("x"), readSummary: summary), currentUserId: "me",
                                           conversationKind: .group).inspect()
-        XCTAssertNoThrow(try plain.find(text: "3 人未读"))
+        XCTAssertNoThrow(try plain.find(MessageStatusView.self))
+        XCTAssertThrowsError(try plain.find(text: "3 人未读"))
         XCTAssertThrowsError(try plain.find(button: "3 人未读"))
     }
 

@@ -134,3 +134,20 @@ describe("FlareComposerActionPanel", () => {
     expect(current()).toBe(0);
   });
 });
+
+describe("FlareComposerActionPanel loading (§4.1 of docs/plugin-experience.md)", () => {
+  it("opens with its items and a row of skeleton squares while plugin items load, never as actions", async () => {
+    const state = reactive({ loading: true, formFactor: "desktop" });
+    const sheet = mountSheet(state);
+    expect(sheet.attributes("aria-busy")).toBe("true");
+    expect(sheet.findAll("button[data-action-id]").map((b) => b.attributes("data-action-id"))).toEqual([...FLARE_DEFAULT_COMPOSER_ACTION_IDS]);
+    const squares = sheet.findAll("[data-action-skeleton]");
+    expect(squares).toHaveLength(4);
+    expect(squares.every((square) => square.attributes("aria-hidden") === "true" && square.element.tagName === "SPAN")).toBe(true);
+    expect(squares.every((square) => square.find(".flare-skeleton--tile").exists())).toBe(true);
+    state.loading = false;
+    await nextTick();
+    expect(sheet.find("[data-action-skeleton]").exists()).toBe(false);
+    expect(sheet.attributes("aria-busy")).toBeUndefined();
+  });
+});

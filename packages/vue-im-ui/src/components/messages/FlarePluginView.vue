@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import FlarePluginQr from "../scan/FlarePluginQr.vue";
-import FlareUserIdentity from "../data/FlareUserIdentity.vue";
 import {
   computed,
   getCurrentInstance,
+  h,
   useSlots,
+  type FunctionalComponent,
   reactive,
   ref,
   shallowReactive,
+  useId,
   watch,
 } from "vue";
 import FlareAdminHelp from "../data/FlareAdminHelp.vue";
@@ -15,6 +17,8 @@ import FlareAdminSection from "../data/FlareAdminSection.vue";
 import FlareActionMenu from "../general/FlareActionMenu.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareBottomSheet from "../general/FlareBottomSheet.vue";
+import FlareDrawer from "../general/FlareDrawer.vue";
+import FlareScreen from "../layout/FlareScreen.vue";
 import FlareIcon from "../general/FlareIcon.vue";
 import FlareStatusBanner from "../general/FlareStatusBanner.vue";
 import FlareDangerConfirm from "../scenes/FlareDangerConfirm.vue";
@@ -41,7 +45,27 @@ import PluginStatsBlock from "./plugin/blocks/PluginStatsBlock.vue";
 import PluginStepsBlock from "./plugin/blocks/PluginStepsBlock.vue";
 import PluginTimelineBlock from "./plugin/blocks/PluginTimelineBlock.vue";
 import FlarePluginUpgradeNotice from "./FlarePluginUpgradeNotice.vue";
+import FlareResultView from "./FlareResultView.vue";
+import PluginFieldList from "./plugin/PluginFieldList.vue";
+import FlareSettingsRow from "../profile/FlareSettingsRow.vue";
+import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
+import {
+  flarePluginActionPlaces,
+  flarePluginActionRole,
+  flarePluginBoundInputs,
+  flarePluginDrawnInputs,
+  flarePluginFormPlacement,
+  flarePluginResultBlock,
+  flarePluginResultFacts,
+  flarePluginResultIcon,
+  flarePluginStatusCard,
+  flarePluginStatusDraw,
+  flarePluginTopLevelActions,
+  type FlarePluginActionPlaces,
+} from "../../shared/contracts/plugin-experience";
 import { flareIcons, type FlareIconName } from "../../shared/icons";
+import FlareIconButton from "../general/FlareIconButton.vue";
+import { useFlarePluginWarnScope } from "./plugin/warnScope";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import {
   useFlareContentSelection,
@@ -64,12 +88,14 @@ import {
   flarePluginWithinCap,
   type FlarePluginAction,
   type FlarePluginActionPayload,
+  type FlarePluginBannerBlock,
   type FlarePluginBlock,
   type FlarePluginChoicesBlock,
   type FlarePluginField,
   type FlarePluginFieldsBlock,
   type FlarePluginFormat,
   type FlarePluginFormError,
+  type FlarePluginFormSection,
   type FlarePluginHeroBlock,
   type FlarePluginImageSource,
   type FlarePluginQrBlock,
@@ -144,8 +170,22 @@ const props = withDefaults(
     contentLayout?: "flow" | "list";
     /** Administrative row presenters may place the same page actions in their list toolbar. */
     actionsPlacement?: "footer" | "rows";
-    /** Visual grouping only; forms, confirmations and action guards keep the same runner. */
-    actionLayout?: "inline" | "compact" | "list";
+    /**
+     * Visual grouping only; forms, confirmations and action guards keep the same runner. `roles` is the plugin page's
+     * layout (docs/plugin-experience.md R2): each action placed by its role and the page archetype.
+     */
+    actionLayout?: "inline" | "compact" | "list" | "roles";
+    /**
+     * Roles layout on a view of actions only (the account appearance, R2.1 / §5.1): place them as an overview page and
+     * draw one part — `quick` the quick keys row, `lists` the list cards and the danger card.
+     */
+    overviewPart?: "quick" | "lists";
+    /** The host is offline: every action is disabled (not hidden) and the primary says when it comes back (R8). */
+    offline?: boolean;
+    /** Page hosts give long action forms their own full-height editor. */
+    formPresentation?: "sheet" | "page";
+    /** Host-owned grouping for administrative forms; validation and values are unchanged. */
+    formSections?: (actionId: string) => readonly FlarePluginFormSection[] | undefined;
     /** Formats timestamps (epoch milliseconds); absent keeps the kit's default. */
     formatTime?: (ms: number) => string;
     /** In list rows, pair secondary values with their declared column labels. */
@@ -178,6 +218,7 @@ const props = withDefaults(
     formSubmitLabel?: (actionId: string) => string | undefined;
     /** Host presentation for one action form, with the same declared input IDs. */
     actionFormInput?: (actionId: string, input: FlarePluginInput) => FlarePluginInput;
+    validateField?: (id: string, values: Readonly<Record<string, unknown>>) => string | undefined;
     formSelections?: Record<string, SchemaSelection>;
     formChangeActions?: ReadonlyArray<string>;
     selectionLabels?: SchemaSelectionLabels;
@@ -215,6 +256,8 @@ const props = withDefaults(
     presentation: "message",
     actionsPlacement: "footer",
     actionLayout: "inline",
+    overviewPart: undefined,
+    formPresentation: "sheet",
     labelRows: false,
     resolveUser: undefined,
     members: () => [],
@@ -224,10 +267,13 @@ const props = withDefaults(
     upgradeStatus: undefined,
     onUpdate: undefined,
     upgradeBusy: false,
+    offline: false,
   },
 );
 const emit = defineEmits<{
   interactionChange: [active: boolean];
+  /** The result view's done key (R7): the host pops back to the page that started the flow, or closes. */
+  done: [];
   action: [actionId: string, payload: FlarePluginActionPayload];
   fileAction: [event: FlarePluginFileAction];
   /** A location input's locate or clear key: the host runs the page's locationOnce action into the input. */
@@ -289,6 +335,7 @@ const KNOWN = new Set<string>([
   "steps",
   "banner",
   "timeline",
+  "result",
 ]);
 const CHART_KINDS = new Set(["bar", "line", "donut"]);
 /** A known kind; a chart of a kind the kit does not draw is skipped too, as in every kit. */
@@ -341,10 +388,11 @@ const quoteShown = computed(() =>
     : null,
 );
 // In a selecting timeline row the card is inert: a tap selects the row.
+const SPECIAL_RENDERERS = new Set(["redPacket.card", "redPacket.review"]);
 const specialPresentation = computed(
   () =>
     props.view.available &&
-    props.view.presentation?.renderer === "redPacket.card",
+    SPECIAL_RENDERERS.has(props.view.presentation?.renderer ?? ""),
 );
 function presentationRequest(id: string): void {
   const action = props.view.actions.find((a) => a.id === id);
@@ -355,6 +403,7 @@ const inlinePending = ref(false);
 const hostLocked = computed(
   () =>
     props.busy ||
+    props.offline ||
     Boolean(props.busyActionId) ||
     selecting() ||
     !props.view.available ||
@@ -374,16 +423,20 @@ const reasonLine = computed(() => {
 const menuActions = computed<FlarePluginAction[]>(() =>
   props.view.available ? [...(props.view.menuActions ?? [])] : [],
 );
+// A message card's ⋯ menu also takes the actions past its third footer key (R2.4).
+const menuSource = computed<FlarePluginAction[]>(() =>
+  places.value?.archetype === "card" ? places.value.menu : menuActions.value,
+);
 const menuItems = computed<FlareActionItem[]>(() =>
-  menuActions.value.map((action) => ({
+  menuSource.value.map((action) => ({
     id: action.id,
     label: action.label,
     danger: action.style === "danger",
-    enabled: !locked.value,
+    enabled: !locked.value && !action.disabledReason,
   })),
 );
 function runMenu(id: string): void {
-  const action = menuActions.value.find((candidate) => candidate.id === id);
+  const action = menuSource.value.find((candidate) => candidate.id === id);
   if (action) run(action, {});
 }
 const declaredFooterActions = computed<FlarePluginAction[]>(() =>
@@ -404,6 +457,102 @@ const footerActions = computed(() =>
     (action) => action.id !== inlineFormAction.value?.id,
   ),
 );
+const footerActionGroups = computed(() => {
+  const isService = (action: FlarePluginAction) => Boolean(action.target?.kind === "page" || action.form?.length);
+  return props.actionLayout === "list"
+    ? [{ service: true, actions: footerActions.value.filter(isService) }, { service: false, actions: footerActions.value.filter(action => !isService(action)) }].filter(group => group.actions.length)
+    : [{ service: false, actions: footerActions.value }].filter(group => group.actions.length);
+});
+// ── R2 roles: where each action goes on a plugin page (`roles`) or a message card (docs/plugin-experience.md) ──
+const platform = useFlarePlatformSafe();
+/** The phone form factor: pinned action bar, full-width keys. */
+const phone = computed(() => platform.capabilities.value.bottomSheet);
+const bound = computed(() => flarePluginBoundInputs(props.view));
+const rolesLayout = computed(() => props.actionLayout === "roles");
+const cardLayout = computed(() => !props.embedded && props.presentation === "message" && props.actionsPlacement === "footer" && !specialPresentation.value);
+// R7: a result block leads the page; its fields are the details and its actions secondary keys.
+const result = computed(() => (props.embedded && props.view.available ? flarePluginResultBlock(props.view) : undefined));
+const warnAt = useFlarePluginWarnScope();
+const resultFacts = computed(() => result.value && flarePluginResultFacts(
+  result.value.amount ? { ...result.value, amount: flarePluginFormatText(result.value.amount, result.value.format, formatContext.value) } : result.value,
+  t("pluginView.unknownStatus"), warnAt(`result:${result.value.state}`)));
+const resultActions = computed(() => (result.value ? flarePluginTopLevelActions(props.view, true) : []));
+const places = computed<FlarePluginActionPlaces | null>(() =>
+  props.view.available && (rolesLayout.value || cardLayout.value) && !result.value
+    ? flarePluginActionPlaces(props.view, { embedded: props.embedded, inlineFormActionId: inlineFormAction.value?.id, ...(props.overviewPart ? { archetype: "overview" as const } : {}) })
+    : null,
+);
+// 6.1 status card: the status field as title, the first text or note as description, the steps across, the first
+// primary as its key; what it replaces is not drawn again.
+const statusCard = computed(() => {
+  if (!rolesLayout.value || !places.value || !flarePluginStatusCard(props.view)) return null;
+  const field = props.view.fields.find((candidate) => candidate.tone !== undefined || candidate.unmapped);
+  const draw = field ? flarePluginStatusDraw(field, warnAt(`statusCard:${field.label}`)) : undefined;
+  const blocks = props.view.blocks ?? [];
+  const steps = blocks.find((block) => block.kind === "steps");
+  const lead = blocks.find((block) => block.kind === "text" || block.kind === "note");
+  const tone = draw?.tone ?? "neutral";
+  const all = places.value;
+  return {
+    field, tone, icon: flarePluginResultIcon(tone),
+    title: draw?.unknown ? t("pluginView.unknownStatus") : field?.value || props.view.title,
+    description: lead && (lead.kind === "text" || lead.kind === "note") ? lead.text : undefined,
+    steps: steps?.kind === "steps" ? steps : undefined,
+    primary: [...all.bar, ...all.header, ...all.quick].find((action) => flarePluginActionRole(action) === "primary"),
+    // 6.1: a banner with its own key (the unconfirmed operation's 「处理」) leads, above the card; the others it replaces.
+    lead: blocks.filter((block): block is FlarePluginBannerBlock => block.kind === "banner" && Boolean(block.action)),
+    hidden: new Set<FlarePluginBlock>([steps, lead, ...blocks.filter((block) => block.kind === "banner")].filter((block) => block !== undefined)),
+  };
+});
+/** A place's actions as drawn: the status card's key and the inline form's own submit are not drawn twice. */
+const placed = (actions: ReadonlyArray<FlarePluginAction>) =>
+  actions.filter((action) => action !== statusCard.value?.primary && action.id !== inlineFormAction.value?.id);
+const footerKeys = computed(() => (places.value?.archetype === "card" ? places.value.footer : footerActions.value));
+/**
+ * R2.1: the overview card holds the section that carries the hero/stats (else the first run of top-level hero/stats
+ * blocks) and closes with the quick keys. The body is drawn in groups so that only this range gets a container.
+ */
+const overviewRange = computed<[number, number] | null>(() => {
+  if (places.value?.archetype !== "overview") return null;
+  const all = items.value;
+  const first = all.find(({ block }) => block.kind === "hero" || block.kind === "stats");
+  if (!first) return null;
+  if (first.section !== undefined) return [first.section, all.filter((item) => item.section === first.section).at(-1)!.index];
+  let end = first.index;
+  while (all[end + 1] && all[end + 1].section === undefined && ["hero", "stats"].includes(all[end + 1].block.kind)) end++;
+  return [first.index, end];
+});
+const itemGroups = computed(() => {
+  const range = overviewRange.value;
+  if (!range) return [{ key: "all", card: false, items: items.value }];
+  return [
+    { key: "before", card: false, items: items.value.slice(0, range[0]) },
+    { key: "overview", card: true, items: items.value.slice(range[0], range[1] + 1) },
+    { key: "after", card: false, items: items.value.slice(range[1] + 1) },
+  ];
+});
+// A container only for the overview group; every other group renders its children in place (a fragment).
+const OverviewCard: FunctionalComponent<{ card: boolean }> = (props, { slots }) =>
+  props.card ? h("div", { class: "flare-plugin-view__overview", "data-overview-card": "true" }, slots.default?.()) : slots.default?.();
+OverviewCard.props = ["card"];
+/** The first primary of the page: under an empty data block it offers to create (R8). */
+const createAction = computed(() => (rolesLayout.value ? flarePluginTopLevelActions(props.view, true).find((action) => flarePluginActionRole(action) === "primary") : undefined));
+/** R8 offline: the line under the first primary key group. */
+const offlineCaption = computed(() => {
+  if (!props.offline || !places.value) return undefined;
+  const all = places.value;
+  return all.quick.length ? "quick" : all.bar.length ? "bar" : all.footer.length ? "footer" : all.commands.length ? "commands" : undefined;
+});
+/** R2.5: a disabled action's reason line under its key group; the key names it with aria-describedby. */
+const whyPrefix = useId();
+const whyId = (action: FlarePluginAction) => (action.disabledReason ? `${whyPrefix}-why-${action.id}` : undefined);
+const whyOf = (actions: ReadonlyArray<FlarePluginAction>) => actions.filter((action) => action.disabledReason);
+/** A top-level action by id, for a key the page host draws in its own header (records: the header place). */
+function runAction(id: string): void {
+  const action = flarePluginTopLevelActions(props.view, props.embedded).find((candidate) => candidate.id === id);
+  if (action) run(action, {});
+}
+defineExpose({ runAction });
 // The card's view details key (spec rules.detailKey): a detail no entries block offers, and a host that listens
 // for openDetail (read at render: listeners are not reactive props).
 const instance = getCurrentInstance();
@@ -505,7 +654,7 @@ const shownField = (field: FlarePluginField): FlarePluginField => ({
   value: flarePluginFormatText(field.value, field.format, formatContext.value),
   user: field.user ?? identityOf(field.format),
 });
-const shownFields = computed(() => (props.view.fields ?? []).map(shownField));
+const shownFields = computed(() => (props.view.fields ?? []).filter((field) => field !== statusCard.value?.field).map(shownField));
 function shownRows(block: FlarePluginRowsBlock): FlarePluginRowsBlock {
   return {
     ...block,
@@ -694,7 +843,7 @@ function actionInput(actionId: string, id: string): FlarePluginInput[] {
 }
 const inlineInputs = computed(() => {
   const action = inlineFormAction.value;
-  return action?.form?.flatMap((id) => actionInput(action.id, id)) ?? [];
+  return action ? flarePluginDrawnInputs(action, bound.value).flatMap(id => actionInput(action.id, id)) : [];
 });
 watch(
   () => inlineFormAction.value?.id,
@@ -713,8 +862,18 @@ const formBaselineValues = ref<Record<string, unknown> | undefined>();
 const formInputs = computed<FlarePluginInput[]>(() => {
   const action = formAction.value;
   if (!action?.form) return [];
-  return action.form.flatMap((id) => actionInput(action.id, id));
+  return flarePluginDrawnInputs(action, bound.value).flatMap(id => actionInput(action.id, id));
 });
+/** Where an action form opens: `roles` pages follow R6 (a short form is a sheet), others keep formPresentation. */
+const formPlacement = computed<"sheet" | "page">(() =>
+  rolesLayout.value
+    ? flarePluginFormPlacement(formInputs.value.map((input) => input.kind), false)
+    : props.presentation === "admin" && formInputs.value.length > 6 && props.formSections?.(formAction.value?.id ?? "")?.length
+      ? "page" : props.formPresentation,
+);
+const formSelectPresentation = computed(() =>
+  props.actionsPlacement === "rows" || (!rolesLayout.value && formPlacement.value === "page") ? "dropdown" as const : undefined,
+);
 const formBusy = computed(
   () =>
     props.busy ||
@@ -735,7 +894,7 @@ function run(
   before?: () => void,
   initialValues?: Record<string, unknown>,
 ): void {
-  if (locked.value) return;
+  if (locked.value || action.disabledReason) return;
   // A page action sends back the input the view bound for it; a row's comes with the row.
   if (!payload.row && action.values) payload = { ...payload, input: action.values };
   // A native target writing `into` an input of a form on this view runs through that input's own key, so the
@@ -748,7 +907,7 @@ function run(
   )
     return;
   const proceed = () => {
-    if (action.form?.length) {
+    if (flarePluginDrawnInputs(action, bound.value).length) {
       formRowContext.value = null;
       let rowValues: Record<string, unknown> | undefined;
       if (payload.row) {
@@ -793,7 +952,8 @@ function run(
     before?.();
     send(action.id, payload);
   };
-  if (action.confirm) confirming.value = { action, proceed };
+  // R2: on a page a danger action always asks first, declared confirm text or not.
+  if (action.confirm || (rolesLayout.value && action.style === "danger")) confirming.value = { action, proceed };
   else proceed();
 }
 function confirmed(): void {
@@ -1040,11 +1200,11 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         v-if="titleIcon"
         class="flare-plugin-view__icon"
         :name="titleIcon"
-        :size="18"
+        size="sm"
       />
       <strong class="flare-plugin-view__title">{{ view.title }}</strong>
       <FlareButton
-        v-if="detailKey() && !footerActions.length"
+        v-if="detailKey() && !footerKeys.length"
         class="flare-plugin-view__detail"
         variant="quiet"
         size="sm"
@@ -1054,7 +1214,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         @click="emit('openDetail')"
       >
         <span>{{ t("pluginView.detail") }}</span>
-        <FlareIcon name="chevron-right" :size="14" aria-hidden="true" />
+        <FlareIcon name="chevron-right" size="sm" aria-hidden="true" />
       </FlareButton>
       <FlareActionMenu
         v-if="menuItems.length"
@@ -1063,16 +1223,15 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         placement="bottom-end"
         @select="runMenu"
       >
-        <button
-          type="button"
+        <FlareIconButton
           class="flare-plugin-view__more"
-          :aria-label="t('pluginView.more')"
+          :icon="flareIcons.more"
+          :ariaLabel="t('pluginView.more')"
           :title="t('pluginView.more')"
+          size="sm"
           :disabled="locked"
           data-plugin-menu="true"
-        >
-          <FlareIcon name="more" :size="18" />
-        </button>
+        />
       </FlareActionMenu>
     </header>
     <!-- Embedded there is no title row: an unavailable view still says what it was. -->
@@ -1131,19 +1290,64 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           </div>
         </FlareAdminHelp>
       </div>
-      <dl v-if="view.fields.length" class="flare-plugin-view__fields">
-        <div v-for="(field, index) in shownFields" :key="index">
-          <dt>{{ field.label }}</dt>
-          <dd>
-            <FlareUserIdentity v-if="field.user" :user="field.user" /><template
-              v-else
-              >{{ field.value }}</template
-            >
-          </dd>
+      <FlareResultView
+        v-if="result && resultFacts"
+        class="flare-plugin-view__result"
+        :title="resultFacts.title"
+        :tone="resultFacts.tone"
+        :amount="resultFacts.amount"
+        :description="resultFacts.description"
+        :details="shownFields"
+        :busy="locked"
+        :data-result-unknown="resultFacts.unknown ? 'true' : undefined"
+        data-block="result"
+        @done="emit('done')"
+      >
+        <template #actions>
+        <FlareButton
+          v-for="action in resultActions"
+          :key="action.id"
+          class="flare-plugin-view__result-key"
+          variant="secondary"
+          :block="phone"
+          :label="action.label"
+          :loading="busyActionId === action.id"
+          :disabled="locked || Boolean(action.disabledReason)"
+          :aria-describedby="whyId(action)"
+          :data-action-id="action.id"
+          :data-action-variant="variantOf(action)"
+          @click="run(action, {})"
+        />
+        <p v-for="action in whyOf(resultActions)" :id="whyId(action)" :key="`why-${action.id}`" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+        </template>
+      </FlareResultView>
+      <PluginBannerBlock v-for="(banner, bannerIndex) in statusCard?.lead ?? []" :key="`lead-${bannerIndex}`" :block="banner" :busy="locked" data-block="banner" @action="runOwned" />
+      <section v-if="statusCard" class="flare-plugin-view__status-card" :class="`is-${statusCard.tone}`" data-status-card="true">
+        <div class="flare-plugin-view__status-head">
+          <span class="flare-plugin-view__status-icon" aria-hidden="true"><FlareIcon :name="statusCard.icon" size="lg" /></span>
+          <h2 class="flare-plugin-view__status-title">{{ statusCard.title }}</h2>
         </div>
-      </dl>
-      <template v-for="{ block, index, section } in items" :key="index">
-        <template v-if="(section === undefined || !sectionCollapsed(section)) && !adminLayout.hidden.has(index)">
+        <p v-if="statusCard.description" class="flare-plugin-view__status-description">{{ statusCard.description }}</p>
+        <PluginStepsBlock v-if="statusCard.steps" :block="statusCard.steps" />
+        <FlareButton
+          v-if="statusCard.primary"
+          :block="phone"
+          :label="statusCard.primary.label"
+          :loading="busyActionId === statusCard.primary.id"
+          :disabled="locked || Boolean(statusCard.primary.disabledReason)"
+          :aria-describedby="whyId(statusCard.primary)"
+          :data-action-id="statusCard.primary.id"
+          data-action-variant="primary"
+          @click="run(statusCard.primary, {})"
+        />
+        <p v-for="action in whyOf(statusCard.primary ? [statusCard.primary] : [])" :id="whyId(action)" :key="action.id" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+        <p v-if="offline && statusCard.primary" class="flare-plugin-view__offline" data-offline-caption="true">{{ t("pluginView.availableOnline") }}</p>
+      </section>
+      <PluginFieldList v-if="!result && shownFields.length" list-class="flare-plugin-view__fields" :fields="shownFields" />
+      <template v-for="group in itemGroups" :key="group.key">
+      <OverviewCard :card="group.card">
+      <template v-for="{ block, index, section } in group.items" :key="index">
+        <template v-if="(section === undefined || !sectionCollapsed(section)) && !adminLayout.hidden.has(index) && block.kind !== 'result' && !statusCard?.hidden.has(block)">
         <PluginTextBlock
           v-if="block.kind === 'text'"
           :block="block"
@@ -1168,6 +1372,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :block="block"
           :user-of="userOf"
           :viewer-id="viewerId"
+          :show-all="Boolean(instance?.vnode.props?.onOpenDetail)"
           :time-text="formatTime ?? ((ms: number) => flarePluginDateTime(ms, formatContext.nowMs, strings))"
           data-block="entries"
           @see-all="emit('openDetail')"
@@ -1226,6 +1431,16 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
               "
             />
           </slot>
+          <!-- R8: an empty data block offers the page's create action under its empty state. -->
+          <FlareButton
+            v-if="createAction && !block.rows.length && rowsLayout === 'list'"
+            class="flare-plugin-view__create"
+            :label="createAction.label"
+            :loading="busyActionId === createAction.id"
+            :disabled="locked"
+            :data-empty-action="createAction.id"
+            @click="run(createAction, {})"
+          />
         </div>
         <PluginProtectedMediaBlock
           v-else-if="block.kind === 'protected-media'"
@@ -1317,10 +1532,32 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         />
         </template>
       </template>
+        <!-- R2.1 overview: the quick keys close the overview card, inside it. -->
+        <template v-if="(group.card || (overviewPart === 'quick' && group.key === 'all')) && places?.quick.length">
+        <div class="flare-plugin-view__quick" :class="{ 'is-phone': phone }" data-place="quick">
+          <FlareButton
+            v-for="action in placed(places.quick)"
+            :key="action.id"
+            :variant="flarePluginActionRole(action) === 'primary' ? 'primary' : 'secondary'"
+            :size="phone ? 'lg' : 'md'"
+            :label="action.label"
+            :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+          />
+        </div>
+        <p v-for="action in whyOf(placed(places.quick))" :id="whyId(action)" :key="`why-${action.id}`" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+        <p v-if="offlineCaption === 'quick'" class="flare-plugin-view__offline" data-offline-caption="true">{{ t("pluginView.availableOnline") }}</p>
+        </template>
+      </OverviewCard>
+      </template>
       <section
         v-if="inlineFormAction"
         class="flare-plugin-view__inline-section"
-        :class="{ 'has-form-heading': hasInlineFormHeading }"
+        :class="{ 'has-form-heading': hasInlineFormHeading, 'is-form-column': rolesLayout }"
       >
         <header
           v-if="hasInlineFormHeading"
@@ -1344,6 +1581,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :data-inline-action-id="inlineFormAction.id"
           embedded
           :inputs="inlineInputs"
+          :validate-field="validateField"
           :select-presentation="actionsPlacement === 'rows' ? 'dropdown' : undefined"
           :values="inlineInitialValues"
           :require-change="formChangeActions?.includes(inlineFormAction.id)"
@@ -1366,28 +1604,167 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           "
         />
       </section>
+      <!-- R2.2–R2.3 page places: the task bar, the command row, then the list cards and the danger card last. -->
+      <template v-if="places && places.archetype !== 'card' && overviewPart !== 'quick'">
+        <div
+          v-if="placed(places.bar).length || placed(places.barSecondary).length"
+          class="flare-plugin-view__bar"
+          :class="{ 'is-phone': phone }"
+          data-place="bar"
+        >
+          <div v-if="phone && placed(places.barSecondary).length" class="flare-plugin-view__bar-quiet">
+            <FlareButton
+              v-for="action in placed(places.barSecondary)"
+              :key="action.id"
+              variant="quiet"
+              appearance="text"
+              :label="action.label"
+              :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+            />
+          </div>
+          <FlareButton
+            v-for="action in placed(places.bar)"
+            :key="action.id"
+            :variant="variantOf(action)"
+            :size="phone ? 'lg' : 'md'"
+            :block="phone"
+            class="flare-plugin-view__bar-primary"
+            :label="action.label"
+            :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+          />
+          <template v-if="!phone">
+            <FlareButton
+              v-for="action in placed(places.barSecondary)"
+              :key="action.id"
+              variant="secondary"
+              class="flare-plugin-view__bar-primary"
+              :label="action.label"
+              :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+            />
+          </template>
+          <p v-for="action in whyOf([...placed(places.bar), ...placed(places.barSecondary)])" :id="whyId(action)" :key="`why-${action.id}`" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+          <p v-if="offlineCaption === 'bar'" class="flare-plugin-view__offline" data-offline-caption="true">{{ t("pluginView.availableOnline") }}</p>
+        </div>
+        <div v-if="placed(places.commands).length" class="flare-plugin-view__commands" data-place="commands">
+          <FlareButton
+            v-for="action in placed(places.commands)"
+            :key="action.id"
+            variant="secondary"
+            :label="action.label"
+            :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+          />
+          <p v-for="action in whyOf(placed(places.commands))" :id="whyId(action)" :key="`why-${action.id}`" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+          <p v-if="offlineCaption === 'commands'" class="flare-plugin-view__offline" data-offline-caption="true">{{ t("pluginView.availableOnline") }}</p>
+        </div>
+        <section
+          v-for="group in [...places.list.map((item) => ({ key: item.group ?? 'list', title: item.group === 'common' ? t('pluginView.groupCommon') : item.group === 'records' ? t('pluginView.groupRecords') : '', actions: placed(item.actions) })), { key: 'more', title: t('pluginView.moreActions'), actions: placed(places.more) }].filter((item) => item.actions.length)"
+          :key="group.key"
+          class="flare-plugin-view__list"
+          :data-place="group.key === 'more' ? 'more' : 'list'"
+          :data-group="group.key"
+        >
+          <h2 v-if="group.title" class="flare-plugin-view__list-title">{{ group.title }}</h2>
+          <div class="flare-plugin-view__list-card" role="group" :aria-label="group.title || undefined">
+            <FlareSettingsRow
+              v-for="action in group.actions"
+              :key="action.id"
+              :item="{ key: action.id, label: action.label, icon: action.icon, kind: flarePluginActionRole(action) === 'destination' ? 'navigation' : 'action', detail: action.disabledReason, detailBelow: true, disabled: locked || Boolean(action.disabledReason) }"
+              :loading="busyActionId === action.id"
+              :data-action-id="action.id"
+              :data-action-variant="variantOf(action)"
+              :data-chevron="flarePluginActionRole(action) === 'destination' ? 'true' : undefined"
+              @select="run(action, {})"
+            />
+          </div>
+        </section>
+        <div v-if="places.danger.length" class="flare-plugin-view__list-card is-danger" role="group" data-place="danger">
+          <FlareSettingsRow
+            v-for="action in places.danger"
+            :key="action.id"
+            :item="{ key: action.id, label: action.label, kind: 'action', danger: true, detail: action.disabledReason, detailBelow: true, disabled: locked || Boolean(action.disabledReason) }"
+            :loading="busyActionId === action.id"
+            :data-action-id="action.id"
+            data-action-variant="danger"
+            @select="run(action, {})"
+          />
+        </div>
+      </template>
+      <!-- R2.4 message card: primary solid first, three keys at most, the rest in the ⋯ menu. -->
+      <footer v-if="places?.archetype === 'card' && places.footer.length" class="flare-plugin-view__footer is-card" data-place="footer">
+        <div class="flare-plugin-view__actions">
+          <FlareButton
+            v-for="action in places.footer"
+            :key="action.id"
+            size="sm"
+            :variant="variantOf(action)"
+            :label="action.label"
+            :loading="busyActionId === action.id"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :aria-describedby="whyId(action)"
+            :data-action-id="action.id"
+            :data-action-variant="variantOf(action)"
+            @click="run(action, {})"
+          />
+        </div>
+        <FlareButton
+          v-if="detailKey()"
+          class="flare-plugin-view__detail"
+          variant="quiet"
+          size="sm"
+          appearance="text"
+          :disabled="locked"
+          data-detail-key="true"
+          @click="emit('openDetail')"
+        >
+          <span>{{ t("pluginView.detail") }}</span>
+          <FlareIcon name="chevron-right" size="sm" aria-hidden="true" />
+        </FlareButton>
+        <p v-for="action in whyOf(places.footer)" :id="whyId(action)" :key="`why-${action.id}`" class="flare-plugin-view__why" data-disabled-reason="true">{{ action.disabledReason }}</p>
+        <p v-if="offlineCaption === 'footer'" class="flare-plugin-view__offline" data-offline-caption="true">{{ t("pluginView.availableOnline") }}</p>
+      </footer>
       <footer
-        v-if="footerActions.length && !actionsInRows"
+        v-if="footerActions.length && !actionsInRows && !places && !result"
         class="flare-plugin-view__footer"
       >
-        <div v-if="footerActions.length" class="flare-plugin-view__actions">
+        <div v-for="(group, index) in footerActionGroups" :key="index" class="flare-plugin-view__actions" :class="{ 'is-service-group': group.service }">
           <FlareButton
-            v-for="action in footerActions"
+            v-for="action in group.actions"
             :key="action.id"
             :label="action.label"
             :variant="footerVariant(action)"
             size="sm"
-            :appearance="adminFlow ? 'default' : actionLayout === 'compact' ? 'default' : 'text'"
+            :appearance="!adminFlow && group.service ? 'text' : 'default'"
             :loading="busyActionId === action.id"
-            :disabled="locked"
+            :disabled="locked || Boolean(action.disabledReason)"
+            :title="action.disabledReason"
             :data-action-id="action.id"
             @click="run(action, {})"
           >
             <span
-              v-if="actionLayout === 'list'"
+              v-if="group.service"
               class="flare-plugin-view__service-label"
               >{{ action.label
-              }}<FlareIcon name="chevron-right" :size="14" aria-hidden="true"
+              }}<FlareIcon name="chevron-right" size="sm" aria-hidden="true"
             /></span>
             <template v-else>{{ action.label }}</template>
           </FlareButton>
@@ -1403,7 +1780,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           @click="emit('openDetail')"
         >
           <span>{{ t("pluginView.detail") }}</span>
-          <FlareIcon name="chevron-right" :size="14" aria-hidden="true" />
+          <FlareIcon name="chevron-right" size="sm" aria-hidden="true" />
         </FlareButton>
       </footer>
       <!-- A forwarded or forged copy (unbound_copy): readable, read-only, and it says so. -->
@@ -1435,13 +1812,17 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
       @confirm="confirmed"
       @cancel="confirming = null"
     />
-    <FlareBottomSheet
+    <component
+      :is="formPlacement === 'page' ? FlareDrawer : FlareBottomSheet"
       v-if="formAction"
       :open="Boolean(formAction)"
       :title="formAction?.label"
       :dismissible="!formBusy"
+      v-bind="formPlacement === 'page' ? { titleHidden: true, showClose: false, contentPadding: 'none', ...(formSections?.(formAction.id)?.length ? { width: 'calc(var(--flare-size-component-form-column-width) + 4 * var(--flare-size-spacing-lg))' } : {}) } : { dialogWidth: 'var(--flare-size-component-sheet-dialog-width)' }"
       @close="closeForm"
     >
+      <component :is="formPlacement === 'page' ? FlareScreen : 'div'" v-bind="formPlacement === 'page' ? { title: formAction.label, back: true, scroll: false, surface: 'surface' } : {}" @back="closeForm">
+      <div :class="{ 'flare-plugin-view__page-form': formPlacement === 'page' }">
       <PluginSimpleBlock
         v-if="formRowContext"
         data-row-form-context="true"
@@ -1454,8 +1835,12 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
           :location-states="locationStates"
           :onLocationAction="instance?.vnode.props?.onLocationAction ? forwardLocationAction : undefined"
         :inputs="formInputs"
-        :submit-label="formSubmitLabel?.(formAction.id)"
-        :select-presentation="actionsPlacement === 'rows' ? 'dropdown' : undefined"
+        :sections="formSections?.(formAction.id)"
+        :columns="formPlacement === 'page' ? 2 : 1"
+        :layout="formPlacement === 'page' ? 'page' : 'content'"
+        :autofocus="formPlacement === 'page'"
+        :submit-label="formSubmitLabel?.(formAction.id) ?? formAction.label"
+        :select-presentation="formSelectPresentation"
         :values="formValues"
         :baseline-values="formBaselineValues"
         :require-change="
@@ -1481,11 +1866,14 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
         @submit="submitForm"
         @cancel="closeForm"
       />
-    </FlareBottomSheet>
+      </div>
+      </component>
+    </component>
   </section>
 </template>
 
 <style scoped>
+.flare-plugin-view__page-form { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .flare-plugin-view {
   display: grid;
   gap: var(--flare-size-spacing-2sm);
@@ -1505,6 +1893,8 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   color: var(--flare-color-text-primary);
   overflow-wrap: anywhere;
 }
+/* R1 / §12.7: on a plugin page (roles layout) blocks sit 16 apart; sections 24 (PluginSectionBlock). */
+.flare-plugin-view.has-actions-roles { gap: var(--flare-size-spacing-lg); }
 .flare-plugin-view.is-admin-flow {
   --flare-plugin-body-size: var(--flare-size-font-size-md);
 }
@@ -1583,53 +1973,22 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   font-size: var(--flare-size-font-size-md);
   color: var(--flare-color-text-secondary);
 }
+/* R5 / §12.6: icon 16, title, details 13 eight after the title, the more key (IconButton sm) four after the details. */
 .flare-plugin-view__head {
   display: flex;
   align-items: center;
-  gap: var(--flare-size-spacing-xs);
+  gap: var(--flare-size-spacing-sm);
   min-width: 0;
 }
+/* R5: the title takes the remaining width on one line; details and more stay at the trailing edge. */
 .flare-plugin-view__head .flare-plugin-view__title {
   flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-/* The ⋯ key: an icon-sized glyph whose target reaches the touch target around it. */
-.flare-plugin-view__more {
-  position: relative;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-inline-end: calc(var(--flare-size-spacing-xs) * -1);
-  padding: var(--flare-size-spacing-2xs);
-  border: 0;
-  border-radius: var(--flare-size-radius-sm);
-  background: transparent;
-  color: var(--flare-color-text-secondary);
-  cursor: pointer;
-}
-.flare-plugin-view__more::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--flare-size-layout-touch-target);
-  height: var(--flare-size-layout-touch-target);
-  transform: translate(-50%, -50%);
-}
-.flare-plugin-view__more:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-@media (hover: hover) {
-  .flare-plugin-view__more:not(:disabled):hover {
-    background: var(--flare-color-bg-hover);
-    color: var(--flare-color-text-primary);
-  }
-}
-.flare-plugin-view__more:focus-visible {
-  outline: 2px solid var(--flare-color-border-selected);
-  outline-offset: 2px;
-}
+.flare-plugin-view__head .flare-plugin-view__detail + * { margin-inline-start: calc(var(--flare-size-spacing-xs) - var(--flare-size-spacing-sm)); }
+.flare-plugin-view__more { flex: none; }
 .flare-plugin-view__reason {
   margin: 0;
   font-size: var(--flare-size-font-size-sm);
@@ -1712,6 +2071,11 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
 .flare-plugin-view__inline-form {
   min-width: 0;
 }
+.flare-plugin-view__inline-section:first-child {
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-block-start: 0;
+}
 .flare-plugin-view__actions {
   display: flex;
   flex-wrap: wrap;
@@ -1731,12 +2095,15 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   min-height: var(--flare-size-layout-control-height-sm);
 }
 .flare-plugin-view.has-actions-list .flare-plugin-view__footer,
-.flare-plugin-view.has-actions-list .flare-plugin-view__actions {
+.flare-plugin-view__actions.is-service-group {
   display: grid;
   width: 100%;
   gap: 0;
 }
-.flare-plugin-view.has-actions-list .flare-plugin-view__actions > * {
+.flare-plugin-view.has-actions-list .flare-plugin-view__footer {
+  gap: var(--flare-size-spacing-md);
+}
+.flare-plugin-view__actions.is-service-group > * {
   width: 100%;
   min-height: var(--flare-size-layout-touch-target);
   padding: var(--flare-size-spacing-md) 0;
@@ -1744,11 +2111,10 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   border-radius: 0;
   text-align: start;
 }
-.flare-plugin-view.has-actions-list .flare-plugin-view__actions > * + * {
+.flare-plugin-view__actions.is-service-group > * + * {
   border-top: 1px solid var(--flare-color-border-secondary);
 }
-.flare-plugin-view.has-actions-list
-  .flare-plugin-view__actions
+.flare-plugin-view__actions.is-service-group
   :deep(.flare-button__label) {
   width: 100%;
 }
@@ -1758,6 +2124,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   justify-content: space-between;
   gap: var(--flare-size-spacing-md);
   width: 100%;
+  font-size: var(--flare-size-font-size-md);
 }
 .flare-plugin-view__service-label > .flare-icon {
   flex: none;
@@ -1767,7 +2134,7 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   flex: none;
   margin-inline-start: auto;
   padding-inline: var(--flare-size-spacing-2xs);
-  font-size: var(--flare-size-font-size-sm);
+  font-size: var(--flare-size-font-size-md);
   font-weight: var(--flare-size-font-weight-medium);
 }
 .flare-plugin-view__detail :deep(.flare-button__label) {
@@ -1783,5 +2150,110 @@ function forwardLocationAction(event: FlarePluginLocationAction): void { emit("l
   .flare-plugin-view__footer {
     row-gap: var(--flare-size-spacing-md);
   }
+}
+/* ── R2 page places (actionLayout roles) ── */
+.flare-plugin-view__quick,
+.flare-plugin-view__commands,
+.flare-plugin-view__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--flare-size-spacing-sm);
+  min-width: 0;
+}
+.flare-plugin-view__quick { margin-top: var(--flare-size-spacing-lg); }
+/* R2.1 overview card: the hero/stats and the quick keys at its bottom; the hero gives up its own surface inside it.
+   The container comes from a render function (no scope attribute), hence :deep. */
+.flare-plugin-view :deep(.flare-plugin-view__overview) {
+  display: grid;
+  gap: var(--flare-size-spacing-lg);
+  min-width: 0;
+  padding: var(--flare-size-spacing-lg);
+  border-radius: var(--flare-size-radius-card);
+  background: var(--flare-color-bg-secondary);
+}
+.flare-plugin-view :deep(.flare-plugin-view__overview .flare-plugin-hero) { padding: 0; background: transparent; }
+.flare-plugin-view__overview .flare-plugin-view__quick { margin-top: 0; }
+.flare-plugin-view__quick > *,
+.flare-plugin-view__bar > .flare-plugin-view__bar-primary,
+.flare-plugin-view__commands > .flare-button { min-width: var(--flare-size-component-action-min-width); }
+.flare-plugin-view__quick.is-phone { flex-wrap: nowrap; }
+.flare-plugin-view__quick.is-phone > * { flex: 1 1 0; min-width: 0; }
+.flare-plugin-view__bar { margin-top: var(--flare-size-spacing-2xl); }
+/* Phone: the primary is pinned over the safe area at the bottom of the page's scroller. */
+.flare-plugin-view__bar.is-phone {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--flare-z-index-sticky);
+  display: grid;
+  gap: var(--flare-size-spacing-sm);
+  margin-inline: calc(var(--flare-size-spacing-lg) * -1);
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg) calc(var(--flare-size-spacing-md) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--flare-color-border-secondary);
+  background: var(--flare-color-bg-primary);
+}
+.flare-plugin-view__bar-quiet { display: flex; justify-content: center; gap: var(--flare-size-spacing-sm); }
+.flare-plugin-view__bar-quiet .flare-button { color: var(--flare-color-text-secondary); }
+.flare-plugin-view__commands { margin-top: var(--flare-size-spacing-lg); }
+.flare-plugin-view__offline {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--flare-size-font-size-sm);
+  color: var(--flare-color-text-secondary);
+}
+.flare-plugin-view__list { display: grid; gap: var(--flare-size-spacing-sm); margin-top: var(--flare-size-spacing-2xl); }
+.flare-plugin-view__list-title {
+  margin: 0;
+  font-size: var(--flare-size-font-size-md);
+  font-weight: var(--flare-size-font-weight-semibold);
+  color: var(--flare-color-text-secondary);
+}
+.flare-plugin-view__list-card {
+  overflow: hidden;
+  border: 1px solid var(--flare-color-border-secondary);
+  border-radius: var(--flare-size-radius-card);
+  background: var(--flare-color-bg-primary);
+}
+.flare-plugin-view__list-card.is-danger { margin-top: var(--flare-size-spacing-2xl); }
+.flare-plugin-view__list-card.is-danger :deep(.flare-settings__label) { text-align: center; color: var(--flare-color-error-text); }
+.flare-plugin-view__create { justify-self: start; }
+.flare-plugin-view__inline-section.is-form-column { max-width: var(--flare-size-component-form-column-width); }
+.flare-plugin-view__result { margin-bottom: var(--flare-size-spacing-lg); }
+/* ── 6.1 status card ── */
+.flare-plugin-view__status-card {
+  --flare-status-tone: var(--flare-color-text-secondary);
+  --flare-status-ink: var(--flare-color-text-secondary);
+  display: grid;
+  justify-items: start;
+  gap: var(--flare-size-spacing-md);
+  padding: var(--flare-size-spacing-lg);
+  border: 1px solid var(--flare-color-border-secondary);
+  border-radius: var(--flare-size-radius-card);
+  background: var(--flare-color-bg-primary);
+}
+.flare-plugin-view__status-card.is-info { --flare-status-tone: var(--flare-color-info); --flare-status-ink: var(--flare-color-info-text); }
+.flare-plugin-view__status-card.is-success { --flare-status-tone: var(--flare-color-success); --flare-status-ink: var(--flare-color-success-text); }
+.flare-plugin-view__status-card.is-warning { --flare-status-tone: var(--flare-color-warning); --flare-status-ink: var(--flare-color-warning-text); }
+.flare-plugin-view__status-card.is-danger { --flare-status-tone: var(--flare-color-error); --flare-status-ink: var(--flare-color-error-text); }
+.flare-plugin-view__status-card > .flare-button { justify-self: stretch; }
+/* 6.1: the tone circle (48) beside the title. */
+.flare-plugin-view__status-head { display: flex; align-items: center; gap: var(--flare-size-spacing-md); min-width: 0; }
+.flare-plugin-view__status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--flare-size-layout-control-height-lg);
+  height: var(--flare-size-layout-control-height-lg);
+  border-radius: var(--flare-size-radius-full);
+  color: var(--flare-status-ink);
+  background: color-mix(in srgb, var(--flare-status-tone) calc(var(--flare-opacity-tint-weak) * 100%), transparent);
+}
+.flare-plugin-view__status-title { margin: 0; font-size: var(--flare-size-font-size-4xl); font-weight: var(--flare-size-font-weight-bold); }
+.flare-plugin-view__status-description { margin: 0; font-size: var(--flare-size-font-size-lg); color: var(--flare-color-text-secondary); }
+.flare-plugin-view__why {
+  margin: 0;
+  font-size: var(--flare-size-font-size-sm);
+  line-height: var(--flare-size-line-height-normal);
+  color: var(--flare-color-text-secondary);
 }
 </style>

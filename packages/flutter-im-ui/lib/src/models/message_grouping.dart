@@ -101,11 +101,7 @@ FlareMessageGroupPosition flareMessageGroupPosition(
   final joinsPrevious =
       index > 0 &&
       !breaksBefore.contains(index) &&
-      flareMessagesShareGroup(
-        items[index - 1],
-        current,
-        timeGapMs: timeGapMs,
-      );
+      flareMessagesShareGroup(items[index - 1], current, timeGapMs: timeGapMs);
   final joinsNext =
       index + 1 < items.length &&
       !breaksBefore.contains(index + 1) &&

@@ -126,9 +126,13 @@ void main() {
       final name = tester.widget<Text>(find.text('零钱钱包'));
       expect(amount.style!.fontSize, greaterThan(name.style!.fontSize!));
       expect(amount.overflow, isNot(TextOverflow.ellipsis));
-      expect(find.text('余额'), findsNWidgets(2));
+      // §5.1: a phone draws the first wallet as the overview card and the
+      // other under "其他钱包" (name, currency, balance); PC draws two cards,
+      // without the balance label (§12.23).
+      final cards = width < FlareSizes.appShellCompactMinWidth ? 1 : 2;
+      expect(find.text('余额'), findsNWidgets(cards == 1 ? 1 : 0));
       expect(find.text('可用余额'), findsNothing);
-      expect(find.text('查看明细'), findsNWidgets(2));
+      expect(find.text('查看明细'), findsNWidgets(cards));
       final services = find.byKey(const ValueKey('flare-account-services'));
       final shortcuts = find.byKey(const ValueKey('flare-account-shortcuts'));
       for (final id in ['transactions', 'recharges', 'withdrawals']) {
@@ -332,7 +336,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(card('cny'), findsNothing);
-      expect(find.text('尚无钱包'), findsOneWidget);
+      // §5.2: no wallet is the whole-page set-up state, titled 开通钱包.
+      expect(find.text('开通钱包'), findsOneWidget);
       expect(find.text('账单与记录'), findsOneWidget);
       expect(action('transactions'), findsOneWidget);
     },

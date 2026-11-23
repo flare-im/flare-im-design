@@ -65,7 +65,8 @@ fun VersionPanel(
         )
     }
     SettingsList(
-        sections = listOf(SettingsSection(title = strings.versionPanelTitle, items = items)),
+        // No heading under a page already titled 版本信息, as on Vue.
+        sections = listOf(SettingsSection(title = strings.versionPanelTitle.takeIf { it != LocalFlareScreenTitle.current }, items = items)),
         onSelect = { item -> if (item.key == FLARE_VERSION_PANEL_ROW) handler?.invoke() },
         scrollable = false,
     )

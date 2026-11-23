@@ -43,17 +43,16 @@ export type MessageLike = {
   };
 };
 
-type MessageIdentity = Pick<MessageLike, "clientMsgId" | "serverId">;
+type MessageIdentity = Pick<MessageLike, "clientMsgId" | "serverId"> & Partial<Pick<MessageLike, "timelineKey">>;
 
 /**
  * The id every message intent carries (`reply`, `react`, `recall`, `toggle-select`,
  * `locate-message`, a pinned bar's `focus`) and the id `selectedIds`,
- * `mediaDownloadStates` and `scrollToMessage` expect. The client id comes first:
- * it exists from the optimistic insert on, so a message keeps one identity across
- * its send acknowledgement; rows created without one fall back to the server id.
+ * `mediaDownloadStates` and `scrollToMessage` expect. Confirmed rows use their
+ * canonical server id; local rows fall back to their client id.
  */
 export function resolveMessageId(message: MessageIdentity): string {
-  return message.clientMsgId || message.serverId;
+  return message.serverId || message.clientMsgId;
 }
 
 /**
@@ -64,10 +63,14 @@ export function resolveMessageId(message: MessageIdentity): string {
  */
 export function messageMatchesId(message: MessageIdentity, id: string): boolean {
   if (!id) return false;
-  return resolveMessageId(message) === id || message.serverId === id;
+  return resolveMessageId(message) === id || message.clientMsgId === id || message.timelineKey === id;
 }
 
 /** The row an intent names — the host-side half of {@link resolveMessageId}. */
 export function findMessage<T extends MessageIdentity>(messages: readonly T[], id: string): T | undefined {
-  return id ? messages.find((message) => resolveMessageId(message) === id) : undefined;
+  if (!id) return undefined;
+  const canonical = messages.find((message) => resolveMessageId(message) === id || message.timelineKey === id);
+  if (canonical) return canonical;
+  const aliases = messages.filter((message) => message.clientMsgId === id);
+  return aliases.length === 1 ? aliases[0] : undefined;
 }

@@ -221,131 +221,156 @@ class _FlareImagePreviewState extends State<FlareImagePreview> {
     // The backdrop fades as the image is pulled down.
     final fade = height <= 0 ? 0.0 : (_drag / height).clamp(0.0, 0.6);
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final mediaKey = _mediaKey(strings);
     return Material(
       color: Colors.black.withValues(alpha: 1 - fade),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: widget.onClose,
-              child: AnimatedContainer(
-                duration: _dragging || reduceMotion
-                    ? Duration.zero
-                    : FlareMotion.fast,
-                curve: FlareMotion.fastCurve,
-                transform: Matrix4.translationValues(0, _drag, 0),
-                child: Center(
-                  child: widget.loading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : InteractiveViewer(
-                          transformationController: _transform,
-                          minScale: widget.zoomMin,
-                          maxScale: widget.zoomMax,
-                          onInteractionStart: _onStart,
-                          onInteractionUpdate: _onUpdate,
-                          onInteractionEnd: _onEnd,
-                          child:
-                              widget.imageBuilder?.call(
-                                context,
-                                widget.imageSrc,
-                              ) ??
-                              Image(
-                                image:
-                                    flareMediaImageProvider(
-                                      widget.imageSrc,
-                                      allowLocalFile: widget.allowLocalFile,
-                                    ) ??
-                                    NetworkImage(widget.imageSrc),
-                                fit: BoxFit.contain,
-                                // A picture that cannot load says so, instead
-                                // of leaving a dark screen with a glyph.
-                                errorBuilder: (_, __, ___) => Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.broken_image_outlined,
-                                      color: Colors.white54,
-                                      size: 64,
-                                      semanticLabel: widget.alt,
-                                    ),
-                                    const SizedBox(
-                                      height: FlareSizes.spacingSm,
-                                    ),
-                                    Text(
-                                      strings.imageLoadFailed,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: FlareSizes.fontSizeLg,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            ColoredBox(
+              color: Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.all(FlareSizes.spacingSm),
+                child: SizedBox(
+                  height: FlareSizes.touchTarget,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _circleButton(
+                          'close',
+                          strings.closePreview,
+                          widget.onClose,
                         ),
+                      ),
+                      if (_pages)
+                        Semantics(
+                          label: strings.imagePreviewPosition(
+                            widget.galleryIndex! + 1,
+                            widget.galleryCount!,
+                          ),
+                          excludeSemantics: true,
+                          child: Text(
+                            '${widget.galleryIndex! + 1} / ${widget.galleryCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: FlareSizes.fontSizeLg,
+                            ),
+                          ),
+                        ),
+                      if (mediaKey != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: mediaKey,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + FlareSizes.spacingSm,
-            left: FlareSizes.spacingSm,
-            child: _circleButton('close', strings.closePreview, widget.onClose),
-          ),
-          if (_pages) ...[
-            Positioned(
-              top: MediaQuery.of(context).padding.top + FlareSizes.spacingMd,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Semantics(
-                  label: strings.imagePreviewPosition(
-                    widget.galleryIndex! + 1,
-                    widget.galleryCount!,
-                  ),
-                  excludeSemantics: true,
-                  child: Text(
-                    '${widget.galleryIndex! + 1} / ${widget.galleryCount}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: FlareSizes.fontSizeLg,
+            Expanded(
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: widget.onClose,
+                        child: AnimatedContainer(
+                          duration: _dragging || reduceMotion
+                              ? Duration.zero
+                              : FlareMotion.fast,
+                          curve: FlareMotion.fastCurve,
+                          transform: Matrix4.translationValues(0, _drag, 0),
+                          child: Center(
+                            child: widget.loading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : InteractiveViewer(
+                                    transformationController: _transform,
+                                    minScale: widget.zoomMin,
+                                    maxScale: widget.zoomMax,
+                                    onInteractionStart: _onStart,
+                                    onInteractionUpdate: _onUpdate,
+                                    onInteractionEnd: _onEnd,
+                                    child:
+                                        widget.imageBuilder?.call(
+                                          context,
+                                          widget.imageSrc,
+                                        ) ??
+                                        Image(
+                                          image:
+                                              flareMediaImageProvider(
+                                                widget.imageSrc,
+                                                allowLocalFile:
+                                                    widget.allowLocalFile,
+                                              ) ??
+                                              NetworkImage(widget.imageSrc),
+                                          fit: BoxFit.contain,
+                                          // A picture that cannot load says so, instead
+                                          // of leaving a dark screen with a glyph.
+                                          errorBuilder: (_, __, ___) => Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.broken_image_outlined,
+                                                color: Colors.white54,
+                                                size: 64,
+                                                semanticLabel: widget.alt,
+                                              ),
+                                              const SizedBox(
+                                                height: FlareSizes.spacingSm,
+                                              ),
+                                              Text(
+                                                strings.imageLoadFailed,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize:
+                                                      FlareSizes.fontSizeLg,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: FlareSizes.spacingSm,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _circleButton(
-                  'chevron-left',
-                  strings.imagePreviewPrevious,
-                  widget.onPrevious,
-                ),
-              ),
-            ),
-            Positioned(
-              right: FlareSizes.spacingSm,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _circleButton(
-                  'chevron-right',
-                  strings.imagePreviewNext,
-                  widget.onNext,
+                    if (_pages) ...[
+                      Positioned(
+                        left: FlareSizes.spacingSm,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: _circleButton(
+                            'chevron-left',
+                            strings.imagePreviewPrevious,
+                            widget.onPrevious,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: FlareSizes.spacingSm,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: _circleButton(
+                            'chevron-right',
+                            strings.imagePreviewNext,
+                            widget.onNext,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
           ],
-          if (_mediaKey(strings) case final key?)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + FlareSizes.spacingSm,
-              right: FlareSizes.spacingSm,
-              child: key,
-            ),
-        ],
+        ),
       ),
     );
   }

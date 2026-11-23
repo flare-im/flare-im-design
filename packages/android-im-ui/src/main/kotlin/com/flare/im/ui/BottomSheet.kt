@@ -133,9 +133,9 @@ fun BottomSheet(
         // A sheet has no close button: the scrim is its close control.
         scrimLabel = if (flareScrimAnnounced(dismissible, showClose = false)) strings.close else null,
         contentAlignment = Alignment.BottomCenter,
-        enter = if (reducedMotion) EnterTransition.None
+        enter = if (reducedMotion) flareReducedEnter
         else slideInVertically(tween(FlareMotion.slow, easing = FlareMotion.slowEasing)) { it },
-        exit = if (reducedMotion) ExitTransition.None
+        exit = if (reducedMotion) flareReducedExit
         else slideOutVertically(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) { it },
     ) { _, bounds ->
         // Read in the sheet's own dialog window, whose insets include the keyboard it raises.

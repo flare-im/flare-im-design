@@ -65,7 +65,7 @@ const percentOf = (percent: number | undefined) => Math.min(100, Math.max(0, per
         :class="{ 'is-on': chosen.has(option.index) }"
         aria-hidden="true"
       >
-        <FlareIcon v-if="chosen.has(option.index)" name="check" :size="12" />
+        <FlareIcon v-if="chosen.has(option.index)" name="check" size="sm" />
       </span>
       <span class="flare-plugin-choices__label">{{ option.label }}</span>
       <FlareIcon

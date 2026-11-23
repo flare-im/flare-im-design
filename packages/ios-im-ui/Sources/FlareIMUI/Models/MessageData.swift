@@ -50,6 +50,8 @@ public struct FlareMessageData: Identifiable {
     public let reactions: [ReactionGroup]
     /// The message this one replies to, quoted at the top of the bubble; nil shows no quote.
     public let replyTo: FlareReplyTarget?
+    /// Progress of the outgoing media upload, in percent.
+    public let uploadProgress: Int?
 
     public init(
         id: String,
@@ -65,7 +67,8 @@ public struct FlareMessageData: Identifiable {
         lifecycle: FlareMessageLifecycle? = nil,
         edited: Bool = false,
         reactions: [ReactionGroup] = [],
-        replyTo: FlareReplyTarget? = nil
+        replyTo: FlareReplyTarget? = nil,
+        uploadProgress: Int? = nil
     ) {
         self.id = id
         self.serverId = serverId
@@ -81,6 +84,7 @@ public struct FlareMessageData: Identifiable {
         self.edited = edited
         self.reactions = reactions
         self.replyTo = replyTo
+        self.uploadProgress = uploadProgress
     }
 
     /// System/notification lines render centred, without a bubble.

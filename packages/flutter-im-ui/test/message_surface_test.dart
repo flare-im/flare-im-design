@@ -381,36 +381,43 @@ void main() {
       expect(resent, 1);
     });
 
-    testWidgets('group read summary: "N 人未读" opens the receipt sheet', (
-      tester,
-    ) async {
-      FlareMessageData? opened;
-      await tester.pumpWidget(
-        _host(
-          FlareMessageBubble(
-            message: _msg(
-              sender: 'me',
-              readSummary: const FlareMessageReadSummary(
-                readCount: 2,
-                unreadCount: 3,
-                total: 5,
+    testWidgets(
+      'group receipt shows a single check and opens the receipt sheet',
+      (tester) async {
+        FlareMessageData? opened;
+        await tester.pumpWidget(
+          _host(
+            FlareMessageBubble(
+              message: _msg(
+                sender: 'me',
+                readSummary: const FlareMessageReadSummary(
+                  readCount: 2,
+                  unreadCount: 3,
+                  total: 5,
+                ),
               ),
+              currentUserId: 'me',
+              conversationKind: FlareConversationKind.group,
+              onReadReceiptOpen: (m) => opened = m,
             ),
-            currentUserId: 'me',
-            conversationKind: FlareConversationKind.group,
-            onReadReceiptOpen: (m) => opened = m,
           ),
-        ),
-      );
-      expect(find.text('3 人未读'), findsOneWidget);
-      // The summary replaces the check.
-      expect(find.byType(FlareMessageStatus), findsNothing);
-      final rect = tester.getRect(find.byKey(FlareMessageMeta.readSummaryKey));
-      await tester.tapAt(
-        rect.center.translate(0, -(FlareSizes.touchTarget / 2 - 3)),
-      );
-      expect(opened?.id, 'm1');
-    });
+        );
+        expect(find.text('3 人未读'), findsNothing);
+        expect(
+          tester
+              .widget<FlareMessageStatus>(find.byType(FlareMessageStatus))
+              .status,
+          FlareMessageDeliveryStatus.sent,
+        );
+        final rect = tester.getRect(
+          find.byKey(FlareMessageMeta.readSummaryKey),
+        );
+        await tester.tapAt(
+          rect.center.translate(0, -(FlareSizes.touchTarget / 2 - 3)),
+        );
+        expect(opened?.id, 'm1');
+      },
+    );
 
     testWidgets('all read is the read colour; single chats show the check', (
       tester,
@@ -433,10 +440,8 @@ void main() {
           ),
         ),
       );
-      expect(
-        tester.widget<Text>(find.text('全部已读')).style!.color,
-        FlareColors.light.messageStatusRead,
-      );
+      expect(find.text('全部已读'), findsNothing);
+      expect(find.byKey(FlareMessageStatus.doubleCheckKey), findsOneWidget);
       await tester.pumpWidget(
         _host(
           FlareMessageBubble(
@@ -579,6 +584,10 @@ void main() {
     testWidgets('hovering shows react, reply and more', variant: desktop, (
       tester,
     ) async {
+      // A desktop window: the toolbar is drawn from 900 wide (Vue).
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       FlareMessageData? replied;
       var menus = 0;
       await tester.pumpWidget(

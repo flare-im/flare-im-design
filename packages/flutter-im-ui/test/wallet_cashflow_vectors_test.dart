@@ -146,12 +146,15 @@ void main() {
               expect(text.maxLines, isNull);
               expect(text.overflow, isNot(TextOverflow.ellipsis));
             } else {
+              // On a wide page the reason is the status itself: a tag, or a
+              // banner when it would not fit one line (never a cut tag).
               expect(
                 find.descendant(
                   of: find.byKey(const ValueKey('flare-plugin-status')),
-                  matching: find.byType(FlareTag),
+                  matching: find.text(reason.text),
                 ),
                 findsOneWidget,
+                reason: '$id/$variant',
               );
             }
           }

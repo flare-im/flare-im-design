@@ -13,7 +13,8 @@ const { t } = useFlareI18nOptional();
 
 <template>
   <div v-if="block.label" class="flare-plugin-section">
-    <h3 class="flare-plugin-section__label">{{ block.label }}</h3>
+    <!-- R11: a group's title is a second-level heading (the page title is the first). -->
+    <h2 class="flare-plugin-section__label">{{ block.label }}</h2>
     <button
       type="button"
       class="flare-plugin-section__toggle"
@@ -23,7 +24,7 @@ const { t } = useFlareI18nOptional();
       @click="emit('toggle')"
     >
       <span>{{ collapsed ? t("pluginView.expand") : t("pluginView.collapse") }}</span>
-      <FlareIcon :name="collapsed ? 'chevron-down' : 'chevron-up'" :size="14" aria-hidden="true" />
+      <FlareIcon :name="collapsed ? 'chevron-down' : 'chevron-up'" size="sm" aria-hidden="true" />
     </button>
   </div>
 </template>
@@ -35,14 +36,15 @@ const { t } = useFlareI18nOptional();
   justify-content: space-between;
   gap: var(--flare-size-spacing-sm);
   min-width: 0;
-  padding-block-start: var(--flare-size-spacing-xs);
 }
+/* R1 / §12.7: groups sit 24 apart; the view's grid gives 16 between blocks, the heading adds the rest. */
+.flare-plugin-section:not(:first-child) { margin-block-start: calc(var(--flare-size-spacing-2xl) - var(--flare-size-spacing-lg)); }
 .flare-plugin-section__label {
   min-width: 0;
   margin: 0;
   font-size: var(--flare-size-font-size-md);
   font-weight: var(--flare-size-font-weight-semibold);
-  color: var(--flare-color-text-primary);
+  color: var(--flare-color-text-secondary);
   overflow-wrap: anywhere;
 }
 .flare-plugin-section__toggle {

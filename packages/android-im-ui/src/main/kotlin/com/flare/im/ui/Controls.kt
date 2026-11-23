@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,7 +61,9 @@ fun ScreenHeader(
             color = colors.textPrimary,
             modifier = Modifier.weight(1f),
         )
-        actions()
+        CompositionLocalProvider(LocalFlareHeaderIcons provides true) {
+            actions()
+        }
     }
 }
 
@@ -86,6 +90,8 @@ fun SegmentedControl(
     val inset = 3.dp
     Row(
         modifier
+            // The segments read as one group of tabs (the tablist of the other kits).
+            .selectableGroup()
             .clip(trackShape)
             .background(colors.bgSecondary)
             .border(1.dp, colors.borderPrimary, trackShape)

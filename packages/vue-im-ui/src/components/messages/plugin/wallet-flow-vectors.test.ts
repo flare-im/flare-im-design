@@ -183,7 +183,8 @@ describe("wallet flow vectors with plain blocks", () => {
     const view = structuredClone(sample.view) as unknown as FlarePluginPageViewModel;
     const wrapper = mount(defineComponent({ setup() {
       useFlareI18nProvider("zh-CN");
-      return () => h(FlarePluginPage, { page: { pluginId: "flare.wallet", page: sample.page }, view });
+      // R12: absent appearance is derived from the structure; document turns the derivation off.
+      return () => h(FlarePluginPage, { page: { pluginId: "flare.wallet", page: sample.page }, view, appearance: "document" });
     } }), { attachTo: document.body });
     const text = wrapper.text();
     const head = (sample.view.blocks as Array<Record<string, Json>>)[0];

@@ -134,7 +134,8 @@ fun composerPanelPage(current: Int, pages: Int): Int = current.coerceIn(0, (page
  * Items are ordered by `order`, then by position. On a phone ([formFactor] Mobile) the grid pages sideways,
  * [rows] × [columns] per page, with page dots; on a desktop it shows at most [rows] rows and scrolls. A new list keeps
  * the page the reader is on (clamped when pages go away); a tile that appears fades in (150 ms, none with reduced
- * motion).
+ * motion). While [loading] (the plugin items are still being read) skeleton tiles stand where they will go, so the
+ * panel opens at once (4.1 of docs/plugin-experience.md).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -146,6 +147,7 @@ fun FlareComposerActionPanel(
     /** Rows per page on a phone (default 2), most rows shown on a desktop (default 3). */
     rows: Int? = null,
     onAction: ((FlareComposerAction) -> Unit)? = null,
+    loading: Boolean = false,
 ) {
     val colors = flareColors()
     val strings = flareStrings()
@@ -183,20 +185,27 @@ fun FlareComposerActionPanel(
             }
         }
     }
+    // The places the plugin items will take while they load: the rest of the row, at least one tile.
+    val placeholders = if (!loading) 0 else (columns - resolvedActions.size % columns).takeIf { it in 1 until columns } ?: columns
     @Composable
-    fun grid(items: List<FlareComposerAction>) {
+    fun grid(items: List<FlareComposerAction?>) {
         Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg)) {
             items.chunked(columns).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacingLg)) {
-                    row.forEach { action -> key(action.id) { tile(action, Modifier.weight(1f)) } }
+                    row.forEachIndexed { index, action ->
+                        if (action == null) Box(Modifier.weight(1f).height(FlareComposerPanelRowHeight).clearAndSetSemantics {}, contentAlignment = Alignment.TopCenter) {
+                            Skeleton(SkeletonVariant.Tile, still = reducedMotion)
+                        } else key(action.id) { tile(action, Modifier.weight(1f)) }
+                    }
                     repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }
     }
+    val shownItems: List<FlareComposerAction?> = resolvedActions + List(placeholders) { null }
     Column(Modifier.fillMaxWidth().background(colors.bgPrimary).padding(FlareSizes.spacingLg)) {
         if (paged) {
-            val pages = composerPanelPages(resolvedActions, rowCount, columns)
+            val pages = composerPanelPages(shownItems, rowCount, columns)
             val pager = rememberPagerState { pages.size }
             HorizontalPager(pager, Modifier.fillMaxWidth().height(gridHeight), verticalAlignment = Alignment.Top) { index ->
                 grid(pages.getOrElse(index) { emptyList() })
@@ -218,7 +227,7 @@ fun FlareComposerActionPanel(
                 }
             }
         } else {
-            Box(Modifier.fillMaxWidth().heightIn(max = gridHeight).verticalScroll(rememberScrollState())) { grid(resolvedActions) }
+            Box(Modifier.fillMaxWidth().heightIn(max = gridHeight).verticalScroll(rememberScrollState())) { grid(shownItems) }
         }
     }
 }
@@ -234,17 +243,19 @@ fun FlareComposerActionPanel(
  * same kind of act as every other key in the tool row — one tap, one outcome —
  * so it is drawn the same way, and only colour says which one sends: the brand
  * at rest against the row, faded while there is nothing to send. That is also
- * what [Composer]'s own send key does, and the two must not drift.
+ * what [Composer]'s own send key does, and the two must not drift. [label] names it for assistive technology
+ * (发送 by default; 保存编辑 while a message is being edited).
  */
 @Composable
-fun FlareComposerSendButton(active: Boolean, onSend: (() -> Unit)? = null) {
+fun FlareComposerSendButton(active: Boolean, label: String? = null, onSend: (() -> Unit)? = null) {
     val colors = flareColors()
     Box(
         Modifier.size(FlareSizes.componentComposerActionWidth).clickable(enabled = active) { onSend?.invoke() },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.AutoMirrored.Filled.Send, flareStrings().send, Modifier.size(20.dp),
+            Icons.AutoMirrored.Filled.Send, label ?: flareStrings().send,
+            Modifier.size(if (flareCompactOverlays()) FlareSizes.iconSizeLg else FlareSizes.iconSizeMd),
             tint = colors.primaryText.copy(alpha = if (active) 1f else 0.38f),
         )
     }

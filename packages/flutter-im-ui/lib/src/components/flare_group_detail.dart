@@ -14,11 +14,13 @@ import 'flare_checkbox.dart';
 import 'flare_contact_list.dart';
 import 'flare_empty_state.dart';
 import 'flare_group_member_grid.dart';
+import 'flare_icon_button.dart';
 import 'flare_qr_card.dart';
 import 'flare_radio_group.dart';
 import 'flare_scene_panels.dart';
 import 'flare_search_bar.dart';
 import 'flare_settings_list.dart';
+import 'flare_screen.dart';
 
 /// Group detail / management — hero, member grid and Feishu-style settings:
 /// 群信息 / 我在本群 / 群管理 / 群权限, plus member actions, join-request
@@ -261,6 +263,43 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
     FlareGroupJoinPolicy.invite => _l.joinInvite,
   };
 
+  /// The group's name, 18 semibold on one line; a button with the touch
+  /// target when [onRename] is set (it replaces the 群名称 row).
+  Widget _titleText(String name, FlareColors colors, VoidCallback? onRename) {
+    final text = Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: colors.textPrimary,
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+    if (onRename == null) return Semantics(header: true, child: text);
+    return Semantics(
+      header: true,
+      button: true,
+      child: InkWell(
+        onTap: onRename,
+        borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: FlareSizes.touchTarget),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingSm,
+            ),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              widthFactor: 1,
+              child: text,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── Settings model ─────────────────────────────────────────────────────────
   List<FlareSettingsSection> _sections() {
     final m = _m;
@@ -269,17 +308,8 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
       FlareSettingsSection(
         title: _l.info,
         items: [
-          FlareSettingsItem(
-            key: 'name',
-            label: _l.name,
-            icon: 'tag',
-            // Rows the viewer can change open their editor and carry a
-            // chevron; the rest read as values, not as buttons.
-            kind: _can(FlareGroupManagementEntry.editName)
-                ? FlareSettingKind.navigation
-                : FlareSettingKind.value,
-            detail: m.name,
-          ),
+          // No 群名称 row: the title is the rename entry, so the name is
+          // written once (Vue FlareGroupDetail).
           FlareSettingsItem(
             key: 'announcement',
             label: _l.announcement,
@@ -1030,33 +1060,38 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           onToggle: _onToggle,
           shrinkWrap: true,
         );
-    return ListView(
+    final content = ListView(
       children: [
-        // Hero.
+        // Hero: the avatar beside the name; a manager renames from the name
+        // or the pencil beside it (Vue `__hero`).
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            FlareSizes.spacingLg,
-            FlareSizes.spacingXl,
-            FlareSizes.spacingLg,
-            FlareSizes.spacingSm,
-          ),
-          child: Column(
+          // In a detail pane the screen owns the gutter (Vue `.is-detail`).
+          padding: FlareScreen.detailOf(context)
+              ? const EdgeInsets.only(bottom: FlareSizes.spacingMd)
+              : const EdgeInsets.all(FlareSizes.spacingMd),
+          child: Row(
             children: [
               FlareAvatar(
                 userId: m.groupId,
                 displayName: name,
                 avatarUrl: m.avatarUrl,
-                size: 72,
+                size: 52,
               ),
-              const SizedBox(height: FlareSizes.spacingSm),
-              Text(
-                name,
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: FlareSizes.fontSize3xl,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: FlareSizes.spacingMd),
+              Flexible(
+                child: _titleText(
+                  name,
+                  colors,
+                  _can(FlareGroupManagementEntry.editName) ? _editName : null,
                 ),
               ),
+              if (_can(FlareGroupManagementEntry.editName))
+                FlareIconButton(
+                  icon: 'edit',
+                  semanticLabel: _l.editName,
+                  tintColor: colors.textTertiary,
+                  onPressed: _editName,
+                ),
             ],
           ),
         ),
@@ -1109,22 +1144,10 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
           padding: const EdgeInsets.all(FlareSizes.spacingLg),
           child: Column(
             children: [
-              // Opening the chat is the host's: no handler, no button.
-              if (onOpenChat != null) ...[
-                FlareButton(
-                  block: true,
-                  size: FlareControlSize.sm,
-                  maintainTouchTarget: true,
-                  label: _l.message,
-                  icon: 'comment',
-                  onPressed: () =>
-                      onOpenChat(m.members.map((x) => x.id).toList(), name),
-                ),
-              ],
               for (final action in widget.extraActions) ...[
                 FlareButton(
                   block: true,
-                  size: FlareControlSize.sm,
+                  size: FlareControlSize.lg,
                   maintainTouchTarget: true,
                   variant: action.danger
                       ? FlareButtonVariant.danger
@@ -1135,7 +1158,7 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
               ],
               FlareButton(
                 block: true,
-                size: FlareControlSize.sm,
+                size: FlareControlSize.lg,
                 maintainTouchTarget: true,
                 variant: FlareButtonVariant.danger,
                 label: _can(FlareGroupManagementEntry.dissolve)
@@ -1158,6 +1181,33 @@ class _FlareGroupDetailState extends State<FlareGroupDetail> {
             ),
             child: footer,
           ),
+      ],
+    );
+    if (onOpenChat == null) return content;
+    return Column(
+      children: [
+        Expanded(child: content),
+        ColoredBox(
+          color: colors.bgPrimary,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: FlareSizes.spacingMd,
+                vertical: FlareSizes.spacingSm,
+              ),
+              child: FlareButton(
+                block: true,
+                size: FlareControlSize.lg,
+                label: _l.message,
+                onPressed: () => onOpenChat(
+                  m.members.map((member) => member.id).toList(),
+                  name,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

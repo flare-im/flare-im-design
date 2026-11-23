@@ -2,9 +2,10 @@
 import { computed } from "vue";
 import FlareTag from "../../../general/FlareTag.vue";
 import { useFlareI18nOptional } from "../../../../shared/i18n/useFlareI18n";
+import { flarePluginStatusDraw } from "../../../../shared/contracts/plugin-experience";
+import { useFlarePluginWarnScope } from "../warnScope";
 import { flareServerNowMs } from "../../../../shared/server-clock";
 import {
-  flarePluginBadgeTone,
   flarePluginDateTime,
   flarePluginInstant,
   flarePluginIsoTime,
@@ -20,6 +21,12 @@ const props = defineProps<{
   formatTime?: (ms: number) => string;
 }>();
 const { t } = useFlareI18nOptional();
+const warnAt = useFlarePluginWarnScope();
+/** R3: a step's status as its Tag — the unknown status (and one development warning) when unmapped. */
+function statusOf(status: { text: string; tone: string; unmapped?: boolean }): { label: string; tone: "success" | "warning" | "danger" | "info" | "neutral" } {
+  const drawn = flarePluginStatusDraw(status, warnAt("timeline:status"));
+  return { label: drawn.unknown ? t("pluginView.unknownStatus") : drawn.text, tone: drawn.tone ?? "neutral" };
+}
 const items = computed(() => {
   const now = flareServerNowMs();
   // An item whose instant no kit can draw is left out, as in every kit.
@@ -40,7 +47,7 @@ const items = computed(() => {
       <div class="flare-plugin-timeline__body">
         <div class="flare-plugin-timeline__head">
           <span class="flare-plugin-timeline__title">{{ item.title }}</span>
-          <FlareTag v-if="item.status" :label="item.status.text" :tone="flarePluginBadgeTone(item.status.tone)" />
+          <FlareTag v-if="item.status" v-bind="statusOf(item.status)" :data-unknown="item.status.unmapped ? 'true' : undefined" />
         </div>
         <p v-if="item.detail" class="flare-plugin-timeline__detail">{{ item.detail }}</p>
         <time class="flare-plugin-timeline__time" :datetime="flarePluginIsoTime(item.atMs)">{{ item.time }}</time>

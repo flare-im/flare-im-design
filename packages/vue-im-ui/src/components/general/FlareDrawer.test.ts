@@ -331,6 +331,15 @@ describe("FlareDrawer navigation and closing", () => {
 });
 
 describe("FlareDrawer with a page that brings its own header", () => {
+  it("focuses the page's search field before its back button", async () => {
+    mountDrawer({ title: "Find people" }, { slots: {
+      default: () => h(FlareScreen as Component, { title: "Find people", back: true, onBack: () => {} },
+        () => h("input", { type: "search", "aria-label": "Search people" })),
+    } });
+    await nextTick();
+    expect(document.activeElement).toBe(surface().querySelector('input[type="search"]'));
+  });
+
   // The host's page stack inside the drawer: the root has no way back, every pushed page is a kit screen with a back key
   // that pops one page (a plugin page, which also pops its own pages first).
   async function mountStack(depth: number, options: MountOptions = {}) {

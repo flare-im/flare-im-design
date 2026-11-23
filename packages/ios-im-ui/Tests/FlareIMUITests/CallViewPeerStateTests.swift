@@ -23,7 +23,8 @@ final class CallViewPeerStateTests: XCTestCase {
 
         let videoMuted = CallView(peerName: "Ada", mode: .video, state: .connected, video: AnyView(Color.black), peerMuted: true)
         XCTAssertNoThrow(try videoMuted.inspect().find(viewWithAccessibilityLabel: s.callPeerMuted),
-                         "the badge sits by the name, which the peer's video does not hide")
+                         "the note follows the status line, which the peer's video does not hide")
+        XCTAssertNoThrow(try muted.inspect().find(text: s.callPeerMuted), "§3.3: mic-off 14 and the words, not a bare glyph")
     }
 
     func testTheSpeakingRingIsNotDrawnWhileThePeerIsMuted() {
@@ -37,19 +38,19 @@ final class CallViewPeerStateTests: XCTestCase {
         let video = CallView(peerName: "Ada", mode: .video, state: .connected, localVideo: AnyView(Text("me")))
         let frame = try video.inspect().find(ViewType.AnyView.self, where: { try $0.text().string() == "me" }).fixedFrame()
         XCTAssertEqual(frame.width, FlareSizes.componentCallPreviewWidth)
-        XCTAssertEqual(frame.height, FlareSizes.componentCallPreviewWidth * 4 / 3)
+        XCTAssertEqual(frame.height, CallView.previewHeight)
 
         let audio = CallView(peerName: "Ada", mode: .audio, state: .connected, localVideo: AnyView(Text("me")))
         XCTAssertThrowsError(try audio.inspect().find(text: "me"))
     }
 
     func testThePeerBlockStartsBelowThePreview() {
-        // Both measure from the top of the safe area: the preview's bottom is its inset plus its 3:4 height, the
+        // Both measure from the top of the safe area: the preview's bottom is its inset plus its 9:16 height, the
         // avatar's top is the peer block's inset.
-        let previewBottom = FlareSizes.spacingLg + FlareSizes.componentCallPreviewWidth * 4 / 3
+        let previewBottom = FlareSizes.spacingLg + CallView.previewHeight
         let avatarTop = CallView.peerTopInset(localPreview: true)
         XCTAssertGreaterThan(avatarTop, previewBottom)
-        XCTAssertEqual(avatarTop, FlareSizes.spacingLg * 2 + FlareSizes.componentCallPreviewWidth * 4 / 3)
+        XCTAssertEqual(avatarTop, FlareSizes.spacingLg * 2 + CallView.previewHeight)
         XCTAssertEqual(CallView.peerTopInset(localPreview: false), 72)
     }
 }

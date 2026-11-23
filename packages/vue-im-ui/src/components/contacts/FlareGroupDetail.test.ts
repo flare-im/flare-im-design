@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import { defineComponent, h, type Component } from "vue";
+import { defineComponent, h, ref, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareGroupDetail from "./FlareGroupDetail.vue";
 import FlareFormSheet from "../general/FlareFormSheet.vue";
@@ -10,6 +10,8 @@ import FlareSettingsList from "../profile/FlareSettingsList.vue";
 import FlareGroupMemberGrid from "./FlareGroupMemberGrid.vue";
 import FlareButton from "../general/FlareButton.vue";
 import FlareRadioGroup from "../form/FlareRadioGroup.vue";
+import FlareSearchBar from "../general/FlareSearchBar.vue";
+import FlareEmptyState from "../general/FlareEmptyState.vue";
 let host: ReturnType<typeof mount>;
 /** What a group owner may manage, as the host's permission source answers it. */
 const OWNER = { canManageInfo: true, canManageJoinSettings: true, canManageJoinRequests: true, canInvite: true, canDissolve: true };
@@ -63,7 +65,7 @@ it("emits openChat with positional (userIds, name) like the native onOpenChat", 
     });
   } }), { attachTo: document.body });
   await flushPromises();
-  await host.find(".flare-group-detail__foot button").trigger("click");
+  await host.find(".flare-group-detail__actions button").trigger("click");
   const detail = host.findComponent(FlareGroupDetail);
   expect(detail.emitted("openChat")?.[0]).toEqual([["a", "b"], "Team"]);
 });
@@ -149,7 +151,7 @@ it("reads an unknown join policy as not set and only saves a picked one", async 
     });
   } }), { attachTo: document.body });
   await flushPromises();
-  const list = host.findComponent(FlareSettingsList);
+  const list = host.findAllComponents(FlareSettingsList).at(-1)!;
   const manage = (list.props("sections") as Array<{ items: Array<{ key: string; detail?: string }> }>)
     .flatMap((section) => section.items).find((item) => item.key === "joinPolicy");
   expect(manage?.detail).toBe("未设置");
@@ -174,7 +176,7 @@ it("emits the requested public-search state from the discoverability switch", as
         capabilities: OWNER, memberActions: {}, discoverable: false },
     });
   } }), { attachTo: document.body });
-  const list = host.findComponent(FlareSettingsList);
+  const list = host.findAllComponents(FlareSettingsList).at(-1)!;
   const discoverable = (list.props("sections") as Array<{ items: Array<{ key: string; value?: boolean }> }>)
     .flatMap((section) => section.items).find((item) => item.key === "discoverable");
   expect(discoverable).toMatchObject({ value: false });
@@ -188,8 +190,8 @@ it("previews the first members and opens everyone, searchable, from the grid hea
     useFlareI18nProvider("zh-CN");
     return () => h(FlareGroupDetail as Component, { model: bigGroup });
   } }), { attachTo: document.body });
-  // Nineteen people and the add tile fill the preview grid.
-  expect(host.findComponent(FlareGroupMemberGrid).props("members")).toHaveLength(19);
+  // Nine people and the add tile fill the preview grid.
+  expect(host.findComponent(FlareGroupMemberGrid).props("members")).toHaveLength(9);
   // 完整名单从成员栅格的头部进去:「群成员 / N 名成员」那一行已经去掉了
   // (人数在同一屏上不写两遍),头部自己带上了陈述入口的 chevron。
   expect(host.findAll(".flare-settings__row").some((row) => row.text().includes("群成员"))).toBe(false);
@@ -263,7 +265,7 @@ it("gives the rows the viewer can change a chevron and leaves the rest as values
   expect(Object.keys(chevrons())).not.toContain("群成员");
   // 不能管理的人,标题只是标题:没有改名入口。
   expect(host.find(".flare-group-detail__title").classes()).not.toContain("is-interactive");
-  host.findComponent(FlareSettingsList).vm.$emit("select", { key: "myNickname" });
+  host.findAllComponents(FlareSettingsList).at(-1)!.vm.$emit("select", { key: "myNickname" });
   await flushPromises();
   expect(host.findComponent(FlareFormSheet).props("open")).toBe(false);
   host.unmount();
@@ -306,7 +308,7 @@ it("claims no state for my notification and pin settings when they could not be 
     });
   } }), { attachTo: document.body });
   await flushPromises();
-  const sections = host.findComponent(FlareSettingsList).props("sections") as Array<{ items: Array<{ key: string; kind?: string; detail?: string }> }>;
+  const sections = host.findAllComponents(FlareSettingsList).at(-1)!.props("sections") as Array<{ items: Array<{ key: string; kind?: string; detail?: string }> }>;
   const items = sections.flatMap((section) => section.items);
   expect(items.find((item) => item.key === "notif")).toMatchObject({ kind: "value", detail: "暂时无法读取" });
   expect(items.find((item) => item.key === "pin")).toMatchObject({ kind: "value", detail: "暂时无法读取" });
@@ -385,7 +387,7 @@ it("shows each management row only for the capability that names it", async () =
           discoverable: false, members: [{ id: "own", name: "Owner" }] },
       });
     } }), { attachTo: document.body });
-    const sections = host.findComponent(FlareSettingsList).props("sections") as { title: string; items: { key: string }[] }[];
+    const sections = host.findAllComponents(FlareSettingsList).flatMap(list => list.props("sections")) as { title: string; items: { key: string }[] }[];
     return {
       rows: sections.slice(2).flatMap((section) => section.items.map((item) => item.key)),
       add: host.findComponent(FlareGroupMemberGrid).props("showAdd"),
@@ -402,4 +404,25 @@ it("shows each management row only for the capability that names it", async () =
   // Only the capability to dissolve turns leaving into dissolving.
   expect(rowsFor({ canDissolve: true }).leave).toBe("Dissolve group");
   expect(rowsFor({}).rows).toEqual([]);
+});
+
+it("retries a failed member search with its query intact and clears an unmatched search directly", async () => {
+  const searchError = ref<string>();
+  const roster = ref([{ id: "ivy", name: "Ivy" }]);
+  host = mount(defineComponent({ setup() {
+    useFlareI18nProvider("zh-CN");
+    return () => h(FlareGroupDetail, { model: { groupId: "g", name: "Team", members: roster.value, memberCount: 1, ownerId: "ivy", adminIds: [], mutedIds: [], capabilities: {}, memberActions: {}, discoverable: false, myMuted: null, myPinned: null, joinPolicy: null, muteAll: false, onlyAdminCanAtAll: false, onlyAdminCanPin: false, shareCardPermission: false }, memberSearchError: searchError.value, onSearchMembers: () => {} });
+  } }), { attachTo: document.body });
+  host.getComponent(FlareGroupMemberGrid).vm.$emit("viewAll"); await flushPromises();
+  host.getComponent(FlareSearchBar).vm.$emit("update:modelValue", "Ivy"); await flushPromises();
+  const detail = host.getComponent(FlareGroupDetail);
+  searchError.value = "Offline"; await flushPromises();
+  const error = host.getComponent(FlareEmptyState);
+  expect(error.props("actionText")).toBe("重试");
+  error.vm.$emit("action"); await flushPromises();
+  expect(detail.emitted("searchMembers")?.at(-1)).toEqual(["Ivy"]);
+  expect(host.getComponent(FlareSearchBar).props("modelValue")).toBe("Ivy");
+  searchError.value = undefined; roster.value = []; await flushPromises();
+  host.getComponent(FlareEmptyState).vm.$emit("action"); await flushPromises();
+  expect(detail.emitted("searchMembers")?.at(-1)).toEqual([""]);
 });

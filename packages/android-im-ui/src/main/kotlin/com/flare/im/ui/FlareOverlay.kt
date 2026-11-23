@@ -170,6 +170,10 @@ internal fun resolveOverlayBack(dismissible: Boolean, showBack: Boolean): FlareO
     else -> FlareOverlayBackAction.Close
 }
 
+/** §7 / §12.10: under reduced motion a panel and its scrim fade in and out instead of sliding or scaling. */
+internal val flareReducedEnter: EnterTransition get() = fadeIn(tween(FlareMotion.normal, easing = FlareMotion.normalEasing))
+internal val flareReducedExit: ExitTransition get() = fadeOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing))
+
 /**
  * The scrim is announced as a close action only when it is the overlay's one close affordance: with a header
  * close button TalkBack would otherwise read two "close" nodes, and a locked overlay offers no close at all.
@@ -240,19 +244,17 @@ internal fun FlareOverlayScaffold(
     focusKey: Any? = null,
     surface: @Composable (close: () -> Unit, bounds: FlareOverlayBounds) -> Unit,
 ) {
-    val reducedMotion = flareReducedMotion()
     val currentOnClose by rememberUpdatedState(onClose)
     val currentOnBack by rememberUpdatedState(onBack)
     val currentDismissible by rememberUpdatedState(dismissible)
-    val shown = remember { MutableTransitionState(reducedMotion) }
+    // Hidden first under reduced motion too: the panel then fades in and out (§7), it never appears at once.
+    val shown = remember { MutableTransitionState(false) }
     var closing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { shown.targetState = true }
     // Remembered, so the content's local below stays one value for the life of the overlay.
-    val finish: () -> Unit = remember(reducedMotion) {
+    val finish: () -> Unit = remember {
         {
-            if (!closing) {
-                if (reducedMotion) currentOnClose() else { closing = true; shown.targetState = false }
-            }
+            if (!closing) { closing = true; shown.targetState = false }
         }
     }
     val close: () -> Unit = { if (currentDismissible) finish() }
@@ -314,8 +316,9 @@ internal fun FlareOverlayScaffold(
             ) {
                 AnimatedVisibility(
                     visibleState = shown,
-                    enter = if (reducedMotion) EnterTransition.None else fadeIn(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)),
-                    exit = if (reducedMotion) ExitTransition.None else fadeOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)),
+                    // The scrim fades in either way (§7: under reduced motion panels fade, never appear at once).
+                    enter = flareReducedEnter,
+                    exit = flareReducedExit,
                 ) {
                     Box(Modifier.fillMaxSize().background(scrim))
                 }

@@ -1360,7 +1360,15 @@ class _FlareMessageListState extends State<FlareMessageList>
   }
 
   Widget _emptyWindow() {
-    if (widget.loading || widget.loadingOlder || widget.loadingNewer) {
+    // The first window of a conversation says what it is waiting for, as the
+    // Vue host's `#empty` slot does; a page turn keeps the bare spinner.
+    if (widget.loading) {
+      return FlareEmptyState(
+        loading: true,
+        title: FlareStrings.of(context).conversationWorkspaceChatLoading,
+      );
+    }
+    if (widget.loadingOlder || widget.loadingNewer) {
       return const CircularProgressIndicator();
     }
     if (widget.emptyPlaceholder case final placeholder?) {
@@ -1738,15 +1746,14 @@ class _FlareMessageListState extends State<FlareMessageList>
     if (reveal != null && message != null) reveal(message, item.image);
   }
 
-  /// The live download state of a gallery picture: an image message's own.
-  /// An album's pictures share one message, so a state for it cannot say which
-  /// picture is saved; they keep the plain download key.
+  /// The live download state of this gallery picture.
   ValueListenable<FlareMediaDownloadState?>? _galleryPictureState(
     FlareImageGalleryItem item,
   ) {
     final message = _galleryMessage(item);
-    if (message == null || message.content is! FlareImageContent) return null;
-    return flareMediaDownloadEntry(_downloadStates, item.messageId);
+    if (message == null) return null;
+    final key = flareMediaDownloadStateKey(message, item.image);
+    return key == null ? null : flareMediaDownloadEntry(_downloadStates, key);
   }
 
   FlareMessageData? _galleryMessage(FlareImageGalleryItem item) {

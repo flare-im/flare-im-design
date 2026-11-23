@@ -15,6 +15,35 @@ function describedTargets(root: Element, control: Element): (Element | null)[] {
 }
 
 describe("FlareFormField control association", () => {
+  it('keeps a compact counter separate from the label and associates it with the same control', async () => {
+    const draft = ref('');
+    const wrapper = mount(FlareFormField, { props: { label: '钱包名称', counter: '0/24', hint: '仅自己可见' }, slots: { default: () => h(FlareInput, { modelValue: draft.value, 'onUpdate:modelValue': value => { draft.value = value; } }) } });
+    await nextTick();
+    const input = wrapper.get('input');
+    const id = input.attributes('id');
+    expect(wrapper.get('label').text()).toBe('钱包名称');
+    expect(describedTargets(wrapper.element, input.element).map(node => node?.textContent)).toEqual(['仅自己可见', '0/24']);
+    expect(wrapper.get('.flare-form-field__footer').text()).toContain('0/24');
+    expect(wrapper.get('.flare-form-field__header').text()).not.toContain('0/24');
+    await input.setValue('旅行钱包');
+    await wrapper.setProps({ counter: '4/24', labelPlacement: 'left', error: '名称不可用' });
+    expect(wrapper.get('input').element).toBe(input.element);
+    expect(input.attributes('id')).toBe(id);
+    expect((input.element as HTMLInputElement).value).toBe('旅行钱包');
+    expect(describedTargets(wrapper.element, input.element).map(node => node?.textContent)).toEqual(['名称不可用']);
+    expect(wrapper.get('.flare-form-field__counter').text()).toBe('4/24');
+    wrapper.unmount();
+  });
+  it('retains native form feedback and counter references without adding the counter to the label', async () => {
+    const wrapper = mount(FlareFormField, { props: { native: true, label: 'Reference', counter: '3/32' }, slots: { default: () => h(FlareInput) } });
+    await nextTick();
+    const input = wrapper.get('input');
+    expect(wrapper.get('label').text()).not.toContain('3/32');
+    expect(describedTargets(wrapper.element, input.element).map(node => node?.textContent)).toEqual(['3/32']);
+    await wrapper.setProps({ counter: undefined });
+    expect(input.attributes('aria-describedby')).toBeUndefined();
+    wrapper.unmount();
+  });
   it("keeps the same named control, draft and error association when labels move alongside it", async () => {
     const wrapper = mount(FlareFormField, {
       props: { label: "搜索名称", error: "查询条件无效" },

@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 
 /**
  * Shared form surface (Spec: Overlay/FormSheet, Compose symbol `FormDialog`): the [title], the host's fields in
@@ -31,9 +32,11 @@ fun FormDialog(
     busy: Boolean = false,
     danger: Boolean = false,
     presentation: FlareSheetPresentation = FlareSheetPresentation.Auto,
+    /** The sheet's height cap ([BottomSheet] `maxHeight`); null keeps the kit default. */
+    maxHeight: Dp? = null,
     content: @Composable () -> Unit,
 ) {
-    BottomSheet(onClose = { if (!busy) onClose() }, title = title, dismissible = !busy, presentation = presentation) {
+    BottomSheet(onClose = { if (!busy) onClose() }, title = title, dismissible = !busy, presentation = presentation, maxHeight = maxHeight) {
         Column(
             Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())
                 .padding(horizontal = FlareSizes.spacingLg, vertical = FlareSizes.spacingSm),

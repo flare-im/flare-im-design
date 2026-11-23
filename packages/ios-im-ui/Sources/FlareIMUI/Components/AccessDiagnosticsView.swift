@@ -22,6 +22,8 @@ public struct AccessDiagnosticsView: View {
     private let onRefresh: (() -> Void)?
     private let onImportRecovery: ((String) -> Void)?
     private let onExportDiagnostics: (() -> Void)?
+    private let compact: Bool
+    private let preferences: AnyView?
     @Environment(\.flareStrings) private var strings
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -47,13 +49,16 @@ public struct AccessDiagnosticsView: View {
                 importing: Bool = false, importOutcome: String? = nil, importCode: String? = nil,
                 exporting: Bool = false, exportOutcome: String? = nil,
                 onPin: ((String) -> Void)? = nil, onUnpin: (() -> Void)? = nil, onRefresh: (() -> Void)? = nil,
-                onImportRecovery: ((String) -> Void)? = nil, onExportDiagnostics: (() -> Void)? = nil) {
+                onImportRecovery: ((String) -> Void)? = nil, onExportDiagnostics: (() -> Void)? = nil,
+                compact: Bool = false, preferences: AnyView? = nil) {
         self.status = status; self.accessPoints = accessPoints
         self.refreshing = refreshing; self.refreshOutcome = refreshOutcome
         self.importing = importing; self.importOutcome = importOutcome; self.importCode = importCode
         self.exporting = exporting; self.exportOutcome = exportOutcome
         self.onPin = onPin; self.onUnpin = onUnpin; self.onRefresh = onRefresh
         self.onImportRecovery = onImportRecovery; self.onExportDiagnostics = onExportDiagnostics
+        self.compact = compact
+        self.preferences = preferences
     }
 
     private var trimmedLink: String { link.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -74,7 +79,7 @@ public struct AccessDiagnosticsView: View {
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let model = flareAccessDiagnostics(status, accessPoints: accessPoints)
-        VStack(alignment: .leading, spacing: FlareSizes.spacingXl) {
+        VStack(alignment: .leading, spacing: compact ? FlareSizes.spacingLg : FlareSizes.spacingXl) {
             if !model.notices.isEmpty {
                 VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
                     ForEach(model.notices, id: \.text) { notice in
@@ -82,8 +87,17 @@ public struct AccessDiagnosticsView: View {
                     }
                 }
             }
-            if model.state == .recovering {
-                recovery(colors)
+            if let preferences { preferences }
+            if compact || model.state == .recovering {
+                if compact {
+                    let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+                    recovery(colors)
+                        .padding(FlareSizes.spacingMd)
+                        .background(shape.fill(colors.bgElevated))
+                        .overlay(shape.strokeBorder(colors.borderSecondary).allowsHitTesting(false))
+                } else {
+                    recovery(colors)
+                }
                 current(model, colors)
                 lines(model, colors)
             } else {
@@ -104,19 +118,36 @@ public struct AccessDiagnosticsView: View {
         }
     }
 
-    private func section<Content: View>(_ title: String, _ colors: FlareColors,
+    @ViewBuilder
+    private func section<Content: View>(_ title: String, _ colors: FlareColors, collapsible: Bool = false,
                                         @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
-            Text(title)
-                .font(.system(size: FlareTextRoles.body.fontSize, weight: .semibold))
-                .foregroundColor(colors.textPrimary)
-                .accessibilityAddTraits(.isHeader)
-            content()
+        let heading = Text(title)
+            .font(.system(size: FlareTextRoles.body.fontSize, weight: .semibold))
+            .foregroundColor(colors.textPrimary)
+            .accessibilityAddTraits(.isHeader)
+        if collapsible {
+            let shape = RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
+            let detail = content()
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: FlareSizes.spacingMd) { detail }
+                    .padding(.top, FlareSizes.spacingSm)
+            } label: {
+                heading.frame(minHeight: FlareSizes.touchTargetMin, alignment: .leading)
+            }
+            .padding(.horizontal, FlareSizes.spacingMd)
+            .padding(.vertical, FlareSizes.spacingXs)
+            .background(shape.fill(colors.bgElevated))
+            .overlay(shape.strokeBorder(colors.borderSecondary).allowsHitTesting(false))
+        } else {
+            VStack(alignment: .leading, spacing: FlareSizes.spacingMd) {
+                heading
+                content()
+            }
         }
     }
 
     private func current(_ model: FlareAccessDiagnosticsModel, _ colors: FlareColors) -> some View {
-        section(strings.accessDiagnosticsCurrent, colors) {
+        section(strings.accessDiagnosticsCurrent, colors, collapsible: compact) {
             fact(strings.accessDiagnosticsAccessPoint, status?.accessPointId, colors)
             fact(strings.accessDiagnosticsRegion, status?.regionId, colors)
             fact(strings.accessDiagnosticsProtocol, flareAccessProtocolLabel(status?.protocol), colors)
@@ -167,7 +198,7 @@ public struct AccessDiagnosticsView: View {
     }
 
     private func lines(_ model: FlareAccessDiagnosticsModel, _ colors: FlareColors) -> some View {
-        section(strings.accessDiagnosticsLines, colors) {
+        section(strings.accessDiagnosticsLines, colors, collapsible: compact) {
             if model.regions.isEmpty {
                 Text(strings.accessDiagnosticsNoLines)
                     .font(FlareTextRoles.body.font)

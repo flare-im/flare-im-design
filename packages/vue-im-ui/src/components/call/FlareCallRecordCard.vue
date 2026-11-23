@@ -101,7 +101,7 @@ function onAction() {
 <template>
   <div
     class="flare-call-record"
-    :class="[`is-${tone}`, { 'has-action': action }]"
+    :class="[`is-${tone}`, { 'has-action': action, 'has-action-control': action === 'join' }]"
     :role="action === 'callBack' ? 'button' : 'group'"
     :tabindex="action === 'callBack' && !busy ? 0 : undefined"
     :aria-busy="busy || undefined"
@@ -113,7 +113,7 @@ function onAction() {
     :data-tone="tone"
   >
     <span class="flare-call-record__icon" aria-hidden="true">
-      <FlareIcon :name="media === 'video' ? 'video' : 'phone'" :size="20" />
+      <FlareIcon :name="media === 'video' ? 'video' : 'phone'" size="md" />
     </span>
     <span class="flare-call-record__body" aria-hidden="true">
       <span class="flare-call-record__status" data-call-record-status="true">{{ statusText }}</span>
@@ -159,7 +159,7 @@ function onAction() {
 }
 .flare-call-record.has-action { cursor: pointer; min-height: var(--flare-size-layout-touch-target-min); }
 .flare-call-record:focus-visible { outline: 2px solid var(--flare-color-border-selected); outline-offset: 2px; }
-.flare-call-record.has-action:has(.flare-call-record__action) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.flare-call-record.has-action-control { grid-template-columns: auto minmax(0, 1fr) auto; }
 /* The media icon on the voice player's disc: a weak tint of the accent, the accent's text colour. */
 .flare-call-record__icon {
   display: grid;

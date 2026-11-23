@@ -296,8 +296,7 @@ FlareUpdatePromptModel flareUpdatePrompt({
       FlareUpdatePromptAction.continueDownload,
       ...tail,
     ],
-    FlareUpdatePromptPhase.downloading ||
-    FlareUpdatePromptPhase.verifying =>
+    FlareUpdatePromptPhase.downloading || FlareUpdatePromptPhase.verifying =>
       forced ? readOnly : const [FlareUpdatePromptAction.background],
     FlareUpdatePromptPhase.ready => [FlareUpdatePromptAction.restart, ...tail],
     FlareUpdatePromptPhase.installing => const <FlareUpdatePromptAction>[],

@@ -36,7 +36,7 @@ const normalizedProgress = computed(() => Math.min(1, Math.max(0, props.progress
 const filledBars = computed(() => Math.round(normalizedProgress.value * amplitudes.length));
 const voiceWidth = computed(() => {
   const duration = normalizedSeconds.value || 8;
-  return Math.round(Math.min(276, Math.max(184, 174 + Math.min(duration, 60) * 1.7)));
+  return Math.round(Math.min(276, Math.max(200, 174 + Math.min(duration, 60) * 1.7)));
 });
 const durationLabel = computed(() => {
   if (props.playing && props.elapsedSeconds > 0 && normalizedSeconds.value > 0) {
@@ -70,7 +70,6 @@ function seekAt(event: MouseEvent): void {
   <div
     class="fm-voice"
     :class="{
-      'fm-voice--playing': playing,
       'fm-voice--disabled': disabled,
       'fm-voice--outbound': outbound,
       'fm-voice--embedded': embedded,
@@ -87,7 +86,7 @@ function seekAt(event: MouseEvent): void {
       :title="playLabel"
       @click="emit('play')"
     >
-      <MsgIcon :name="playing ? 'volume' : 'play'" :size="17" />
+      <MsgIcon :name="playing ? 'pause' : 'play'" size="sm" />
     </button>
 
     <button
@@ -197,14 +196,14 @@ function seekAt(event: MouseEvent): void {
 
 .fm-voice__wave i {
   width: 2px;
-  min-width: 2px;
+  min-width: 1px;
+  flex: 0 1 2px;
   border-radius: 999px;
-  background: color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 50%, transparent);
   transition: background var(--flare-component-motion-fast);
 }
 
-.fm-voice__wave i.is-filled,
-.fm-voice--playing .fm-voice__wave i {
+.fm-voice__wave i.is-filled {
   background: var(--flare-component-voice-accent);
 }
 
@@ -235,9 +234,14 @@ function seekAt(event: MouseEvent): void {
   }
 
   .fm-voice__play {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .fm-voice__wave {
+    gap: 1px;
+    height: 44px;
   }
 }
 

@@ -51,6 +51,11 @@ const fact = (label: string) => {
 };
 
 describe("FlareAccessDiagnostics", () => {
+  it("leads with recovery and keeps both line disclosures closed in compact mode", () => {
+    mountPage({ status: healthy, accessPoints: lines, compact: true });
+    expect(titles()).toEqual(["恢复工具", "当前线路", "全部线路"]);
+    expect(host!.findAll("details:not([open]) summary")).toHaveLength(2);
+  });
   it("says nothing before the host has read a status, and shows dashes rather than blanks", () => {
     mountPage({ status: null });
     expect(page().attributes("data-flare-access-state")).toBe("normal");

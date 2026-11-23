@@ -2,6 +2,7 @@
 import { mount, flushPromises } from "@vue/test-utils";
 import { afterEach, expect, it } from "vitest";
 import { h } from "vue";
+import FlareAdminEntitySelect from "./FlareAdminEntitySelect.vue";
 import FlarePluginForm from "./FlarePluginForm.vue";
 import FlareSelect from "./FlareSelect.vue";
 import FlarePluginView from "../messages/FlarePluginView.vue";
@@ -61,6 +62,36 @@ it("dropdowns retain required and withdrawn-choice validation", async () => {
   await host.setProps({ inputs: [{ ...mode, default: undefined, choices: mode.choices!.filter((c) => c.value !== "decrease") }] });
   await host.get("[data-form-submit]").trigger("click");
   expect(host.emitted("submit")).toBeUndefined();
+});
+
+it("selects every allowed purpose in a single edit and retains individual selection", async () => {
+  const values = ["transfer", "redPacket", "withdrawal", "exchange", "reward", "refund", "expire", "budgetFunding"];
+  const purposes: FlarePluginInput = {
+    id: "allowedPurposes", kind: "options", label: "Allowed purposes", required: true,
+    min: 1, max: values.length, default: ["transfer"],
+    choices: values.map(value => ({ value, label: value })),
+  };
+  const host = mount(FlarePluginForm, {
+    props: { inputs: [purposes] },
+  });
+  hosts.push(host);
+  const action = host.get('button[aria-label$=" · Allowed purposes"]');
+  const select = host.getComponent(FlareAdminEntitySelect);
+  expect(select.props("values")).toEqual(["transfer"]);
+  await action.trigger("click");
+  expect(select.props("values")).toEqual(values);
+  expect(action.attributes("disabled")).toBeDefined();
+  expect(host.emitted("submit")).toBeUndefined();
+  await host.get("[data-form-submit]").trigger("click");
+  expect(host.emitted("submit")).toEqual([[{ allowedPurposes: values }]]);
+
+  select.vm.$emit("update:values", values.slice(1));
+  await flushPromises();
+  expect(action.attributes("disabled")).toBeUndefined();
+  await host.setProps({ busy: true });
+  expect(action.attributes("disabled")).toBeDefined();
+  await host.setProps({ busy: false, inputs: [{ ...purposes, max: 2 }] });
+  expect(host.find('button[aria-label$=" · Allowed purposes"]').exists()).toBe(false);
 });
 
 it.each([

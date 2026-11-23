@@ -113,19 +113,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a toggle with a long detail stays one row', (tester) async {
-    await tester.pumpWidget(
-      _row(
-        const FlareSettingsItem(
-          key: 'mute',
-          label: '消息免打扰',
-          kind: FlareSettingKind.toggle,
-          value: true,
-          detail: '这是一段很长很长很长很长的说明文字',
+  testWidgets(
+    'a toggle with a long detail keeps its switch beside, the detail under the label',
+    (tester) async {
+      await tester.pumpWidget(
+        _row(
+          const FlareSettingsItem(
+            key: 'mute',
+            label: '消息免打扰',
+            kind: FlareSettingKind.toggle,
+            value: true,
+            detail: '这是一段很长很长很长很长的说明文字',
+          ),
         ),
-      ),
-    );
-    expect(find.byType(FlareSwitch), findsOneWidget);
-    expect(find.textContaining('很长'), findsNothing);
-  });
+      );
+      expect(find.byType(FlareSwitch), findsOneWidget);
+      // Vue `.has-toggle-description`: the detail describes the toggle under its
+      // label; the row never takes the stacked value layout.
+      final label = tester.getRect(find.text('消息免打扰'));
+      final description = tester.getRect(find.textContaining('很长'));
+      final toggle = tester.getRect(find.byType(FlareSwitch));
+      expect(description.top, greaterThanOrEqualTo(label.bottom));
+      expect(toggle.left, greaterThan(label.right));
+      expect(find.byIcon(Icons.chevron_right), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

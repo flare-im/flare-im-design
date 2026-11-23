@@ -54,6 +54,8 @@ data class FlareColors(
     val messageReactionBackground: Color,
     val messageReactionSelected: Color,
     val error: Color,
+    val errorHover: Color,
+    val errorActive: Color,
     val errorText: Color,
     val focusRing: Color,
     val important: Color,
@@ -100,12 +102,31 @@ data class FlareColors(
     val redPacketFadedInk: Color,
     val redPacketFadedMixTarget: Color,
     val redPacketAccent: Color,
+    val redPacketEndHover: Color,
+    val redPacketEndActive: Color,
     val chartSeries1: Color,
     val chartSeries2: Color,
     val chartSeries3: Color,
     val chartSeries4: Color,
     val chartSeries5: Color,
     val chartSeries6: Color,
+    val callStage: Color,
+    val callStageTint: Color,
+    val callOnStage: Color,
+    val callOnStageSecondary: Color,
+    val callControl: Color,
+    val callControlHover: Color,
+    val callControlActive: Color,
+    val callOnControlActive: Color,
+    val callHangup: Color,
+    val callHangupPressed: Color,
+    val callAccept: Color,
+    val callAcceptPressed: Color,
+    val callSpeaking: Color,
+    val callTile: Color,
+    val callChip: Color,
+    val callPopover: Color,
+    val callErrorText: Color,
 ) {
     companion object {
         val VioletLight = FlareColors(
@@ -144,6 +165,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFEDE9FE),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x576D28D9),
             important = Color(0xFFB45309),
@@ -190,12 +213,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val VioletDark = FlareColors(
@@ -234,6 +276,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x4D8B5CF6),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x6BC4B5FD),
             important = Color(0xFFD97706),
@@ -280,12 +324,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val OceanLight = FlareColors(
@@ -324,6 +387,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFDBEAFE),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x572563EB),
             important = Color(0xFFB45309),
@@ -370,12 +435,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val OceanDark = FlareColors(
@@ -414,6 +498,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x4D3B82F6),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x6B93C5FD),
             important = Color(0xFFD97706),
@@ -460,12 +546,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val ForestLight = FlareColors(
@@ -504,6 +609,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFDCFCE7),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x5716A34A),
             important = Color(0xFFB45309),
@@ -550,12 +657,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val ForestDark = FlareColors(
@@ -594,6 +720,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x4722C55E),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x6686EFAC),
             important = Color(0xFFD97706),
@@ -640,12 +768,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val SunsetLight = FlareColors(
@@ -684,6 +831,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFFFEDD5),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x57EA580C),
             important = Color(0xFFB45309),
@@ -730,12 +879,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val SunsetDark = FlareColors(
@@ -774,6 +942,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x47F97316),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x66FDBA74),
             important = Color(0xFFD97706),
@@ -820,12 +990,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val RoseLight = FlareColors(
@@ -864,6 +1053,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFFFE4E6),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x52E11D48),
             important = Color(0xFFB45309),
@@ -910,12 +1101,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val RoseDark = FlareColors(
@@ -954,6 +1164,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x47F43F5E),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x66FDA4AF),
             important = Color(0xFFD97706),
@@ -1000,12 +1212,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val GraphiteLight = FlareColors(
@@ -1044,6 +1275,8 @@ data class FlareColors(
             messageReactionBackground = Color(0xFFF1F2F5),
             messageReactionSelected = Color(0xFFE2E8F0),
             error = Color(0xFFC62828),
+            errorHover = Color(0xFFBC2626),
+            errorActive = Color(0xFFB22424),
             errorText = Color(0xFFC62828),
             focusRing = Color(0x57475569),
             important = Color(0xFFB45309),
@@ -1090,12 +1323,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFF5C140E),
             redPacketFadedMixTarget = Color(0xFFFFFFFF),
             redPacketAccent = Color(0xFFC8291F),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF2A78D6),
             chartSeries2 = Color(0xFFEB6834),
             chartSeries3 = Color(0xFF1BAF7A),
             chartSeries4 = Color(0xFFEDA100),
             chartSeries5 = Color(0xFFE87BA4),
             chartSeries6 = Color(0xFF6250D6),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val GraphiteDark = FlareColors(
@@ -1134,6 +1386,8 @@ data class FlareColors(
             messageReactionBackground = Color(0x14FFFFFF),
             messageReactionSelected = Color(0x4794A3B8),
             error = Color(0xFFDC2626),
+            errorHover = Color(0xFFD12424),
+            errorActive = Color(0xFFC62222),
             errorText = Color(0xFFF87171),
             focusRing = Color(0x61CBD5E1),
             important = Color(0xFFD97706),
@@ -1180,12 +1434,31 @@ data class FlareColors(
             redPacketFadedInk = Color(0xFFFBE3DE),
             redPacketFadedMixTarget = Color(0xFF2A1513),
             redPacketAccent = Color(0xFFFF7B6B),
+            redPacketEndHover = Color(0xFFB4251C),
+            redPacketEndActive = Color(0xFFA02119),
             chartSeries1 = Color(0xFF3987E5),
             chartSeries2 = Color(0xFFD95926),
             chartSeries3 = Color(0xFF199E70),
             chartSeries4 = Color(0xFFC98500),
             chartSeries5 = Color(0xFFD55181),
             chartSeries6 = Color(0xFF9085E9),
+            callStage = Color(0xFF17151D),
+            callStageTint = Color(0xFF2B2340),
+            callOnStage = Color(0xFFFFFFFF),
+            callOnStageSecondary = Color(0xB8FFFFFF),
+            callControl = Color(0x24FFFFFF),
+            callControlHover = Color(0x38FFFFFF),
+            callControlActive = Color(0xFFFFFFFF),
+            callOnControlActive = Color(0xFF17131C),
+            callHangup = Color(0xFFDC2626),
+            callHangupPressed = Color(0xFFB91C1C),
+            callAccept = Color(0xFF16A34A),
+            callAcceptPressed = Color(0xFF15803D),
+            callSpeaking = Color(0xFF34D17F),
+            callTile = Color(0x0FFFFFFF),
+            callChip = Color(0x6B000000),
+            callPopover = Color(0xFF22232B),
+            callErrorText = Color(0xFFF87171),
         )
 
         val Light = VioletLight
@@ -1274,6 +1547,7 @@ object FlareSizes {
     val fontSize5xl: TextUnit = 24.sp
     val fontSizeAuthTitle: TextUnit = 28.sp
     val fontSizeAuthHeadline: TextUnit = 36.sp
+    val iconSizeXs: Dp = 14.dp
     val iconSizeLg: Dp = 24.dp
     val iconSizeMd: Dp = 20.dp
     val iconSizeSm: Dp = 16.dp
@@ -1307,6 +1581,11 @@ object FlareSizes {
     val sessionItemHeight: Dp = 72.dp
     val touchTarget: Dp = 48.dp
     val touchTargetMin: Dp = 44.dp
+    val conversationRowDesktopHeight: Dp = 64.dp
+    val conversationRowMobileHeight: Dp = 68.dp
+    val messageTimelinePaddingTop: Dp = 12.dp
+    val messageTimelinePaddingBottom: Dp = 12.dp
+    val readableWidth: Dp = 680.dp
     const val lineHeightNone: Float = 1.0f
     const val lineHeightTight: Float = 1.2f
     const val lineHeightSnug: Float = 1.4f
@@ -1345,8 +1624,8 @@ object FlareSizes {
     val componentIconButtonSideMd: Dp = 38.dp
     val componentIconButtonSideLg: Dp = 46.dp
     val componentIconButtonGlyphSm: Dp = 16.dp
-    val componentIconButtonGlyphMd: Dp = 19.dp
-    val componentIconButtonGlyphLg: Dp = 22.dp
+    val componentIconButtonGlyphMd: Dp = 20.dp
+    val componentIconButtonGlyphLg: Dp = 24.dp
     val componentRadioIndicator: Dp = 18.dp
     val componentRadioDot: Dp = 9.dp
     val componentBubblePaddingX: Dp = 14.dp
@@ -1380,6 +1659,62 @@ object FlareSizes {
     val componentRedPacketDetailHeaderHeight: Dp = 72.dp
     const val componentRedPacketFadedMix: Float = 0.4f
     val componentCallPreviewWidth: Dp = 112.dp
+    val componentMessageRowPaddingBlock: Dp = 2.dp
+    val componentMessageGroupStartPadding: Dp = 4.dp
+    val componentMessageGroupGap: Dp = 6.dp
+    val componentMessageBubblePaddingBlockCompact: Dp = 8.dp
+    val componentRedPacketDetailAmountFontSize: Dp = 32.dp
+    val componentQrCardWidth: Dp = 320.dp
+    val componentQrCodeSize: Dp = 220.dp
+    val componentCallControlSize: Dp = 56.dp
+    val componentCallHangupSize: Dp = 64.dp
+    val componentCallAvatarSize: Dp = 96.dp
+    val componentCallAvatarSizeWindow: Dp = 80.dp
+    val componentCallTileAvatar: Dp = 56.dp
+    val componentCallDockHeight: Dp = 56.dp
+    val componentCallWindowAudioWidth: Dp = 400.dp
+    val componentCallWindowAudioHeight: Dp = 560.dp
+    val componentCallWindowVideoWidth: Dp = 720.dp
+    val componentCallWindowVideoHeight: Dp = 540.dp
+    val componentCallIncomingBannerWidth: Dp = 360.dp
+    val componentAmountHeroFontSize: Dp = 32.dp
+    val componentResultIconSize: Dp = 56.dp
+    const val componentDocumentFrameRatio: Float = 1.586f
+    val componentCaptureShutterSize: Dp = 72.dp
+    val componentCapturePreviewWidth: Dp = 560.dp
+    val componentDocumentSlotHeight: Dp = 112.dp
+    val componentFormColumnWidth: Dp = 560.dp
+    val componentActionMinWidth: Dp = 120.dp
+    val componentRedPacketAmountFontSizeWide: Dp = 36.dp
+    val componentSkeletonCardHeight: Dp = 160.dp
+    val componentDocumentThumbHeight: Dp = 72.dp
+    val componentRedPacketFormRowHeight: Dp = 56.dp
+    val componentPinCellWidth: Dp = 44.dp
+    val componentPinCellHeight: Dp = 52.dp
+    val componentPaymentDialogWidth: Dp = 400.dp
+    val componentRedPacketArchCompactHeight: Dp = 32.dp
+    val componentRedPacketDetailAvatarSize: Dp = 56.dp
+    val componentRedPacketClaimRowHeight: Dp = 64.dp
+    val componentCallIncomingBannerHeight: Dp = 88.dp
+    val componentCallIncomingBannerAvatar: Dp = 48.dp
+    val componentCallFailedActionWidth: Dp = 160.dp
+    val componentCallDevicePanelWidth: Dp = 280.dp
+    val componentCallStripTileHeight: Dp = 96.dp
+    val componentRedPacketCloseSize: Dp = 36.dp
+    val componentAccountSetupActionWidth: Dp = 200.dp
+    val componentRecordRowHeight: Dp = 64.dp
+    val componentPinCellMinWidth: Dp = 36.dp
+    val componentCallDockAvatarSize: Dp = 40.dp
+    val componentCallDockKeySize: Dp = 36.dp
+    val componentFocusRingWidth: Dp = 2.dp
+    val componentFocusRingOffset: Dp = 3.dp
+    val componentCallDockNameMaxWidth: Dp = 140.dp
+    val componentRecordIconSize: Dp = 36.dp
+    val componentCaptureFrameStroke: Dp = 3.dp
+    const val componentCapturePreviewRatio: Float = 1.6f
+    const val componentPressScale: Float = 0.98f
+    val componentResultActionWidth: Dp = 240.dp
+    val componentEmptyStateIconSize: Dp = 44.dp
 }
 
 /** Opacity tokens (disabled / muted / tint overlays). */
@@ -1388,6 +1723,7 @@ object FlareOpacity {
     const val muted: Float = 0.7f
     const val tintWeak: Float = 0.1f
     const val tintStrong: Float = 0.24f
+    const val dim: Float = 0.4f
 }
 
 data class FlareShadowLayer(val color: Color, val offset: Offset, val blur: Dp)
@@ -1434,4 +1770,6 @@ object FlareMotion {
     val slowEasing: Easing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
     const val spring: Int = 360
     val springEasing: Easing = CubicBezierEasing(0.34f, 1.4f, 0.5f, 1f)
+    const val refreshLoop: Int = 1200
+    val refreshLoopEasing: Easing = CubicBezierEasing(0f, 0f, 1f, 1f)
 }

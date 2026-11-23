@@ -56,6 +56,9 @@ export { default as FlareStatusBanner } from "./general/FlareStatusBanner.vue";
 export { default as FlareProgressBar } from "./general/FlareProgressBar.vue";
 export { default as FlareFilterTabs } from "./general/FlareFilterTabs.vue";
 export type { FlareFilterTabOption } from "./general/FlareFilterTabs.vue";
+export { default as FlareUnreadBadge } from "./general/FlareUnreadBadge.vue";
+export { default as FlareActivityList } from "./general/FlareActivityList.vue";
+export type { FlareActivityItem, FlareActivityListPosition } from "./general/FlareActivityList.vue";
 export { default as FlareContactItem } from "./contacts/FlareContactItem.vue";
 export { default as FlareContactList } from "./contacts/FlareContactList.vue";
 export { default as FlareContactDetail } from "./contacts/FlareContactDetail.vue";
@@ -114,11 +117,16 @@ export { default as FlareRedPacketCard } from "./messages/FlareRedPacketCard.vue
 export { default as FlareRedPacketOpenSheet } from "./messages/FlareRedPacketOpenSheet.vue";
 export { default as FlareRedPacketDetail } from "./messages/FlareRedPacketDetail.vue";
 export { default as FlareRedPacketComposer } from "./messages/FlareRedPacketComposer.vue";
+export { default as FlareRedPacketReview } from "./messages/FlareRedPacketReview.vue";
+export { default as FlareRedPacketArch } from "./messages/RedPacketArch.vue";
+// The red packet pages the plugin page draws for renderers redPacket.compose / redPacket.detail (§11).
+export { default as FlareRedPacketPage } from "./messages/FlareRedPacketPage.vue";
 // Plugin host capabilities (design 7): the consent, the document capture and the payment confirmation the host shows
 // for the engine's capability requests.
 export { default as FlareCapabilityConsent } from "./messages/FlareCapabilityConsent.vue";
 export { default as FlareDocumentCapture } from "./messages/FlareDocumentCapture.vue";
 export { default as FlarePaymentConfirmation } from "./messages/FlarePaymentConfirmation.vue";
+export { default as FlareDocumentSlot } from "./messages/FlareDocumentSlot.vue";
 export type {
   FlareRedPacketCardState,
   FlareRedPacketOpenState,
@@ -204,10 +212,12 @@ export { default as FlareFilterBar } from "./general/FlareFilterBar.vue";
 
 // Foundation — buttons + form controls
 export { default as FlareButton } from "./general/FlareButton.vue";
+export { default as FlareAdminBackButton } from "./data/FlareAdminBackButton.vue";
 export { default as FlareIconButton } from "./general/FlareIconButton.vue";
 export { default as FlareIcon } from "./general/FlareIcon.vue";
 export { default as FlareImageUploadSlot } from "./media/FlareImageUploadSlot.vue";
 export { default as FlareFileUpload } from "./media/FlareFileUpload.vue";
+export { default as FlareMediaUpload } from "./media/FlareMediaUpload.vue";
 export { default as FlareBrandLogo } from "./general/FlareBrandLogo.vue";
 export { default as FlareBottomSheet } from "./general/FlareBottomSheet.vue";
 export { default as FlareActionMenu } from "./general/FlareActionMenu.vue";
@@ -225,6 +235,7 @@ export {
 } from "../shared/icons";
 export { default as FlareFormField } from "./form/FlareFormField.vue";
 export { default as FlareInviteCodeField } from "./form/FlareInviteCodeField.vue";
+export { default as FlarePinInput } from "./form/FlarePinInput.vue";
 export { default as FlareSwitch } from "./form/FlareSwitch.vue";
 export { default as FlareCheckbox } from "./form/FlareCheckbox.vue";
 export { default as FlareRadioGroup } from "./form/FlareRadioGroup.vue";
@@ -246,6 +257,7 @@ export { default as FlareMomentCard } from "./moments/FlareMomentCard.vue";
 export { default as FlareMomentComposer } from "./moments/FlareMomentComposer.vue";
 export { default as FlareMomentActionPopover } from "./moments/FlareMomentActionPopover.vue";
 export { default as FlareMomentsCoverHeader } from "./moments/FlareMomentsCoverHeader.vue";
+export { default as FlareCommentComposer } from "./moments/FlareCommentComposer.vue";
 export { default as FlareCommentThread } from "./moments/FlareCommentThread.vue";
 export { default as FlareTopicChip } from "./moments/FlareTopicChip.vue";
 export type {
@@ -338,6 +350,7 @@ export { default as FlarePluginView } from "./messages/FlarePluginView.vue";
 export { default as FlarePluginAdminList } from "./messages/FlarePluginAdminList.vue";
 export { default as FlarePluginDetailSheet } from "./messages/FlarePluginDetailSheet.vue";
 export { default as FlarePluginPage } from "./messages/FlarePluginPage.vue";
+export { default as FlareResultView } from "./messages/FlareResultView.vue";
 export { default as FlarePluginUpgradeNotice } from "./messages/FlarePluginUpgradeNotice.vue";
 export { default as FlarePluginForm } from "./form/FlarePluginForm.vue";
 // Plugin web bundles (design 8.4 to 8.6): the sandboxed frame, its envelope relay and the ui.* requests the host draws.

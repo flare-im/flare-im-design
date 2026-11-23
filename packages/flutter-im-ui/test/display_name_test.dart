@@ -58,8 +58,14 @@ void main() {
               : null,
         );
         final text = row['text'] as Map<String, dynamic>;
-        expect(flareQuoteSenderText(target, const FlareStrings()), text['zh-CN']);
-        expect(flareQuoteSenderText(target, flareStringsEnglish), text['en-US']);
+        expect(
+          flareQuoteSenderText(target, const FlareStrings()),
+          text['zh-CN'],
+        );
+        expect(
+          flareQuoteSenderText(target, flareStringsEnglish),
+          text['en-US'],
+        );
       });
     }
   });
@@ -77,15 +83,30 @@ void main() {
       expect(FlareDisplayName.fromJson(value), unknownUser, reason: '$value');
     }
     expect(
-      FlareDisplayName.fromJson({'kind': 'unnamed', 'entity': 'robot', 'idTail': '9876'}),
-      const FlareUnnamedDisplayName(FlareDisplayNameEntity.person, idTail: '9876'),
+      FlareDisplayName.fromJson({
+        'kind': 'unnamed',
+        'entity': 'robot',
+        'idTail': '9876',
+      }),
+      const FlareUnnamedDisplayName(
+        FlareDisplayNameEntity.person,
+        idTail: '9876',
+      ),
     );
   });
 
   test("a host's own words win", () {
-    final strings = const FlareStrings().copyWith(displayNameUser: (tail) => '访客 $tail');
+    final strings = const FlareStrings().copyWith(
+      displayNameUser: (tail) => '访客 $tail',
+    );
     expect(
-      flareDisplayNameText(const FlareUnnamedDisplayName(FlareDisplayNameEntity.person, idTail: '9876'), strings),
+      flareDisplayNameText(
+        const FlareUnnamedDisplayName(
+          FlareDisplayNameEntity.person,
+          idTail: '9876',
+        ),
+        strings,
+      ),
       '访客 9876',
     );
   });

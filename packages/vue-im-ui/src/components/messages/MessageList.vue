@@ -13,22 +13,31 @@ import MessageBubble from "./MessageBubble.vue";
 import FlareDatePill from "./FlareDatePill.vue";
 import FlareScrollToLatest from "./FlareScrollToLatest.vue";
 import FlareUnreadDivider from "./FlareUnreadDivider.vue";
+import { flareLayout } from "../../design-system/theme/layout-tokens";
 import TimelineGalleryPreview from "./TimelineGalleryPreview.vue";
+import FlareIcon from "../general/FlareIcon.vue";
+import {
+  FLARE_SWIPE_REPLY_ARM_DISTANCE,
+  FLARE_SWIPE_REPLY_NONE,
+  flareSwipeReplyGesture,
+  type FlareSwipeReplyGesture,
+} from "../../shared/contracts/swipe-reply";
 import { provideTimelineImageGallery } from "./timelineImageGallery";
 import { TIMELINE_FOCUS_KEYS, messageTakesFocus, provideTimelineFocus } from "./timelineFocus";
 import { provideFlareRenderConversation, useFlareMessageRenderers } from "../../shared/message-renderers";
 import type { MessageLike, MessageMediaDownloadUiState } from "./MessageBubble.vue";
 import { mergeMessageMenuConfig, unhandledMessageMenuActions, type MessageMenuConfig } from "../../shared/config/messageMenu";
-import { messageMatchesId, resolveMessageId } from "../../shared/contracts/messageRow";
+import { findMessage, resolveMessageId } from "../../shared/contracts/messageRow";
+import { normalizeMessageRowsForVirtualList, localRow } from "../../utils/messageRows";
 import type { MessageMenuExtension } from "../../utils/buildMessageMenuOptions";
 import { timelineDateLabel } from "../../shared/timeline-label";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import { useFileDrop } from "../../composables/composer/useFileDrop";
 import type { FlareLocationValue } from "../../shared/contracts/location";
 import { previewTextFromMessageContent } from "../../utils/messagePreview";
 import {
   countAppendedItems,
   countPrependedItems,
-  normalizeMessageRowsForVirtualList,
   restorePrependScrollTop,
   type ScrollAnchorSnapshot,
 } from "../../utils";
@@ -52,10 +61,10 @@ import {
 
 const BOTTOM_STICKY_PX = FLARE_MESSAGE_LIST_BOTTOM_WITHIN_PX;
 const RESIZE_STICKY_PX = 420;
-const MESSAGE_LIST_TOP_PADDING = 22;
+const MESSAGE_LIST_TOP_PADDING = flareLayout.messageTimelinePaddingTop;
 /** How long the start-of-history hint stays; it floats where the first date separator sits. */
 const HISTORY_START_HINT_MS = 2400;
-const MESSAGE_LIST_BOTTOM_SAFE_PADDING = 18;
+const MESSAGE_LIST_BOTTOM_SAFE_PADDING = flareLayout.messageTimelinePaddingBottom;
 // The current virtual window uses fixed row-height estimates, while chat rows
 // can contain rich text, media, and quoted content. Keep loaded timelines on
 // native layout so paging changes the scrollbar from real DOM height.
@@ -66,12 +75,16 @@ const ESTIMATED_TIME_ROW_PX = 34;
 const ESTIMATED_UNREAD_ROW_PX = 34;
 
 const props = withDefaults(defineProps<{
+  /** Keep the timeline rows in a shared readable column on wide panes. */
+  readable?: boolean;
   conversationId?: string;
   conversationKind?: FlareConversationKind;
   messages: readonly MessageLike[];
   currentUserId: string;
   multiSelectMode?: boolean;
   selectedIds?: readonly string[];
+  fileDropEnabled?: boolean;
+  fileDropBlocked?: boolean;
   loadingOlder?: boolean;
   olderError?: string;
   loadOlderText?: string;
@@ -121,6 +134,7 @@ const { t, locale } = useFlareI18n();
 const emit = defineEmits<{
   /** A deliberate link gesture. The host routes it through its scan pipeline. */
   (event: "openLink", url: string): void;
+  (event: "files-drop", files: File[]): void;
   (event: "react", messageId: string, emoji: string): void;
   (event: "edit", messageId: string): void;
   (event: "delete", messageId: string): void;
@@ -162,9 +176,28 @@ const emit = defineEmits<{
   (event: "locationOpen", messageId: string, location: FlareLocationValue): void;
   /** A tapped group read summary ("3 unread"): the host fills ReadReceiptSheet. Without a listener it is text. */
   (event: "readReceiptOpen", messageId: string): void;
+  /**
+   * The body of a file message's card was opened (tap, Enter or Space): the host opens the file. The download and
+   * folder keys keep raising `mediaAction`. Without a listener the card body is not a control.
+   */
+  (event: "openFile", messageId: string): void;
+  /**
+   * A touch drag of a message towards the trailing edge (leading under RTL) went past the arming distance and was let
+   * go (spec/swipe-reply-vectors.json): the host starts a reply to it. Without a listener rows do not follow the
+   * finger. With it and no `reply` listener, the menu's Reply raises it too, as on Flutter.
+   */
+  (event: "swipeReply", messageId: string): void;
 }>();
 
 const instance = getCurrentInstance();
+const fileDrop = useFileDrop({
+  enabled: () => props.fileDropEnabled === true,
+  accepts: () => !props.fileDropBlocked && !props.multiSelectMode,
+  onFiles: (files) => emit("files-drop", files),
+});
+const fileDragging = fileDrop.active;
+watch([() => props.conversationId, () => props.fileDropEnabled, () => props.fileDropBlocked, () => props.multiSelectMode], fileDrop.reset);
+
 function onContentLink(event: MouseEvent): void {
   if (!instance?.vnode.props?.onOpenLink || props.multiSelectMode || !(event.target instanceof Element)) return;
   const anchor = event.target.closest<HTMLAnchorElement>("a[href]");
@@ -176,10 +209,19 @@ function onContentLink(event: MouseEvent): void {
   emit("openLink", raw);
 }
 
-// Host policy first, then the handled-intent mask: an entry with no listener is never offered.
-const effectiveMenuConfig = computed(() =>
-  mergeMessageMenuConfig(props.menuConfig, { actions: unhandledMessageMenuActions(instance?.vnode.props) }),
-);
+// Host policy first, then the handled-intent mask: an entry with no listener is never offered. A host that takes only
+// the swipe has Reply in the menu as well (Flutter's onReply defaults to onSwipeReply): one intent, two gestures.
+const effectiveMenuConfig = computed(() => {
+  const listeners = instance?.vnode.props;
+  const handled = listeners?.onSwipeReply && !listeners?.onReply ? { ...listeners, onReply: listeners.onSwipeReply } : listeners;
+  return mergeMessageMenuConfig(props.menuConfig, { actions: unhandledMessageMenuActions(handled) });
+});
+/** Reply from the menu, the hover toolbar or a key: `reply`, else the swipe's intent when only that is taken. */
+function onReplyIntent(messageId: string): void {
+  const listeners = instance?.vnode.props;
+  if (!listeners?.onReply && listeners?.onSwipeReply) emit("swipeReply", messageId);
+  else emit("reply", messageId);
+}
 const effectiveActions = computed(() => (instance?.vnode.props?.onAction ? props.actions ?? [] : []));
 // A poll or a task is a control only while the host takes its intent.
 const bodyIntentListeners = computed(() => ({
@@ -200,6 +242,8 @@ const bodyIntentListeners = computed(() => ({
   ...(instance?.vnode.props?.onReadReceiptOpen
     ? { readReceiptOpen: (id: string) => emit("readReceiptOpen", id) }
     : {}),
+  // A file card's body is a key only while the host opens files.
+  ...(instance?.vnode.props?.onOpenFile ? { openFile: (id: string) => emit("openFile", id) } : {}),
 }));
 
 /** Whether the host takes an intent: an end or a key with no listener is never offered and never asks. */
@@ -279,19 +323,32 @@ type TimelineRow =
       presentation: FlareMessageRowPresentation;
     };
 
+let rowKeys = new Map<string, string>();
+let localKeys = new Map<string, string>();
+const sendKey = (message: MessageLike) => JSON.stringify([message.conversationId ?? props.conversationId, message.senderId, message.clientMsgId]);
+const canonicalRowKey = (message: MessageLike) => message.timelineKey || resolveMessageId(message);
+
 function timelineKey(message: MessageLike): string {
-  // A row keeps the client id it was optimistically inserted with after ACK. The
-  // core's timelineKey deliberately switches to the authoritative server id, but
-  // using that value as Vue's vnode key would destroy the live bubble (and an open
-  // context menu) exactly when the ACK arrives. This is the same two-id contract
-  // used by the Flutter, iOS and Compose lists: row id first, server id for core
-  // actions/quote lookup.
-  return resolveMessageId(message) || message.timelineKey;
+  return rowKeys.get(canonicalRowKey(message)) ?? canonicalRowKey(message);
 }
 
-const displayMessages = computed(() =>
-  normalizeMessageRowsForVirtualList(props.messages),
-);
+const displayMessages = computed(() => {
+  const messages = normalizeMessageRowsForVirtualList(props.messages);
+  const nextKeys = new Map<string, string>();
+  const nextLocal = new Map<string, string>();
+  for (const message of messages) {
+    const canonical = canonicalRowKey(message);
+    const local = sendKey(message);
+    // Preserve the live bubble/menu across ACK; retain keys only for rows still drawn.
+    const key = rowKeys.get(canonical) ?? localKeys.get(local) ?? canonical;
+    localKeys.delete(local);
+    nextKeys.set(canonical, key);
+    if (localRow(message)) nextLocal.set(local, key);
+  }
+  rowKeys = nextKeys;
+  localKeys = nextLocal;
+  return messages;
+});
 
 // One message takes Tab: the one focus was last in while it is still listed, else the newest.
 const focusedMessageId = ref("");
@@ -818,6 +875,122 @@ function scheduleTimer(fn: () => void, ms: number): void {
   pendingTimers.add(timer);
 }
 
+// ── swipe to reply (spec/swipe-reply-vectors.json) ─────────────────────────────
+// Touch only, and only while the host takes `swipeReply`: the row follows the finger towards the trailing edge, the
+// reply glyph fades in up to the arming distance, and letting go past it raises the intent. The list's own vertical
+// scrolling keeps every drag that is not mostly sideways (`touch-action: pan-y` on the rows, and the shared rule).
+// Notices (system lines, recalled messages) are not messages to reply to.
+/** Vertical travel past which a drag that never went sideways belongs to the scroll for the rest of the touch. */
+const SWIPE_SCROLL_SLOP_PX = 10;
+/** How long a released row takes to settle back, after which its settling class is removed. */
+const SWIPE_SETTLE_MS = 240;
+/** Read at the time of the touch (not cached): a host may bind the listener after the first render. */
+function swipeReplyEnabled(): boolean {
+  return Boolean(instance?.vnode.props?.onSwipeReply) && !props.multiSelectMode;
+}
+interface SwipeTrack {
+  touchId: number;
+  startX: number;
+  startY: number;
+  row: HTMLElement;
+  messageId: string;
+  rtl: boolean;
+  gesture: FlareSwipeReplyGesture;
+}
+let swipeTrack: SwipeTrack | null = null;
+/** The reply glyph beside the dragged row: where it sits in the list root, and how strongly it is drawn (0 to 1). */
+const swipeAffordance = ref<{ top: number; height: number; progress: number } | null>(null);
+
+function swipeRowFor(target: EventTarget | null): HTMLElement | null {
+  if (!(target instanceof Element)) return null;
+  // A control that drags on its own (a slider, a text field) keeps its gesture.
+  if (target.closest("input, textarea, select, [contenteditable='true'], [role='slider']")) return null;
+  const row = target.closest<HTMLElement>(".message-row[data-message-id]");
+  if (!row || row.dataset.surface === "centered" || row.classList.contains("message-row--system")
+    || row.classList.contains("message-row--recalled")) return null;
+  return row;
+}
+
+function onTimelineTouchStart(event: TouchEvent): void {
+  onReaderMoves();
+  releaseSwipe(false);
+  if (!swipeReplyEnabled() || event.touches?.length !== 1) return;
+  const touch = event.touches[0];
+  const row = swipeRowFor(event.target);
+  const messageId = row?.dataset.messageId;
+  if (!touch || !row || !messageId) return;
+  const rtl = typeof getComputedStyle === "function" && getComputedStyle(row).direction === "rtl";
+  swipeTrack = { touchId: touch.identifier, startX: touch.clientX, startY: touch.clientY, row, messageId, rtl, gesture: FLARE_SWIPE_REPLY_NONE };
+}
+
+function onTimelineTouchMove(event: TouchEvent): void {
+  const track = swipeTrack;
+  if (!track) return;
+  const touches = Array.from(event.touches ?? []);
+  const touch = touches.find((item) => item.identifier === track.touchId);
+  if (!touch || touches.length !== 1) {
+    releaseSwipe(false);
+    return;
+  }
+  const dx = touch.clientX - track.startX;
+  const dy = touch.clientY - track.startY;
+  const gesture = flareSwipeReplyGesture(dx, dy, { rtl: track.rtl });
+  // The scroll took this touch: it never went sideways and has moved up or down.
+  if (gesture.travel === 0 && track.gesture.travel === 0 && Math.abs(dy) > SWIPE_SCROLL_SLOP_PX) {
+    swipeTrack = null;
+    return;
+  }
+  track.gesture = gesture;
+  drawSwipe(track);
+}
+
+function onTimelineTouchEnd(event: TouchEvent): void {
+  const track = swipeTrack;
+  if (!track) return;
+  const ended = Array.from(event.changedTouches ?? []).some((item) => item.identifier === track.touchId);
+  if (!ended) return;
+  releaseSwipe(event.type === "touchend" && track.gesture.armed);
+}
+
+function drawSwipe(track: SwipeTrack): void {
+  const travel = track.gesture.travel;
+  track.row.classList.add("message-row--swiping");
+  track.row.classList.remove("message-row--swipe-settling");
+  track.row.style.transform = travel > 0 ? `translateX(${track.rtl ? -travel : travel}px)` : "";
+  const root = scrollContainerRef.value?.parentElement;
+  if (!root || travel <= 0) {
+    swipeAffordance.value = null;
+    return;
+  }
+  const rootRect = root.getBoundingClientRect();
+  const rowRect = track.row.getBoundingClientRect();
+  swipeAffordance.value = {
+    top: rowRect.top - rootRect.top,
+    height: rowRect.height,
+    // Full strength exactly at the arming distance: the reader sees that letting go replies before doing it.
+    progress: Math.min(1, travel / FLARE_SWIPE_REPLY_ARM_DISTANCE),
+  };
+}
+
+/** Puts the dragged row back (animated unless the reader asked for less motion) and replies when `reply`. */
+function releaseSwipe(reply: boolean): void {
+  const track = swipeTrack;
+  swipeTrack = null;
+  swipeAffordance.value = null;
+  if (!track) return;
+  const { row } = track;
+  row.classList.remove("message-row--swiping");
+  if (row.style.transform) {
+    row.classList.add("message-row--swipe-settling");
+    row.style.transform = "";
+    scheduleTimer(() => row.classList.remove("message-row--swipe-settling"), SWIPE_SETTLE_MS);
+  }
+  if (reply && swipeReplyEnabled()) emit("swipeReply", track.messageId);
+}
+
+// Entering multi-select mid-drag puts the row back without replying.
+watch(() => props.multiSelectMode, (selecting) => { if (selecting) releaseSwipe(false); });
+
 function shouldAutoScrollForBatch(batch: readonly MessageLike[]): boolean {
   if (!batch.length) return false;
   return batch.some((message) => message.senderId === props.currentUserId);
@@ -1007,7 +1180,7 @@ function quoteLocatable(message: MessageLike): boolean {
 
 /** Is `id` a row this list is drawing (by the row's own id or the core's id for it)? */
 function locatableRow(id: string): boolean {
-  return timelineRows.value.some((item) => item.kind === "message" && messageMatchesId(item.message, id));
+  return Boolean(findMessage(displayMessages.value, id));
 }
 
 async function scrollToMessage(
@@ -1018,9 +1191,9 @@ async function scrollToMessage(
   if (!askedId) return false;
   // A locate intent may name the row's own id or the core's id for it (a quote carries the latter),
   // so the row is found by either and then addressed by the id it is drawn with.
-  const row = timelineRows.value.find((item) => item.kind === "message" && messageMatchesId(item.message, askedId));
-  if (!row || row.kind !== "message") return false;
-  const targetId = resolveMessageId(row.message);
+  const message = findMessage(displayMessages.value, askedId);
+  if (!message) return false;
+  const targetId = resolveMessageId(message);
   // Locating a message is reading history: stop following the tail and cancel the re-scrolls a
   // just-opened conversation scheduled, or they pull the view back to the bottom within 760 ms.
   enterBrowseMode();
@@ -1054,7 +1227,7 @@ async function scrollToMessage(
   );
   if (!el) return false;
   el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
-  markLocated(el, row.message);
+  markLocated(el, message);
   return true;
 }
 
@@ -1300,10 +1473,12 @@ defineExpose({
 </script>
 
 <template>
-  <div class="message-list-root" role="log" @click.capture="onContentLink">
+  <div class="message-list-root" :class="{ 'message-list-root--readable': readable }" role="log" @click.capture="onContentLink"
+    @dragenter="fileDrop.onDragEnter" @dragleave="fileDrop.onDragLeave"
+    @dragover="fileDrop.onDragOver" @drop="fileDrop.onDrop">
     <div v-if="olderEdge.spinner" class="message-list-load-older" aria-live="polite">
       <span class="runtime-status-dot runtime-status-dot--busy" />
-      {{ t("chat.loadOlder") }}
+      {{ t("chat.loadingOlder") }}
     </div>
     <div v-else-if="olderEdge.error || olderEdge.button" class="message-list-pagination">
       <span v-if="olderEdge.error" role="status">{{ olderError }}</span>
@@ -1320,10 +1495,14 @@ defineExpose({
     <div
       ref="scrollContainerRef"
       class="message-list message-list-virtual"
+      :class="{ 'message-list--swipe-reply': swipeReplyEnabled() }"
       @scroll="onScroll"
       @keydown="onTimelineKeydown"
       @wheel.passive="onReaderMoves"
-      @touchstart.passive="onReaderMoves"
+      @touchstart.passive="onTimelineTouchStart"
+      @touchmove.passive="onTimelineTouchMove"
+      @touchend.passive="onTimelineTouchEnd"
+      @touchcancel.passive="onTimelineTouchEnd"
       @pointerdown="onReaderMoves"
     >
       <div
@@ -1374,7 +1553,7 @@ defineExpose({
             @mark="$emit('mark', $event)"
             @preview="$emit('preview', $event)"
             @media-action="(id: string, action: 'download' | 'openFolder') => $emit('mediaAction', id, action)"
-            @reply="$emit('reply', $event)"
+            @reply="onReplyIntent"
             @forward="$emit('forward', $event)"
             @recall="$emit('recall', $event)"
             @multi-select="$emit('multiSelect', $event)"
@@ -1413,11 +1592,36 @@ defineExpose({
         <FlareScrollToLatest :count="latestEntry.count" @click="onLatestEntry" />
       </div>
     </Transition>
+    <span
+      v-if="swipeAffordance"
+      class="message-list__swipe-reply"
+      aria-hidden="true"
+      data-swipe-reply-affordance="true"
+      :style="{ top: `${swipeAffordance.top}px`, height: `${swipeAffordance.height}px`, opacity: swipeAffordance.progress }"
+    >
+      <FlareIcon name="reply" :size="20" />
+    </span>
+    <div v-if="fileDragging" class="message-list__drop-hint" role="status">{{ t('composer.dropFiles') }}</div>
     <TimelineGalleryPreview :gallery="imageGallery" />
   </div>
 </template>
 
 <style scoped>
+.message-list__drop-hint {
+  position: absolute;
+  inset: var(--flare-size-spacing-sm);
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: var(--flare-size-spacing-md);
+  border: 2px dashed var(--flare-color-border-selected);
+  border-radius: var(--flare-size-radius-lg);
+  color: var(--flare-color-text-primary);
+  background: color-mix(in srgb, var(--flare-color-bg-selected) 95%, transparent);
+  font-weight: 600;
+  pointer-events: none;
+}
+
 /* Heard, never seen: the ring is the sighted half of the same fact. Clipped rather than hidden, because
    `display: none` and `visibility: hidden` take a live region out of the accessibility tree with it. */
 .message-list__locate-announcement {
@@ -1432,6 +1636,21 @@ defineExpose({
   border: 0;
 }
 
+/* Swipe to reply: the browser keeps vertical panning (and zoom) and hands sideways drags to the list. */
+.message-list--swipe-reply :deep(.message-row) { touch-action: pan-y pinch-zoom; }
+.message-list :deep(.message-row--swiping) { transition: none; will-change: transform; }
+@media (prefers-reduced-motion: no-preference) {
+  .message-list :deep(.message-row--swipe-settling) { transition: transform var(--flare-component-motion-fast); }
+}
+/* The reply glyph behind the dragged row, at the leading edge; it is drawn in full exactly at the arming distance. */
+.message-list__swipe-reply {
+  position: absolute;
+  inset-inline-start: var(--flare-size-spacing-md);
+  display: flex;
+  align-items: center;
+  color: var(--flare-color-text-tertiary);
+  pointer-events: none;
+}
 .message-list-content--empty { display: flex; flex-direction: column; box-sizing: border-box; min-height: 100%; }
 .message-list-empty { display: grid; flex: 1; place-items: center; }
 /* 版面在 design-system/styles/message-workspace.css 上，与另外两个顶部状态同一条带子。

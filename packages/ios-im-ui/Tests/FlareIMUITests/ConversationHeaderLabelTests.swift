@@ -27,7 +27,9 @@ final class ConversationHeaderLabelTests: XCTestCase {
         let groupShareOnDirect = ConversationHeaderAction(id: "share", label: "Share conversation")
         XCTAssertEqual(ConversationHeaderView.localizedLabel(groupShareOnDirect, kind: .direct, strings: s), "Share conversation",
                        "only the default of the conversation's own kind is translated")
-        let english = FlareStrings(conversationHeaderSearch: "Search messages")
+        let english = FlareStrings { copy in
+            copy.conversationHeaderSearch = "Search messages"
+        }
         XCTAssertEqual(ConversationHeaderView.localizedLabel(direct[0], kind: .direct, strings: english), "Search messages")
     }
 

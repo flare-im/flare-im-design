@@ -120,7 +120,7 @@ enum FlareActionMenuPresentation { auto, anchored, sheet }
 ///
 /// [builder] draws the trigger and wires `open` to it; code that opens a menu
 /// on its own uses [show].
-class FlareActionMenu extends StatelessWidget {
+class FlareActionMenu extends StatefulWidget {
   const FlareActionMenu({
     super.key,
     required this.items,
@@ -142,6 +142,16 @@ class FlareActionMenu extends StatelessWidget {
   final Widget Function(BuildContext context, VoidCallback open) builder;
 
   final FlareActionMenuPresentation presentation;
+
+  /// Whether the menu whose trigger [context] sits under is open: a
+  /// [FlareIconButton] trigger draws its active state from it (Vue's trigger
+  /// `active` while the menu is open).
+  static bool isOpenOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ActionMenuOpen>()?.open ??
+      false;
+
+  @override
+  State<FlareActionMenu> createState() => _FlareActionMenuState();
 
   /// Presents the menu and completes with the selected id, or null when dismissed.
   /// `anchor` is the trigger's global rect (anchored) and is ignored for a sheet.
@@ -258,26 +268,39 @@ class FlareActionMenu extends StatelessWidget {
       overlay.globalToLocal(global.bottomRight),
     );
   }
+}
 
-  Future<void> _open(BuildContext context) async {
-    final current = context.widget;
-    final menu = current is FlareActionMenu ? current : this;
-    final id = await show(
-      context,
-      items: menu.items,
-      label: menu.label,
-      anchor: _globalRect(context),
-      presentation: menu.presentation,
-    );
-    if (id == null || !context.mounted) return;
-    // The trigger may have rebuilt while the menu was open: report to the
-    // handler it has now.
-    final latest = context.widget;
-    (latest is FlareActionMenu ? latest : menu).onSelected(id);
+class _FlareActionMenuState extends State<FlareActionMenu> {
+  bool _open = false;
+
+  Future<void> _show() async {
+    setState(() => _open = true);
+    try {
+      final id = await FlareActionMenu.show(
+        context,
+        items: widget.items,
+        label: widget.label,
+        anchor: FlareActionMenu._globalRect(context),
+        presentation: widget.presentation,
+      );
+      // The trigger may have rebuilt while the menu was open: report to the
+      // handler it has now.
+      if (id != null && mounted) widget.onSelected(id);
+    } finally {
+      if (mounted) setState(() => _open = false);
+    }
   }
 
   @override
-  Widget build(BuildContext context) => builder(context, () => _open(context));
+  Widget build(BuildContext context) =>
+      _ActionMenuOpen(open: _open, child: widget.builder(context, _show));
+}
+
+class _ActionMenuOpen extends InheritedWidget {
+  const _ActionMenuOpen({required this.open, required super.child});
+  final bool open;
+  @override
+  bool updateShouldNotify(_ActionMenuOpen old) => old.open != open;
 }
 
 /// The anchored presentation: no scrim, closed by a tap outside, Escape or
@@ -414,9 +437,13 @@ class _AnchoredMenuLayout extends SingleChildLayoutDelegate {
     final placeBelow =
         childSize.height <= below ||
         (childSize.height > above && below >= above);
-    final x = textDirection == TextDirection.rtl
-        ? anchor.left
-        : anchor.right - childSize.width;
+    // A trigger's menu lines up with the trigger's end edge; a point (a
+    // secondary click) opens from it towards the end, as the Vue menu at x/y.
+    final point = anchor.width == 0;
+    final rtl = textDirection == TextDirection.rtl;
+    final x = point
+        ? (rtl ? anchor.left - childSize.width : anchor.left)
+        : (rtl ? anchor.left : anchor.right - childSize.width);
     final y = placeBelow
         ? anchor.bottom + _gap
         : anchor.top - _gap - childSize.height;

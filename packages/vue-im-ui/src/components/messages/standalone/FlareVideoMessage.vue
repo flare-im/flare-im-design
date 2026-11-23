@@ -60,10 +60,10 @@ const label = computed(() => {
   >
     <img v-if="showPoster" :src="poster" :alt="alt" loading="lazy" decoding="async" @error="posterFailed = true" />
     <span v-else class="ph">
-      <MsgIcon name="video" :size="24" />
+      <MsgIcon name="video" size="lg" />
       <small v-if="placeholderText">{{ placeholderText }}</small>
     </span>
-    <span class="play"><MsgIcon name="play" :size="30" /></span>
+    <span class="play"><MsgIcon name="play" size="xl" /></span>
     <span v-if="duration" class="dur">{{ duration }}</span>
   </button>
 </template>

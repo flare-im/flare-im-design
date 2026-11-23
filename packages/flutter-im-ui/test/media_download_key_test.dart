@@ -184,10 +184,7 @@ void main() {
         find.byType(CircularProgressIndicator),
       );
       expect(ring.value, 0.4);
-      expect(
-        find.text('2.4 MB · PDF · ${_strings.downloading} 40%'),
-        findsOneWidget,
-      );
+      expect(find.text('2.4 MB · PDF'), findsOneWidget);
       await tester.tap(find.byType(CircularProgressIndicator));
       expect(taps, isEmpty);
     });
@@ -211,10 +208,7 @@ void main() {
       );
       expect(_cardGlyph('folder'), findsOneWidget);
       expect(_cardGlyph('download'), findsNothing);
-      expect(
-        find.text('2.4 MB · PDF · ${_strings.downloaded}'),
-        findsOneWidget,
-      );
+      expect(find.text('2.4 MB · PDF'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel(_strings.showInFolder));
       expect(taps, ['reveal']);
       handle.dispose();
@@ -261,10 +255,7 @@ void main() {
 
       chat.set('doc', _saved);
       await tester.pump();
-      expect(
-        find.text('8.5 KB · TXT · ${_strings.downloaded}'),
-        findsOneWidget,
-      );
+      expect(find.text('8.5 KB · TXT'), findsOneWidget);
       await tester.tap(_cardGlyph('folder'));
       expect(chat.reveals, ['doc']);
       expect(chat.opened, isEmpty);

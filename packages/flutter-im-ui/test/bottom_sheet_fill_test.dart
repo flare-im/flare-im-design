@@ -185,39 +185,42 @@ void main() {
     },
   );
 
-  testWidgets('without listenable the builder runs once; with it a plain sheet rebuilds too', (
+  testWidgets(
+    'without listenable the builder runs once; with it a plain sheet rebuilds too',
+    (tester) async {
+      final label = ValueNotifier<String>('one');
+      addTearDown(label.dispose);
+      final context = await _pumpHost(tester, _phone);
+      FlareBottomSheet.show<void>(
+        context,
+        title: 'Plain',
+        builder: (_) => Text('once ${label.value}'),
+      );
+      await tester.pumpAndSettle();
+      label.value = 'two';
+      await tester.pump();
+      expect(find.text('once one'), findsOneWidget);
+      Navigator.of(context, rootNavigator: true).pop();
+      await tester.pumpAndSettle();
+
+      FlareBottomSheet.show<void>(
+        context,
+        title: 'Plain',
+        listenable: label,
+        builder: (_) => Text('live ${label.value}'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('live two'), findsOneWidget);
+      label.value = 'three';
+      await tester.pump();
+      expect(find.text('live three'), findsOneWidget);
+      expect(find.text('Plain'), findsOneWidget);
+    },
+  );
+
+  testWidgets('off the phone the modal rebuilds from listenable as well', (
     tester,
   ) async {
-    final label = ValueNotifier<String>('one');
-    addTearDown(label.dispose);
-    final context = await _pumpHost(tester, _phone);
-    FlareBottomSheet.show<void>(
-      context,
-      title: 'Plain',
-      builder: (_) => Text('once ${label.value}'),
-    );
-    await tester.pumpAndSettle();
-    label.value = 'two';
-    await tester.pump();
-    expect(find.text('once one'), findsOneWidget);
-    Navigator.of(context, rootNavigator: true).pop();
-    await tester.pumpAndSettle();
-
-    FlareBottomSheet.show<void>(
-      context,
-      title: 'Plain',
-      listenable: label,
-      builder: (_) => Text('live ${label.value}'),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('live two'), findsOneWidget);
-    label.value = 'three';
-    await tester.pump();
-    expect(find.text('live three'), findsOneWidget);
-    expect(find.text('Plain'), findsOneWidget);
-  });
-
-  testWidgets('off the phone the modal rebuilds from listenable as well', (tester) async {
     final sending = ValueNotifier<bool>(false);
     addTearDown(sending.dispose);
     final context = await _pumpHost(tester, _desktop);
@@ -233,7 +236,10 @@ void main() {
     sending.value = true;
     await tester.pump();
     expect(find.text('sending'), findsOneWidget);
-    expect(tester.widget<FlareModal>(find.byType(FlareModal)).titleHidden, isTrue);
+    expect(
+      tester.widget<FlareModal>(find.byType(FlareModal)).titleHidden,
+      isTrue,
+    );
   });
 
   testWidgets('the kit pickers declare their own header', (tester) async {

@@ -74,6 +74,18 @@ describe("useMessageMediaSaves", () => {
     expect(saves.states.value.m1).toBeUndefined();
   });
 
+  it("keeps downloads retryable until the host confirms a file was saved", async () => {
+    const save = vi.fn(async (): Promise<void | false> => false);
+    const { saves, scope } = setup({ save });
+    await saves.onMediaAction("m1", "download");
+    expect(saves.states.value.m1).toBeUndefined();
+    save.mockResolvedValueOnce(undefined);
+    await saves.onMediaAction("m1", "download");
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(saves.states.value.m1).toBe("openFolder");
+    scope.stop();
+  });
+
   it("shows an already saved file as a folder when its message shows up", async () => {
     const { saves, host } = setup({ isSaved: vi.fn(async (key: string) => key === "f1") });
     await flush();

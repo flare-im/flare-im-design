@@ -27,7 +27,7 @@ const timeline = [message("1", "ivy", 0), message("2", "me", 1), message("3", "i
 
 describe("MessageList timeline slots", () => {
   it("draws the unread divider above the first unread message and counts messages from others", () => {
-    const host = mountList({ messages: timeline, unreadFromId: "client-3" });
+    const host = mountList({ messages: timeline, unreadFromId: "server-3" });
     const divider = host.get(".flare-unread-divider");
     expect(divider.attributes("role")).toBe("separator");
     expect(divider.text()).toContain("2");
@@ -39,7 +39,7 @@ describe("MessageList timeline slots", () => {
 
   it("starts a new sender run below the divider", () => {
     const run = [message("1", "ivy", 0), message("2", "ivy", 1), message("3", "ivy", 2)];
-    const host = mountList({ messages: run, unreadFromId: "client-2" });
+    const host = mountList({ messages: run, unreadFromId: "server-2" });
     const positions = host.findAllComponents({ name: "MessageBubble" }).map((bubble) => bubble.props("groupPosition"));
     expect(positions).toEqual(["single", "first", "last"]);
     host.unmount();
@@ -61,7 +61,7 @@ describe("MessageList timeline slots", () => {
     expect(none.find(".flare-unread-divider").exists()).toBe(false);
     none.unmount();
     const custom = mountList(
-      { messages: timeline, unreadFromId: "client-5" },
+      { messages: timeline, unreadFromId: "server-5" },
       { "unread-divider": (scope) => h("p", { class: "host-divider" }, `new ${scope?.count}`) },
     );
     expect(custom.get(".host-divider").text()).toBe("new 1");

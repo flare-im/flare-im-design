@@ -126,14 +126,17 @@ void main() {
     expect(flareIconGlyph('red-packet'), glyph);
   });
 
-  test("rich-text is Lucide Type from the kit's icon font, not Material title", () {
-    final glyph = flareIconMap['rich-text']!;
-    expect(glyph, flareKitRichText);
-    expect(glyph, isNot(Icons.title));
-    expect(glyph.codePoint, 0xE001);
-    expect(glyph.fontFamily, 'FlareKitIcons');
-    expect(glyph.fontPackage, 'flare_im_ui');
-  });
+  test(
+    "rich-text is Lucide Type from the kit's icon font, not Material title",
+    () {
+      final glyph = flareIconMap['rich-text']!;
+      expect(glyph, flareKitRichText);
+      expect(glyph, isNot(Icons.title));
+      expect(glyph.codePoint, 0xE001);
+      expect(glyph.fontFamily, 'FlareKitIcons');
+      expect(glyph.fontPackage, 'flare_im_ui');
+    },
+  );
 
   test('plugin, the generic plugin glyph, comes before locate', () {
     expect(flareIconNames[106], 'plugin');

@@ -51,6 +51,8 @@ class FlareCapabilityConsent extends StatelessWidget {
     final decision =
         await FlareBottomSheet.show<FlareCapabilityConsentDecision>(
           context,
+          // §6.5: off the phone a 400 dialog, the payment sheet's width.
+          dialogWidth: FlareSizes.componentPaymentDialogWidth,
           titleBuilder: (inner) => FlareStrings.of(
             inner,
           ).capabilityConsentTitle.replaceAll('{plugin}', pluginName),

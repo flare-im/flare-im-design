@@ -415,3 +415,16 @@ describe("FlarePluginForm layout slot / native query fields", () => {
     expect(form.submitted).toEqual([]);
   });
 });
+
+describe("FlarePluginForm field help (R6)", () => {
+  it("draws an input's help under it, tied to the control, and nothing for one without", () => {
+    const help = "英文、数字或 _ : - .，最多 128 个字符";
+    const wrapper = mount(defineComponent({ setup() { useFlareI18nProvider("zh-CN"); return () => h(FlarePluginForm, { inputs: [
+      { id: "code", kind: "text", label: "Code", help }, { id: "note", kind: "text", label: "Note" },
+    ] }); } }));
+    const code = wrapper.get('[data-input-id="code"]');
+    expect(code.get(".flare-form-field__hint").text()).toBe(help);
+    expect(code.get("input").attributes("aria-describedby")).toContain(code.get(".flare-form-field__hint").attributes("id"));
+    expect(wrapper.get('[data-input-id="note"]').find(".flare-form-field__hint").exists()).toBe(false);
+  });
+});

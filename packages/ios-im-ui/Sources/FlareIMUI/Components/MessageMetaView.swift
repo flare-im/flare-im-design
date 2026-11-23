@@ -96,10 +96,9 @@ public struct MessageMetaView: View {
 
     /// The text that holds the meta's room at the end of a text's last line (inline placement): its labels and the
     /// receipt, with a little air before them.
-    static func reservation(labels: String, receipt: FlareMessageReceiptPresentation, strings: FlareStrings) -> String {
+    static func reservation(labels: String, receipt: FlareMessageReceiptPresentation) -> String {
         var text = "\u{00A0}\u{00A0}\u{00A0}" + labels
-        if let summary = receipt.summary { text += "\u{00A0}\u{00A0}" + summary.text(strings) }
-        else if receipt.glyph != nil { text += "\u{00A0}\u{2003}\u{2002}" }
+        if receipt.summary != nil || receipt.glyph != nil { text += "\u{00A0}\u{2003}\u{2002}" }
         return text
     }
 
@@ -162,22 +161,17 @@ public struct MessageMetaView: View {
         .accessibilityLabel(strings.messageSendFailedRetry)
     }
 
-    /// "N 人未读" / "全部已读": a key with `onReadReceiptOpen`, plain text without.
+    /// The group receipt glyph can open the receipt details.
     @ViewBuilder
     private func summaryKey(_ summary: FlareMessageReadSummaryLine, onBubble: Bool, colors: FlareColors) -> some View {
-        let color: Color = summary.allRead
-            ? (onBubble ? colors.messageStatusReadOnOutgoing : colors.messageStatusRead)
-            : (onBubble ? colors.messageStatusOnOutgoing : colors.messageMetaForeground)
+        let status: FlareMessageDeliveryStatus = summary.allRead ? .read : .sent
+        let tint = summary.allRead ? colors.messageStatusReadOnOutgoing : colors.messageStatusOnOutgoing
         let text = summary.text(strings)
-        let label = Text(text)
-            .font(.system(size: metaTextSize, weight: summary.allRead ? .regular : .medium))
-            .foregroundStyle(color)
-            .lineLimit(1)
-            .fixedSize()
+        let label = MessageStatusView(status: status, variant: .compact, tint: onBubble ? tint : nil)
             .frame(minHeight: visualLineHeight)
         if let onReadReceiptOpen {
             Button(action: onReadReceiptOpen) {
-                label.flareTouchTarget(alignment: reservesActionSpace ? .topTrailing : .center)
+                label.accessibilityHidden(true).flareTouchTarget(alignment: reservesActionSpace ? .topTrailing : .center)
             }
                 .buttonStyle(.plain)
                 .flareCompactLayout(height: reservesActionSpace ? nil : lineHeight)

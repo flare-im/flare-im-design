@@ -33,9 +33,11 @@ final class MessageProjectionTests: XCTestCase {
         XCTAssertEqual(MessageBubbleView.recalledNotice(isSelf: false, conversationKind: .single, senderName: "Ann", strings: s),
                        "对方撤回了一条消息")
 
-        let english = FlareStrings(messageRecalledSelf: "You unsent a message",
-                                   messageRecalledPeer: "Message unsent",
-                                   messageRecalledGroupOther: { "\($0) unsent a message" })
+        let english = FlareStrings { copy in
+            copy.messageRecalledSelf = "You unsent a message"
+            copy.messageRecalledPeer = "Message unsent"
+            copy.messageRecalledGroupOther = { "\($0) unsent a message" }
+        }
         XCTAssertEqual(MessageBubbleView.recalledNotice(isSelf: false, conversationKind: .group, senderName: "Ann", strings: english),
                        "Ann unsent a message")
         XCTAssertEqual(MessageBubbleView.recalledNotice(isSelf: false, conversationKind: .single, senderName: "Ann", strings: english),

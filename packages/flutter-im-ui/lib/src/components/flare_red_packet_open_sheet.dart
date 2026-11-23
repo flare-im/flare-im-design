@@ -18,8 +18,8 @@ import 'flare_overlay.dart';
 /// It only draws. Whether the viewer can claim, and what they get, is the
 /// plugin's answer; the host turns it into [state]. [onOpen] is the 開 press —
 /// the host claims and sets [FlareRedPacketOpenState.opening], which flips the
-/// coin (a progress label instead when the platform asks for reduced motion)
-/// and blocks a second press. Finished, expired, refunded and not-eligible
+/// coin (a spinner instead when the platform asks for reduced motion) and
+/// blocks a second press. Finished, expired, refunded and not-eligible
 /// packets say why (the host's [message] replaces the default copy). The
 /// details key ([onViewDetails]) shows only for a finished, expired or
 /// refunded packet whose
@@ -41,6 +41,7 @@ class FlareRedPacketOpenSheet extends StatefulWidget {
     this.state = FlareRedPacketOpenState.ready,
     this.message,
     this.canViewDetails = true,
+    this.reviewOnError = false,
     this.onOpen,
     this.onViewDetails,
     this.onClose,
@@ -60,6 +61,10 @@ class FlareRedPacketOpenSheet extends StatefulWidget {
   /// From the personal layer: a finished, expired or refunded sheet offers the
   /// details key only when true. [FlareRedPacketOpenState.notEligible] never does.
   final bool canViewDetails;
+
+  /// In [FlareRedPacketOpenState.error] the key reads "查看结果" and calls
+  /// [onViewDetails] instead of offering 開 again: the claim may have landed.
+  final bool reviewOnError;
   final VoidCallback? onOpen;
   final VoidCallback? onViewDetails;
   final VoidCallback? onClose;
@@ -99,17 +104,23 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
     with SingleTickerProviderStateMixin {
   late final AnimationController _flip = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 800),
   );
 
   bool get _opening => widget.state == FlareRedPacketOpenState.opening;
 
-  bool get _showsCoin => flareRedPacketOpenSheetKeys(widget.state).coin;
+  bool get _review =>
+      widget.reviewOnError && widget.state == FlareRedPacketOpenState.error;
 
-  bool get _showsDetails => flareRedPacketOpenSheetKeys(
-    widget.state,
-    canViewDetails: widget.canViewDetails,
-  ).details;
+  bool get _showsCoin =>
+      !_review && flareRedPacketOpenSheetKeys(widget.state).coin;
+
+  bool get _showsDetails =>
+      _review ||
+      flareRedPacketOpenSheetKeys(
+        widget.state,
+        canViewDetails: widget.canViewDetails,
+      ).details;
 
   @override
   void didChangeDependencies() {
@@ -141,6 +152,8 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
   }
 
   void _close() {
+    // §4.5: nothing closes the envelope while the claim runs.
+    if (_opening) return;
     final onClose = widget.onClose;
     if (onClose != null) {
       onClose();
@@ -173,9 +186,9 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
     final strings = FlareStrings.of(context);
     final title = strings.packetFromSender(widget.senderName);
     return PopScope(
-      canPop: widget.onClose == null,
+      canPop: widget.onClose == null && !_opening,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) widget.onClose?.call();
+        if (!didPop && !_opening) widget.onClose?.call();
       },
       child: Actions(
         actions: {
@@ -216,22 +229,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
                           namesRoute: true,
                           explicitChildNodes: true,
                           label: title,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _envelope(colors, strings, title),
-                              const SizedBox(height: FlareSizes.spacingXl),
-                              FlareIconButton(
-                                icon: 'close',
-                                semanticLabel: strings.close,
-                                tintColor: colors.redPacketGold,
-                                backgroundColor: colors.redPacketEnd.withValues(
-                                  alpha: 0.4,
-                                ),
-                                onPressed: _close,
-                              ),
-                            ],
-                          ),
+                          child: _envelope(colors, strings, title),
                         ),
                       ),
                     ),
@@ -273,21 +271,15 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
             borderRadius: BorderRadius.vertical(
               bottom: Radius.elliptical(width / 2, FlareSizes.spacing2xl),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.22),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            boxShadow: flareOverlayShadow(context),
           ),
           child: _coverContent(colors, strings, title),
         );
-        return Container(
+        final envelope = Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: colors.redPacketEnd,
-            borderRadius: BorderRadius.circular(FlareSizes.radiusXl),
+            borderRadius: BorderRadius.circular(FlareSizes.radius2xl),
             boxShadow: flareOverlayShadow(context),
           ),
           child: Column(
@@ -312,7 +304,12 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
                   padding: const EdgeInsets.all(FlareSizes.spacingLg),
                   child: Center(
                     child: _showsDetails
-                        ? _detailsLink(colors, strings)
+                        ? _detailsLink(
+                            colors,
+                            _review
+                                ? strings.packetViewResult
+                                : strings.packetViewDetails,
+                          )
                         : const SizedBox.shrink(),
                   ),
                 ),
@@ -320,9 +317,31 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
             ],
           ),
         );
+        // §4.5: the close key sits in the envelope's top trailing corner, a
+        // 36 disc with the kit's 48 touch target around it.
+        return Stack(
+          children: [
+            envelope,
+            PositionedDirectional(
+              top: FlareSizes.spacingXs,
+              end: FlareSizes.spacingXs,
+              child: FlareIconButton(
+                icon: 'close',
+                semanticLabel: strings.close,
+                customSize: _closeSide,
+                tintColor: colors.redPacketOnSurface,
+                backgroundColor: colors.scrim.withValues(alpha: 0.16),
+                disabled: _opening,
+                onPressed: _close,
+              ),
+            ),
+          ],
+        );
       },
     );
   }
+
+  static const double _closeSide = FlareSizes.componentRedPacketCloseSize;
 
   Widget _coverContent(FlareColors colors, FlareStrings strings, String title) {
     final message = widget.message;
@@ -331,31 +350,25 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: FlareAvatar(
-                userId: widget.senderName,
-                displayName: widget.senderName,
-                avatarUrl: widget.senderAvatar,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: FlareSizes.spacingSm),
-            Flexible(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: FlareSizes.fontSize2xl,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        ExcludeSemantics(
+          child: FlareAvatar(
+            userId: widget.senderName,
+            displayName: widget.senderName,
+            avatarUrl: widget.senderAvatar,
+            // The sender is the same 56 here as on the details page.
+            size: FlareSizes.componentRedPacketDetailAvatarSize,
+          ),
+        ),
+        const SizedBox(height: FlareSizes.spacingSm),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: colors.redPacketOnSurface,
+            fontSize: FlareSizes.fontSizeXl,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         if (widget.kindLabel != null) ...[
           const SizedBox(height: FlareSizes.spacingMd),
@@ -365,7 +378,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
               vertical: FlareSizes.spacing3xs,
             ),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.16),
+              color: colors.scrim.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
             ),
             child: Text(
@@ -383,12 +396,13 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
           child: Text(
             _headline(strings),
             textAlign: TextAlign.center,
-            // A host notice can run long: body line spacing, three lines.
-            maxLines: notice ? 3 : null,
-            overflow: notice ? TextOverflow.ellipsis : null,
+            // A host notice can run long: body line spacing, three lines;
+            // the blessing keeps two.
+            maxLines: notice ? 3 : 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: colors.redPacketGold,
-              fontSize: FlareSizes.fontSize5xl,
+              fontSize: FlareSizes.fontSize4xl,
               height: notice
                   ? FlareSizes.lineHeightNormal
                   : FlareSizes.lineHeightSnug,
@@ -407,8 +421,8 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colors.redPacketOnSurface,
                 fontSize: FlareSizes.fontSizeLg,
                 height: FlareSizes.lineHeightNormal,
               ),
@@ -426,12 +440,11 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
     // One ideograph fills the coin; a word ("Open") is set smaller.
     final word = label.characters.length > 2;
     final Widget face = _opening && reduce
-        ? Text(
-            strings.packetBusy,
-            style: TextStyle(
+        ? SizedBox.square(
+            dimension: FlareSizes.iconSizeLg,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
               color: colors.redPacketEnd,
-              fontSize: FlareSizes.fontSizeSm,
-              fontWeight: FontWeight.w600,
             ),
           )
         : Text(
@@ -458,13 +471,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
           color: colors.redPacketGold.withValues(alpha: 0.7),
           width: 3,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.28),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: flareOverlayShadow(context),
       ),
       child: face,
     );
@@ -500,7 +507,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
     );
   }
 
-  Widget _detailsLink(FlareColors colors, FlareStrings strings) {
+  Widget _detailsLink(FlareColors colors, String label) {
     return Semantics(
       button: true,
       child: Material(
@@ -510,7 +517,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
           onTap: widget.onViewDetails,
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              minHeight: FlareSizes.touchTargetMin,
+              minHeight: FlareSizes.touchTarget,
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -521,7 +528,7 @@ class _FlareRedPacketOpenSheetState extends State<FlareRedPacketOpenSheet>
                 children: [
                   Flexible(
                     child: Text(
-                      strings.packetViewDetails,
+                      label,
                       style: TextStyle(
                         color: colors.redPacketGold,
                         fontSize: FlareSizes.fontSizeLg,

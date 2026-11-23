@@ -92,6 +92,8 @@ fun Textarea(
     maxlength: Int? = null,
     disabled: Boolean = false,
     onChange: ((String) -> Unit)? = null,
+    /** The value is wrong: the field's edge takes the error colour (the form says why under it). */
+    error: Boolean = false,
 ) {
     val colors = flareColors()
     var focused by remember { mutableStateOf(false) }
@@ -120,7 +122,7 @@ fun Textarea(
             }
             .clip(shape)
             .background(if (focused) colors.bgPrimary else colors.bgSecondary)
-            .border(1.dp, if (focused) colors.borderSelected else colors.borderPrimary, shape)
+            .border(1.dp, if (error) colors.error else if (focused) colors.borderSelected else colors.borderPrimary, shape)
             .flareDimmed(if (disabled) 0.55f else 1f)
             .padding(pad.dp),
     ) {

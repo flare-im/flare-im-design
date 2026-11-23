@@ -46,6 +46,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -56,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.delay
 import kotlin.math.abs
@@ -79,8 +84,8 @@ import kotlin.math.pow
 sealed interface PluginValueFormat {
     val kind: String
 
-    /** Minor units as sent; [scale] null: still minor units, the host may scale them by [assetId]. */
-    data class Money(val minor: String, val scale: Int? = null, val assetId: String? = null) : PluginValueFormat {
+    /** Minor units as sent; [scale] null: still minor units, the host may scale them by [assetId]. [currency]: the code beside it. */
+    data class Money(val minor: String, val scale: Int? = null, val assetId: String? = null, val currency: String? = null) : PluginValueFormat {
         override val kind: String get() = "money"
     }
     data class Enumeration(val raw: String) : PluginValueFormat { override val kind: String get() = "enum" }
@@ -112,7 +117,7 @@ private fun Map<*, *>.items(key: String): List<*> = this[key] as? List<*> ?: emp
 internal fun pluginValueFormat(raw: Any?): PluginValueFormat? {
     val map = raw as? Map<*, *> ?: return null
     return when (map.str("kind")) {
-        "money" -> map.str("minor")?.let { PluginValueFormat.Money(it, map.num("scale")?.toInt(), map.str("assetId")) }
+        "money" -> map.str("minor")?.let { PluginValueFormat.Money(it, map.num("scale")?.toInt(), map.str("assetId"), map.str("currency")) }
         "enum" -> map.str("raw")?.let { PluginValueFormat.Enumeration(it) }
         "person" -> map.str("userId")?.let { PluginValueFormat.Person(it) }
         "reference" -> map.str("id")?.let { PluginValueFormat.Reference(it, map.flag("labelled") ?: false) }
@@ -127,13 +132,23 @@ internal fun pluginValueFormat(raw: Any?): PluginValueFormat? {
 
 /**
  * The words a formatted value is drawn with (spec formats2): `count` compact in the viewer's units ("1.2万"),
- * `duration` in the viewer's units ("2 小时 5 分钟"); every other format draws the plain text the core wrote.
+ * `duration` in the viewer's units ("2 小时 5 分钟"), `money` with its currency (R10); every other format draws the plain
+ * text the core wrote.
  */
 internal object PluginFormatRules {
     fun text(value: String, format: PluginValueFormat?, strings: FlareStrings): String = when (format) {
         is PluginValueFormat.Count -> compactCount(format.count, strings.pluginFormatCountUnits)
         is PluginValueFormat.Duration -> durationText(format.ms, strings)
+        is PluginValueFormat.Money -> money(value, format)
         else -> value
+    }
+
+    /** R10: a scaled amount with its currency as the payment confirmation writes it, a leading minus or plus kept; else as sent. */
+    fun money(value: String, format: PluginValueFormat.Money): String {
+        val currency = format.currency ?: return value
+        if (format.scale == null) return value
+        val sign = value.take(1).takeIf { it == "-" || it == "+" }.orEmpty()
+        return FlarePaymentRules.amountText(value.drop(sign.length), currency)?.let { sign + it } ?: value
     }
 
     /** The compact units of [units] ("4:万|8:亿": exponent and suffix pairs), largest first; malformed pairs skipped. */
@@ -401,12 +416,29 @@ data class PluginTimelineBlock(val items: List<PluginTimelineItem>, val emptyTex
     override val kind: String get() = "timeline"
 }
 
+/**
+ * `result`: how a money, real-name or red packet action came out (R7). [title] and [tone] are the label the plugin's
+ * values gave [state]; [unmapped] marks a state outside them (drawn as the unknown status). [amount] is the plain text
+ * of the amount with [format]; [description] says what happens next.
+ */
+data class PluginResultBlock(
+    val state: String,
+    val title: String,
+    val tone: PluginTone = PluginTone.Neutral,
+    val unmapped: Boolean = false,
+    val amount: String? = null,
+    val format: PluginValueFormat? = null,
+    val description: String? = null,
+) : PluginBlock {
+    override val kind: String get() = "result"
+}
+
 private fun Map<*, *>.tone(key: String): PluginTone? = PluginTone.fromWire(str(key))
 
 private fun pluginBadgeValue(raw: Any?): PluginBadge? {
     val map = raw as? Map<*, *> ?: return null
     val text = map.str("text")?.takeIf { it.isNotEmpty() } ?: return null
-    return PluginBadge(text, map.tone("tone") ?: PluginTone.Neutral)
+    return PluginBadge(text, map.tone("tone") ?: PluginTone.Neutral, map.flag("unmapped") ?: false)
 }
 
 /** A vocabulary 2 block as the core writes it; null for another kind or a malformed one. */
@@ -487,6 +519,17 @@ internal fun pluginExtraBlock(map: Map<*, *>): PluginBlock? = when (map.str("kin
             reasonInput = map.str("reasonInput")?.takeIf { it.isNotEmpty() },
             urlPath = urlPath,
             emptyText = map.str("emptyText"),
+        )
+    }
+    "result" -> map.str("state")?.let { state ->
+        PluginResultBlock(
+            state = state,
+            title = map.str("title") ?: state,
+            tone = map.tone("tone") ?: PluginTone.Neutral,
+            unmapped = map.flag("unmapped") ?: false,
+            amount = map.str("amount")?.takeIf { it.isNotBlank() },
+            format = pluginValueFormat(map["format"]),
+            description = map.str("description")?.takeIf { it.isNotBlank() },
         )
     }
     else -> null
@@ -722,6 +765,7 @@ internal fun pluginStatsColumns(count: Int): Int = if (count == 3 || count == 6)
 internal fun PluginStatsBlockView(block: PluginStatsBlock) {
     val colors = flareColors()
     val strings = flareStrings()
+    val locale = flareLocale()
     val columns = pluginStatsColumns(block.items.size)
     Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
         block.items.chunked(columns).forEach { line ->
@@ -733,8 +777,13 @@ internal fun PluginStatsBlockView(block: PluginStatsBlock) {
                         verticalArrangement = Arrangement.spacedBy(FlareSizes.spacing3xs),
                     ) {
                         Text(item.label, color = colors.textSecondary, fontSize = FlareSizes.fontSizeSm, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(PluginFormatRules.text(item.value, item.format, strings), color = pluginStatColor(item.tone),
-                            fontSize = FlareSizes.fontSize2xl, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        // R10: a card's secondary figure is fontSize.3xl 18/600 in tabular digits; an amount reads its currency.
+                        val text = PluginFormatRules.text(item.value, item.format, strings)
+                        Text(text, color = pluginStatColor(item.tone),
+                            fontSize = FlareSizes.fontSize3xl, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            style = FlareTabularFigures,
+                            // A description replaces the merged words, so it carries the label too.
+                            modifier = Modifier.semantics { contentDescription = "${item.label} ${FlarePaymentRules.spokenAmount(text, locale)}" })
                         item.trend?.takeIf { it.text.isNotEmpty() }?.let { PluginTrendView(it) }
                     }
                 }
@@ -974,7 +1023,8 @@ internal fun pluginHeroColor(tone: PluginHeroTone): Color {
         PluginHeroTone.Neutral -> colors.textPrimary
         PluginHeroTone.Positive -> colors.successText
         PluginHeroTone.Warning -> colors.warningText
-        PluginHeroTone.Brand -> colors.primaryText
+        // R10: the lead amount is never brand purple.
+        PluginHeroTone.Brand -> colors.textPrimary
     }
 }
 
@@ -986,6 +1036,7 @@ internal const val PLUGIN_HERO_MASK_TAG = "flare-plugin-hero-mask"
 internal fun PluginHeroBlockView(block: PluginHeroBlock, busyActionId: String?, disabled: Boolean, onAction: ((PluginViewAction) -> Unit)?) {
     val colors = flareColors()
     val strings = flareStrings()
+    val locale = flareLocale()
     // A maskable hero starts shown; the eye hides it for this view only.
     var hidden by remember(block) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs)) {
@@ -994,20 +1045,25 @@ internal fun PluginHeroBlockView(block: PluginHeroBlock, busyActionId: String?, 
                 Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeMd, modifier = Modifier.weight(1f, fill = false))
             }
             if (block.maskable) {
+                // R10: the eye is a toggle (pressed while the balance is hidden), as the account view's.
                 Box(Modifier.testTag(PLUGIN_HERO_MASK_TAG)) {
-                    IconButton(
-                        if (hidden) "eye-off" else "eye",
-                        if (hidden) strings.accountShowBalance else strings.accountHideBalance,
-                        size = FlareControlSize.Sm,
-                        onClick = { hidden = !hidden },
-                    )
+                    FlareIconControl(label = if (hidden) strings.accountShowBalance else strings.accountHideBalance, onClick = { hidden = !hidden }, checked = hidden) {
+                        FlareIcon(if (hidden) "eye-off" else "eye", size = FlareSizes.iconSizeMd, tint = colors.textSecondary)
+                    }
                 }
             }
         }
+        val shown = PluginFormatRules.text(block.value, block.format, strings)
         Text(
-            if (block.maskable && hidden) PluginViewFormat.MASKED_VALUE else PluginFormatRules.text(block.value, block.format, strings),
+            if (block.maskable && hidden) PluginViewFormat.MASKED_VALUE else shown,
             color = pluginHeroColor(block.tone),
-            fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            // R10: component.amountHeroFontSize 32/700, tabular for an amount; hidden reads "balance hidden".
+            fontSize = FlareSizes.componentAmountHeroFontSize.value.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.semantics {
+                // R11: an amount reads its currency's name, never the bare symbol.
+                contentDescription = if (block.maskable && hidden) strings.accountBalanceHidden
+                else listOfNotNull(block.label, if (block.amount) FlarePaymentRules.spokenAmount(shown, locale) else shown).joinToString(" ")
+            },
             style = if (block.amount) androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum") else androidx.compose.ui.text.TextStyle.Default,
         )
         block.subtitle?.takeIf { it.isNotEmpty() }?.let { Text(it, color = colors.textTertiary, fontSize = FlareSizes.fontSizeSm) }
@@ -1039,18 +1095,30 @@ internal fun pluginStepWords(state: PluginStepState, strings: FlareStrings): Str
     PluginStepState.Failed -> strings.pluginViewStepFailed
 }
 
+/** §12.5: what a step reads — "第 N 步，共 M 步", then its label and state. */
+internal fun pluginStepSpoken(step: PluginStep, index: Int, count: Int, strings: FlareStrings): String =
+    strings.pluginViewStepPosition.replace("{index}", (index + 1).toString()).replace("{count}", count.toString()) +
+        ", ${step.label}, ${pluginStepWords(step.state, strings)}"
+
 /**
- * Steps in a row: a marker per step (done: a check, current: a filled ring, failed: a cross, pending: an outline) joined
- * by a line, the label under each; each says its state.
+ * Steps in a row: a 20 marker per step (done: a check, failed: a cross, current: the brand ring round its number,
+ * pending: an outline round its number — §12.5, Vue) joined by a line, the label under each; each says its state.
  */
 @Composable
 internal fun PluginStepsBlockView(block: PluginStepsBlock) {
     val colors = flareColors()
     val strings = flareStrings()
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+    // §12.5: each step reads its place in the row ("step N of M" through the platform's collection words) and its state.
+    Row(
+        Modifier.fillMaxWidth().semantics { collectionInfo = CollectionInfo(rowCount = 1, columnCount = block.items.size) },
+        verticalAlignment = Alignment.Top,
+    ) {
         block.items.forEachIndexed { index, step ->
             Column(
-                Modifier.weight(1f).semantics(mergeDescendants = true) { contentDescription = "${step.label}, ${pluginStepWords(step.state, strings)}" },
+                Modifier.weight(1f).semantics(mergeDescendants = true) {
+                    contentDescription = pluginStepSpoken(step, index, block.items.size, strings)
+                    collectionItemInfo = CollectionItemInfo(rowIndex = 0, rowSpan = 1, columnIndex = index, columnSpan = 1)
+                },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXs),
             ) {
@@ -1058,16 +1126,16 @@ internal fun PluginStepsBlockView(block: PluginStepsBlock) {
                     val before = if (index > 0) block.items[index - 1].state == PluginStepState.Done else null
                     val after = if (index < block.items.lastIndex) step.state == PluginStepState.Done else null
                     Box(Modifier.weight(1f).height(2.dp).background(when (before) { null -> Color.Transparent; true -> colors.primary; false -> colors.borderSecondary }))
-                    PluginStepMarker(step.state)
+                    PluginStepMarker(step.state, index + 1)
                     Box(Modifier.weight(1f).height(2.dp).background(when (after) { null -> Color.Transparent; true -> colors.primary; false -> colors.borderSecondary }))
                 }
                 Text(
                     step.label, fontSize = FlareSizes.fontSizeSm, textAlign = TextAlign.Center,
-                    fontWeight = if (step.state == PluginStepState.Current) FontWeight.SemiBold else FontWeight.Normal,
+                    fontWeight = if (step.state == PluginStepState.Current) FontWeight.Medium else FontWeight.Normal,
                     color = when (step.state) {
-                        PluginStepState.Pending -> colors.textTertiary
+                        PluginStepState.Current -> colors.textPrimary
                         PluginStepState.Failed -> colors.errorText
-                        else -> colors.textPrimary
+                        else -> colors.textSecondary
                     },
                 )
             }
@@ -1076,18 +1144,26 @@ internal fun PluginStepsBlockView(block: PluginStepsBlock) {
 }
 
 @Composable
-private fun PluginStepMarker(state: PluginStepState) {
+private fun PluginStepMarker(state: PluginStepState, number: Int) {
     val colors = flareColors()
     val side = 20.dp
     when (state) {
         PluginStepState.Done -> Box(Modifier.size(side).clip(CircleShape).background(colors.primary), contentAlignment = Alignment.Center) {
             FlareIcon("check", size = 12.dp, tint = Color.White)
         }
-        PluginStepState.Current -> Box(Modifier.size(side).border(2.dp, colors.primary, CircleShape).padding(5.dp).clip(CircleShape).background(colors.primary))
+        PluginStepState.Current -> PluginStepNumber(number, colors.primary, colors.primaryText)
         PluginStepState.Failed -> Box(Modifier.size(side).clip(CircleShape).background(colors.error), contentAlignment = Alignment.Center) {
             FlareIcon("close", size = 11.dp, tint = Color.White)
         }
-        PluginStepState.Pending -> Box(Modifier.size(side).border(1.5.dp, colors.borderHover, CircleShape))
+        PluginStepState.Pending -> PluginStepNumber(number, colors.borderSecondary, colors.textTertiary)
+    }
+}
+
+/** A step's number in a 2-wide ring on the page colour (Vue `.flare-plugin-steps__marker`). */
+@Composable
+private fun PluginStepNumber(number: Int, ring: Color, ink: Color) {
+    Box(Modifier.size(20.dp).clip(CircleShape).background(flareColors().bgPrimary).border(2.dp, ring, CircleShape), contentAlignment = Alignment.Center) {
+        Text(number.toString(), color = ink, fontSize = FlareSizes.fontSizeXs)
     }
 }
 
@@ -1108,7 +1184,8 @@ internal fun PluginTimelineBlockView(block: PluginTimelineBlock) {
     val colors = flareColors()
     val strings = flareStrings()
     if (block.items.isEmpty()) {
-        Text(block.emptyText?.takeIf { it.isNotEmpty() } ?: strings.pluginViewEmpty, color = colors.textTertiary, fontSize = FlareSizes.fontSizeMd)
+        // R8: an empty data block is the compact empty state.
+        EmptyState(title = block.emptyText?.takeIf { it.isNotEmpty() } ?: strings.pluginViewEmpty, icon = "clock", compact = true)
         return
     }
     // The server's clock, like every other plugin time (spec/server-clock-vectors.json).

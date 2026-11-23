@@ -91,6 +91,9 @@ data class FlareComposerCapabilities(
     fun allowsTool(id: String): Boolean = availableToolIds?.contains(id) ?: true
 }
 
+/** The controls a message composer keeps visible when its optional menu is unavailable. */
+val standardComposerToolIds: Set<String> = setOf("emoji", "voice", "image", "richText", "attachments")
+
 /** Ids of the built-in feature set, in panel order, shared across the four platforms (`composerActions.defaults`). */
 val defaultComposerActionIds: List<String> =
     listOf("image", "camera", "video", "file", "voice", "location", "card")

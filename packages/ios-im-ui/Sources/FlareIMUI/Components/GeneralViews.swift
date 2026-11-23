@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 /// How a ``SearchBarView`` takes part in interaction.
 enum SearchBarRole: Equatable {
@@ -10,14 +13,22 @@ enum SearchBarRole: Equatable {
     case display
 }
 
+/// Whether a ``SearchBarView`` draws a surface (Vue `appearance`): `filled` is the light rounded pill for a search
+/// floating over content; `quiet` draws none, for a search that stays at the top of a list (the icon, placeholder and
+/// 48pt row are unchanged).
+public enum FlareSearchBarAppearance: Sendable { case filled, quiet }
+
 /// Unified search field. Spec: General/SearchBar (`SearchBarView`).
 public struct SearchBarView: View {
     @Binding private var text: String
+    private let appearance: FlareSearchBarAppearance
     private let placeholder: String?
     private let loading: Bool
     private let readOnly: Bool
+    private let dismissesKeyboardOnOutsideTap: Bool
     private let onSubmit: (() -> Void)?
     private let onActivate: (() -> Void)?
+    @FocusState private var focused: Bool
     @ScaledMetric private var fieldSize: CGFloat = FlareSizes.fontSizeLg
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -28,9 +39,13 @@ public struct SearchBarView: View {
     ///     the value or placeholder) with no caret, focus or clear button.
     ///   - onActivate: With `readOnly`, the whole bar is one button (labelled with the placeholder
     ///     or "Search") that calls this on tap, Return or Space. Without it the bar is display only.
+    ///   - dismissesKeyboardOnOutsideTap: On iOS, a tap outside the search bar ends editing without consuming the tap.
     public init(text: Binding<String>, placeholder: String? = nil, loading: Bool = false,
-                readOnly: Bool = false, onSubmit: (() -> Void)? = nil, onActivate: (() -> Void)? = nil) {
-        self._text = text; self.placeholder = placeholder; self.loading = loading
+                readOnly: Bool = false, appearance: FlareSearchBarAppearance = .filled,
+                dismissesKeyboardOnOutsideTap: Bool = false,
+                onSubmit: (() -> Void)? = nil, onActivate: (() -> Void)? = nil) {
+        self._text = text; self.placeholder = placeholder; self.loading = loading; self.appearance = appearance
+        self.dismissesKeyboardOnOutsideTap = dismissesKeyboardOnOutsideTap
         self.readOnly = readOnly; self.onSubmit = onSubmit; self.onActivate = onActivate
     }
 
@@ -44,8 +59,14 @@ public struct SearchBarView: View {
         switch Self.role(readOnly: readOnly, onActivate: onActivate) {
         case .field:
             bar(colors) {
-                TextField(placeholder ?? strings.search, text: $text).font(.system(size: fieldSize))
-                    .textFieldStyle(.plain).onSubmit { onSubmit?() }
+                TextField(placeholder ?? strings.search, text: $text)
+                    .font(.system(size: fieldSize))
+                    .textFieldStyle(.plain)
+                    .focused($focused)
+                    .onSubmit {
+                        if dismissesKeyboardOnOutsideTap { focused = false }
+                        onSubmit?()
+                    }
                 if loading {
                     ProgressView().controlSize(.mini)
                 } else if !text.isEmpty {
@@ -58,6 +79,13 @@ public struct SearchBarView: View {
                     .accessibilityLabel(strings.clearSearch)
                 }
             }
+            #if os(iOS)
+            .background {
+                if dismissesKeyboardOnOutsideTap && focused {
+                    SearchBarOutsideTap { focused = false }
+                }
+            }
+            #endif
         case .entry:
             Button { onActivate?() } label: { readOnlyBar(colors).contentShape(Rectangle()) }
                 .buttonStyle(.plain)
@@ -92,14 +120,52 @@ public struct SearchBarView: View {
     /// 同一类错误也出现在 `InputView` 的图标键上：内部元素撑高行，而不是填满行。
     private func bar<Field: View>(_ colors: FlareColors, @ViewBuilder field: () -> Field) -> some View {
         HStack(spacing: FlareSizes.spacingSm) {
-            Image(systemName: "magnifyingglass").font(.system(size: 20)).foregroundColor(colors.textTertiary)
+            // Vue's 16pt magnifier.
+            Image(systemName: "magnifyingglass").font(.system(size: FlareSizes.iconSizeSm)).foregroundColor(colors.textTertiary)
             field()
         }
-        .padding(.horizontal, FlareSizes.spacingMd)
+        .padding(.horizontal, appearance == .quiet ? FlareSizes.spacingSm : FlareSizes.spacingMd)
         .frame(minHeight: FlareSizes.touchTarget)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(appearance == .quiet ? Color.clear : colors.bgSecondary))
     }
 }
+
+#if os(iOS)
+/// A window-level observer lets outside buttons handle the same tap that dismisses search.
+private struct SearchBarOutsideTap: UIViewRepresentable {
+    let dismiss: () -> Void
+
+    func makeUIView(context: Context) -> TapRegion { TapRegion() }
+    func updateUIView(_ view: TapRegion, context: Context) { view.dismiss = dismiss }
+
+    final class TapRegion: UIView, UIGestureRecognizerDelegate {
+        var dismiss: (() -> Void)?
+        private weak var observedWindow: UIWindow?
+        private lazy var tap: UITapGestureRecognizer = {
+            let tap = UITapGestureRecognizer(target: self, action: #selector(didTap))
+            tap.cancelsTouchesInView = false
+            tap.delegate = self
+            return tap
+        }()
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            observedWindow?.removeGestureRecognizer(tap)
+            window?.addGestureRecognizer(tap)
+            observedWindow = window
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+            !bounds.contains(touch.location(in: self))
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
+
+        @objc private func didTap() { dismiss?() }
+    }
+}
+#endif
 
 /// General text input. Spec: General/Input (`InputView`).
 public struct InputView: View {
@@ -115,11 +181,15 @@ public struct InputView: View {
     /// Draw the value in the platform's monospaced face (codes, identifiers); the field's geometry does not change.
     private let monospace: Bool
     private let onSubmit: (() -> Void)?
+    /// A change takes the keyboard to this field (a form moving to its first wrong field).
+    private let focusRequest: Int
     @ScaledMetric(relativeTo: .body) private var fieldSize: CGFloat = FlareSizes.fontSizeLg
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
     @FocusState private var focused: Bool
+    /// R6: the error of the ``FormFieldView`` around it: the error outline, read as the field's hint.
+    @Environment(\.flareFieldError) private var fieldError
     /// Unmasking is the person's own, momentary choice: it lives in the field and is never reported.
     @State private var revealed = false
 
@@ -131,7 +201,9 @@ public struct InputView: View {
                 revealable: Bool = false,
                 monospace: Bool = false,
                 size: FlareControlSize = .md,
+                focusRequest: Int = 0,
                 onSubmit: (() -> Void)? = nil) {
+        self.focusRequest = focusRequest
         self._text = text; self.placeholder = placeholder; self.multiline = multiline; self.size = size
         self.maxLength = maxLength; self.disabled = disabled; self.clearable = clearable
         self.secure = secure; self.revealable = revealable; self.monospace = monospace; self.onSubmit = onSubmit
@@ -170,6 +242,8 @@ public struct InputView: View {
                     }
                     .font(.system(size: fieldSize, design: monospace ? .monospaced : .default))
                     .foregroundColor(colors.textPrimary)
+                    .accessibilityHint(fieldError ?? "")
+                    .onChange(of: focusRequest) { if $0 > 0 { focused = true } }
                 }
                 // Both field keys are icon-only controls, so each reserves a full touch target (FR-077);
                 // only one is ever drawn, since a masked field is not clearable.
@@ -207,12 +281,14 @@ public struct InputView: View {
             .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
             .overlay(
                 RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
-                    .stroke(focused ? colors.borderSelected : colors.borderPrimary, lineWidth: 1)
+                    .stroke(fieldError != nil ? colors.error : focused ? colors.borderSelected : colors.borderPrimary, lineWidth: 1)
                     // The border is decoration drawn over the row: without this it takes the taps
                     // meant for the keys inside it (FR-150).
                     .allowsHitTesting(false)
             )
-            .animation(.easeOut(duration: 0.15), value: focused)
+            // §12.22: focus adds a focusRing halo outside the selected edge (Vue Input `0 0 0 2px`).
+            .flareFocusHalo(focused, cornerRadius: FlareSizes.radiusLg, color: colors.focusRing)
+            .animation(FlareMotion.fastAnimation, value: focused)
             .onChange(of: text) { newValue in
                 if let m = maxLength, newValue.count > m { text = String(newValue.prefix(m)) }
             }
@@ -226,7 +302,7 @@ public struct InputView: View {
 }
 
 /// Compact equal-width segmented selector (分段选择器). Spec: General/SegmentedControl.
-/// Mutually-exclusive `options`; the selected segment is surfaced on a raised chip. The rail is a 44pt touch
+/// Mutually-exclusive `options`; the selected segment is surfaced on a raised chip. The rail is a 48pt touch
 /// target tall and each segment takes taps across the rail's full height, its inset included. `accent` colours the
 /// selected segment's label (a text colour, readable on the raised chip); nil keeps the brand's `primaryText`.
 public struct SegmentedControlView: View {
@@ -251,9 +327,10 @@ public struct SegmentedControlView: View {
                 let active = i == selectedIndex
                 Button { onSelect?(i) } label: {
                     Text(label)
-                        .font(.system(size: 14, weight: active ? .semibold : .medium))
+                        .font(.system(size: FlareSizes.fontSizeLg, weight: active ? .semibold : .medium))
                         .foregroundColor(active ? accent ?? colors.primaryText : colors.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTargetMin - 2 * Self.inset)
+                        // §4.7: the rail is 48 high (the touch target).
+                        .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget - 2 * Self.inset)
                         .background(
                             RoundedRectangle(cornerRadius: FlareSizes.radiusMd)
                                 .fill(active ? colors.bgPrimary : Color.clear)
@@ -264,12 +341,14 @@ public struct SegmentedControlView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityAddTraits(active ? .isSelected : [])
+                .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)
             }
         }
         .padding(.horizontal, Self.inset)
         .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgSecondary))
         .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary, lineWidth: 1))
+        // A tab list: each segment its own control, the chosen one selected.
+        .accessibilityElement(children: .contain)
         .animation(.easeOut(duration: 0.15), value: selectedIndex)
     }
 }
@@ -302,6 +381,7 @@ public struct ScreenHeaderView<Leading: View, Actions: View>: View {
             Spacer(minLength: 0)
             actions
         }
+        .environment(\.flareHeaderIcons, true)
         .padding(.horizontal, FlareSizes.spacingMd)
         .padding(.vertical, FlareSizes.spacingSm)
         // Same height as `FlareScreen`'s own header row — `FlareSizes.screenHeaderHeight`
@@ -338,16 +418,21 @@ public struct EmptyStateView: View {
     /// Host controls under the text — what to do about the screen being empty. The kit owns the row
     /// (centred, one gap); the host owns the controls. `actionText` stays the one-button shorthand.
     private let actions: AnyView?
+    /// The in-block empty state (R8): icon 32, title 14/600, description 13, less padding.
+    private let compact: Bool
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
 
     public init(title: String, description: String? = nil, actionText: String? = nil,
                 icon: String = "folder", loading: Bool = false,
                 tone: EmptyStateTone = .normal,
                 actions: AnyView? = nil,
+                compact: Bool = false,
                 onAction: (() -> Void)? = nil, onTap: (() -> Void)? = nil) {
         self.title = title; self.description = description; self.actionText = actionText
         self.icon = icon; self.loading = loading; self.tone = tone; self.actions = actions
+        self.compact = compact
         self.onAction = onAction; self.onTap = onTap
     }
 
@@ -358,12 +443,15 @@ public struct EmptyStateView: View {
         VStack(spacing: FlareSizes.spacingSm) {
             if loading {
                 ProgressView().controlSize(.large)
-                    .tint(isError ? colors.errorText : colors.primaryText).frame(height: 44)
+                    .tint(isError ? colors.errorText : colors.primaryText).frame(height: FlareSizes.componentEmptyStateIconSize)
             } else {
-                Image(systemName: flareIconSymbol(icon)).font(.system(size: 44)).foregroundColor(accent)
+                Image(systemName: flareIconSymbol(icon)).font(.system(size: compact ? FlareSizes.iconSizeXl : FlareSizes.componentEmptyStateIconSize)).foregroundColor(accent)
+                    .accessibilityHidden(true)
             }
-            Text(title).font(.system(size: FlareSizes.fontSize2xl))
+            Text(title).font(compact ? .system(size: FlareSizes.fontSizeLg * textScale, weight: .semibold)
+                                     : .system(size: FlareSizes.fontSize2xl))
                 .foregroundColor(isError ? colors.errorText : colors.textPrimary)
+                .multilineTextAlignment(.center)
             if let description {
                 Text(description).font(.system(size: FlareSizes.fontSizeMd))
                     .foregroundColor(colors.textTertiary)
@@ -388,7 +476,7 @@ public struct EmptyStateView: View {
                     .padding(.top, FlareSizes.spacingSm)
             }
         }
-        .padding(FlareSizes.spacing2xl)
+        .padding(compact ? FlareSizes.spacingLg : FlareSizes.spacing2xl)
         .contentShape(Rectangle())
         .modifier(TapPlaceholderModifier(onTap: onTap))
     }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from "vue";
 import { resolveFormKeyboardIntent } from "../../shared/contracts/form-behavior";
+import { canFocusFlareModalTarget } from "../../shared/useModalSurface";
 import {
   AddOutline,
   AtOutline,
@@ -113,8 +114,7 @@ const props = withDefaults(defineProps<{
   /** Compact attachment previews rendered inside the composer surface. */
   uploadItems?: readonly FlareComposerUploadPreview[];
   /**
-   * `minimal` keeps the everyday toolbar to emoji, attachments and send.
-   * `expanded` exposes direct shortcuts for mention, voice, image and rich text.
+   * `expanded` adds a toolbar shortcut to resize the editor and pick a video when available.
    */
   toolbarPresentation?: FlareComposerToolbarPresentation;
   /**
@@ -123,6 +123,8 @@ const props = withDefaults(defineProps<{
    * with its own labels and icons. Omit to keep the restrained default set.
    */
   actions?: FlareComposerAttachAction[];
+  /** The host's plugin items are still loading: the "+" panel opens at once with Skeleton squares in their place (§4.1). */
+  actionsLoading?: boolean;
   capabilities?: FlareComposerCapabilities;
   /** Optional layout override. By default the app shell controls panel direction and grid layout. */
   formFactor?: FlareComposerPanelFormFactor;
@@ -230,7 +232,7 @@ const hasUploading = computed(() => props.uploadItems.some((item) => (item.state
  * 原来 mention / 图片 / 富文本三个是 expanded 专属，于是同一个输入框在手机上只剩
  * 表情 / 语音 / + / 发送 —— 四端同一个 composer，用户换个屏幕宽度就少三个入口，
  * 而且底下面板一开，上面这排还会跟着变。基础动作在哪儿都是同一排七个；
- * 这个开关现在只管工具条里那个「放大输入框」按钮（窄屏它在输入框自己的角上）。
+ * 宽屏额外提供「放大输入框」。
  */
 const expandedToolbar = computed(() => props.toolbarPresentation === "expanded");
 const replyPreviewWarn = computed(() => /fail|error|invalid|expired|warn/i.test(props.replyPreview ?? ""));
@@ -305,41 +307,42 @@ const moreActions = computed(() =>
   }), t).filter((action) => voiceAvailable.value || (action.intent ?? action.id) !== "voice"),
 );
 /** "+" is offered only while it has something to show: an emptied menu closes it and hides the key. */
-const moreAvailable = computed(() => attachmentsToolAvailable.value && moreActions.value.length > 0);
+const moreAvailable = computed(() => attachmentsToolAvailable.value && (moreActions.value.length > 0 || props.actionsLoading === true));
 
 // ── Voice (capture through the injected adapter; preview / confirm in the panel) ──
 const voiceError = ref("");
-let voiceErrorTimer: number | undefined;
 function showVoiceError(text: string): void {
   voiceError.value = text;
-  if (voiceErrorTimer) window.clearTimeout(voiceErrorTimer);
-  voiceErrorTimer = window.setTimeout(() => {
-    voiceError.value = "";
-    voiceErrorTimer = undefined;
-  }, 2600);
 }
 const recorder = useVoiceRecorder({
   adapter: useFlareVoiceRecorderAdapter(),
-  onError: (kind) => showVoiceError(t(
-    kind === "unsupported" ? "composer.recordingUnavailable"
-      : kind === "microphone" ? "composer.microphoneUnavailable"
-        : "composer.voiceFailed",
-  )),
+  onError: (kind) => showVoiceError(t(({
+    unsupported: "composer.recordingUnavailable",
+    permissionDenied: "composer.microphonePermissionDenied",
+    microphoneMissing: "composer.microphoneMissing",
+    microphoneBusy: "composer.microphoneBusy",
+    microphone: "composer.microphoneUnavailable",
+    failed: "composer.voiceFailed",
+  } as const)[kind])),
 });
 const voiceSubmitting = ref(false);
 let voiceGeneration = 0;
 function cancelVoiceRecording(): void {
+  voiceError.value = "";
   voiceGeneration += 1;
   if (recorder.cancel()) emit("voice-cancel");
 }
 async function startVoiceRecording(): Promise<void> {
   if (editingBlocked.value || props.sendBlocked || props.sending) return;
+  voiceError.value = "";
   setActivePanel(null);
   inputExpanded.value = false;
   await recorder.start();
 }
+function resumeVoiceRecording(): void { voiceError.value = ""; recorder.resume(); }
 async function sendVoicePreview(): Promise<void> {
   if (!recorder.preview.value || editingBlocked.value || props.sendBlocked || props.sending || voiceSubmitting.value) return;
+  voiceError.value = "";
   if (recorder.elapsedMs.value < 250) { showVoiceError(t("composer.voiceTooShort")); return; }
   const generation = voiceGeneration;
   voiceSubmitting.value = true;
@@ -393,7 +396,16 @@ function onOutsidePointer(event: PointerEvent): void {
 function onPanelEscape(event: KeyboardEvent): void {
   if (event.key !== "Escape") return;
   if (resolvedActivePanel.value || mentionMenuOpen.value || voicePanelOpen.value) {
-    event.preventDefault(); event.stopPropagation(); closePanels(); if (!mobilePanels.value) focusInput();
+    event.preventDefault();
+    event.stopPropagation();
+    const restoreVoiceToggle = voicePanelOpen.value && mobilePanels.value;
+    closePanels();
+    if (!mobilePanels.value) focusInput();
+    else if (restoreVoiceToggle) void nextTick(() => {
+      if (canFocusFlareModalTarget(root.value)) {
+        root.value?.querySelector<HTMLButtonElement>(".composer-toolbar__voice")?.focus({ preventScroll: true });
+      }
+    });
   } else if (inputExpanded.value) {
     event.preventDefault(); event.stopPropagation(); inputExpanded.value = false; focusInput();
   }
@@ -418,7 +430,13 @@ watch(voiceToolAvailable, (available) => {
 });
 watch(() => props.conversationKey, () => { closePanels(); recorder.clearPreview(); inputExpanded.value = false; drop.reset(); });
 watch(editingBlocked, blocked => { if (blocked) closePanels(); });
-watch(() => props.sendBlocked, blocked => { if (blocked && voicePanelOpen.value) cancelVoiceRecording(); });
+watch(() => props.sendBlocked, blocked => {
+  if (!blocked || !voicePanelOpen.value) return;
+  // Connectivity may block sending, but does not revoke ownership of this draft.
+  // Pause capture and keep a finished clip; a pending acquisition has no clip yet.
+  if (recorder.recording.value) recorder.pause();
+  else if (recorder.requestPending.value) cancelVoiceRecording();
+});
 onMounted(() => document.addEventListener("pointerdown", onOutsidePointer));
 
 // ── Editor ─────────────────────────────────────────────────────────────────
@@ -468,6 +486,7 @@ function onInputFocus(): void {
 function focusInput(): void {
   void nextTick(() => {
     const applyFocus = () => {
+      if (!canFocusFlareModalTarget(root.value)) return;
       if (mediaPanelActive.value && touchKeyboard()) return;
       if (useRichEditor.value) {
         richInputRef.value?.focus();
@@ -655,6 +674,9 @@ function resetInput(nextValue = ""): void {
 /** Attach intents the platform can serve itself, and what to ask it for. */
 const PICKER_INTENTS = {
   image: { operation: "pickImages", capability: "imagePicker" },
+  // Taking a photo (the composer menu's `camera` item): the platform's camera where it has one. On the web adapter an
+  // image input with `capture="environment"`; the photo goes the way picked pictures go (`files-drop`).
+  camera: { operation: "pickImages", capability: "imagePicker", camera: true },
   video: { operation: "pickFiles", capability: "filePicker", accept: ["video/*"] },
   file: { operation: "pickFiles", capability: "filePicker" },
 } as const;
@@ -667,7 +689,7 @@ const PICKER_INTENTS = {
  */
 async function pickThrough(picker: (typeof PICKER_INTENTS)[keyof typeof PICKER_INTENTS]): Promise<void> {
   const result = picker.operation === "pickImages"
-    ? await callPlatform(platform.adapter.value, "pickImages", { multiple: true })
+    ? await callPlatform(platform.adapter.value, "pickImages", "camera" in picker ? { camera: true } : { multiple: true })
     : await callPlatform(platform.adapter.value, "pickFiles", "accept" in picker ? { accept: [...picker.accept] } : undefined);
   if (!result.ok) return;
   const files = result.value.map((picked) => picked.file).filter((file): file is File => file instanceof File);
@@ -840,7 +862,6 @@ onBeforeUnmount(() => {
   cancelVoiceRecording();
   recorder.clearPreview();
   widthObserver?.disconnect();
-  if (voiceErrorTimer) window.clearTimeout(voiceErrorTimer);
 });
 </script>
 
@@ -1081,20 +1102,24 @@ onBeforeUnmount(() => {
     <ComposerVoicePanel
       v-if="voicePanelOpen && voiceToolAvailable"
       :recorder="recorder"
+      :hold-to-talk="mobilePanels"
       :submitting="voiceSubmitting"
       :send-blocked="sendBlocked || sending"
       :send-label="sendTitle"
       @start="startVoiceRecording"
       @pause="recorder.pause()"
-      @resume="recorder.resume()"
+      @resume="resumeVoiceRecording"
       @discard="cancelVoiceRecording"
       @send="sendVoicePreview"
       @close="closePanels(); focusInput()"
       @preview-failed="showVoiceError(t('composer.voicePreviewFailed'))"
+      @preview-started="voiceError = ''"
+      @too-short="showVoiceError(t('composer.voiceTooShort'))"
     />
     <ComposerMoreSurface
       v-if="resolvedActivePanel === 'more' && moreAvailable && !editingBlocked"
       :actions="moreActions"
+      :loading="actionsLoading"
       :form-factor="mobilePanels ? 'mobile' : 'desktop'"
       :search-visible="moreSearchVisible"
       :title-visible="moreTitleVisible"

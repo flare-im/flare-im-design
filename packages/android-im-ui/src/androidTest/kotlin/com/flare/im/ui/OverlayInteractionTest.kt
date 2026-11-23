@@ -88,6 +88,8 @@ class OverlayInteractionTest {
         val showBack: Boolean = false,
         val placement: FlareDrawerPlacement = FlareDrawerPlacement.End,
         val direction: LayoutDirection = LayoutDirection.Ltr,
+        /** The shell's mode; null reads the window (a phone here, where the drawer fills it). */
+        val shell: FlareApplicationResponsiveMode? = null,
     )
 
     /** The drawer under test; a new case (or a reopen) composes a fresh drawer. setContent runs once per test. */
@@ -106,7 +108,7 @@ class OverlayInteractionTest {
         compose.setContent { MaterialTheme {
             drawer?.let { current ->
                 key(current) {
-                    CompositionLocalProvider(LocalLayoutDirection provides current.direction) {
+                    CompositionLocalProvider(LocalLayoutDirection provides current.direction, LocalFlareShellResponsiveMode provides current.shell) {
                         Drawer(
                             onClose = { closes++; drawer = null },
                             title = "群详情",
@@ -136,7 +138,8 @@ class OverlayInteractionTest {
     }
 
     @Test fun aTapOnTheScrimGutterClosesTheDrawerButATapInsideDoesNot() {
-        showDrawer()
+        // The gutter is the wider layouts' drawer; on a phone the panel is the whole window.
+        showDrawer(DrawerCase(shell = FlareApplicationResponsiveMode.Tablet))
         compose.onNodeWithText("抽屉内容").performClick()
         compose.waitForIdle()
         assertEquals(0, closes)
@@ -190,7 +193,7 @@ class OverlayInteractionTest {
             FlareDrawerPlacement.End to LayoutDirection.Rtl,
             FlareDrawerPlacement.Start to LayoutDirection.Ltr,
         )) {
-            showDrawer(DrawerCase(placement = placement, direction = direction))
+            showDrawer(DrawerCase(placement = placement, direction = direction, shell = FlareApplicationResponsiveMode.Tablet))
             val screen = window().getUnclippedBoundsInRoot()
             val panel = pane("群详情").getUnclippedBoundsInRoot()
             val onRight = flareDrawerSlidesFromRight(placement, direction)
@@ -200,6 +203,10 @@ class OverlayInteractionTest {
             assertTrue("a touch target of scrim remains", (screen.right - screen.left) - (panel.right - panel.left) >= FlareSizes.touchTarget - 1.dp)
             near(screen.bottom - screen.top, panel.bottom - panel.top, "full height")
         }
+        // On a phone the panel is the whole window, with no gutter.
+        showDrawer(DrawerCase())
+        val screen = window().getUnclippedBoundsInRoot()
+        near(screen.right - screen.left, pane("群详情").getUnclippedBoundsInRoot().let { it.right - it.left }, "phone width")
     }
 
     @Test fun aModalIsCenteredClampedAndLockedWhileBusy() {

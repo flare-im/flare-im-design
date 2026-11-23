@@ -1019,7 +1019,7 @@ private func flarePluginBundleOpenExternal(_ url: URL) {
     #endif
 }
 
-private func flarePluginBundleCopy(_ text: String) {
+func flarePluginBundleCopy(_ text: String) {
     #if os(iOS)
     UIPasteboard.general.string = text
     #elseif os(macOS)

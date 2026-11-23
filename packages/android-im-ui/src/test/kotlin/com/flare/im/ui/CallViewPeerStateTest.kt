@@ -57,10 +57,10 @@ class CallViewPeerStateTest {
     @Test fun thePeerBlockStartsBelowThePreview() {
         // Both measure from under the status bar: the preview's bottom is its inset plus its 3:4 height, the
         // avatar's top is the peer block's inset.
-        val previewBottom = FlareSizes.spacingLg + FlareSizes.componentCallPreviewWidth * 4 / 3
+        val previewBottom = FlareSizes.spacingLg + FlareSizes.componentCallPreviewWidth * 16 / 9
         val avatarTop = marks(mode = FlareCallMode.Video, hasLocalVideo = true).peerTop
         assertTrue(avatarTop > previewBottom, "$avatarTop is below $previewBottom")
-        assertEquals(FlareSizes.spacingLg * 2 + FlareSizes.componentCallPreviewWidth * 4 / 3, avatarTop)
+        assertEquals(FlareSizes.spacingLg * 2 + FlareSizes.componentCallPreviewWidth * 16 / 9, avatarTop)
         assertEquals(72.dp, marks(mode = FlareCallMode.Video).peerTop)
         assertEquals(72.dp, marks(mode = FlareCallMode.Audio, hasLocalVideo = true).peerTop)
     }

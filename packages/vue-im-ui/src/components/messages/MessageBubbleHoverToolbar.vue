@@ -96,7 +96,7 @@ function openMoreMenu(): void {
     >
       <template #trigger>
         <n-button text class="im-bar-btn" :focusable="focusable" :aria-label="t('message.reactAria')">
-          <n-icon aria-hidden="true" :size="18" :component="flareIcons.reaction" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.reaction" />
         </n-button>
       </template>
       <MessageEmojiPickerPanel
@@ -121,12 +121,12 @@ function openMoreMenu(): void {
           :aria-label="t('message.moreAria')"
           @click="emojiExpanded = true"
         >
-          <n-icon aria-hidden="true" :size="18" :component="flareIcons.more" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.more" />
         </button>
       </div>
     </n-popover>
     <n-button v-if="canReply" text class="im-bar-btn" :focusable="focusable" :aria-label="t('message.replyAria')" @click="emit('quickReply')">
-      <n-icon aria-hidden="true" :size="18" :component="flareIcons.reply" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.reply" />
     </n-button>
     <MessageMenu
       v-if="hasMoreActions"
@@ -153,7 +153,7 @@ function openMoreMenu(): void {
       @copy="(id: string, copied: boolean) => emit('copy', id, copied)"
     >
       <n-button text class="im-bar-btn" :focusable="focusable" :aria-label="t('message.moreAria')" @click.stop="openMoreMenu">
-        <n-icon aria-hidden="true" :size="18" :component="flareIcons.more" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="flareIcons.more" />
       </n-button>
     </MessageMenu>
   </div>

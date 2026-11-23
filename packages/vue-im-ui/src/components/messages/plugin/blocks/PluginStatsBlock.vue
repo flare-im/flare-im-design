@@ -35,8 +35,11 @@ defineProps<{ block: FlarePluginStatsBlock }>();
   gap: var(--flare-size-spacing-md);
   min-width: 0;
 }
+/* R10: a figure in the card is 18/600, tabular. */
 .flare-plugin-stats__item :deep(.flare-metric-tile__number) {
-  font-size: var(--flare-size-font-size-2xl);
+  font-size: var(--flare-size-font-size-3xl);
+  font-weight: var(--flare-size-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 .flare-plugin-stats__item[data-stat-tone="info"] :deep(.flare-metric-tile__number) { color: var(--flare-color-info-text); }
 .flare-plugin-stats__item[data-stat-tone="success"] :deep(.flare-metric-tile__number) { color: var(--flare-color-success-text); }

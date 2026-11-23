@@ -29,7 +29,7 @@ import {
   type DataTableRowKey,
   type SelectProps,
 } from "naive-ui";
-import { ChevronDown, ChevronUp, Settings2 } from "@lucide/vue";
+import { ChevronDown, ChevronRight, ChevronUp, Settings2 } from "@lucide/vue";
 import {
   flattenQueryFields,
   useFirstRowCollapse,
@@ -39,6 +39,7 @@ import type { FlareAdminColumn, FlareAdminPagination } from "./admin-list";
 import FlareAdminActions from "./FlareAdminActions.vue";
 import FlareAdminCardGrid from "./FlareAdminCardGrid.vue";
 import FlareAdminHelp from "./FlareAdminHelp.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
 import {
   dataTableSelection,
   dataTableToggleAll,
@@ -68,6 +69,8 @@ const props = withDefaults(
     rowSelectable?: (row: DataTableRowData, index: number) => boolean;
     /** Detail sections own a bounded, natural-height list, not another full viewport. */
     embedded?: boolean;
+    /** Expanded record details can render only the table and remote paging. */
+    controls?: boolean;
     tableVisible?: boolean;
     /**
      * Resource cards use the item slot; query, remote paging and busy guards stay shared.
@@ -99,6 +102,7 @@ const props = withDefaults(
     disabled: false,
     selectable: false,
     tableVisible: true,
+    controls: true,
     layout: "table",
     surface: "panel",
     controlsSurface: "inherit",
@@ -117,7 +121,7 @@ const checkedRowKeys = defineModel<string[]>("checkedRowKeys", {
 const visibleColumnKeys = defineModel<string[] | null>("visibleColumnKeys", {
   default: null,
 });
-/** Native Naive tree expansion only; hierarchy does not imply row selection. */
+/** Native Naive tree/detail expansion; hierarchy does not imply row selection. */
 const expandedRowKeys = defineModel<string[] | undefined>("expandedRowKeys");
 const expanded = ref(false);
 watch(
@@ -153,11 +157,12 @@ const batchActive = computed(() => checkedRowKeys.value.length > 0);
 // A content page has no column chooser; draw the toolbar only when it holds something.
 const toolbarVisible = computed(
   () =>
-    props.layout !== "content" ||
-    batchActive.value ||
-    ["actions", "tools", "help"].some(
-      (name) => flattenQueryFields(slots[name]?.() ?? []).length > 0,
-    ),
+    props.controls &&
+    (props.layout !== "content" ||
+      batchActive.value ||
+      ["actions", "tools", "help"].some(
+        (name) => flattenQueryFields(slots[name]?.() ?? []).length > 0,
+      )),
 );
 const locked = computed(() => props.disabled || props.loading);
 const pagingLocked = computed(() => locked.value || props.paginationDisabled);
@@ -174,6 +179,8 @@ const shownColumns = computed(() => {
 const tableColumns = computed<DataTableColumns>(() => {
   const base: DataTableColumns = shownColumns.value.map((column) => ({
     ...column,
+    fixed: column.key === "actions" ? "right" : column.fixed,
+    width: column.key === "actions" ? (column.width ?? column.minWidth ?? props.rowActionsWidth) : column.width,
     ellipsis: column.ellipsis === true ? { tooltip: true } : column.ellipsis,
     align:
       column.align === "start"
@@ -209,10 +216,25 @@ const tableColumns = computed<DataTableColumns>(() => {
       key: actionKey,
       title: t("dataTable.actions"),
       width: props.rowActionsWidth,
+      fixed: "right",
       render: (row, index) =>
         h(FlareAdminActions, { label: t("dataTable.actions") }, () =>
           slots["row-actions"]?.({ row, index }),
         ),
+    });
+  if (slots["expanded-row"])
+    base.unshift({
+      type: "expand",
+      width: 68,
+      renderExpand: (row, index) =>
+        h("div", {
+          class: "flare-admin-list__expanded",
+          style: {
+            width: width.value > 0
+              ? `calc(${width.value}px - 2 * var(--flare-size-spacing-md))`
+              : "100%",
+          },
+        }, slots["expanded-row"]?.({ row, index })),
     });
   if (!props.selectable) return base;
   const update = selectionHandler.value;
@@ -257,11 +279,22 @@ const tableColumns = computed<DataTableColumns>(() => {
   ];
 });
 const tableRows = computed(() => [...props.rows]);
+function expansionIcon({ expanded }: { expanded: boolean }) {
+  return h(FlareIconButton, {
+    icon: ChevronRight,
+    size: "sm",
+    shape: "square",
+    ariaLabel: t(expanded ? "plugin.admin.collapse" : "plugin.admin.expand"),
+    "aria-expanded": expanded,
+    disabled: locked.value,
+  });
+}
 const scrollX = computed(() =>
   shownColumns.value.reduce(
     (sum, column) =>
       sum + (Number(column.width) || Number(column.minWidth) || 160),
     (props.selectable ? 44 : 0) +
+      (slots["expanded-row"] ? 68 : 0) +
       (slots["row-actions"] ? props.rowActionsWidth : 0),
   ),
 );
@@ -462,6 +495,7 @@ function onQueryKey(event: KeyboardEvent) {
     class="flare-admin-list"
     :class="{
       'flare-admin-list--embedded': embedded,
+      'flare-admin-list--table-only': !controls,
       'flare-admin-list--plain': surface === 'plain',
       'flare-admin-list--controls-panel': controlsSurface === 'panel',
     }"
@@ -493,7 +527,7 @@ function onQueryKey(event: KeyboardEvent) {
       <slot name="notice" />
     </div>
     <NForm
-      v-if="slots.filters && flattenQueryFields(slots.filters()).length"
+      v-if="controls && slots.filters && flattenQueryFields(slots.filters()).length"
       class="flare-admin-list__query"
       :label-placement="compact ? 'top' : 'left'"
       :label-width="compact ? undefined : 'auto'"
@@ -552,7 +586,7 @@ function onQueryKey(event: KeyboardEvent) {
                 : (expandText ?? t("filterBar.more"))
             }}
             <template #icon
-              ><NIcon :component="expanded ? ChevronUp : ChevronDown"
+              ><NIcon aria-hidden="true" :component="expanded ? ChevronUp : ChevronDown"
             /></template>
           </NButton>
         </div>
@@ -606,7 +640,7 @@ function onQueryKey(event: KeyboardEvent) {
                 :aria-expanded="chooserOpen"
                 :aria-label="settingsText ?? t('dataTable.columns')"
               >
-                <template #icon><NIcon :component="Settings2" /></template
+                <template #icon><NIcon aria-hidden="true" :component="Settings2" /></template
                 >{{ settingsText ?? t("dataTable.columns") }}
               </NButton></span
             ></template
@@ -669,12 +703,13 @@ function onQueryKey(event: KeyboardEvent) {
     >
       <NDataTable
         remote
-        flex-height
+        :flex-height="!embedded || controls"
         size="small"
         striped
         :bordered="false"
         :bottom-bordered="false"
         :columns="tableColumns"
+        :render-expand-icon="slots['expanded-row'] ? expansionIcon : undefined"
         :data="tableRows"
         :row-key="rowIdentity"
         :row-props="rowProps"
@@ -920,10 +955,20 @@ function onQueryKey(event: KeyboardEvent) {
   overflow: auto;
   padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md);
 }
+.flare-admin-list__expanded {
+  position: sticky;
+  inset-inline-start: 0;
+  max-width: 100%;
+  min-width: 0;
+}
 .flare-admin-list--embedded {
   height: min(32rem, calc(100dvh - 10rem));
   min-height: 18rem;
   flex: none;
+}
+.flare-admin-list--embedded.flare-admin-list--table-only {
+  height: auto;
+  min-height: 0;
 }
 .flare-admin-list__query {
   flex: none;

@@ -69,17 +69,22 @@ void main() {
       expect(find.text('5%'), findsOneWidget);
     });
 
-    testWidgets('nothing is drawn once the upload is over', (tester) async {
+    testWidgets('a large file shows GB after the upload is over', (tester) async {
       await tester.pumpWidget(
         _host(
           FlareMessageBubble(
             currentUserId: 'me',
             message: _mine(
-              const FlareFileContent(name: 'a.pdf', url: 'https://x/a.pdf'),
+              const FlareFileContent(
+                name: 'archive.bin',
+                url: 'https://x/archive.bin',
+                sizeBytes: 5 * 1024 * 1024 * 1024,
+              ),
             ),
           ),
         ),
       );
+      expect(find.text('5.0 GB · BIN'), findsOneWidget);
       expect(find.byType(FlareUploadProgress), findsNothing);
     });
   });

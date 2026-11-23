@@ -48,6 +48,26 @@ describe("useVoiceRecorder", () => {
     expect(recorder.recording.value).toBe(false);
   });
 
+  it.each([
+    ["NotSupportedError", "unsupported"],
+    ["NotAllowedError", "permissionDenied"],
+    ["NotFoundError", "microphoneMissing"],
+    ["NotReadableError", "microphoneBusy"],
+    ["UnknownError", "microphone"],
+  ])("reports %s with a recovery reason and allows a subsequent attempt", async (name, reason) => {
+    const session = new FakeSession();
+    const open = vi.fn().mockRejectedValueOnce(new DOMException("capture failed", name)).mockResolvedValueOnce(session);
+    const { recorder, onError } = setup(adapter(session, true, open));
+    await recorder.start();
+    expect(onError).toHaveBeenCalledWith(reason);
+    expect(recorder.requestPending.value).toBe(false);
+    expect(recorder.hasSession.value).toBe(false);
+    expect(recorder.preview.value).toBeNull();
+    await recorder.start();
+    expect(recorder.recording.value).toBe(true);
+    expect(open).toHaveBeenCalledTimes(2);
+  });
+
   it("records, pauses into a preview, resumes and finalizes with the accumulated duration", async () => {
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
     vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});

@@ -97,7 +97,7 @@ class CapabilityComponentsInteractionTest {
         val block = PluginProtectedMediaBlock(label = "Mine", items = listOf(PluginProtectedItem("m1", "Front", "image/jpeg")),
             action = PluginViewAction("viewDocument", "View"), inputName = "materialId", urlPath = "/url")
         content { PluginProtectedMediaBlockView(block, emptyMap(), busy = false) { reads += it } }
-        compose.onNodeWithText(en.pluginProtectedMediaView).performClick()
+        compose.onNodeWithTag("plugin-media-m1-thumb").performClick()
         compose.runOnIdle { assertEquals(mapOf("materialId" to "m1"), reads.single().formValues) }
         compose.onNodeWithText(en.pluginProtectedMediaOwnNotice).assertExists()
     }
@@ -110,7 +110,8 @@ class CapabilityComponentsInteractionTest {
             PluginForm(listOf(input), locationStates = mapOf("place" to PluginLocationState(value = fix)),
                 onLocationAction = { actions += it })
         }
-        compose.onNodeWithTag("plugin-location-place-place").assertExists()
+        // The fix and its accuracy read as one merged line; the tag is on the place text inside it.
+        compose.onNodeWithTag("plugin-location-place-place", useUnmergedTree = true).assertExists()
         compose.onNodeWithText("31.23°N, 121.47°E").assertExists()
         compose.onNodeWithText(en.pluginLocationClear).performClick()
         compose.runOnIdle { assertEquals(PluginLocationActionKind.Clear, actions.single().action) }

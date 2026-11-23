@@ -102,7 +102,8 @@ void main() {
         ),
       );
       expect(seen, [
-        for (final keys in (c['sections'] as List)) (keys as List).cast<String>(),
+        for (final keys in (c['sections'] as List))
+          (keys as List).cast<String>(),
       ]);
     });
   }
@@ -192,9 +193,7 @@ void main() {
     expect(find.text('周日'), findsOneWidget);
   });
 
-  testWidgets('applies a pick from a sheet open once disabled', (
-    tester,
-  ) async {
+  testWidgets('applies a pick from a sheet open once disabled', (tester) async {
     final changes = <FlareNotificationAlertPreferences>[];
     const none = FlareNotificationAlertPreferences();
     await tester.pumpWidget(host(none, onChange: changes.add));

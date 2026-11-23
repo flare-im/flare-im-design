@@ -66,6 +66,7 @@ export function imageGroupItemRequest(image: Record<string, unknown>, index: num
   return buildMediaResolveRequest({
     kind: "imageGroupItem",
     messageId,
+    mediaIndex: index,
     url: readString(source, "url", "localPreviewUrl", "downloadUrl") || readString(image, "url", "localPreviewUrl", "downloadUrl"),
     id: readString(source, "imageId", "fileId", "id", "uuid") || readString(image, "imageId", "fileId", "id", "uuid"),
     localPath: readMediaLocalPath(source, image),
@@ -83,6 +84,7 @@ export function imageGroupItemThumbnailRequest(image: Record<string, unknown>, i
   return buildMediaResolveRequest({
     kind: "imageThumbnail",
     messageId,
+    mediaIndex: index,
     url: readString(thumbnail, "url", "localPreviewUrl", "downloadUrl") || readString(image, "thumbnailUrl", "snapshotUrl") || fullUrl,
     id: readString(thumbnail, "imageId", "fileId", "id", "uuid") || fullId,
     localPath: readMediaLocalPath(thumbnail, image),

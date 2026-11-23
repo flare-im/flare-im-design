@@ -4,6 +4,7 @@ import 'package:flutter/semantics.dart';
 import '../models/directory_data.dart';
 import '../models/update_prompt.dart';
 import '../tokens/flare_strings.dart';
+import 'flare_screen.dart';
 import 'flare_settings_list.dart';
 
 /// The version block of an About page, in the settings list's rows: the
@@ -90,7 +91,10 @@ class _FlareVersionPanelState extends State<FlareVersionPanel> {
       },
       sections: [
         FlareSettingsSection(
-          title: strings.versionPanelTitle,
+          // No heading under a screen that is already called that (Vue).
+          title: FlareScreen.titleOf(context) == strings.versionPanelTitle
+              ? null
+              : strings.versionPanelTitle,
           items: [
             FlareSettingsItem(
               key: 'version',

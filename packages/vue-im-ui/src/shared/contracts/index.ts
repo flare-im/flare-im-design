@@ -13,6 +13,13 @@ export type {
 export { flareCallRecordStatus, flareCallRecordTone, flareCallRecordAction, flareCallDurationLabel } from "./call";
 export * from "./application";
 export { flareCountBadgeDrawn, flareCountBadgeText } from "./count-badge";
+export {
+  FLARE_SWIPE_REPLY_ARM_DISTANCE,
+  FLARE_SWIPE_REPLY_MAX_TRAVEL,
+  FLARE_SWIPE_REPLY_NONE,
+  flareSwipeReplyGesture,
+  type FlareSwipeReplyGesture,
+} from "./swipe-reply";
 export type {
   FlareConversationRowModel,
   FlareConversationListSection,
@@ -67,6 +74,7 @@ export type {
 export {
   FLARE_COMPOSER_ACTION_IDS,
   FLARE_COMPOSER_ACTION_ICONS,
+  FLARE_STANDARD_COMPOSER_TOOL_IDS,
   FLARE_COMPOSER_ACTION_KINDS,
   FLARE_COMPOSER_ACTION_LABEL_KEYS,
   FLARE_COMPOSER_PLUGIN_ICON,
@@ -132,6 +140,7 @@ export type {
   FlareFriendRequest,
   FlareGroupSummary,
   FlareUserProfile,
+  FlareProfileDraft,
   FlareSettingKind,
   FlareSettingsItem,
   FlareSettingsSection,
@@ -262,6 +271,7 @@ export type {
   FlarePluginFileActionKind,
   FlarePluginFileAction,
   FlarePluginFormError,
+  FlarePluginFormSection,
   FlarePluginFormIssue,
   FlarePluginInput,
   FlarePluginInputKind,
@@ -272,6 +282,7 @@ export type {
   FlarePluginPageRef,
   FlarePluginPageState,
   FlarePluginPageViewModel,
+  FlarePluginPageTab,
   FlarePluginPageAppearance,
   FlarePluginPeopleBlock,
   FlarePluginPeopleGroup,
@@ -319,6 +330,7 @@ export type {
   FlarePluginStepState,
   FlarePluginStepsBlock,
   FlarePluginTimelineBlock,
+  FlarePluginResultBlock,
   FlarePluginTimelineItem,
   FlarePluginTrend,
   FlarePluginTrendDirection,
@@ -380,6 +392,7 @@ export {
   flarePluginPageState,
   flarePluginReasonLine,
   flarePluginRowLines,
+  flarePluginRecordLine,
   flarePluginRowsOnce,
   flarePluginTimeText,
   flarePluginUnavailableKey,
@@ -397,6 +410,12 @@ export type {
   FlareRedPacketStatus,
   FlareRedPacketTapAction,
   FlareRedPacketViewerRole,
+  FlareRedPacketField,
+  FlareRedPacketComposePlan,
+  FlareRedPacketDetailPlan,
+  FlareRedPacketPagePlan,
+  FlareRedPacketReviewPlan,
+  FlareRedPacketClaimLine,
 } from "./red-packet";
 export type {
   FlareReadReceiptColumn,
@@ -413,6 +432,10 @@ export {
   flareRedPacketCardState,
   flareRedPacketCardStatus,
   flareRedPacketClaimTexts,
+  flareRedPacketComposePlan,
+  flareRedPacketDetailPlan,
+  flareRedPacketPagePlan,
+  flareRedPacketReviewPlan,
   flareRedPacketDetailTexts,
   flareRedPacketDuration,
   flareRedPacketExponent,
@@ -459,8 +482,9 @@ export type {
   FlareContactPickerGroupId,
 } from "./contact-picker";
 export { matchesFlareContactPickerEntry } from "./contact-picker";
-export type { FlareUploadState } from "./upload";
+export type { FlareUploadState, FlareMediaUploadItem } from "./upload";
 
 export * from "./qr";
 export * from "./plugin-refresh";
+export * from "./plugin-experience";
 export * from "./reauth";

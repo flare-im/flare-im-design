@@ -19,8 +19,8 @@ void main() {
             ).readAsStringSync(),
           )
           as Map<String, dynamic>;
-  final within =
-      ((table['atBottom'] as Map<String, dynamic>)['within'] as num).toDouble();
+  final within = ((table['atBottom'] as Map<String, dynamic>)['within'] as num)
+      .toDouble();
 
   List<FlareMessageData> rows(int from, int to, {String sender = 'ann'}) => [
     for (var i = from; i <= to; i++)
@@ -109,19 +109,20 @@ void main() {
     },
   );
 
-  testWidgets('messages arriving under a reader at the bottom keep them there', (
-    tester,
-  ) async {
-    await open(tester, rows(1, 40));
-    messages = [...messages, ...rows(41, 41)];
-    await render(tester);
-    await tester.pumpAndSettle();
-    messages = [...messages, ...rows(42, 44)];
-    await render(tester);
-    await tester.pumpAndSettle();
-    expect(find.text('第 44 条'), findsOneWidget);
-    expect(told, [true]);
-  });
+  testWidgets(
+    'messages arriving under a reader at the bottom keep them there',
+    (tester) async {
+      await open(tester, rows(1, 40));
+      messages = [...messages, ...rows(41, 41)];
+      await render(tester);
+      await tester.pumpAndSettle();
+      messages = [...messages, ...rows(42, 44)];
+      await render(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('第 44 条'), findsOneWidget);
+      expect(told, [true]);
+    },
+  );
 
   testWidgets(
     'a window replaced without the reader asking is not their bottom until they scroll it',

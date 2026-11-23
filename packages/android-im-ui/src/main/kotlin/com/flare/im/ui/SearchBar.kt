@@ -1,5 +1,24 @@
 package com.flare.im.ui
 
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -12,7 +31,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -40,6 +58,35 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 
+internal class SearchTapRegion {
+    var coordinates: LayoutCoordinates? = null
+}
+
+internal class SearchTapScope {
+    var active: SearchTapRegion? = null
+}
+
+internal val LocalSearchTapScope = compositionLocalOf<SearchTapScope?> { null }
+
+/** Observes an outside tap before child controls receive it, without consuming the gesture. */
+@Composable
+internal fun Modifier.dismissSearchOnOutsideTap(scope: SearchTapScope, dismiss: () -> Unit): Modifier {
+    val root = remember { SearchTapRegion() }
+    return onGloballyPositioned { root.coordinates = it }.pointerInput(scope) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            val search = scope.active ?: return@awaitEachGesture
+            val container = root.coordinates?.takeIf { it.isAttached } ?: return@awaitEachGesture
+            val coordinates = search.coordinates?.takeIf { it.isAttached } ?: return@awaitEachGesture
+            if (coordinates.boundsInRoot().contains(container.localToRoot(down.position))) return@awaitEachGesture
+            val up = waitForUpOrCancellation(PointerEventPass.Initial) ?: return@awaitEachGesture
+            if (scope.active === search && container.isAttached && coordinates.isAttached &&
+                !coordinates.boundsInRoot().contains(container.localToRoot(up.position))
+            ) dismiss()
+        }
+    }
+}
+
 /**
  * Unified search field — the entry to conversation/contact/message search, with
  * clear and submit. Spec: General/SearchBar (`SearchBar`).
@@ -59,13 +106,28 @@ fun SearchBar(
     onSubmit: (() -> Unit)? = null,
     readOnly: Boolean = false,
     onActivate: (() -> Unit)? = null,
+    /** Vue's `appearance="quiet"`: no fill and no rounded corners — a search that heads a list. */
+    quiet: Boolean = false,
+    dismissesKeyboardOnOutsideTap: Boolean = false,
 ) {
     val strings = flareStrings()
     val placeholder = placeholder ?: strings.search
     val colors = flareColors()
     val activate = onActivate?.takeIf { readOnly }
+    // A focused field draws its own edge in the selected border colour, as Vue's `:focus-within`.
+    var focused by remember { mutableStateOf(false) }
+    val tapScope = LocalSearchTapScope.current.takeIf { dismissesKeyboardOnOutsideTap && !readOnly }
+    val tapRegion = remember { SearchTapRegion() }
+    val focus = LocalFocusManager.current
+    DisposableEffect(tapScope) {
+        onDispose { if (tapScope != null && tapScope.active === tapRegion) tapScope.active = null }
+    }
+    val shape = if (quiet) RectangleShape else RoundedCornerShape(FlareSizes.radiusLg)
     Row(
-        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget).clip(RoundedCornerShape(FlareSizes.radiusLg)).background(colors.bgSecondary)
+        Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+            .then(if (tapScope == null) Modifier else Modifier.onGloballyPositioned { tapRegion.coordinates = it })
+            .clip(shape).background(if (quiet) Color.Transparent else colors.bgSecondary)
+            .border(1.dp, if (focused) colors.borderSelected else Color.Transparent, shape)
             .then(
                 if (activate == null) Modifier
                 else Modifier
@@ -78,7 +140,8 @@ fun SearchBar(
                     .clickable(role = Role.Button) { activate() }
                     .semantics { contentDescription = placeholder },
             )
-            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
+            // Touch-target tall, the clear key inside that height (the web's 48), not padded below it.
+            .padding(horizontal = if (quiet) FlareSizes.spacingSm else FlareSizes.spacingMd),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(Icons.Rounded.Search, null, Modifier.size(FlareSizes.iconSizeMd), tint = colors.textTertiary)
@@ -103,8 +166,17 @@ fun SearchBar(
                     textStyle = TextStyle(color = colors.textPrimary, fontSize = FlareSizes.fontSizeLg.value.sp),
                     cursorBrush = SolidColor(colors.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { onSubmit?.invoke() }),
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = placeholder },
+                    keyboardActions = KeyboardActions(onSearch = {
+                        if (dismissesKeyboardOnOutsideTap) focus.clearFocus()
+                        onSubmit?.invoke()
+                    }),
+                    modifier = Modifier.fillMaxWidth().onFocusChanged {
+                        focused = it.isFocused
+                        if (tapScope != null) {
+                            if (focused) tapScope.active = tapRegion
+                            else if (tapScope.active === tapRegion) tapScope.active = null
+                        }
+                    }.semantics { contentDescription = placeholder },
                 )
             }
         }
@@ -112,7 +184,7 @@ fun SearchBar(
             CircularProgressIndicator(Modifier.size(FlareSizes.iconSizeSm), strokeWidth = 2.dp, color = colors.textTertiary)
         } else if (value.isNotEmpty() && !readOnly) {
             IconButton(onClick = { onValueChange("") }, modifier = Modifier.size(FlareSizes.touchTarget)) {
-                Icon(Icons.Outlined.Cancel, strings.clear, Modifier.size(18.dp), tint = colors.textTertiary)
+                FlareIcon("close", size = 18.dp, tint = colors.textTertiary, contentDescription = strings.clear)
             }
         }
     }

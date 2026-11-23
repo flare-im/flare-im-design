@@ -23,16 +23,20 @@ public struct TextareaView: View {
     private let showCount: Bool
     private let maxlength: Int?
     private let disabled: Bool
+    /// A change takes the keyboard to this field (a form moving to its first wrong field).
+    private let focusRequest: Int
     @FocusState private var focused: Bool
+    /// R6: the error of the ``FormFieldView`` around it: the error outline, read as the field's hint.
+    @Environment(\.flareFieldError) private var fieldError
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
     public init(text: Binding<String>, placeholder: String = "", size: FlareControlSize = .md,
                 rows: Int = 3, maxRows: Int = 0, showCount: Bool = false, maxlength: Int? = nil,
-                disabled: Bool = false) {
+                disabled: Bool = false, focusRequest: Int = 0) {
         self._text = text; self.placeholder = placeholder; self.size = size; self.rows = rows
         self.maxRows = maxRows; self.showCount = showCount; self.maxlength = maxlength
-        self.disabled = disabled
+        self.disabled = disabled; self.focusRequest = focusRequest
     }
 
     private var lineHeight: CGFloat { size.font * 1.5 }
@@ -65,6 +69,8 @@ public struct TextareaView: View {
                 .frame(maxHeight: maxHeight, alignment: .topLeading)
                 .focused($focused)
                 .disabled(disabled)
+                .accessibilityHint(fieldError ?? "")
+                .onChange(of: focusRequest) { if $0 > 0 { focused = true } }
                 .onChange(of: text) { newValue in
                     if let maxlength, newValue.count > maxlength {
                         text = String(newValue.prefix(maxlength))
@@ -99,12 +105,10 @@ public struct TextareaView: View {
             .fill(focused ? colors.bgPrimary : colors.bgSecondary))
         .overlay(
             RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
-                .stroke(focused ? colors.borderSelected : colors.borderPrimary, lineWidth: 1)
+                .stroke(fieldError != nil ? colors.error : focused ? colors.borderSelected : colors.borderPrimary, lineWidth: 1)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: FlareSizes.radiusLg)
-                .stroke(colors.focusRing, lineWidth: focused ? 3 : 0)
-        )
+        // §12.22: the 1px border.selected edge plus a 3 focusRing halo (Vue Textarea).
+        .flareFocusHalo(focused, cornerRadius: FlareSizes.radiusLg, color: colors.focusRing, width: 3)
         .opacity(disabled ? 0.55 : 1)
         .animation(.easeOut(duration: 0.15), value: focused)
     }

@@ -227,20 +227,20 @@ void main() {
       );
       await tester.pumpWidget(build(const FlareStrings()));
       expect(find.text('标为未读'), findsOneWidget);
-      expect(find.text('清空本地记录'), findsOneWidget);
+      expect(find.text('清空聊天记录'), findsOneWidget);
       expect(find.text('标为已读'), findsNothing);
       // The danger group is drawn after the primary group, clear history first.
       expect(
-        tester.getTopLeft(find.text('清空本地记录')).dy,
+        tester.getTopLeft(find.text('清空聊天记录')).dy,
         lessThan(tester.getTopLeft(find.text('删除')).dy),
       );
       expect(
         tester.getTopLeft(find.text('隐藏')).dy,
-        lessThan(tester.getTopLeft(find.text('清空本地记录')).dy),
+        lessThan(tester.getTopLeft(find.text('清空聊天记录')).dy),
       );
 
       await tester.tap(find.text('标为未读'));
-      await tester.tap(find.text('清空本地记录'));
+      await tester.tap(find.text('清空聊天记录'));
       await tester.pump();
       expect(received, ['c1/markUnread', 'c1/clearHistory']);
 
@@ -266,5 +266,27 @@ void main() {
       ),
     );
     expect(find.text('暂无可用操作'), findsOneWidget);
+  });
+  test('the context menu lists the same actions, danger last', () {
+    final items = conversationActionMenuItems(
+      base,
+      const FlareConversationActionCapabilities(
+        pin: true,
+        mute: true,
+        markUnread: true,
+        clearHistory: true,
+        delete: true,
+      ),
+      const FlareStrings(),
+    );
+    expect(items.map((i) => i.id), [
+      'pin',
+      'mute',
+      'markUnread',
+      'clearHistory',
+      'delete',
+    ]);
+    expect(items.map((i) => i.danger), [false, false, false, true, true]);
+    expect(items.first.label, const FlareStrings().conversationActionSheetPin);
   });
 }

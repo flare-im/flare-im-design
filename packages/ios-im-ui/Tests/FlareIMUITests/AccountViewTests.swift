@@ -443,9 +443,74 @@ final class AccountViewTests: XCTestCase {
         XCTAssertEqual(entries.map { $0.row.actions.first?.input["walletId"]?.stringValue }, ["wallet-cny-fixture", "wallet-usd-fixture"])
         let tree = try FlareAccountView(view: model, onAction: { _, _ in }).inspect()
         XCTAssertNoThrow(try tree.find(text: "1000.00")); XCTAssertNoThrow(try tree.find(text: "88.50"))
+        // §12.23: a pointer draws no section title row (the page header names the page); the section keeps it for the
+        // reader. The phone keeps its one title row.
         let titles = tree.findAll(ViewType.Text.self).compactMap { try? $0.string() }
-        XCTAssertEqual(titles.filter { $0 == "我的钱包" }.count, 1)
+        XCTAssertEqual(titles.filter { $0 == "我的钱包" }.count, 0)
+        XCTAssertNoThrow(try tree.find(where: { (try? $0.accessibilityLabel().string()) == "我的钱包" }))
+        let phone = try FlareAccountView(view: model, onAction: { _, _ in }).accountPhoneForm(true).inspect()
+        XCTAssertEqual(phone.findAll(ViewType.Text.self).compactMap { try? $0.string() }.filter { $0 == "我的钱包" }.count, 1)
     }
+
+    /// §12.23 on a pointer: the cards in two equal columns, each card the wallet, its balance and one foot line
+    /// 「状态 Tag · 查看明细 ›」(no balance label, no plain details); under them one row of quick keys with the eye at its end.
+    private func walletHome() -> PluginViewModel {
+        let page = PluginActionTarget(kind: "page")
+        func row(_ key: String, _ amount: String, _ name: String, _ asset: String, _ status: String, _ tone: PluginTone) -> PluginRow {
+            PluginRow(key: key, cells: [.init(text: amount), .init(text: name), .init(text: asset), .init(text: status, tone: tone)],
+                      actions: [.init(id: "wallet", input: ["walletId": .string(key)])])
+        }
+        let block = PluginRowsBlock(columns: [.init(label: "余额"), .init(label: "钱包"), .init(label: "资金类型与币种"), .init(label: "状态")],
+                                    rows: [row("cny", "1000.00", "零钱钱包", "CNY · cash", "正常", .success),
+                                           row("usd", "88.50", "旅行钱包", "USD · cash", "冻结", .warning)],
+                                    actions: [.init(id: "wallet", label: "查看明细", target: page)])
+        return PluginViewModel(available: true, title: "钱包",
+                               actions: [.init(id: "recharge", label: "充值", style: .primary, target: page),
+                                         .init(id: "withdrawal", label: "提现", style: .primary, target: page)],
+                               blocks: [.rows(block)],
+                               presentation: .init(renderer: "account", props: ["layout": "wallet", "sectionTitle": "我的钱包", "rowEntryAction": "wallet"],
+                                                   actions: ["primary": "recharge", "secondary": "withdrawal"]))
+    }
+    @MainActor func testPointerWalletCardsKeepTheBalanceAndOneFootLine() throws {
+        let tree = try FlareAccountView(view: walletHome(), onAction: { _, _ in }).inspect()
+        for label in ["余额", "资金类型与币种", "CNY · cash", "USD · cash", "我的钱包"] { XCTAssertThrowsError(try tree.find(text: label), label) }
+        XCTAssertNoThrow(try tree.find(text: "1000.00")); XCTAssertNoThrow(try tree.find(text: "88.50"))
+        for (id, status) in [("0/cny", "正常"), ("0/usd", "冻结")] {
+            let foot = try tree.find(viewWithAccessibilityIdentifier: "account-entry-foot:\(id)")
+            XCTAssertNoThrow(try foot.find(text: status)); XCTAssertNoThrow(try foot.find(text: "查看明细"))
+        }
+    }
+    @MainActor func testPointerQuickKeysShareTheirRowWithTheEye() throws {
+        let hide = FlareStrings().accountHideBalance
+        let tree = try FlareAccountView(view: walletHome(), onAction: { _, _ in }).inspect()
+        let row = try tree.find(viewWithAccessibilityIdentifier: "flare-account-quick-row")
+        XCTAssertNoThrow(try row.find(button: "充值")); XCTAssertNoThrow(try row.find(button: "提现"))
+        XCTAssertNoThrow(try row.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == hide }))
+        XCTAssertEqual(tree.findAll(ViewType.Button.self, where: { (try? $0.accessibilityLabel().string()) == hide }).count, 1)
+        // Only the eye: still in that row, at its end.
+        let keyless = PluginViewModel(available: true, title: "钱包", blocks: walletHome().blocks, presentation: .init(renderer: "account", props: ["layout": "wallet"], actions: [:]))
+        let alone = try FlareAccountView(view: keyless, onAction: { _, _ in }).inspect().find(viewWithAccessibilityIdentifier: "flare-account-quick-row")
+        XCTAssertNoThrow(try alone.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == hide }))
+    }
+    @MainActor func testPhoneWalletHomeIsUnchanged() throws {
+        let tree = try FlareAccountView(view: walletHome(), onAction: { _, _ in }).accountPhoneForm(true).inspect()
+        // 5.1 phone: the title row with the eye, the default wallet's card with its label, details and keys, the others as rows.
+        for label in ["我的钱包", "余额", "资金类型与币种", "CNY · cash", FlareStrings().accountOtherWallets, "旅行钱包"] { XCTAssertNoThrow(try tree.find(text: label), label) }
+        XCTAssertNoThrow(try tree.find(button: "充值"))
+        XCTAssertNoThrow(try tree.find(ViewType.Button.self, where: { try $0.accessibilityLabel().string() == FlareStrings().accountHideBalance }))
+        XCTAssertThrowsError(try tree.find(viewWithAccessibilityIdentifier: "flare-account-quick-row"))
+        XCTAssertThrowsError(try tree.find(viewWithAccessibilityIdentifier: "account-entry-foot:0/cny"))
+    }
+    #if os(macOS)
+    @MainActor func testPointerWalletCardsSitTwoAbreastAndStayLow() {
+        let account = FlareAccountView(view: walletHome(), onAction: { _, _ in })
+        func height(_ width: CGFloat) -> CGFloat { NSHostingController(rootView: account).sizeThatFits(in: CGSize(width: width, height: 10_000)).height }
+        // 880 fits two cards of primaryPaneMinWidth; 560 does not, so the second card stacks under the first.
+        let card = height(560) - height(880) - FlareSizes.spacingMd
+        XCTAssertGreaterThan(card, 0)
+        XCTAssertLessThanOrEqual(card, 160)
+    }
+    #endif
     @MainActor func testInlineFormIsVisibleWithoutExecutingAndSubmitsOriginalText() throws {
         let action = PluginViewAction(id: "review", label: "核对充值", form: ["amount"])
         let model = PluginViewModel(available: true, title: "充值", actions: [action], inputs: [

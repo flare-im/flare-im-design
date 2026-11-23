@@ -272,7 +272,7 @@ onBeforeUnmount(() => {
   white-space: pre-line;
 }
 .flare-admin-popconfirm__target {
-  font-weight: var(--flare-font-weight-medium, 500);
+  font-weight: var(--flare-size-font-weight-medium, 500);
 }
 .flare-admin-popconfirm__error {
   color: var(--flare-color-error-text);

@@ -55,7 +55,11 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["hangUp"] as? (String)) ?: "挂断"
     // 通话窗口的图标按钮；en: "Minimize call" / "Return to call"
     val callMinimize: String
-        get() = (overrides["callMinimize"] as? (String)) ?: "最小化通话"
+        get() = (overrides["callMinimize"] as? (String)) ?: "最小化"
+    val callExpand: String
+        get() = (overrides["callExpand"] as? (String)) ?: "展开"
+    val callCollapse: String
+        get() = (overrides["callCollapse"] as? (String)) ?: "收起"
     // The peer's mic-off badge on CallView, read by TalkBack.
     val callPeerMuted: String
         get() = (overrides["callPeerMuted"] as? (String)) ?: "对方已静音"
@@ -65,15 +69,37 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val callReturn: String
         get() = (overrides["callReturn"] as? (String)) ?: "返回通话"
     val callWaitingAnswer: String
-        get() = (overrides["callWaitingAnswer"] as? (String)) ?: "等待对方接听…"
+        get() = (overrides["callWaitingAnswer"] as? (String)) ?: "等待对方接受邀请…"
+    val callDockWaiting: String
+        get() = (overrides["callDockWaiting"] as? (String)) ?: "等待接听"
+    val callEnded: String
+        get() = (overrides["callEnded"] as? String) ?: "通话已结束 · {duration}"
+    val callAnswerAudio: String
+        get() = (overrides["callAnswerAudio"] as? String) ?: "语音接听"
+    val callDecline: String
+        get() = (overrides["callDecline"] as? String) ?: "拒接"
+    val callEncrypted: String
+        get() = (overrides["callEncrypted"] as? String) ?: "端到端加密"
+    val callYou: String
+        get() = (overrides["callYou"] as? String) ?: "我"
+    val callRedial: String
+        get() = (overrides["callRedial"] as? String) ?: "重拨"
+    val callMaxParticipants: String
+        get() = (overrides["callMaxParticipants"] as? String) ?: "最多 {count} 人同时通话"
+    val callInterrupted: String
+        get() = (overrides["callInterrupted"] as? String) ?: "通话中断"
     val callCalling: String
         get() = (overrides["callCalling"] as? (String)) ?: "正在呼叫…"
+    val callSwapVideo: String
+        get() = (overrides["callSwapVideo"] as? (String)) ?: "互换画面"
     val callRinging: String
-        get() = (overrides["callRinging"] as? (String)) ?: "正在响铃…"
+        get() = (overrides["callRinging"] as? (String)) ?: "对方响铃中…"
     val callConnected: String
         get() = (overrides["callConnected"] as? (String)) ?: "已接通"
     val callReconnecting: String
-        get() = (overrides["callReconnecting"] as? (String)) ?: "正在恢复通话…"
+        get() = (overrides["callReconnecting"] as? (String)) ?: "网络不稳定，正在重连…"
+    val callReconnectingShort: String
+        get() = (overrides["callReconnectingShort"] as? (String)) ?: "正在重连"
     val callFailed: String
         get() = (overrides["callFailed"] as? (String)) ?: "通话连接失败"
 
@@ -237,9 +263,25 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val packetNotEligible: String
         get() = (overrides["packetNotEligible"] as? String) ?: "你不能领取这个红包"
     val packetOpenFailed: String
-        get() = (overrides["packetOpenFailed"] as? String) ?: "领取失败，请重试"
+        get() = (overrides["packetOpenFailed"] as? String) ?: "没有领到，请重试"
     val packetViewDetails: String
         get() = (overrides["packetViewDetails"] as? String) ?: "查看领取详情"
+    val packetViewResult: String
+        get() = (overrides["packetViewResult"] as? String) ?: "查看结果"
+    val packetRefundNotice: String
+        get() = (overrides["packetRefundNotice"] as? String) ?: "未领取的红包将于 24 小时后退回"
+    val packetGroupMembers: String
+        get() = (overrides["packetGroupMembers"] as? String) ?: "本群共 {count} 人"
+    val packetCountLimit: String
+        get() = (overrides["packetCountLimit"] as? String) ?: "最多可发 {n} 个红包"
+    val packetClaimPendingReview: String
+        get() = (overrides["packetClaimPendingReview"] as? String) ?: "红包已存入钱包；原操作仍待确认，可在下方查看。"
+    val packetCountUnit: String
+        get() = (overrides["packetCountUnit"] as? String) ?: "个"
+    val packetChooseRecipient: String
+        get() = (overrides["packetChooseRecipient"] as? String) ?: "请选择发给谁"
+    val packetSend: String
+        get() = (overrides["packetSend"] as? String) ?: "发红包"
     val packetBestLuck: String
         get() = (overrides["packetBestLuck"] as? String) ?: "手气最佳"
     val packetNoClaims: String
@@ -356,6 +398,21 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // 动态编辑器缩略图上的移除按钮；en: "Remove image"
     val removeImage: String
         get() = (overrides["removeImage"] as? (String)) ?: "移除图片"
+    // 动态详情里评论区的小标题，后跟条数
+    val momentCommentsTitle: String
+        get() = (overrides["momentCommentsTitle"] as? (String)) ?: "评论"
+    // 动态详情里没有评论时
+    val momentNoComments: String
+        get() = (overrides["momentNoComments"] as? (String)) ?: "还没有评论"
+    // 从互动消息打开时被定位的那条评论（读屏状态）
+    val momentLocatedComment: String
+        get() = (overrides["momentLocatedComment"] as? (String)) ?: "已定位评论"
+    // 互动消息打开的单条动态
+    val momentDetailTitle: String
+        get() = (overrides["momentDetailTitle"] as? (String)) ?: "动态详情"
+    // 互动列表未读行的读屏后缀
+    val activityUnreadSuffix: String
+        get() = (overrides["activityUnreadSuffix"] as? (String)) ?: "，未读"
     val pickLocation: String
         get() = (overrides["pickLocation"] as? (String)) ?: "所在位置"
     val pickVisibility: String
@@ -444,9 +501,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
 
     // 来电
     val incomingVideoCall: String
-        get() = (overrides["incomingVideoCall"] as? (String)) ?: "邀请你进行视频通话"
+        get() = (overrides["incomingVideoCall"] as? (String)) ?: "邀请你视频通话"
     val incomingVoiceCall: String
-        get() = (overrides["incomingVoiceCall"] as? (String)) ?: "邀请你进行语音通话"
+        get() = (overrides["incomingVoiceCall"] as? (String)) ?: "邀请你语音通话"
     val reject: String
         get() = (overrides["reject"] as? (String)) ?: "拒绝"
     val accept: String
@@ -795,6 +852,38 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["composerFormatBullet"] as? (String)) ?: "无序列表"
     val composerFormatOrdered: String
         get() = (overrides["composerFormatOrdered"] as? (String)) ?: "有序列表"
+    val composerFormatUnderline: String
+        get() = (overrides["composerFormatUnderline"] as? (String)) ?: "下划线"
+    val composerFormatImage: String
+        get() = (overrides["composerFormatImage"] as? (String)) ?: "图片"
+    val composerFormatInlineCode: String
+        get() = (overrides["composerFormatInlineCode"] as? (String)) ?: "行内代码"
+    val composerFormatCodeBlock: String
+        get() = (overrides["composerFormatCodeBlock"] as? (String)) ?: "代码块"
+    val composerFormatDivider: String
+        get() = (overrides["composerFormatDivider"] as? (String)) ?: "分割线"
+    val composerFormatParagraph: String
+        get() = (overrides["composerFormatParagraph"] as? (String)) ?: "正文"
+    val composerFormatHeadingNumbered: String
+        get() = (overrides["composerFormatHeadingNumbered"] as? (String)) ?: "标题 {level}"
+    val composerFormatTextStyle: String
+        get() = (overrides["composerFormatTextStyle"] as? (String)) ?: "文本样式"
+    val composerFormatToolbar: String
+        get() = (overrides["composerFormatToolbar"] as? (String)) ?: "文本格式"
+    val composerSampleBold: String
+        get() = (overrides["composerSampleBold"] as? (String)) ?: "粗体"
+    val composerSampleStrike: String
+        get() = (overrides["composerSampleStrike"] as? (String)) ?: "删除线"
+    val composerSampleItalic: String
+        get() = (overrides["composerSampleItalic"] as? (String)) ?: "斜体"
+    val composerSampleUnderline: String
+        get() = (overrides["composerSampleUnderline"] as? (String)) ?: "下划线"
+    val composerSampleLink: String
+        get() = (overrides["composerSampleLink"] as? (String)) ?: "链接"
+    val composerSampleImage: String
+        get() = (overrides["composerSampleImage"] as? (String)) ?: "图片描述"
+    val composerSampleCode: String
+        get() = (overrides["composerSampleCode"] as? (String)) ?: "代码"
     val voiceHoldButtonLabel: String
         get() = (overrides["voiceHoldButtonLabel"] as? (String)) ?: "按住 说话"
     val voiceHoldButtonRecording: String
@@ -821,6 +910,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["inlineVoiceComposerSendFailed"] as? (String)) ?: "发送失败，可重试"
     val emojiStickerPickerEmoji: String
         get() = (overrides["emojiStickerPickerEmoji"] as? (String)) ?: "表情"
+    // 表情网格的小标题（Vue `emoji.all`）；en: "All emoji"
+    val emojiStickerPickerAll: String
+        get() = (overrides["emojiStickerPickerAll"] as? (String)) ?: "所有表情"
     // 表情目录尚未载入时的进度名；en: "Loading emoji"
     val emojiStickerPickerLoading: String
         get() = (overrides["emojiStickerPickerLoading"] as? (String)) ?: "正在加载表情"
@@ -1093,7 +1185,7 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["conversationActionSheetHide"] as? (String)) ?: "隐藏"
     // 危险分组，排在删除之前；en: "Clear local history"
     val conversationActionSheetClearHistory: String
-        get() = (overrides["conversationActionSheetClearHistory"] as? (String)) ?: "清空本地记录"
+        get() = (overrides["conversationActionSheetClearHistory"] as? (String)) ?: "清空聊天记录"
     val conversationActionSheetEmpty: String
         get() = (overrides["conversationActionSheetEmpty"] as? (String)) ?: "暂无可用操作"
     val messageActionSheetLabel: String
@@ -1588,6 +1680,42 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["profileEditorBioPlaceholder"] as? (String)) ?: "介绍一下自己吧"
     val profileEditorSave: String
         get() = (overrides["profileEditorSave"] as? (String)) ?: "保存"
+    // ProfileEditor：有改动没保存时的提示；ProfilePanel 宿主：「我」菜单没读全时的横幅
+    val profileEditorUnsaved: String
+        get() = (overrides["profileEditorUnsaved"] as? (String)) ?: "未保存修改"
+    // DeviceSessions：有设备时的说明行与空态
+    val deviceSessionsHint: String
+        get() = (overrides["deviceSessionsHint"] as? (String)) ?: "管理已登录的设备。不认识的设备可以下线。"
+    val deviceSessionsEmpty: String
+        get() = (overrides["deviceSessionsEmpty"] as? (String)) ?: "暂无其他设备"
+    val profilePanelMenuIncomplete: String
+        get() = (overrides["profilePanelMenuIncomplete"] as? (String)) ?: "部分入口暂时未能加载，请重试。"
+    // 下拉刷新（Web `listRefresh.*`）、群备注（Web `group.myRemarkName` / `remarkNamePlaceholder`）
+    val listRefreshPull: String
+        get() = (overrides["listRefreshPull"] as? (String)) ?: "下拉刷新"
+    val listRefreshRelease: String
+        get() = (overrides["listRefreshRelease"] as? (String)) ?: "松开刷新"
+    val listRefreshRefreshing: String
+        get() = (overrides["listRefreshRefreshing"] as? (String)) ?: "正在刷新"
+    val groupDetailMyRemarkName: String
+        get() = (overrides["groupDetailMyRemarkName"] as? (String)) ?: "群备注"
+    val groupDetailRemarkPlaceholder: String
+        get() = (overrides["groupDetailRemarkPlaceholder"] as? (String)) ?: "仅自己可见，留空清除"
+    // 全局搜索页（Web `searchPanel` / `recentSearches` / `search.*`）
+    val recentSearchesTitle: String
+        get() = (overrides["recentSearchesTitle"] as? (String)) ?: "最近搜索"
+    val recentSearchesClear: String
+        get() = (overrides["recentSearchesClear"] as? (String)) ?: "清除"
+    val recentSearchesClearLabel: String
+        get() = (overrides["recentSearchesClearLabel"] as? (String)) ?: "清除最近搜索"
+    val searchEmpty: String
+        get() = (overrides["searchEmpty"] as? (String)) ?: "没有找到相关结果"
+    val searchEmptyHint: String
+        get() = (overrides["searchEmptyHint"] as? (String)) ?: "换个关键词试试"
+    val searchSearching: String
+        get() = (overrides["searchSearching"] as? (String)) ?: "正在搜索…"
+    val searchViewMore: String
+        get() = (overrides["searchViewMore"] as? (String)) ?: "查看更多"
 
     // 连接提示（ConnectionNotice）; en: "Connecting…" / "Syncing messages…" / "Switching connection…" / "Connection lost. Reconnecting…" / "No network. Reconnects when it is back." / "Service temporarily unavailable. Recovering…" / "Signed in on another device" / "Your sign-in has expired" / "Update the app to keep using it" / "Service suspended" / "Retrying in {n}s" / "Retry now" / "Sign in again" / "Update" / "Diagnose" / "Development mode"
     val connectionConnecting: String
@@ -1774,6 +1902,16 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["updatePromptMessageRequiredReadOnly"] as? (String)) ?: "更新后才能发送消息，现在可以继续浏览本地内容。"
     val composerReadOnlyUpdate: String
         get() = (overrides["composerReadOnlyUpdate"] as? (String)) ?: "更新后才能发送消息"
+    val composerEditingMessage: String
+        get() = (overrides["composerEditingMessage"] as? (String)) ?: "编辑消息"
+    val composerEditingPlaceholder: String
+        get() = (overrides["composerEditingPlaceholder"] as? (String)) ?: "编辑这条消息"
+    val composerCancelEdit: String
+        get() = (overrides["composerCancelEdit"] as? (String)) ?: "取消编辑"
+    val composerSaveEdit: String
+        get() = (overrides["composerSaveEdit"] as? (String)) ?: "保存编辑"
+    val composerAttachmentPreview: String
+        get() = (overrides["composerAttachmentPreview"] as? (String)) ?: "发送附件"
     val updatePromptMessageMetered: String
         get() = (overrides["updatePromptMessageMetered"] as? (String)) ?: "当前是计费网络，这次下载约"
     val updatePromptMessageMeteredUnknown: String
@@ -1941,6 +2079,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // locationOsmAttribution 是静态地图上 OpenStreetMap 的署名（ODbL），各语言相同。loading 是转圈的读屏名。
     val pluginViewSubmit: String
         get() = (overrides["pluginViewSubmit"] as? (String)) ?: "提交"
+    val pluginViewCopyReference: String
+        get() = (overrides["pluginViewCopyReference"] as? (String)) ?: "复制{label}"
     val pluginViewEnded: String
         get() = (overrides["pluginViewEnded"] as? (String)) ?: "已结束"
     val pluginViewDeadlinePassed: String
@@ -2022,6 +2162,34 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     // 插件卡片 ⋯ 菜单键的读屏名
     val pluginViewMore: String
         get() = (overrides["pluginViewMore"] as? String) ?: "更多操作"
+    val pluginViewUnknownStatus: String
+        get() = (overrides["pluginViewUnknownStatus"] as? String) ?: "未知状态"
+    val pluginViewOffline: String
+        get() = (overrides["pluginViewOffline"] as? String) ?: "网络不可用，显示的是上次读取的内容"
+    val pluginViewAvailableOnline: String
+        get() = (overrides["pluginViewAvailableOnline"] as? String) ?: "联网后可用"
+    val pluginViewLoadFailedTitle: String
+        get() = (overrides["pluginViewLoadFailedTitle"] as? String) ?: "没有读到内容"
+    val pluginViewNoOptions: String
+        get() = (overrides["pluginViewNoOptions"] as? String) ?: "暂无可选项"
+    val pluginViewNoOptionsHelp: String
+        get() = (overrides["pluginViewNoOptionsHelp"] as? String) ?: "暂时无法选择，请稍后再试"
+    val pluginViewUploading: String
+        get() = (overrides["pluginViewUploading"] as? String) ?: "正在上传 {done}/{total}"
+    val pluginViewGroupCommon: String
+        get() = (overrides["pluginViewGroupCommon"] as? String) ?: "常用"
+    val pluginViewGroupRecords: String
+        get() = (overrides["pluginViewGroupRecords"] as? String) ?: "记录与设置"
+    val pluginViewDone: String
+        get() = (overrides["pluginViewDone"] as? String) ?: "完成"
+    val pluginViewEndOfList: String
+        get() = (overrides["pluginViewEndOfList"] as? String) ?: "没有更多了"
+    val pluginViewReferences: String
+        get() = (overrides["pluginViewReferences"] as? String) ?: "单号与凭据"
+    val pluginViewFilterEmpty: String
+        get() = (overrides["pluginViewFilterEmpty"] as? String) ?: "这个筛选下没有记录"
+    val pluginViewClearFilter: String
+        get() = (overrides["pluginViewClearFilter"] as? String) ?: "清除筛选"
     // 插件页面宿主（FlarePluginPage）页头的刷新键，指针设备上代替下拉刷新
     val pluginPageRefresh: String
         get() = (overrides["pluginPageRefresh"] as? String) ?: "刷新"
@@ -2043,6 +2211,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["accountEmptyDescription"] as? String) ?: "收支明细会显示在这里"
     val accountInformation: String
         get() = (overrides["accountInformation"] as? String) ?: "账户说明与规则"
+    val accountOtherWallets: String
+        get() = (overrides["accountOtherWallets"] as? String) ?: "其他钱包"
     val accountEntryDetails: String
         get() = (overrides["accountEntryDetails"] as? String) ?: "交易详情"
     val accountEntryId: String
@@ -2053,6 +2223,14 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["accountToday"] as? String) ?: "今天"
     val accountYesterday: String
         get() = (overrides["accountYesterday"] as? String) ?: "昨天"
+    val walletSetupTitle: String
+        get() = (overrides["walletSetupTitle"] as? String) ?: "开通钱包"
+    val walletSetupBody: String
+        get() = (overrides["walletSetupBody"] as? String) ?: "开通后可充值、提现、收付款和查看账单"
+    val realnamePhotosNeeded: String
+        get() = (overrides["realnamePhotosNeeded"] as? String) ?: "还差 {count} 张照片"
+    val realnamePhotosNeededOne: String
+        get() = (overrides["realnamePhotosNeededOne"] as? String) ?: "还差 {count} 张照片"
     val accountOtherEntries: String
         get() = (overrides["accountOtherEntries"] as? String) ?: "其他记录"
     val accountShowBalance: String
@@ -2066,7 +2244,15 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val accountDayYearFormat: String
         get() = (overrides["accountDayYearFormat"] as? String) ?: "y年M月d日"
     val pluginViewEmpty: String
-        get() = (overrides["pluginViewEmpty"] as? String) ?: "暂无数据"
+        get() = (overrides["pluginViewEmpty"] as? String) ?: "暂无记录"
+    val pluginViewLoading: String
+        get() = (overrides["pluginViewLoading"] as? String) ?: "正在加载"
+    val pluginViewLoadMore: String
+        get() = (overrides["pluginViewLoadMore"] as? String) ?: "加载更多"
+    val pluginFormMoneyRange: String
+        get() = (overrides["pluginFormMoneyRange"] as? String) ?: "金额范围：{min}–{max} {currency}"
+    val pluginViewStepPosition: String
+        get() = (overrides["pluginViewStepPosition"] as? String) ?: "第 {index} 步，共 {count} 步"
     // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
     val pluginViewUnavailableDisabled: String
         get() = (overrides["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
@@ -2213,27 +2399,41 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val capabilityGeneric: String
         get() = (overrides["capabilityGeneric"] as? String) ?: "设备上的一项能力"
     val documentCaptureHintFront: String
-        get() = (overrides["documentCaptureHintFront"] as? String) ?: "将证件正面放入框内，保持清晰、避免反光"
+        get() = (overrides["documentCaptureHintFront"] as? String) ?: "将证件人像面放入框内"
     val documentCaptureHintBack: String
-        get() = (overrides["documentCaptureHintBack"] as? String) ?: "将证件反面放入框内，保持清晰、避免反光"
+        get() = (overrides["documentCaptureHintBack"] as? String) ?: "将证件国徽面放入框内"
     val documentCaptureHintHolding: String
-        get() = (overrides["documentCaptureHintHolding"] as? String) ?: "手持证件放在胸前，脸和证件都要清晰"
+        get() = (overrides["documentCaptureHintHolding"] as? String) ?: "手持证件，人脸与证件都要清晰"
     val documentCaptureShoot: String
         get() = (overrides["documentCaptureShoot"] as? String) ?: "拍摄"
     val documentCaptureRetake: String
         get() = (overrides["documentCaptureRetake"] as? String) ?: "重拍"
     val documentCaptureUse: String
         get() = (overrides["documentCaptureUse"] as? String) ?: "使用照片"
+    val documentCaptureHintGlare: String
+        get() = (overrides["documentCaptureHintGlare"] as? String) ?: "避免反光和遮挡"
+    val documentSlotTapToCapture: String
+        get() = (overrides["documentSlotTapToCapture"] as? String) ?: "点击拍摄"
+    val documentSlotUploadFailed: String
+        get() = (overrides["documentSlotUploadFailed"] as? String) ?: "上传失败，点按重试"
+    val documentSlotUploading: String
+        get() = (overrides["documentSlotUploading"] as? String) ?: "正在上传 {percent}%"
+    val documentSlotCaptured: String
+        get() = (overrides["documentSlotCaptured"] as? String) ?: "已拍摄"
+    val documentSlotCapturedRetake: String
+        get() = (overrides["documentSlotCapturedRetake"] as? String) ?: "已拍摄，点按重拍"
     val documentCaptureFromAlbum: String
-        get() = (overrides["documentCaptureFromAlbum"] as? String) ?: "从相册选择"
+        get() = (overrides["documentCaptureFromAlbum"] as? String) ?: "相册"
     val documentCaptureProcessing: String
-        get() = (overrides["documentCaptureProcessing"] as? String) ?: "正在处理照片"
+        get() = (overrides["documentCaptureProcessing"] as? String) ?: "正在处理"
     val documentCaptureCameraUnavailable: String
-        get() = (overrides["documentCaptureCameraUnavailable"] as? String) ?: "相机不可用，可从相册选择"
+        get() = (overrides["documentCaptureCameraUnavailable"] as? String) ?: "无法使用相机，可从相册选择"
     val documentCaptureTooLarge: String
-        get() = (overrides["documentCaptureTooLarge"] as? String) ?: "照片太大，请重拍"
+        get() = (overrides["documentCaptureTooLarge"] as? String) ?: "照片超过 5 MB，请换一张"
     val documentCaptureFailed: String
-        get() = (overrides["documentCaptureFailed"] as? String) ?: "照片无法处理，请重拍"
+        get() = (overrides["documentCaptureFailed"] as? String) ?: "没有处理成功，请重拍"
+    val documentCaptureFormat: String
+        get() = (overrides["documentCaptureFormat"] as? String) ?: "只支持 JPG 和 PNG"
     val documentCaptureNotAccepted: String
         get() = (overrides["documentCaptureNotAccepted"] as? String) ?: "这里不接受照片，请联系服务提供方"
     val paymentConfirmationTitle: String
@@ -2247,15 +2447,23 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
     val paymentConfirmationRequestedBy: String
         get() = (overrides["paymentConfirmationRequestedBy"] as? String) ?: "由「{plugin}」发起"
     val paymentConfirmationExpiresIn: String
-        get() = (overrides["paymentConfirmationExpiresIn"] as? String) ?: "{time} 后失效"
+        get() = (overrides["paymentConfirmationExpiresIn"] as? String) ?: "{time} 内有效"
     val paymentConfirmationExpired: String
-        get() = (overrides["paymentConfirmationExpired"] as? String) ?: "订单已失效，请重新发起"
+        get() = (overrides["paymentConfirmationExpired"] as? String) ?: "付款已过期"
     val paymentConfirmationInvalid: String
         get() = (overrides["paymentConfirmationInvalid"] as? String) ?: "订单金额无法识别，不能付款"
     val paymentConfirmationConfirm: String
         get() = (overrides["paymentConfirmationConfirm"] as? String) ?: "确认付款"
     val paymentConfirmationVerifying: String
-        get() = (overrides["paymentConfirmationVerifying"] as? String) ?: "正在验证身份"
+        get() = (overrides["paymentConfirmationVerifying"] as? String) ?: "正在验证身份…"
+    val paymentConfirmationInsufficient: String
+        get() = (overrides["paymentConfirmationInsufficient"] as? String) ?: "余额不足，还差 {amount}"
+    val paymentConfirmationTopUp: String
+        get() = (overrides["paymentConfirmationTopUp"] as? String) ?: "去充值"
+    val paymentConfirmationStartAgain: String
+        get() = (overrides["paymentConfirmationStartAgain"] as? String) ?: "重新发起"
+    val pinInputProgress: String
+        get() = (overrides["pinInputProgress"] as? String) ?: "{label}，已输入 {count} 位"
     val pluginProtectedMediaReason: String
         get() = (overrides["pluginProtectedMediaReason"] as? String) ?: "查看原因"
     val pluginProtectedMediaNotice: String
@@ -2264,6 +2472,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["pluginProtectedMediaOwnNotice"] as? String) ?: "仅你本人可查看，图片不会保存到设备。"
     val pluginProtectedMediaView: String
         get() = (overrides["pluginProtectedMediaView"] as? String) ?: "查看"
+    val pluginProtectedMediaTapToView: String
+        get() = (overrides["pluginProtectedMediaTapToView"] as? String) ?: "{label}，点按查看"
     val pluginProtectedMediaHide: String
         get() = (overrides["pluginProtectedMediaHide"] as? String) ?: "隐藏"
     val pluginProtectedMediaUnavailable: String
@@ -2293,6 +2503,8 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
         get() = (overrides["packetRefunded"] as? String) ?: "已退回"
     val packetBadgeLucky: String
         get() = (overrides["packetBadgeLucky"] as? String) ?: "拼手气"
+    val packetBadgeLuckyShort: String
+        get() = (overrides["packetBadgeLuckyShort"] as? String) ?: "拼"
     val packetBadgeExclusive: String
         get() = (overrides["packetBadgeExclusive"] as? String) ?: "专属"
     val packetForRecipient: String
@@ -2467,6 +2679,9 @@ class FlareStrings private constructor(private val overrides: Map<String, Any>) 
 
     val scanNoCodeInImage: String
         get() = (overrides["scanNoCodeInImage"] as? String) ?: "图片中没有二维码"
+
+    val scanRescan: String
+        get() = (overrides["scanRescan"] as? String) ?: "重新扫描"
 
     val scanNoCamera: String
         get() = (overrides["scanNoCamera"] as? String) ?: "此设备没有可用相机"
@@ -2675,6 +2890,10 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["scanNoCodeInImage"] as? String) ?: "图片中没有二维码"
         set(value) { values["scanNoCodeInImage"] = value }
 
+    var scanRescan: String
+        get() = (values["scanRescan"] as? String) ?: "重新扫描"
+        set(value) { values["scanRescan"] = value }
+
     var scanNoCamera: String
         get() = (values["scanNoCamera"] as? String) ?: "此设备没有可用相机"
         set(value) { values["scanNoCamera"] = value }
@@ -2737,8 +2956,14 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["hangUp"] = value }
 
     var callMinimize: String
-        get() = (values["callMinimize"] as? (String)) ?: "最小化通话"
+        get() = (values["callMinimize"] as? (String)) ?: "最小化"
         set(value) { values["callMinimize"] = value }
+    var callExpand: String
+        get() = (values["callExpand"] as? (String)) ?: "展开"
+        set(value) { values["callExpand"] = value }
+    var callCollapse: String
+        get() = (values["callCollapse"] as? (String)) ?: "收起"
+        set(value) { values["callCollapse"] = value }
 
     var callPeerMuted: String
         get() = (values["callPeerMuted"] as? (String)) ?: "对方已静音"
@@ -2753,15 +2978,51 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["callReturn"] = value }
 
     var callWaitingAnswer: String
-        get() = (values["callWaitingAnswer"] as? (String)) ?: "等待对方接听…"
+        get() = (values["callWaitingAnswer"] as? (String)) ?: "等待对方接受邀请…"
         set(value) { values["callWaitingAnswer"] = value }
+    var callDockWaiting: String
+        get() = (values["callDockWaiting"] as? (String)) ?: "等待接听"
+        set(value) { values["callDockWaiting"] = value }
+
+    var callEnded: String
+        get() = (values["callEnded"] as? String) ?: "通话已结束 · {duration}"
+        set(value) { values["callEnded"] = value }
+
+    var callAnswerAudio: String
+        get() = (values["callAnswerAudio"] as? String) ?: "语音接听"
+        set(value) { values["callAnswerAudio"] = value }
+    var callDecline: String
+        get() = (values["callDecline"] as? String) ?: "拒接"
+        set(value) { values["callDecline"] = value }
+
+    var callEncrypted: String
+        get() = (values["callEncrypted"] as? String) ?: "端到端加密"
+        set(value) { values["callEncrypted"] = value }
+    var callYou: String
+        get() = (values["callYou"] as? String) ?: "我"
+        set(value) { values["callYou"] = value }
+
+    var callRedial: String
+        get() = (values["callRedial"] as? String) ?: "重拨"
+        set(value) { values["callRedial"] = value }
+
+    var callMaxParticipants: String
+        get() = (values["callMaxParticipants"] as? String) ?: "最多 {count} 人同时通话"
+        set(value) { values["callMaxParticipants"] = value }
+
+    var callInterrupted: String
+        get() = (values["callInterrupted"] as? String) ?: "通话中断"
+        set(value) { values["callInterrupted"] = value }
 
     var callCalling: String
         get() = (values["callCalling"] as? (String)) ?: "正在呼叫…"
         set(value) { values["callCalling"] = value }
+    var callSwapVideo: String
+        get() = (values["callSwapVideo"] as? (String)) ?: "互换画面"
+        set(value) { values["callSwapVideo"] = value }
 
     var callRinging: String
-        get() = (values["callRinging"] as? (String)) ?: "正在响铃…"
+        get() = (values["callRinging"] as? (String)) ?: "对方响铃中…"
         set(value) { values["callRinging"] = value }
 
     var callConnected: String
@@ -2769,8 +3030,11 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["callConnected"] = value }
 
     var callReconnecting: String
-        get() = (values["callReconnecting"] as? (String)) ?: "正在恢复通话…"
+        get() = (values["callReconnecting"] as? (String)) ?: "网络不稳定，正在重连…"
         set(value) { values["callReconnecting"] = value }
+    var callReconnectingShort: String
+        get() = (values["callReconnectingShort"] as? (String)) ?: "正在重连"
+        set(value) { values["callReconnectingShort"] = value }
 
     var callFailed: String
         get() = (values["callFailed"] as? (String)) ?: "通话连接失败"
@@ -3022,11 +3286,38 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["packetNotEligible"] as? String) ?: "你不能领取这个红包"
         set(value) { values["packetNotEligible"] = value }
     var packetOpenFailed: String
-        get() = (values["packetOpenFailed"] as? String) ?: "领取失败，请重试"
+        get() = (values["packetOpenFailed"] as? String) ?: "没有领到，请重试"
         set(value) { values["packetOpenFailed"] = value }
     var packetViewDetails: String
         get() = (values["packetViewDetails"] as? String) ?: "查看领取详情"
         set(value) { values["packetViewDetails"] = value }
+    var packetViewResult: String
+        get() = (values["packetViewResult"] as? String) ?: "查看结果"
+        set(value) { values["packetViewResult"] = value }
+
+    var packetRefundNotice: String
+        get() = (values["packetRefundNotice"] as? String) ?: "未领取的红包将于 24 小时后退回"
+        set(value) { values["packetRefundNotice"] = value }
+    var packetGroupMembers: String
+        get() = (values["packetGroupMembers"] as? String) ?: "本群共 {count} 人"
+        set(value) { values["packetGroupMembers"] = value }
+    var packetCountLimit: String
+        get() = (values["packetCountLimit"] as? String) ?: "最多可发 {n} 个红包"
+        set(value) { values["packetCountLimit"] = value }
+    var packetClaimPendingReview: String
+        get() = (values["packetClaimPendingReview"] as? String) ?: "红包已存入钱包；原操作仍待确认，可在下方查看。"
+        set(value) { values["packetClaimPendingReview"] = value }
+    var packetCountUnit: String
+        get() = (values["packetCountUnit"] as? String) ?: "个"
+        set(value) { values["packetCountUnit"] = value }
+
+    var packetChooseRecipient: String
+        get() = (values["packetChooseRecipient"] as? String) ?: "请选择发给谁"
+        set(value) { values["packetChooseRecipient"] = value }
+
+    var packetSend: String
+        get() = (values["packetSend"] as? String) ?: "发红包"
+        set(value) { values["packetSend"] = value }
     var packetBestLuck: String
         get() = (values["packetBestLuck"] as? String) ?: "手气最佳"
         set(value) { values["packetBestLuck"] = value }
@@ -3218,6 +3509,26 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["removeImage"] as? (String)) ?: "移除图片"
         set(value) { values["removeImage"] = value }
 
+    var momentCommentsTitle: String
+        get() = (values["momentCommentsTitle"] as? (String)) ?: "评论"
+        set(value) { values["momentCommentsTitle"] = value }
+
+    var momentNoComments: String
+        get() = (values["momentNoComments"] as? (String)) ?: "还没有评论"
+        set(value) { values["momentNoComments"] = value }
+
+    var momentLocatedComment: String
+        get() = (values["momentLocatedComment"] as? (String)) ?: "已定位评论"
+        set(value) { values["momentLocatedComment"] = value }
+
+    var momentDetailTitle: String
+        get() = (values["momentDetailTitle"] as? (String)) ?: "动态详情"
+        set(value) { values["momentDetailTitle"] = value }
+
+    var activityUnreadSuffix: String
+        get() = (values["activityUnreadSuffix"] as? (String)) ?: "，未读"
+        set(value) { values["activityUnreadSuffix"] = value }
+
     var pickLocation: String
         get() = (values["pickLocation"] as? (String)) ?: "所在位置"
         set(value) { values["pickLocation"] = value }
@@ -3366,11 +3677,11 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["contactPickerSelfSuffix"] = value }
 
     var incomingVideoCall: String
-        get() = (values["incomingVideoCall"] as? (String)) ?: "邀请你进行视频通话"
+        get() = (values["incomingVideoCall"] as? (String)) ?: "邀请你视频通话"
         set(value) { values["incomingVideoCall"] = value }
 
     var incomingVoiceCall: String
-        get() = (values["incomingVoiceCall"] as? (String)) ?: "邀请你进行语音通话"
+        get() = (values["incomingVoiceCall"] as? (String)) ?: "邀请你语音通话"
         set(value) { values["incomingVoiceCall"] = value }
 
     var reject: String
@@ -3992,6 +4303,70 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["composerFormatOrdered"] as? (String)) ?: "有序列表"
         set(value) { values["composerFormatOrdered"] = value }
 
+    var composerFormatUnderline: String
+        get() = (values["composerFormatUnderline"] as? (String)) ?: "下划线"
+        set(value) { values["composerFormatUnderline"] = value }
+
+    var composerFormatImage: String
+        get() = (values["composerFormatImage"] as? (String)) ?: "图片"
+        set(value) { values["composerFormatImage"] = value }
+
+    var composerFormatInlineCode: String
+        get() = (values["composerFormatInlineCode"] as? (String)) ?: "行内代码"
+        set(value) { values["composerFormatInlineCode"] = value }
+
+    var composerFormatCodeBlock: String
+        get() = (values["composerFormatCodeBlock"] as? (String)) ?: "代码块"
+        set(value) { values["composerFormatCodeBlock"] = value }
+
+    var composerFormatDivider: String
+        get() = (values["composerFormatDivider"] as? (String)) ?: "分割线"
+        set(value) { values["composerFormatDivider"] = value }
+
+    var composerFormatParagraph: String
+        get() = (values["composerFormatParagraph"] as? (String)) ?: "正文"
+        set(value) { values["composerFormatParagraph"] = value }
+
+    var composerFormatHeadingNumbered: String
+        get() = (values["composerFormatHeadingNumbered"] as? (String)) ?: "标题 {level}"
+        set(value) { values["composerFormatHeadingNumbered"] = value }
+
+    var composerFormatTextStyle: String
+        get() = (values["composerFormatTextStyle"] as? (String)) ?: "文本样式"
+        set(value) { values["composerFormatTextStyle"] = value }
+
+    var composerFormatToolbar: String
+        get() = (values["composerFormatToolbar"] as? (String)) ?: "文本格式"
+        set(value) { values["composerFormatToolbar"] = value }
+
+    var composerSampleBold: String
+        get() = (values["composerSampleBold"] as? (String)) ?: "粗体"
+        set(value) { values["composerSampleBold"] = value }
+
+    var composerSampleStrike: String
+        get() = (values["composerSampleStrike"] as? (String)) ?: "删除线"
+        set(value) { values["composerSampleStrike"] = value }
+
+    var composerSampleItalic: String
+        get() = (values["composerSampleItalic"] as? (String)) ?: "斜体"
+        set(value) { values["composerSampleItalic"] = value }
+
+    var composerSampleUnderline: String
+        get() = (values["composerSampleUnderline"] as? (String)) ?: "下划线"
+        set(value) { values["composerSampleUnderline"] = value }
+
+    var composerSampleLink: String
+        get() = (values["composerSampleLink"] as? (String)) ?: "链接"
+        set(value) { values["composerSampleLink"] = value }
+
+    var composerSampleImage: String
+        get() = (values["composerSampleImage"] as? (String)) ?: "图片描述"
+        set(value) { values["composerSampleImage"] = value }
+
+    var composerSampleCode: String
+        get() = (values["composerSampleCode"] as? (String)) ?: "代码"
+        set(value) { values["composerSampleCode"] = value }
+
     var voiceHoldButtonLabel: String
         get() = (values["voiceHoldButtonLabel"] as? (String)) ?: "按住 说话"
         set(value) { values["voiceHoldButtonLabel"] = value }
@@ -4043,6 +4418,10 @@ class FlareStringsBuilder internal constructor() {
     var emojiStickerPickerEmoji: String
         get() = (values["emojiStickerPickerEmoji"] as? (String)) ?: "表情"
         set(value) { values["emojiStickerPickerEmoji"] = value }
+
+    var emojiStickerPickerAll: String
+        get() = (values["emojiStickerPickerAll"] as? (String)) ?: "所有表情"
+        set(value) { values["emojiStickerPickerAll"] = value }
 
     var emojiStickerPickerLoading: String
         get() = (values["emojiStickerPickerLoading"] as? (String)) ?: "正在加载表情"
@@ -4545,7 +4924,7 @@ class FlareStringsBuilder internal constructor() {
         set(value) { values["conversationActionSheetHide"] = value }
 
     var conversationActionSheetClearHistory: String
-        get() = (values["conversationActionSheetClearHistory"] as? (String)) ?: "清空本地记录"
+        get() = (values["conversationActionSheetClearHistory"] as? (String)) ?: "清空聊天记录"
         set(value) { values["conversationActionSheetClearHistory"] = value }
 
     var conversationActionSheetEmpty: String
@@ -5423,6 +5802,70 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["profileEditorSave"] as? (String)) ?: "保存"
         set(value) { values["profileEditorSave"] = value }
 
+    var profileEditorUnsaved: String
+        get() = (values["profileEditorUnsaved"] as? (String)) ?: "未保存修改"
+        set(value) { values["profileEditorUnsaved"] = value }
+
+    var deviceSessionsHint: String
+        get() = (values["deviceSessionsHint"] as? (String)) ?: "管理已登录的设备。不认识的设备可以下线。"
+        set(value) { values["deviceSessionsHint"] = value }
+
+    var deviceSessionsEmpty: String
+        get() = (values["deviceSessionsEmpty"] as? (String)) ?: "暂无其他设备"
+        set(value) { values["deviceSessionsEmpty"] = value }
+
+    var profilePanelMenuIncomplete: String
+        get() = (values["profilePanelMenuIncomplete"] as? (String)) ?: "部分入口暂时未能加载，请重试。"
+        set(value) { values["profilePanelMenuIncomplete"] = value }
+
+    var listRefreshPull: String
+        get() = (values["listRefreshPull"] as? (String)) ?: "下拉刷新"
+        set(value) { values["listRefreshPull"] = value }
+
+    var listRefreshRelease: String
+        get() = (values["listRefreshRelease"] as? (String)) ?: "松开刷新"
+        set(value) { values["listRefreshRelease"] = value }
+
+    var listRefreshRefreshing: String
+        get() = (values["listRefreshRefreshing"] as? (String)) ?: "正在刷新"
+        set(value) { values["listRefreshRefreshing"] = value }
+
+    var groupDetailMyRemarkName: String
+        get() = (values["groupDetailMyRemarkName"] as? (String)) ?: "群备注"
+        set(value) { values["groupDetailMyRemarkName"] = value }
+
+    var groupDetailRemarkPlaceholder: String
+        get() = (values["groupDetailRemarkPlaceholder"] as? (String)) ?: "仅自己可见，留空清除"
+        set(value) { values["groupDetailRemarkPlaceholder"] = value }
+
+    var recentSearchesTitle: String
+        get() = (values["recentSearchesTitle"] as? (String)) ?: "最近搜索"
+        set(value) { values["recentSearchesTitle"] = value }
+
+    var recentSearchesClear: String
+        get() = (values["recentSearchesClear"] as? (String)) ?: "清除"
+        set(value) { values["recentSearchesClear"] = value }
+
+    var recentSearchesClearLabel: String
+        get() = (values["recentSearchesClearLabel"] as? (String)) ?: "清除最近搜索"
+        set(value) { values["recentSearchesClearLabel"] = value }
+
+    var searchEmpty: String
+        get() = (values["searchEmpty"] as? (String)) ?: "没有找到相关结果"
+        set(value) { values["searchEmpty"] = value }
+
+    var searchEmptyHint: String
+        get() = (values["searchEmptyHint"] as? (String)) ?: "换个关键词试试"
+        set(value) { values["searchEmptyHint"] = value }
+
+    var searchSearching: String
+        get() = (values["searchSearching"] as? (String)) ?: "正在搜索…"
+        set(value) { values["searchSearching"] = value }
+
+    var searchViewMore: String
+        get() = (values["searchViewMore"] as? (String)) ?: "查看更多"
+        set(value) { values["searchViewMore"] = value }
+
     var connectionConnecting: String
         get() = (values["connectionConnecting"] as? (String)) ?: "正在连接…"
         set(value) { values["connectionConnecting"] = value }
@@ -5773,6 +6216,21 @@ class FlareStringsBuilder internal constructor() {
     var composerReadOnlyUpdate: String
         get() = (values["composerReadOnlyUpdate"] as? (String)) ?: "更新后才能发送消息"
         set(value) { values["composerReadOnlyUpdate"] = value }
+    var composerEditingMessage: String
+        get() = (values["composerEditingMessage"] as? (String)) ?: "编辑消息"
+        set(value) { values["composerEditingMessage"] = value }
+    var composerEditingPlaceholder: String
+        get() = (values["composerEditingPlaceholder"] as? (String)) ?: "编辑这条消息"
+        set(value) { values["composerEditingPlaceholder"] = value }
+    var composerCancelEdit: String
+        get() = (values["composerCancelEdit"] as? (String)) ?: "取消编辑"
+        set(value) { values["composerCancelEdit"] = value }
+    var composerSaveEdit: String
+        get() = (values["composerSaveEdit"] as? (String)) ?: "保存编辑"
+        set(value) { values["composerSaveEdit"] = value }
+    var composerAttachmentPreview: String
+        get() = (values["composerAttachmentPreview"] as? (String)) ?: "发送附件"
+        set(value) { values["composerAttachmentPreview"] = value }
     var updatePromptMessageMetered: String
         get() = (values["updatePromptMessageMetered"] as? (String)) ?: "当前是计费网络，这次下载约"
         set(value) { values["updatePromptMessageMetered"] = value }
@@ -6025,6 +6483,9 @@ class FlareStringsBuilder internal constructor() {
     var pluginViewSubmit: String
         get() = (values["pluginViewSubmit"] as? (String)) ?: "提交"
         set(value) { values["pluginViewSubmit"] = value }
+    var pluginViewCopyReference: String
+        get() = (values["pluginViewCopyReference"] as? (String)) ?: "复制{label}"
+        set(value) { values["pluginViewCopyReference"] = value }
 
     var pluginViewEnded: String
         get() = (values["pluginViewEnded"] as? (String)) ?: "已结束"
@@ -6162,6 +6623,62 @@ class FlareStringsBuilder internal constructor() {
     var pluginViewMore: String
         get() = (values["pluginViewMore"] as? String) ?: "更多操作"
         set(value) { values["pluginViewMore"] = value }
+
+    var pluginViewUnknownStatus: String
+        get() = (values["pluginViewUnknownStatus"] as? String) ?: "未知状态"
+        set(value) { values["pluginViewUnknownStatus"] = value }
+
+    var pluginViewOffline: String
+        get() = (values["pluginViewOffline"] as? String) ?: "网络不可用，显示的是上次读取的内容"
+        set(value) { values["pluginViewOffline"] = value }
+
+    var pluginViewAvailableOnline: String
+        get() = (values["pluginViewAvailableOnline"] as? String) ?: "联网后可用"
+        set(value) { values["pluginViewAvailableOnline"] = value }
+
+    var pluginViewLoadFailedTitle: String
+        get() = (values["pluginViewLoadFailedTitle"] as? String) ?: "没有读到内容"
+        set(value) { values["pluginViewLoadFailedTitle"] = value }
+
+    var pluginViewNoOptions: String
+        get() = (values["pluginViewNoOptions"] as? String) ?: "暂无可选项"
+        set(value) { values["pluginViewNoOptions"] = value }
+
+    var pluginViewNoOptionsHelp: String
+        get() = (values["pluginViewNoOptionsHelp"] as? String) ?: "暂时无法选择，请稍后再试"
+        set(value) { values["pluginViewNoOptionsHelp"] = value }
+
+    var pluginViewUploading: String
+        get() = (values["pluginViewUploading"] as? String) ?: "正在上传 {done}/{total}"
+        set(value) { values["pluginViewUploading"] = value }
+
+    var pluginViewGroupCommon: String
+        get() = (values["pluginViewGroupCommon"] as? String) ?: "常用"
+        set(value) { values["pluginViewGroupCommon"] = value }
+
+    var pluginViewGroupRecords: String
+        get() = (values["pluginViewGroupRecords"] as? String) ?: "记录与设置"
+        set(value) { values["pluginViewGroupRecords"] = value }
+
+    var pluginViewDone: String
+        get() = (values["pluginViewDone"] as? String) ?: "完成"
+        set(value) { values["pluginViewDone"] = value }
+
+    var pluginViewEndOfList: String
+        get() = (values["pluginViewEndOfList"] as? String) ?: "没有更多了"
+        set(value) { values["pluginViewEndOfList"] = value }
+
+    var pluginViewReferences: String
+        get() = (values["pluginViewReferences"] as? String) ?: "单号与凭据"
+        set(value) { values["pluginViewReferences"] = value }
+
+    var pluginViewFilterEmpty: String
+        get() = (values["pluginViewFilterEmpty"] as? String) ?: "这个筛选下没有记录"
+        set(value) { values["pluginViewFilterEmpty"] = value }
+
+    var pluginViewClearFilter: String
+        get() = (values["pluginViewClearFilter"] as? String) ?: "清除筛选"
+        set(value) { values["pluginViewClearFilter"] = value }
     var pluginPageRefresh: String
         get() = (values["pluginPageRefresh"] as? String) ?: "刷新"
         set(value) { values["pluginPageRefresh"] = value }
@@ -6190,6 +6707,9 @@ class FlareStringsBuilder internal constructor() {
     var accountInformation: String
         get() = (values["accountInformation"] as? String) ?: "账户说明与规则"
         set(value) { values["accountInformation"] = value }
+    var accountOtherWallets: String
+        get() = (values["accountOtherWallets"] as? String) ?: "其他钱包"
+        set(value) { values["accountOtherWallets"] = value }
     var accountEntryDetails: String
         get() = (values["accountEntryDetails"] as? String) ?: "交易详情"
         set(value) { values["accountEntryDetails"] = value }
@@ -6205,6 +6725,22 @@ class FlareStringsBuilder internal constructor() {
     var accountYesterday: String
         get() = (values["accountYesterday"] as? String) ?: "昨天"
         set(value) { values["accountYesterday"] = value }
+
+    var walletSetupTitle: String
+        get() = (values["walletSetupTitle"] as? String) ?: "开通钱包"
+        set(value) { values["walletSetupTitle"] = value }
+
+    var walletSetupBody: String
+        get() = (values["walletSetupBody"] as? String) ?: "开通后可充值、提现、收付款和查看账单"
+        set(value) { values["walletSetupBody"] = value }
+
+    var realnamePhotosNeeded: String
+        get() = (values["realnamePhotosNeeded"] as? String) ?: "还差 {count} 张照片"
+        set(value) { values["realnamePhotosNeeded"] = value }
+
+    var realnamePhotosNeededOne: String
+        get() = (values["realnamePhotosNeededOne"] as? String) ?: "还差 {count} 张照片"
+        set(value) { values["realnamePhotosNeededOne"] = value }
     var accountOtherEntries: String
         get() = (values["accountOtherEntries"] as? String) ?: "其他记录"
         set(value) { values["accountOtherEntries"] = value }
@@ -6224,8 +6760,20 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["accountDayYearFormat"] as? String) ?: "y年M月d日"
         set(value) { values["accountDayYearFormat"] = value }
     var pluginViewEmpty: String
-        get() = (values["pluginViewEmpty"] as? String) ?: "暂无数据"
+        get() = (values["pluginViewEmpty"] as? String) ?: "暂无记录"
         set(value) { values["pluginViewEmpty"] = value }
+    var pluginViewLoading: String
+        get() = (values["pluginViewLoading"] as? String) ?: "正在加载"
+        set(value) { values["pluginViewLoading"] = value }
+    var pluginViewLoadMore: String
+        get() = (values["pluginViewLoadMore"] as? String) ?: "加载更多"
+        set(value) { values["pluginViewLoadMore"] = value }
+    var pluginFormMoneyRange: String
+        get() = (values["pluginFormMoneyRange"] as? String) ?: "金额范围：{min}–{max} {currency}"
+        set(value) { values["pluginFormMoneyRange"] = value }
+    var pluginViewStepPosition: String
+        get() = (values["pluginViewStepPosition"] as? String) ?: "第 {index} 步，共 {count} 步"
+        set(value) { values["pluginViewStepPosition"] = value }
     // ResolvedPluginView.unavailableReason 的文案（spec/plugin-view-vectors.json unavailableReasons）
     var pluginViewUnavailableDisabled: String
         get() = (values["pluginViewUnavailableDisabled"] as? String) ?: "插件已停用"
@@ -6442,13 +6990,13 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["capabilityGeneric"] as? String) ?: "设备上的一项能力"
         set(value) { values["capabilityGeneric"] = value }
     var documentCaptureHintFront: String
-        get() = (values["documentCaptureHintFront"] as? String) ?: "将证件正面放入框内，保持清晰、避免反光"
+        get() = (values["documentCaptureHintFront"] as? String) ?: "将证件人像面放入框内"
         set(value) { values["documentCaptureHintFront"] = value }
     var documentCaptureHintBack: String
-        get() = (values["documentCaptureHintBack"] as? String) ?: "将证件反面放入框内，保持清晰、避免反光"
+        get() = (values["documentCaptureHintBack"] as? String) ?: "将证件国徽面放入框内"
         set(value) { values["documentCaptureHintBack"] = value }
     var documentCaptureHintHolding: String
-        get() = (values["documentCaptureHintHolding"] as? String) ?: "手持证件放在胸前，脸和证件都要清晰"
+        get() = (values["documentCaptureHintHolding"] as? String) ?: "手持证件，人脸与证件都要清晰"
         set(value) { values["documentCaptureHintHolding"] = value }
     var documentCaptureShoot: String
         get() = (values["documentCaptureShoot"] as? String) ?: "拍摄"
@@ -6459,21 +7007,45 @@ class FlareStringsBuilder internal constructor() {
     var documentCaptureUse: String
         get() = (values["documentCaptureUse"] as? String) ?: "使用照片"
         set(value) { values["documentCaptureUse"] = value }
+
+    var documentCaptureHintGlare: String
+        get() = (values["documentCaptureHintGlare"] as? String) ?: "避免反光和遮挡"
+        set(value) { values["documentCaptureHintGlare"] = value }
+
+    var documentSlotTapToCapture: String
+        get() = (values["documentSlotTapToCapture"] as? String) ?: "点击拍摄"
+        set(value) { values["documentSlotTapToCapture"] = value }
+
+    var documentSlotUploadFailed: String
+        get() = (values["documentSlotUploadFailed"] as? String) ?: "上传失败，点按重试"
+        set(value) { values["documentSlotUploadFailed"] = value }
+    var documentSlotUploading: String
+        get() = (values["documentSlotUploading"] as? String) ?: "正在上传 {percent}%"
+        set(value) { values["documentSlotUploading"] = value }
+    var documentSlotCaptured: String
+        get() = (values["documentSlotCaptured"] as? String) ?: "已拍摄"
+        set(value) { values["documentSlotCaptured"] = value }
+    var documentSlotCapturedRetake: String
+        get() = (values["documentSlotCapturedRetake"] as? String) ?: "已拍摄，点按重拍"
+        set(value) { values["documentSlotCapturedRetake"] = value }
     var documentCaptureFromAlbum: String
-        get() = (values["documentCaptureFromAlbum"] as? String) ?: "从相册选择"
+        get() = (values["documentCaptureFromAlbum"] as? String) ?: "相册"
         set(value) { values["documentCaptureFromAlbum"] = value }
     var documentCaptureProcessing: String
-        get() = (values["documentCaptureProcessing"] as? String) ?: "正在处理照片"
+        get() = (values["documentCaptureProcessing"] as? String) ?: "正在处理"
         set(value) { values["documentCaptureProcessing"] = value }
     var documentCaptureCameraUnavailable: String
-        get() = (values["documentCaptureCameraUnavailable"] as? String) ?: "相机不可用，可从相册选择"
+        get() = (values["documentCaptureCameraUnavailable"] as? String) ?: "无法使用相机，可从相册选择"
         set(value) { values["documentCaptureCameraUnavailable"] = value }
     var documentCaptureTooLarge: String
-        get() = (values["documentCaptureTooLarge"] as? String) ?: "照片太大，请重拍"
+        get() = (values["documentCaptureTooLarge"] as? String) ?: "照片超过 5 MB，请换一张"
         set(value) { values["documentCaptureTooLarge"] = value }
     var documentCaptureFailed: String
-        get() = (values["documentCaptureFailed"] as? String) ?: "照片无法处理，请重拍"
+        get() = (values["documentCaptureFailed"] as? String) ?: "没有处理成功，请重拍"
         set(value) { values["documentCaptureFailed"] = value }
+    var documentCaptureFormat: String
+        get() = (values["documentCaptureFormat"] as? String) ?: "只支持 JPG 和 PNG"
+        set(value) { values["documentCaptureFormat"] = value }
     var documentCaptureNotAccepted: String
         get() = (values["documentCaptureNotAccepted"] as? String) ?: "这里不接受照片，请联系服务提供方"
         set(value) { values["documentCaptureNotAccepted"] = value }
@@ -6493,10 +7065,10 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["paymentConfirmationRequestedBy"] as? String) ?: "由「{plugin}」发起"
         set(value) { values["paymentConfirmationRequestedBy"] = value }
     var paymentConfirmationExpiresIn: String
-        get() = (values["paymentConfirmationExpiresIn"] as? String) ?: "{time} 后失效"
+        get() = (values["paymentConfirmationExpiresIn"] as? String) ?: "{time} 内有效"
         set(value) { values["paymentConfirmationExpiresIn"] = value }
     var paymentConfirmationExpired: String
-        get() = (values["paymentConfirmationExpired"] as? String) ?: "订单已失效，请重新发起"
+        get() = (values["paymentConfirmationExpired"] as? String) ?: "付款已过期"
         set(value) { values["paymentConfirmationExpired"] = value }
     var paymentConfirmationInvalid: String
         get() = (values["paymentConfirmationInvalid"] as? String) ?: "订单金额无法识别，不能付款"
@@ -6505,8 +7077,23 @@ class FlareStringsBuilder internal constructor() {
         get() = (values["paymentConfirmationConfirm"] as? String) ?: "确认付款"
         set(value) { values["paymentConfirmationConfirm"] = value }
     var paymentConfirmationVerifying: String
-        get() = (values["paymentConfirmationVerifying"] as? String) ?: "正在验证身份"
+        get() = (values["paymentConfirmationVerifying"] as? String) ?: "正在验证身份…"
         set(value) { values["paymentConfirmationVerifying"] = value }
+
+    var paymentConfirmationInsufficient: String
+        get() = (values["paymentConfirmationInsufficient"] as? String) ?: "余额不足，还差 {amount}"
+        set(value) { values["paymentConfirmationInsufficient"] = value }
+
+    var paymentConfirmationTopUp: String
+        get() = (values["paymentConfirmationTopUp"] as? String) ?: "去充值"
+        set(value) { values["paymentConfirmationTopUp"] = value }
+
+    var paymentConfirmationStartAgain: String
+        get() = (values["paymentConfirmationStartAgain"] as? String) ?: "重新发起"
+        set(value) { values["paymentConfirmationStartAgain"] = value }
+    var pinInputProgress: String
+        get() = (values["pinInputProgress"] as? String) ?: "{label}，已输入 {count} 位"
+        set(value) { values["pinInputProgress"] = value }
     var pluginProtectedMediaReason: String
         get() = (values["pluginProtectedMediaReason"] as? String) ?: "查看原因"
         set(value) { values["pluginProtectedMediaReason"] = value }
@@ -6519,6 +7106,9 @@ class FlareStringsBuilder internal constructor() {
     var pluginProtectedMediaView: String
         get() = (values["pluginProtectedMediaView"] as? String) ?: "查看"
         set(value) { values["pluginProtectedMediaView"] = value }
+    var pluginProtectedMediaTapToView: String
+        get() = (values["pluginProtectedMediaTapToView"] as? String) ?: "{label}，点按查看"
+        set(value) { values["pluginProtectedMediaTapToView"] = value }
     var pluginProtectedMediaHide: String
         get() = (values["pluginProtectedMediaHide"] as? String) ?: "隐藏"
         set(value) { values["pluginProtectedMediaHide"] = value }
@@ -6562,6 +7152,9 @@ class FlareStringsBuilder internal constructor() {
     var packetBadgeLucky: String
         get() = (values["packetBadgeLucky"] as? String) ?: "拼手气"
         set(value) { values["packetBadgeLucky"] = value }
+    var packetBadgeLuckyShort: String
+        get() = (values["packetBadgeLuckyShort"] as? String) ?: "拼"
+        set(value) { values["packetBadgeLuckyShort"] = value }
     var packetBadgeExclusive: String
         get() = (values["packetBadgeExclusive"] as? String) ?: "专属"
         set(value) { values["packetBadgeExclusive"] = value }

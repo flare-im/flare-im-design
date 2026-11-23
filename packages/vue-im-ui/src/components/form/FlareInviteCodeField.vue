@@ -34,6 +34,8 @@ const props = withDefaults(
     checkResult?: FlareInviteCodeCheckResult | null;
     /** Host-localized error shown instead of the hint; wins over `checkResult`. */
     error?: string;
+    /** Advisory pre-check failure when the server can still validate the code on submit. */
+    notice?: string;
     disabled?: boolean;
     label?: string;
     placeholder?: string;
@@ -103,6 +105,7 @@ const errorLine = computed(() => {
 
 /** The one visible status line under the field; a live region so a screen reader hears the verdict. */
 const statusLine = computed(() => {
+  if (props.notice || errorLine.value) return null;
   if (state.value === "checking") return { kind: "checking" as const, text: strings.value.checking };
   if (inviterLine.value) return { kind: "valid" as const, text: inviterLine.value };
   return null;
@@ -176,6 +179,8 @@ watch(
     :label="strings.label"
     :required="required"
     :error="errorLine || undefined"
+    :hint="notice"
+    :hint-tone="notice ? 'warning' : undefined"
   >
     <div ref="control" class="flare-invite-code__control">
       <FlareInput

@@ -25,8 +25,22 @@ final class MomentsControlTests: XCTestCase {
 
     func testTheReplyNameComesFromTheStringsTable() {
         XCTAssertEqual(s.momentReplyToComment("何川", "带上我"), "回复 何川：带上我")
-        XCTAssertEqual(FlareStrings(momentReplyToComment: { "Reply to \($0): \($1)" }).momentReplyToComment("He", "me too"),
+        XCTAssertEqual(FlareStrings { copy in
+            copy.momentReplyToComment = { "Reply to \($0): \($1)" }
+        }.momentReplyToComment("He", "me too"),
                        "Reply to He: me too")
+    }
+
+    func testThePopoverDrawsOnlyTheActionsTheHostHandles() {
+        XCTAssertEqual(MomentActionPopoverView.items(liked: false, canDelete: true, canReport: false, like: true,
+                                                     comment: true, delete: true, report: true), ["like", "comment", "delete"])
+        XCTAssertEqual(MomentActionPopoverView.items(liked: true, canDelete: false, canReport: true, like: true,
+                                                     comment: false, delete: false, report: true), ["unlike", "report"])
+        XCTAssertTrue(MomentActionPopoverView.items(liked: false, canDelete: false, canReport: false, like: false,
+                                                    comment: false, delete: false, report: false).isEmpty)
+        XCTAssertTrue(MomentCardView.folds(String(repeating: "字", count: 281)))
+        XCTAssertTrue(MomentCardView.folds("1\n2\n3\n4\n5\n6\n7"))
+        XCTAssertFalse(MomentCardView.folds("周末去爬山"))
     }
 
     @MainActor

@@ -6,6 +6,7 @@
  * spec/plugin-view-vectors.json.
  */
 
+import { flarePaymentAmountText } from "./capability-ui";
 import { flareIdTail } from "./display-name";
 
 export type FlarePluginTone =
@@ -31,6 +32,12 @@ export interface FlarePluginAction {
    * ({@link flarePluginNativeIntoKey}), so the host's answer lands in the form's current scope.
    */
   target?: FlarePluginActionTarget;
+  /** Which list card a page destination joins (docs/plugin-experience.md R2.1); absent: one untitled card. */
+  group?: "common" | "records";
+  /** Kit icon name drawn in a list row's leading slot; none leaves no gap. */
+  icon?: string;
+  /** R2.5: why the action cannot run now — its key is disabled and the reason is written under it (a list row's detail). */
+  disabledReason?: string;
 }
 
 /** An action's target (flare-plugin-protocol UiActionTarget); the kit only reads a native target. */
@@ -64,7 +71,8 @@ export function flarePluginNativeIntoKey(
  * always right to draw: a format from a newer protocol, or on a surface that has no use for it, falls back to it.
  */
 export type FlarePluginFormat =
-  | { kind: "money"; minor: string; scale?: number; assetId?: string }
+  /** `currency`: the code the amount is in (R10); with a known scale it is written as the payment formatter writes it. */
+  | { kind: "money"; minor: string; scale?: number; assetId?: string; currency?: string }
   | { kind: "enum"; raw: string }
   | { kind: "person"; userId: string }
   | { kind: "reference"; id: string; labelled: boolean }
@@ -83,6 +91,10 @@ export interface FlarePluginField {
   value: string;
   format?: FlarePluginFormat;
   user?: import("./user-identity").FlareUserIdentityValue;
+  /** The plugin's value label declared a tone ({label, tone} values or an enum format): drawn as the kit Tag (R3). */
+  tone?: FlarePluginTone | string;
+  /** The plugin declared values and this one is not among them: drawn as pluginView.unknownStatus, never raw. */
+  unmapped?: boolean;
 }
 /**
  * An entry's or a row's enumerated value as words and a tone (the plugin's valueLabels), such as a ledger line's
@@ -91,6 +103,8 @@ export interface FlarePluginField {
 export interface FlarePluginBadge {
   text: string;
   tone: FlarePluginTone;
+  /** Not among the plugin's declared values: drawn as pluginView.unknownStatus (R3). */
+  unmapped?: boolean;
 }
 
 export interface FlarePluginTextBlock {
@@ -168,6 +182,7 @@ export interface FlarePluginStatusBlock {
   label?: string;
   text: string;
   tone: FlarePluginTone;
+  unmapped?: boolean;
 }
 export interface FlarePluginProgressBlock {
   kind: "progress";
@@ -195,6 +210,9 @@ export interface FlarePluginRowCell {
   text: string;
   timeMs?: number;
   format?: FlarePluginFormat;
+  /** A toned value label (a status column): drawn as the kit Tag under the row's amount (R3). */
+  tone?: FlarePluginTone | string;
+  unmapped?: boolean;
   /** Optional host-owned identity presentation; never sent back as plugin command input. */
   user?: import("./user-identity").FlareUserIdentityValue;
 }
@@ -225,6 +243,8 @@ export interface FlarePluginRowsBlock {
   presentation?: "table" | "cards";
   /** A page list puts its rows under day headings by the first time column (flarePluginRowDayHeadings). */
   groupByDay?: boolean;
+  /** A kit icon name: every page row is a record (spec rules.rowsIcon, flarePluginRecordLine). */
+  icon?: string;
 }
 /** One item of a protected media block; nothing about its content is in the view. */
 export interface FlarePluginProtectedItem {
@@ -384,7 +404,20 @@ export interface FlarePluginTimelineBlock {
   items: ReadonlyArray<FlarePluginTimelineItem>;
   emptyText?: string;
 }
+/** The outcome of a fund action, a submission or a send (docs/plugin-experience.md R7): drawn as FlareResultView. */
+export interface FlarePluginResultBlock {
+  kind: "result";
+  state: string;
+  /** The state's label (pluginView.unknownStatus is drawn instead when unmapped). */
+  title: string;
+  tone: FlarePluginTone | string;
+  unmapped?: boolean;
+  amount?: string;
+  format?: FlarePluginFormat;
+  description?: string;
+}
 export type FlarePluginBlock =
+  | FlarePluginResultBlock
   | FlarePluginTextBlock
   | FlarePluginFieldsBlock
   | FlarePluginChoicesBlock
@@ -449,6 +482,8 @@ export interface FlarePluginInput {
   default?: unknown;
   /** select: what it picks from. options: when present, the items are picked from these. */
   choices?: ReadonlyArray<{ value: string; label: string }>;
+  /** Already translated help, drawn under the field (R6); absent: none. */
+  help?: string;
   /** The host loads the choices, with the viewer's own permission, on `referenceLoad`. */
   reference?: FlarePluginReference;
   /** file, image and document: what may be uploaded and how. */
@@ -484,9 +519,14 @@ export interface FlarePluginFileState {
   fileName?: string;
   progress?: number;
   error?: string;
-  /** Offers a host-owned private preview, never a URL. */
+  /** Offers a host-owned private preview. */
   preview?: boolean;
   previewLoading?: boolean;
+  /**
+   * The picked or captured photo as an object URL (`URL.createObjectURL`), drawn in a document slot (§6.3). The host
+   * owns it: revoked on remove, replace or when the form closes; never stored or sent anywhere.
+   */
+  previewUrl?: string;
 }
 export type FlarePluginFileActionKind = "choose" | "retry" | "cancel" | "replace" | "remove" | "preview" | "invalidate";
 export interface FlarePluginFileAction {
@@ -555,6 +595,12 @@ export type FlarePluginFormIssue =
 export interface FlarePluginFormError {
   input: string;
   issue: FlarePluginFormIssue;
+}
+/** Host-owned form layout; field names and submitted values remain the plugin's typed contract. */
+export interface FlarePluginFormSection {
+  id: string;
+  title: string;
+  fields: readonly string[];
 }
 
 /** What the host's resolveUser answers for a user id. */
@@ -663,7 +709,10 @@ export interface FlarePluginPageRef {
 export interface FlarePluginPageViewModel extends FlarePluginViewModel {
   refreshMs?: number;
   data?: Record<string, unknown>;
+  /** Sibling pages drawn as a segmented control (spec rules.pageTabs); absent: none. */
+  tabs?: ReadonlyArray<FlarePluginPageTab>;
 }
+export interface FlarePluginPageTab { page: string; label: string; selected: boolean }
 /** What PluginPage's action(id, payload) carries: the request invokePageAction takes, without platform and gesture. */
 export interface FlarePluginPageActionPayload extends FlarePluginActionPayload {
   page: FlarePluginPageRef;
@@ -998,16 +1047,37 @@ export function flarePluginProtectedMediaUrl(
 /** A minor amount at `scale`: the text the protocol writes when the scale is in the data. */
 export function flarePluginMoneyText(minor: string, scale: number): string {
   if (
-    !/^-?\d+$/.test(minor) ||
+    !/^[+-]?\d+$/.test(minor) ||
     !Number.isInteger(scale) ||
     scale < 0 ||
     scale > 18
   )
     return minor;
   if (scale === 0) return minor;
-  const negative = minor.startsWith("-");
-  const digits = (negative ? minor.slice(1) : minor).padStart(scale + 1, "0");
-  return `${negative ? "-" : ""}${digits.slice(0, -scale)}.${digits.slice(-scale)}`;
+  // "-" money out, an explicit "+" money in (a ledger line): kept in front.
+  const sign = /^[+-]/.test(minor) ? minor[0] : "";
+  const digits = minor.slice(sign.length).padStart(scale + 1, "0");
+  return `${sign}${digits.slice(0, -scale)}.${digits.slice(-scale)}`;
+}
+
+/**
+ * A money value as drawn (spec formats2 money, R10): at its scale (the format's, else the one the host knows for its
+ * asset), through the payment formatter when it names its currency ("¥1,234.56", "1,234 LABPOINT"), a leading minus
+ * or a ledger line's explicit plus kept in front. While the scale is unknown, or for anything but money, the text as sent.
+ */
+export function flarePluginMoneyFormatted(
+  text: string,
+  format: FlarePluginFormat | undefined,
+  assetScale?: (assetId: string) => number | undefined,
+): string {
+  if (format?.kind !== "money") return text;
+  const scale = format.scale ?? (format.assetId ? assetScale?.(format.assetId) : undefined);
+  if (scale === undefined) return text;
+  const amount = format.scale === undefined ? flarePluginMoneyText(format.minor, scale) : text;
+  if (!format.currency) return amount;
+  const sign = /^[+-]/.test(amount) ? amount[0] : "";
+  const written = flarePaymentAmountText(amount.slice(sign.length), format.currency);
+  return written === null ? amount : `${sign}${written}`;
 }
 
 /**
@@ -1038,13 +1108,8 @@ export function flarePluginFormatText(
       );
     case "reference":
       return format.labelled ? text : context.unavailable;
-    case "money": {
-      if (format.scale !== undefined || !format.assetId) return text;
-      const scale = context.assetScale?.(format.assetId);
-      return scale === undefined
-        ? text
-        : flarePluginMoneyText(format.minor, scale);
-    }
+    case "money":
+      return flarePluginMoneyFormatted(text, format, context.assetScale);
     case "count":
       return context.strings.countUnits !== undefined && Number.isFinite(format.count)
         ? flarePluginCompactCount(format.count, context.strings.countUnits)
@@ -1351,6 +1416,7 @@ const TONES: ReadonlySet<string> = new Set<FlarePluginTone>([
 ]);
 /** A badge's tone as drawn: one of PluginTone, anything else neutral (spec rules.badge). */
 export function flarePluginBadgeTone(tone: unknown): FlarePluginTone {
+  if (tone === "brand") return "info";
   return typeof tone === "string" && TONES.has(tone)
     ? (tone as FlarePluginTone)
     : "neutral";
@@ -1416,8 +1482,33 @@ export function flarePluginRowTexts(
     const cell = row.cells[index];
     if (column.format === "time" && typeof cell?.timeMs === "number")
       return formatTime?.(cell.timeMs) ?? flarePluginDateTime(cell.timeMs, nowMs, strings, utcOffsetMinutes);
+    // A person reads as their name (rules.rowsIcon), never the user id.
+    if (cell?.format?.kind === "person" && cell.user?.name) return cell.user.name;
     return cell?.text ?? "";
   });
+}
+/**
+ * A record row of a rows block with `icon` (spec rules.rowsIcon, the 5.8 ledger line): the second cell titles it, the
+ * other cells but the first and the toned or unmapped ones make the line under it (" · ", null when empty), the first
+ * cell is the value at the end and the toned cells its Tags.
+ */
+export function flarePluginRecordLine(
+  block: Pick<FlarePluginRowsBlock, "columns">,
+  row: FlarePluginRow,
+  nowMs: number,
+  strings: Pick<FlarePluginStrings, "dateTime" | "dateTimeYear">,
+  utcOffsetMinutes?: number,
+  formatTime?: (ms: number) => string,
+): { title: string; line: string | null; value: string; tags: FlarePluginRowCell[] } {
+  const texts = flarePluginRowTexts(block, row, nowMs, strings, utcOffsetMinutes, formatTime);
+  const toned = (index: number) => Boolean(row.cells[index] && (row.cells[index].tone !== undefined || row.cells[index].unmapped));
+  const rest = texts.filter((text, index) => index > 1 && !toned(index) && text.trim());
+  return {
+    title: texts[1] ?? "",
+    line: rest.length ? rest.join(" · ") : null,
+    value: texts[0] ?? "",
+    tags: row.cells.filter((_, index) => index > 0 && toned(index)),
+  };
 }
 export function flarePluginRowLines(
   block: Pick<FlarePluginRowsBlock, "columns">,

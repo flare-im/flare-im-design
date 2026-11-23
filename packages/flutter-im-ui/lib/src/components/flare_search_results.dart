@@ -209,7 +209,7 @@ class FlareSearchResults extends StatelessWidget {
             g.counted
                 ? (viewAllText?.call(g.total!) ??
                       FlareStrings.of(context).viewAll(g.total!))
-                : FlareStrings.of(context).more,
+                : FlareStrings.of(context).searchViewMore,
             style: TextStyle(
               color: colors.primaryText,
               fontSize: FlareSizes.fontSizeMd,

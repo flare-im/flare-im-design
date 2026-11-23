@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/directory_data.dart';
+import '../models/plugin_layout.dart';
 import '../models/plugin_view.dart';
 import '../models/plural.dart';
 import '../tokens/flare_strings.dart';
@@ -19,12 +21,24 @@ import 'flare_plugin_blocks_extra.dart';
 import 'flare_plugin_form.dart';
 import 'flare_plugin_protected_media.dart';
 import 'flare_plugin_upgrade_notice.dart';
+import 'flare_empty_state.dart';
+import 'flare_result_view.dart';
+import 'flare_settings_list.dart';
 import 'flare_scene_panels.dart';
+import 'flare_screen.dart';
 import 'flare_status_banner.dart';
 import 'flare_tag.dart';
 
 /// Visual placement only; every layout keeps the same guarded action runner.
-enum FlarePluginActionLayout { inline, compact, list }
+/// [roles] is a plugin page's (rules.actionRoles): each top-level action is
+/// drawn where its role and the page's archetype put it — the overview's
+/// quick keys and grouped list cards, a task's action row, a records page's
+/// command keys and "more actions" card, the danger card last. The page
+/// itself draws the records header key, and a task's pinned bar when
+/// [FlarePluginView.pinBar] is set. [list] draws the account layout's
+/// service list as R2.1 list cards (by `group`, the danger rows in a card of
+/// their own, last); [quick] draws its keys as the overview's quick row.
+enum FlarePluginActionLayout { inline, compact, list, roles, quick }
 
 /// A plugin card: the core SDK's resolved view drawn as a kit business card
 /// (spec Message/PluginView; facts in spec/plugin-view-vectors.json). Inert —
@@ -72,6 +86,7 @@ class FlarePluginView extends StatefulWidget {
     this.error,
     this.embedded = false,
     this.actionLayout = FlarePluginActionLayout.inline,
+    this.archetype,
     this.labelRows = false,
     this.inlineFormActionId,
     this.inlineFormTitle,
@@ -100,9 +115,27 @@ class FlarePluginView extends StatefulWidget {
     this.upgradeStatus,
     this.onUpdate,
     this.upgradeBusy = false,
+    this.offline = false,
+    this.pinBar = false,
+    this.onDone,
+    this.onClearFilters,
   });
 
   final FlarePluginViewModel view;
+
+  /// The host is offline: every action is disabled, not hidden (R8).
+  final bool offline;
+
+  /// [FlarePluginActionLayout.roles]: the page pins a task's bar and
+  /// bar-secondary keys itself (a phone), so the view leaves them out.
+  final bool pinBar;
+
+  /// A result block's done key (R7); without it the result has none.
+  final VoidCallback? onDone;
+
+  /// A page filter other than "all" is chosen (§5.8): an empty list says
+  /// so and offers to clear it.
+  final VoidCallback? onClearFilters;
   final ValueChanged<bool>? onInteractionChanged;
 
   /// Kit icon name before the title (the plugin's icon).
@@ -131,6 +164,10 @@ class FlarePluginView extends StatefulWidget {
   final bool embedded;
 
   final FlarePluginActionLayout actionLayout;
+
+  /// With [FlarePluginActionLayout.roles], the page prototype to place the
+  /// actions by instead of the derived one (the account layout's overview).
+  final FlarePluginPageArchetype? archetype;
 
   /// Show page row details as column label/value pairs below each row title.
   final bool labelRows;
@@ -242,8 +279,11 @@ class FlarePluginView extends StatefulWidget {
   /// The empty text of a rows block without rows.
   static const Key rowsEmptyKey = ValueKey('flare-plugin-rows-empty');
 
+  /// The clear-filter key of an empty filtered list (§5.8).
+  static const Key clearFiltersKey = ValueKey('flare-plugin-clear-filters');
+
   @override
-  State<FlarePluginView> createState() => _FlarePluginViewState();
+  State<FlarePluginView> createState() => FlarePluginViewState();
 }
 
 class _Pending {
@@ -260,7 +300,10 @@ class _FormState {
   final String? error;
 }
 
-class _FlarePluginViewState extends State<FlarePluginView> {
+/// The view's state: [runAction] runs a top-level action the host page draws
+/// itself (a records header key, a phone task's pinned bar) through the same
+/// confirm and form flow as the view's own keys.
+class FlarePluginViewState extends State<FlarePluginView> {
   final Map<String, FlarePluginUser?> _users = {};
 
   /// A section's fold the reader chose, by its index in the flat blocks.
@@ -302,6 +345,29 @@ class _FlarePluginViewState extends State<FlarePluginView> {
 
   bool get _locked =>
       widget.busy || widget.busyActionId != null || _inlineSubmitted != null;
+
+  /// Every action key waits: locked, offline or no host.
+  bool get _keysOff => _locked || widget.offline || widget.onAction == null;
+
+  /// Runs the top-level action [id] (a key the page draws); a danger one
+  /// always asks first.
+  void runAction(String id) {
+    final action = flarePluginTopLevelActions(
+      widget.view,
+      embedded: true,
+    ).where((a) => a.id == id).firstOrNull;
+    if (action == null) return;
+    // The page's own form submits through its inline form's checks.
+    if (action.id == _inlineAction?.id) {
+      _inlineFormKey?.currentState?.submit();
+      return;
+    }
+    _run(
+      action,
+      const FlarePluginActionPayload(),
+      confirmDanger: action.style == FlarePluginActionStyle.danger,
+    );
+  }
 
   FlarePluginAction? get _inlineAction => flarePluginInlineFormAction(
     widget.view,
@@ -388,6 +454,13 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       } else if (block is FlarePluginEntriesBlock) {
         for (final entry in block.items) {
           if (entry.userId != null && entry.name == null) yield entry.userId!;
+        }
+      } else if (block is FlarePluginRowsBlock) {
+        // A person cell reads as the person's name (rules.rowsIcon).
+        for (final row in block.rows) {
+          for (final cell in row.cells) {
+            if (cell.userId case final id?) yield id;
+          }
         }
       }
     }
@@ -542,8 +615,9 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     FlarePluginAction action,
     FlarePluginActionPayload payload, {
     VoidCallback? before,
+    bool confirmDanger = false,
   }) async {
-    if (_locked || widget.onAction == null) return;
+    if (_locked || widget.offline || widget.onAction == null) return;
     // A native target writing `into` an input of a form on this view runs
     // through that input's own key, so the host's answer is written into the
     // form's current scope (no earlier touch of the input needed).
@@ -566,8 +640,13 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       _runInOpenedForm(target!, holder.id, 30);
       return;
     }
-    final confirm = action.confirm;
-    if (confirm != null && confirm.isNotEmpty) {
+    final confirm = (action.confirm?.isNotEmpty ?? false)
+        ? action.confirm
+        // R2: a page's danger action always goes through DangerConfirm.
+        : confirmDanger
+        ? ''
+        : null;
+    if (confirm != null) {
       widget.onInteractionChanged?.call(true);
       final ok = await FlareDangerConfirm.show(
         context,
@@ -631,10 +710,10 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     WidgetsBinding.instance.scheduleFrame();
   }
 
-  List<FlarePluginInput> _formInputs(FlarePluginAction action) => [
-    for (final id in action.form)
-      ...widget.view.inputs.where((input) => input.id == id).take(1),
-  ];
+  /// The inputs [action]'s form draws: block-bound ones are the block's
+  /// (R6.1).
+  List<FlarePluginInput> _formInputs(FlarePluginAction action) =>
+      flarePluginFormFields(widget.view, action);
 
   void _submitFormValues(
     FlarePluginAction action,
@@ -687,47 +766,83 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     _syncForm();
     final inputs = _formInputs(action);
     _sheetFormKey = GlobalKey<FlarePluginFormState>();
-    FlareBottomSheet.show<void>(
-      context,
-      title: action.label,
-      busy: _formBusy,
-      builder: (sheetContext) {
-        _sheetContext = sheetContext;
-        return ValueListenableBuilder<_FormState>(
-          valueListenable: _form,
-          builder: (context, state, _) => FlarePluginForm(
-            key: _sheetFormKey,
-            fileStates: widget.fileStates,
-            onFileAction: widget.onFileAction,
-            locationStates: widget.locationStates,
-            onLocationAction: widget.onLocationAction,
-            inputs: inputs,
-            errors: state.errors,
-            busy: state.busy,
-            error: state.error,
-            members: widget.members,
-            membersLoading: widget.membersLoading,
-            membersRevision: widget.membersRevision,
-            membersError: widget.membersError,
-            onMemberSearch: widget.onMemberSearch,
-            onMembersRetry: widget.onMembersRetry,
-            onSubmit: (values) {
-              if (!mounted || _locked) return;
-              _formSubmitted = true;
-              _syncForm();
-              // Every platform sends the carried selection with the values.
-              _submitFormValues(
-                action,
-                values,
-                carry: _formCarry,
-                before: _formBefore,
-              );
-            },
-            onCancel: () => Navigator.of(sheetContext).maybePop(),
-          ),
-        );
-      },
-    ).whenComplete(() {
+    Widget form(BuildContext sheetContext) {
+      _sheetContext = sheetContext;
+      return ValueListenableBuilder<_FormState>(
+        valueListenable: _form,
+        builder: (context, state, _) => FlarePluginForm(
+          key: _sheetFormKey,
+          fileStates: widget.fileStates,
+          onFileAction: widget.onFileAction,
+          locationStates: widget.locationStates,
+          onLocationAction: widget.onLocationAction,
+          inputs: inputs,
+          errors: state.errors,
+          busy: state.busy,
+          error: state.error,
+          members: widget.members,
+          membersLoading: widget.membersLoading,
+          membersRevision: widget.membersRevision,
+          membersError: widget.membersError,
+          onMemberSearch: widget.onMemberSearch,
+          onMembersRetry: widget.onMembersRetry,
+          onSubmit: (values) {
+            if (!mounted || _locked) return;
+            _formSubmitted = true;
+            _syncForm();
+            // Every platform sends the carried selection with the values.
+            _submitFormValues(
+              action,
+              values,
+              carry: _formCarry,
+              before: _formBefore,
+            );
+          },
+          onCancel: () => Navigator.of(sheetContext).maybePop(),
+        ),
+      );
+    }
+
+    // R6: ≤ 4 plain fields on a sheet (a dialog off phones); more, or a
+    // file, document, image or members input, as a page of its own.
+    final Future<void> shown =
+        flarePluginFormPlacement([
+              for (final input in inputs) input.kind,
+            ], inline: false) ==
+            FlarePluginFormPlacement.page
+        ? Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              fullscreenDialog: true,
+              builder: (routeContext) => ValueListenableBuilder<bool>(
+                valueListenable: _formBusy,
+                builder: (context, busy, child) =>
+                    PopScope(canPop: !busy, child: child!),
+                child: FlareScreen(
+                  key: const ValueKey('flare-plugin-form-page'),
+                  title: action.label,
+                  onBack: () => Navigator.of(routeContext).maybePop(),
+                  scroll: false,
+                  surface: FlareScreenSurface.surface,
+                  child: Align(
+                    alignment: AlignmentDirectional.topStart,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: FlareSizes.componentFormColumnWidth,
+                      ),
+                      child: Builder(builder: form),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        : FlareBottomSheet.show<void>(
+            context,
+            title: action.label,
+            busy: _formBusy,
+            builder: form,
+          );
+    shown.whenComplete(() {
       widget.onInteractionChanged?.call(false);
       _sheetContext = null;
       if (_formAction == action) {
@@ -777,6 +892,8 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     final colors = FlareColors.of(context);
     final view = widget.view;
     final children = <Widget>[];
+    // The children that open a section (R1: 24 above them on a page).
+    final sectionStarts = <int>{};
     final strings = FlareStrings.of(context);
     final reason = flarePluginReasonLine(
       view,
@@ -789,18 +906,43 @@ class _FlarePluginViewState extends State<FlarePluginView> {
     final hasInlineFormCopy =
         (widget.inlineFormTitle?.trim().isNotEmpty ?? false) ||
         (widget.inlineFormDescription?.trim().isNotEmpty ?? false);
-    final menuActions = view.available && !readOnly
-        ? view.menuActions
-        : const <FlarePluginAction>[];
-    final keys = view.available && !readOnly
-        ? [
+    final interactive = view.available && !readOnly;
+    final roles =
+        widget.embedded && widget.actionLayout == FlarePluginActionLayout.roles;
+    // A card (R2.4) and a plugin page (R2) place their actions by role; the
+    // account layout's embedded projections keep their own layouts.
+    final places = !interactive || (widget.embedded && !roles)
+        ? null
+        : flarePluginActionPlaces(
+            view,
+            embedded: widget.embedded,
+            inlineFormActionId: inlineAction?.id,
+            archetype: widget.archetype,
+          );
+    final menuActions = !interactive
+        ? const <FlarePluginAction>[]
+        : places != null && !widget.embedded
+        ? places.menu
+        : view.menuActions;
+    final keys = !interactive || roles
+        ? <FlarePluginAction>[]
+        : places != null
+        ? places.footer
+        : [
             for (final action in [
               ...view.actions,
               if (widget.embedded) ...menuActions,
             ])
               if (action.id != inlineAction?.id) action,
-          ]
-        : <FlarePluginAction>[];
+          ];
+    final result = widget.embedded && view.available
+        ? flarePluginResultOf(view)
+        : null;
+    final statusCard =
+        widget.embedded &&
+        view.available &&
+        result == null &&
+        flarePluginShowsStatusCard(view);
     final openDetail = widget.onOpenDetail;
     final detail =
         openDetail != null &&
@@ -819,7 +961,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
               children: [
                 Text(strings.pluginViewDetail),
                 const SizedBox(width: FlareSizes.spacing3xs),
-                const FlareIcon('chevron-right', size: 14),
+                const FlareIcon('chevron-right', size: FlareSizes.iconSizeSm),
               ],
             ),
           )
@@ -838,7 +980,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                     icon: 'more',
                     semanticLabel: strings.pluginViewMore,
                     size: FlareControlSize.sm,
-                    disabled: _locked || widget.onAction == null,
+                    disabled: _keysOff,
                     onPressed: () => _openMenu(context, menuActions),
                   ),
                 ),
@@ -873,13 +1015,145 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       children.add(_reasonLine(colors, reason, secondary: true));
     }
     if (view.available) {
-      if (view.fields.isNotEmpty)
-        children.add(_FieldsList(fields: view.fields));
       final flat = flarePluginFlatBlocks(view.blocks);
+      // §6.1 status card: the toned field, the first text or note, the
+      // steps and the first primary are drawn by the card, banners never.
+      final cardField = statusCard
+          ? (view.fields.where((f) => f.tone != null).firstOrNull ??
+                view.fields.firstOrNull)
+          : null;
+      final cardText = statusCard
+          ? flat.indexWhere(
+              (e) =>
+                  e.block is FlarePluginTextBlock ||
+                  e.block is FlarePluginNoteBlock,
+            )
+          : -1;
+      final cardSteps = statusCard
+          ? flat.indexWhere((e) => e.block is FlarePluginStepsBlock)
+          : -1;
+      final cardPrimary = statusCard && interactive
+          ? flarePluginTopLevelActions(view, embedded: true)
+                .where((a) => a.style == FlarePluginActionStyle.primary)
+                .firstOrNull
+          : null;
+      bool drawn(FlarePluginAction action) => action.id != cardPrimary?.id;
+      // Overview: the quick keys close the card that holds the hero or stats.
+      // R2.1: inside the overview card — the first hero takes them as its
+      // footer; without a hero they close the stats' section.
+      final heroAt = places?.archetype == FlarePluginPageArchetype.overview
+          ? flat.indexWhere((e) => e.block is FlarePluginHeroBlock)
+          : -1;
+      final quickAt = heroAt >= 0
+          ? -2
+          : places?.archetype == FlarePluginPageArchetype.overview
+          ? () {
+              final at = flat.indexWhere(
+                (e) =>
+                    e.block is FlarePluginHeroBlock ||
+                    e.block is FlarePluginStatsBlock,
+              );
+              final section = flat[at].section;
+              return section == null
+                  ? at
+                  : flat.lastIndexWhere((e) => e.section == section);
+            }()
+          : -1;
+      if (result != null) {
+        final top = interactive
+            ? flarePluginTopLevelActions(view, embedded: true)
+            : const <FlarePluginAction>[];
+        children.add(
+          FlareResultView(
+            key: const ValueKey('flare-plugin-result'),
+            title: flarePluginStatusText(
+              result.title,
+              unmapped: result.unmapped,
+              strings: strings,
+              where: 'result',
+            ),
+            tone: result.unmapped ? FlarePluginTone.neutral : result.tone,
+            amount: result.amount == null
+                ? null
+                : flarePluginFormatText(result.amount!, result.format, strings),
+            description: result.description,
+            details: view.fields,
+            busy: _locked,
+            // A phone page pins the done key itself (R7).
+            onDone: widget.pinBar ? null : widget.onDone,
+            secondaryLabel: top.firstOrNull?.label,
+            onSecondary: top.isEmpty || _keysOff
+                ? null
+                : () => _run(top.first, const FlarePluginActionPayload()),
+            actions: [
+              for (final action in top.skip(1))
+                _key(
+                  action,
+                  variant: FlareButtonVariant.secondary,
+                  block: true,
+                ),
+            ],
+          ),
+        );
+      } else if (statusCard) {
+        // §6.1: a banner with a key (the journal's 处理) is not what the card
+        // replaces; it leads, above the card.
+        for (final entry in flat) {
+          if (entry.block case final FlarePluginBannerBlock banner
+              when banner.action != null) {
+            children.add(
+              FlarePluginBannerView(
+                block: banner,
+                busy: _locked,
+                onAction: readOnly || widget.onAction == null
+                    ? null
+                    : (action) =>
+                          _run(action, const FlarePluginActionPayload()),
+              ),
+            );
+          }
+        }
+        children.add(
+          _StatusCard(
+            field: cardField,
+            description: switch (cardText < 0 ? null : flat[cardText].block) {
+              FlarePluginTextBlock(:final text) => text,
+              FlarePluginNoteBlock(:final text) => text,
+              _ => null,
+            },
+            steps: cardSteps < 0
+                ? null
+                : flat[cardSteps].block as FlarePluginStepsBlock,
+            primary: cardPrimary == null
+                ? null
+                : _key(cardPrimary, block: true, size: FlareControlSize.lg),
+            caption: cardPrimary != null && widget.offline
+                ? strings.pluginViewAvailableOnline
+                : null,
+          ),
+        );
+        final rest = [
+          for (final field in view.fields)
+            if (!identical(field, cardField)) field,
+        ];
+        if (rest.isNotEmpty) children.add(_FieldsList(fields: rest));
+      } else if (view.fields.isNotEmpty) {
+        children.add(_FieldsList(fields: view.fields));
+      }
       for (var i = 0; i < flat.length; i += 1) {
         final (:block, :section) = flat[i];
         // The children of a folded section are not drawn.
         if (section != null && _sectionCollapsed(flat, section)) continue;
+        // What the result view or the status card already drew.
+        if (block is FlarePluginResultBlock) continue;
+        if (statusCard &&
+            (i == cardText ||
+                i == cardSteps ||
+                block is FlarePluginBannerBlock)) {
+          continue;
+        }
+        if (block is FlarePluginSectionBlock)
+          sectionStarts.add(children.length);
         children.add(
           KeyedSubtree(
             key: ValueKey('flare-plugin-block-$i'),
@@ -917,7 +1191,10 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 thickness: 1,
                 color: colors.borderSecondary,
               ),
-              FlarePluginNoteBlock() => _NoteBlock(block: block),
+              FlarePluginNoteBlock() => _NoteBlock(
+                block: block,
+                plain: section != null && block.tone == FlarePluginTone.info,
+              ),
               FlarePluginRowsBlock() => _RowsBlock(
                 block: block,
                 labelRows: widget.labelRows,
@@ -925,7 +1202,20 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 locked: _locked || widget.onAction == null,
                 busyActionId: widget.busyActionId,
                 rowInFlight: _rowInFlight,
+                nameOf: (id) => _userOf(id).name,
                 onAction: (action, row, input) => _runRow(action, row, input),
+                onClearFilters: widget.onClearFilters,
+                // R8: an empty list offers the page's create action.
+                // (an overview already has it among its quick keys).
+                emptyAction:
+                    places?.archetype == FlarePluginPageArchetype.records
+                    ? flarePluginTopLevelActions(view, embedded: true)
+                          .where(
+                            (a) => a.style == FlarePluginActionStyle.primary,
+                          )
+                          .map((a) => _key(a))
+                          .firstOrNull
+                    : null,
               ),
               FlarePluginSectionBlock() => FlarePluginSectionHeader(
                 block: block,
@@ -950,6 +1240,9 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 block: block,
                 busy: _locked,
                 busyActionId: widget.busyActionId,
+                footer: i == heroAt
+                    ? _quickRow(places!.quick.where(drawn).toList(), strings)
+                    : null,
                 onAction: readOnly || widget.onAction == null
                     ? null
                     : (action) =>
@@ -973,19 +1266,26 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                 busy: _locked,
                 onRead: readOnly ? null : widget.onProtectedMediaRead,
               ),
+              FlarePluginResultBlock() => const SizedBox.shrink(),
             },
           ),
         );
+        if (i == quickAt) {
+          children.add(_quickRow(places!.quick.where(drawn).toList(), strings));
+        }
       }
       if (inlineAction != null) {
         children.add(
           Align(
             alignment: AlignmentDirectional.topStart,
             child: ConstrainedBox(
+              // R6 / G-14: the page's form column (560) at the start side;
+              // the account flow layout's titled form keeps its 420
+              // (spec/account-layout-vectors.json formWidth).
               constraints: BoxConstraints(
                 maxWidth: hasInlineFormCopy
                     ? FlareSizes.primaryPaneMaxWidth
-                    : double.infinity,
+                    : FlareSizes.componentFormColumnWidth,
               ),
               child: SizedBox(
                 key: const ValueKey('flare-plugin-inline-form-region'),
@@ -1028,6 +1328,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                       key: _inlineKey('${inlineAction.id}:$_inlineRevision'),
                       inputs: _formInputs(inlineAction),
                       embedded: true,
+                      pinSubmit: widget.pinBar,
                       submitLabel: inlineAction.label,
                       busy: _locked,
                       errors: widget.formErrors,
@@ -1060,38 +1361,14 @@ class _FlarePluginViewState extends State<FlarePluginView> {
               padding: EdgeInsets.only(
                 top: widget.embedded ? 0 : FlareSizes.spacing2xs,
               ),
+              // List rows never take the primary's brand colour (R2.1).
               child: widget.actionLayout == FlarePluginActionLayout.list
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final (index, action) in keys.indexed) ...[
-                          if (index > 0)
-                            Divider(height: 1, color: colors.borderSecondary),
-                          FlareButton(
-                            key: ValueKey('flare-plugin-action-${action.id}'),
-                            label: action.label,
-                            variant: _variantOf(action),
-                            appearance: FlareButtonAppearance.text,
-                            block: true,
-                            loading: widget.busyActionId == action.id,
-                            disabled: _locked || widget.onAction == null,
-                            onPressed: () =>
-                                _run(action, const FlarePluginActionPayload()),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(action.label)),
-                                const SizedBox(width: FlareSizes.spacingSm),
-                                const FlareIcon(
-                                  'chevron-right',
-                                  size: FlareSizes.iconSizeSm,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        if (detail != null) detail,
-                      ],
+                      children: [..._listGroups(keys, strings), ?detail],
                     )
+                  : widget.actionLayout == FlarePluginActionLayout.quick
+                  ? _quickRow(keys, strings)
                   : widget.actionLayout == FlarePluginActionLayout.compact
                   ? Wrap(
                       spacing: FlareSizes.spacingSm,
@@ -1105,7 +1382,7 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                             size: FlareControlSize.sm,
                             maintainTouchTarget: true,
                             loading: widget.busyActionId == action.id,
-                            disabled: _locked || widget.onAction == null,
+                            disabled: _keysOff,
                             onPressed: () =>
                                 _run(action, const FlarePluginActionPayload()),
                           ),
@@ -1130,9 +1407,15 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                                 label: action.label,
                                 variant: _variantOf(action),
                                 size: FlareControlSize.sm,
-                                appearance: FlareButtonAppearance.text,
+                                // A card's footer keys are kit buttons
+                                // (R2.4); the text keys stay only for the
+                                // embedded inline layout.
+                                appearance: widget.embedded
+                                    ? FlareButtonAppearance.text
+                                    : FlareButtonAppearance.standard,
+                                maintainTouchTarget: !widget.embedded,
                                 loading: widget.busyActionId == action.id,
-                                disabled: _locked || widget.onAction == null,
+                                disabled: _keysOff,
                                 onPressed: () => _run(
                                   action,
                                   const FlarePluginActionPayload(),
@@ -1144,6 +1427,17 @@ class _FlarePluginViewState extends State<FlarePluginView> {
                       ],
                     ),
             ),
+          ),
+        );
+      }
+      if (places != null && roles && result == null) {
+        children.addAll(
+          _placed(
+            places,
+            drawn,
+            strings,
+            quickAt: quickAt,
+            inline: inlineAction,
           ),
         );
       }
@@ -1171,7 +1465,15 @@ class _FlarePluginViewState extends State<FlarePluginView> {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < children.length; i += 1) ...[
-          if (i > 0) const SizedBox(height: FlareSizes.spacingMd),
+          // R1: a page's blocks 16 apart, its sections 24; a card keeps 12.
+          if (i > 0)
+            SizedBox(
+              height: !widget.embedded
+                  ? FlareSizes.spacingMd
+                  : sectionStarts.contains(i)
+                  ? FlareSizes.spacing2xl
+                  : FlareSizes.spacingLg,
+            ),
           children[i],
         ],
       ],
@@ -1228,6 +1530,319 @@ class _FlarePluginViewState extends State<FlarePluginView> {
         ),
       ),
     );
+  }
+
+  // ── R2 placements ─────────────────────────────────────────────────────
+  /// A kit key for a top-level action (R2): primary solid, danger, else
+  /// secondary unless [variant] says otherwise.
+  Widget _key(
+    FlarePluginAction action, {
+    FlareButtonVariant? variant,
+    FlareControlSize size = FlareControlSize.md,
+    bool block = false,
+  }) => flarePluginDisabledReason(
+    action,
+    FlareButton(
+      key: ValueKey('flare-plugin-action-${action.id}'),
+      label: action.label,
+      variant: variant ?? _variantOf(action),
+      size: size,
+      block: block,
+      maintainTouchTarget: true,
+      loading: widget.busyActionId == action.id,
+      disabled: _keysOff || action.disabledReason != null,
+      onPressed: () => runAction(action.id),
+    ),
+  );
+
+  bool get _pc =>
+      (MediaQuery.maybeSizeOf(context)?.width ?? 0) >=
+      FlareSizes.appShellCompactMinWidth;
+
+  Widget _offlineCaption(FlareStrings strings) => Padding(
+    key: const ValueKey('flare-plugin-available-online'),
+    padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
+    child: Text(
+      strings.pluginViewAvailableOnline,
+      style: TextStyle(
+        fontSize: FlareTextRoles.caption.fontSize,
+        color: FlareColors.of(context).textSecondary,
+      ),
+    ),
+  );
+
+  /// Overview quick keys (R2.1): phone equal widths 48 high, PC natural
+  /// width ≥ component.actionMinWidth, 40 high.
+  Widget _quickRow(List<FlarePluginAction> actions, FlareStrings strings) {
+    if (actions.isEmpty) return const SizedBox.shrink();
+    final row = _pc
+        ? Wrap(
+            spacing: FlareSizes.spacingSm,
+            runSpacing: FlareSizes.spacingSm,
+            children: [
+              for (final action in actions)
+                // The key itself is ≥ 120 (its touch slop centres a
+                // narrower one in the box).
+                IntrinsicWidth(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: FlareSizes.componentActionMinWidth,
+                    ),
+                    child: _key(action, block: true),
+                  ),
+                ),
+            ],
+          )
+        : Row(
+            children: [
+              for (final (index, action) in actions.indexed) ...[
+                if (index > 0) const SizedBox(width: FlareSizes.spacingSm),
+                Expanded(
+                  child: _key(action, size: FlareControlSize.lg, block: true),
+                ),
+              ],
+            ],
+          );
+    return Column(
+      key: const ValueKey('flare-plugin-quick'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      // R2.1: 16 above the row, which the card or the view's gap gives.
+      children: [row, if (widget.offline) _offlineCaption(strings)],
+    );
+  }
+
+  /// List rows of the kit settings list (R2.1): the label in primary text
+  /// whatever the role, the action's icon when it has one, a chevron only on
+  /// a destination; danger rows in the error colour, always confirmed.
+  List<Widget> _listRows(
+    List<FlarePluginAction> actions, {
+    bool danger = false,
+  }) {
+    final colors = FlareColors.of(context);
+    return [
+      for (final (index, action) in actions.indexed) ...[
+        if (index > 0)
+          Divider(
+            height: 1,
+            indent: FlareSizes.spacingMd,
+            color: colors.borderSecondary,
+          ),
+        KeyedSubtree(
+          key: ValueKey('flare-plugin-action-${action.id}'),
+          child: FlareSettingsRow(
+            item: FlareSettingsItem(
+              key: action.id,
+              label: action.label,
+              icon: action.icon,
+              kind:
+                  flarePluginActionRole(action) ==
+                      FlarePluginActionRole.destination
+                  ? FlareSettingKind.navigation
+                  : FlareSettingKind.action,
+              danger: danger || action.style == FlarePluginActionStyle.danger,
+              disabled: _keysOff || action.disabledReason != null,
+              detail: action.disabledReason,
+              // R2.1: the danger card's rows stand alone, centred.
+              centered: danger,
+              busy: widget.busyActionId == action.id,
+            ),
+            onSelect: (_) => _run(
+              action,
+              const FlarePluginActionPayload(),
+              confirmDanger:
+                  danger || action.style == FlarePluginActionStyle.danger,
+            ),
+          ),
+        ),
+      ],
+    ];
+  }
+
+  /// The account layout's service list (R2.1): list cards by `group`, the
+  /// danger rows in a card of their own, last; 16 between cards.
+  List<Widget> _listGroups(
+    List<FlarePluginAction> actions,
+    FlareStrings strings,
+  ) {
+    final danger = [
+      for (final action in actions)
+        if (action.style == FlarePluginActionStyle.danger) action,
+    ];
+    final cards = [
+      for (final group in flarePluginListGroups([
+        for (final action in actions)
+          if (!danger.contains(action)) action,
+      ]))
+        _listCard(
+          group.actions,
+          key: ValueKey('flare-plugin-list-${group.group ?? 'all'}'),
+          title: switch (group.group) {
+            'common' => strings.pluginViewGroupCommon,
+            'records' => strings.pluginViewGroupRecords,
+            _ => null,
+          },
+        ),
+      if (danger.isNotEmpty)
+        _listCard(
+          danger,
+          key: const ValueKey('flare-plugin-list-danger'),
+          danger: true,
+        ),
+    ];
+    return [
+      for (final (index, card) in cards.indexed) ...[
+        if (index > 0) const SizedBox(height: FlareSizes.spacingLg),
+        card,
+      ],
+    ];
+  }
+
+  /// A titled list card of actions (R2.1–R2.3).
+  Widget _listCard(
+    List<FlarePluginAction> actions, {
+    Key? key,
+    String? title,
+    bool danger = false,
+  }) {
+    final colors = FlareColors.of(context);
+    return Column(
+      key: key,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: FlareSizes.spacingSm),
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: FlareTextRoles.section.fontSize,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.bgPrimary,
+            borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
+            border: Border.all(color: colors.borderSecondary),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: _listRows(actions, danger: danger),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Everything a page draws after its body (R2): the overview's list
+  /// cards, a task's action row, a records page's command keys, the "more
+  /// actions" card, the danger card.
+  List<Widget> _placed(
+    FlarePluginActionPlaces places,
+    bool Function(FlarePluginAction) drawn,
+    FlareStrings strings, {
+    required int quickAt,
+    FlarePluginAction? inline,
+  }) {
+    final out = <Widget>[];
+    switch (places.archetype) {
+      case FlarePluginPageArchetype.overview:
+        if (quickAt == -1) {
+          out.add(_quickRow(places.quick.where(drawn).toList(), strings));
+        }
+        for (final group in places.list) {
+          final actions = group.actions.where(drawn).toList();
+          if (actions.isEmpty) continue;
+          out.add(
+            _listCard(
+              actions,
+              key: ValueKey('flare-plugin-list-${group.group ?? 'all'}'),
+              title: switch (group.group) {
+                'common' => strings.pluginViewGroupCommon,
+                'records' => strings.pluginViewGroupRecords,
+                _ => null,
+              },
+            ),
+          );
+        }
+      case FlarePluginPageArchetype.task:
+        // The inline form keeps its own submit (its checks and uploads
+        // stay with it); the page pins the rest on a phone.
+        // shortcut: a phone's inline-form submit is not pinned; pin it once
+        // FlarePluginForm exposes its submit state to the page.
+        if (!widget.pinBar || inline != null) {
+          final bar = [
+            for (final action in places.bar)
+              if (drawn(action) && action.id != inline?.id) action,
+          ];
+          final secondary = places.barSecondary.where(drawn).toList();
+          if (bar.isNotEmpty || secondary.isNotEmpty) {
+            out.add(
+              FlarePluginTaskBar(
+                key: const ValueKey('flare-plugin-task-bar'),
+                primary: bar.firstOrNull,
+                secondary: secondary,
+                pinned: false,
+                busyActionId: widget.busyActionId,
+                disabled: _keysOff,
+                offline: widget.offline,
+                onRun: (action) => runAction(action.id),
+              ),
+            );
+          }
+        }
+      case FlarePluginPageArchetype.records:
+        final commands = places.commands.where(drawn).toList();
+        if (commands.isNotEmpty) {
+          out.add(
+            Wrap(
+              key: const ValueKey('flare-plugin-commands'),
+              spacing: FlareSizes.spacingSm,
+              runSpacing: FlareSizes.spacingSm,
+              children: [
+                for (final action in commands)
+                  _key(action, variant: FlareButtonVariant.secondary),
+              ],
+            ),
+          );
+        }
+        if (widget.offline &&
+            (commands.isNotEmpty || places.header.isNotEmpty)) {
+          out.add(_offlineCaption(strings));
+        }
+      case FlarePluginPageArchetype.card:
+        break;
+    }
+    final more = places.more.where(drawn).toList();
+    if (more.isNotEmpty) {
+      out.add(
+        _listCard(
+          more,
+          key: const ValueKey('flare-plugin-list-more'),
+          title: strings.pluginViewMore,
+        ),
+      );
+    }
+    final danger = places.danger.where(drawn).toList();
+    if (danger.isNotEmpty) {
+      out.add(
+        _listCard(
+          danger,
+          key: const ValueKey('flare-plugin-list-danger'),
+          danger: true,
+        ),
+      );
+    }
+    return out;
   }
 
   /// The reason line: secondary under the title of an unavailable view,
@@ -1335,8 +1950,11 @@ class _TitleRow extends StatelessWidget {
           const SizedBox(width: FlareSizes.spacingXs),
         ],
         Expanded(
+          // R5: the title takes the rest of the row on one line.
           child: Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: FlareSizes.fontSizeSm,
               fontWeight: FontWeight.w500,
@@ -1345,7 +1963,10 @@ class _TitleRow extends StatelessWidget {
             ),
           ),
         ),
-        if (detail != null) detail!,
+        if (detail != null) ...[
+          const SizedBox(width: FlareSizes.spacingSm),
+          detail!,
+        ],
         if (menu != null) ...[
           const SizedBox(width: FlareSizes.spacingXs),
           menu!,
@@ -1362,46 +1983,112 @@ class _FieldsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    // R3: order and proof ids fold under References with a copy key each.
+    final (:main, :references) = flarePluginReferenceSplit(fields);
+    Widget row(FlarePluginField field, int index, {bool copy = false}) {
+      final text = flarePluginFormatText(field.value, field.format, strings);
+      return Padding(
+        padding: EdgeInsets.only(top: index == 0 ? 0 : FlareSizes.spacingXs),
+        child: Row(
+          crossAxisAlignment: copy
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                field.label,
+                style: TextStyle(
+                  fontSize: FlareSizes.fontSizeMd,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: FlareSizes.spacingMd),
+            Expanded(
+              flex: 2,
+              child: field.tone != null || field.unmapped
+                  ? Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: _ToneTag(
+                        key: ValueKey('flare-plugin-field-tag-${field.label}'),
+                        text: text,
+                        tone: field.tone ?? FlarePluginTone.neutral,
+                        unmapped: field.unmapped,
+                      ),
+                    )
+                  : Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSizeMd,
+                        color: colors.textPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+            ),
+            if (copy)
+              FlareIconButton(
+                key: ValueKey('flare-plugin-copy-${field.label}'),
+                icon: 'copy',
+                size: FlareControlSize.sm,
+                semanticLabel: strings.pluginViewCopyReference.replaceAll(
+                  '{label}',
+                  field.label,
+                ),
+                onPressed: () =>
+                    Clipboard.setData(ClipboardData(text: field.value)),
+              ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (var i = 0; i < fields.length; i += 1)
-          Padding(
-            padding: EdgeInsets.only(top: i == 0 ? 0 : FlareSizes.spacingXs),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    fields[i].label,
-                    style: TextStyle(
-                      fontSize: FlareSizes.fontSizeMd,
-                      color: colors.textSecondary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: FlareSizes.spacingMd),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    flarePluginFormatText(
-                      fields[i].value,
-                      fields[i].format,
-                      FlareStrings.of(context),
-                    ),
-                    style: TextStyle(
-                      fontSize: FlareSizes.fontSizeMd,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        for (final (index, field) in main.indexed) row(field, index),
+        if (references.isNotEmpty)
+          _ReferencesGroup(
+            title: strings.pluginViewReferences,
+            children: [
+              for (final (index, field) in references.indexed)
+                row(field, index, copy: true),
+            ],
           ),
       ],
     );
   }
+}
+
+/// The folded "单号与凭据" group (R3): a kit text key that opens the rows.
+class _ReferencesGroup extends StatefulWidget {
+  const _ReferencesGroup({required this.title, required this.children});
+  final String title;
+  final List<Widget> children;
+
+  @override
+  State<_ReferencesGroup> createState() => _ReferencesGroupState();
+}
+
+class _ReferencesGroupState extends State<_ReferencesGroup> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: const ValueKey('flare-plugin-references'),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      _TextKey(
+        key: const ValueKey('flare-plugin-references-toggle'),
+        label: widget.title,
+        expanded: _open,
+        onTap: () => setState(() => _open = !_open),
+      ),
+      if (_open) ...widget.children,
+    ],
+  );
 }
 
 /// A text-sized key whose touch target reaches the kit's minimum.
@@ -1938,6 +2625,7 @@ class _EntriesBlock extends StatelessWidget {
               key: ValueKey('flare-plugin-entry-badge-$position'),
               text: badge.text,
               tone: badge.tone,
+              unmapped: badge.unmapped,
               maxWidth: FlareSizes.componentRichCardCompactWidth / 2,
             ),
             const SizedBox(width: FlareSizes.spacingXs),
@@ -1983,8 +2671,20 @@ class _RowsBlock extends StatelessWidget {
     this.busyActionId,
     this.rowInFlight,
     required this.onAction,
+    this.emptyAction,
+    this.nameOf,
+    this.onClearFilters,
   });
   final FlarePluginRowsBlock block;
+
+  /// §5.8: the list is empty under a chosen filter.
+  final VoidCallback? onClearFilters;
+
+  /// A person cell's user as the host's directory names them.
+  final String Function(String userId)? nameOf;
+
+  /// The page's create action under an empty list (R8).
+  final Widget? emptyAction;
   final bool labelRows;
   final bool readOnly;
 
@@ -2008,13 +2708,27 @@ class _RowsBlock extends StatelessWidget {
     final strings = FlareStrings.of(context);
     final rows = flarePluginRowsOnce(block.rows);
     if (rows.isEmpty) {
-      return Text(
-        block.emptyText ?? strings.pluginViewEmpty,
+      final clear = onClearFilters;
+      // R8: the compact in-block empty state, with the create action; §5.8:
+      // under a filter, say so and offer to clear it.
+      return FlareEmptyState(
         key: FlarePluginView.rowsEmptyKey,
-        style: TextStyle(
-          fontSize: FlareSizes.fontSizeMd,
-          color: colors.textTertiary,
-        ),
+        compact: true,
+        icon: block.icon ?? 'clock',
+        title: clear != null
+            ? strings.pluginViewFilterEmpty
+            : block.emptyText ?? strings.pluginViewEmpty,
+        actions: [
+          if (clear != null)
+            FlareButton(
+              key: FlarePluginView.clearFiltersKey,
+              label: strings.pluginViewClearFilter,
+              variant: FlareButtonVariant.secondary,
+              onPressed: clear,
+            )
+          else
+            ?emptyAction,
+        ],
       );
     }
     final nowMs = flarePluginNowMs();
@@ -2039,14 +2753,18 @@ class _RowsBlock extends StatelessWidget {
                 top: i == 0 ? 0 : FlareSizes.spacingMd,
                 bottom: FlareSizes.spacingXs,
               ),
-              child: Semantics(
-                header: true,
-                child: Text(
-                  day,
-                  style: TextStyle(
-                    fontSize: FlareSizes.fontSizeSm,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textSecondary,
+              child: KeyedSubtree(
+                // §5.8: the page pins the heading it scrolled past.
+                key: FlarePluginDayHeadings.maybeOf(context)?.keyFor(day),
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    day,
+                    style: TextStyle(
+                      fontSize: FlareSizes.fontSizeSm,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textSecondary,
+                    ),
                   ),
                 ),
               ),
@@ -2066,7 +2784,118 @@ class _RowsBlock extends StatelessWidget {
     );
   }
 
-  Widget _item(
+  /// [row] with its person cells written as names.
+  FlarePluginRow _named(FlarePluginRow row) =>
+      row.cells.any((cell) => cell.userId != null)
+      ? FlarePluginRow(
+          key: row.key,
+          actions: row.actions,
+          badge: row.badge,
+          cells: [
+            for (final cell in row.cells)
+              if (cell.userId case final id?)
+                FlarePluginRowCell(
+                  text: (nameOf ?? flarePluginFallbackName)(id),
+                  timeMs: cell.timeMs,
+                  tone: cell.tone,
+                  unmapped: cell.unmapped,
+                )
+              else
+                cell,
+          ],
+        )
+      : row;
+
+  /// The row's action keys at its end.
+  List<(FlarePluginAction, Object?)> _keysOf(FlarePluginRow row) => readOnly
+      ? const []
+      : [
+          for (final offered in row.actions)
+            for (final action
+                in block.actions.where((a) => a.id == offered.id).take(1))
+              (action, offered.input),
+        ];
+
+  /// rules.rowTap: the row's only key, when the whole row runs it instead.
+  (FlarePluginAction, Object?)? _tapOf(
+    FlarePluginRow row,
+    List<(FlarePluginAction, Object?)> keys,
+  ) =>
+      row.actions.length == 1 &&
+          keys.length == 1 &&
+          flarePluginRowTaps(keys.single.$1)
+      ? keys.single
+      : null;
+
+  /// rules.rowTap: [child] as one control (a button for screen readers) that
+  /// runs [tap] and ends with chevron-right 16 — the spinner in its place
+  /// while this row's action runs, as its key would; [child] itself without
+  /// one.
+  Widget _tappable(
+    FlareColors colors,
+    FlarePluginRow row,
+    (FlarePluginAction, Object?)? tap,
+    Widget child,
+  ) => tap == null
+      ? child
+      : MergeSemantics(
+          child: Semantics(
+            button: true,
+            enabled: !locked,
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: locked ? null : () => onAction(tap.$1, row, tap.$2),
+                child: Row(
+                  children: [
+                    Expanded(child: child),
+                    const SizedBox(width: FlareSizes.spacingSm),
+                    if (busyActionId == tap.$1.id && rowInFlight == row.key)
+                      SizedBox.square(
+                        key: ValueKey('flare-plugin-row-spinner:${row.key}'),
+                        dimension: FlareSizes.iconSizeSm,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colors.textTertiary,
+                        ),
+                      )
+                    else
+                      FlareIcon(
+                        'chevron-right',
+                        key: ValueKey('flare-plugin-row-chevron:${row.key}'),
+                        size: FlareSizes.iconSizeSm,
+                        color: colors.textTertiary,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+  Widget _actionKeys(
+    FlarePluginRow row,
+    List<(FlarePluginAction, Object?)> keys,
+  ) => Wrap(
+    spacing: FlareSizes.spacingXs,
+    runSpacing: FlareSizes.spacingXs,
+    children: [
+      for (final (action, input) in keys)
+        FlareButton(
+          key: FlarePluginView.rowActionKey(row.key, action.id),
+          label: action.label,
+          size: FlareControlSize.sm,
+          variant: _variantOf(action),
+          loading: busyActionId == action.id && rowInFlight == row.key,
+          disabled: locked,
+          onPressed: () => onAction(action, row, input),
+        ),
+    ],
+  );
+
+  /// A record (5.8, rules.rowsIcon): the icon circle, the title with its
+  /// badge and the line under it, the value with its Tags at the end.
+  Widget _record(
     FlareColors colors,
     FlareStrings strings,
     FlarePluginRow row,
@@ -2074,17 +2903,205 @@ class _RowsBlock extends StatelessWidget {
     required bool first,
     required bool last,
   }) {
-    final lines = flarePluginRowLines(block, row, nowMs, strings);
-    final keys = readOnly
-        ? const <(FlarePluginAction, Object?)>[]
-        : [
-            for (final offered in row.actions)
-              for (final action
-                  in block.actions.where((a) => a.id == offered.id).take(1))
-                (action, offered.input),
-          ];
+    final record = flarePluginRecordLine(
+      block,
+      row,
+      nowMs,
+      strings,
+      nameOf: nameOf,
+    );
+    final income = record.value.trimLeft().startsWith('+');
+    final keys = _keysOf(row);
+    final tap = _tapOf(row, keys);
+    // §5.8: a record row is at least component.recordRowHeight (64) high.
+    return ConstrainedBox(
+      key: FlarePluginView.rowKey(row.key),
+      constraints: const BoxConstraints(
+        minHeight: FlareSizes.componentRecordRowHeight,
+      ),
+      child: _tappable(
+        colors,
+        row,
+        tap,
+        Semantics(
+          container: true,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: FlareSizes.spacingSm),
+            child: Row(
+              children: [
+                Container(
+                  key: ValueKey('flare-plugin-row-icon:${row.key}'),
+                  width: FlareSizes.componentRecordIconSize,
+                  height: FlareSizes.componentRecordIconSize,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: income
+                        ? colors.success.withValues(
+                            alpha: FlareOpacity.tintWeak,
+                          )
+                        : colors.bgTertiary,
+                  ),
+                  child: FlareIcon(
+                    block.icon!,
+                    size: FlareSizes.iconSizeMd,
+                    color: income ? colors.successText : colors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: FlareSizes.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              record.title,
+                              key: ValueKey(
+                                'flare-plugin-row-title:${row.key}',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: FlareSizes.fontSizeXl,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (row.badge case final badge?) ...[
+                            const SizedBox(width: FlareSizes.spacingXs),
+                            _ToneTag(
+                              key: ValueKey(
+                                'flare-plugin-row-badge:${row.key}',
+                              ),
+                              text: badge.text,
+                              tone: badge.tone,
+                              unmapped: badge.unmapped,
+                              maxWidth:
+                                  FlareSizes.componentRichCardCompactWidth / 2,
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (record.line case final line?) ...[
+                        const SizedBox(height: FlareSizes.spacing2xs),
+                        Text(
+                          line,
+                          key: ValueKey('flare-plugin-row-line:${row.key}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: FlareSizes.fontSizeSm,
+                            color: colors.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: FlareSizes.spacingSm),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      // R10: a true minus at display time only.
+                      record.value.replaceFirst(RegExp('^-'), '\u2212'),
+                      key: ValueKey('flare-plugin-row-value:${row.key}'),
+                      style: TextStyle(
+                        fontSize: FlareSizes.fontSize2xl,
+                        fontWeight: FontWeight.w600,
+                        color: income ? colors.successText : colors.textPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    for (final (index, cell) in record.tags.indexed)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: FlareSizes.spacing2xs,
+                        ),
+                        child: _ToneTag(
+                          key: ValueKey(
+                            'flare-plugin-row-status:${row.key}:$index',
+                          ),
+                          text: cell.text,
+                          tone: cell.tone ?? FlarePluginTone.neutral,
+                          unmapped: cell.unmapped,
+                        ),
+                      ),
+                  ],
+                ),
+                if (tap == null && keys.isNotEmpty) ...[
+                  const SizedBox(width: FlareSizes.spacingSm),
+                  _actionKeys(row, keys),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item(
+    FlareColors colors,
+    FlareStrings strings,
+    FlarePluginRow original,
+    int nowMs, {
+    required bool first,
+    required bool last,
+  }) {
+    if (block.icon != null && !labelRows) {
+      return _record(
+        colors,
+        strings,
+        original,
+        nowMs,
+        first: first,
+        last: last,
+      );
+    }
+    final row = _named(original);
+    // R3: a status cell is a tag under the amount, not words in the line;
+    // a completed (success) one says nothing (§5.8).
+    final statusCells = [
+      for (final cell in row.cells)
+        if (cell.tone != null || cell.unmapped) cell,
+    ];
+    final tags = [
+      for (final cell in statusCells)
+        if (cell.unmapped || cell.tone != FlarePluginTone.success) cell,
+    ];
+    final lines = flarePluginRowLines(
+      block,
+      statusCells.isEmpty
+          ? row
+          : FlarePluginRow(
+              key: row.key,
+              cells: [
+                for (final cell in row.cells)
+                  statusCells.contains(cell)
+                      ? const FlarePluginRowCell(text: '')
+                      : cell,
+              ],
+            ),
+      nowMs,
+      strings,
+    );
+    final keys = _keysOf(row);
+    final tap = labelRows ? null : _tapOf(row, keys);
     final badge = row.badge;
     final secondary = lines.secondary;
+    // R10: a signed first line reads as an amount — income in success ink
+    // with "+", spending with a true minus (U+2212, display only). Records
+    // (the icon circle) are only a block that declares `icon` (§12.24).
+    final sign = RegExp(r'^\s*([+\-\u2212])').firstMatch(lines.primary)?[1];
+    final income = sign == '+';
+    final amount = sign == null
+        ? lines.primary
+        : lines.primary.replaceFirst('-', '\u2212');
     final heading = Row(
       children: [
         if (badge != null) ...[
@@ -2092,17 +3109,21 @@ class _RowsBlock extends StatelessWidget {
             key: ValueKey('flare-plugin-row-badge:${row.key}'),
             text: badge.text,
             tone: badge.tone,
+            unmapped: badge.unmapped,
             maxWidth: FlareSizes.componentRichCardCompactWidth / 2,
           ),
           const SizedBox(width: FlareSizes.spacingXs),
         ],
         Flexible(
           child: Text(
-            lines.primary,
+            amount,
             key: ValueKey('flare-plugin-row-primary:${row.key}'),
             style: TextStyle(
-              fontSize: FlareSizes.fontSizeMd,
-              color: colors.textPrimary,
+              fontSize: sign == null
+                  ? FlareSizes.fontSizeMd
+                  : FlareSizes.fontSize2xl,
+              fontWeight: sign == null ? null : FontWeight.w600,
+              color: income ? colors.successText : colors.textPrimary,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -2141,6 +3162,7 @@ class _RowsBlock extends StatelessWidget {
                               cell.timeMs != null
                           ? flarePluginDateTime(cell.timeMs!, nowMs, strings)
                           : cell.text,
+                      format: cell.format,
                     ),
               ],
             ),
@@ -2159,51 +3181,59 @@ class _RowsBlock extends StatelessWidget {
           ),
       ],
     );
-    final actionKeys = Wrap(
-      spacing: FlareSizes.spacingXs,
-      runSpacing: FlareSizes.spacingXs,
-      children: [
-        for (final (action, input) in keys)
-          FlareButton(
-            key: FlarePluginView.rowActionKey(row.key, action.id),
-            label: action.label,
-            size: FlareControlSize.sm,
-            variant: _variantOf(action),
-            loading: busyActionId == action.id && rowInFlight == row.key,
-            disabled: locked,
-            onPressed: () => onAction(action, row, input),
-          ),
-      ],
-    );
+    final actionKeys = _actionKeys(row, keys);
     return Padding(
       key: FlarePluginView.rowKey(row.key),
       padding: EdgeInsets.only(
         top: first ? 0 : FlareSizes.spacingSm,
         bottom: last ? 0 : FlareSizes.spacingSm,
       ),
-      child: Semantics(
-        container: true,
-        child: labelRows
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  content,
-                  if (keys.isNotEmpty) ...[
-                    const SizedBox(height: FlareSizes.spacingSm),
-                    actionKeys,
+      child: _tappable(
+        colors,
+        row,
+        tap,
+        Semantics(
+          container: true,
+          child: labelRows
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    content,
+                    if (keys.isNotEmpty) ...[
+                      const SizedBox(height: FlareSizes.spacingSm),
+                      actionKeys,
+                    ],
                   ],
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(child: content),
-                  if (keys.isNotEmpty) ...[
-                    const SizedBox(width: FlareSizes.spacingSm),
-                    actionKeys,
+                )
+              : Row(
+                  children: [
+                    Expanded(child: content),
+                    if (tags.isNotEmpty) ...[
+                      const SizedBox(width: FlareSizes.spacingSm),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final (index, cell) in tags.indexed)
+                            _ToneTag(
+                              key: ValueKey(
+                                'flare-plugin-row-status:${row.key}:$index',
+                              ),
+                              text: cell.text,
+                              tone: cell.tone ?? FlarePluginTone.neutral,
+                              unmapped: cell.unmapped,
+                            ),
+                        ],
+                      ),
+                    ],
+                    if (tap == null && keys.isNotEmpty) ...[
+                      const SizedBox(width: FlareSizes.spacingSm),
+                      actionKeys,
+                    ],
                   ],
-                ],
-              ),
+                ),
+        ),
       ),
     );
   }
@@ -2367,8 +3397,15 @@ class _StatusBlock extends StatelessWidget {
                 ],
                 FlareStatusBanner(
                   key: const ValueKey('flare-plugin-status'),
-                  text: block.text,
-                  tone: FlareStatusTone.values.byName(block.tone.name),
+                  text: flarePluginStatusText(
+                    block.text,
+                    unmapped: block.unmapped,
+                    strings: FlareStrings.of(context),
+                    where: label ?? 'status',
+                  ),
+                  tone: block.unmapped
+                      ? FlareStatusTone.neutral
+                      : FlareStatusTone.values.byName(block.tone.name),
                   dot: false,
                 ),
               ],
@@ -2385,6 +3422,7 @@ class _StatusBlock extends StatelessWidget {
               key: const ValueKey('flare-plugin-status'),
               text: block.text,
               tone: block.tone,
+              unmapped: block.unmapped,
             ),
           ],
         );
@@ -2403,6 +3441,7 @@ class _ToneTag extends StatelessWidget {
     required this.text,
     required this.tone,
     this.maxWidth,
+    this.unmapped = false,
   });
   final String text;
   final FlarePluginTone tone;
@@ -2410,11 +3449,21 @@ class _ToneTag extends StatelessWidget {
   /// Cut with an ellipsis past this width (a badge beside other words).
   final double? maxWidth;
 
+  /// Outside the declared values: pluginView.unknownStatus, neutral, never
+  /// the raw value (rules.statusValues).
+  final bool unmapped;
+
   @override
   Widget build(BuildContext context) {
     final tag = FlareTag(
-      label: text,
-      tone: FlareStatusTone.values.byName(tone.name),
+      label: flarePluginStatusText(
+        text,
+        unmapped: unmapped,
+        strings: FlareStrings.of(context),
+      ),
+      tone: unmapped
+          ? FlareStatusTone.neutral
+          : FlareStatusTone.values.byName(tone.name),
     );
     final max = maxWidth;
     return max == null
@@ -2423,6 +3472,326 @@ class _ToneTag extends StatelessWidget {
             constraints: BoxConstraints(maxWidth: max),
             child: tag,
           );
+  }
+}
+
+/// Where a plugin page keeps its records' day headings (§5.8): a rows block
+/// keys each heading here so the page can pin the one scrolled past.
+class FlarePluginDayHeadings extends InheritedWidget {
+  const FlarePluginDayHeadings({
+    super.key,
+    required this.keys,
+    required super.child,
+  });
+
+  /// The headings drawn, by their words; the page owns the map so the keys
+  /// stay across builds.
+  final Map<String, GlobalKey> keys;
+
+  /// A stable key for the heading [day].
+  GlobalKey keyFor(String day) =>
+      keys[day] ??= GlobalKey(debugLabel: 'flare-plugin-day:$day');
+
+  static FlarePluginDayHeadings? maybeOf(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<FlarePluginDayHeadings>();
+
+  @override
+  bool updateShouldNotify(FlarePluginDayHeadings old) => false;
+}
+
+/// [key] with [action]'s disabled reason under it (R2.5), caption size.
+Widget flarePluginDisabledReason(FlarePluginAction action, Widget key) {
+  final reason = action.disabledReason;
+  if (reason == null || reason.isEmpty) return key;
+  return Builder(
+    builder: (context) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        key,
+        Padding(
+          padding: const EdgeInsets.only(top: FlareSizes.spacing2xs),
+          child: Text(
+            reason,
+            key: ValueKey('flare-plugin-disabled-reason-${action.id}'),
+            style: TextStyle(
+              fontSize: FlareTextRoles.caption.fontSize,
+              color: FlareColors.of(context).textSecondary,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// A task page's action row (R2.2): the primary and up to two secondary
+/// keys. [pinned] is the phone's bottom bar — primary-surface ground, a
+/// hairline on top, the safe area under it, quiet keys above a full-width 48
+/// primary; otherwise the PC row after the body — the primary (≥
+/// component.actionMinWidth, 40 high) then secondary keys. Offline adds
+/// pluginView.availableOnline under the primary.
+class FlarePluginTaskBar extends StatelessWidget {
+  const FlarePluginTaskBar({
+    super.key,
+    this.primary,
+    this.secondary = const [],
+    required this.pinned,
+    this.busyActionId,
+    this.disabled = false,
+    this.offline = false,
+    required this.onRun,
+  });
+  final FlarePluginAction? primary;
+  final List<FlarePluginAction> secondary;
+  final bool pinned;
+  final String? busyActionId;
+  final bool disabled;
+  final bool offline;
+  final ValueChanged<FlarePluginAction> onRun;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final pc =
+        !pinned &&
+        (MediaQuery.maybeSizeOf(context)?.width ?? 0) >=
+            FlareSizes.appShellCompactMinWidth;
+    Widget key(
+      FlarePluginAction action, {
+      required FlareButtonVariant variant,
+      FlareControlSize size = FlareControlSize.md,
+      FlareButtonAppearance appearance = FlareButtonAppearance.standard,
+      bool block = false,
+    }) => flarePluginDisabledReason(
+      action,
+      FlareButton(
+        key: ValueKey('flare-plugin-action-${action.id}'),
+        label: action.label,
+        variant: variant,
+        size: size,
+        appearance: appearance,
+        block: block,
+        maintainTouchTarget: true,
+        loading: busyActionId == action.id,
+        disabled: disabled || offline || action.disabledReason != null,
+        onPressed: () => onRun(action),
+      ),
+    );
+    final caption = offline && primary != null
+        ? Padding(
+            padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
+            child: Text(
+              strings.pluginViewAvailableOnline,
+              key: const ValueKey('flare-plugin-available-online'),
+              textAlign: pc ? TextAlign.start : TextAlign.center,
+              style: TextStyle(
+                fontSize: FlareTextRoles.caption.fontSize,
+                color: colors.textSecondary,
+              ),
+            ),
+          )
+        : null;
+    if (pc) {
+      return Padding(
+        padding: const EdgeInsets.only(top: FlareSizes.spacingSm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Wrap(
+              spacing: FlareSizes.spacingSm,
+              runSpacing: FlareSizes.spacingSm,
+              children: [
+                if (primary case final action?)
+                  IntrinsicWidth(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: FlareSizes.componentActionMinWidth,
+                      ),
+                      child: key(
+                        action,
+                        variant: _variantOf(action),
+                        block: true,
+                      ),
+                    ),
+                  ),
+                for (final action in secondary)
+                  key(action, variant: FlareButtonVariant.secondary),
+              ],
+            ),
+            ?caption,
+          ],
+        ),
+      );
+    }
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (secondary.isNotEmpty)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (final action in secondary)
+                Flexible(
+                  child: key(
+                    action,
+                    variant: FlareButtonVariant.quiet,
+                    appearance: FlareButtonAppearance.text,
+                  ),
+                ),
+            ],
+          ),
+        if (primary case final action?)
+          key(
+            action,
+            variant: _variantOf(action),
+            size: FlareControlSize.lg,
+            block: true,
+          ),
+        ?caption,
+      ],
+    );
+    if (!pinned) return body;
+    return FlarePluginPinnedBar(child: body);
+  }
+}
+
+/// A phone page's bottom bar (R2.2, R6, R7): primary-surface ground, a
+/// hairline on top, md / lg insets and the safe area under it.
+class FlarePluginPinnedBar extends StatelessWidget {
+  const FlarePluginPinnedBar({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        border: Border(top: BorderSide(color: colors.borderSecondary)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: FlareSizes.spacingLg,
+            vertical: FlareSizes.spacingMd,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// The status card of a verification page (§6.1): the tone icon 48, the
+/// status field's words as the title (20/700), the description, the steps
+/// across and the page's primary key.
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({
+    this.field,
+    this.description,
+    this.steps,
+    this.primary,
+    this.caption,
+  });
+  final FlarePluginField? field;
+  final String? description;
+  final FlarePluginStepsBlock? steps;
+  final Widget? primary;
+  final String? caption;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FlareColors.of(context);
+    final strings = FlareStrings.of(context);
+    final field = this.field;
+    final tone = field == null || field.unmapped
+        ? FlarePluginTone.neutral
+        : field.tone ?? FlarePluginTone.neutral;
+    return Container(
+      key: const ValueKey('flare-plugin-status-card'),
+      padding: const EdgeInsets.all(FlareSizes.spacingLg),
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        borderRadius: BorderRadius.circular(FlareSizes.radiusCard),
+        border: Border.all(color: colors.borderSecondary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              FlarePluginToneIcon(tone: tone, size: 48),
+              const SizedBox(width: FlareSizes.spacingMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (field != null)
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          flarePluginStatusText(
+                            flarePluginFormatText(
+                              field.value,
+                              field.format,
+                              strings,
+                            ),
+                            unmapped: field.unmapped,
+                            strings: strings,
+                            where: field.label,
+                          ),
+                          style: TextStyle(
+                            fontSize: FlareTextRoles.title.fontSize,
+                            fontWeight: FontWeight.w700,
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    if (description?.isNotEmpty ?? false) ...[
+                      const SizedBox(height: FlareSizes.spacingXs),
+                      Text(
+                        description!,
+                        style: TextStyle(
+                          fontSize: FlareSizes.fontSizeLg,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (steps case final steps?) ...[
+            const SizedBox(height: FlareSizes.spacingLg),
+            FlarePluginStepsView(block: steps),
+          ],
+          if (primary case final primary?) ...[
+            const SizedBox(height: FlareSizes.spacingLg),
+            primary,
+          ],
+          if (caption case final caption?)
+            Padding(
+              padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
+              child: Text(
+                caption,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: FlareTextRoles.caption.fontSize,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -2493,12 +3862,25 @@ class _ProgressBlock extends StatelessWidget {
 }
 
 class _NoteBlock extends StatelessWidget {
-  const _NoteBlock({required this.block});
+  const _NoteBlock({required this.block, this.plain = false});
   final FlarePluginNoteBlock block;
+
+  /// A section's info note (R1): a caption in secondary text, no tint.
+  final bool plain;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    if (plain) {
+      return Text(
+        block.text,
+        key: const ValueKey('flare-plugin-note'),
+        style: TextStyle(
+          fontSize: FlareTextRoles.caption.fontSize,
+          color: colors.textSecondary,
+        ),
+      );
+    }
     return DecoratedBox(
       key: const ValueKey('flare-plugin-note'),
       decoration: BoxDecoration(

@@ -88,7 +88,8 @@ data class FlarePaymentOrder(
 }
 
 object FlarePaymentRules {
-    private val prefix = mapOf("CNY" to "¥", "USD" to "$", "EUR" to "€", "GBP" to "£", "JPY" to "JP¥", "HKD" to "HK$")
+    /** The currency symbols the kit writes before an amount (R10); any other code goes after the number. One table for every amount. */
+    internal val prefix = mapOf("CNY" to "¥", "USD" to "$", "EUR" to "€", "GBP" to "£", "JPY" to "JP¥", "HKD" to "HK$")
     private val plain = Regex("^(\\d+)(?:\\.(\\d{1,18}))?$")
 
     /**
@@ -105,6 +106,22 @@ object FlarePaymentRules {
         val code = currency.trim().uppercase()
         prefix[code]?.let { return it + number }
         return if (code.isEmpty()) number else "$number $code"
+    }
+
+    /**
+     * R11: the words a screen reader gets for an amount drawn with a currency symbol: the symbol becomes the
+     * currency's name in [locale] after the number ("¥1,000.00" → "1,000.00 人民币"), so the reader never guesses at
+     * "¥"; a text without a known symbol is returned as it is. A leading sign stays in front.
+     */
+    fun spokenAmount(text: String, locale: java.util.Locale): String {
+        val trimmed = text.trim()
+        val sign = trimmed.takeWhile { it == '+' || it == '-' || it == '\u2212' }
+        val rest = trimmed.drop(sign.length)
+        // The longest symbol first: "JP¥" before "¥", "HK$" before "$".
+        val (code, symbol) = prefix.entries.sortedByDescending { it.value.length }.firstOrNull { rest.startsWith(it.value) }
+            ?.let { it.key to it.value } ?: return text
+        val name = runCatching { java.util.Currency.getInstance(code).getDisplayName(locale) }.getOrNull() ?: code
+        return "$sign${rest.removePrefix(symbol).trim()} $name"
     }
 
     /** What is left of an order: whole seconds rounded up, mm:ss under an hour, h:mm:ss from an hour on. */

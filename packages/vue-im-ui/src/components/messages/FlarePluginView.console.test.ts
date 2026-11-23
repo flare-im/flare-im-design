@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, reactive } from "vue";
 import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type {
@@ -201,6 +201,41 @@ describe("protected media on the owner's page", () => {
   });
 });
 
+describe("protected media thumbnails on the owner's page (6.1)", () => {
+  const own = {
+    kind: "protected-media" as const,
+    label: "My documents",
+    items: [
+      { id: "m1", label: "Front", mediaType: "image/jpeg", input: {} },
+      { id: "m2", label: "Back", mediaType: "image/jpeg", input: {} },
+      { id: "m3", label: "Holding", mediaType: "image/jpeg", input: {} },
+    ],
+    action: { id: "viewDocument", label: "View" },
+    inputName: "materialId",
+    urlPath: "/url",
+  };
+
+  it("draws three named blurred thumbnails and opens the read picture full screen", async () => {
+    const state = reactive<{ protectedMedia: Record<string, { url?: string; loading?: boolean }> }>({ protectedMedia: {} });
+    const reads: FlarePluginProtectedMediaRead[] = [];
+    const wrapper = mount(defineComponent({
+      setup() {
+        useFlareI18nProvider("en-US");
+        return () => h(FlarePluginView as never, { embedded: true, view: view({ blocks: [own] }), protectedMedia: state.protectedMedia, onProtectedMediaRead: (read: FlarePluginProtectedMediaRead) => reads.push(read) });
+      },
+    }), { attachTo: document.body });
+    const thumbs = wrapper.findAll("[data-media-thumbnails] [data-media-read]");
+    expect(thumbs.map((thumb) => thumb.attributes("aria-label"))).toEqual(["Front, tap to view", "Back, tap to view", "Holding, tap to view"]);
+    await thumbs[0].trigger("click");
+    expect(reads.map((read) => read.formValues)).toEqual([{ materialId: "m1" }]);
+    expect(document.body.querySelector(".image-preview-modal__img")).toBeNull();
+    state.protectedMedia = { m1: { url: "blob:https://app/m1" } };
+    await flushPromises();
+    expect(wrapper.get("[data-media-id='m1'] [data-media-image]").attributes("src")).toBe("blob:https://app/m1");
+    expect(document.body.querySelector(".image-preview-modal__img")?.getAttribute("src")).toBe("blob:https://app/m1");
+  });
+});
+
 describe("admin flow layout", () => {
   it("admin flow renders sections and a primary save", async () => {
     const wrapper = render({
@@ -242,6 +277,8 @@ describe("admin flow layout", () => {
     await flushPromises();
     expect(wrapper.findAll(".flare-admin-section")).toHaveLength(0);
     expect(wrapper.find(".flare-plugin-view").classes()).not.toContain("is-admin-flow");
-    expect(wrapper.find("[data-action-id=reset]").classes()).toContain("is-text");
+    // A message card draws real keys (R2.4/R2.6): never a bare text link.
+    expect(wrapper.find("[data-action-id=reset]").classes()).not.toContain("is-text");
+    expect(wrapper.find("[data-action-id=reset]").classes()).toContain("flare-button--secondary");
   });
 });

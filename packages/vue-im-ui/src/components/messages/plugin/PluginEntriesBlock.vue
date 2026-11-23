@@ -2,8 +2,9 @@
 import FlareAvatar from "../../conversation/FlareAvatar.vue";
 import FlareTag from "../../general/FlareTag.vue";
 import { useFlareI18nOptional } from "../../../shared/i18n/useFlareI18n";
+import { flarePluginStatusDraw } from "../../../shared/contracts/plugin-experience";
+import { useFlarePluginWarnScope } from "./warnScope";
 import {
-  flarePluginBadgeTone,
   flarePluginEntryGroupHeader,
   flarePluginInstant,
   flarePluginIsoTime,
@@ -16,7 +17,7 @@ import {
 // card shows fewer than there are, which hands over to the detail view. A grouped list is one flat list with a
 // header row ("火锅 · 3 票 · 60%") before the first item of each group (spec rules.entriesGrouped); the viewer's
 // own row carries the "me" tag, and an item's badge (a ledger line's kind) comes before its text (rules.badge).
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   block: FlarePluginEntriesBlock;
   /** The resolved (or fallback) user of an id. */
   userOf: (userId: string) => FlarePluginUser;
@@ -24,9 +25,17 @@ const props = defineProps<{
   viewerId?: string;
   /** An entry's time as text (entries with `timeMs`). */
   timeText?: (ms: number) => string;
-}>();
+  /** A detail/page host with no deeper destination omits this card-only key. */
+  showAll?: boolean;
+}>(), { showAll: true });
 const emit = defineEmits<{ (e: "seeAll"): void }>();
 const { t } = useFlareI18nOptional();
+const warnAt = useFlarePluginWarnScope();
+/** R3: an entry's badge as its Tag — the unknown status (and one development warning) when unmapped. */
+function badgeOf(badge: { text: string; tone: string; unmapped?: boolean }): { label: string; tone: "success" | "warning" | "danger" | "info" | "neutral" } {
+  const drawn = flarePluginStatusDraw(badge, warnAt("entries:badge"));
+  return { label: drawn.unknown ? t("pluginView.unknownStatus") : drawn.text, tone: drawn.tone ?? "neutral" };
+}
 
 /** entry.name, else the resolved user's, else the fallback; no name without a user. */
 function nameOf(entry: FlarePluginEntry): string | undefined {
@@ -61,8 +70,7 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
           <FlareTag
             v-if="entry.badge"
             class="flare-plugin-entries__badge"
-            :label="entry.badge.text"
-            :tone="flarePluginBadgeTone(entry.badge.tone)"
+            v-bind="badgeOf(entry.badge)"
             data-entry-badge="true"
           />
           <span class="flare-plugin-entries__text" data-entry-text="true">{{ entry.text }}</span>
@@ -77,7 +85,7 @@ function nameOf(entry: FlarePluginEntry): string | undefined {
       </template>
     </ol>
     <p v-else-if="block.emptyText" class="flare-plugin-entries__empty" data-entries-empty="true">{{ block.emptyText }}</p>
-    <button v-if="block.more" type="button" class="flare-plugin-entries__all" data-entries-see-all="true" @click="emit('seeAll')">
+    <button v-if="block.more && showAll" type="button" class="flare-plugin-entries__all" data-entries-see-all="true" @click="emit('seeAll')">
       {{ t("pluginView.seeAll", { count: block.total }) }}
     </button>
   </div>

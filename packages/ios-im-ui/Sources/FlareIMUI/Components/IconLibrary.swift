@@ -45,7 +45,7 @@ public let flareIconMap: [String: String] = [
     "search": "magnifyingglass",
     "send": "paperplane",
     "more": "ellipsis",
-    "back": "chevron.left",
+    "back": "arrow.left",
     "close": "xmark",
     "check": "checkmark",
     "add": "plus",

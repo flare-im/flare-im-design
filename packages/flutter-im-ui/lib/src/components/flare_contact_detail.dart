@@ -6,6 +6,8 @@ import '../tokens/flare_tokens.dart';
 import 'flare_avatar.dart';
 import 'flare_icon.dart';
 import 'flare_settings_list.dart';
+import 'flare_screen.dart';
+import '../tokens/flare_strings.dart';
 
 /// Contact profile — hero (avatar / name / star chip), an action row
 /// (message / voice / video), a 资料 settings card (Flare ID / 备注 / 描述 /
@@ -29,6 +31,10 @@ import 'flare_settings_list.dart';
 /// secondary key. It is not one of the footer's [extraActions]. While the
 /// host runs it, [primaryActionBusy] puts a spinner in place of its icon and
 /// takes that key's taps away; the rest of the page stays usable.
+///
+/// [after] sits below the 资料 card, inside the page's scroll (the host's
+/// relation bar for someone who is not a friend). [busy] disables the
+/// editable rows and the star toggle while the host writes.
 class FlareContactDetail extends StatelessWidget {
   const FlareContactDetail({
     super.key,
@@ -49,6 +55,8 @@ class FlareContactDetail extends StatelessWidget {
     this.onRemove,
     this.extraActions = const [],
     this.onExtraAction,
+    this.after,
+    this.busy = false,
   });
 
   final FlareContact contact;
@@ -88,10 +96,17 @@ class FlareContactDetail extends StatelessWidget {
   final ValueChanged<String>? onExtraAction;
   final VoidCallback? onBlock;
   final VoidCallback? onRemove;
+  final Widget? after;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
+    // The const default means "the environment's language"; labels a host
+    // passes still win.
+    final labels = identical(this.labels, const FlareContactDetailLabels())
+        ? FlareContactDetailLabels.of(FlareStrings.of(context))
+        : this.labels;
     final flareId = contact.flareId ?? '';
     final remark = contact.remark ?? '';
     final note = description ?? '';
@@ -113,6 +128,7 @@ class FlareContactDetail extends StatelessWidget {
           kind: onEditRemark != null
               ? FlareSettingKind.navigation
               : FlareSettingKind.value,
+          disabled: busy,
           detail: remark.isNotEmpty ? remark : labels.notSet,
         ),
       if (onEditDescription != null || note.isNotEmpty)
@@ -123,6 +139,7 @@ class FlareContactDetail extends StatelessWidget {
           kind: onEditDescription != null
               ? FlareSettingKind.navigation
               : FlareSettingKind.value,
+          disabled: busy,
           detail: note.isNotEmpty ? note : labels.notSet,
         ),
       if (onToggleStar != null)
@@ -131,6 +148,7 @@ class FlareContactDetail extends StatelessWidget {
           label: labels.star,
           icon: 'star',
           kind: FlareSettingKind.toggle,
+          disabled: busy,
           value: starred,
         ),
     ];
@@ -138,6 +156,8 @@ class FlareContactDetail extends StatelessWidget {
     // The host's primary action leads the row; Message is then a secondary
     // key, so the row has one primary.
     final lead = primaryLabel.isNotEmpty && onPrimaryAction != null;
+    // Vue: the primary key fills the row on a page, keeps its size in a detail pane.
+    final block = !FlareScreen.detailOf(context);
     final actions = [
       if (lead)
         _action(
@@ -145,11 +165,19 @@ class FlareContactDetail extends StatelessWidget {
           'person-add',
           onPrimaryAction!,
           primary: true,
+          block: block,
           busy: primaryActionBusy,
           key: const ValueKey('flare-contact-primary-action'),
         ),
+      // Message is a label-only key, as in the Vue kit.
       if (onMessage != null)
-        _action(labels.message, 'comment', onMessage!, primary: !lead),
+        _action(
+          labels.message,
+          null,
+          onMessage!,
+          primary: !lead,
+          block: block && !lead,
+        ),
       if (onCall != null) _action(labels.voice, 'phone', onCall!),
       if (onVideo != null) _action(labels.video, 'video', onVideo!),
     ];
@@ -167,97 +195,90 @@ class FlareContactDetail extends StatelessWidget {
       if (onRemove != null) _footButton(labels.remove, onRemove!, danger: true),
     ];
 
-    return ListView(
+    final actionRow = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: block ? FlareSizes.spacingMd : 0,
+        vertical: FlareSizes.spacingSm,
+      ),
+      child: Wrap(spacing: FlareSizes.spacing2sm, children: actions),
+    );
+    final content = ListView(
       children: [
-        // Hero.
+        // Hero: avatar beside the identity (name with the star mark, then the
+        // signature), as the Vue kit's compact identity.
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            FlareSizes.spacingLg,
-            FlareSizes.spacing2xl,
-            FlareSizes.spacingLg,
-            FlareSizes.spacingMd,
-          ),
-          child: Column(
+          // In a detail pane the screen owns the gutter (Vue `.is-detail`).
+          padding: block
+              ? const EdgeInsets.fromLTRB(
+                  FlareSizes.spacingMd,
+                  FlareSizes.spacingLg,
+                  FlareSizes.spacingMd,
+                  FlareSizes.spacingMd,
+                )
+              : const EdgeInsets.only(bottom: FlareSizes.spacingMd),
+          child: Row(
             children: [
               FlareAvatar(
                 userId: contact.id,
                 displayName: contact.name,
                 avatarUrl: contact.avatarUrl,
-                size: 76,
+                size: 64,
                 presence: contact.presence,
               ),
-              const SizedBox(height: FlareSizes.spacingMd),
-              Text(
-                contact.name,
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: FlareSizes.fontSize4xl,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (contact.signature != null &&
-                  contact.signature!.isNotEmpty) ...[
-                const SizedBox(height: FlareSizes.spacingXs),
-                Text(
-                  contact.signature!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: FlareSizes.fontSizeMd,
-                  ),
-                ),
-              ],
-              if (starred) ...[
-                const SizedBox(height: FlareSizes.spacingSm),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: FlareSizes.spacing2sm,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.bgSelected,
-                    borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FlareIcon(
-                        'star',
-                        size: FlareSizes.fontSizeSm,
-                        color: colors.primaryText,
-                      ),
-                      const SizedBox(width: FlareSizes.spacingXs),
+              const SizedBox(width: FlareSizes.spacing2md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              contact.name,
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: FlareSizes.fontSizeXl,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (starred) ...[
+                          const SizedBox(width: FlareSizes.spacingSm),
+                          Semantics(
+                            label: labels.star,
+                            child: FlareIcon(
+                              'star',
+                              size: 16,
+                              color: colors.primaryText,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (contact.signature != null &&
+                        contact.signature!.isNotEmpty) ...[
+                      const SizedBox(height: FlareSizes.spacingXs),
                       Text(
-                        labels.star,
+                        contact.signature!,
                         style: TextStyle(
-                          color: colors.primaryText,
-                          fontSize: FlareSizes.fontSizeSm,
-                          fontWeight: FontWeight.w600,
+                          color: colors.textSecondary,
+                          fontSize: FlareSizes.fontSizeMd,
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
 
         // Actions the host handles, sharing the row.
-        if (actions.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              FlareSizes.spacingLg,
-              FlareSizes.spacingSm,
-              FlareSizes.spacingLg,
-              FlareSizes.spacingXs,
-            ),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: FlareSizes.spacingSm,
-              children: actions,
-            ),
-          ),
+        if (!block && actions.isNotEmpty) actionRow,
 
         // 资料 settings card, left out when it has no rows.
         if (items.isNotEmpty)
@@ -280,6 +301,8 @@ class FlareContactDetail extends StatelessWidget {
             shrinkWrap: true,
           ),
 
+        ?after,
+
         // Danger zone.
         if (dangers.isNotEmpty)
           Padding(
@@ -293,13 +316,24 @@ class FlareContactDetail extends StatelessWidget {
           ),
       ],
     );
+    if (!block || actions.isEmpty) return content;
+    return Column(
+      children: [
+        Expanded(child: content),
+        ColoredBox(
+          color: colors.bgPrimary,
+          child: SafeArea(top: false, child: actionRow),
+        ),
+      ],
+    );
   }
 
   Widget _action(
     String label,
-    String icon,
+    String? icon,
     VoidCallback onTap, {
     bool primary = false,
+    bool block = false,
     bool busy = false,
     Key? key,
   }) {
@@ -307,10 +341,11 @@ class FlareContactDetail extends StatelessWidget {
       key: key,
       label: label,
       icon: icon,
+      block: block,
       variant: primary
           ? FlareButtonVariant.primary
           : FlareButtonVariant.secondary,
-      size: FlareControlSize.sm,
+      size: FlareControlSize.lg,
       maintainTouchTarget: true,
       loading: busy,
       onPressed: onTap,
@@ -322,7 +357,7 @@ class FlareContactDetail extends StatelessWidget {
       label: label,
       onPressed: onTap,
       block: true,
-      size: FlareControlSize.sm,
+      size: FlareControlSize.lg,
       maintainTouchTarget: true,
       variant: danger
           ? FlareButtonVariant.danger
@@ -358,4 +393,19 @@ class FlareContactDetailLabels {
   final String video;
   final String block;
   final String remove;
+
+  /// The labels in the environment's language.
+  factory FlareContactDetailLabels.of(FlareStrings strings) =>
+      FlareContactDetailLabels(
+        info: strings.contactDetailInfo,
+        remark: strings.contactDetailRemark,
+        description: strings.contactDetailDescription,
+        star: strings.contactDetailStar,
+        notSet: strings.contactDetailNotSet,
+        message: strings.sendMessage,
+        voice: strings.contactDetailVoice,
+        video: strings.contactDetailVideo,
+        block: strings.contactDetailBlock,
+        remove: strings.contactDetailRemove,
+      );
 }

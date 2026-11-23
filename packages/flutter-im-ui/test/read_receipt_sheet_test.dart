@@ -183,9 +183,7 @@ void main() {
         if (facts['empty'] case final String which) {
           expect(
             find.text(
-              which == 'read'
-                  ? strings.noReadersYet
-                  : strings.everyoneHasRead,
+              which == 'read' ? strings.noReadersYet : strings.everyoneHasRead,
             ),
             findsOneWidget,
             reason: '$id empty notice',

@@ -2,7 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
 
-enum FlareSkeletonVariant { conversation, message, profile, text }
+/// [card]: one 160-high card (then [FlareSkeleton.rows] list rows), [list]:
+/// rows of list height, [form]: labelled field placeholders — the plugin page
+/// archetype skeletons (R8 of docs/plugin-experience.md); [tile]: one square
+/// block filling its box (a composer panel item while plugin items load).
+enum FlareSkeletonVariant {
+  conversation,
+  message,
+  profile,
+  text,
+  card,
+  list,
+  form,
+  tile,
+}
 
 /// Loading skeleton — shimmering placeholder blocks for lists, bubbles and
 /// profiles. Spec: General/Skeleton (`FlareSkeleton`).
@@ -24,14 +37,17 @@ class FlareSkeleton extends StatefulWidget {
 
 class _FlareSkeletonState extends State<FlareSkeleton>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
+  // Made on first use: a still skeleton never builds one, and dispose must
+  // not create it (no ancestor lookups once deactivated).
+  AnimationController? _controller;
+  AnimationController get _c => _controller ??= AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
   )..repeat();
 
   @override
   void dispose() {
-    _c.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -44,6 +60,27 @@ class _FlareSkeletonState extends State<FlareSkeleton>
       FlareSkeletonVariant.message => _message(colors),
       FlareSkeletonVariant.profile => _profile(colors),
       FlareSkeletonVariant.text => _text(colors),
+      FlareSkeletonVariant.card => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _block(
+            colors,
+            height: FlareSizes.componentSkeletonCardHeight,
+            radius: FlareSizes.radiusCard,
+          ),
+          const SizedBox(height: FlareSizes.spacingLg),
+          _list(colors),
+        ],
+      ),
+      FlareSkeletonVariant.list => _list(colors),
+      FlareSkeletonVariant.form => _form(colors),
+      FlareSkeletonVariant.tile => _block(
+        colors,
+        height: double.infinity,
+        width: double.infinity,
+        radius: FlareSizes.radiusLg,
+      ),
     };
     if (!animate) return content;
     return AnimatedBuilder(
@@ -219,6 +256,43 @@ class _FlareSkeletonState extends State<FlareSkeleton>
       ),
     );
   }
+
+  Widget _list(FlareColors colors) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var i = 0; i < widget.rows; i++)
+        SizedBox(
+          height: FlareSizes.touchTarget + FlareSizes.spacingMd,
+          child: Row(
+            children: [
+              _block(colors, width: 36, height: 36, circle: true),
+              const SizedBox(width: FlareSizes.spacingMd),
+              Expanded(child: _line(colors, (90 - (i * 17) % 40) / 100, 11)),
+              const SizedBox(width: FlareSizes.spacingMd),
+              _block(colors, width: 56, height: 13),
+            ],
+          ),
+        ),
+    ],
+  );
+
+  Widget _form(FlareColors colors) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var i = 0; i < widget.rows; i++) ...[
+        if (i > 0) const SizedBox(height: FlareSizes.spacingLg),
+        _line(colors, 0.3, 11),
+        const SizedBox(height: FlareSizes.spacingSm),
+        _block(
+          colors,
+          height: FlareSizes.controlHeightLg,
+          radius: FlareSizes.radiusLg,
+        ),
+      ],
+    ],
+  );
 }
 
 class _SweepTransform extends GradientTransform {

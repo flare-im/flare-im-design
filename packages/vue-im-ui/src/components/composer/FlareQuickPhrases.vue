@@ -26,7 +26,7 @@ const activeGroup = computed(
   <div class="flare-quick-phrases">
     <header class="flare-quick-phrases__head">
       <div class="flare-quick-phrases__title">
-        <n-icon aria-hidden="true" :size="15" :component="FlashOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="FlashOutline" />
         {{ t("quickPhrase.title") }}
       </div>
       <button
@@ -35,7 +35,7 @@ const activeGroup = computed(
         class="flare-quick-phrases__manage"
         @click="emit('manage')"
       >
-        <n-icon aria-hidden="true" :size="15" :component="CreateOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="CreateOutline" />
         {{ t("quickPhrase.manage") }}
       </button>
     </header>

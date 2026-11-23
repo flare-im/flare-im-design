@@ -33,6 +33,7 @@ export * from "./gifPlayback";
 export * from "./scrollAnchor";
 export * from "./messageRows";
 export * from "./mediaResolveRequest";
+export { createMessageMediaPreviews } from "./messageMediaPreviews";
 export * from "./messageMedia";
 export { formatConversationTime, formatMessageTime, formatRelativeTime, timelineDateLabel } from "../shared/timeline-label";
 export { flareServerClockOffset, flareServerNow, flareServerNowMs, setFlareServerClockOffset } from "../shared/server-clock";

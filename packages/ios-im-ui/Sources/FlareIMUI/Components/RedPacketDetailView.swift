@@ -1,22 +1,21 @@
 import SwiftUI
 
-/// A red packet's details page body: the red arc header, the sender ("X的红包" with the kind badge), the greeting,
+/// A red packet's details page body: the red arch (``RedPacketArchView``), the sender ("X的红包" with the kind badge), the greeting,
 /// and what this viewer may see. Spec: RedPacketDetail (`RedPacketDetailView`).
 ///
 /// Red packet v5 §2: the server trims the details by `viewerRole`, and the page draws exactly what came back
 /// (`spec/red-packet-vectors.json` detail, ``FlareRedPacketDetailRules``): the viewer's own amount in large type with
-/// "已存入钱包" when `myAmountMinor` is there; a headline for an eligible member who came too late ("手慢了，红包派完了"
+/// "已存入钱包" (a way to the wallet with `onDeposited`) when `myAmountMinor` is there; a headline for an eligible member who came too late ("手慢了，红包派完了"
 /// / "红包已过期") and for a member the packet is not for ("仅 某某 可领取"); the summary band (totals only when the
 /// server returned them — to the sender); the claim list only when `claimsListed`; the sender's refund line.
 /// Amounts are formatted from minor units with `currencyExponent` by integer arithmetic; best luck is the server's.
 ///
 /// It is a page, not a layer: the host pushes it and wraps it in ``FlareScreen`` (which scrolls).
 ///
-/// With `onBack` the page draws its own red title bar — a light back key and `title` (the kit's
-/// ``FlareStrings/packetDetailTitle`` by default) — in one piece with the arc below and reaching up into the top
-/// safe area; the host hides its own navigation bar then. Inside a scroll view (which turns the safe area into a
-/// content inset) the host lets the scroll view ignore the top safe area and pads the page by it: the red runs up
-/// past the page's top to fill it. Without `onBack` the page starts at the arc.
+/// With `onBack` the page draws the kit's neutral page header — back and `title` (the kit's
+/// ``FlareStrings/packetDetailTitle`` by default) — above the arch; the host hides its own navigation bar then.
+/// Without `onBack` the page starts at the arch. On a wide window (iPad, Mac) the content is a centred column
+/// ``FlareSizes/detailPaneMaxWidth`` wide, the arch included.
 public struct RedPacketDetailView: View {
     private let senderName: String
     private let senderAvatar: String?
@@ -25,6 +24,7 @@ public struct RedPacketDetailView: View {
     private let claims: [FlareRedPacketClaim]
     private let title: String?
     private let onBack: (() -> Void)?
+    private let onDeposited: (() -> Void)?
     private let clock: PluginViewClock
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
@@ -35,19 +35,23 @@ public struct RedPacketDetailView: View {
     ///   - designatedName: An exclusive packet's designated member, for "仅 某某 可领取".
     ///   - claims: The claim rows (names and avatars from the host's directory); drawn only when
     ///     `details.claimsListed`.
+    ///   - onDeposited: Makes the "saved to your wallet" line a way to the wallet.
+    ///   - nowMs: The moment times are written against ("today" shows the time alone); the server clock when nil.
     public init(senderName: String, senderAvatar: String? = nil, details: FlareRedPacketDetailsView,
                 designatedName: String? = nil, claims: [FlareRedPacketClaim] = [], title: String? = nil,
-                onBack: (() -> Void)? = nil) {
+                onBack: (() -> Void)? = nil, onDeposited: (() -> Void)? = nil, nowMs: Int64? = nil) {
         self.init(senderName: senderName, senderAvatar: senderAvatar, details: details, designatedName: designatedName,
-                  claims: claims, title: title, onBack: onBack, clock: .system)
+                  claims: claims, title: title, onBack: onBack, onDeposited: onDeposited,
+                  clock: PluginViewClock(nowMs: nowMs, utcOffsetMinutes: nil))
     }
 
     /// The page at a fixed clock — how the tests pin now and the zone.
     init(senderName: String, senderAvatar: String?, details: FlareRedPacketDetailsView, designatedName: String?,
-         claims: [FlareRedPacketClaim], title: String?, onBack: (() -> Void)?, clock: PluginViewClock) {
+         claims: [FlareRedPacketClaim], title: String?, onBack: (() -> Void)?, onDeposited: (() -> Void)? = nil,
+         clock: PluginViewClock) {
         self.senderName = senderName; self.senderAvatar = senderAvatar; self.details = details
         self.designatedName = designatedName; self.claims = claims; self.title = title; self.onBack = onBack
-        self.clock = clock
+        self.onDeposited = onDeposited; self.clock = clock
     }
 
     private var presentation: FlareRedPacketDetailPresentation {
@@ -59,14 +63,30 @@ public struct RedPacketDetailView: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         let shown = presentation
         VStack(spacing: 0) {
-            top(colors)
+            if let onBack {
+                ScreenHeaderView(title: title ?? strings.packetDetailTitle, leading: {
+                    IconButtonView(icon: "back", accessibilityLabel: strings.back, action: onBack)
+                })
+            }
+            column(colors, shown)
+                .frame(maxWidth: FlareSizes.detailPaneMaxWidth)
+                .frame(maxWidth: .infinity)
+        }
+        .frame(maxWidth: .infinity, alignment: .top)
+        .background(colors.bgPrimary)
+    }
+
+    /// The arch and everything under it: one column, as wide as the details pane at most.
+    private func column(_ colors: FlareColors, _ shown: FlareRedPacketDetailPresentation) -> some View {
+        VStack(spacing: 0) {
+            RedPacketArchView()
             header(colors, shown)
                 .padding(.top, FlareSizes.spacing2xl)
                 .padding(.horizontal, FlareSizes.spacingLg)
             if let summary = shown.summary {
                 Text(summary)
                     .font(.system(size: FlareSizes.fontSizeMd))
-                    .foregroundColor(colors.textTertiary)
+                    .foregroundColor(colors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, FlareSizes.spacingLg)
                     .padding(.vertical, FlareSizes.spacingSm)
@@ -106,76 +126,27 @@ public struct RedPacketDetailView: View {
                     .padding(.vertical, FlareSizes.spacingXl)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .top)
-        .background(colors.bgPrimary)
-    }
-
-    /// The red arc, under the red title bar when the page has a way back. Bar and arc are one shape and one
-    /// gradient, so there is no seam between them.
-    private func top(_ colors: FlareColors) -> some View {
-        VStack(spacing: 0) {
-            if let onBack { titleBar(colors, onBack: onBack) }
-            Color.clear.frame(height: FlareSizes.componentRedPacketDetailHeaderHeight)
-        }
-        .frame(maxWidth: .infinity)
-        .background(
-            RedPacketFlapShape(depth: FlareSizes.componentRedPacketDetailHeaderHeight * 0.4)
-                .fill(RedPacketPalette.cover(colors))
-                // With its own title bar the page is the top of the screen. A scroll view turns the safe area into
-                // a content inset nothing inside can reach past, so the host pads the page by it instead and the
-                // red reaches up past the page's top: under the status bar, and into a short pull past the top.
-                .padding(.top, onBack == nil ? 0 : -Self.topBleed)
-                .ignoresSafeArea(edges: .top)
-                .accessibilityHidden(true)
-        )
-    }
-
-    /// How far the red runs up past the page's top when the page has its own title bar: more than any phone's
-    /// status bar.
-    static let topBleed: CGFloat = 160
-
-    private func titleBar(_ colors: FlareColors, onBack: @escaping () -> Void) -> some View {
-        ZStack {
-            Text(title ?? strings.packetDetailTitle)
-                .font(.system(size: FlareSizes.fontSize2xl, weight: .semibold))
-                .foregroundColor(colors.redPacketOnSurface)
-                .lineLimit(1)
-                .padding(.horizontal, FlareSizes.touchTarget)
-                .accessibilityAddTraits(.isHeader)
-            HStack(spacing: 0) {
-                Button(action: onBack) {
-                    Image(systemName: flareIconSymbol("back"))
-                        .font(.system(size: FlareSizes.iconSizeMd, weight: .semibold))
-                        .foregroundColor(colors.redPacketOnSurface)
-                        .flareTouchTarget()
-                }
-                .buttonStyle(.plain)
-                .flipsForRightToLeftLayoutDirection(true)
-                .accessibilityLabel(strings.back)
-                Spacer(minLength: 0)
-            }
-        }
-        .padding(.horizontal, FlareSizes.spacingXs)
-        .frame(maxWidth: .infinity, minHeight: FlareSizes.headerHeight)
     }
 
     private func header(_ colors: FlareColors, _ shown: FlareRedPacketDetailPresentation) -> some View {
         let badge = FlareRedPacketCardRules.badge(details.kind, strings: strings)
         return VStack(spacing: FlareSizes.spacingSm) {
+            AvatarView(userId: senderName, displayName: senderName, avatarURL: senderAvatar,
+                       size: FlareSizes.componentRedPacketDetailAvatarSize)
+                .accessibilityHidden(true)
             HStack(spacing: FlareSizes.spacingSm) {
-                AvatarView(userId: senderName, displayName: senderName, avatarURL: senderAvatar,
-                           size: FlareSizes.iconSizeXl)
                 Text(strings.packetFromSender(senderName))
                     .font(.system(size: FlareSizes.fontSize3xl, weight: .semibold))
                     .foregroundColor(colors.textPrimary)
                     .lineLimit(1)
                 if let badge {
+                    // The kind reads as a quiet tag beside the title (Vue `__kind`, Compose): the red is the arch's.
                     Text(badge)
                         .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
-                        .foregroundColor(colors.redPacketGold)
+                        .foregroundColor(colors.textSecondary)
                         .padding(.horizontal, FlareSizes.spacingXs)
-                        .padding(.vertical, FlareSizes.spacing3xs)
-                        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXs).fill(colors.redPacketEnd))
+                        .frame(minWidth: FlareSizes.iconSizeMd, minHeight: FlareSizes.iconSizeMd)
+                        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXs).fill(colors.bgSecondary))
                 }
             }
             .accessibilityElement(children: .combine)
@@ -193,19 +164,35 @@ public struct RedPacketDetailView: View {
             }
             if let amount = shown.amount {
                 Text(amount)
-                    .font(.system(size: FlareSizes.componentRedPacketAmountFontSize, weight: .semibold))
+                    .font(.system(size: FlareSizes.componentRedPacketDetailAmountFontSize, weight: .semibold)
+                        .monospacedDigit())
                     .foregroundColor(colors.textPrimary)
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
                     .padding(.top, FlareSizes.spacingMd)
-                if shown.deposited {
-                    Text(strings.packetDeposited)
-                        .font(.system(size: FlareSizes.fontSizeMd))
-                        .foregroundColor(colors.textTertiary)
-                }
+                if shown.deposited { deposited(colors) }
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// "已存入钱包" after the success mark; with `onDeposited` a way to the wallet ("›").
+    @ViewBuilder private func deposited(_ colors: FlareColors) -> some View {
+        let line = HStack(spacing: FlareSizes.spacingXs) {
+            IconView("success", size: FlareSizes.iconSizeSm, color: colors.successText)
+            Text(strings.packetDeposited)
+                .font(.system(size: FlareSizes.fontSizeMd))
+                .foregroundColor(colors.textSecondary)
+            if onDeposited != nil {
+                IconView("chevron-right", size: FlareSizes.fontSizeSm, color: colors.textTertiary)
+            }
+        }
+        if let onDeposited {
+            Button(action: onDeposited) { line.flareTouchTarget() }
+                .buttonStyle(FlareButtonFeedbackStyle())
+        } else {
+            line
+        }
     }
 
     private func row(_ claim: FlareRedPacketClaim, _ colors: FlareColors) -> some View {
@@ -228,12 +215,13 @@ public struct RedPacketDetailView: View {
             Spacer(minLength: FlareSizes.spacingSm)
             VStack(alignment: .trailing, spacing: FlareSizes.spacing3xs) {
                 Text(shown.amount ?? "")
-                    .font(.system(size: FlareSizes.fontSizeXl, weight: .medium))
+                    .font(.system(size: FlareSizes.fontSize2xl, weight: .semibold).monospacedDigit())
                     .foregroundColor(colors.textPrimary)
                     .lineLimit(1)
                 if claim.best {
                     HStack(spacing: FlareSizes.spacing3xs) {
-                        IconView("star", size: FlareSizes.iconSizeSm, color: colors.warningText)
+                        // §4.6: the star 12, as tall as its label.
+                        IconView("star", size: FlareSizes.fontSizeSm, color: colors.warningText)
                             .accessibilityHidden(true)
                         Text(strings.packetBestLuck)
                             .font(.system(size: FlareSizes.fontSizeSm))
@@ -243,8 +231,7 @@ public struct RedPacketDetailView: View {
             }
         }
         .padding(.horizontal, FlareSizes.spacingLg)
-        .padding(.vertical, FlareSizes.spacingMd)
-        .frame(minHeight: FlareSizes.touchTarget)
+        .frame(minHeight: FlareSizes.componentRedPacketClaimRowHeight)
         .accessibilityElement(children: .combine)
     }
 }

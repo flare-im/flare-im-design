@@ -109,7 +109,10 @@ final class InviteVectorsTests: XCTestCase {
         let s = FlareStrings()
         XCTAssertEqual(inviteCooldownText(s, FlareInviteCooldown(unit: .minute, count: 15)), "15 分钟 后可重新生成")
         XCTAssertEqual(inviteDepthLabel(s, .total), "团队总数")
-        let en = FlareStrings(myInviteCooldown: "You can regenerate in {time}", myInviteUnitDays: "{n} d")
+        let en = FlareStrings { copy in
+            copy.myInviteCooldown = "You can regenerate in {time}"
+            copy.myInviteUnitDays = "{n} d"
+        }
         XCTAssertEqual(inviteCooldownText(en, FlareInviteCooldown(unit: .day, count: 3)), "You can regenerate in 3 d")
     }
 }

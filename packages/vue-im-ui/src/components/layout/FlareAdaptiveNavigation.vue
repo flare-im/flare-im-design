@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<{
   activeId: string;
   responsiveMode: FlareApplicationResponsiveMode;
   presentation?: FlareNavigationPresentation;
+  appearance?: "default" | "workspace";
   label?: string;
   /** 谁在用这个 app。给了就画在侧栏最上面;手机底栏不画(那里没有这个位置)。 */
   identity?: FlareNavigationIdentity;
@@ -125,7 +126,7 @@ function onKeydown(event: KeyboardEvent, index: number): void {
 </script>
 
 <template>
-  <nav class="flare-adaptive-navigation" :data-presentation="resolvedPresentation" :aria-label="label || undefined">
+  <nav class="flare-adaptive-navigation" :data-presentation="resolvedPresentation" :data-appearance="appearance" :aria-label="label || undefined">
     <!-- 身份 → 新建 / 搜索 → 导航。手机底栏是一行图标,没有这个纵向位置,所以只在侧栏画。 -->
     <div v-if="showLeading" class="flare-adaptive-navigation__leading">
       <button
@@ -203,7 +204,7 @@ function onKeydown(event: KeyboardEvent, index: number): void {
         @keydown="onKeydown($event, items.indexOf(item))"
       >
         <span class="flare-adaptive-navigation__icon">
-          <FlareGlyph :icon="item.icon || 'comment'" :size="resolvedPresentation === 'rail' ? 24 : 20" />
+          <FlareGlyph :icon="item.icon || 'comment'" size="lg" />
           <span
             v-if="item.badge"
             class="flare-adaptive-navigation__badge"
@@ -357,6 +358,27 @@ function onKeydown(event: KeyboardEvent, index: number): void {
 .flare-adaptive-navigation[data-presentation="rail"] .flare-adaptive-navigation__item.is-active .flare-adaptive-navigation__label {
   color: var(--flare-color-primary-text);
   font-weight: 600;
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="rail"] {
+  border-inline-end: 0;
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="rail"] .flare-adaptive-navigation__item.is-active {
+  background: var(--flare-color-bg-selected);
+  box-shadow: inset 0 0 0 1px var(--flare-color-border-primary);
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="bottom"] .flare-adaptive-navigation__icon {
+  width: calc(var(--flare-size-layout-touch-target-min) + var(--flare-size-spacing-sm));
+  height: calc(var(--flare-size-icon-size-lg) + var(--flare-size-spacing-xs));
+  border-radius: var(--flare-size-radius-full);
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="bottom"] .is-active .flare-adaptive-navigation__icon {
+  background: var(--flare-color-bg-selected);
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="bottom"] .is-active .flare-adaptive-navigation__label {
+  font-weight: var(--flare-size-font-weight-semibold);
+}
+.flare-adaptive-navigation[data-appearance="workspace"][data-presentation="bottom"] .flare-adaptive-navigation__badge {
+  inset-inline-end: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .flare-adaptive-navigation__item { transition: none; }

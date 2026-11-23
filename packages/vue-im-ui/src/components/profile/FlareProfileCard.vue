@@ -59,13 +59,13 @@ const presenceLabel = computed(() =>
 
     <div v-if="handles('onMessage') || handles('onCall') || handles('onVideo')" class="flare-profile-card__actions">
       <button v-if="handles('onMessage')" type="button" class="is-primary" @click="emit('message')">
-        <n-icon aria-hidden="true" :size="17" :component="ChatbubbleEllipsesOutline" />{{ t("contact.message") }}
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="ChatbubbleEllipsesOutline" />{{ t("contact.message") }}
       </button>
       <button v-if="handles('onCall')" type="button" @click="emit('call')" :aria-label="t('contact.voice')">
-        <n-icon aria-hidden="true" :size="17" :component="CallOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="CallOutline" />
       </button>
       <button v-if="handles('onVideo')" type="button" @click="emit('video')" :aria-label="t('contact.video')">
-        <n-icon aria-hidden="true" :size="17" :component="VideocamOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="VideocamOutline" />
       </button>
     </div>
   </div>

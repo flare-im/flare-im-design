@@ -121,7 +121,9 @@ void main() {
     String countdown() => tester
         .widget<Text>(find.byKey(const ValueKey('flare-plugin-countdown')))
         .data!;
-    expect(countdown(), '剩余 30:00');
+    // Wall clock: a loaded run may cross the 500 ms margin into 29:59; a
+    // wrong offset would read 25:00 or 35:00.
+    expect(countdown(), anyOf('剩余 30:00', '剩余 29:59'));
     await tester.pumpWidget(const SizedBox());
   });
 

@@ -11,17 +11,20 @@ public enum FlareRedPacketOpenState: String, Sendable, CaseIterable {
 }
 
 /// The open-packet layer: a red envelope centred over the scrim, with the sender, the blessing and the gold
-/// open button on the flap's edge, and the close button under the envelope. Spec: RedPacketOpenSheet.
+/// open button on the flap's edge, and the close button at its top trailing corner. Spec: RedPacketOpenSheet.
 ///
 /// Present it with ``SwiftUI/View/flareRedPacketOpenSheet(isPresented:onDismiss:sheet:)`` (a clear full-screen
 /// cover on iOS 16.4+, a system sheet elsewhere) or draw it over the page yourself. The scrim, Escape, the
-/// VoiceOver escape gesture and the close button call `onClose`; the host clears the presentation there.
+/// VoiceOver escape gesture and the close button call `onClose`; the host clears the presentation there. While
+/// `opening` none of them closes it (§12.12), and 開 answers Return.
 ///
 /// - Copy: `finished` says the packet ran out, `expired` that it is past its lifetime, `refunded` that what was left
 ///   went back to the sender, `notEligible` that this viewer cannot open it; the host's `message` (for instance "only they can open it") replaces each. Under
 ///   `error` the message, or the kit's retry copy, shows under the blessing.
+/// - `reviewOnError`: a failed claim may still have landed, so under `error` the sheet offers no second try — the
+///   open button gives way to a "view result" key that calls `onViewDetails` (when the viewer may look).
 /// - Motion: while `opening` the button turns about its vertical axis. With Reduce Motion it does not turn and
-///   says the claim is in progress instead.
+///   shows a spinner instead.
 /// - The host formats names and passes the avatar URL; the layer requests nothing.
 /// - Keys per state (`spec/red-packet-vectors.json` openSheet): 開 while ready, opening or error; the details key only
 ///   for finished / expired / refunded with `canViewDetails` (from the personal layer); never for notEligible — the server
@@ -34,6 +37,7 @@ public struct RedPacketOpenSheet: View {
     private let state: FlareRedPacketOpenState
     private let message: String?
     private let canViewDetails: Bool
+    private let reviewOnError: Bool
     private let onOpen: (() -> Void)?
     private let onViewDetails: (() -> Void)?
     private let onClose: () -> Void
@@ -46,10 +50,11 @@ public struct RedPacketOpenSheet: View {
 
     public init(senderName: String, senderAvatar: String? = nil, blessing: String, kindLabel: String? = nil,
                 state: FlareRedPacketOpenState = .ready, message: String? = nil, canViewDetails: Bool = true,
-                onOpen: (() -> Void)? = nil, onViewDetails: (() -> Void)? = nil,
+                reviewOnError: Bool = false, onOpen: (() -> Void)? = nil, onViewDetails: (() -> Void)? = nil,
                 onClose: @escaping () -> Void) {
         self.senderName = senderName; self.senderAvatar = senderAvatar; self.blessing = blessing
         self.kindLabel = kindLabel; self.state = state; self.message = message; self.canViewDetails = canViewDetails
+        self.reviewOnError = reviewOnError
         self.onOpen = onOpen; self.onViewDetails = onViewDetails; self.onClose = onClose
     }
 
@@ -58,7 +63,7 @@ public struct RedPacketOpenSheet: View {
         GeometryReader { proxy in
             ZStack {
                 if !chromeless {
-                    FlareOverlayScrim(color: colors.scrim, visible: visible, onTap: onClose)
+                    FlareOverlayScrim(color: colors.scrim, visible: visible, onTap: close)
                 }
                 if visible {
                     layer(width: Self.envelopeWidth(window: proxy.size.width))
@@ -67,6 +72,16 @@ public struct RedPacketOpenSheet: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
+    }
+
+    /// §12.12: while the claim runs nothing closes the sheet — not the scrim, Escape, back or the close key.
+    var dismissible: Bool { state != .opening }
+
+    private func close() { if dismissible { onClose() } }
+
+    /// The flap's large line: the blessing on two lines; a notice (why there is nothing to open) on three.
+    static func headlineLines(_ state: FlareRedPacketOpenState) -> Int {
+        state == .ready || state == .opening || state == .error ? 2 : 3
     }
 
     /// The envelope's width: the token, never closer than an extra-large gutter to the window's sides.
@@ -108,16 +123,21 @@ public struct RedPacketOpenSheet: View {
         FlareRedPacketOpenRules.showsDetails(state, canViewDetails: canViewDetails)
     }
 
+    /// `reviewOnError` under `error`: the details key ("view result") replaces another try at the open button.
+    static func reviews(_ state: FlareRedPacketOpenState, reviewOnError: Bool, canViewDetails: Bool = true) -> Bool {
+        reviewOnError && state == .error && canViewDetails
+    }
+
+    private var reviewing: Bool { Self.reviews(state, reviewOnError: reviewOnError, canViewDetails: canViewDetails) }
+
     private func layer(width: CGFloat) -> some View {
-        VStack(spacing: FlareSizes.spacingXl) {
-            envelope(width: width)
-            closeButton
-        }
-        .background(FlareOverlayEscapeKey(escape: .close, perform: onClose))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(strings.packetFromSender(senderName))
-        .accessibilityAddTraits(.isModal)
-        .accessibilityAction(.escape) { onClose() }
+        envelope(width: width)
+            .overlay(alignment: .topTrailing) { closeButton.padding(FlareSizes.spacingSm) }
+            .background(FlareOverlayEscapeKey(escape: dismissible ? .close : .none, perform: close))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(strings.packetFromSender(senderName))
+            .accessibilityAddTraits(.isModal)
+            .accessibilityAction(.escape) { close() }
     }
 
     private func envelope(width: CGFloat) -> some View {
@@ -126,32 +146,33 @@ public struct RedPacketOpenSheet: View {
         let flapHeight = minHeight * RedPacketMetrics.flapShare
         let coin = FlareSizes.componentRedPacketOpenButtonSize
         let curve = width * RedPacketMetrics.flapCurve
-        let showsCoin = Self.showsOpenButton(state)
+        let showsCoin = Self.showsOpenButton(state) && !reviewing
         return VStack(spacing: 0) {
             VStack(spacing: FlareSizes.spacingMd) {
-                HStack(spacing: FlareSizes.spacingSm) {
+                VStack(spacing: FlareSizes.spacingSm) {
                     AvatarView(userId: senderName, displayName: senderName, avatarURL: senderAvatar,
-                               size: FlareSizes.iconSizeXl)
+                               size: FlareSizes.componentRedPacketDetailAvatarSize)
+                        .accessibilityHidden(true)
                     Text(strings.packetFromSender(senderName))
-                        .font(.system(size: FlareSizes.fontSize2xl, weight: .medium))
+                        .font(.system(size: FlareSizes.fontSizeXl, weight: .semibold))
                         .foregroundColor(colors.redPacketGold)
                         .lineLimit(1)
                 }
                 if let kindLabel, !kindLabel.isEmpty {
                     Text(kindLabel)
-                        .font(.system(size: FlareSizes.fontSizeXs, weight: .medium))
+                        .font(.system(size: FlareSizes.fontSizeSm, weight: .medium))
                         .foregroundColor(colors.redPacketEnd)
                         .padding(.horizontal, FlareSizes.spacingSm)
                         .padding(.vertical, FlareSizes.spacing3xs)
                         .background(Capsule().fill(colors.redPacketGold))
                 }
-                // A long notice (a host's message, a failure) wraps at the kit's body line height, three lines at most.
+                // §4.5: the blessing 20/600 on two lines; a long notice (a host's message) wraps to three.
                 Text(Self.headline(state: state, blessing: blessing, message: message, strings: strings))
-                    .font(.system(size: FlareSizes.fontSize5xl, weight: .semibold))
+                    .font(.system(size: FlareSizes.fontSize4xl, weight: .semibold))
                     .foregroundColor(colors.redPacketGold)
                     .multilineTextAlignment(.center)
-                    .lineSpacing(Self.lineGap(FlareSizes.fontSize5xl))
-                    .lineLimit(3)
+                    .lineSpacing(Self.lineGap(FlareSizes.fontSize4xl))
+                    .lineLimit(Self.headlineLines(state))
                     .truncationMode(.tail)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, FlareSizes.spacingSm)
@@ -173,11 +194,13 @@ public struct RedPacketOpenSheet: View {
             .background(
                 RedPacketFlapShape(depth: curve)
                     .fill(RedPacketPalette.flap(colors))
-                    .shadow(color: Color.black.opacity(0.18), radius: FlareSizes.spacingSm, y: FlareSizes.spacingXs)
+                    .flareShadow(FlareShadows.of(scheme).md)
             )
             .alignmentGuide(.redPacketFlapEdge) { $0[.bottom] }
             ZStack {
-                if Self.showsDetails(state, canViewDetails: canViewDetails), onViewDetails != nil { detailsLink }
+                if Self.showsDetails(state, canViewDetails: canViewDetails) || reviewing, onViewDetails != nil {
+                    detailsLink
+                }
             }
             .padding(.top, showsCoin ? coin / 2 : 0)
             .padding(.bottom, FlareSizes.spacingLg)
@@ -193,8 +216,8 @@ public struct RedPacketOpenSheet: View {
         .frame(width: width)
         // Its own height, whatever the window offers.
         .fixedSize(horizontal: false, vertical: true)
-        .background(RoundedRectangle(cornerRadius: FlareSizes.radiusXl).fill(RedPacketPalette.body(colors)))
-        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radiusXl))
+        .background(RoundedRectangle(cornerRadius: FlareSizes.radius2xl).fill(RedPacketPalette.body(colors)))
+        .clipShape(RoundedRectangle(cornerRadius: FlareSizes.radius2xl))
         // One shadow under the envelope's outline, not one under each line of text.
         .compositingGroup()
         .flareShadow(FlareShadows.of(scheme).xl)
@@ -209,6 +232,8 @@ public struct RedPacketOpenSheet: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        // §4.5: Enter / Return opens (Space is the focused button's own).
+        .keyboardShortcut(.defaultAction)
         .disabled(opening || onOpen == nil)
         .accessibilityLabel(strings.packetOpenAction)
         .accessibilityValue(opening ? strings.packetBusy : "")
@@ -234,16 +259,11 @@ public struct RedPacketOpenSheet: View {
         let coin = FlareSizes.componentRedPacketOpenButtonSize
         return ZStack {
             Circle().fill(RedPacketPalette.coin(colors))
-                .shadow(color: Color.black.opacity(0.22), radius: FlareSizes.spacingXs, y: FlareSizes.spacing3xs)
+                .flareShadow(FlareShadows.of(scheme).sm)
             Circle().stroke(colors.redPacketGoldDeep, lineWidth: FlareSizes.spacing3xs)
             if progress {
-                // Reduce Motion: the claim's progress in words instead of the turning coin.
-                Text(strings.packetBusy)
-                    .font(.system(size: FlareSizes.fontSizeMd, weight: .semibold))
-                    .foregroundColor(colors.redPacketEnd)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .padding(FlareSizes.spacingSm)
+                // Reduce Motion: a spinner instead of the turning coin; the button's value says it is busy.
+                ProgressView().controlSize(.large).tint(colors.redPacketEnd)
             } else {
                 Text(strings.packetOpenAction)
                     .font(.system(size: coin * RedPacketMetrics.openGlyphShare, weight: .semibold, design: .serif))
@@ -260,7 +280,7 @@ public struct RedPacketOpenSheet: View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         return Button { onViewDetails?() } label: {
             HStack(spacing: FlareSizes.spacingXs) {
-                Text(strings.packetViewDetails)
+                Text(reviewing ? strings.packetViewResult : strings.packetViewDetails)
                 Image(systemName: flareIconSymbol("chevron-right"))
                     .font(.system(size: FlareSizes.fontSizeSm, weight: .semibold))
                     .accessibilityHidden(true)
@@ -270,21 +290,16 @@ public struct RedPacketOpenSheet: View {
             .padding(.horizontal, FlareSizes.spacingMd)
             .flareTouchTarget()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(FlareButtonFeedbackStyle())
     }
 
+    /// The kit icon button, `componentRedPacketCloseSize` on a deeper red disc, its target 44.
     private var closeButton: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        return Button(action: onClose) {
-            Image(systemName: flareIconSymbol("close"))
-                .font(.system(size: FlareSizes.iconSizeSm, weight: .medium))
-                .foregroundColor(colors.redPacketOnSurface)
-                .frame(width: FlareSizes.iconSizeXl, height: FlareSizes.iconSizeXl)
-                .overlay(Circle().stroke(colors.redPacketOnSurface.opacity(0.85), lineWidth: RedPacketMetrics.ringWidth))
-                .flareTouchTarget()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(strings.close)
+        return IconButtonView(icon: "close", accessibilityLabel: strings.close, disabled: !dismissible,
+                              tint: colors.redPacketGold,
+                              background: colors.redPacketEnd.opacity(FlareOpacity.tintStrong),
+                              customSize: FlareSizes.componentRedPacketCloseSize, action: close)
     }
 }
 
@@ -317,7 +332,7 @@ struct FlareRedPacketOpenPresenter: ViewModifier {
     func body(content: Content) -> some View {
         content.modifier(FlareLayerPresenter(
             isPresented: $isPresented, presence: presence, coverKind: .modal, registers: true,
-            dismissible: true, compact: nil, allowsPush: false,
+            dismissible: sheet().dismissible, compact: nil, allowsPush: false,
             resolve: { _ in .cover }, onDismiss: onDismiss,
             sheetLayer: { EmptyView() },
             coverLayer: { sheet() },

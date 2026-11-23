@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
+import 'flare_icon_button.dart';
+import '../models/directory_data.dart' show FlareControlSize;
 
 /// Semantic tone for [FlareStatusBanner].
 enum FlareStatusTone { info, success, warning, danger, neutral }
@@ -25,15 +28,24 @@ class FlareStatusBanner extends StatefulWidget {
     this.pulse = false,
     this.actionText,
     this.onAction,
+    this.actionDisabled = false,
     this.floating = false,
+    this.dismissible = false,
+    this.onDismiss,
   });
 
   final String text;
+
+  /// A close key that reports [onDismiss]; the host removes the banner (R8
+  /// action failure). Drawn only with [onDismiss].
+  final bool dismissible;
+  final VoidCallback? onDismiss;
   final FlareStatusTone tone;
   final bool dot;
   final bool pulse;
   final String? actionText;
   final VoidCallback? onAction;
+  final bool actionDisabled;
   final bool floating;
 
   @override
@@ -139,15 +151,24 @@ class _FlareStatusBannerState extends State<FlareStatusBanner>
             const SizedBox(width: FlareSizes.spacingSm),
             Flexible(
               child: TextButton(
-                onPressed: widget.onAction,
+                onPressed: widget.actionDisabled ? null : widget.onAction,
                 style: TextButton.styleFrom(
                   minimumSize: const Size(48, 48),
                   foregroundColor: colors.textPrimary,
+                  disabledForegroundColor: colors.textTertiary,
                 ),
                 child: Text(widget.actionText!),
               ),
             ),
           ],
+          if (widget.dismissible && widget.onDismiss != null)
+            FlareIconButton(
+              key: const ValueKey('flare-status-banner-dismiss'),
+              icon: 'close',
+              size: FlareControlSize.sm,
+              semanticLabel: FlareStrings.of(context).close,
+              onPressed: widget.onDismiss,
+            ),
         ],
       ),
     );

@@ -145,9 +145,10 @@ void main() {
         find.descendant(of: entry, matching: find.text('待审核')),
         findsOneWidget,
       );
+      // R10: the ledger line writes a true minus (U+2212).
       final amount = find.descendant(
         of: entry,
-        matching: find.text('-USD 12345678901234567890.001'),
+        matching: find.text('\u2212USD 12345678901234567890.001'),
       );
       expect(tester.widget<Text>(amount).maxLines, isNull);
       expect(
@@ -373,7 +374,7 @@ void main() {
                 busyActionId: 'operation',
                 settleToken: 7,
                 actionError: '原操作失败',
-                onRefresh: () => refreshes++,
+                onRefresh: (_) => refreshes++,
               );
             },
           ),

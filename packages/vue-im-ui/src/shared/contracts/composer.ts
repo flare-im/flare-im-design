@@ -105,6 +105,9 @@ export const FLARE_DEFAULT_COMPOSER_ACTION_IDS: readonly FlareComposerActionId[]
 ];
 
 /** The registry glyph of each unified action id; an action without its own icon draws it. */
+/** Tools that remain visible while the optional conversation menu is unavailable. */
+export const FLARE_STANDARD_COMPOSER_TOOL_IDS = ["emoji", "voice", "image", "richText", "attachments"] as const;
+
 export const FLARE_COMPOSER_ACTION_ICONS: Readonly<Record<FlareComposerActionId, string>> = {
   image: "image", camera: "camera", voice: "mic", video: "video", file: "file", location: "location",
   contact: "card", card: "card", poll: "poll", vote: "poll", task: "check", event: "calendar",

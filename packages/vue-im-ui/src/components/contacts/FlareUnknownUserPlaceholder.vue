@@ -88,12 +88,12 @@ const accessibleName = computed(() =>
     :data-kind="presentation.kind"
   >
     <span class="flare-unknown-user__avatar" aria-hidden="true">
-      <n-icon aria-hidden="true" :size="density === 'card' ? 28 : 20" :component="PersonOutline as any" />
+      <n-icon aria-hidden="true" :size="density === 'card' ? 'var(--flare-size-icon-size-xl)' : 'var(--flare-size-icon-size-md)'" :component="PersonOutline as any" />
     </span>
     <div class="flare-unknown-user__body">
       <p class="flare-unknown-user__title">
         <span class="flare-unknown-user__badge" aria-hidden="true">
-          <n-icon aria-hidden="true" :size="14" :component="glyphs[presentation.icon] as any" />
+          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="glyphs[presentation.icon] as any" />
         </span>
         <span class="flare-unknown-user__title-text">{{ title }}</span>
       </p>

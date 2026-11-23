@@ -55,6 +55,24 @@ object FlareTimeFormat {
     }
 
     /**
+     * How long ago [epochMs] was, for a feed (the web kit's `formatRelativeTime`): "now" under a minute, then minutes,
+     * hours and days ago in [locale]'s words (yesterday by name), and the day label from a week on.
+     */
+    fun relativeTime(epochMs: Long, locale: Locale, nowMs: Long = System.currentTimeMillis()): String {
+        val elapsed = (nowMs - epochMs).coerceAtLeast(0)
+        val f = android.icu.text.RelativeDateTimeFormatter.getInstance(android.icu.util.ULocale.forLocale(locale))
+        val last = android.icu.text.RelativeDateTimeFormatter.Direction.LAST
+        return when {
+            elapsed < 60_000 -> f.format(android.icu.text.RelativeDateTimeFormatter.Direction.PLAIN, android.icu.text.RelativeDateTimeFormatter.AbsoluteUnit.NOW)
+            elapsed < 3_600_000 -> f.format((elapsed / 60_000).toDouble(), last, android.icu.text.RelativeDateTimeFormatter.RelativeUnit.MINUTES)
+            elapsed < 86_400_000 -> f.format((elapsed / 3_600_000).toDouble(), last, android.icu.text.RelativeDateTimeFormatter.RelativeUnit.HOURS)
+            elapsed < 2 * 86_400_000L -> f.format(last, android.icu.text.RelativeDateTimeFormatter.AbsoluteUnit.DAY)
+            elapsed < 7 * 86_400_000L -> f.format((elapsed / 86_400_000).toDouble(), last, android.icu.text.RelativeDateTimeFormatter.RelativeUnit.DAYS)
+            else -> dayLabel(epochMs, nowMs, locale, ZoneId.systemDefault())
+        }
+    }
+
+    /**
      * The label of a timeline date separator. Every bubble already shows its own time, so separators
      * mark days only: the host's [today] and [yesterday] words, then the locale's numeric month and day
      * in the current year, with the year when it differs.

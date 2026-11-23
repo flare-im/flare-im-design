@@ -140,11 +140,11 @@ final class PluginViewV2Tests: XCTestCase {
 
         var asked: [String] = []
         var backs = 0
-        let page = try FlarePluginPage(page: ref, view: wallet, onBack: { backs += 1 }, onRefresh: {},
+        let page = try FlarePluginPage(page: ref, view: wallet, onBack: { backs += 1 }, onRefresh: { _ in },
                                        onLoadMore: { asked.append($0) }).inspect()
         XCTAssertNoThrow(try page.find(text: "¥12.00"))
         XCTAssertNoThrow(try page.find(text: "钱包"), "the view's title heads the page")
-        try page.find(button: s.myInviteLoadMore).tap()
+        try page.find(button: s.pluginViewLoadMore).tap()
         XCTAssertEqual(asked, ["c2"])
         try page.find(ViewType.Button.self, where: { (try? $0.accessibilityLabel().string()) == self.s.back }).tap()
         XCTAssertEqual(backs, 1)

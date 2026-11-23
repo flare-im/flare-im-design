@@ -43,6 +43,8 @@ public struct ConversationRowData: Identifiable, Sendable {
     /// Member count for group conversations (Feishu-style "N 人" header subtitle).
     /// `nil` when unknown or not a group.
     public let memberCount: Int?
+    /// `.group` puts the group mark on the row's avatar (Vue `FlareConversationRowModel.kind`).
+    public let kind: FlareConversationKind?
 
     public init(
         id: String,
@@ -59,7 +61,8 @@ public struct ConversationRowData: Identifiable, Sendable {
         tags: [ConversationRowTag] = [],
         memberCount: Int? = nil,
         typing: Bool = false,
-        failed: Bool = false
+        failed: Bool = false,
+        kind: FlareConversationKind? = nil
     ) {
         self.id = id
         self.title = title
@@ -76,6 +79,7 @@ public struct ConversationRowData: Identifiable, Sendable {
         self.presence = presence
         self.tags = tags
         self.memberCount = memberCount
+        self.kind = kind
     }
 
 
@@ -92,7 +96,7 @@ public struct ConversationRowData: Identifiable, Sendable {
             id: id, title: title, avatarURL: avatarURL, preview: preview, timestampLabel: timestampLabel,
             unreadCount: unreadCount, pinned: pinned, muted: muted, mentioned: mentioned,
             draftPreview: draftPreview ?? self.draftPreview, presence: presence ?? self.presence, tags: tags,
-            memberCount: memberCount, typing: typing ?? self.typing, failed: failed)
+            memberCount: memberCount, typing: typing ?? self.typing, failed: failed, kind: kind)
     }
 
     public var hasUnread: Bool { unreadCount > 0 }

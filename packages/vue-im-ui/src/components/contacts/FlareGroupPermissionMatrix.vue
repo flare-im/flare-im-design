@@ -163,7 +163,7 @@ function retry(row: GroupPermissionRow): void {
     <header class="flare-gpm__head">
       <h3 class="flare-gpm__title">{{ strings.title }}</h3>
       <p v-if="readOnly" class="flare-gpm__hint">
-        <n-icon :size="14" :component="flareIcons.lock" aria-hidden="true" />
+        <n-icon size="var(--flare-size-icon-size-sm)" :component="flareIcons.lock" aria-hidden="true" />
         <span>{{ strings.readOnlyHintText }}</span>
       </p>
     </header>
@@ -178,7 +178,7 @@ function retry(row: GroupPermissionRow): void {
       >
         <div class="flare-gpm__main">
           <span class="flare-gpm__icon" aria-hidden="true">
-            <n-icon aria-hidden="true" :size="18" :component="glyphs[row.key] as any" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="glyphs[row.key] as any" />
           </span>
           <div class="flare-gpm__text">
             <span class="flare-gpm__label" :id="`flare-gpm-${row.key}`">{{ labelFor(row.key) }}</span>
@@ -232,7 +232,7 @@ function retry(row: GroupPermissionRow): void {
             @click="dispatch(row, option.value)"
           >
             <span class="flare-gpm__choice-mark" aria-hidden="true">
-              <n-icon aria-hidden="true" v-if="row.value === option.value" :size="14" :component="flareIcons.check" />
+              <n-icon aria-hidden="true" v-if="row.value === option.value" size="var(--flare-size-icon-size-sm)" :component="flareIcons.check" />
             </span>
             <span>{{ option.label }}</span>
           </button>
@@ -242,7 +242,7 @@ function retry(row: GroupPermissionRow): void {
         </div>
 
         <div v-if="row.error" class="flare-gpm__error" role="alert">
-          <n-icon :size="14" :component="flareIcons.error" class="flare-gpm__error-icon" aria-hidden="true" />
+          <n-icon size="var(--flare-size-icon-size-sm)" :component="flareIcons.error" class="flare-gpm__error-icon" aria-hidden="true" />
           <span class="flare-gpm__error-text">{{ row.error }}</span>
           <button
             v-if="row.editable && retryValue(row) !== null"
@@ -251,7 +251,7 @@ function retry(row: GroupPermissionRow): void {
             :disabled="row.busy"
             @click="retry(row)"
           >
-            <n-icon :size="14" :component="flareIcons.refresh" aria-hidden="true" />
+            <n-icon size="var(--flare-size-icon-size-sm)" :component="flareIcons.refresh" aria-hidden="true" />
             <span>{{ strings.retryText }}</span>
           </button>
           <button
@@ -261,7 +261,7 @@ function retry(row: GroupPermissionRow): void {
             :title="strings.dismissErrorText"
             @click="emit('dismissError', row.key)"
           >
-            <n-icon :size="14" :component="flareIcons.close" aria-hidden="true" />
+            <n-icon size="var(--flare-size-icon-size-sm)" :component="flareIcons.close" aria-hidden="true" />
           </button>
         </div>
       </li>

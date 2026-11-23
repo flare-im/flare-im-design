@@ -8,7 +8,7 @@ import SwiftUI
 /// overrides once at the root:
 ///
 /// ```swift
-/// ContentView().flareStrings(FlareStrings(send: "Send"))
+/// ContentView().flareStrings(FlareStrings { $0.send = "Send" })
 /// ```
 ///
 /// Mirrors `FlareStrings` on Android (`LocalFlareStrings`) and the Flutter/Vue equivalents:
@@ -16,2284 +16,12 @@ import SwiftUI
 /// parameters are unaffected — the two coexist, explicit parameters win.
 @dynamicMemberLookup
 public struct FlareStrings: Sendable {
-    public init(
-        reauthFailed: String = "验证未完成，请重试",
-        reauthTitle: String = "验证身份",
-        reauthDestination: String = "验证方式",
-        reauthCode: String = "验证码",
-        reauthSendCode: String = "发送验证码",
-        reauthResendIn: String = "重新发送（{seconds}秒）",
-        reauthUnavailable: String = "没有可用的验证方式",
-        scanAllowAddByQr: String = "扫码添加我",
-        scanOpenExternal: String = "使用浏览器打开",
-        scanRetryable: String = "暂时无法获取扫码信息，请重试",
-        scanContinueLogin: String = "登录后继续",
-        scanProvidedBy: String = "由 {name} 提供",
-        scanLoginRequired: String = "登录后继续处理扫码结果",
-        scanForeignCode: String = "这是其他应用或环境的二维码",
-        scanText: String = "二维码内容",
-        scanExternalLink: String = "外部链接",
-        scanPending: String = "申请已提交",
-        scanUnknown: String = "操作结果待确认",
-        scanTitle: String = "扫一扫",
-        scanAlbum: String = "从图片识别",
-        scanPaste: String = "粘贴",
-        scanTorchOn: String = "打开手电筒",
-        scanTorchOff: String = "关闭手电筒",
-        scanChooseCode: String = "选择二维码",
-        scanPreparing: String = "正在准备相机…",
-        scanLive: String = "将二维码放入画面",
-        scanLowLight: String = "光线较暗，可打开手电筒",
-        scanLocked: String = "已识别",
-        scanChoosing: String = "发现多个二维码，请点选要识别的码",
-        scanPaused: String = "扫描已暂停",
-        scanImageDecoding: String = "正在识别图片…",
-        scanImageError: String = "图片识别失败，请重试或选择其他图片",
-        scanNoCodeInImage: String = "图片中没有二维码",
-        scanNoCamera: String = "此设备没有可用相机",
-        scanInsecureContext: String = "相机需要安全连接，请选择图片",
-        scanCameraBusy: String = "视频通话正在使用相机",
-        scanCameraError: String = "相机暂不可用，请重试或选择图片",
-        scanNotInviteCode: String = "这不是邀请码，请扫描邀请二维码",
-        scanResult: String = "识别结果",
-        scanUpgradeRequired: String = "请更新应用后使用此操作",
-        scanSaveCode: String = "保存二维码",
-        scanShareCode: String = "分享二维码",
-        scanCodeExpired: String = "二维码已过期，请刷新",
-        microphone: String = "麦克风",
-        camera: String = "摄像头",
-        flipCamera: String = "翻转",
-        speaker: String = "扬声器",
-        hangUp: String = "挂断",
-        muted: String = "已静音",
-        on: String = "开启",
-        off: String = "关闭",
-        callWaitingAnswer: String = "等待接听…",
-        callCalling: String = "呼叫中…",
-        callRinging: String = "响铃中…",
-        callConnected: String = "已接通",
-        callReconnecting: String = "正在恢复通话…",
-        callFailed: String = "通话连接失败",
-        callInProgress: String = "通话中",
-        send: String = "发送",
-        cancelReply: String = "取消回复",
-        noContacts: String = "还没有联系人",
-        noGroups: String = "还没有群组",
-        noResults: String = "没有找到结果",
-        noContent: String = "暂无内容",
-        noConversations: String = "暂无会话",
-        close: String = "关闭",
-        drawerLabel: String = "侧边面板",
-        modalLabel: String = "对话框",
-        delete: String = "删除",
-        report: String = "举报",
-        manage: String = "管理",
-        selectAll: String = "全选",
-        retry: String = "重试",
-        messagePending: String = "等待发送",
-        messageSending: String = "发送中",
-        messageSent: String = "已发送",
-        messageRead: String = "已读",
-        messageFailed: String = "发送失败",
-        messageEdited: String = "已编辑",
-        messageReadOnce: String = "仅可查看一次",
-        messageBurnAfterRead: String = "阅后即焚",
-        messageExpired: String = "已过期",
-        search: String = "搜索",
-        clearSearch: String = "清除搜索",
-        addReaction: String = "添加表情回复",
-        readReceipt: String = "已读回执",
-        readTab: @escaping @Sendable (Int) -> String = { "已读 (\($0))" },
-        unreadTab: @escaping @Sendable (Int) -> String = { "未读 (\($0))" },
-        noReadersYet: String = "还没有人已读",
-        everyoneHasRead: String = "所有人都已读",
-        selectedSuffix: String = "已选",
-        forwardEach: String = "逐条转发",
-        forwardMerged: String = "合并转发",
-        messageBatchPin: String = "置顶",
-        messageBatchPinSelf: String = "仅自己置顶",
-        messageBatchClear: String = "清除选择",
-        messageBatchUnforwardable: String = "{count} 条不支持转发",
-        messageBatchUnforwardableOne: String = "{count} 条不支持转发",
-        searchMembers: String = "搜索成员",
-        everyone: String = "所有人",
-        notifyEveryone: String = "通知全体成员",
-        noMatchingMembers: String = "没有匹配的成员",
-        quickPhrases: String = "快捷短语",
-        viewAll: @escaping @Sendable (Int) -> String = { "查看全部 \($0)" },
-        typing: String = "正在输入…",
-        typingOne: @escaping @Sendable (String) -> String = { "\($0) 正在输入…" },
-        typingMany: @escaping @Sendable (Int) -> String = { "\($0) 人正在输入…" },
-        newMessages: @escaping @Sendable (Int) -> String = { $0 > 0 ? "\($0) 条新消息" : "新消息" },
-        sendMessage: String = "发消息",
-        voiceCall: String = "语音",
-        videoCall: String = "视频",
-        groupCall: String = "群通话",
-        joinedCount: @escaping @Sendable (Int, String) -> String = { "\($0) 人已加入 · \($1)" },
-        selfSuffix: @escaping @Sendable (String) -> String = { "\($0)（我）" },
-        forwardTo: String = "转发给",
-        searchConversations: String = "搜索会话",
-        noMatchingConversations: String = "没有匹配的会话",
-        selectedCount: @escaping @Sendable (Int) -> String = { "已选 \($0)" },
-        groupAnnouncement: String = "群公告",
-        collapse: String = "收起",
-        expand: String = "展开",
-        packetFinished: String = "已被领完",
-        packetTapToClaim: String = "领取红包",
-        packetBrand: String = "Flare 红包",
-        packetBusy: String = "处理中…",
-        packetUnavailable: String = "暂不可用",
-        packetStateClaimed: String = "已领取",
-        packetStateExpired: String = "已过期",
-        packetKindLucky: String = "拼手气红包",
-        packetKindNormal: String = "普通红包",
-        packetKindExclusive: String = "专属红包",
-        packetKindPicker: String = "红包类型",
-        packetClaims: String = "领取记录",
-        packetFromSender: @escaping @Sendable (String) -> String = { "\($0)的红包" },
-        packetOpenAction: String = "開",
-        packetMissed: String = "手慢了，红包派完了",
-        packetExpiredNotice: String = "红包已过期",
-        packetNotEligible: String = "你不能领取这个红包",
-        packetOpenFailed: String = "领取失败，请重试",
-        packetViewDetails: String = "查看领取详情",
-        packetBestLuck: String = "手气最佳",
-        packetNoClaims: String = "暂无人领取",
-        packetDetailTitle: String = "红包详情",
-        packetFieldTotal: String = "总金额",
-        packetFieldEach: String = "单个金额",
-        packetFieldAmount: String = "金额",
-        packetFieldCount: String = "红包个数",
-        packetCountPlaceholder: String = "填写个数",
-        packetFieldRecipient: String = "发给谁",
-        packetGreetingLabel: String = "祝福语",
-        packetDefaultGreeting: String = "恭喜发财，大吉大利",
-        packetSubmit: String = "塞钱进红包",
-        packetPayTitle: String = "确认付款",
-        packetPayMethod: String = "支付方式",
-        packetPayConfirm: String = "确认支付",
-        packetInsufficient: String = "余额不足",
-        commands: String = "命令",
-        noMatchingCommands: String = "没有匹配的命令",
-        translating: String = "翻译中…",
-        translatedBy: @escaping @Sendable (String) -> String = { "由 \($0) 翻译" },
-        translated: String = "已翻译",
-        hideOriginal: String = "隐藏原文",
-        showOriginal: String = "显示原文",
-        scanToAddMe: String = "扫一扫加我",
-        qrCardUnavailable: String = "二维码暂不可用",
-        cancel: String = "取消",
-        releaseToCancel: String = "松开取消",
-        createPoll: String = "发起投票",
-        pollQuestionHint: String = "输入问题",
-        pollOptionHint: @escaping @Sendable (Int) -> String = { "选项 \($0)" },
-        removeOption: String = "删除选项",
-        addOption: String = "添加选项",
-        allowMultiple: String = "允许多选",
-        submitPoll: String = "创建投票",
-        chatBackground: String = "聊天背景",
-        decrease: String = "减少",
-        increase: String = "增加",
-        previousMonth: String = "上个月",
-        nextMonth: String = "下个月",
-        yearMonth: @escaping @Sendable (Int, Int) -> String = { "\($0)年\($1)月" },
-        unlike: String = "取消赞",
-        like: String = "赞",
-        comment: String = "评论",
-        momentReplyTo: String = "回复",
-        changeCover: String = "更换封面",
-        post: String = "发表",
-        momentTextHint: String = "这一刻的想法…",
-        addImage: String = "添加图片",
-        pickLocation: String = "所在位置",
-        pickVisibility: String = "谁可以看",
-        more: String = "更多",
-        hideTranscript: String = "收起文字",
-        showTranscript: String = "转文字",
-        recent: String = "最近",
-        searchEmoji: String = "搜索表情",
-        noMatchingEmoji: String = "没有匹配的表情",
-        emptyStickerPack: String = "该表情包暂无贴纸",
-        sticker: String = "贴纸",
-        actionImage: String = "图片",
-        actionVideo: String = "视频",
-        actionCamera: String = "拍摄",
-        actionFile: String = "文件",
-        actionLocation: String = "位置",
-        actionCard: String = "名片",
-        actionVote: String = "投票",
-        actionTask: String = "任务",
-        actionSchedule: String = "日程",
-        locationTitle: String = "位置",
-        locationSend: String = "发送",
-        locationLocateMe: String = "定位到当前位置",
-        locationLocating: String = "正在定位…",
-        locationDenied: String = "无法获取定位，可以搜索地点",
-        locationSearchPlaceholder: String = "搜索地点",
-        locationNoResults: String = "附近没有找到地点",
-        locationMapUnavailable: String = "地图暂不可用",
-        locationOpenInMaps: String = "在地图中打开",
-        locationCurrent: String = "当前位置",
-        locationCardPlace: String = "位置",
-        contactPickerTitle: String = "选择联系人",
-        contactPickerFriends: String = "好友",
-        contactPickerGroupMembers: String = "群成员",
-        contactPickerSearch: String = "搜索",
-        contactPickerEmpty: String = "没有联系人",
-        contactPickerSelfSuffix: String = "（我）",
-        incomingVideoCall: String = "邀请你进行视频通话",
-        incomingVoiceCall: String = "邀请你进行语音通话",
-        reject: String = "拒绝",
-        accept: String = "接听",
-        back: String = "返回",
-        confirm: String = "确定",
-        confirmCount: @escaping @Sendable (Int) -> String = { "确定 (\($0))" },
-        memberCount: @escaping @Sendable (Int) -> String = { "\($0) 名成员" },
-        clear: String = "清除",
-        wordCharCount: @escaping @Sendable (Int, Int) -> String = { "\($0) 个词 · \($1) 字符" },
-        changeAvatar: String = "更换头像",
-        qrCode: String = "二维码",
-        play: String = "播放",
-        navChats: String = "消息",            // Chats
-        navContacts: String = "通讯录",        // Contacts
-        navProfile: String = "我",             // Me
-        navFriends: String = "好友",           // Friends
-        navGroups: String = "群聊",            // Groups
-        navNewFriends: String = "新的朋友",     // New friends
-        favorites: String = "收藏",
-        moments: String = "圈子",
-        settings: String = "设置",
-        themeSystem: String = "跟随系统",     // System
-        themeLight: String = "浅色",          // Light
-        themeDark: String = "深色",           // Dark
-        inputReveal: String = "显示密码",      // Show password
-        inputHide: String = "隐藏密码",        // Hide password
-        permissionNoun: @escaping @Sendable (FlarePermissionKind) -> String = { kind in
-            switch kind {
-            case .microphone: return "麦克风"
-            case .camera: return "摄像头"
-            case .notifications: return "通知"
-            case .storage: return "存储空间"
-            case .photos: return "相册"
-            case .contacts: return "通讯录"
-            case .location: return "位置信息"
-            case .screen: return "屏幕录制"
-            }
-        },
-        permissionVerb: @escaping @Sendable (FlarePermissionKind) -> String = { kind in
-            switch kind {
-            case .microphone: return "使用麦克风"
-            case .camera: return "使用摄像头"
-            case .notifications: return "发送通知"
-            case .storage: return "访问存储空间"
-            case .photos: return "访问相册"
-            case .contacts: return "访问通讯录"
-            case .location: return "获取位置信息"
-            case .screen: return "录制屏幕内容"
-            }
-        },
-        permissionTitle: @escaping @Sendable (String) -> String = { "需要\($0)权限" },
-        permissionFeatureFallback: String = "此功能",
-        permissionUndeterminedBody: @escaping @Sendable (String, String) -> String = { "\($0)需要\($1)，请允许后继续。" },
-        permissionDeniedBody: @escaping @Sendable (String, String) -> String = { "\($1)的权限已被拒绝，\($0)无法使用。请前往系统设置开启。" },
-        permissionRestrictedBody: @escaping @Sendable (String, String) -> String = { "\($1)的权限受设备或组织策略限制，\($0)暂不可用。" },
-        permissionUnavailableBody: @escaping @Sendable (String, String) -> String = { "当前设备或运行环境不支持\($1)，\($0)暂不可用。" },
-        permissionAllow: String = "允许",
-        permissionOpenSettings: String = "前往设置",
-        permissionStateLabel: @escaping @Sendable (FlarePermissionState) -> String = { state in
-            switch state {
-            case .undetermined: return "未授权"
-            case .denied: return "已拒绝"
-            case .restricted: return "受限制"
-            case .unavailable: return "不可用"
-            case .granted: return "已允许"
-            }
-        },
-        permissionDismiss: String = "知道了",
-        permissionNotNow: String = "以后再说",
-        permissionSoftAskNotificationsTitle: String = "及时收到新消息",
-        permissionSoftAskNotificationsBody: String = "开启通知后，应用不在前台时也能收到新消息提醒。",
-        permissionSoftAskNotificationsDeniedBody: String = "通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。",
-        permissionSoftAskNotificationsAction: String = "开启通知",
-        groupMembers: String = "群成员",
-        groupOwner: String = "群主",
-        groupAdmin: String = "管理员",
-        addMember: String = "加成员",
-        loginDevices: String = "登录设备",
-        currentDevice: String = "当前设备",
-        filesAndMedia: String = "文件与媒体",
-        notificationSettings: String = "通知设置",
-        notificationDeliveryTitle: String = "通知",
-        notificationDeliveryNewMessages: String = "新消息通知",
-        notificationStatusOn: String = "已开启",
-        notificationStatusOff: String = "已关闭",
-        notificationStatusNotTurnedOn: String = "未开启",
-        backgroundDeliveryLabel: String = "后台接收消息",
-        backgroundDeliveryUnrestricted: String = "不受限制",
-        backgroundDeliveryOptimized: String = "已优化",
-        backgroundDeliveryRestricted: String = "受限制",
-        backgroundDeliveryExplanation: String = "新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。",
-        backgroundDeliveryAutoStartHint: String = "这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。",
-        backgroundDeliveryBattery: String = "电池使用",
-        backgroundDeliveryAutoStart: String = "自启动管理",
-        inAppNotificationLabel: String = "新消息",
-        inAppNotificationOpenHint: String = "打开会话",
-        inAppNotificationMention: String = "[有人@我]",
-        inAppNotificationUrgent: String = "[加急]",
-        quietHoursTitle: String = "勿扰",
-        quietHoursLabel: String = "勿扰时段",
-        quietHoursStart: String = "开始时间",
-        quietHoursEnd: String = "结束时间",
-        quietHoursRepeat: String = "重复",
-        quietHoursAllowMentions: String = "@我的消息照常提醒",
-        quietHoursFooter: String = "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。",
-        weekdayEveryDay: String = "每天",
-        weekdayWeekdays: String = "工作日",
-        weekdayWeekends: String = "周末",
-        weekdayMonday: String = "周一",
-        weekdayTuesday: String = "周二",
-        weekdayWednesday: String = "周三",
-        weekdayThursday: String = "周四",
-        weekdayFriday: String = "周五",
-        weekdaySaturday: String = "周六",
-        weekdaySunday: String = "周日",
-        notificationPreviewTitle: String = "通知内容",
-        notificationPreviewLabel: String = "通知预览",
-        notificationPreviewFull: String = "发送者和内容",
-        notificationPreviewSenderOnly: String = "仅发送者",
-        notificationPreviewHidden: String = "不显示",
-        notificationPreviewFooter: String = "锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。",
-        multiDeviceTitle: String = "多设备",
-        multiDeviceLabel: String = "其他设备活跃时",
-        multiDeviceDelay: String = "稍后提醒",
-        multiDeviceImmediate: String = "立即提醒",
-        multiDeviceBadgeOnly: String = "只更新角标",
-        multiDeviceFooter: String = "你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。",
-        inAppNotificationCount: @escaping @Sendable (Int) -> String = { "[\($0)条]" },
-        quietHoursNextDay: @escaping @Sendable (String) -> String = { "次日 \($0)" },
-        confirmAction: String = "确认",
-        selectDevice: String = "选择设备",
-        transferQueue: String = "传输队列",
-        noTransfers: String = "暂无传输任务",
-        retryFailedTransfers: String = "重试失败任务",
-        reload: String = "重新加载",
-        select: String = "选择",
-        selectTime: String = "选择时间",
-        selectDate: String = "选择日期",
-        today: String = "今天",
-        timeRange: String = "时间范围",
-        searchIdleHint: String = "输入关键词或选择类型",
-        resend: String = "重新发送",
-        groupPermissionMatrixTitle: String = "群设置",
-        groupPermissionMatrixReadOnlyHint: String = "仅群主和管理员可修改",
-        groupPermissionMatrixJoinPolicy: String = "加群方式",
-        groupPermissionMatrixJoinPolicyDescription: String = "决定他人如何加入本群",
-        groupPermissionMatrixJoinInvite: String = "仅邀请",
-        groupPermissionMatrixJoinApproval: String = "需管理员审批",
-        groupPermissionMatrixJoinOpen: String = "允许直接加入",
-        groupPermissionMatrixUnknownJoinPolicy: String = "当前加群方式未知，请重新选择",
-        groupPermissionMatrixMuteAll: String = "全员禁言",
-        groupPermissionMatrixMuteAllDescription: String = "开启后仅群主和管理员可发言",
-        groupPermissionMatrixOnlyAdminCanAtAll: String = "仅管理员可 @所有人",
-        groupPermissionMatrixOnlyAdminCanAtAllDescription: String = "限制 @所有人 的使用范围",
-        groupPermissionMatrixOnlyAdminCanPin: String = "仅管理员可置顶消息",
-        groupPermissionMatrixOnlyAdminCanPinDescription: String = "限制群内置顶消息的权限",
-        groupPermissionMatrixShareCardPermission: String = "允许分享群名片",
-        groupPermissionMatrixShareCardPermissionDescription: String = "关闭后成员不能把本群分享给他人",
-        groupPermissionMatrixOn: String = "已开启",
-        groupPermissionMatrixOff: String = "已关闭",
-        groupPermissionMatrixBusy: String = "提交中",
-        groupPermissionMatrixDismissError: String = "忽略此错误",
-        conversationBatchToolbarSelected: String = "已选",
-        conversationBatchToolbarEmpty: String = "请选择会话",
-        conversationBatchToolbarMarkRead: String = "标为已读",
-        conversationBatchToolbarMute: String = "免打扰",
-        conversationBatchToolbarArchive: String = "归档",
-        conversationBatchToolbarCancel: String = "取消选择",
-        conversationBatchToolbarBusy: String = "处理中",
-        conversationBatchToolbarSucceededSummary: String = "成功 {n} 项",
-        conversationBatchToolbarFailedSummary: String = "{n} 项失败",
-        conversationBatchToolbarRetryFailed: String = "重试失败项",
-        conversationBatchToolbarDismiss: String = "关闭结果",
-        conversationBatchToolbarExpand: String = "查看详情",
-        conversationBatchToolbarMaxSelection: String = "最多可选 {n} 项",
-        inviteCodeLabel: String = "邀请码",
-        inviteCodePlaceholder: String = "请输入邀请码",
-        inviteCodeOptional: String = "选填",
-        inviteCodeChecking: String = "正在校验邀请码…",
-        inviteCodeValid: String = "邀请码可用",
-        inviteCodeInviter: String = "邀请人：{name}",
-        inviteCodeInvalid: String = "邀请码无效",
-        inviteCodeScan: String = "扫码填入邀请码",
-        myInviteTitle: String = "我的邀请",
-        myInviteCodeLabel: String = "我的邀请码",
-        myInviteCodeUnavailable: String = "邀请码暂不可用",
-        myInviteCopy: String = "复制",
-        myInviteQrHint: String = "扫码注册",
-        myInviteShare: String = "分享",
-        myInviteRegenerate: String = "重新生成",
-        myInviteRegenerating: String = "生成中…",
-        myInviteCooldown: String = "{time} 后可重新生成",
-        myInviteUnitMinutes: String = "{n} 分钟",
-        myInviteUnitHours: String = "{n} 小时",
-        myInviteUnitDays: String = "{n} 天",
-        myInviteStatsTitle: String = "我的团队",
-        myInviteDirect: String = "直接邀请",
-        myInviteLevel2: String = "二级",
-        myInviteLevel3: String = "三级",
-        myInviteTotal: String = "团队总数",
-        myInviteInviteesTitle: String = "直接邀请的人",
-        myInviteInviterTitle: String = "邀请人",
-        myInviteNoInviter: String = "暂无邀请人",
-        myInviteRelationships: String = "邀请关系",
-        myInviteNoChildren: String = "暂无下级",
-        myInviteCollapse: String = "收起 {name}",
-        myInviteExpand: String = "展开 {name}",
-        myInviteInviterUnavailable: String = "暂无法读取邀请人",
-        myInviteCurrentUser: String = "当前用户",
-        myInviteEmpty: String = "还没有人通过你的邀请码加入",
-        myInviteLoadMore: String = "加载更多",
-        myInviteLoading: String = "正在加载邀请信息",
-        myInviteJoined: String = "{date} 加入",
-        myInviteCountOnly: String = "{count} 人",
-        storageUsageTitle: String = "存储空间",
-        storageUsageUnknownSize: String = "未知",
-        storageUsageAtLeast: String = "至少",
-        storageUsageClear: String = "清理",
-        storageUsageClearing: String = "清理中",
-        storageUsageTotal: String = "总计",
-        storageUsageDeviceFree: String = "可用空间",
-        storageUsageReload: String = "重新统计",
-        storageUsageRetry: String = "失败重试",
-        storageUsageDismissError: String = "忽略此错误",
-        storageUsageLoading: String = "正在统计存储占用",
-        storageUsageEmpty: String = "没有可统计的存储分类",
-        storageUsageFileCount: String = "{count} 个文件",
-        memberRoleSheetMemberRole: String = "成员",
-        memberRoleSheetMuted: String = "已禁言",
-        memberRoleSheetPromote: String = "设为管理员",
-        memberRoleSheetDemote: String = "取消管理员",
-        memberRoleSheetMute: String = "禁言",
-        memberRoleSheetUnmute: String = "解除禁言",
-        memberRoleSheetRemove: String = "移出群聊",
-        memberRoleSheetTransferOwner: String = "转让群主",
-        memberRoleSheetDangerGroup: String = "危险操作",
-        memberRoleSheetEmpty: String = "你没有管理权限",
-        memberRoleSheetOwnerProtected: String = "群主不可被管理",
-        relationActionBarAdd: String = "添加好友",
-        relationActionBarAccept: String = "接受",
-        relationActionBarRemove: String = "删除好友",
-        relationActionBarBlock: String = "加入黑名单",
-        relationActionBarUnblock: String = "移出黑名单",
-        relationActionBarPending: String = "等待对方验证",
-        relationActionBarBusy: String = "处理中",
-        relationActionBarDismissError: String = "关闭错误提示",
-        relationActionBarEmpty: String = "暂无可用操作",
-        screenShareTitle: String = "屏幕共享",
-        screenShareIdle: String = "未在共享",
-        screenShareRequesting: String = "正在请求共享",
-        screenShareSharing: String = "正在共享屏幕",
-        screenShareViewing: String = "正在观看共享",
-        screenShareUnavailable: String = "当前环境不支持屏幕共享",
-        screenShareSourceRow: String = "共享内容",
-        screenSharePresenterRow: String = "共享者",
-        screenShareStart: String = "共享屏幕",
-        screenShareStop: String = "停止共享",
-        screenShareCancel: String = "取消请求",
-        conversationActionSheetPin: String = "置顶",
-        conversationActionSheetUnpin: String = "取消置顶",
-        conversationActionSheetMute: String = "免打扰",
-        conversationActionSheetUnmute: String = "取消免打扰",
-        conversationActionSheetMarkRead: String = "标为已读",
-        conversationActionSheetMarkUnread: String = "标为未读",
-        conversationActionSheetArchive: String = "归档",
-        conversationActionSheetUnarchive: String = "取消归档",
-        conversationActionSheetHide: String = "隐藏",
-        conversationActionSheetClearHistory: String = "清空本地记录",
-        conversationActionSheetEmpty: String = "暂无可用操作",
-        messageActionSheetLabel: String = "消息操作",
-        messageActionSheetEmpty: String = "暂无可用操作",
-        messageSpoilerReveal: String = "剧透内容，点按显示",
-        messageImageGroupLabel: @escaping @Sendable (Int) -> String = { "\($0) 张图片" },
-        messageImageGroupItem: @escaping @Sendable (Int, Int) -> String = { "第 \($0) 张图片，共 \($1) 张" },
-        messageImageGroupItemMore: @escaping @Sendable (Int, Int, Int) -> String = {
-            "第 \($0) 张图片，共 \($1) 张，另有 \($2) 张未显示"
-        },
-        messageActionReply: String = "回复",
-        messageActionForward: String = "转发",
-        messageActionRecall: String = "撤回",
-        messageActionResend: String = "重新发送",
-        messageActionMultiSelect: String = "多选",
-        messageActionMark: String = "标记",
-        messageActionPin: String = "置顶消息",
-        messageActionPinSelf: String = "仅自己置顶",
-        messageActionUnpin: String = "取消置顶",
-        messageActionCopy: String = "复制",
-        messageActionPreview: String = "预览",
-        messageActionSave: String = "保存",
-        messageActionEdit: String = "编辑",
-        messageActionDelete: String = "删除",
-        workspaceFrameLoading: String = "正在加载",
-        workspaceFrameEmpty: String = "暂无内容",
-        workspaceFrameFailure: String = "加载失败",
-        workspaceFrameRetry: String = "重试",
-        conversationWorkspaceChatEmpty: String = "选择一个会话开始聊天",
-        conversationWorkspaceDetailEmpty: String = "暂无详情",
-        conversationWorkspaceListFailure: String = "会话列表加载失败",
-        conversationWorkspaceChatFailure: String = "消息加载失败",
-        conversationWorkspaceDetailFailure: String = "详情加载失败",
-        conversationWorkspaceListLoading: String = "正在加载会话列表",
-        conversationWorkspaceChatLoading: String = "正在加载消息",
-        conversationWorkspaceDetailLoading: String = "正在加载详情",
-        searchDateRangeFilterCustom: String = "自定义",
-        searchDateRangeFilterFrom: String = "起始日期",
-        searchDateRangeFilterTo: String = "结束日期",
-        searchDateRangeFilterUnlimited: String = "不限时间",
-        searchDateRangeFilterInvalid: String = "起始日期不能晚于结束日期",
-        composerPlaceholder: String = "输入消息",
-        composerReply: String = "回复",
-        voiceHoldButtonLabel: String = "按住 说话",
-        voiceHoldButtonRecording: String = "松开发送 · 上滑取消",
-        unknownUserPlaceholderUnknown: String = "未知用户",
-        unknownUserPlaceholderDeactivated: String = "该账号已注销",
-        unknownUserPlaceholderBlocked: String = "该账号已被屏蔽",
-        unknownUserPlaceholderUnreachable: String = "暂时无法联系该账号",
-        unknownUserPlaceholderId: String = "ID",
-        newFriendRequestsEmpty: String = "没有新的好友请求",
-        newFriendRequestsAccept: String = "接受",
-        newFriendRequestsPending: String = "等待验证",
-        newFriendRequestsWithdraw: String = "撤回",
-        unknownMessageHint: String = "当前版本无法显示这条消息",
-        unknownMessageUnsupported: String = "不支持的消息类型",
-        unknownMessageDiagnostic: String = "消息类型",
-        conversationRowDraft: String = "[草稿] ",
-        conversationRowMention: String = "[@我] ",
-        messageListEmpty: String = "还没有消息",
-        messageListLoadOlder: String = "加载更早消息",
-        messageListLoadNewer: String = "加载更新的消息",
-        messageRecalledSelf: String = "你撤回了一条消息",
-        messageRecalledPeer: String = "对方撤回了一条消息",
-        messageRecalledGroupOther: @escaping @Sendable (String) -> String = { "\($0) 撤回了一条消息" },
-        messageQuoteLabel: @escaping @Sendable (String, String) -> String = { $0.isEmpty ? "引用：\($1)" : "引用 \($0)：\($1)" },
-        jumpedToMessage: @escaping @Sendable (String, String) -> String = { "已跳转到 \($0) 的消息：\($1)" },
-        conversationHeaderIdentityLabel: @escaping @Sendable (String, String) -> String = { "\($0)，\($1)" },
-        yesterday: String = "昨天",
-        startConversationSearchPlaceholder: String = "搜索联系人",
-        groupDetailTitle: String = "群资料",
-        groupDetailUnavailable: String = "无法加载群资料",
-        groupDetailUnavailableHint: String = "请检查网络连接后重试。",
-        groupDetailMemberCountSuffix: String = "位成员",
-        groupDetailNotSet: String = "未设置",
-        groupDetailSettingUnavailable: String = "暂时无法读取",   // Unavailable right now
-        groupDetailSectionInfo: String = "群信息",
-        groupDetailSectionMyInGroup: String = "我在本群",
-        groupDetailSectionManage: String = "群管理",
-        groupDetailSectionPerms: String = "群权限",
-        groupDetailGroupName: String = "群名称",
-        groupDetailAnnouncementEmpty: String = "暂无群公告",
-        groupDetailMyNickname: String = "我的群昵称",
-        groupDetailMuteNotif: String = "消息免打扰",
-        groupDetailPinGroup: String = "置顶该群",
-        groupDetailDiscoverable: String = "允许搜索到本群",
-        groupDetailJoinMode: String = "进群方式",
-        groupDetailJoinRequests: String = "入群申请",
-        groupDetailMuteAll: String = "全员禁言",
-        groupDetailInviteLink: String = "群邀请链接",
-        groupDetailOnlyAdminAtAll: String = "仅管理员可@全体成员",
-        groupDetailOnlyAdminPin: String = "仅管理员可置顶消息",
-        groupDetailShareCard: String = "允许分享群名片",
-        groupDetailForbidGroupFriendRequests: String = "禁止群内加好友",
-        groupDetailJoinOpen: String = "允许任何人加入",
-        groupDetailJoinApproval: String = "需管理员审批",
-        groupDetailJoinInvite: String = "仅邀请加入",
-        groupDetailEditName: String = "修改群名称",
-        groupDetailEditAnnouncement: String = "编辑群公告",
-        groupDetailNicknamePlaceholder: String = "群内显示名",
-        groupDetailMemberManage: String = "成员管理",
-        groupDetailSetAdmin: String = "设为管理员",
-        groupDetailUnsetAdmin: String = "取消管理员",
-        groupDetailMute: String = "禁言",
-        groupDetailUnmute: String = "取消禁言",
-        groupDetailTransferOwner: String = "转让群主",
-        groupDetailTransferConfirm: String = "确定把群主转让给「%@」吗？转让后你将变为普通成员，此操作不可撤销。",
-        groupDetailRequestFriend: String = "加好友",
-        groupDetailRemoveMember: String = "移出群聊",
-        groupDetailNoRequests: String = "暂无入群申请",
-        groupDetailRequestDefaultMessage: String = "申请加入群聊",
-        groupDetailApprove: String = "通过",
-        groupDetailInvite: String = "邀请成员",
-        groupDetailInviteEmpty: String = "暂无可邀请的联系人",
-        groupDetailInviteLinkHint: String = "将邀请码分享给好友，即可加入本群。",
-        groupDetailInviteCodeTitle: String = "邀请码",
-        groupDetailCopyCode: String = "复制邀请码",
-        groupDetailCopied: String = "已复制",
-        groupDetailCannotGenerate: String = "无法生成邀请链接",
-        groupDetailLeave: String = "退出群聊",
-        groupDetailDissolve: String = "解散群聊",
-        groupDetailSave: String = "保存",
-        groupDetailDone: String = "完成",
-        momentAudienceSheetPublic: String = "公开",
-        momentAudienceSheetPublicHint: String = "所有人可见",
-        momentAudienceSheetFriends: String = "朋友可见",
-        momentAudienceSheetFriendsHint: String = "你的好友可见",
-        momentAudienceSheetPrivate: String = "私密",
-        momentAudienceSheetPrivateHint: String = "仅自己可见",
-        momentAudienceSheetInclude: String = "部分可见",
-        momentAudienceSheetIncludeHint: String = "仅选中的朋友可见",
-        momentAudienceSheetExclude: String = "不给谁看",
-        momentAudienceSheetExcludeHint: String = "选中的朋友看不到",
-        momentAudienceSheetPick: String = "选择朋友",
-        momentAudienceSheetDone: String = "完成",
-        momentAudienceSheetSelected: @escaping @Sendable (Int) -> String = { "已选 \($0) 人" },
-        momentsVisibilityRuleListHideFromTitle: String = "不让他看我的朋友圈",
-        momentsVisibilityRuleListHideFromHint: String = "名单中的人看不到你发的内容",
-        momentsVisibilityRuleListMuteTitle: String = "不看他的朋友圈",
-        momentsVisibilityRuleListMuteHint: String = "你不会看到名单中的人发的内容",
-        momentsVisibilityRuleListEmpty: String = "名单为空",
-        momentsVisibilityRuleListRemove: String = "移出",
-        contactMatchListAdd: String = "添加",
-        contactMatchListEmpty: String = "通讯录里还没有已注册的联系人",
-        announcementReadBarConfirmRead: String = "已读",
-        announcementReadBarViewUnread: String = "查看未读",
-        announcementReadBarReadCount: @escaping @Sendable (Int, Int) -> String = { "\($0)/\($1) 人已读" },
-        contactDetailInfo: String = "资料",
-        contactDetailFlareId: String = "Flare ID",
-        contactDetailRemark: String = "备注",
-        contactDetailDescription: String = "描述",
-        contactDetailStar: String = "星标好友",
-        contactDetailNotSet: String = "未设置",
-        contactDetailVoice: String = "语音通话",
-        contactDetailVideo: String = "视频通话",
-        contactDetailBlock: String = "加入黑名单",
-        contactDetailRemove: String = "删除好友",
-        conversationDetailsMessages: String = "消息",
-        conversationDetailsMute: String = "免打扰",
-        conversationDetailsPin: String = "置顶会话",
-        conversationDetailsMarkRead: String = "标为已读",
-        conversationDetailsMarkUnread: String = "标为未读",
-        conversationDetailsSync: String = "同步会话",
-        conversationDetailsArchive: String = "归档会话",
-        conversationDetailsUnarchive: String = "取消归档",
-        conversationDetailsClearHistory: String = "清空聊天记录",
-        conversationDetailsDelete: String = "删除会话",
-        profileEditorNickname: String = "昵称",
-        profileEditorNicknamePlaceholder: String = "昵称",
-        profileEditorBio: String = "个性签名",
-        profileEditorBioPlaceholder: String = "介绍一下自己吧",
-        profileEditorSave: String = "保存",
-        composerEmoji: String = "表情",
-        composerMention: String = "提及",
-        composerVoice: String = "语音",
-        composerImage: String = "图片",
-        composerRichText: String = "富文本",
-        composerMore: String = "更多功能",
-        composerExpandInput: String = "放大输入框",
-        composerCollapseInput: String = "缩小输入框",
-        composerFormatBold: String = "加粗",
-        composerFormatItalic: String = "斜体",
-        composerFormatStrike: String = "删除线",
-        composerFormatCode: String = "代码",
-        composerFormatLink: String = "链接",
-        composerFormatHeading: String = "标题",
-        composerFormatQuote: String = "引用",
-        composerFormatBullet: String = "无序列表",
-        composerFormatOrdered: String = "有序列表",
-        inlineVoiceComposerKeyboard: String = "返回键盘并删除录音",
-        inlineVoiceComposerPause: String = "暂停录音",
-        inlineVoiceComposerStart: String = "开始录音",
-        inlineVoiceComposerPreview: String = "试听 / 暂停",
-        inlineVoiceComposerResume: String = "继续录音",
-        inlineVoiceComposerDiscard: String = "删除录音",
-        inlineVoiceComposerMicDenied: String = "请允许使用麦克风后再录音",
-        inlineVoiceComposerSendFailed: String = "发送失败，请重试",
-        cancelRecording: String = "取消录音",
-        sendVoice: String = "发送语音",
-        pause: String = "暂停",
-        download: String = "下载",
-        showInFolder: String = "在文件夹中显示",
-        downloading: String = "下载中",
-        downloaded: String = "已下载",
-        imagePreviewClose: String = "关闭预览",
-        imagePreviewPrevious: String = "上一张",
-        imagePreviewNext: String = "下一张",
-        imagePreviewPosition: @escaping @Sendable (Int, Int) -> String = { "第 \($0) 张，共 \($1) 张" },
-        exitMultiSelect: String = "退出多选",
-        scrollToLatest: String = "回到最新消息",
-        callMinimize: String = "收起通话",
-        callPeerMuted: String = "对方已静音",
-        callSwitchToVideo: String = "切换到视频",
-        callDeviceOn: String = "已开启",
-        callDeviceOff: String = "已关闭",
-        callReturn: String = "返回通话",
-        conversationHeaderAddActions: String = "添加会话操作",
-        conversationHeaderMoreActions: String = "更多会话操作",
-        messageImage: String = "图片",
-        messageVideo: String = "视频",
-        messageVoice: String = "语音消息",
-        voiceSeconds: @escaping @Sendable (Int) -> String = { "\($0) 秒" },
-        voicePlaybackFailed: String = "播放失败",
-        imageLoadFailed: String = "图片加载失败",
-        videoLoadFailed: String = "视频加载失败",
-        mediaUnavailableImage: String = "图片暂时无法加载",
-        mediaUnavailableVideo: String = "视频暂时无法加载",
-        mediaUnavailableAudio: String = "语音暂时无法加载",
-        announcementBannerDismiss: String = "关闭公告",
-        removeImage: String = "移除图片",
-        momentActions: String = "动态操作",
-        momentsVisibilityRuleListAdd: String = "添加到名单",
-        myQrCode: String = "我的二维码",
-        rating: String = "评分",
-        ratingStar: @escaping @Sendable (Int) -> String = { "\($0) 星" },
-        conversationHeaderSearch: String = "搜索消息",
-        conversationHeaderAudioCall: String = "发起语音通话",
-        conversationHeaderVideoCall: String = "发起视频通话",
-        conversationHeaderAddMember: String = "添加成员",
-        conversationHeaderShare: String = "分享会话",
-        conversationHeaderDetails: String = "会话详情",
-        presenceOnline: String = "在线",
-        presenceOffline: String = "离线",
-        presenceBusy: String = "忙碌",
-        presenceAway: String = "离开",
-        connectionConnecting: String = "正在连接…",
-        connectionSyncing: String = "正在同步消息…",
-        connectionSwitching: String = "正在切换线路…",
-        connectionReconnecting: String = "连接已断开，正在重连…",
-        connectionWaitingForNetwork: String = "网络不可用，恢复后会自动重连",
-        connectionServiceUnavailable: String = "服务暂时不可用，正在自动恢复…",
-        connectionKicked: String = "已在其他设备登录",
-        connectionExpired: String = "登录已过期",
-        connectionUpgradeRequired: String = "需要更新后才能继续使用",
-        connectionTenantUnavailable: String = "服务已暂停",
-        connectionRetryIn: @escaping @Sendable (Int) -> String = { "\($0) 秒后重试" },
-        connectionRetry: String = "立即重试",
-        connectionSignIn: String = "重新登录",
-        connectionUpdate: String = "立即更新",
-        connectionDiagnose: String = "诊断",
-        connectionDevelopmentMode: String = "开发模式",
-        accessDiagnosticsTitle: String = "网络与线路",
-        accessDiagnosticsCurrent: String = "当前线路",
-        accessDiagnosticsLines: String = "全部线路",
-        accessDiagnosticsRecovery: String = "恢复工具",
-        accessDiagnosticsAccessPoint: String = "接入点",
-        accessDiagnosticsRegion: String = "区域",
-        accessDiagnosticsProtocol: String = "协议",
-        accessDiagnosticsRtt: String = "延迟",
-        accessDiagnosticsSerial: String = "清单版本",
-        accessDiagnosticsSource: String = "清单来源",
-        accessDiagnosticsManifest: String = "清单状态",
-        accessDiagnosticsReportedAccessPoint: String = "服务端报告的接入点",
-        accessDiagnosticsRecoveryRounds: String = "已尝试恢复轮数",
-        accessDiagnosticsManifestValid: String = "有效",
-        accessDiagnosticsManifestStale: String = "已过期",
-        accessDiagnosticsManifestNone: String = "暂无清单",
-        accessDiagnosticsOn: String = "开启",
-        accessDiagnosticsOff: String = "关闭",
-        accessDiagnosticsRttGood: String = "良好",
-        accessDiagnosticsRttFair: String = "一般",
-        accessDiagnosticsRttPoor: String = "较差",
-        accessDiagnosticsSourceSeed: String = "内置种子",
-        accessDiagnosticsSourceMirror: String = "镜像",
-        accessDiagnosticsSourceRecovery: String = "恢复链接",
-        accessDiagnosticsSourceDevelopment: String = "开发配置",
-        accessDiagnosticsSourceNone: String = "无",
-        accessDiagnosticsStatusActive: String = "可用",
-        accessDiagnosticsStatusDraining: String = "即将下线",
-        accessDiagnosticsStatusDisabled: String = "已停用",
-        accessDiagnosticsStatusUnknown: String = "未知",
-        accessDiagnosticsBreakerOpen: String = "已熔断",
-        accessDiagnosticsBreakerHalfOpen: String = "试探中",
-        accessDiagnosticsCurrentTag: String = "当前",
-        accessDiagnosticsPinnedTag: String = "已固定",
-        accessDiagnosticsPin: String = "固定",
-        accessDiagnosticsUnpin: String = "取消固定",
-        accessDiagnosticsNoLines: String = "暂无可用线路",
-        accessDiagnosticsRefresh: String = "立即刷新",
-        accessDiagnosticsExport: String = "复制诊断",
-        accessDiagnosticsImport: String = "导入",
-        accessDiagnosticsImportLabel: String = "导入恢复链接",
-        accessDiagnosticsImportPlaceholder: String = "粘贴 flare-recover:// 链接",
-        accessDiagnosticsImportHint: String = "线路一直无法恢复时，可向客服索取恢复链接。",
-        accessDiagnosticsHealthy: String = "线路正常",
-        accessDiagnosticsNotConnected: String = "当前没有连接",
-        accessDiagnosticsAccessPointMismatch: String = "服务端报告的接入点与当前线路不一致，连接不受影响",
-        accessDiagnosticsManifestStaleNotice: String = "线路清单已过期，仍可连接，正在更新",
-        accessDiagnosticsRefreshAdopted: String = "线路已更新",
-        accessDiagnosticsRefreshUpToDate: String = "线路已是最新",
-        accessDiagnosticsRefreshFailed: String = "暂时无法更新线路，稍后会自动重试",
-        accessDiagnosticsRefreshSkipped: String = "开发模式下线路由配置决定",
-        accessDiagnosticsImportAdopted: String = "恢复链接已导入，正在切换线路",
-        accessDiagnosticsImportUnchanged: String = "这条链接已经导入过",
-        accessDiagnosticsImportRollback: String = "这条链接比本机线路旧，不需要导入",
-        accessDiagnosticsImportExpired: String = "这条链接已过期，请重新获取",
-        accessDiagnosticsImportWrongApp: String = "这条链接不属于当前应用",
-        accessDiagnosticsImportDevelopmentMode: String = "开发模式不使用恢复链接",
-        accessDiagnosticsImportUntrusted: String = "链接校验失败，请确认它来自官方渠道",
-        accessDiagnosticsImportMalformed: String = "链接格式不正确，请完整复制后重试",
-        accessDiagnosticsImportRejected: String = "无法导入这条链接",
-        accessDiagnosticsExportCopied: String = "诊断信息已复制",
-        accessDiagnosticsExportFailed: String = "复制失败，请重试",
-        updatePromptTitleAvailable: String = "发现新版本",
-        updatePromptTitleRequired: String = "需要更新",
-        updatePromptTitleMetered: String = "使用计费网络下载？",
-        updatePromptTitleDownloading: String = "正在下载更新",
-        updatePromptTitleVerifying: String = "正在校验更新",
-        updatePromptTitleReady: String = "更新已就绪",
-        updatePromptTitleInstalling: String = "正在安装更新",
-        updatePromptTitleFailed: String = "更新失败",
-        updatePromptVersion: String = "版本",
-        updatePromptNotes: String = "更新内容",
-        updatePromptMessageRequired: String = "当前版本已停止支持，更新后才能继续使用。",
-        updatePromptMessageRequiredReadOnly: String = "更新后才能发送消息，现在可以继续浏览本地内容。",
-        composerReadOnlyUpdate: String = "更新后才能发送消息",
-        updatePromptMessageMetered: String = "当前是计费网络，这次下载约",
-        updatePromptMessageMeteredUnknown: String = "当前是计费网络，下载会消耗流量。",
-        updatePromptMessageReady: String = "重启后新版本生效，应用不会自动重启。",
-        updatePromptFailManifestUnavailable: String = "暂时获取不到更新信息，请检查网络后重试。",
-        updatePromptFailManifestRejected: String = "更新信息未通过校验。",
-        updatePromptFailNoArtifact: String = "这个版本暂时没有适合本设备的安装包。",
-        updatePromptFailInsufficientSpace: String = "存储空间不足，清理后重试。",
-        updatePromptFailDownload: String = "下载失败，请检查网络后重试。",
-        updatePromptFailHashMismatch: String = "下载的文件未通过校验，请重试。",
-        updatePromptFailInstall: String = "安装失败，请重试。",
-        updatePromptFailSignatureMismatch: String = "安装包签名不匹配，已停止安装。",
-        updatePromptFailDowngrade: String = "不能安装比当前更旧的版本。",
-        updatePromptFailNotSkippable: String = "这个版本不能跳过。",
-        updatePromptFailUnknown: String = "更新没有完成，请稍后重试。",
-        updatePromptContinueDownload: String = "继续下载",
-        updatePromptRestart: String = "重启以完成更新",
-        updatePromptRetry: String = "重试",
-        updatePromptFallbackWebsite: String = "前往官网下载",
-        updatePromptFallbackStore: String = "前往应用商店",
-        updatePromptLater: String = "稍后",
-        updatePromptBackground: String = "后台下载",
-        updatePromptSkip: String = "跳过此版本",
-        updatePromptContinueReadOnly: String = "继续浏览",
-        progressBarLabel: String = "进度",
-        progressBarLoading: String = "进行中",
-        versionPanelTitle: String = "版本信息",
-        versionPanelVersion: String = "版本",
-        versionPanelBuild: String = "构建号",
-        versionPanelChannel: String = "渠道",
-        versionPanelChannelStable: String = "正式版",
-        versionPanelChannelBeta: String = "测试版",
-        versionPanelChannelInternal: String = "内部版",
-        versionPanelCheck: String = "检查更新",
-        versionPanelChecking: String = "正在检查…",
-        versionPanelUpToDate: String = "已是最新版本",
-        settingsRowBadge: String = "有新内容",
-        groupDetailMembersTitle: @escaping @Sendable (Int) -> String = { "群成员（\($0)）" },
-        groupDetailSearchMembers: String = "搜索群成员",
-        groupDetailNoMatchingMembers: String = "没有匹配的群成员",
-        profilePanelEditProfile: @escaping @Sendable (String) -> String = { "\($0)，编辑资料" },
-        momentReplyToComment: @escaping @Sendable (String, String) -> String = { "回复 \($0)：\($1)" },
-        previewMessage: String = "[消息]",
-        previewRichText: String = "[富文本]",
-        previewGif: String = "[动图]",
-        previewImage: String = "[图片]",
-        previewImageNamed: @escaping @Sendable (String) -> String = { "[图片] \($0)" },
-        previewVideo: String = "[视频]",
-        previewAudio: String = "[语音]",
-        previewFile: String = "[文件]",
-        previewFileNamed: @escaping @Sendable (String) -> String = { "[文件] \($0)" },
-        previewLocation: String = "[位置]",
-        previewLocationNamed: @escaping @Sendable (String) -> String = { "[位置] \($0)" },
-        previewCard: String = "[名片]",
-        previewCardNamed: @escaping @Sendable (String) -> String = { "[名片] \($0)" },
-        previewSticker: String = "[贴纸]",
-        previewEmoji: String = "[表情]",
-        previewQuote: String = "[引用]",
-        previewLink: String = "[链接]",
-        previewForward: String = "[转发]",
-        previewForwardCount: @escaping @Sendable (Int) -> String = { "[转发] \($0) 条消息" },
-        previewThread: String = "[话题]",
-        previewMiniProgram: String = "[小程序]",
-        previewImageGroup: String = "[多图]",
-        previewImageGroupCount: @escaping @Sendable (Int) -> String = { "[多图] \($0) 张" },
-        previewSystem: String = "[系统消息]",
-        previewNotification: String = "[通知]",
-        previewVote: String = "[投票]",
-        previewTask: String = "[任务]",
-        previewSchedule: String = "[日程]",
-        previewAnnouncement: String = "[公告]",
-        previewCustom: String = "[自定义]",
-        previewPlaceholder: String = "[占位]",
-        previewUnknown: String = "[未知]",
-        systemEventGroupCreated: String = "群聊已创建",
-        systemEventGroupMemberJoined: String = "新成员加入了群聊",
-        systemEventGroupMemberRemoved: String = "有成员被移出群聊",
-        systemEventGroupMemberLeft: String = "有成员退出了群聊",
-        systemEventGroupMemberMuted: String = "有成员被禁言",
-        systemEventGroupMemberUnmuted: String = "有成员被解除禁言",
-        systemEventGroupOwnerTransferred: String = "群主已转让",
-        systemEventGroupDissolved: String = "群聊已解散",
-        systemEventGroupAnnouncementUpdated: String = "群公告已更新",
-        systemEventFriendshipEstablished: String = "你们已成为好友，可以开始聊天了",
-        systemEventGroupProfileUpdated: String = "群名称已更新",
-        systemEventGroupProfileUpdatedNamed: @escaping @Sendable (String) -> String = { "群名称已改为「\($0)」" },
-        systemEventGroupMemberRolesChanged: String = "有成员的群角色已变更",
-        systemEventGroupMuted: String = "已开启全员禁言",
-        systemEventGroupUnmuted: String = "已解除全员禁言",
-        displayNameUser: @escaping @Sendable (String) -> String = { "用户 \($0)" },
-        displayNameUnknownUser: String = "未知用户",
-        displayNameGroup: String = "群聊",
-        displayNameSystem: String = "系统通知",
-        displayNameAi: String = "AI 助手",
-        displayNameCustomer: String = "客服",
-        displayNameChannel: String = "频道",
-        displayNameBroadcast: String = "广播",
-        displayNameTemp: String = "临时会话",
-        displayNameSeparator: String = "、",
-        displayNameMembersMore: @escaping @Sendable (String, Int, Int) -> String = { names, total, _ in "\(names)等 \(total) 人" },
-        pluginViewSubmit: String = "提交",
-        pluginViewEnded: String = "已结束",
-        pluginViewDeadlinePassed: String = "已截止",
-        pluginViewSeeAll: String = "查看全部（{count}）",
-        pluginViewDetail: String = "查看详情",
-        pluginViewVotes: String = "{count} 票",
-        pluginViewRemaining: String = "剩余 {time}",
-        pluginViewDateTimeFormat: String = "M月d日 HH:mm",
-        pluginViewDateTimeYearFormat: String = "y年M月d日 HH:mm",
-        pluginFormRequired: String = "必填",
-        pluginFormTooLong: String = "超出长度",
-        pluginFormOutOfRange: String = "超出范围",
-        pluginFormTooFewItems: String = "至少 {n} 项",
-        pluginFormTooManyItems: String = "最多 {n} 项",
-        pluginFormDuplicateItem: String = "不能重复",
-        pluginFormInvalid: String = "格式不正确",
-        pluginFileChoose: String = "选择文件",
-        pluginFileSelected: String = "等待上传完成",
-        pluginFileUploading: String = "上传中",
-        pluginFileUploaded: String = "已上传",
-        pluginFileFailed: String = "上传未完成，请重试或重新选择",
-        pluginFileRejected: String = "请选择符合格式与大小限制的文件",
-        pluginFileReplace: String = "更换文件",
-        pluginFileRemove: String = "移除文件",
-        pluginFilePreview: String = "预览",
-        locationOsmAttribution: String = "© OpenStreetMap contributors",
-        loading: String = "加载中",
-        messageReadSummaryUnread: String = "{count} 人未读",
-        messageReadSummaryAllRead: String = "全部已读",
-        messageSendFailedRetry: String = "发送失败，重试",
-        messageDeleted: String = "消息已删除",
-        pluginViewMore: String = "更多操作",
-        pluginViewMe: String = "我",
-        pluginViewUnavailableDisabled: String = "插件已停用",
-        pluginViewUnavailableNotInstalled: String = "插件未安装",
-        pluginViewUnavailableNoPermission: String = "没有使用该插件的权限",
-        pluginViewUnavailableUnsupportedPlatform: String = "该插件不支持此设备",
-        pluginViewUnavailableIncompatibleVersion: String = "请更新应用后查看",
-        pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试",
-        pluginViewUnavailableUnboundCopy: String = "副本，仅供查看",
-        pluginViewUnavailableUpgradeRequired: String = "更新应用后查看",
-        pluginUpgradeAction: String = "去更新",
-        pluginUpgradeNotAvailable: String = "当前版本暂不支持，新版本发布后可用",
-        pluginUpgradeBadge: String = "需更新",
-        pluginUpgradeTitle: String = "需要更新应用",
-        pluginUpgradeDescription: String = "此内容需要更新到新版本后才能使用",
-        pluginViewQrExpired: String = "二维码已失效",
-        pluginViewQrRefresh: String = "刷新二维码",
-        pluginViewStepPending: String = "未开始",
-        pluginViewStepCurrent: String = "进行中",
-        pluginViewStepDone: String = "已完成",
-        pluginViewStepFailed: String = "未通过",
-        pluginViewTrendUp: String = "上升",
-        pluginViewTrendDown: String = "下降",
-        pluginViewTrendFlat: String = "持平",
-        pluginViewImageUnavailable: String = "图片无法显示",
-        pluginFormatSeconds: String = "{n} 秒",
-        pluginFormatCountUnits: String = "4:万|8:亿",
-        pluginFormChooseImage: String = "选择图片",
-        pluginFormCaptureDocument: String = "拍摄证件",
-        pluginFormDocumentFront: String = "证件正面",
-        pluginFormDocumentBack: String = "证件反面",
-        pluginFormDocumentHolding: String = "手持证件",
-        capabilityConsentTitle: String = "「{plugin}」想要使用",
-        capabilityConsentPurpose: String = "用途",
-        capabilityConsentAllowOnce: String = "仅本次允许",
-        capabilityConsentAllowAlways: String = "始终允许",
-        capabilityConsentDeny: String = "不允许",
-        capabilityConsentNote: String = "可以随时在设置里撤销授权",
-        capabilityDocumentCapture: String = "相机，用于拍摄证件",
-        capabilityPaymentConfirmation: String = "付款，每次付款都需你确认",
-        capabilityLocationCoarse: String = "你的大致位置（仅本次）",
-        capabilityLocationFine: String = "你的精确位置（仅本次）",
-        capabilityCamera: String = "相机",
-        capabilityMicrophone: String = "麦克风",
-        capabilityRtcSession: String = "语音和视频通话",
-        capabilityGeneric: String = "设备上的一项能力",
-        documentCaptureHintFront: String = "将证件正面放入框内，保持清晰、避免反光",
-        documentCaptureHintBack: String = "将证件反面放入框内，保持清晰、避免反光",
-        documentCaptureHintHolding: String = "手持证件放在胸前，脸和证件都要清晰",
-        documentCaptureShoot: String = "拍摄",
-        documentCaptureRetake: String = "重拍",
-        documentCaptureUse: String = "使用照片",
-        documentCaptureFromAlbum: String = "从相册选择",
-        documentCaptureProcessing: String = "正在处理照片",
-        documentCaptureCameraUnavailable: String = "相机不可用，可从相册选择",
-        documentCaptureTooLarge: String = "照片太大，请重拍",
-        documentCaptureFailed: String = "照片无法处理，请重拍",
-        documentCaptureNotAccepted: String = "这里不接受照片，请联系服务提供方",
-        paymentConfirmationTitle: String = "确认付款",
-        paymentConfirmationPayee: String = "收款方",
-        paymentConfirmationItem: String = "付款说明",
-        paymentConfirmationOrder: String = "订单号",
-        paymentConfirmationRequestedBy: String = "由「{plugin}」发起",
-        paymentConfirmationExpiresIn: String = "{time} 后失效",
-        paymentConfirmationExpired: String = "订单已失效，请重新发起",
-        paymentConfirmationInvalid: String = "订单金额无法识别，不能付款",
-        paymentConfirmationConfirm: String = "确认付款",
-        paymentConfirmationVerifying: String = "正在验证身份",
-        pluginProtectedMediaReason: String = "查看原因",
-        pluginProtectedMediaNotice: String = "查看受保护材料需要说明原因，操作会留下审计记录。",
-        pluginProtectedMediaOwnNotice: String = "仅你本人可查看，图片不会保存到设备。",
-        pluginProtectedMediaView: String = "查看",
-        pluginProtectedMediaHide: String = "隐藏",
-        pluginProtectedMediaUnavailable: String = "无法显示，请重试",
-        pluginProtectedMediaNotPreviewable: String = "此类文件不能在这里预览",
-        pluginLocationLocate: String = "获取位置",
-        pluginLocationRelocate: String = "重新获取",
-        pluginLocationClear: String = "清除",
-        pluginLocationLocating: String = "正在获取位置",
-        pluginLocationEmpty: String = "尚未获取位置",
-        pluginLocationCoarse: String = "大致位置",
-        pluginBundleOpening: String = "正在打开…",
-        pluginBundleUnavailable: String = "页面暂时无法打开",
-        pluginBundleCrashed: String = "页面意外停止",
-        pluginBundleCrashedHint: String = "重新加载后可以继续使用",
-        pluginBundleReload: String = "重新加载",
-        pluginBundleClosed: String = "页面已关闭",
-        pluginBundleExternalTitle: String = "打开外部链接",
-        pluginBundleExternalMessage: String = "将在浏览器中打开以下地址，请确认来源可信。",
-        pluginBundleExternalOpen: String = "打开",
-        pluginBundleCopied: String = "已复制",
-        pluginBridgeErrorInvalidEnvelope: String = "请求格式不正确",
-        pluginBridgeErrorUnsupportedBridge: String = "当前版本不支持该页面",
-        pluginBridgeErrorNotReady: String = "页面还没准备好",
-        pluginBridgeErrorMethodNotFound: String = "不支持该操作",
-        pluginBridgeErrorInvalidParams: String = "请求参数不正确",
-        pluginBridgeErrorPayloadTooLarge: String = "请求内容过大",
-        pluginBridgeErrorPermissionDenied: String = "没有权限执行该操作",
-        pluginBridgeErrorRateLimited: String = "操作太频繁，请稍后再试",
-        pluginBridgeErrorCancelled: String = "已取消",
-        pluginBridgeErrorGestureRequired: String = "请先点按页面再试",
-        pluginBridgeErrorQuotaExceeded: String = "存储空间已满",
-        pluginBridgeErrorNotFound: String = "找不到要打开的内容",
-        pluginBridgeErrorUnavailable: String = "暂时不可用，请稍后再试",
-        pluginBridgeErrorTimeout: String = "请求超时，请重试",
-        pluginBridgeErrorOperationFailed: String = "操作失败",
-        pluginBridgeErrorRevoked: String = "页面已被停用",
-        pluginBridgeErrorInternal: String = "出现问题，请稍后再试",
-        pluginLocationFine: String = "精确位置",
-        pluginLocationAccuracy: String = "精度约 {m} 米",
-        pluginPageRefresh: String = "刷新",
-        pluginViewMaxSelections: String = "最多选 {n} 项",
-        pluginViewAll: String = "全部",
-        accountTransactions: String = "交易记录",
-        accountEmpty: String = "暂无交易记录",
-        accountEmptyDescription: String = "收支明细会显示在这里",
-        accountInformation: String = "账户说明与规则",
-        accountEntryDetails: String = "交易详情",
-        accountEntryId: String = "记录编号",
-        accountType: String = "类型",
-        accountToday: String = "今天",
-        accountYesterday: String = "昨天",
-        accountOtherEntries: String = "其他记录",
-        accountShowBalance: String = "显示余额",
-        accountHideBalance: String = "隐藏余额",
-        accountBalanceHidden: String = "余额已隐藏",
-        accountDayFormat: String = "M月d日",
-        accountDayYearFormat: String = "y年M月d日",
-        pluginViewEmpty: String = "暂无数据",
-        packetView: String = "查看红包",
-        packetRefunded: String = "已退回",
-        packetBadgeLucky: String = "拼手气",
-        packetBadgeExclusive: String = "专属",
-        packetForRecipient: String = "给 {name}",
-        packetNotEligibleName: String = "仅 {name} 可领取",
-        packetDeposited: String = "已存入钱包",
-        packetSummarySender: String = "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}",
-        packetSummaryCompleted: String = "{shares} 个红包共 {totalMoney}，{duration}被抢光",
-        packetSummaryCount: String = "已领取 {claimed}/{shares} 个",
-        packetRefundAt: String = "未领取部分将于 {time} 退回",
-        packetRefundedNote: String = "已退回 {money} · {time}",
-        packetDurationSeconds: String = "{n} 秒",
-        packetDurationMinutes: String = "{n} 分钟",
-        packetDurationHours: String = "{n} 小时",
-        packetDurationDays: String = "{n} 天",
-        callRecordVoice: String = "语音通话",
-        callRecordVideo: String = "视频通话",
-        callRecordWaitingAnswer: String = "等待对方接听",
-        callRecordIncoming: String = "邀请你通话",
-        callRecordGroupRinging: String = "群通话呼叫中",
-        callRecordInCall: String = "通话中",
-        callRecordGroupOngoing: String = "群通话进行中 · {n} 人",
-        callRecordGroupInProgress: String = "群通话进行中",
-        callRecordDuration: String = "通话时长 {duration}",
-        callRecordGroupEndedDuration: String = "群通话已结束 · 时长 {duration}",
-        callRecordGroupEnded: String = "群通话已结束",
-        callRecordCancelledByYou: String = "已取消",
-        callRecordCancelledByCaller: String = "对方已取消",
-        callRecordDeclinedByPeer: String = "对方已拒绝",
-        callRecordDeclinedByYou: String = "已拒绝",
-        callRecordNoAnswer: String = "对方未接听",
-        callRecordMissed: String = "未接听",
-        callRecordPeerBusy: String = "对方忙线中",
-        callRecordMissedBusy: String = "忙线未接听",
-        callRecordUnavailable: String = "通话不可用",
-        callRecordFailed: String = "通话失败",
-        callRecordJoin: String = "加入",
-        callRecordCallBack: String = "回拨",
-        callRecordConfirmCallBack: String = "确认回拨此通话？",
-        readReceiptRead: String = "已读",
-        readReceiptUnread: String = "未读",
-        readReceiptLoadFailed: String = "名单读取失败",
-        readReceiptUnavailable: String = "这条消息的已读名单不可查看",
-        readReceiptLoadMore: String = "加载更多",
-        readReceiptLoadMoreFailed: String = "加载失败，点按重试",
-        packetRefundedNotice: String = "红包已退回",
-        meMenuMoments: String = "圈子",
-        meMenuReports: String = "我的举报",
-        meMenuInvite: String = "我的邀请",
-        meMenuSettings: String = "设置",
-        meMenuPluginFallback: String = "插件",
-        forwardRecordTitle: String = "合并转发",
-        forwardRecordTotal: String = "共 {count} 条消息",
-        forwardRecordTotalOne: String = "共 {count} 条消息",
-        forwardRecordMore: String = "还有 {count} 条消息…",
-        forwardRecordMoreOne: String = "还有 {count} 条消息…",
-        forwardRecordViewDetails: String = "点击查看详情",
-        forwardRecordUnknownSender: String = "未知发送者",
-        forwardRecordEmpty: String = "暂无转发内容",
-        forwardRecordCountSuffix: String = "（{count} 条）",
-        forwardRecordCardLabel: String = "{title}，{subtitle}",
-        pluginViewVotesOne: String = "{count} 票",
-        myInviteCountOnlyOne: String = "{count} 人",
-        storageUsageFileCountOne: String = "{count} 个文件",
-        messageMenuLoading: String = "正在读取…"
-    ) {
-        storage = Storage(FlareStringsTable(
-            microphone: microphone,
-            camera: camera,
-            flipCamera: flipCamera,
-            speaker: speaker,
-            hangUp: hangUp,
-            muted: muted,
-            on: on,
-            off: off,
-            callWaitingAnswer: callWaitingAnswer,
-            callCalling: callCalling,
-            callRinging: callRinging,
-            callConnected: callConnected,
-            callReconnecting: callReconnecting,
-            callFailed: callFailed,
-            callInProgress: callInProgress,
-            send: send,
-            cancelReply: cancelReply,
-            noContacts: noContacts,
-            noGroups: noGroups,
-            noResults: noResults,
-            noContent: noContent,
-            noConversations: noConversations,
-            close: close,
-            drawerLabel: drawerLabel,
-            modalLabel: modalLabel,
-            delete: delete,
-            report: report,
-            manage: manage,
-            selectAll: selectAll,
-            retry: retry,
-            messagePending: messagePending,
-            messageSending: messageSending,
-            messageSent: messageSent,
-            messageRead: messageRead,
-            messageFailed: messageFailed,
-            messageEdited: messageEdited,
-            messageReadOnce: messageReadOnce,
-            messageBurnAfterRead: messageBurnAfterRead,
-            messageExpired: messageExpired,
-            search: search,
-            clearSearch: clearSearch,
-            addReaction: addReaction,
-            readReceipt: readReceipt,
-            readTab: readTab,
-            unreadTab: unreadTab,
-            noReadersYet: noReadersYet,
-            everyoneHasRead: everyoneHasRead,
-            selectedSuffix: selectedSuffix,
-            forwardEach: forwardEach,
-            forwardMerged: forwardMerged,
-            messageBatchPin: messageBatchPin,
-            messageBatchPinSelf: messageBatchPinSelf,
-            messageBatchClear: messageBatchClear,
-            messageBatchUnforwardable: messageBatchUnforwardable,
-            messageBatchUnforwardableOne: messageBatchUnforwardableOne,
-            searchMembers: searchMembers,
-            everyone: everyone,
-            notifyEveryone: notifyEveryone,
-            noMatchingMembers: noMatchingMembers,
-            quickPhrases: quickPhrases,
-            viewAll: viewAll,
-            typing: typing,
-            typingOne: typingOne,
-            typingMany: typingMany,
-            newMessages: newMessages,
-            sendMessage: sendMessage,
-            voiceCall: voiceCall,
-            videoCall: videoCall,
-            groupCall: groupCall,
-            joinedCount: joinedCount,
-            selfSuffix: selfSuffix,
-            forwardTo: forwardTo,
-            searchConversations: searchConversations,
-            noMatchingConversations: noMatchingConversations,
-            selectedCount: selectedCount,
-            groupAnnouncement: groupAnnouncement,
-            collapse: collapse,
-            expand: expand,
-            packetFinished: packetFinished,
-            packetTapToClaim: packetTapToClaim,
-            packetBrand: packetBrand,
-            packetBusy: packetBusy,
-            packetUnavailable: packetUnavailable,
-            packetStateClaimed: packetStateClaimed,
-            packetStateExpired: packetStateExpired,
-            packetKindLucky: packetKindLucky,
-            packetKindNormal: packetKindNormal,
-            packetKindExclusive: packetKindExclusive,
-            packetKindPicker: packetKindPicker,
-            packetClaims: packetClaims,
-            packetFromSender: packetFromSender,
-            packetOpenAction: packetOpenAction,
-            packetMissed: packetMissed,
-            packetExpiredNotice: packetExpiredNotice,
-            packetNotEligible: packetNotEligible,
-            packetOpenFailed: packetOpenFailed,
-            packetViewDetails: packetViewDetails,
-            packetBestLuck: packetBestLuck,
-            packetNoClaims: packetNoClaims,
-            packetDetailTitle: packetDetailTitle,
-            packetFieldTotal: packetFieldTotal,
-            packetFieldEach: packetFieldEach,
-            packetFieldAmount: packetFieldAmount,
-            packetFieldCount: packetFieldCount,
-            packetCountPlaceholder: packetCountPlaceholder,
-            packetFieldRecipient: packetFieldRecipient,
-            packetGreetingLabel: packetGreetingLabel,
-            packetDefaultGreeting: packetDefaultGreeting,
-            packetSubmit: packetSubmit,
-            packetPayTitle: packetPayTitle,
-            packetPayMethod: packetPayMethod,
-            packetPayConfirm: packetPayConfirm,
-            packetInsufficient: packetInsufficient,
-            commands: commands,
-            noMatchingCommands: noMatchingCommands,
-            translating: translating,
-            translatedBy: translatedBy,
-            translated: translated,
-            hideOriginal: hideOriginal,
-            showOriginal: showOriginal,
-            scanToAddMe: scanToAddMe,
-            qrCardUnavailable: qrCardUnavailable,
-            cancel: cancel,
-            releaseToCancel: releaseToCancel,
-            createPoll: createPoll,
-            pollQuestionHint: pollQuestionHint,
-            pollOptionHint: pollOptionHint,
-            removeOption: removeOption,
-            addOption: addOption,
-            allowMultiple: allowMultiple,
-            submitPoll: submitPoll,
-            chatBackground: chatBackground,
-            decrease: decrease,
-            increase: increase,
-            previousMonth: previousMonth,
-            nextMonth: nextMonth,
-            yearMonth: yearMonth,
-            unlike: unlike,
-            like: like,
-            comment: comment,
-            momentReplyTo: momentReplyTo,
-            changeCover: changeCover,
-            post: post,
-            momentTextHint: momentTextHint,
-            addImage: addImage,
-            pickLocation: pickLocation,
-            pickVisibility: pickVisibility,
-            more: more,
-            hideTranscript: hideTranscript,
-            showTranscript: showTranscript,
-            recent: recent,
-            searchEmoji: searchEmoji,
-            noMatchingEmoji: noMatchingEmoji,
-            emptyStickerPack: emptyStickerPack,
-            sticker: sticker,
-            actionImage: actionImage,
-            actionVideo: actionVideo,
-            actionCamera: actionCamera,
-            actionFile: actionFile,
-            actionLocation: actionLocation,
-            actionCard: actionCard,
-            actionVote: actionVote,
-            actionTask: actionTask,
-            actionSchedule: actionSchedule,
-            locationTitle: locationTitle,
-            locationSend: locationSend,
-            locationLocateMe: locationLocateMe,
-            locationLocating: locationLocating,
-            locationDenied: locationDenied,
-            locationSearchPlaceholder: locationSearchPlaceholder,
-            locationNoResults: locationNoResults,
-            locationMapUnavailable: locationMapUnavailable,
-            locationOpenInMaps: locationOpenInMaps,
-            locationCurrent: locationCurrent,
-            locationCardPlace: locationCardPlace,
-            contactPickerTitle: contactPickerTitle,
-            contactPickerFriends: contactPickerFriends,
-            contactPickerGroupMembers: contactPickerGroupMembers,
-            contactPickerSearch: contactPickerSearch,
-            contactPickerEmpty: contactPickerEmpty,
-            contactPickerSelfSuffix: contactPickerSelfSuffix,
-            incomingVideoCall: incomingVideoCall,
-            incomingVoiceCall: incomingVoiceCall,
-            reject: reject,
-            accept: accept,
-            back: back,
-            confirm: confirm,
-            confirmCount: confirmCount,
-            memberCount: memberCount,
-            clear: clear,
-            wordCharCount: wordCharCount,
-            changeAvatar: changeAvatar,
-            qrCode: qrCode,
-            play: play,
-            navChats: navChats,
-            navContacts: navContacts,
-            navProfile: navProfile,
-            navFriends: navFriends,
-            navGroups: navGroups,
-            navNewFriends: navNewFriends,
-            favorites: favorites,
-            moments: moments,
-            settings: settings,
-            themeSystem: themeSystem,
-            themeLight: themeLight,
-            themeDark: themeDark,
-            inputReveal: inputReveal,
-            inputHide: inputHide,
-            permissionNoun: permissionNoun,
-            permissionVerb: permissionVerb,
-            permissionTitle: permissionTitle,
-            permissionFeatureFallback: permissionFeatureFallback,
-            permissionUndeterminedBody: permissionUndeterminedBody,
-            permissionDeniedBody: permissionDeniedBody,
-            permissionRestrictedBody: permissionRestrictedBody,
-            permissionUnavailableBody: permissionUnavailableBody,
-            permissionAllow: permissionAllow,
-            permissionOpenSettings: permissionOpenSettings,
-            permissionStateLabel: permissionStateLabel,
-            permissionDismiss: permissionDismiss,
-            permissionNotNow: permissionNotNow,
-            permissionSoftAskNotificationsTitle: permissionSoftAskNotificationsTitle,
-            permissionSoftAskNotificationsBody: permissionSoftAskNotificationsBody,
-            permissionSoftAskNotificationsDeniedBody: permissionSoftAskNotificationsDeniedBody,
-            permissionSoftAskNotificationsAction: permissionSoftAskNotificationsAction,
-            groupMembers: groupMembers,
-            groupOwner: groupOwner,
-            groupAdmin: groupAdmin,
-            addMember: addMember,
-            loginDevices: loginDevices,
-            currentDevice: currentDevice,
-            filesAndMedia: filesAndMedia,
-            notificationSettings: notificationSettings,
-            notificationDeliveryTitle: notificationDeliveryTitle,
-            notificationDeliveryNewMessages: notificationDeliveryNewMessages,
-            notificationStatusOn: notificationStatusOn,
-            notificationStatusOff: notificationStatusOff,
-            notificationStatusNotTurnedOn: notificationStatusNotTurnedOn,
-            backgroundDeliveryLabel: backgroundDeliveryLabel,
-            backgroundDeliveryUnrestricted: backgroundDeliveryUnrestricted,
-            backgroundDeliveryOptimized: backgroundDeliveryOptimized,
-            backgroundDeliveryRestricted: backgroundDeliveryRestricted,
-            backgroundDeliveryExplanation: backgroundDeliveryExplanation,
-            backgroundDeliveryAutoStartHint: backgroundDeliveryAutoStartHint,
-            backgroundDeliveryBattery: backgroundDeliveryBattery,
-            backgroundDeliveryAutoStart: backgroundDeliveryAutoStart,
-            inAppNotificationLabel: inAppNotificationLabel,
-            inAppNotificationOpenHint: inAppNotificationOpenHint,
-            inAppNotificationMention: inAppNotificationMention,
-            inAppNotificationUrgent: inAppNotificationUrgent,
-            quietHoursTitle: quietHoursTitle,
-            quietHoursLabel: quietHoursLabel,
-            quietHoursStart: quietHoursStart,
-            quietHoursEnd: quietHoursEnd,
-            quietHoursRepeat: quietHoursRepeat,
-            quietHoursAllowMentions: quietHoursAllowMentions,
-            quietHoursFooter: quietHoursFooter,
-            weekdayEveryDay: weekdayEveryDay,
-            weekdayWeekdays: weekdayWeekdays,
-            weekdayWeekends: weekdayWeekends,
-            weekdayMonday: weekdayMonday,
-            weekdayTuesday: weekdayTuesday,
-            weekdayWednesday: weekdayWednesday,
-            weekdayThursday: weekdayThursday,
-            weekdayFriday: weekdayFriday,
-            weekdaySaturday: weekdaySaturday,
-            weekdaySunday: weekdaySunday,
-            notificationPreviewTitle: notificationPreviewTitle,
-            notificationPreviewLabel: notificationPreviewLabel,
-            notificationPreviewFull: notificationPreviewFull,
-            notificationPreviewSenderOnly: notificationPreviewSenderOnly,
-            notificationPreviewHidden: notificationPreviewHidden,
-            notificationPreviewFooter: notificationPreviewFooter,
-            multiDeviceTitle: multiDeviceTitle,
-            multiDeviceLabel: multiDeviceLabel,
-            multiDeviceDelay: multiDeviceDelay,
-            multiDeviceImmediate: multiDeviceImmediate,
-            multiDeviceBadgeOnly: multiDeviceBadgeOnly,
-            multiDeviceFooter: multiDeviceFooter,
-            inAppNotificationCount: inAppNotificationCount,
-            quietHoursNextDay: quietHoursNextDay,
-            confirmAction: confirmAction,
-            selectDevice: selectDevice,
-            transferQueue: transferQueue,
-            noTransfers: noTransfers,
-            retryFailedTransfers: retryFailedTransfers,
-            reload: reload,
-            select: select,
-            selectTime: selectTime,
-            selectDate: selectDate,
-            today: today,
-            timeRange: timeRange,
-            searchIdleHint: searchIdleHint,
-            resend: resend,
-            groupPermissionMatrixTitle: groupPermissionMatrixTitle,
-            groupPermissionMatrixReadOnlyHint: groupPermissionMatrixReadOnlyHint,
-            groupPermissionMatrixJoinPolicy: groupPermissionMatrixJoinPolicy,
-            groupPermissionMatrixJoinPolicyDescription: groupPermissionMatrixJoinPolicyDescription,
-            groupPermissionMatrixJoinInvite: groupPermissionMatrixJoinInvite,
-            groupPermissionMatrixJoinApproval: groupPermissionMatrixJoinApproval,
-            groupPermissionMatrixJoinOpen: groupPermissionMatrixJoinOpen,
-            groupPermissionMatrixUnknownJoinPolicy: groupPermissionMatrixUnknownJoinPolicy,
-            groupPermissionMatrixMuteAll: groupPermissionMatrixMuteAll,
-            groupPermissionMatrixMuteAllDescription: groupPermissionMatrixMuteAllDescription,
-            groupPermissionMatrixOnlyAdminCanAtAll: groupPermissionMatrixOnlyAdminCanAtAll,
-            groupPermissionMatrixOnlyAdminCanAtAllDescription: groupPermissionMatrixOnlyAdminCanAtAllDescription,
-            groupPermissionMatrixOnlyAdminCanPin: groupPermissionMatrixOnlyAdminCanPin,
-            groupPermissionMatrixOnlyAdminCanPinDescription: groupPermissionMatrixOnlyAdminCanPinDescription,
-            groupPermissionMatrixShareCardPermission: groupPermissionMatrixShareCardPermission,
-            groupPermissionMatrixShareCardPermissionDescription: groupPermissionMatrixShareCardPermissionDescription,
-            groupPermissionMatrixOn: groupPermissionMatrixOn,
-            groupPermissionMatrixOff: groupPermissionMatrixOff,
-            groupPermissionMatrixBusy: groupPermissionMatrixBusy,
-            groupPermissionMatrixDismissError: groupPermissionMatrixDismissError,
-            conversationBatchToolbarSelected: conversationBatchToolbarSelected,
-            conversationBatchToolbarEmpty: conversationBatchToolbarEmpty,
-            conversationBatchToolbarMarkRead: conversationBatchToolbarMarkRead,
-            conversationBatchToolbarMute: conversationBatchToolbarMute,
-            conversationBatchToolbarArchive: conversationBatchToolbarArchive,
-            conversationBatchToolbarCancel: conversationBatchToolbarCancel,
-            conversationBatchToolbarBusy: conversationBatchToolbarBusy,
-            conversationBatchToolbarSucceededSummary: conversationBatchToolbarSucceededSummary,
-            conversationBatchToolbarFailedSummary: conversationBatchToolbarFailedSummary,
-            conversationBatchToolbarRetryFailed: conversationBatchToolbarRetryFailed,
-            conversationBatchToolbarDismiss: conversationBatchToolbarDismiss,
-            conversationBatchToolbarExpand: conversationBatchToolbarExpand,
-            conversationBatchToolbarMaxSelection: conversationBatchToolbarMaxSelection,
-            inviteCodeLabel: inviteCodeLabel,
-            inviteCodePlaceholder: inviteCodePlaceholder,
-            inviteCodeOptional: inviteCodeOptional,
-            inviteCodeChecking: inviteCodeChecking,
-            inviteCodeValid: inviteCodeValid,
-            inviteCodeInviter: inviteCodeInviter,
-            inviteCodeInvalid: inviteCodeInvalid,
-            inviteCodeScan: inviteCodeScan,
-            myInviteTitle: myInviteTitle,
-            myInviteCodeLabel: myInviteCodeLabel,
-            myInviteCodeUnavailable: myInviteCodeUnavailable,
-            myInviteCopy: myInviteCopy,
-            myInviteQrHint: myInviteQrHint,
-            myInviteShare: myInviteShare,
-            myInviteRegenerate: myInviteRegenerate,
-            myInviteRegenerating: myInviteRegenerating,
-            myInviteCooldown: myInviteCooldown,
-            myInviteUnitMinutes: myInviteUnitMinutes,
-            myInviteUnitHours: myInviteUnitHours,
-            myInviteUnitDays: myInviteUnitDays,
-            myInviteStatsTitle: myInviteStatsTitle,
-            myInviteDirect: myInviteDirect,
-            myInviteLevel2: myInviteLevel2,
-            myInviteLevel3: myInviteLevel3,
-            myInviteTotal: myInviteTotal,
-            myInviteInviteesTitle: myInviteInviteesTitle,
-            myInviteInviterTitle: myInviteInviterTitle,
-            myInviteNoInviter: myInviteNoInviter,
-            myInviteRelationships: myInviteRelationships,
-            myInviteNoChildren: myInviteNoChildren,
-            myInviteCollapse: myInviteCollapse,
-            myInviteExpand: myInviteExpand,
-            myInviteInviterUnavailable: myInviteInviterUnavailable,
-            myInviteCurrentUser: myInviteCurrentUser,
-            myInviteEmpty: myInviteEmpty,
-            myInviteLoadMore: myInviteLoadMore,
-            myInviteLoading: myInviteLoading,
-            myInviteJoined: myInviteJoined,
-            myInviteCountOnly: myInviteCountOnly,
-            storageUsageTitle: storageUsageTitle,
-            storageUsageUnknownSize: storageUsageUnknownSize,
-            storageUsageAtLeast: storageUsageAtLeast,
-            storageUsageClear: storageUsageClear,
-            storageUsageClearing: storageUsageClearing,
-            storageUsageTotal: storageUsageTotal,
-            storageUsageDeviceFree: storageUsageDeviceFree,
-            storageUsageReload: storageUsageReload,
-            storageUsageRetry: storageUsageRetry,
-            storageUsageDismissError: storageUsageDismissError,
-            storageUsageLoading: storageUsageLoading,
-            storageUsageEmpty: storageUsageEmpty,
-            storageUsageFileCount: storageUsageFileCount,
-            memberRoleSheetMemberRole: memberRoleSheetMemberRole,
-            memberRoleSheetMuted: memberRoleSheetMuted,
-            memberRoleSheetPromote: memberRoleSheetPromote,
-            memberRoleSheetDemote: memberRoleSheetDemote,
-            memberRoleSheetMute: memberRoleSheetMute,
-            memberRoleSheetUnmute: memberRoleSheetUnmute,
-            memberRoleSheetRemove: memberRoleSheetRemove,
-            memberRoleSheetTransferOwner: memberRoleSheetTransferOwner,
-            memberRoleSheetDangerGroup: memberRoleSheetDangerGroup,
-            memberRoleSheetEmpty: memberRoleSheetEmpty,
-            memberRoleSheetOwnerProtected: memberRoleSheetOwnerProtected,
-            relationActionBarAdd: relationActionBarAdd,
-            relationActionBarAccept: relationActionBarAccept,
-            relationActionBarRemove: relationActionBarRemove,
-            relationActionBarBlock: relationActionBarBlock,
-            relationActionBarUnblock: relationActionBarUnblock,
-            relationActionBarPending: relationActionBarPending,
-            relationActionBarBusy: relationActionBarBusy,
-            relationActionBarDismissError: relationActionBarDismissError,
-            relationActionBarEmpty: relationActionBarEmpty,
-            screenShareTitle: screenShareTitle,
-            screenShareIdle: screenShareIdle,
-            screenShareRequesting: screenShareRequesting,
-            screenShareSharing: screenShareSharing,
-            screenShareViewing: screenShareViewing,
-            screenShareUnavailable: screenShareUnavailable,
-            screenShareSourceRow: screenShareSourceRow,
-            screenSharePresenterRow: screenSharePresenterRow,
-            screenShareStart: screenShareStart,
-            screenShareStop: screenShareStop,
-            screenShareCancel: screenShareCancel,
-            conversationActionSheetPin: conversationActionSheetPin,
-            conversationActionSheetUnpin: conversationActionSheetUnpin,
-            conversationActionSheetMute: conversationActionSheetMute,
-            conversationActionSheetUnmute: conversationActionSheetUnmute,
-            conversationActionSheetMarkRead: conversationActionSheetMarkRead,
-            conversationActionSheetMarkUnread: conversationActionSheetMarkUnread,
-            conversationActionSheetArchive: conversationActionSheetArchive,
-            conversationActionSheetUnarchive: conversationActionSheetUnarchive,
-            conversationActionSheetHide: conversationActionSheetHide,
-            conversationActionSheetClearHistory: conversationActionSheetClearHistory,
-            conversationActionSheetEmpty: conversationActionSheetEmpty,
-            messageActionSheetLabel: messageActionSheetLabel,
-            messageActionSheetEmpty: messageActionSheetEmpty,
-            messageSpoilerReveal: messageSpoilerReveal,
-            messageImageGroupLabel: messageImageGroupLabel,
-            messageImageGroupItem: messageImageGroupItem,
-            messageImageGroupItemMore: messageImageGroupItemMore,
-            messageActionReply: messageActionReply,
-            messageActionForward: messageActionForward,
-            messageActionRecall: messageActionRecall,
-            messageActionResend: messageActionResend,
-            messageActionMultiSelect: messageActionMultiSelect,
-            messageActionMark: messageActionMark,
-            messageActionPin: messageActionPin,
-            messageActionPinSelf: messageActionPinSelf,
-            messageActionUnpin: messageActionUnpin,
-            messageActionCopy: messageActionCopy,
-            messageActionPreview: messageActionPreview,
-            messageActionSave: messageActionSave,
-            messageActionEdit: messageActionEdit,
-            messageActionDelete: messageActionDelete,
-            workspaceFrameLoading: workspaceFrameLoading,
-            workspaceFrameEmpty: workspaceFrameEmpty,
-            workspaceFrameFailure: workspaceFrameFailure,
-            workspaceFrameRetry: workspaceFrameRetry,
-            conversationWorkspaceChatEmpty: conversationWorkspaceChatEmpty,
-            conversationWorkspaceDetailEmpty: conversationWorkspaceDetailEmpty,
-            conversationWorkspaceListFailure: conversationWorkspaceListFailure,
-            conversationWorkspaceChatFailure: conversationWorkspaceChatFailure,
-            conversationWorkspaceDetailFailure: conversationWorkspaceDetailFailure,
-            conversationWorkspaceListLoading: conversationWorkspaceListLoading,
-            conversationWorkspaceChatLoading: conversationWorkspaceChatLoading,
-            conversationWorkspaceDetailLoading: conversationWorkspaceDetailLoading,
-            searchDateRangeFilterCustom: searchDateRangeFilterCustom,
-            searchDateRangeFilterFrom: searchDateRangeFilterFrom,
-            searchDateRangeFilterTo: searchDateRangeFilterTo,
-            searchDateRangeFilterUnlimited: searchDateRangeFilterUnlimited,
-            searchDateRangeFilterInvalid: searchDateRangeFilterInvalid,
-            composerPlaceholder: composerPlaceholder,
-            composerReply: composerReply,
-            voiceHoldButtonLabel: voiceHoldButtonLabel,
-            voiceHoldButtonRecording: voiceHoldButtonRecording,
-            unknownUserPlaceholderUnknown: unknownUserPlaceholderUnknown,
-            unknownUserPlaceholderDeactivated: unknownUserPlaceholderDeactivated,
-            unknownUserPlaceholderBlocked: unknownUserPlaceholderBlocked,
-            unknownUserPlaceholderUnreachable: unknownUserPlaceholderUnreachable,
-            unknownUserPlaceholderId: unknownUserPlaceholderId,
-            newFriendRequestsEmpty: newFriendRequestsEmpty,
-            newFriendRequestsAccept: newFriendRequestsAccept,
-            newFriendRequestsPending: newFriendRequestsPending,
-            newFriendRequestsWithdraw: newFriendRequestsWithdraw,
-            unknownMessageHint: unknownMessageHint,
-            unknownMessageUnsupported: unknownMessageUnsupported,
-            unknownMessageDiagnostic: unknownMessageDiagnostic,
-            conversationRowDraft: conversationRowDraft,
-            conversationRowMention: conversationRowMention,
-            messageListEmpty: messageListEmpty,
-            messageListLoadOlder: messageListLoadOlder,
-            messageListLoadNewer: messageListLoadNewer,
-            messageRecalledSelf: messageRecalledSelf,
-            messageRecalledPeer: messageRecalledPeer,
-            messageRecalledGroupOther: messageRecalledGroupOther,
-            messageQuoteLabel: messageQuoteLabel,
-            jumpedToMessage: jumpedToMessage,
-            conversationHeaderIdentityLabel: conversationHeaderIdentityLabel,
-            yesterday: yesterday,
-            startConversationSearchPlaceholder: startConversationSearchPlaceholder,
-            groupDetailTitle: groupDetailTitle,
-            groupDetailUnavailable: groupDetailUnavailable,
-            groupDetailUnavailableHint: groupDetailUnavailableHint,
-            groupDetailMemberCountSuffix: groupDetailMemberCountSuffix,
-            groupDetailNotSet: groupDetailNotSet,
-            groupDetailSettingUnavailable: groupDetailSettingUnavailable,
-            groupDetailSectionInfo: groupDetailSectionInfo,
-            groupDetailSectionMyInGroup: groupDetailSectionMyInGroup,
-            groupDetailSectionManage: groupDetailSectionManage,
-            groupDetailSectionPerms: groupDetailSectionPerms,
-            groupDetailGroupName: groupDetailGroupName,
-            groupDetailAnnouncementEmpty: groupDetailAnnouncementEmpty,
-            groupDetailMyNickname: groupDetailMyNickname,
-            groupDetailMuteNotif: groupDetailMuteNotif,
-            groupDetailPinGroup: groupDetailPinGroup,
-            groupDetailDiscoverable: groupDetailDiscoverable,
-            groupDetailJoinMode: groupDetailJoinMode,
-            groupDetailJoinRequests: groupDetailJoinRequests,
-            groupDetailMuteAll: groupDetailMuteAll,
-            groupDetailInviteLink: groupDetailInviteLink,
-            groupDetailOnlyAdminAtAll: groupDetailOnlyAdminAtAll,
-            groupDetailOnlyAdminPin: groupDetailOnlyAdminPin,
-            groupDetailShareCard: groupDetailShareCard,
-            groupDetailForbidGroupFriendRequests: groupDetailForbidGroupFriendRequests,
-            groupDetailJoinOpen: groupDetailJoinOpen,
-            groupDetailJoinApproval: groupDetailJoinApproval,
-            groupDetailJoinInvite: groupDetailJoinInvite,
-            groupDetailEditName: groupDetailEditName,
-            groupDetailEditAnnouncement: groupDetailEditAnnouncement,
-            groupDetailNicknamePlaceholder: groupDetailNicknamePlaceholder,
-            groupDetailMemberManage: groupDetailMemberManage,
-            groupDetailSetAdmin: groupDetailSetAdmin,
-            groupDetailUnsetAdmin: groupDetailUnsetAdmin,
-            groupDetailMute: groupDetailMute,
-            groupDetailUnmute: groupDetailUnmute,
-            groupDetailTransferOwner: groupDetailTransferOwner,
-            groupDetailTransferConfirm: groupDetailTransferConfirm,
-            groupDetailRequestFriend: groupDetailRequestFriend,
-            groupDetailRemoveMember: groupDetailRemoveMember,
-            groupDetailNoRequests: groupDetailNoRequests,
-            groupDetailRequestDefaultMessage: groupDetailRequestDefaultMessage,
-            groupDetailApprove: groupDetailApprove,
-            groupDetailInvite: groupDetailInvite,
-            groupDetailInviteEmpty: groupDetailInviteEmpty,
-            groupDetailInviteLinkHint: groupDetailInviteLinkHint,
-            groupDetailInviteCodeTitle: groupDetailInviteCodeTitle,
-            groupDetailCopyCode: groupDetailCopyCode,
-            groupDetailCopied: groupDetailCopied,
-            groupDetailCannotGenerate: groupDetailCannotGenerate,
-            groupDetailLeave: groupDetailLeave,
-            groupDetailDissolve: groupDetailDissolve,
-            groupDetailSave: groupDetailSave,
-            groupDetailDone: groupDetailDone,
-            momentAudienceSheetPublic: momentAudienceSheetPublic,
-            momentAudienceSheetPublicHint: momentAudienceSheetPublicHint,
-            momentAudienceSheetFriends: momentAudienceSheetFriends,
-            momentAudienceSheetFriendsHint: momentAudienceSheetFriendsHint,
-            momentAudienceSheetPrivate: momentAudienceSheetPrivate,
-            momentAudienceSheetPrivateHint: momentAudienceSheetPrivateHint,
-            momentAudienceSheetInclude: momentAudienceSheetInclude,
-            momentAudienceSheetIncludeHint: momentAudienceSheetIncludeHint,
-            momentAudienceSheetExclude: momentAudienceSheetExclude,
-            momentAudienceSheetExcludeHint: momentAudienceSheetExcludeHint,
-            momentAudienceSheetPick: momentAudienceSheetPick,
-            momentAudienceSheetDone: momentAudienceSheetDone,
-            momentAudienceSheetSelected: momentAudienceSheetSelected,
-            momentsVisibilityRuleListHideFromTitle: momentsVisibilityRuleListHideFromTitle,
-            momentsVisibilityRuleListHideFromHint: momentsVisibilityRuleListHideFromHint,
-            momentsVisibilityRuleListMuteTitle: momentsVisibilityRuleListMuteTitle,
-            momentsVisibilityRuleListMuteHint: momentsVisibilityRuleListMuteHint,
-            momentsVisibilityRuleListEmpty: momentsVisibilityRuleListEmpty,
-            momentsVisibilityRuleListRemove: momentsVisibilityRuleListRemove,
-            contactMatchListAdd: contactMatchListAdd,
-            contactMatchListEmpty: contactMatchListEmpty,
-            announcementReadBarConfirmRead: announcementReadBarConfirmRead,
-            announcementReadBarViewUnread: announcementReadBarViewUnread,
-            announcementReadBarReadCount: announcementReadBarReadCount,
-            contactDetailInfo: contactDetailInfo,
-            contactDetailFlareId: contactDetailFlareId,
-            contactDetailRemark: contactDetailRemark,
-            contactDetailDescription: contactDetailDescription,
-            contactDetailStar: contactDetailStar,
-            contactDetailNotSet: contactDetailNotSet,
-            contactDetailVoice: contactDetailVoice,
-            contactDetailVideo: contactDetailVideo,
-            contactDetailBlock: contactDetailBlock,
-            contactDetailRemove: contactDetailRemove,
-            conversationDetailsMessages: conversationDetailsMessages,
-            conversationDetailsMute: conversationDetailsMute,
-            conversationDetailsPin: conversationDetailsPin,
-            conversationDetailsMarkRead: conversationDetailsMarkRead,
-            conversationDetailsMarkUnread: conversationDetailsMarkUnread,
-            conversationDetailsSync: conversationDetailsSync,
-            conversationDetailsArchive: conversationDetailsArchive,
-            conversationDetailsUnarchive: conversationDetailsUnarchive,
-            conversationDetailsClearHistory: conversationDetailsClearHistory,
-            conversationDetailsDelete: conversationDetailsDelete,
-            profileEditorNickname: profileEditorNickname,
-            profileEditorNicknamePlaceholder: profileEditorNicknamePlaceholder,
-            profileEditorBio: profileEditorBio,
-            profileEditorBioPlaceholder: profileEditorBioPlaceholder,
-            profileEditorSave: profileEditorSave,
-            composerEmoji: composerEmoji,
-            composerMention: composerMention,
-            composerVoice: composerVoice,
-            composerImage: composerImage,
-            composerRichText: composerRichText,
-            composerMore: composerMore,
-            composerExpandInput: composerExpandInput,
-            composerCollapseInput: composerCollapseInput,
-            composerFormatBold: composerFormatBold,
-            composerFormatItalic: composerFormatItalic,
-            composerFormatStrike: composerFormatStrike,
-            composerFormatCode: composerFormatCode,
-            composerFormatLink: composerFormatLink,
-            composerFormatHeading: composerFormatHeading,
-            composerFormatQuote: composerFormatQuote,
-            composerFormatBullet: composerFormatBullet,
-            composerFormatOrdered: composerFormatOrdered,
-            inlineVoiceComposerKeyboard: inlineVoiceComposerKeyboard,
-            inlineVoiceComposerPause: inlineVoiceComposerPause,
-            inlineVoiceComposerStart: inlineVoiceComposerStart,
-            inlineVoiceComposerPreview: inlineVoiceComposerPreview,
-            inlineVoiceComposerResume: inlineVoiceComposerResume,
-            inlineVoiceComposerDiscard: inlineVoiceComposerDiscard,
-            inlineVoiceComposerMicDenied: inlineVoiceComposerMicDenied,
-            inlineVoiceComposerSendFailed: inlineVoiceComposerSendFailed,
-            cancelRecording: cancelRecording,
-            sendVoice: sendVoice,
-            pause: pause,
-            download: download,
-            showInFolder: showInFolder,
-            downloading: downloading,
-            downloaded: downloaded,
-            imagePreviewClose: imagePreviewClose,
-            imagePreviewPrevious: imagePreviewPrevious,
-            imagePreviewNext: imagePreviewNext,
-            imagePreviewPosition: imagePreviewPosition,
-            exitMultiSelect: exitMultiSelect,
-            scrollToLatest: scrollToLatest,
-            callMinimize: callMinimize,
-            callPeerMuted: callPeerMuted,
-            callSwitchToVideo: callSwitchToVideo,
-            callDeviceOn: callDeviceOn,
-            callDeviceOff: callDeviceOff,
-            callReturn: callReturn,
-            conversationHeaderAddActions: conversationHeaderAddActions,
-            conversationHeaderMoreActions: conversationHeaderMoreActions,
-            messageImage: messageImage,
-            messageVideo: messageVideo,
-            messageVoice: messageVoice,
-            voiceSeconds: voiceSeconds,
-            voicePlaybackFailed: voicePlaybackFailed,
-            imageLoadFailed: imageLoadFailed,
-            videoLoadFailed: videoLoadFailed,
-            mediaUnavailableImage: mediaUnavailableImage,
-            mediaUnavailableVideo: mediaUnavailableVideo,
-            mediaUnavailableAudio: mediaUnavailableAudio,
-            announcementBannerDismiss: announcementBannerDismiss,
-            removeImage: removeImage,
-            momentActions: momentActions,
-            momentsVisibilityRuleListAdd: momentsVisibilityRuleListAdd,
-            myQrCode: myQrCode,
-            rating: rating,
-            ratingStar: ratingStar,
-            conversationHeaderSearch: conversationHeaderSearch,
-            conversationHeaderAudioCall: conversationHeaderAudioCall,
-            conversationHeaderVideoCall: conversationHeaderVideoCall,
-            conversationHeaderAddMember: conversationHeaderAddMember,
-            conversationHeaderShare: conversationHeaderShare,
-            conversationHeaderDetails: conversationHeaderDetails,
-            presenceOnline: presenceOnline,
-            presenceOffline: presenceOffline,
-            presenceBusy: presenceBusy,
-            presenceAway: presenceAway,
-            connectionConnecting: connectionConnecting,
-            connectionSyncing: connectionSyncing,
-            connectionSwitching: connectionSwitching,
-            connectionReconnecting: connectionReconnecting,
-            connectionWaitingForNetwork: connectionWaitingForNetwork,
-            connectionServiceUnavailable: connectionServiceUnavailable,
-            connectionKicked: connectionKicked,
-            connectionExpired: connectionExpired,
-            connectionUpgradeRequired: connectionUpgradeRequired,
-            connectionTenantUnavailable: connectionTenantUnavailable,
-            connectionRetryIn: connectionRetryIn,
-            connectionRetry: connectionRetry,
-            connectionSignIn: connectionSignIn,
-            connectionUpdate: connectionUpdate,
-            connectionDiagnose: connectionDiagnose,
-            connectionDevelopmentMode: connectionDevelopmentMode,
-            accessDiagnosticsTitle: accessDiagnosticsTitle,
-            accessDiagnosticsCurrent: accessDiagnosticsCurrent,
-            accessDiagnosticsLines: accessDiagnosticsLines,
-            accessDiagnosticsRecovery: accessDiagnosticsRecovery,
-            accessDiagnosticsAccessPoint: accessDiagnosticsAccessPoint,
-            accessDiagnosticsRegion: accessDiagnosticsRegion,
-            accessDiagnosticsProtocol: accessDiagnosticsProtocol,
-            accessDiagnosticsRtt: accessDiagnosticsRtt,
-            accessDiagnosticsSerial: accessDiagnosticsSerial,
-            accessDiagnosticsSource: accessDiagnosticsSource,
-            accessDiagnosticsManifest: accessDiagnosticsManifest,
-            accessDiagnosticsReportedAccessPoint: accessDiagnosticsReportedAccessPoint,
-            accessDiagnosticsRecoveryRounds: accessDiagnosticsRecoveryRounds,
-            accessDiagnosticsManifestValid: accessDiagnosticsManifestValid,
-            accessDiagnosticsManifestStale: accessDiagnosticsManifestStale,
-            accessDiagnosticsManifestNone: accessDiagnosticsManifestNone,
-            accessDiagnosticsOn: accessDiagnosticsOn,
-            accessDiagnosticsOff: accessDiagnosticsOff,
-            accessDiagnosticsRttGood: accessDiagnosticsRttGood,
-            accessDiagnosticsRttFair: accessDiagnosticsRttFair,
-            accessDiagnosticsRttPoor: accessDiagnosticsRttPoor,
-            accessDiagnosticsSourceSeed: accessDiagnosticsSourceSeed,
-            accessDiagnosticsSourceMirror: accessDiagnosticsSourceMirror,
-            accessDiagnosticsSourceRecovery: accessDiagnosticsSourceRecovery,
-            accessDiagnosticsSourceDevelopment: accessDiagnosticsSourceDevelopment,
-            accessDiagnosticsSourceNone: accessDiagnosticsSourceNone,
-            accessDiagnosticsStatusActive: accessDiagnosticsStatusActive,
-            accessDiagnosticsStatusDraining: accessDiagnosticsStatusDraining,
-            accessDiagnosticsStatusDisabled: accessDiagnosticsStatusDisabled,
-            accessDiagnosticsStatusUnknown: accessDiagnosticsStatusUnknown,
-            accessDiagnosticsBreakerOpen: accessDiagnosticsBreakerOpen,
-            accessDiagnosticsBreakerHalfOpen: accessDiagnosticsBreakerHalfOpen,
-            accessDiagnosticsCurrentTag: accessDiagnosticsCurrentTag,
-            accessDiagnosticsPinnedTag: accessDiagnosticsPinnedTag,
-            accessDiagnosticsPin: accessDiagnosticsPin,
-            accessDiagnosticsUnpin: accessDiagnosticsUnpin,
-            accessDiagnosticsNoLines: accessDiagnosticsNoLines,
-            accessDiagnosticsRefresh: accessDiagnosticsRefresh,
-            accessDiagnosticsExport: accessDiagnosticsExport,
-            accessDiagnosticsImport: accessDiagnosticsImport,
-            accessDiagnosticsImportLabel: accessDiagnosticsImportLabel,
-            accessDiagnosticsImportPlaceholder: accessDiagnosticsImportPlaceholder,
-            accessDiagnosticsImportHint: accessDiagnosticsImportHint,
-            accessDiagnosticsHealthy: accessDiagnosticsHealthy,
-            accessDiagnosticsNotConnected: accessDiagnosticsNotConnected,
-            accessDiagnosticsAccessPointMismatch: accessDiagnosticsAccessPointMismatch,
-            accessDiagnosticsManifestStaleNotice: accessDiagnosticsManifestStaleNotice,
-            accessDiagnosticsRefreshAdopted: accessDiagnosticsRefreshAdopted,
-            accessDiagnosticsRefreshUpToDate: accessDiagnosticsRefreshUpToDate,
-            accessDiagnosticsRefreshFailed: accessDiagnosticsRefreshFailed,
-            accessDiagnosticsRefreshSkipped: accessDiagnosticsRefreshSkipped,
-            accessDiagnosticsImportAdopted: accessDiagnosticsImportAdopted,
-            accessDiagnosticsImportUnchanged: accessDiagnosticsImportUnchanged,
-            accessDiagnosticsImportRollback: accessDiagnosticsImportRollback,
-            accessDiagnosticsImportExpired: accessDiagnosticsImportExpired,
-            accessDiagnosticsImportWrongApp: accessDiagnosticsImportWrongApp,
-            accessDiagnosticsImportDevelopmentMode: accessDiagnosticsImportDevelopmentMode,
-            accessDiagnosticsImportUntrusted: accessDiagnosticsImportUntrusted,
-            accessDiagnosticsImportMalformed: accessDiagnosticsImportMalformed,
-            accessDiagnosticsImportRejected: accessDiagnosticsImportRejected,
-            accessDiagnosticsExportCopied: accessDiagnosticsExportCopied,
-            accessDiagnosticsExportFailed: accessDiagnosticsExportFailed,
-            updatePromptTitleAvailable: updatePromptTitleAvailable,
-            updatePromptTitleRequired: updatePromptTitleRequired,
-            updatePromptTitleMetered: updatePromptTitleMetered,
-            updatePromptTitleDownloading: updatePromptTitleDownloading,
-            updatePromptTitleVerifying: updatePromptTitleVerifying,
-            updatePromptTitleReady: updatePromptTitleReady,
-            updatePromptTitleInstalling: updatePromptTitleInstalling,
-            updatePromptTitleFailed: updatePromptTitleFailed,
-            updatePromptVersion: updatePromptVersion,
-            updatePromptNotes: updatePromptNotes,
-            updatePromptMessageRequired: updatePromptMessageRequired,
-            updatePromptMessageRequiredReadOnly: updatePromptMessageRequiredReadOnly,
-            composerReadOnlyUpdate: composerReadOnlyUpdate,
-            updatePromptMessageMetered: updatePromptMessageMetered,
-            updatePromptMessageMeteredUnknown: updatePromptMessageMeteredUnknown,
-            updatePromptMessageReady: updatePromptMessageReady,
-            updatePromptFailManifestUnavailable: updatePromptFailManifestUnavailable,
-            updatePromptFailManifestRejected: updatePromptFailManifestRejected,
-            updatePromptFailNoArtifact: updatePromptFailNoArtifact,
-            updatePromptFailInsufficientSpace: updatePromptFailInsufficientSpace,
-            updatePromptFailDownload: updatePromptFailDownload,
-            updatePromptFailHashMismatch: updatePromptFailHashMismatch,
-            updatePromptFailInstall: updatePromptFailInstall,
-            updatePromptFailSignatureMismatch: updatePromptFailSignatureMismatch,
-            updatePromptFailDowngrade: updatePromptFailDowngrade,
-            updatePromptFailNotSkippable: updatePromptFailNotSkippable,
-            updatePromptFailUnknown: updatePromptFailUnknown,
-            updatePromptContinueDownload: updatePromptContinueDownload,
-            updatePromptRestart: updatePromptRestart,
-            updatePromptRetry: updatePromptRetry,
-            updatePromptFallbackWebsite: updatePromptFallbackWebsite,
-            updatePromptFallbackStore: updatePromptFallbackStore,
-            updatePromptLater: updatePromptLater,
-            updatePromptBackground: updatePromptBackground,
-            updatePromptSkip: updatePromptSkip,
-            updatePromptContinueReadOnly: updatePromptContinueReadOnly,
-            progressBarLabel: progressBarLabel,
-            progressBarLoading: progressBarLoading,
-            versionPanelTitle: versionPanelTitle,
-            versionPanelVersion: versionPanelVersion,
-            versionPanelBuild: versionPanelBuild,
-            versionPanelChannel: versionPanelChannel,
-            versionPanelChannelStable: versionPanelChannelStable,
-            versionPanelChannelBeta: versionPanelChannelBeta,
-            versionPanelChannelInternal: versionPanelChannelInternal,
-            versionPanelCheck: versionPanelCheck,
-            versionPanelChecking: versionPanelChecking,
-            versionPanelUpToDate: versionPanelUpToDate,
-            settingsRowBadge: settingsRowBadge,
-            groupDetailMembersTitle: groupDetailMembersTitle,
-            groupDetailSearchMembers: groupDetailSearchMembers,
-            groupDetailNoMatchingMembers: groupDetailNoMatchingMembers,
-            profilePanelEditProfile: profilePanelEditProfile,
-            momentReplyToComment: momentReplyToComment,
-            previewMessage: previewMessage,
-            previewRichText: previewRichText,
-            previewGif: previewGif,
-            previewImage: previewImage,
-            previewImageNamed: previewImageNamed,
-            previewVideo: previewVideo,
-            previewAudio: previewAudio,
-            previewFile: previewFile,
-            previewFileNamed: previewFileNamed,
-            previewLocation: previewLocation,
-            previewLocationNamed: previewLocationNamed,
-            previewCard: previewCard,
-            previewCardNamed: previewCardNamed,
-            previewSticker: previewSticker,
-            previewEmoji: previewEmoji,
-            previewQuote: previewQuote,
-            previewLink: previewLink,
-            previewForward: previewForward,
-            previewForwardCount: previewForwardCount,
-            previewThread: previewThread,
-            previewMiniProgram: previewMiniProgram,
-            previewImageGroup: previewImageGroup,
-            previewImageGroupCount: previewImageGroupCount,
-            previewSystem: previewSystem,
-            previewNotification: previewNotification,
-            previewVote: previewVote,
-            previewTask: previewTask,
-            previewSchedule: previewSchedule,
-            previewAnnouncement: previewAnnouncement,
-            previewCustom: previewCustom,
-            previewPlaceholder: previewPlaceholder,
-            previewUnknown: previewUnknown,
-            systemEventGroupCreated: systemEventGroupCreated,
-            systemEventGroupMemberJoined: systemEventGroupMemberJoined,
-            systemEventGroupMemberRemoved: systemEventGroupMemberRemoved,
-            systemEventGroupMemberLeft: systemEventGroupMemberLeft,
-            systemEventGroupMemberMuted: systemEventGroupMemberMuted,
-            systemEventGroupMemberUnmuted: systemEventGroupMemberUnmuted,
-            systemEventGroupOwnerTransferred: systemEventGroupOwnerTransferred,
-            systemEventGroupDissolved: systemEventGroupDissolved,
-            systemEventGroupAnnouncementUpdated: systemEventGroupAnnouncementUpdated,
-            systemEventFriendshipEstablished: systemEventFriendshipEstablished,
-            systemEventGroupProfileUpdated: systemEventGroupProfileUpdated,
-            systemEventGroupProfileUpdatedNamed: systemEventGroupProfileUpdatedNamed,
-            systemEventGroupMemberRolesChanged: systemEventGroupMemberRolesChanged,
-            systemEventGroupMuted: systemEventGroupMuted,
-            systemEventGroupUnmuted: systemEventGroupUnmuted,
-            displayNameUser: displayNameUser,
-            displayNameUnknownUser: displayNameUnknownUser,
-            displayNameGroup: displayNameGroup,
-            displayNameSystem: displayNameSystem,
-            displayNameAi: displayNameAi,
-            displayNameCustomer: displayNameCustomer,
-            displayNameChannel: displayNameChannel,
-            displayNameBroadcast: displayNameBroadcast,
-            displayNameTemp: displayNameTemp,
-            displayNameSeparator: displayNameSeparator,
-            displayNameMembersMore: displayNameMembersMore,
-            pluginViewSubmit: pluginViewSubmit,
-            pluginViewEnded: pluginViewEnded,
-            pluginViewDeadlinePassed: pluginViewDeadlinePassed,
-            pluginViewSeeAll: pluginViewSeeAll,
-            pluginViewDetail: pluginViewDetail,
-            pluginViewVotes: pluginViewVotes,
-            pluginViewRemaining: pluginViewRemaining,
-            pluginViewDateTimeFormat: pluginViewDateTimeFormat,
-            pluginViewDateTimeYearFormat: pluginViewDateTimeYearFormat,
-            pluginFormRequired: pluginFormRequired,
-            pluginFormTooLong: pluginFormTooLong,
-            pluginFormOutOfRange: pluginFormOutOfRange,
-            pluginFormTooFewItems: pluginFormTooFewItems,
-            pluginFormTooManyItems: pluginFormTooManyItems,
-            pluginFormDuplicateItem: pluginFormDuplicateItem,
-            pluginFormInvalid: pluginFormInvalid,
-            pluginFileChoose: pluginFileChoose,
-            pluginFileSelected: pluginFileSelected,
-            pluginFileUploading: pluginFileUploading,
-            pluginFileUploaded: pluginFileUploaded,
-            pluginFileFailed: pluginFileFailed,
-            pluginFileRejected: pluginFileRejected,
-            pluginFileReplace: pluginFileReplace,
-            pluginFileRemove: pluginFileRemove,
-            pluginFilePreview: pluginFilePreview,
-            locationOsmAttribution: locationOsmAttribution,
-            loading: loading,
-            messageReadSummaryUnread: messageReadSummaryUnread,
-            messageReadSummaryAllRead: messageReadSummaryAllRead,
-            messageSendFailedRetry: messageSendFailedRetry,
-            messageDeleted: messageDeleted,
-            pluginViewMore: pluginViewMore,
-            pluginViewMe: pluginViewMe,
-            pluginViewUnavailableDisabled: pluginViewUnavailableDisabled,
-            pluginViewUnavailableNotInstalled: pluginViewUnavailableNotInstalled,
-            pluginViewUnavailableNoPermission: pluginViewUnavailableNoPermission,
-            pluginViewUnavailableUnsupportedPlatform: pluginViewUnavailableUnsupportedPlatform,
-            pluginViewUnavailableIncompatibleVersion: pluginViewUnavailableIncompatibleVersion,
-            pluginViewUnavailableCatalogUnreachable: pluginViewUnavailableCatalogUnreachable,
-            pluginViewUnavailableUnboundCopy: pluginViewUnavailableUnboundCopy,
-            pluginViewUnavailableUpgradeRequired: pluginViewUnavailableUpgradeRequired,
-            pluginUpgradeAction: pluginUpgradeAction,
-            pluginUpgradeNotAvailable: pluginUpgradeNotAvailable,
-            pluginUpgradeBadge: pluginUpgradeBadge,
-            pluginUpgradeTitle: pluginUpgradeTitle,
-            pluginUpgradeDescription: pluginUpgradeDescription,
-            pluginViewQrExpired: pluginViewQrExpired,
-            pluginViewQrRefresh: pluginViewQrRefresh,
-            pluginViewStepPending: pluginViewStepPending,
-            pluginViewStepCurrent: pluginViewStepCurrent,
-            pluginViewStepDone: pluginViewStepDone,
-            pluginViewStepFailed: pluginViewStepFailed,
-            pluginViewTrendUp: pluginViewTrendUp,
-            pluginViewTrendDown: pluginViewTrendDown,
-            pluginViewTrendFlat: pluginViewTrendFlat,
-            pluginViewImageUnavailable: pluginViewImageUnavailable,
-            pluginFormatSeconds: pluginFormatSeconds,
-            pluginFormatCountUnits: pluginFormatCountUnits,
-            pluginFormChooseImage: pluginFormChooseImage,
-            pluginFormCaptureDocument: pluginFormCaptureDocument,
-            pluginFormDocumentFront: pluginFormDocumentFront,
-            pluginFormDocumentBack: pluginFormDocumentBack,
-            pluginFormDocumentHolding: pluginFormDocumentHolding,
-            capabilityConsentTitle: capabilityConsentTitle,
-            capabilityConsentPurpose: capabilityConsentPurpose,
-            capabilityConsentAllowOnce: capabilityConsentAllowOnce,
-            capabilityConsentAllowAlways: capabilityConsentAllowAlways,
-            capabilityConsentDeny: capabilityConsentDeny,
-            capabilityConsentNote: capabilityConsentNote,
-            capabilityDocumentCapture: capabilityDocumentCapture,
-            capabilityPaymentConfirmation: capabilityPaymentConfirmation,
-            capabilityLocationCoarse: capabilityLocationCoarse,
-            capabilityLocationFine: capabilityLocationFine,
-            capabilityCamera: capabilityCamera,
-            capabilityMicrophone: capabilityMicrophone,
-            capabilityRtcSession: capabilityRtcSession,
-            capabilityGeneric: capabilityGeneric,
-            documentCaptureHintFront: documentCaptureHintFront,
-            documentCaptureHintBack: documentCaptureHintBack,
-            documentCaptureHintHolding: documentCaptureHintHolding,
-            documentCaptureShoot: documentCaptureShoot,
-            documentCaptureRetake: documentCaptureRetake,
-            documentCaptureUse: documentCaptureUse,
-            documentCaptureFromAlbum: documentCaptureFromAlbum,
-            documentCaptureProcessing: documentCaptureProcessing,
-            documentCaptureCameraUnavailable: documentCaptureCameraUnavailable,
-            documentCaptureTooLarge: documentCaptureTooLarge,
-            documentCaptureFailed: documentCaptureFailed,
-            documentCaptureNotAccepted: documentCaptureNotAccepted,
-            paymentConfirmationTitle: paymentConfirmationTitle,
-            paymentConfirmationPayee: paymentConfirmationPayee,
-            paymentConfirmationItem: paymentConfirmationItem,
-            paymentConfirmationOrder: paymentConfirmationOrder,
-            paymentConfirmationRequestedBy: paymentConfirmationRequestedBy,
-            paymentConfirmationExpiresIn: paymentConfirmationExpiresIn,
-            paymentConfirmationExpired: paymentConfirmationExpired,
-            paymentConfirmationInvalid: paymentConfirmationInvalid,
-            paymentConfirmationConfirm: paymentConfirmationConfirm,
-            paymentConfirmationVerifying: paymentConfirmationVerifying,
-            pluginProtectedMediaReason: pluginProtectedMediaReason,
-            pluginProtectedMediaNotice: pluginProtectedMediaNotice,
-            pluginProtectedMediaOwnNotice: pluginProtectedMediaOwnNotice,
-            pluginProtectedMediaView: pluginProtectedMediaView,
-            pluginProtectedMediaHide: pluginProtectedMediaHide,
-            pluginProtectedMediaUnavailable: pluginProtectedMediaUnavailable,
-            pluginProtectedMediaNotPreviewable: pluginProtectedMediaNotPreviewable,
-            pluginLocationLocate: pluginLocationLocate,
-            pluginLocationRelocate: pluginLocationRelocate,
-            pluginLocationClear: pluginLocationClear,
-            pluginLocationLocating: pluginLocationLocating,
-            pluginLocationEmpty: pluginLocationEmpty,
-            pluginLocationCoarse: pluginLocationCoarse,
-            pluginBundleOpening: pluginBundleOpening,
-            pluginBundleUnavailable: pluginBundleUnavailable,
-            pluginBundleCrashed: pluginBundleCrashed,
-            pluginBundleCrashedHint: pluginBundleCrashedHint,
-            pluginBundleReload: pluginBundleReload,
-            pluginBundleClosed: pluginBundleClosed,
-            pluginBundleExternalTitle: pluginBundleExternalTitle,
-            pluginBundleExternalMessage: pluginBundleExternalMessage,
-            pluginBundleExternalOpen: pluginBundleExternalOpen,
-            pluginBundleCopied: pluginBundleCopied,
-            pluginBridgeErrorInvalidEnvelope: pluginBridgeErrorInvalidEnvelope,
-            pluginBridgeErrorUnsupportedBridge: pluginBridgeErrorUnsupportedBridge,
-            pluginBridgeErrorNotReady: pluginBridgeErrorNotReady,
-            pluginBridgeErrorMethodNotFound: pluginBridgeErrorMethodNotFound,
-            pluginBridgeErrorInvalidParams: pluginBridgeErrorInvalidParams,
-            pluginBridgeErrorPayloadTooLarge: pluginBridgeErrorPayloadTooLarge,
-            pluginBridgeErrorPermissionDenied: pluginBridgeErrorPermissionDenied,
-            pluginBridgeErrorRateLimited: pluginBridgeErrorRateLimited,
-            pluginBridgeErrorCancelled: pluginBridgeErrorCancelled,
-            pluginBridgeErrorGestureRequired: pluginBridgeErrorGestureRequired,
-            pluginBridgeErrorQuotaExceeded: pluginBridgeErrorQuotaExceeded,
-            pluginBridgeErrorNotFound: pluginBridgeErrorNotFound,
-            pluginBridgeErrorUnavailable: pluginBridgeErrorUnavailable,
-            pluginBridgeErrorTimeout: pluginBridgeErrorTimeout,
-            pluginBridgeErrorOperationFailed: pluginBridgeErrorOperationFailed,
-            pluginBridgeErrorRevoked: pluginBridgeErrorRevoked,
-            pluginBridgeErrorInternal: pluginBridgeErrorInternal,
-            pluginLocationFine: pluginLocationFine,
-            pluginLocationAccuracy: pluginLocationAccuracy,
-            pluginPageRefresh: pluginPageRefresh,
-            pluginViewMaxSelections: pluginViewMaxSelections,
-            pluginViewAll: pluginViewAll,
-            accountTransactions: accountTransactions,
-            accountEmpty: accountEmpty,
-            accountEmptyDescription: accountEmptyDescription,
-            accountInformation: accountInformation,
-            accountEntryDetails: accountEntryDetails,
-            accountEntryId: accountEntryId,
-            accountType: accountType,
-            accountToday: accountToday,
-            accountYesterday: accountYesterday,
-            accountOtherEntries: accountOtherEntries,
-            accountShowBalance: accountShowBalance,
-            accountHideBalance: accountHideBalance,
-            accountBalanceHidden: accountBalanceHidden,
-            accountDayFormat: accountDayFormat,
-            accountDayYearFormat: accountDayYearFormat,
-            pluginViewEmpty: pluginViewEmpty,
-            packetView: packetView,
-            packetRefunded: packetRefunded,
-            packetBadgeLucky: packetBadgeLucky,
-            packetBadgeExclusive: packetBadgeExclusive,
-            packetForRecipient: packetForRecipient,
-            packetNotEligibleName: packetNotEligibleName,
-            packetDeposited: packetDeposited,
-            packetSummarySender: packetSummarySender,
-            packetSummaryCompleted: packetSummaryCompleted,
-            packetSummaryCount: packetSummaryCount,
-            packetRefundAt: packetRefundAt,
-            packetRefundedNote: packetRefundedNote,
-            packetDurationSeconds: packetDurationSeconds,
-            packetDurationMinutes: packetDurationMinutes,
-            packetDurationHours: packetDurationHours,
-            packetDurationDays: packetDurationDays,
-            callRecordVoice: callRecordVoice,
-            callRecordVideo: callRecordVideo,
-            callRecordWaitingAnswer: callRecordWaitingAnswer,
-            callRecordIncoming: callRecordIncoming,
-            callRecordGroupRinging: callRecordGroupRinging,
-            callRecordInCall: callRecordInCall,
-            callRecordGroupOngoing: callRecordGroupOngoing,
-            callRecordGroupInProgress: callRecordGroupInProgress,
-            callRecordDuration: callRecordDuration,
-            callRecordGroupEndedDuration: callRecordGroupEndedDuration,
-            callRecordGroupEnded: callRecordGroupEnded,
-            callRecordCancelledByYou: callRecordCancelledByYou,
-            callRecordCancelledByCaller: callRecordCancelledByCaller,
-            callRecordDeclinedByPeer: callRecordDeclinedByPeer,
-            callRecordDeclinedByYou: callRecordDeclinedByYou,
-            callRecordNoAnswer: callRecordNoAnswer,
-            callRecordMissed: callRecordMissed,
-            callRecordPeerBusy: callRecordPeerBusy,
-            callRecordMissedBusy: callRecordMissedBusy,
-            callRecordUnavailable: callRecordUnavailable,
-            callRecordFailed: callRecordFailed,
-            callRecordJoin: callRecordJoin,
-            callRecordCallBack: callRecordCallBack,
-            callRecordConfirmCallBack: callRecordConfirmCallBack,
-            readReceiptRead: readReceiptRead,
-            readReceiptUnread: readReceiptUnread,
-            readReceiptLoadFailed: readReceiptLoadFailed,
-            readReceiptUnavailable: readReceiptUnavailable,
-            readReceiptLoadMore: readReceiptLoadMore,
-            readReceiptLoadMoreFailed: readReceiptLoadMoreFailed,
-            packetRefundedNotice: packetRefundedNotice,
-            meMenuMoments: meMenuMoments,
-            meMenuReports: meMenuReports,
-            meMenuInvite: meMenuInvite,
-            meMenuSettings: meMenuSettings,
-            meMenuPluginFallback: meMenuPluginFallback,
-            forwardRecordTitle: forwardRecordTitle,
-            forwardRecordTotal: forwardRecordTotal,
-            forwardRecordTotalOne: forwardRecordTotalOne,
-            forwardRecordMore: forwardRecordMore,
-            forwardRecordMoreOne: forwardRecordMoreOne,
-            forwardRecordViewDetails: forwardRecordViewDetails,
-            forwardRecordUnknownSender: forwardRecordUnknownSender,
-            forwardRecordEmpty: forwardRecordEmpty,
-            forwardRecordCountSuffix: forwardRecordCountSuffix,
-            forwardRecordCardLabel: forwardRecordCardLabel,
-            pluginViewVotesOne: pluginViewVotesOne,
-            myInviteCountOnlyOne: myInviteCountOnlyOne,
-            storageUsageFileCountOne: storageUsageFileCountOne,
-            messageMenuLoading: messageMenuLoading,
-            scanTitle: scanTitle,
-            scanAlbum: scanAlbum,
-            scanPaste: scanPaste,
-            scanTorchOn: scanTorchOn,
-            scanTorchOff: scanTorchOff,
-            scanChooseCode: scanChooseCode,
-            scanPreparing: scanPreparing,
-            scanLive: scanLive,
-            scanLowLight: scanLowLight,
-            scanLocked: scanLocked,
-            scanChoosing: scanChoosing,
-            scanPaused: scanPaused,
-            scanImageDecoding: scanImageDecoding,
-            scanImageError: scanImageError,
-            scanNoCodeInImage: scanNoCodeInImage,
-            scanNoCamera: scanNoCamera,
-            scanInsecureContext: scanInsecureContext,
-            scanCameraBusy: scanCameraBusy,
-            scanCameraError: scanCameraError,
-            scanNotInviteCode: scanNotInviteCode,
-            scanResult: scanResult,
-            scanUpgradeRequired: scanUpgradeRequired,
-            scanSaveCode: scanSaveCode,
-            scanShareCode: scanShareCode,
-            scanCodeExpired: scanCodeExpired,
-            scanLoginRequired: scanLoginRequired,
-            scanForeignCode: scanForeignCode,
-            scanText: scanText,
-            scanExternalLink: scanExternalLink,
-            scanPending: scanPending,
-            scanUnknown: scanUnknown,
-            scanAllowAddByQr: scanAllowAddByQr,
-            scanOpenExternal: scanOpenExternal,
-            scanRetryable: scanRetryable,
-            scanContinueLogin: scanContinueLogin,
-            reauthFailed: reauthFailed,
-            reauthTitle: reauthTitle,
-            reauthDestination: reauthDestination,
-            reauthCode: reauthCode,
-            reauthSendCode: reauthSendCode,
-            reauthResendIn: reauthResendIn,
-            reauthUnavailable: reauthUnavailable,
-            scanProvidedBy: scanProvidedBy
-        ))
+    /// Starts with the Chinese defaults and applies typed overrides in one place.
+    /// The bounded signature keeps default construction safe as the vocabulary grows.
+    public init(_ configure: (inout FlareStringsTable) -> Void = { _ in }) {
+        var table = FlareStringsTable()
+        configure(&table)
+        storage = Storage(table)
     }
 
     /// Every field reads and writes through here: `strings.send`, `strings.send = "Send"`, `\FlareStrings.send`.
@@ -2321,1464 +49,1582 @@ public struct FlareStrings: Sendable {
     }
 }
 
-/// The fields of ``FlareStrings``, in declaration order (the initializer's labels may come in another order). Read and written through a
-/// `FlareStrings` value; a host never builds one directly.
+/// Typed component copy and Chinese defaults. Configure through ``FlareStrings/init(_:)``;
+/// reads, writes and key paths on a `FlareStrings` value retain copy-on-write semantics.
 public struct FlareStringsTable: Sendable {
+    // Explicit construction suppresses the oversized synthesized memberwise initializer.
+    fileprivate init() {}
+
     // Call
-    public var microphone: String
-    public var camera: String
-    public var flipCamera: String
-    public var speaker: String
-    public var hangUp: String
-    public var muted: String
-    public var on: String
-    public var off: String
-    public var callWaitingAnswer: String
-    public var callCalling: String
-    public var callRinging: String
-    public var callConnected: String
-    public var callReconnecting: String
-    public var callFailed: String
-    public var callInProgress: String
+    public var microphone: String = "麦克风"
+    public var camera: String = "摄像头"
+    public var flipCamera: String = "翻转"
+    public var speaker: String = "扬声器"
+    public var hangUp: String = "挂断"
+    public var muted: String = "已静音"
+    public var on: String = "开启"
+    public var off: String = "关闭"
+    public var callWaitingAnswer: String = "等待对方接受邀请…"
+    public var callDockWaiting: String = "等待接听"
+    public var callEnded: String = "通话已结束 · {duration}"
+    public var callAnswerAudio: String = "语音接听"
+    public var callDecline: String = "拒接"
+    public var callEncrypted: String = "端到端加密"
+    public var callYou: String = "我"
+    public var callRedial: String = "重拨"
+    public var callMaxParticipants: String = "最多 {count} 人同时通话"
+    public var callInterrupted: String = "通话中断"
+    public var callCalling: String = "正在呼叫…"
+    public var callSwapVideo: String = "互换画面"
+    public var callRinging: String = "对方响铃中…"
+    public var callConnected: String = "已接通"
+    public var callReconnecting: String = "网络不稳定，正在重连…"
+    public var callReconnectingShort: String = "正在重连"
+    public var callFailed: String = "通话连接失败"
+    public var callInProgress: String = "通话中"
     // Composer
-    public var send: String
-    public var cancelReply: String
+    public var send: String = "发送"
+    public var cancelReply: String = "取消回复"
     // Empty states
-    public var noContacts: String
-    public var noGroups: String
-    public var noResults: String
-    public var noContent: String
-    public var noConversations: String
+    public var noContacts: String = "还没有联系人"
+    public var noGroups: String = "还没有群组"
+    public var noResults: String = "没有找到结果"
+    public var noContent: String = "暂无内容"
+    public var noConversations: String = "暂无会话"
     // Generic actions
-    public var close: String
+    public var close: String = "关闭"
     /// DrawerView 既无标题也无 label 时的可及名称（en: "Side panel"）。
-    public var drawerLabel: String
+    public var drawerLabel: String = "侧边面板"
     /// ModalView 既无标题也无 label 时的可及名称（en: "Dialog"）。
-    public var modalLabel: String
-    public var delete: String
+    public var modalLabel: String = "对话框"
+    public var delete: String = "删除"
     /// 举报这一条（他人的动态/消息/资料）。与 `delete` 同层：都是「对这一条动作」，
     /// 二者互斥 —— 自己的东西删、别人的东西报。
-    public var report: String
-    public var manage: String
-    public var selectAll: String
-    public var retry: String
-    public var messagePending: String
-    public var messageSending: String
-    public var messageSent: String
-    public var messageRead: String
-    public var messageFailed: String
-    public var messageEdited: String
-    public var messageReadOnce: String
-    public var messageBurnAfterRead: String
-    public var messageExpired: String
-    public var search: String
-    public var clearSearch: String
+    public var report: String = "举报"
+    public var manage: String = "管理"
+    public var selectAll: String = "全选"
+    public var retry: String = "重试"
+    public var messagePending: String = "等待发送"
+    public var messageSending: String = "发送中"
+    public var messageSent: String = "已发送"
+    public var messageRead: String = "已读"
+    public var messageFailed: String = "发送失败"
+    public var messageEdited: String = "已编辑"
+    public var messageReadOnce: String = "仅可查看一次"
+    public var messageBurnAfterRead: String = "阅后即焚"
+    public var messageExpired: String = "已过期"
+    public var search: String = "搜索"
+    public var clearSearch: String = "清除搜索"
     // Message actions
-    public var addReaction: String
-    public var readReceipt: String
-    public var readTab: @Sendable (Int) -> String
-    public var unreadTab: @Sendable (Int) -> String
-    public var noReadersYet: String
-    public var everyoneHasRead: String
-    public var selectedSuffix: String
-    public var forwardEach: String
-    public var forwardMerged: String
-    public var messageBatchPin: String
-    public var messageBatchPinSelf: String
-    public var messageBatchClear: String
+    public var addReaction: String = "添加表情回复"
+    public var readReceipt: String = "已读回执"
+    public var readTab: @Sendable (Int) -> String = { "已读 (\($0))" }
+    public var unreadTab: @Sendable (Int) -> String = { "未读 (\($0))" }
+    public var noReadersYet: String = "还没有人已读"
+    public var everyoneHasRead: String = "所有人都已读"
+    public var selectedSuffix: String = "已选"
+    public var forwardEach: String = "逐条转发"
+    public var forwardMerged: String = "合并转发"
+    public var messageBatchPin: String = "置顶"
+    public var messageBatchPinSelf: String = "仅自己置顶"
+    public var messageBatchClear: String = "清除选择"
     /// The batch toolbar's count of selected messages the forward keys leave out ("{count}" is the count).
-    public var messageBatchUnforwardable: String
-    public var messageBatchUnforwardableOne: String
+    public var messageBatchUnforwardable: String = "{count} 条不支持转发"
+    public var messageBatchUnforwardableOne: String = "{count} 条不支持转发"
     // Mentions
-    public var searchMembers: String
-    public var everyone: String
-    public var notifyEveryone: String
-    public var noMatchingMembers: String
+    public var searchMembers: String = "搜索成员"
+    public var everyone: String = "所有人"
+    public var notifyEveryone: String = "通知全体成员"
+    public var noMatchingMembers: String = "没有匹配的成员"
     // Quick phrases
-    public var quickPhrases: String
-    public var viewAll: @Sendable (Int) -> String
+    public var quickPhrases: String = "快捷短语"
+    public var viewAll: @Sendable (Int) -> String = { "查看全部 \($0)" }
     // Typing / new messages
-    public var typing: String
-    public var typingOne: @Sendable (String) -> String
-    public var typingMany: @Sendable (Int) -> String
-    public var newMessages: @Sendable (Int) -> String
+    public var typing: String = "正在输入…"
+    public var typingOne: @Sendable (String) -> String = { "\($0) 正在输入…" }
+    public var typingMany: @Sendable (Int) -> String = { "\($0) 人正在输入…" }
+    public var newMessages: @Sendable (Int) -> String = { $0 > 0 ? "\($0) 条新消息" : "新消息" }
     // Profile card / group call
-    public var sendMessage: String
-    public var voiceCall: String
-    public var videoCall: String
-    public var groupCall: String
-    public var joinedCount: @Sendable (Int, String) -> String
-    public var selfSuffix: @Sendable (String) -> String
+    public var sendMessage: String = "发消息"
+    public var voiceCall: String = "语音"
+    public var videoCall: String = "视频"
+    public var groupCall: String = "群通话"
+    public var joinedCount: @Sendable (Int, String) -> String = { "\($0) 人已加入 · \($1)" }
+    public var selfSuffix: @Sendable (String) -> String = { "\($0)（我）" }
     // Forward picker
-    public var forwardTo: String
-    public var searchConversations: String
-    public var noMatchingConversations: String
-    public var selectedCount: @Sendable (Int) -> String
+    public var forwardTo: String = "转发给"
+    public var searchConversations: String = "搜索会话"
+    public var noMatchingConversations: String = "没有匹配的会话"
+    public var selectedCount: @Sendable (Int) -> String = { "已选 \($0)" }
     // Group announcement
-    public var groupAnnouncement: String
-    public var collapse: String
-    public var expand: String
+    public var groupAnnouncement: String = "群公告"
+    public var collapse: String = "收起"
+    public var expand: String = "展开"
     // Red packet
-    public var packetFinished: String
-    public var packetTapToClaim: String
-    public var packetBrand: String
-    public var packetBusy: String
-    public var packetUnavailable: String
+    public var packetFinished: String = "已被领完"
+    public var packetTapToClaim: String = "领取红包"
+    public var packetBrand: String = "Flare 红包"
+    public var packetBusy: String = "处理中…"
+    public var packetUnavailable: String = "暂不可用"
     /// The card's status once the viewer has opened it and no amount is given (en: "Opened").
-    public var packetStateClaimed: String
-    public var packetStateExpired: String
-    public var packetKindLucky: String
-    public var packetKindNormal: String
-    public var packetKindExclusive: String
+    public var packetStateClaimed: String = "已领取"
+    public var packetStateExpired: String = "已过期"
+    public var packetKindLucky: String = "拼手气红包"
+    public var packetKindNormal: String = "普通红包"
+    public var packetKindExclusive: String = "专属红包"
     /// VoiceOver's name for the composer's kind switch.
-    public var packetKindPicker: String
+    public var packetKindPicker: String = "红包类型"
     /// VoiceOver's name for the details page's claim list.
-    public var packetClaims: String
+    public var packetClaims: String = "领取记录"
     /// "X's red packet" over the envelope and the details header.
-    public var packetFromSender: @Sendable (String) -> String
+    public var packetFromSender: @Sendable (String) -> String = { "\($0)的红包" }
     /// The gold button on the envelope.
-    public var packetOpenAction: String
-    public var packetMissed: String
-    public var packetExpiredNotice: String
-    public var packetNotEligible: String
-    public var packetOpenFailed: String
-    public var packetViewDetails: String
-    public var packetBestLuck: String
-    public var packetNoClaims: String
+    public var packetOpenAction: String = "開"
+    public var packetMissed: String = "手慢了，红包派完了"
+    public var packetExpiredNotice: String = "红包已过期"
+    public var packetNotEligible: String = "你不能领取这个红包"
+    public var packetOpenFailed: String = "没有领到，请重试"
+    public var packetViewDetails: String = "查看领取详情"
+    public var packetViewResult: String = "查看结果"
+    public var packetRefundNotice: String = "未领取的红包将于 24 小时后退回"
+    public var packetGroupMembers: String = "本群共 {count} 人"
+    public var packetCountLimit: String = "最多可发 {n} 个红包"
+    public var packetClaimPendingReview: String = "红包已存入钱包；原操作仍待确认，可在下方查看。"
+    public var packetCountUnit: String = "个"
+    public var packetChooseRecipient: String = "请选择发给谁"
+    public var packetSend: String = "发红包"
+    public var packetBestLuck: String = "手气最佳"
+    public var packetNoClaims: String = "暂无人领取"
     /// The details page's title in its red bar.
-    public var packetDetailTitle: String
-    public var packetFieldTotal: String
-    public var packetFieldEach: String
-    public var packetFieldAmount: String
-    public var packetFieldCount: String
-    public var packetCountPlaceholder: String
-    public var packetFieldRecipient: String
-    public var packetGreetingLabel: String
+    public var packetDetailTitle: String = "红包详情"
+    public var packetFieldTotal: String = "总金额"
+    public var packetFieldEach: String = "单个金额"
+    public var packetFieldAmount: String = "金额"
+    public var packetFieldCount: String = "红包个数"
+    public var packetCountPlaceholder: String = "填写个数"
+    public var packetFieldRecipient: String = "发给谁"
+    public var packetGreetingLabel: String = "祝福语"
     /// The greeting field's placeholder: what the packet says when the sender writes nothing.
-    public var packetDefaultGreeting: String
-    public var packetSubmit: String
-    public var packetPayTitle: String
-    public var packetPayMethod: String
-    public var packetPayConfirm: String
-    public var packetInsufficient: String
+    public var packetDefaultGreeting: String = "恭喜发财，大吉大利"
+    public var packetSubmit: String = "塞钱进红包"
+    public var packetPayTitle: String = "确认付款"
+    public var packetPayMethod: String = "支付方式"
+    public var packetPayConfirm: String = "确认支付"
+    public var packetInsufficient: String = "余额不足"
     // Commands / translation / QR
-    public var commands: String
-    public var noMatchingCommands: String
-    public var translating: String
-    public var translatedBy: @Sendable (String) -> String
-    public var translated: String
-    public var hideOriginal: String
-    public var showOriginal: String
-    public var scanToAddMe: String
+    public var commands: String = "命令"
+    public var noMatchingCommands: String = "没有匹配的命令"
+    public var translating: String = "翻译中…"
+    public var translatedBy: @Sendable (String) -> String = { "由 \($0) 翻译" }
+    public var translated: String = "已翻译"
+    public var hideOriginal: String = "隐藏原文"
+    public var showOriginal: String = "显示原文"
+    public var scanToAddMe: String = "扫一扫加我"
     /// `QRCardView` frame without a code (en: "QR code unavailable").
-    public var qrCardUnavailable: String
+    public var qrCardUnavailable: String = "二维码暂不可用"
     // Recording / poll
-    public var cancel: String
-    public var releaseToCancel: String
-    public var createPoll: String
-    public var pollQuestionHint: String
-    public var pollOptionHint: @Sendable (Int) -> String
-    public var removeOption: String
-    public var addOption: String
-    public var allowMultiple: String
-    public var submitPoll: String
-    public var chatBackground: String
+    public var cancel: String = "取消"
+    public var releaseToCancel: String = "松开取消"
+    public var createPoll: String = "发起投票"
+    public var pollQuestionHint: String = "输入问题"
+    public var pollOptionHint: @Sendable (Int) -> String = { "选项 \($0)" }
+    public var removeOption: String = "删除选项"
+    public var addOption: String = "添加选项"
+    public var allowMultiple: String = "允许多选"
+    public var submitPoll: String = "创建投票"
+    public var chatBackground: String = "聊天背景"
     // Stepper / calendar
-    public var decrease: String
-    public var increase: String
-    public var previousMonth: String
-    public var nextMonth: String
-    public var yearMonth: @Sendable (Int, Int) -> String
+    public var decrease: String = "减少"
+    public var increase: String = "增加"
+    public var previousMonth: String = "上个月"
+    public var nextMonth: String = "下个月"
+    public var yearMonth: @Sendable (Int, Int) -> String = { "\($0)年\($1)月" }
     // Moments
-    public var unlike: String
-    public var like: String
-    public var comment: String
+    public var unlike: String = "取消赞"
+    public var like: String = "赞"
+    public var comment: String = "评论"
     /// en: "replying to" — between a moment comment's author and the person it replies to.
-    public var momentReplyTo: String
-    public var changeCover: String
-    public var post: String
-    public var momentTextHint: String
-    public var addImage: String
-    public var pickLocation: String
-    public var pickVisibility: String
-    public var more: String
+    public var momentReplyTo: String = "回复"
+    public var changeCover: String = "换封面"
+    public var post: String = "发表"
+    public var momentTextHint: String = "这一刻的想法…"
+    public var addImage: String = "添加图片"
+    public var pickLocation: String = "所在位置"
+    public var pickVisibility: String = "谁可以看"
+    public var more: String = "更多"
     // Voice transcript / emoji & stickers
-    public var hideTranscript: String
-    public var showTranscript: String
-    public var recent: String
-    public var searchEmoji: String
-    public var noMatchingEmoji: String
-    public var emptyStickerPack: String
-    public var sticker: String
+    public var hideTranscript: String = "收起文字"
+    public var showTranscript: String = "转文字"
+    public var recent: String = "最近"
+    public var searchEmoji: String = "搜索表情"
+    public var noMatchingEmoji: String = "没有匹配的表情"
+    public var emptyStickerPack: String = "该表情包暂无贴纸"
+    public var sticker: String = "贴纸"
     // Plus panel
-    public var actionImage: String
-    public var actionVideo: String
-    public var actionCamera: String
-    public var actionFile: String
-    public var actionLocation: String
-    public var actionCard: String
-    public var actionVote: String
-    public var actionTask: String
-    public var actionSchedule: String
+    public var actionImage: String = "图片"
+    public var actionVideo: String = "视频"
+    public var actionCamera: String = "拍摄"
+    public var actionFile: String = "文件"
+    public var actionLocation: String = "位置"
+    public var actionCard: String = "名片"
+    public var actionVote: String = "投票"
+    public var actionTask: String = "任务"
+    public var actionSchedule: String = "日程"
     // Location picker and message
-    public var locationTitle: String
-    public var locationSend: String
-    public var locationLocateMe: String
-    public var locationLocating: String
-    public var locationDenied: String
-    public var locationSearchPlaceholder: String
-    public var locationNoResults: String
-    public var locationMapUnavailable: String
-    public var locationOpenInMaps: String
-    public var locationCurrent: String
+    public var locationTitle: String = "位置"
+    public var locationSend: String = "发送"
+    public var locationLocateMe: String = "定位到当前位置"
+    public var locationLocating: String = "正在定位…"
+    public var locationDenied: String = "无法获取定位，可以搜索地点"
+    public var locationSearchPlaceholder: String = "搜索地点"
+    public var locationNoResults: String = "附近没有找到地点"
+    public var locationMapUnavailable: String = "地图暂不可用"
+    public var locationOpenInMaps: String = "在地图中打开"
+    public var locationCurrent: String = "当前位置"
     /// The first line of a location card with no title, no address and no coordinate (spec/location-vectors.json cardLines).
-    public var locationCardPlace: String
+    public var locationCardPlace: String = "位置"
     // Contact picker
-    public var contactPickerTitle: String
-    public var contactPickerFriends: String
-    public var contactPickerGroupMembers: String
-    public var contactPickerSearch: String
-    public var contactPickerEmpty: String
-    public var contactPickerSelfSuffix: String
+    public var contactPickerTitle: String = "选择联系人"
+    public var contactPickerFriends: String = "好友"
+    public var contactPickerGroupMembers: String = "群成员"
+    public var contactPickerSearch: String = "搜索"
+    public var contactPickerEmpty: String = "没有联系人"
+    public var contactPickerSelfSuffix: String = "（我）"
     // Incoming call
-    public var incomingVideoCall: String
-    public var incomingVoiceCall: String
-    public var reject: String
-    public var accept: String
+    public var incomingVideoCall: String = "邀请你视频通话"
+    public var incomingVoiceCall: String = "邀请你语音通话"
+    public var reject: String = "拒绝"
+    public var accept: String = "接听"
     // Generic
-    public var back: String
-    public var confirm: String
-    public var confirmCount: @Sendable (Int) -> String
-    public var memberCount: @Sendable (Int) -> String
-    public var clear: String
-    public var wordCharCount: @Sendable (Int, Int) -> String
-    public var changeAvatar: String
-    public var qrCode: String
-    public var play: String
+    public var back: String = "返回"
+    public var confirm: String = "确定"
+    public var confirmCount: @Sendable (Int) -> String = { "确定 (\($0))" }
+    public var memberCount: @Sendable (Int) -> String = { "\($0) 名成员" }
+    public var clear: String = "清除"
+    public var wordCharCount: @Sendable (Int, Int) -> String = { "\($0) 个词 · \($1) 字符" }
+    public var changeAvatar: String = "更换头像"
+    public var qrCode: String = "二维码"
+    public var play: String = "播放"
     // Default navigation (``flareDefaultIMNavigation``, ``flareDefaultContactNavigation``)
-    public var navChats: String
-    public var navContacts: String
-    public var navProfile: String
-    public var navFriends: String
-    public var navGroups: String
-    public var navNewFriends: String
+    public var navChats: String = "消息"
+    public var navContacts: String = "通讯录"
+    public var navProfile: String = "我"
+    public var navFriends: String = "好友"
+    public var navGroups: String = "群聊"
+    public var navNewFriends: String = "新的朋友"
     // Profile entries
-    public var favorites: String
-    public var moments: String
-    public var settings: String
+    public var favorites: String = "收藏"
+    public var moments: String = "圈子"
+    public var settings: String = "设置"
     // Theme mode options a host draws in its settings (`spec/theme-mode-vectors.json`)
-    public var themeSystem: String
-    public var themeLight: String
-    public var themeDark: String
+    public var themeSystem: String = "跟随系统"
+    public var themeLight: String = "浅色"
+    public var themeDark: String = "深色"
     // The reveal key of a secure input (`InputView(revealable:)`)
-    public var inputReveal: String
-    public var inputHide: String
+    public var inputReveal: String = "显示密码"
+    public var inputHide: String = "隐藏密码"
     // Permission prompt (see `defaultPermissionCopy`)
-    public var permissionNoun: @Sendable (FlarePermissionKind) -> String
-    public var permissionVerb: @Sendable (FlarePermissionKind) -> String
-    public var permissionTitle: @Sendable (String) -> String
-    public var permissionFeatureFallback: String
-    public var permissionUndeterminedBody: @Sendable (String, String) -> String
-    public var permissionDeniedBody: @Sendable (String, String) -> String
-    public var permissionRestrictedBody: @Sendable (String, String) -> String
-    public var permissionUnavailableBody: @Sendable (String, String) -> String
-    public var permissionAllow: String
-    public var permissionOpenSettings: String
-    public var permissionStateLabel: @Sendable (FlarePermissionState) -> String
-    public var permissionDismiss: String
+    public var permissionNoun: @Sendable (FlarePermissionKind) -> String = { kind in
+        switch kind {
+        case .microphone: return "麦克风"
+        case .camera: return "摄像头"
+        case .notifications: return "通知"
+        case .storage: return "存储空间"
+        case .photos: return "相册"
+        case .contacts: return "通讯录"
+        case .location: return "位置信息"
+        case .screen: return "屏幕录制"
+        }
+    }
+    public var permissionVerb: @Sendable (FlarePermissionKind) -> String = { kind in
+        switch kind {
+        case .microphone: return "使用麦克风"
+        case .camera: return "使用摄像头"
+        case .notifications: return "发送通知"
+        case .storage: return "访问存储空间"
+        case .photos: return "访问相册"
+        case .contacts: return "访问通讯录"
+        case .location: return "获取位置信息"
+        case .screen: return "录制屏幕内容"
+        }
+    }
+    public var permissionTitle: @Sendable (String) -> String = { "需要\($0)权限" }
+    public var permissionFeatureFallback: String = "此功能"
+    public var permissionUndeterminedBody: @Sendable (String, String) -> String = { "\($0)需要\($1)，请允许后继续。" }
+    public var permissionDeniedBody: @Sendable (String, String) -> String = { "\($1)的权限已被拒绝，\($0)无法使用。请前往系统设置开启。" }
+    public var permissionRestrictedBody: @Sendable (String, String) -> String = { "\($1)的权限受设备或组织策略限制，\($0)暂不可用。" }
+    public var permissionUnavailableBody: @Sendable (String, String) -> String = { "当前设备或运行环境不支持\($1)，\($0)暂不可用。" }
+    public var permissionAllow: String = "允许"
+    public var permissionOpenSettings: String = "前往设置"
+    public var permissionStateLabel: @Sendable (FlarePermissionState) -> String = { state in
+        switch state {
+        case .undetermined: return "未授权"
+        case .denied: return "已拒绝"
+        case .restricted: return "受限制"
+        case .unavailable: return "不可用"
+        case .granted: return "已允许"
+        }
+    }
+    public var permissionDismiss: String = "知道了"
     // The soft-ask of a permission prompt (`PermissionPromptView(softAsk:)`)
-    public var permissionNotNow: String
-    public var permissionSoftAskNotificationsTitle: String
-    public var permissionSoftAskNotificationsBody: String
-    public var permissionSoftAskNotificationsDeniedBody: String
-    public var permissionSoftAskNotificationsAction: String
+    public var permissionNotNow: String = "以后再说"
+    public var permissionSoftAskNotificationsTitle: String = "及时收到新消息"
+    public var permissionSoftAskNotificationsBody: String = "开启通知后，应用不在前台时也能收到新消息提醒。"
+    public var permissionSoftAskNotificationsDeniedBody: String = "通知已关闭。前往系统设置，在本应用的通知里打开「允许通知」，就能收到新消息提醒。"
+    public var permissionSoftAskNotificationsAction: String = "开启通知"
     // Scene panels / pickers
-    public var groupMembers: String
-    public var groupOwner: String
-    public var groupAdmin: String
-    public var addMember: String
-    public var loginDevices: String
-    public var currentDevice: String
-    public var filesAndMedia: String
-    public var notificationSettings: String
+    public var groupMembers: String = "群成员"
+    public var groupOwner: String = "群主"
+    public var groupAdmin: String = "管理员"
+    public var addMember: String = "加成员"
+    public var loginDevices: String = "登录设备"
+    public var currentDevice: String = "当前设备"
+    public var filesAndMedia: String = "文件与媒体"
+    public var notificationSettings: String = "通知设置"
     // Notification delivery settings (`NotificationDeliverySettingsView`)
-    public var notificationDeliveryTitle: String
-    public var notificationDeliveryNewMessages: String
-    public var notificationStatusOn: String
-    public var notificationStatusOff: String
-    public var notificationStatusNotTurnedOn: String
-    public var backgroundDeliveryLabel: String
-    public var backgroundDeliveryUnrestricted: String
-    public var backgroundDeliveryOptimized: String
-    public var backgroundDeliveryRestricted: String
-    public var backgroundDeliveryExplanation: String
-    public var backgroundDeliveryAutoStartHint: String
-    public var backgroundDeliveryBattery: String
-    public var backgroundDeliveryAutoStart: String
+    public var notificationDeliveryTitle: String = "通知"
+    public var notificationDeliveryNewMessages: String = "新消息通知"
+    public var notificationStatusOn: String = "已开启"
+    public var notificationStatusOff: String = "已关闭"
+    public var notificationStatusNotTurnedOn: String = "未开启"
+    public var backgroundDeliveryLabel: String = "后台接收消息"
+    public var backgroundDeliveryUnrestricted: String = "不受限制"
+    public var backgroundDeliveryOptimized: String = "已优化"
+    public var backgroundDeliveryRestricted: String = "受限制"
+    public var backgroundDeliveryExplanation: String = "新消息到达时，应用需要在后台短暂运行，才能同步消息并提醒你。系统限制后台运行时，提醒可能延迟或收不到。"
+    public var backgroundDeliveryAutoStartHint: String = "这台手机还会管理哪些应用能在后台启动，请允许本应用自启动。"
+    public var backgroundDeliveryBattery: String = "电池使用"
+    public var backgroundDeliveryAutoStart: String = "自启动管理"
     // In-app new-message banner and personal notification preferences (`InAppNotificationBannerView`, `NotificationAlertSettingsView`)
-    public var inAppNotificationLabel: String
-    public var inAppNotificationOpenHint: String
-    public var inAppNotificationMention: String
-    public var inAppNotificationUrgent: String
-    public var quietHoursTitle: String
-    public var quietHoursLabel: String
-    public var quietHoursStart: String
-    public var quietHoursEnd: String
-    public var quietHoursRepeat: String
-    public var quietHoursAllowMentions: String
-    public var quietHoursFooter: String
-    public var weekdayEveryDay: String
-    public var weekdayWeekdays: String
-    public var weekdayWeekends: String
-    public var weekdayMonday: String
-    public var weekdayTuesday: String
-    public var weekdayWednesday: String
-    public var weekdayThursday: String
-    public var weekdayFriday: String
-    public var weekdaySaturday: String
-    public var weekdaySunday: String
-    public var notificationPreviewTitle: String
-    public var notificationPreviewLabel: String
-    public var notificationPreviewFull: String
-    public var notificationPreviewSenderOnly: String
-    public var notificationPreviewHidden: String
-    public var notificationPreviewFooter: String
-    public var multiDeviceTitle: String
-    public var multiDeviceLabel: String
-    public var multiDeviceDelay: String
-    public var multiDeviceImmediate: String
-    public var multiDeviceBadgeOnly: String
-    public var multiDeviceFooter: String
-    public var inAppNotificationCount: @Sendable (Int) -> String
-    public var quietHoursNextDay: @Sendable (String) -> String
-    public var confirmAction: String
-    public var selectDevice: String
-    public var transferQueue: String
-    public var noTransfers: String
-    public var retryFailedTransfers: String
-    public var reload: String
+    public var inAppNotificationLabel: String = "新消息"
+    public var inAppNotificationOpenHint: String = "打开会话"
+    public var inAppNotificationMention: String = "[有人@我]"
+    public var inAppNotificationUrgent: String = "[加急]"
+    public var quietHoursTitle: String = "勿扰"
+    public var quietHoursLabel: String = "勿扰时段"
+    public var quietHoursStart: String = "开始时间"
+    public var quietHoursEnd: String = "结束时间"
+    public var quietHoursRepeat: String = "重复"
+    public var quietHoursAllowMentions: String = "@我的消息照常提醒"
+    public var quietHoursFooter: String = "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。"
+    public var weekdayEveryDay: String = "每天"
+    public var weekdayWeekdays: String = "工作日"
+    public var weekdayWeekends: String = "周末"
+    public var weekdayMonday: String = "周一"
+    public var weekdayTuesday: String = "周二"
+    public var weekdayWednesday: String = "周三"
+    public var weekdayThursday: String = "周四"
+    public var weekdayFriday: String = "周五"
+    public var weekdaySaturday: String = "周六"
+    public var weekdaySunday: String = "周日"
+    public var notificationPreviewTitle: String = "通知内容"
+    public var notificationPreviewLabel: String = "通知预览"
+    public var notificationPreviewFull: String = "发送者和内容"
+    public var notificationPreviewSenderOnly: String = "仅发送者"
+    public var notificationPreviewHidden: String = "不显示"
+    public var notificationPreviewFooter: String = "锁屏和通知横幅里显示的内容。选择「不显示」时只提示有新消息。"
+    public var multiDeviceTitle: String = "多设备"
+    public var multiDeviceLabel: String = "其他设备活跃时"
+    public var multiDeviceDelay: String = "稍后提醒"
+    public var multiDeviceImmediate: String = "立即提醒"
+    public var multiDeviceBadgeOnly: String = "只更新角标"
+    public var multiDeviceFooter: String = "你在电脑等其他设备上使用时，手机怎样提醒。稍后提醒会等待片刻，这期间在其他设备上看过就不再提醒。"
+    public var inAppNotificationCount: @Sendable (Int) -> String = { "[\($0)条]" }
+    public var quietHoursNextDay: @Sendable (String) -> String = { "次日 \($0)" }
+    public var confirmAction: String = "确认"
+    public var selectDevice: String = "选择设备"
+    public var transferQueue: String = "传输队列"
+    public var noTransfers: String = "暂无传输任务"
+    public var retryFailedTransfers: String = "重试失败任务"
+    public var reload: String = "重新加载"
     // Form controls
-    public var select: String
-    public var selectTime: String
-    public var selectDate: String
-    public var today: String
-    public var timeRange: String
-    public var searchIdleHint: String
+    public var select: String = "选择"
+    public var selectTime: String = "选择时间"
+    public var selectDate: String = "选择日期"
+    public var today: String = "今天"
+    public var timeRange: String = "时间范围"
+    public var searchIdleHint: String = "输入关键词或选择类型"
+    /// A result group's last row when the list was cut short (``SearchResultGroup/hasMore``).
+    public var searchViewMore: String = "查看更多"
+    /// ``SearchResultsView`` with every group empty.
+    public var searchEmpty: String = "没有找到相关结果"
+    public var searchEmptyHint: String = "换个关键词试试"
+    /// A search running with no results on screen yet.
+    public var searchSearching: String = "正在搜索…"
+    // RecentSearchesView
+    public var recentSearchesTitle: String = "最近搜索"
+    public var recentSearchesClear: String = "清除"
+    public var recentSearchesClearLabel: String = "清除最近搜索"
     // Message status
-    public var resend: String
+    public var resend: String = "重新发送"
     // GroupPermissionMatrixView
-    public var groupPermissionMatrixTitle: String
-    public var groupPermissionMatrixReadOnlyHint: String
-    public var groupPermissionMatrixJoinPolicy: String
-    public var groupPermissionMatrixJoinPolicyDescription: String
-    public var groupPermissionMatrixJoinInvite: String
-    public var groupPermissionMatrixJoinApproval: String
-    public var groupPermissionMatrixJoinOpen: String
-    public var groupPermissionMatrixUnknownJoinPolicy: String
-    public var groupPermissionMatrixMuteAll: String
-    public var groupPermissionMatrixMuteAllDescription: String
-    public var groupPermissionMatrixOnlyAdminCanAtAll: String
-    public var groupPermissionMatrixOnlyAdminCanAtAllDescription: String
-    public var groupPermissionMatrixOnlyAdminCanPin: String
-    public var groupPermissionMatrixOnlyAdminCanPinDescription: String
-    public var groupPermissionMatrixShareCardPermission: String
-    public var groupPermissionMatrixShareCardPermissionDescription: String
-    public var groupPermissionMatrixOn: String
-    public var groupPermissionMatrixOff: String
-    public var groupPermissionMatrixBusy: String
-    public var groupPermissionMatrixDismissError: String
+    public var groupPermissionMatrixTitle: String = "群设置"
+    public var groupPermissionMatrixReadOnlyHint: String = "仅群主和管理员可修改"
+    public var groupPermissionMatrixJoinPolicy: String = "加群方式"
+    public var groupPermissionMatrixJoinPolicyDescription: String = "决定他人如何加入本群"
+    public var groupPermissionMatrixJoinInvite: String = "仅邀请"
+    public var groupPermissionMatrixJoinApproval: String = "需管理员审批"
+    public var groupPermissionMatrixJoinOpen: String = "允许直接加入"
+    public var groupPermissionMatrixUnknownJoinPolicy: String = "当前加群方式未知，请重新选择"
+    public var groupPermissionMatrixMuteAll: String = "全员禁言"
+    public var groupPermissionMatrixMuteAllDescription: String = "开启后仅群主和管理员可发言"
+    public var groupPermissionMatrixOnlyAdminCanAtAll: String = "仅管理员可 @所有人"
+    public var groupPermissionMatrixOnlyAdminCanAtAllDescription: String = "限制 @所有人 的使用范围"
+    public var groupPermissionMatrixOnlyAdminCanPin: String = "仅管理员可置顶消息"
+    public var groupPermissionMatrixOnlyAdminCanPinDescription: String = "限制群内置顶消息的权限"
+    public var groupPermissionMatrixShareCardPermission: String = "允许分享群名片"
+    public var groupPermissionMatrixShareCardPermissionDescription: String = "关闭后成员不能把本群分享给他人"
+    public var groupPermissionMatrixOn: String = "已开启"
+    public var groupPermissionMatrixOff: String = "已关闭"
+    public var groupPermissionMatrixBusy: String = "提交中"
+    public var groupPermissionMatrixDismissError: String = "忽略此错误"
     // ConversationBatchToolbarView
-    public var conversationBatchToolbarSelected: String
-    public var conversationBatchToolbarEmpty: String
-    public var conversationBatchToolbarMarkRead: String
-    public var conversationBatchToolbarMute: String
-    public var conversationBatchToolbarArchive: String
-    public var conversationBatchToolbarCancel: String
-    public var conversationBatchToolbarBusy: String
-    public var conversationBatchToolbarSucceededSummary: String
-    public var conversationBatchToolbarFailedSummary: String
-    public var conversationBatchToolbarRetryFailed: String
-    public var conversationBatchToolbarDismiss: String
-    public var conversationBatchToolbarExpand: String
-    public var conversationBatchToolbarMaxSelection: String
+    public var conversationBatchToolbarSelected: String = "已选"
+    public var conversationBatchToolbarEmpty: String = "请选择会话"
+    public var conversationBatchToolbarMarkRead: String = "标为已读"
+    public var conversationBatchToolbarMute: String = "免打扰"
+    public var conversationBatchToolbarArchive: String = "归档"
+    public var conversationBatchToolbarCancel: String = "取消选择"
+    public var conversationBatchToolbarBusy: String = "处理中"
+    public var conversationBatchToolbarSucceededSummary: String = "成功 {n} 项"
+    public var conversationBatchToolbarFailedSummary: String = "{n} 项失败"
+    public var conversationBatchToolbarRetryFailed: String = "重试失败项"
+    public var conversationBatchToolbarDismiss: String = "关闭结果"
+    public var conversationBatchToolbarExpand: String = "查看详情"
+    public var conversationBatchToolbarMaxSelection: String = "最多可选 {n} 项"
     // StorageUsageView
     // Invite (InviteCodeField / MyInvitePanel)
-    public var inviteCodeLabel: String
-    public var inviteCodePlaceholder: String
-    public var inviteCodeOptional: String
-    public var inviteCodeChecking: String
-    public var inviteCodeValid: String
-    public var inviteCodeInviter: String
-    public var inviteCodeInvalid: String
+    public var inviteCodeLabel: String = "邀请码"
+    public var inviteCodePlaceholder: String = "请输入邀请码"
+    public var inviteCodeOptional: String = "选填"
+    public var inviteCodeChecking: String = "正在校验邀请码…"
+    public var inviteCodeValid: String = "邀请码可用"
+    public var inviteCodeInviter: String = "邀请人：{name}"
+    /// The contact list's side index (Vue `contact.index`) and one of its letters (`contact.jumpTo`).
+    public var contactIndex: String = "联系人索引"
+    public var contactJumpTo: String = "跳到 {letter}"
+    public var inviteCodeInvalid: String = "邀请码无效"
     /// The invite field's scan button (accessibility label).
-    public var inviteCodeScan: String
-    public var myInviteTitle: String
-    public var myInviteCodeLabel: String
-    public var myInviteCodeUnavailable: String
-    public var myInviteCopy: String
-    public var myInviteQrHint: String
-    public var myInviteShare: String
-    public var myInviteRegenerate: String
-    public var myInviteRegenerating: String
-    public var myInviteCooldown: String
-    public var myInviteUnitMinutes: String
-    public var myInviteUnitHours: String
-    public var myInviteUnitDays: String
-    public var myInviteStatsTitle: String
-    public var myInviteDirect: String
-    public var myInviteLevel2: String
-    public var myInviteLevel3: String
-    public var myInviteTotal: String
-    public var myInviteInviteesTitle: String
-    public var myInviteInviterTitle: String
-    public var myInviteNoInviter: String
-    public var myInviteRelationships: String
-    public var myInviteNoChildren: String
-    public var myInviteCollapse: String
-    public var myInviteExpand: String
-    public var myInviteInviterUnavailable: String
-    public var myInviteCurrentUser: String
-    public var myInviteEmpty: String
-    public var myInviteLoadMore: String
-    public var myInviteLoading: String
-    public var myInviteJoined: String
-    public var myInviteCountOnly: String
-    public var storageUsageTitle: String
-    public var storageUsageUnknownSize: String
-    public var storageUsageAtLeast: String
-    public var storageUsageClear: String
-    public var storageUsageClearing: String
-    public var storageUsageTotal: String
-    public var storageUsageDeviceFree: String
-    public var storageUsageReload: String
-    public var storageUsageRetry: String
-    public var storageUsageDismissError: String
-    public var storageUsageLoading: String
-    public var storageUsageEmpty: String
-    public var storageUsageFileCount: String
+    public var inviteCodeScan: String = "扫码填入邀请码"
+    public var myInviteTitle: String = "我的邀请"
+    public var myInviteCodeLabel: String = "我的邀请码"
+    public var myInviteCodeUnavailable: String = "邀请码暂不可用"
+    public var myInviteCopy: String = "复制"
+    public var myInviteQrHint: String = "扫码注册"
+    public var myInviteShare: String = "分享"
+    public var myInviteRegenerate: String = "重新生成"
+    public var myInviteRegenerating: String = "生成中…"
+    public var myInviteCooldown: String = "{time} 后可重新生成"
+    public var myInviteUnitMinutes: String = "{n} 分钟"
+    public var myInviteUnitHours: String = "{n} 小时"
+    public var myInviteUnitDays: String = "{n} 天"
+    public var myInviteStatsTitle: String = "我的团队"
+    public var myInviteDirect: String = "直接邀请"
+    public var myInviteLevel2: String = "二级"
+    public var myInviteLevel3: String = "三级"
+    public var myInviteTotal: String = "团队总数"
+    public var myInviteInviteesTitle: String = "直接邀请的人"
+    public var myInviteInviterTitle: String = "邀请人"
+    public var myInviteNoInviter: String = "暂无邀请人"
+    public var myInviteRelationships: String = "邀请关系"
+    public var myInviteNoChildren: String = "暂无下级"
+    public var myInviteCollapse: String = "收起 {name}"
+    public var myInviteExpand: String = "展开 {name}"
+    public var myInviteInviterUnavailable: String = "暂无法读取邀请人"
+    public var myInviteCurrentUser: String = "当前用户"
+    public var myInviteEmpty: String = "还没有人通过你的邀请码加入"
+    public var myInviteLoadMore: String = "加载更多"
+    public var myInviteLoading: String = "正在加载邀请信息"
+    public var myInviteJoined: String = "{date} 加入"
+    public var myInviteCountOnly: String = "{count} 人"
+    public var storageUsageTitle: String = "存储空间"
+    public var storageUsageUnknownSize: String = "未知"
+    public var storageUsageAtLeast: String = "至少"
+    public var storageUsageClear: String = "清理"
+    public var storageUsageClearing: String = "清理中"
+    public var storageUsageTotal: String = "总计"
+    public var storageUsageDeviceFree: String = "可用空间"
+    public var storageUsageReload: String = "重新统计"
+    public var storageUsageRetry: String = "失败重试"
+    public var storageUsageDismissError: String = "忽略此错误"
+    public var storageUsageLoading: String = "正在统计存储占用"
+    public var storageUsageEmpty: String = "没有可统计的存储分类"
+    public var storageUsageFileCount: String = "{count} 个文件"
     // MemberRoleSheetView
-    public var memberRoleSheetMemberRole: String
-    public var memberRoleSheetMuted: String
-    public var memberRoleSheetPromote: String
-    public var memberRoleSheetDemote: String
-    public var memberRoleSheetMute: String
-    public var memberRoleSheetUnmute: String
-    public var memberRoleSheetRemove: String
-    public var memberRoleSheetTransferOwner: String
-    public var memberRoleSheetDangerGroup: String
-    public var memberRoleSheetEmpty: String
-    public var memberRoleSheetOwnerProtected: String
+    public var memberRoleSheetMemberRole: String = "成员"
+    public var memberRoleSheetMuted: String = "已禁言"
+    public var memberRoleSheetPromote: String = "设为管理员"
+    public var memberRoleSheetDemote: String = "取消管理员"
+    public var memberRoleSheetMute: String = "禁言"
+    public var memberRoleSheetUnmute: String = "解除禁言"
+    public var memberRoleSheetRemove: String = "移出群聊"
+    public var memberRoleSheetTransferOwner: String = "转让群主"
+    public var memberRoleSheetDangerGroup: String = "危险操作"
+    public var memberRoleSheetEmpty: String = "你没有管理权限"
+    public var memberRoleSheetOwnerProtected: String = "群主不可被管理"
     // RelationActionBarView
-    public var relationActionBarAdd: String
-    public var relationActionBarAccept: String
-    public var relationActionBarRemove: String
-    public var relationActionBarBlock: String
-    public var relationActionBarUnblock: String
-    public var relationActionBarPending: String
-    public var relationActionBarBusy: String
-    public var relationActionBarDismissError: String
-    public var relationActionBarEmpty: String
+    public var relationActionBarAdd: String = "添加好友"
+    public var relationActionBarAccept: String = "接受"
+    public var relationActionBarRemove: String = "删除好友"
+    public var relationActionBarBlock: String = "加入黑名单"
+    public var relationActionBarUnblock: String = "移出黑名单"
+    public var relationActionBarPending: String = "等待对方验证"
+    public var relationActionBarBusy: String = "处理中"
+    public var relationActionBarDismissError: String = "关闭错误提示"
+    public var relationActionBarEmpty: String = "暂无可用操作"
     // ScreenShareView
-    public var screenShareTitle: String
-    public var screenShareIdle: String
-    public var screenShareRequesting: String
-    public var screenShareSharing: String
-    public var screenShareViewing: String
-    public var screenShareUnavailable: String
-    public var screenShareSourceRow: String
-    public var screenSharePresenterRow: String
-    public var screenShareStart: String
-    public var screenShareStop: String
-    public var screenShareCancel: String
+    public var screenShareTitle: String = "屏幕共享"
+    public var screenShareIdle: String = "未在共享"
+    public var screenShareRequesting: String = "正在请求共享"
+    public var screenShareSharing: String = "正在共享屏幕"
+    public var screenShareViewing: String = "正在观看共享"
+    public var screenShareUnavailable: String = "当前环境不支持屏幕共享"
+    public var screenShareSourceRow: String = "共享内容"
+    public var screenSharePresenterRow: String = "共享者"
+    public var screenShareStart: String = "共享屏幕"
+    public var screenShareStop: String = "停止共享"
+    public var screenShareCancel: String = "取消请求"
     // ConversationActionSheetView
-    public var conversationActionSheetPin: String
-    public var conversationActionSheetUnpin: String
-    public var conversationActionSheetMute: String
-    public var conversationActionSheetUnmute: String
-    public var conversationActionSheetMarkRead: String
+    public var conversationActionSheetPin: String = "置顶"
+    public var conversationActionSheetUnpin: String = "取消置顶"
+    public var conversationActionSheetMute: String = "免打扰"
+    public var conversationActionSheetUnmute: String = "取消免打扰"
+    public var conversationActionSheetMarkRead: String = "标为已读"
     /// Offered when nothing is unread (en: "Mark as unread").
-    public var conversationActionSheetMarkUnread: String
-    public var conversationActionSheetArchive: String
-    public var conversationActionSheetUnarchive: String
-    public var conversationActionSheetHide: String
+    public var conversationActionSheetMarkUnread: String = "标为未读"
+    public var conversationActionSheetArchive: String = "归档"
+    public var conversationActionSheetUnarchive: String = "取消归档"
+    public var conversationActionSheetHide: String = "隐藏"
     /// Danger group, before delete (en: "Clear local history").
-    public var conversationActionSheetClearHistory: String
-    public var conversationActionSheetEmpty: String
-    public var messageActionSheetLabel: String
-    public var messageActionSheetEmpty: String
+    public var conversationActionSheetClearHistory: String = "清空聊天记录"
+    public var conversationActionSheetEmpty: String = "暂无可用操作"
+    public var messageActionSheetLabel: String = "消息操作"
+    public var messageActionSheetEmpty: String = "暂无可用操作"
     /// A covered spoiler in a rich-text body, as assistive technology names it (en: "Spoiler, select to reveal").
-    public var messageSpoilerReveal: String
+    public var messageSpoilerReveal: String = "剧透内容，点按显示"
     /// An album body and its tiles, as VoiceOver names them (en: "{count} images", "Image {index} of {count}",
     /// "Image {index} of {count}, {more} more not shown").
-    public var messageImageGroupLabel: @Sendable (Int) -> String
-    public var messageImageGroupItem: @Sendable (_ index: Int, _ count: Int) -> String
-    public var messageImageGroupItemMore: @Sendable (_ index: Int, _ count: Int, _ more: Int) -> String
-    public var messageActionReply: String
-    public var messageActionForward: String
-    public var messageActionRecall: String
-    public var messageActionResend: String
-    public var messageActionMultiSelect: String
-    public var messageActionMark: String
-    public var messageActionPin: String
-    public var messageActionPinSelf: String
-    public var messageActionUnpin: String
-    public var messageActionCopy: String
-    public var messageActionPreview: String
-    public var messageActionSave: String
-    public var messageActionEdit: String
-    public var messageActionDelete: String
+    public var messageImageGroupLabel: @Sendable (Int) -> String = { "\($0) 张图片" }
+    public var messageImageGroupItem: @Sendable (_ index: Int, _ count: Int) -> String = { "第 \($0) 张图片，共 \($1) 张" }
+    public var messageImageGroupItemMore: @Sendable (_ index: Int, _ count: Int, _ more: Int) -> String = {
+        "第 \($0) 张图片，共 \($1) 张，另有 \($2) 张未显示"
+    }
+    public var messageActionReply: String = "回复"
+    public var messageActionForward: String = "转发"
+    public var messageActionRecall: String = "撤回"
+    public var messageActionResend: String = "重新发送"
+    public var messageActionMultiSelect: String = "多选"
+    public var messageActionMark: String = "标记"
+    public var messageActionPin: String = "置顶消息"
+    public var messageActionPinSelf: String = "仅自己置顶"
+    public var messageActionUnpin: String = "取消置顶"
+    public var messageActionCopy: String = "复制"
+    public var messageActionPreview: String = "预览"
+    public var messageActionSave: String = "保存"
+    public var messageActionEdit: String = "编辑"
+    public var messageActionDelete: String = "删除"
     // WorkspaceFrameView —— 通用兜底，不能提"会话"
-    public var workspaceFrameLoading: String
-    public var workspaceFrameEmpty: String
-    public var workspaceFrameFailure: String
-    public var workspaceFrameRetry: String
+    public var workspaceFrameLoading: String = "正在加载"
+    public var workspaceFrameEmpty: String = "暂无内容"
+    public var workspaceFrameFailure: String = "加载失败"
+    public var workspaceFrameRetry: String = "重试"
     // ConversationWorkspaceView
-    public var conversationWorkspaceChatEmpty: String
-    public var conversationWorkspaceDetailEmpty: String
-    public var conversationWorkspaceListFailure: String
-    public var conversationWorkspaceChatFailure: String
-    public var conversationWorkspaceDetailFailure: String
-    public var conversationWorkspaceListLoading: String
-    public var conversationWorkspaceChatLoading: String
-    public var conversationWorkspaceDetailLoading: String
+    public var conversationWorkspaceChatEmpty: String = "选择一个会话开始聊天"
+    public var conversationWorkspaceDetailEmpty: String = "暂无详情"
+    public var conversationWorkspaceListFailure: String = "会话列表加载失败"
+    public var conversationWorkspaceChatFailure: String = "消息加载失败"
+    public var conversationWorkspaceDetailFailure: String = "详情加载失败"
+    public var conversationWorkspaceListLoading: String = "正在加载会话列表"
+    public var conversationWorkspaceChatLoading: String = "正在加载消息"
+    public var conversationWorkspaceDetailLoading: String = "正在加载详情"
     // SearchDateRangeFilterView
-    public var searchDateRangeFilterCustom: String
-    public var searchDateRangeFilterFrom: String
-    public var searchDateRangeFilterTo: String
-    public var searchDateRangeFilterUnlimited: String
-    public var searchDateRangeFilterInvalid: String
+    public var searchDateRangeFilterCustom: String = "自定义"
+    public var searchDateRangeFilterFrom: String = "起始日期"
+    public var searchDateRangeFilterTo: String = "结束日期"
+    public var searchDateRangeFilterUnlimited: String = "不限时间"
+    public var searchDateRangeFilterInvalid: String = "起始日期不能晚于结束日期"
     // ComposerView
-    public var composerPlaceholder: String
-    public var composerReply: String
-    public var voiceHoldButtonLabel: String
-    public var voiceHoldButtonRecording: String
+    public var composerPlaceholder: String = "输入消息"
+    public var composerReply: String = "回复"
+    public var voiceHoldButtonLabel: String = "按住 说话"
+    public var voiceHoldButtonRecording: String = "松开发送 · 上滑取消"
     // UnknownUserPlaceholderView
-    public var unknownUserPlaceholderUnknown: String
-    public var unknownUserPlaceholderDeactivated: String
-    public var unknownUserPlaceholderBlocked: String
-    public var unknownUserPlaceholderUnreachable: String
-    public var unknownUserPlaceholderId: String
+    public var unknownUserPlaceholderUnknown: String = "未知用户"
+    public var unknownUserPlaceholderDeactivated: String = "该账号已注销"
+    public var unknownUserPlaceholderBlocked: String = "该账号已被屏蔽"
+    public var unknownUserPlaceholderUnreachable: String = "暂时无法联系该账号"
+    public var unknownUserPlaceholderId: String = "ID"
     // NewFriendRequestsView
-    public var newFriendRequestsEmpty: String
-    public var newFriendRequestsAccept: String
+    public var newFriendRequestsEmpty: String = "没有新的好友请求"
+    public var newFriendRequestsAccept: String = "接受"
     /// Status of a request the user sent (en "Pending").
-    public var newFriendRequestsPending: String
+    public var newFriendRequestsPending: String = "等待验证"
     /// Withdraw a request the user sent (en "Withdraw").
-    public var newFriendRequestsWithdraw: String
+    public var newFriendRequestsWithdraw: String = "撤回"
     // UnknownMessageView
-    public var unknownMessageHint: String
-    public var unknownMessageUnsupported: String
-    public var unknownMessageDiagnostic: String
+    public var unknownMessageHint: String = "当前版本无法显示这条消息"
+    public var unknownMessageUnsupported: String = "不支持的消息类型"
+    public var unknownMessageDiagnostic: String = "消息类型"
     // ConversationRowView
-    public var conversationRowDraft: String
-    public var conversationRowMention: String
+    public var conversationRowDraft: String = "[草稿] "
+    public var conversationRowMention: String = "[@我] "
     // MessageListView
-    public var messageListEmpty: String
-    public var messageListLoadOlder: String
+    public var messageListEmpty: String = "还没有消息"
+    public var messageListLoadOlder: String = "加载更早消息"
     /// The load button below a window detached from the latest (spec/message-list-paging-vectors.json).
-    public var messageListLoadNewer: String
+    public var messageListLoadNewer: String = "加载更新的消息"
     // MessageBubbleView (recalled notice)
-    public var messageRecalledSelf: String
-    public var messageRecalledPeer: String
-    public var messageRecalledGroupOther: @Sendable (String) -> String
+    public var messageRecalledSelf: String = "你撤回了一条消息"
+    public var messageRecalledPeer: String = "对方撤回了一条消息"
+    public var messageRecalledGroupOther: @Sendable (String) -> String = { "\($0) 撤回了一条消息" }
     /// Label of a tappable reply quote from the quoted sender (may be empty) and the summary
     /// (en "Quoted \(name): \(summary)", or "Quoted: \(summary)" without a name).
-    public var messageQuoteLabel: @Sendable (String, String) -> String
+    public var messageQuoteLabel: @Sendable (String, String) -> String = { $0.isEmpty ? "引用：\($1)" : "引用 \($0)：\($1)" }
     /// What a screen reader is told once a jump lands: the ring says which row it is to everyone who
     /// can see it, and this says the same thing to a reader who cannot
     /// (en "Jumped to \(name)'s message: \(summary)").
-    public var jumpedToMessage: @Sendable (String, String) -> String
+    public var jumpedToMessage: @Sendable (String, String) -> String = { "已跳转到 \($0) 的消息：\($1)" }
     // ConversationHeaderView
     /// Label of the identity button from the title and the identity action's label (en "\(title), \(label)").
-    public var conversationHeaderIdentityLabel: @Sendable (String, String) -> String
+    public var conversationHeaderIdentityLabel: @Sendable (String, String) -> String = { "\($0)，\($1)" }
     // FlareTimeFormat
     /// The previous calendar day in conversation times (en "Yesterday").
-    public var yesterday: String
+    public var yesterday: String = "昨天"
     // StartConversationView
-    public var startConversationSearchPlaceholder: String
+    public var startConversationSearchPlaceholder: String = "搜索联系人"
     // FlareGroupDetail
-    public var groupDetailTitle: String
-    public var groupDetailUnavailable: String
-    public var groupDetailUnavailableHint: String
-    public var groupDetailMemberCountSuffix: String
-    public var groupDetailNotSet: String
+    public var groupDetailTitle: String = "群资料"
+    public var groupDetailUnavailable: String = "无法加载群资料"
+    public var groupDetailUnavailableHint: String = "请检查网络连接后重试。"
+    public var groupDetailMemberCountSuffix: String = "位成员"
+    public var groupDetailNotSet: String = "未设置"
     /// A per-group setting the host could not read: the row shows this instead of claiming a state.
-    public var groupDetailSettingUnavailable: String
-    public var groupDetailSectionInfo: String
-    public var groupDetailSectionMyInGroup: String
-    public var groupDetailSectionManage: String
-    public var groupDetailSectionPerms: String
-    public var groupDetailGroupName: String
-    public var groupDetailAnnouncementEmpty: String
-    public var groupDetailMyNickname: String
-    public var groupDetailMuteNotif: String
-    public var groupDetailPinGroup: String
-    public var groupDetailDiscoverable: String
-    public var groupDetailJoinMode: String
-    public var groupDetailJoinRequests: String
-    public var groupDetailMuteAll: String
-    public var groupDetailInviteLink: String
-    public var groupDetailOnlyAdminAtAll: String
-    public var groupDetailOnlyAdminPin: String
-    public var groupDetailShareCard: String
-    public var groupDetailForbidGroupFriendRequests: String
-    public var groupDetailJoinOpen: String
-    public var groupDetailJoinApproval: String
-    public var groupDetailJoinInvite: String
-    public var groupDetailEditName: String
-    public var groupDetailEditAnnouncement: String
-    public var groupDetailNicknamePlaceholder: String
-    public var groupDetailMemberManage: String
-    public var groupDetailSetAdmin: String
-    public var groupDetailUnsetAdmin: String
-    public var groupDetailMute: String
-    public var groupDetailUnmute: String
-    public var groupDetailTransferOwner: String
-    public var groupDetailTransferConfirm: String
-    public var groupDetailRequestFriend: String
-    public var groupDetailRemoveMember: String
-    public var groupDetailNoRequests: String
-    public var groupDetailRequestDefaultMessage: String
-    public var groupDetailApprove: String
-    public var groupDetailInvite: String
-    public var groupDetailInviteEmpty: String
-    public var groupDetailInviteLinkHint: String
-    public var groupDetailInviteCodeTitle: String
-    public var groupDetailCopyCode: String
-    public var groupDetailCopied: String
-    public var groupDetailCannotGenerate: String
-    public var groupDetailLeave: String
-    public var groupDetailDissolve: String
-    public var groupDetailSave: String
-    public var groupDetailDone: String
+    public var groupDetailSettingUnavailable: String = "暂时无法读取"
+    public var groupDetailSectionInfo: String = "群信息"
+    public var groupDetailSectionMyInGroup: String = "我在本群"
+    public var groupDetailSectionManage: String = "群管理"
+    public var groupDetailSectionPerms: String = "群权限"
+    public var groupDetailGroupName: String = "群名称"
+    public var groupDetailAnnouncementEmpty: String = "暂无群公告"
+    public var groupDetailMyNickname: String = "我的群昵称"
+    public var groupDetailMuteNotif: String = "消息免打扰"
+    public var groupDetailPinGroup: String = "置顶该群"
+    public var groupDetailDiscoverable: String = "允许搜索到本群"
+    public var groupDetailJoinMode: String = "进群方式"
+    public var groupDetailJoinRequests: String = "入群申请"
+    public var groupDetailMuteAll: String = "全员禁言"
+    public var groupDetailInviteLink: String = "群邀请链接"
+    public var groupDetailOnlyAdminAtAll: String = "仅管理员可@全体成员"
+    public var groupDetailOnlyAdminPin: String = "仅管理员可置顶消息"
+    public var groupDetailShareCard: String = "允许分享群名片"
+    public var groupDetailForbidGroupFriendRequests: String = "禁止群内加好友"
+    public var groupDetailJoinOpen: String = "允许任何人加入"
+    public var groupDetailJoinApproval: String = "需管理员审批"
+    public var groupDetailJoinInvite: String = "仅邀请加入"
+    public var groupDetailEditName: String = "修改群名称"
+    public var groupDetailEditAnnouncement: String = "编辑群公告"
+    public var groupDetailNicknamePlaceholder: String = "群内显示名"
+    public var groupDetailMemberManage: String = "成员管理"
+    public var groupDetailSetAdmin: String = "设为管理员"
+    public var groupDetailUnsetAdmin: String = "取消管理员"
+    public var groupDetailMute: String = "禁言"
+    public var groupDetailUnmute: String = "取消禁言"
+    public var groupDetailTransferOwner: String = "转让群主"
+    public var groupDetailTransferConfirm: String = "确定把群主转让给「%@」吗？转让后你将变为普通成员，此操作不可撤销。"
+    public var groupDetailRequestFriend: String = "加好友"
+    public var groupDetailRemoveMember: String = "移出群聊"
+    public var groupDetailNoRequests: String = "暂无入群申请"
+    public var groupDetailRequestDefaultMessage: String = "申请加入群聊"
+    public var groupDetailApprove: String = "通过"
+    public var groupDetailInvite: String = "邀请成员"
+    public var groupDetailInviteEmpty: String = "暂无可邀请的联系人"
+    public var groupDetailInviteLinkHint: String = "将邀请码分享给好友，即可加入本群。"
+    public var groupDetailInviteCodeTitle: String = "邀请码"
+    public var groupDetailCopyCode: String = "复制邀请码"
+    public var groupDetailCopied: String = "已复制"
+    public var groupDetailCannotGenerate: String = "无法生成邀请链接"
+    public var groupDetailLeave: String = "退出群聊"
+    public var groupDetailDissolve: String = "解散群聊"
+    public var groupDetailSave: String = "保存"
+    public var groupDetailDone: String = "完成"
     // MomentAudienceSheetView
-    public var momentAudienceSheetPublic: String
-    public var momentAudienceSheetPublicHint: String
-    public var momentAudienceSheetFriends: String
-    public var momentAudienceSheetFriendsHint: String
-    public var momentAudienceSheetPrivate: String
-    public var momentAudienceSheetPrivateHint: String
-    public var momentAudienceSheetInclude: String
-    public var momentAudienceSheetIncludeHint: String
-    public var momentAudienceSheetExclude: String
-    public var momentAudienceSheetExcludeHint: String
-    public var momentAudienceSheetPick: String
-    public var momentAudienceSheetDone: String
-    public var momentAudienceSheetSelected: @Sendable (Int) -> String
+    public var momentAudienceSheetPublic: String = "公开"
+    public var momentAudienceSheetPublicHint: String = "所有人可见"
+    public var momentAudienceSheetFriends: String = "朋友可见"
+    public var momentAudienceSheetFriendsHint: String = "你的好友可见"
+    public var momentAudienceSheetPrivate: String = "私密"
+    public var momentAudienceSheetPrivateHint: String = "仅自己可见"
+    public var momentAudienceSheetInclude: String = "部分可见"
+    public var momentAudienceSheetIncludeHint: String = "仅选中的朋友可见"
+    public var momentAudienceSheetExclude: String = "不给谁看"
+    public var momentAudienceSheetExcludeHint: String = "选中的朋友看不到"
+    public var momentAudienceSheetPick: String = "选择朋友"
+    public var momentAudienceSheetDone: String = "完成"
+    public var momentAudienceSheetSelected: @Sendable (Int) -> String = { "已选 \($0) 人" }
     // MomentsVisibilityRuleListView
-    public var momentsVisibilityRuleListHideFromTitle: String
-    public var momentsVisibilityRuleListHideFromHint: String
-    public var momentsVisibilityRuleListMuteTitle: String
-    public var momentsVisibilityRuleListMuteHint: String
-    public var momentsVisibilityRuleListEmpty: String
-    public var momentsVisibilityRuleListRemove: String
+    public var momentsVisibilityRuleListHideFromTitle: String = "不让他看我的朋友圈"
+    public var momentsVisibilityRuleListHideFromHint: String = "名单中的人看不到你发的内容"
+    public var momentsVisibilityRuleListMuteTitle: String = "不看他的朋友圈"
+    public var momentsVisibilityRuleListMuteHint: String = "你不会看到名单中的人发的内容"
+    public var momentsVisibilityRuleListEmpty: String = "名单为空"
+    public var momentsVisibilityRuleListRemove: String = "移出"
     // ContactMatchListView
-    public var contactMatchListAdd: String
-    public var contactMatchListEmpty: String
+    public var contactMatchListAdd: String = "添加"
+    public var contactMatchListEmpty: String = "通讯录里还没有已注册的联系人"
     // AnnouncementReadBarView
-    public var announcementReadBarConfirmRead: String
-    public var announcementReadBarViewUnread: String
-    public var announcementReadBarReadCount: @Sendable (Int, Int) -> String
+    public var announcementReadBarConfirmRead: String = "已读"
+    public var announcementReadBarViewUnread: String = "查看未读"
+    public var announcementReadBarReadCount: @Sendable (Int, Int) -> String = { "\($0)/\($1) 人已读" }
     // FlareContactDetail
-    public var contactDetailInfo: String
-    public var contactDetailFlareId: String
-    public var contactDetailRemark: String
-    public var contactDetailDescription: String
-    public var contactDetailStar: String
-    public var contactDetailNotSet: String
-    public var contactDetailVoice: String
-    public var contactDetailVideo: String
-    public var contactDetailBlock: String
-    public var contactDetailRemove: String
+    public var contactDetailInfo: String = "资料"
+    public var contactDetailFlareId: String = "Flare ID"
+    public var contactDetailRemark: String = "备注"
+    public var contactDetailDescription: String = "描述"
+    public var contactDetailStar: String = "星标好友"
+    public var contactDetailNotSet: String = "未设置"
+    public var contactDetailVoice: String = "语音通话"
+    public var contactDetailVideo: String = "视频通话"
+    public var contactDetailBlock: String = "加入黑名单"
+    public var contactDetailRemove: String = "删除好友"
     // ConversationDetailsView
-    public var conversationDetailsMessages: String
-    public var conversationDetailsMute: String
-    public var conversationDetailsPin: String
-    public var conversationDetailsMarkRead: String
-    public var conversationDetailsMarkUnread: String
-    public var conversationDetailsSync: String
-    public var conversationDetailsArchive: String
-    public var conversationDetailsUnarchive: String
-    public var conversationDetailsClearHistory: String
-    public var conversationDetailsDelete: String
+    public var conversationDetailsMessages: String = "消息"
+    public var conversationDetailsMute: String = "免打扰"
+    public var conversationDetailsPin: String = "置顶会话"
+    public var conversationDetailsMarkRead: String = "标为已读"
+    public var conversationDetailsMarkUnread: String = "标为未读"
+    public var conversationDetailsSync: String = "同步会话"
+    public var conversationDetailsArchive: String = "归档会话"
+    public var conversationDetailsUnarchive: String = "取消归档"
+    public var conversationDetailsClearHistory: String = "清空聊天记录"
+    public var conversationDetailsDelete: String = "删除会话"
     // ProfileEditorView
-    public var profileEditorNickname: String
-    public var profileEditorNicknamePlaceholder: String
-    public var profileEditorBio: String
-    public var profileEditorBioPlaceholder: String
-    public var profileEditorSave: String
+    public var profileEditorNickname: String = "昵称"
+    public var profileEditorNicknamePlaceholder: String = "昵称"
+    public var profileEditorBio: String = "个性签名"
+    public var profileEditorBioPlaceholder: String = "介绍一下自己吧"
+    public var profileEditorSave: String = "保存"
+    public var profileEditorUnsaved: String = "未保存修改"
 
     // Icon-only controls: each one is named by what it does.
     /// en: "Emoji"
-    public var composerEmoji: String
+    public var composerEmoji: String = "表情"
     /// en: "Mention"
-    public var composerMention: String
+    public var composerMention: String = "提及"
     /// en: "Voice"
-    public var composerVoice: String
+    public var composerVoice: String = "语音"
     /// en: "Image"
-    public var composerImage: String
+    public var composerImage: String = "图片"
     /// en: "Rich text"
-    public var composerRichText: String
+    public var composerRichText: String = "富文本"
     /// en: "More actions"
-    public var composerMore: String
+    public var composerMore: String = "更多功能"
     /// en: "Expand input"
-    public var composerExpandInput: String
+    public var composerExpandInput: String = "放大输入框"
     /// en: "Collapse input"
-    public var composerCollapseInput: String
+    public var composerCollapseInput: String = "缩小输入框"
     /// en: "Bold"
-    public var composerFormatBold: String
+    public var composerFormatBold: String = "加粗"
     /// en: "Italic"
-    public var composerFormatItalic: String
+    public var composerFormatItalic: String = "斜体"
     /// en: "Strikethrough"
-    public var composerFormatStrike: String
+    public var composerFormatStrike: String = "删除线"
     /// en: "Code"
-    public var composerFormatCode: String
+    public var composerFormatCode: String = "代码"
     /// en: "Link"
-    public var composerFormatLink: String
+    public var composerFormatLink: String = "链接"
     /// en: "Heading"
-    public var composerFormatHeading: String
+    public var composerFormatHeading: String = "标题"
     /// en: "Quote"
-    public var composerFormatQuote: String
+    public var composerFormatQuote: String = "引用"
     /// en: "Bulleted list"
-    public var composerFormatBullet: String
+    public var composerFormatBullet: String = "无序列表"
     /// en: "Numbered list"
-    public var composerFormatOrdered: String
+    public var composerFormatOrdered: String = "有序列表"
     /// en: "Keyboard: discard recording"
-    public var inlineVoiceComposerKeyboard: String
+    public var inlineVoiceComposerKeyboard: String = "返回键盘并删除录音"
     /// en: "Pause recording"
-    public var inlineVoiceComposerPause: String
+    public var inlineVoiceComposerPause: String = "暂停录音"
     /// en: "Start recording"
-    public var inlineVoiceComposerStart: String
+    public var inlineVoiceComposerStart: String = "开始录音"
     /// en: "Play / pause preview"
-    public var inlineVoiceComposerPreview: String
+    public var inlineVoiceComposerPreview: String = "试听 / 暂停"
     /// en: "Resume recording"
-    public var inlineVoiceComposerResume: String
+    public var inlineVoiceComposerResume: String = "继续录音"
     /// en: "Discard recording"
-    public var inlineVoiceComposerDiscard: String
+    public var inlineVoiceComposerDiscard: String = "删除录音"
     /// en: "Allow microphone access to record" — the recorder without permission.
-    public var inlineVoiceComposerMicDenied: String
+    public var inlineVoiceComposerMicDenied: String = "请允许使用麦克风后再录音"
     /// en: "Sending failed. Try again." — the recorder when the host refused the clip.
-    public var inlineVoiceComposerSendFailed: String
+    public var inlineVoiceComposerSendFailed: String = "发送失败，请重试"
     /// en: "Cancel recording"
-    public var cancelRecording: String
+    public var cancelRecording: String = "取消录音"
     /// en: "Send voice message"
-    public var sendVoice: String
+    public var sendVoice: String = "发送语音"
     /// en: "Pause"
-    public var pause: String
+    public var pause: String = "暂停"
     /// en: "Download"
-    public var download: String
+    public var download: String = "下载"
     /// A saved file's key: shows it in its folder, or where it was saved (en: "Show in folder").
-    public var showInFolder: String
+    public var showInFolder: String = "在文件夹中显示"
     /// A media download in progress, and one that finished (en: "Downloading", "Downloaded").
-    public var downloading: String
-    public var downloaded: String
+    public var downloading: String = "下载中"
+    public var downloaded: String = "已下载"
     /// en: "Close preview"
-    public var imagePreviewClose: String
+    public var imagePreviewClose: String = "关闭预览"
     /// A gallery preview's paging keys and where it is (en: "Previous image", "Next image", "{index} of {count}").
-    public var imagePreviewPrevious: String
-    public var imagePreviewNext: String
-    public var imagePreviewPosition: @Sendable (_ index: Int, _ count: Int) -> String
+    public var imagePreviewPrevious: String = "上一张"
+    public var imagePreviewNext: String = "下一张"
+    public var imagePreviewPosition: @Sendable (_ index: Int, _ count: Int) -> String = { "第 \($0) 张，共 \($1) 张" }
     /// en: "Exit multi-select"
-    public var exitMultiSelect: String
+    public var exitMultiSelect: String = "退出多选"
     /// en: "Jump to latest messages"
-    public var scrollToLatest: String
+    public var scrollToLatest: String = "回到最新消息"
     /// en: "Minimize call"
-    public var callMinimize: String
+    public var callMinimize: String = "最小化"
+    public var callExpand: String = "展开"
+    public var callCollapse: String = "收起"
     /// The peer's mic-off badge on ``CallView``, read by VoiceOver.
-    public var callPeerMuted: String
+    public var callPeerMuted: String = "对方已静音"
     /// en: "Switch to video" — the call controls' key that asks the host to turn an audio call into a video call.
-    public var callSwitchToVideo: String
+    public var callSwitchToVideo: String = "切换到视频"
     /// en: "On" — the value of a call device toggle (microphone, camera, speaker) whose device is on.
-    public var callDeviceOn: String
+    public var callDeviceOn: String = "已开启"
     /// en: "Off" — the value of a call device toggle whose device is off (a muted microphone is off).
-    public var callDeviceOff: String
+    public var callDeviceOff: String = "已关闭"
     /// en: "Return to call" — the call dock's main button.
-    public var callReturn: String
+    public var callReturn: String = "返回通话"
     /// en: "Add conversation actions" — the conversation header's add menu.
-    public var conversationHeaderAddActions: String
+    public var conversationHeaderAddActions: String = "添加会话操作"
     /// en: "More conversation actions" — the conversation header's overflow menu.
-    public var conversationHeaderMoreActions: String
+    public var conversationHeaderMoreActions: String = "更多会话操作"
     /// en: "Image" — the name of an image message without a description.
-    public var messageImage: String
+    public var messageImage: String = "图片"
     /// en: "Video" — the name of a video message.
-    public var messageVideo: String
+    public var messageVideo: String = "视频"
     /// en: "Voice message" — the name of a voice message that has no play action.
-    public var messageVoice: String
+    public var messageVoice: String = "语音消息"
     /// en: "\(n) seconds" — a voice message's length, or what is left of it while it plays.
-    public var voiceSeconds: @Sendable (Int) -> String
+    public var voiceSeconds: @Sendable (Int) -> String = { "\($0) 秒" }
     /// en: "Playback failed" — a voice message that could not play; a tap tries again.
-    public var voicePlaybackFailed: String
+    public var voicePlaybackFailed: String = "播放失败"
     /// en: "Image failed to load" — the image preview when the image cannot load.
-    public var imageLoadFailed: String
+    public var imageLoadFailed: String = "图片加载失败"
     /// en: "Video failed to load" — the video player when the video cannot load.
-    public var videoLoadFailed: String
+    public var videoLoadFailed: String = "视频加载失败"
     /// en: "Image isn't available right now"
-    public var mediaUnavailableImage: String
+    public var mediaUnavailableImage: String = "图片暂时无法加载"
     /// en: "Video isn't available right now"
-    public var mediaUnavailableVideo: String
+    public var mediaUnavailableVideo: String = "视频暂时无法加载"
     /// en: "Voice message isn't available right now"
-    public var mediaUnavailableAudio: String
+    public var mediaUnavailableAudio: String = "语音暂时无法加载"
     /// en: "Dismiss announcement"
-    public var announcementBannerDismiss: String
+    public var announcementBannerDismiss: String = "关闭公告"
     /// en: "Remove image"
-    public var removeImage: String
+    public var removeImage: String = "移除图片"
     /// en: "Moment actions"
-    public var momentActions: String
+    public var momentActions: String = "动态操作"
     /// en: "Add to list"
-    public var momentsVisibilityRuleListAdd: String
+    public var momentsVisibilityRuleListAdd: String = "添加到名单"
     /// en: "My QR code"
-    public var myQrCode: String
+    public var myQrCode: String = "我的二维码"
     /// en: "Rating"
-    public var rating: String
+    public var rating: String = "评分"
     /// en: "\(n) stars"
-    public var ratingStar: @Sendable (Int) -> String
+    public var ratingStar: @Sendable (Int) -> String = { "\($0) 星" }
     /// en: "Search messages" — the conversation header's default search action.
-    public var conversationHeaderSearch: String
+    public var conversationHeaderSearch: String = "搜索消息"
     /// en: "Start audio call" — the conversation header's default audio call action.
-    public var conversationHeaderAudioCall: String
+    public var conversationHeaderAudioCall: String = "发起语音通话"
     /// en: "Start video call" — the conversation header's default video call action.
-    public var conversationHeaderVideoCall: String
+    public var conversationHeaderVideoCall: String = "发起视频通话"
     /// en: "Add member" — the conversation header's default add-member action.
-    public var conversationHeaderAddMember: String
+    public var conversationHeaderAddMember: String = "添加成员"
     /// en: "Share conversation" — the conversation header's default share action.
-    public var conversationHeaderShare: String
+    public var conversationHeaderShare: String = "分享会话"
     /// en: "Details" — the conversation header's default details action.
-    public var conversationHeaderDetails: String
+    public var conversationHeaderDetails: String = "会话详情"
     /// en: "Online" — a presence shown as text (the conversation header subtitle).
-    public var presenceOnline: String
+    public var presenceOnline: String = "在线"
     /// en: "Offline"
-    public var presenceOffline: String
+    public var presenceOffline: String = "离线"
     /// en: "Busy"
-    public var presenceBusy: String
+    public var presenceBusy: String = "忙碌"
     /// en: "Away"
-    public var presenceAway: String
+    public var presenceAway: String = "离开"
     /// en: "Connecting…" — the connection notice while a connection is made.
-    public var connectionConnecting: String
+    public var connectionConnecting: String = "正在连接…"
     /// en: "Syncing messages…" — once a catch-up sync has lasted a second.
-    public var connectionSyncing: String
+    public var connectionSyncing: String = "正在同步消息…"
     /// en: "Switching connection…" — once a line switch has lasted two seconds.
-    public var connectionSwitching: String
+    public var connectionSwitching: String = "正在切换线路…"
     /// en: "Connection lost. Reconnecting…"
-    public var connectionReconnecting: String
+    public var connectionReconnecting: String = "连接已断开，正在重连…"
     /// en: "No network. Reconnects when it is back."
-    public var connectionWaitingForNetwork: String
+    public var connectionWaitingForNetwork: String = "网络不可用，恢复后会自动重连"
     /// en: "Service temporarily unavailable. Recovering…"
-    public var connectionServiceUnavailable: String
+    public var connectionServiceUnavailable: String = "服务暂时不可用，正在自动恢复…"
     /// en: "Signed in on another device"
-    public var connectionKicked: String
+    public var connectionKicked: String = "已在其他设备登录"
     /// en: "Your sign-in has expired"
-    public var connectionExpired: String
+    public var connectionExpired: String = "登录已过期"
     /// en: "Update the app to keep using it"
-    public var connectionUpgradeRequired: String
+    public var connectionUpgradeRequired: String = "需要更新后才能继续使用"
     /// en: "Service suspended" — the tenant is unavailable.
-    public var connectionTenantUnavailable: String
+    public var connectionTenantUnavailable: String = "服务已暂停"
     /// en: "Retrying in \(n)s" — the reconnect countdown.
-    public var connectionRetryIn: @Sendable (Int) -> String
+    public var connectionRetryIn: @Sendable (Int) -> String = { "\($0) 秒后重试" }
     /// en: "Retry now" — reconnect without waiting for the countdown.
-    public var connectionRetry: String
+    public var connectionRetry: String = "立即重试"
     /// en: "Sign in again" — the way back after being signed out by the server.
-    public var connectionSignIn: String
+    public var connectionSignIn: String = "重新登录"
     /// en: "Update" — the way back when the server requires a newer app.
-    public var connectionUpdate: String
+    public var connectionUpdate: String = "立即更新"
     /// en: "Diagnose" — opens the host's network diagnostics while the service is unavailable.
-    public var connectionDiagnose: String
+    public var connectionDiagnose: String = "诊断"
     /// en: "Development mode" — the badge while the SDK runs on development endpoints.
-    public var connectionDevelopmentMode: String
+    public var connectionDevelopmentMode: String = "开发模式"
     /// en: "Network and lines"
-    public var accessDiagnosticsTitle: String
+    public var accessDiagnosticsTitle: String = "网络与线路"
     /// en: "Current line"
-    public var accessDiagnosticsCurrent: String
+    public var accessDiagnosticsCurrent: String = "当前线路"
     /// en: "All lines"
-    public var accessDiagnosticsLines: String
+    public var accessDiagnosticsLines: String = "全部线路"
     /// en: "Recovery"
-    public var accessDiagnosticsRecovery: String
+    public var accessDiagnosticsRecovery: String = "恢复工具"
     /// en: "Access point"
-    public var accessDiagnosticsAccessPoint: String
+    public var accessDiagnosticsAccessPoint: String = "接入点"
     /// en: "Region"
-    public var accessDiagnosticsRegion: String
+    public var accessDiagnosticsRegion: String = "区域"
     /// en: "Protocol"
-    public var accessDiagnosticsProtocol: String
+    public var accessDiagnosticsProtocol: String = "协议"
     /// en: "Latency"
-    public var accessDiagnosticsRtt: String
+    public var accessDiagnosticsRtt: String = "延迟"
     /// en: "Manifest version"
-    public var accessDiagnosticsSerial: String
+    public var accessDiagnosticsSerial: String = "清单版本"
     /// en: "Manifest source"
-    public var accessDiagnosticsSource: String
+    public var accessDiagnosticsSource: String = "清单来源"
     /// en: "Manifest status"
-    public var accessDiagnosticsManifest: String
+    public var accessDiagnosticsManifest: String = "清单状态"
     /// en: "Reported by the server"
-    public var accessDiagnosticsReportedAccessPoint: String
+    public var accessDiagnosticsReportedAccessPoint: String = "服务端报告的接入点"
     /// en: "Recovery rounds so far"
-    public var accessDiagnosticsRecoveryRounds: String
+    public var accessDiagnosticsRecoveryRounds: String = "已尝试恢复轮数"
     /// en: "Valid"
-    public var accessDiagnosticsManifestValid: String
+    public var accessDiagnosticsManifestValid: String = "有效"
     /// en: "Expired"
-    public var accessDiagnosticsManifestStale: String
+    public var accessDiagnosticsManifestStale: String = "已过期"
     /// en: "None yet"
-    public var accessDiagnosticsManifestNone: String
+    public var accessDiagnosticsManifestNone: String = "暂无清单"
     /// en: "On"
-    public var accessDiagnosticsOn: String
+    public var accessDiagnosticsOn: String = "开启"
     /// en: "Off"
-    public var accessDiagnosticsOff: String
+    public var accessDiagnosticsOff: String = "关闭"
     /// en: "Good"
-    public var accessDiagnosticsRttGood: String
+    public var accessDiagnosticsRttGood: String = "良好"
     /// en: "Fair"
-    public var accessDiagnosticsRttFair: String
+    public var accessDiagnosticsRttFair: String = "一般"
     /// en: "Poor"
-    public var accessDiagnosticsRttPoor: String
+    public var accessDiagnosticsRttPoor: String = "较差"
     /// en: "Built-in seed"
-    public var accessDiagnosticsSourceSeed: String
+    public var accessDiagnosticsSourceSeed: String = "内置种子"
     /// en: "Mirror"
-    public var accessDiagnosticsSourceMirror: String
+    public var accessDiagnosticsSourceMirror: String = "镜像"
     /// en: "Recovery link"
-    public var accessDiagnosticsSourceRecovery: String
+    public var accessDiagnosticsSourceRecovery: String = "恢复链接"
     /// en: "Development configuration"
-    public var accessDiagnosticsSourceDevelopment: String
+    public var accessDiagnosticsSourceDevelopment: String = "开发配置"
     /// en: "None"
-    public var accessDiagnosticsSourceNone: String
+    public var accessDiagnosticsSourceNone: String = "无"
     /// en: "Available"
-    public var accessDiagnosticsStatusActive: String
+    public var accessDiagnosticsStatusActive: String = "可用"
     /// en: "Draining"
-    public var accessDiagnosticsStatusDraining: String
+    public var accessDiagnosticsStatusDraining: String = "即将下线"
     /// en: "Disabled"
-    public var accessDiagnosticsStatusDisabled: String
+    public var accessDiagnosticsStatusDisabled: String = "已停用"
     /// en: "Unknown"
-    public var accessDiagnosticsStatusUnknown: String
+    public var accessDiagnosticsStatusUnknown: String = "未知"
     /// en: "Circuit open"
-    public var accessDiagnosticsBreakerOpen: String
+    public var accessDiagnosticsBreakerOpen: String = "已熔断"
     /// en: "Testing"
-    public var accessDiagnosticsBreakerHalfOpen: String
+    public var accessDiagnosticsBreakerHalfOpen: String = "试探中"
     /// en: "Current"
-    public var accessDiagnosticsCurrentTag: String
+    public var accessDiagnosticsCurrentTag: String = "当前"
     /// en: "Pinned"
-    public var accessDiagnosticsPinnedTag: String
+    public var accessDiagnosticsPinnedTag: String = "已固定"
     /// en: "Pin"
-    public var accessDiagnosticsPin: String
+    public var accessDiagnosticsPin: String = "固定"
     /// en: "Unpin"
-    public var accessDiagnosticsUnpin: String
+    public var accessDiagnosticsUnpin: String = "取消固定"
     /// en: "No lines available"
-    public var accessDiagnosticsNoLines: String
+    public var accessDiagnosticsNoLines: String = "暂无可用线路"
     /// en: "Refresh now"
-    public var accessDiagnosticsRefresh: String
+    public var accessDiagnosticsRefresh: String = "立即刷新"
     /// en: "Copy diagnostics"
-    public var accessDiagnosticsExport: String
+    public var accessDiagnosticsExport: String = "复制诊断"
     /// en: "Import"
-    public var accessDiagnosticsImport: String
+    public var accessDiagnosticsImport: String = "导入"
     /// en: "Import a recovery link"
-    public var accessDiagnosticsImportLabel: String
+    public var accessDiagnosticsImportLabel: String = "导入恢复链接"
     /// en: "Paste a flare-recover:// link"
-    public var accessDiagnosticsImportPlaceholder: String
+    public var accessDiagnosticsImportPlaceholder: String = "粘贴 flare-recover:// 链接"
     /// en: "If the service does not come back, ask support for a recovery link."
-    public var accessDiagnosticsImportHint: String
+    public var accessDiagnosticsImportHint: String = "线路一直无法恢复时，可向客服索取恢复链接。"
     /// en: "Connection is healthy"
-    public var accessDiagnosticsHealthy: String
+    public var accessDiagnosticsHealthy: String = "线路正常"
     /// en: "Not connected"
-    public var accessDiagnosticsNotConnected: String
+    public var accessDiagnosticsNotConnected: String = "当前没有连接"
     /// en: "The server reports a different access point. The connection is not affected."
-    public var accessDiagnosticsAccessPointMismatch: String
+    public var accessDiagnosticsAccessPointMismatch: String = "服务端报告的接入点与当前线路不一致，连接不受影响"
     /// en: "The line manifest has expired. You can still connect while it updates."
-    public var accessDiagnosticsManifestStaleNotice: String
+    public var accessDiagnosticsManifestStaleNotice: String = "线路清单已过期，仍可连接，正在更新"
     /// en: "Lines updated"
-    public var accessDiagnosticsRefreshAdopted: String
+    public var accessDiagnosticsRefreshAdopted: String = "线路已更新"
     /// en: "Lines are up to date"
-    public var accessDiagnosticsRefreshUpToDate: String
+    public var accessDiagnosticsRefreshUpToDate: String = "线路已是最新"
     /// en: "Could not update the lines. Retrying automatically."
-    public var accessDiagnosticsRefreshFailed: String
+    public var accessDiagnosticsRefreshFailed: String = "暂时无法更新线路，稍后会自动重试"
     /// en: "In development mode the lines come from the configuration."
-    public var accessDiagnosticsRefreshSkipped: String
+    public var accessDiagnosticsRefreshSkipped: String = "开发模式下线路由配置决定"
     /// en: "Recovery link imported. Switching lines."
-    public var accessDiagnosticsImportAdopted: String
+    public var accessDiagnosticsImportAdopted: String = "恢复链接已导入，正在切换线路"
     /// en: "This link was already imported."
-    public var accessDiagnosticsImportUnchanged: String
+    public var accessDiagnosticsImportUnchanged: String = "这条链接已经导入过"
     /// en: "This link is older than the lines on this device."
-    public var accessDiagnosticsImportRollback: String
+    public var accessDiagnosticsImportRollback: String = "这条链接比本机线路旧，不需要导入"
     /// en: "This link has expired. Ask for a new one."
-    public var accessDiagnosticsImportExpired: String
+    public var accessDiagnosticsImportExpired: String = "这条链接已过期，请重新获取"
     /// en: "This link belongs to another app."
-    public var accessDiagnosticsImportWrongApp: String
+    public var accessDiagnosticsImportWrongApp: String = "这条链接不属于当前应用"
     /// en: "Recovery links are not used in development mode."
-    public var accessDiagnosticsImportDevelopmentMode: String
+    public var accessDiagnosticsImportDevelopmentMode: String = "开发模式不使用恢复链接"
     /// en: "This link could not be verified. Make sure it came from an official channel."
-    public var accessDiagnosticsImportUntrusted: String
+    public var accessDiagnosticsImportUntrusted: String = "链接校验失败，请确认它来自官方渠道"
     /// en: "This link is malformed. Copy the whole link and try again."
-    public var accessDiagnosticsImportMalformed: String
+    public var accessDiagnosticsImportMalformed: String = "链接格式不正确，请完整复制后重试"
     /// en: "This link cannot be imported."
-    public var accessDiagnosticsImportRejected: String
+    public var accessDiagnosticsImportRejected: String = "无法导入这条链接"
     /// en: "Diagnostics copied"
-    public var accessDiagnosticsExportCopied: String
+    public var accessDiagnosticsExportCopied: String = "诊断信息已复制"
     /// en: "Could not copy. Try again."
-    public var accessDiagnosticsExportFailed: String
-    public var updatePromptTitleAvailable: String
-    public var updatePromptTitleRequired: String
-    public var updatePromptTitleMetered: String
-    public var updatePromptTitleDownloading: String
-    public var updatePromptTitleVerifying: String
-    public var updatePromptTitleReady: String
-    public var updatePromptTitleInstalling: String
-    public var updatePromptTitleFailed: String
-    public var updatePromptVersion: String
-    public var updatePromptNotes: String
-    public var updatePromptMessageRequired: String
-    public var updatePromptMessageRequiredReadOnly: String
-    public var composerReadOnlyUpdate: String
-    public var updatePromptMessageMetered: String
-    public var updatePromptMessageMeteredUnknown: String
-    public var updatePromptMessageReady: String
-    public var updatePromptFailManifestUnavailable: String
-    public var updatePromptFailManifestRejected: String
-    public var updatePromptFailNoArtifact: String
-    public var updatePromptFailInsufficientSpace: String
-    public var updatePromptFailDownload: String
-    public var updatePromptFailHashMismatch: String
-    public var updatePromptFailInstall: String
-    public var updatePromptFailSignatureMismatch: String
-    public var updatePromptFailDowngrade: String
-    public var updatePromptFailNotSkippable: String
-    public var updatePromptFailUnknown: String
-    public var updatePromptContinueDownload: String
-    public var updatePromptRestart: String
-    public var updatePromptRetry: String
-    public var updatePromptFallbackWebsite: String
-    public var updatePromptFallbackStore: String
-    public var updatePromptLater: String
-    public var updatePromptBackground: String
-    public var updatePromptSkip: String
-    public var updatePromptContinueReadOnly: String
-    public var progressBarLabel: String
-    public var progressBarLoading: String
-    public var versionPanelTitle: String
-    public var versionPanelVersion: String
-    public var versionPanelBuild: String
-    public var versionPanelChannel: String
-    public var versionPanelChannelStable: String
-    public var versionPanelChannelBeta: String
-    public var versionPanelChannelInternal: String
-    public var versionPanelCheck: String
-    public var versionPanelChecking: String
-    public var versionPanelUpToDate: String
-    public var settingsRowBadge: String
+    public var accessDiagnosticsExportFailed: String = "复制失败，请重试"
+    public var updatePromptTitleAvailable: String = "发现新版本"
+    public var updatePromptTitleRequired: String = "需要更新"
+    public var updatePromptTitleMetered: String = "使用计费网络下载？"
+    public var updatePromptTitleDownloading: String = "正在下载更新"
+    public var updatePromptTitleVerifying: String = "正在校验更新"
+    public var updatePromptTitleReady: String = "更新已就绪"
+    public var updatePromptTitleInstalling: String = "正在安装更新"
+    public var updatePromptTitleFailed: String = "更新失败"
+    public var updatePromptVersion: String = "版本"
+    public var updatePromptNotes: String = "更新内容"
+    public var updatePromptMessageRequired: String = "当前版本已停止支持，更新后才能继续使用。"
+    public var updatePromptMessageRequiredReadOnly: String = "更新后才能发送消息，现在可以继续浏览本地内容。"
+    public var composerReadOnlyUpdate: String = "更新后才能发送消息"
+    /// The composer's edit strip, its cancel, the send key while editing and the empty field while editing.
+    public var composerEditingMessage: String = "编辑消息"
+    public var composerCancelEdit: String = "取消编辑"
+    public var composerSaveEdit: String = "保存编辑"
+    public var composerEditingPlaceholder: String = "编辑这条消息"
+    /// The title of the sheet that confirms picked attachments before they are sent.
+    public var composerAttachmentPreview: String = "发送附件"
+    public var updatePromptMessageMetered: String = "当前是计费网络，这次下载约"
+    public var updatePromptMessageMeteredUnknown: String = "当前是计费网络，下载会消耗流量。"
+    public var updatePromptMessageReady: String = "重启后新版本生效，应用不会自动重启。"
+    public var updatePromptFailManifestUnavailable: String = "暂时获取不到更新信息，请检查网络后重试。"
+    public var updatePromptFailManifestRejected: String = "更新信息未通过校验。"
+    public var updatePromptFailNoArtifact: String = "这个版本暂时没有适合本设备的安装包。"
+    public var updatePromptFailInsufficientSpace: String = "存储空间不足，清理后重试。"
+    public var updatePromptFailDownload: String = "下载失败，请检查网络后重试。"
+    public var updatePromptFailHashMismatch: String = "下载的文件未通过校验，请重试。"
+    public var updatePromptFailInstall: String = "安装失败，请重试。"
+    public var updatePromptFailSignatureMismatch: String = "安装包签名不匹配，已停止安装。"
+    public var updatePromptFailDowngrade: String = "不能安装比当前更旧的版本。"
+    public var updatePromptFailNotSkippable: String = "这个版本不能跳过。"
+    public var updatePromptFailUnknown: String = "更新没有完成，请稍后重试。"
+    public var updatePromptContinueDownload: String = "继续下载"
+    public var updatePromptRestart: String = "重启以完成更新"
+    public var updatePromptRetry: String = "重试"
+    public var updatePromptFallbackWebsite: String = "前往官网下载"
+    public var updatePromptFallbackStore: String = "前往应用商店"
+    public var updatePromptLater: String = "稍后"
+    public var updatePromptBackground: String = "后台下载"
+    public var updatePromptSkip: String = "跳过此版本"
+    public var updatePromptContinueReadOnly: String = "继续浏览"
+    public var progressBarLabel: String = "进度"
+    public var progressBarLoading: String = "进行中"
+    public var versionPanelTitle: String = "版本信息"
+    public var versionPanelVersion: String = "版本"
+    public var versionPanelBuild: String = "构建号"
+    public var versionPanelChannel: String = "渠道"
+    public var versionPanelChannelStable: String = "正式版"
+    public var versionPanelChannelBeta: String = "测试版"
+    public var versionPanelChannelInternal: String = "内部版"
+    public var versionPanelCheck: String = "检查更新"
+    public var versionPanelChecking: String = "正在检查…"
+    public var versionPanelUpToDate: String = "已是最新版本"
+    public var settingsRowBadge: String = "有新内容"
+    /// Spoken after an unread ``ActivityListView`` row's title.
+    public var activityListUnreadSuffix: String = "，未读"
     /// en: "Members (\(n))" — the group detail's all-members sheet.
-    public var groupDetailMembersTitle: @Sendable (Int) -> String
+    public var groupDetailMembersTitle: @Sendable (Int) -> String = { "群成员（\($0)）" }
     /// en: "Search members"
-    public var groupDetailSearchMembers: String
+    public var groupDetailSearchMembers: String = "搜索群成员"
     /// en: "No matching members"
-    public var groupDetailNoMatchingMembers: String
+    public var groupDetailNoMatchingMembers: String = "没有匹配的群成员"
     /// en: "\(name), edit profile" — the profile panel's identity row, which opens the profile editor.
-    public var profilePanelEditProfile: @Sendable (String) -> String
+    public var profilePanelEditProfile: @Sendable (String) -> String = { "\($0)，编辑资料" }
     /// en: "Reply to \(name): \(text)" — a moment comment row that replies to its comment.
-    public var momentReplyToComment: @Sendable (String, String) -> String
+    public var momentReplyToComment: @Sendable (String, String) -> String = { "回复 \($0)：\($1)" }
     // Message preview — the one-line summary of a message whose body is not plain text
     // (``flareMessagePreviewText(_:strings:)``). Same vocabulary and keys as the other three
     // kits' `preview.*` entries; the shared rule table is `spec/message-preview-vectors.json`.
     /// en: "[Message]" — a message with nothing readable to summarize; a reply strip or a quote
     /// never shows a blank line, while a conversation row may show nothing.
-    public var previewMessage: String
+    public var previewMessage: String = "[消息]"
     /// en: "[Rich text]"
-    public var previewRichText: String
+    public var previewRichText: String = "[富文本]"
     /// en: "[GIF]" — a moving image; a still one is ``previewImage``.
-    public var previewGif: String
+    public var previewGif: String = "[动图]"
     /// en: "[Image]"
-    public var previewImage: String
+    public var previewImage: String = "[图片]"
     /// An image named by its alt text inside a markdown line (``flareMarkdownToPlainText(_:strings:)``)
     /// (en "[Image] {label}").
-    public var previewImageNamed: @Sendable (String) -> String
+    public var previewImageNamed: @Sendable (String) -> String = { "[图片] \($0)" }
     /// en: "[Video]"
-    public var previewVideo: String
+    public var previewVideo: String = "[视频]"
     /// en: "[Voice]"
-    public var previewAudio: String
+    public var previewAudio: String = "[语音]"
     /// en: "[File]"
-    public var previewFile: String
+    public var previewFile: String = "[文件]"
     /// en: "[File] \(name)"
-    public var previewFileNamed: @Sendable (String) -> String
+    public var previewFileNamed: @Sendable (String) -> String = { "[文件] \($0)" }
     /// en: "[Location]"
-    public var previewLocation: String
+    public var previewLocation: String = "[位置]"
     /// en: "[Location] \(label)"
-    public var previewLocationNamed: @Sendable (String) -> String
+    public var previewLocationNamed: @Sendable (String) -> String = { "[位置] \($0)" }
     /// en: "[Contact]"
-    public var previewCard: String
+    public var previewCard: String = "[名片]"
     /// en: "[Contact] \(label)"
-    public var previewCardNamed: @Sendable (String) -> String
+    public var previewCardNamed: @Sendable (String) -> String = { "[名片] \($0)" }
     /// en: "[Sticker]"
-    public var previewSticker: String
+    public var previewSticker: String = "[贴纸]"
     /// en: "[Emoji]"
-    public var previewEmoji: String
+    public var previewEmoji: String = "[表情]"
     /// en: "[Quote]"
-    public var previewQuote: String
+    public var previewQuote: String = "[引用]"
     /// en: "[Link]"
-    public var previewLink: String
+    public var previewLink: String = "[链接]"
     /// en: "[Forward]"
-    public var previewForward: String
+    public var previewForward: String = "[转发]"
     /// en: "[Forward] \(count) messages"
-    public var previewForwardCount: @Sendable (Int) -> String
+    public var previewForwardCount: @Sendable (Int) -> String = { "[转发] \($0) 条消息" }
     /// en: "[Thread]"
-    public var previewThread: String
+    public var previewThread: String = "[话题]"
     /// en: "[Mini Program]"
-    public var previewMiniProgram: String
+    public var previewMiniProgram: String = "[小程序]"
     /// en: "[Album]"
-    public var previewImageGroup: String
+    public var previewImageGroup: String = "[多图]"
     /// en: "[Album] \(count)"
-    public var previewImageGroupCount: @Sendable (Int) -> String
+    public var previewImageGroupCount: @Sendable (Int) -> String = { "[多图] \($0) 张" }
     /// en: "[System]"
-    public var previewSystem: String
+    public var previewSystem: String = "[系统消息]"
     /// en: "[Notification]"
-    public var previewNotification: String
+    public var previewNotification: String = "[通知]"
     /// en: "[Poll]"
-    public var previewVote: String
+    public var previewVote: String = "[投票]"
     /// en: "[Task]"
-    public var previewTask: String
+    public var previewTask: String = "[任务]"
     /// en: "[Schedule]"
-    public var previewSchedule: String
+    public var previewSchedule: String = "[日程]"
     /// en: "[Announcement]"
-    public var previewAnnouncement: String
+    public var previewAnnouncement: String = "[公告]"
     /// en: "[Custom]"
-    public var previewCustom: String
+    public var previewCustom: String = "[自定义]"
     /// en: "[Placeholder]"
-    public var previewPlaceholder: String
+    public var previewPlaceholder: String = "[占位]"
     /// en: "[Unknown]"
-    public var previewUnknown: String
+    public var previewUnknown: String = "[未知]"
     /// en: "Group created"
-    public var systemEventGroupCreated: String
+    public var systemEventGroupCreated: String = "群聊已创建"
     /// en: "A new member joined the group"
-    public var systemEventGroupMemberJoined: String
+    public var systemEventGroupMemberJoined: String = "新成员加入了群聊"
     /// en: "A member was removed from the group"
-    public var systemEventGroupMemberRemoved: String
+    public var systemEventGroupMemberRemoved: String = "有成员被移出群聊"
     /// en: "A member left the group"
-    public var systemEventGroupMemberLeft: String
+    public var systemEventGroupMemberLeft: String = "有成员退出了群聊"
     /// en: "A member was muted"
-    public var systemEventGroupMemberMuted: String
+    public var systemEventGroupMemberMuted: String = "有成员被禁言"
     /// en: "A member was unmuted"
-    public var systemEventGroupMemberUnmuted: String
+    public var systemEventGroupMemberUnmuted: String = "有成员被解除禁言"
     /// en: "Group ownership was transferred"
-    public var systemEventGroupOwnerTransferred: String
+    public var systemEventGroupOwnerTransferred: String = "群主已转让"
     /// en: "The group was dissolved"
-    public var systemEventGroupDissolved: String
+    public var systemEventGroupDissolved: String = "群聊已解散"
     /// en: "Group announcement updated"
-    public var systemEventGroupAnnouncementUpdated: String
+    public var systemEventGroupAnnouncementUpdated: String = "群公告已更新"
     /// en: "You are now friends. Say hi!"
-    public var systemEventFriendshipEstablished: String
+    public var systemEventFriendshipEstablished: String = "你们已成为好友，可以开始聊天了"
     /// en: "Group name updated"
-    public var systemEventGroupProfileUpdated: String
+    public var systemEventGroupProfileUpdated: String = "群名称已更新"
     /// en: "Group renamed to \(name)"
-    public var systemEventGroupProfileUpdatedNamed: @Sendable (String) -> String
+    public var systemEventGroupProfileUpdatedNamed: @Sendable (String) -> String = { "群名称已改为「\($0)」" }
     /// en: "A member's group role was changed"
-    public var systemEventGroupMemberRolesChanged: String
+    public var systemEventGroupMemberRolesChanged: String = "有成员的群角色已变更"
     /// en: "All members were muted"
-    public var systemEventGroupMuted: String
+    public var systemEventGroupMuted: String = "已开启全员禁言"
     /// en: "All members were unmuted"
-    public var systemEventGroupUnmuted: String
+    public var systemEventGroupUnmuted: String = "已解除全员禁言"
     // 名字（spec/display-name-vectors.json，flareDisplayNameText）：没有名字的人、群与各类会话，与成员拼接
-    public var displayNameUser: @Sendable (String) -> String
-    public var displayNameUnknownUser: String
-    public var displayNameGroup: String
-    public var displayNameSystem: String
-    public var displayNameAi: String
-    public var displayNameCustomer: String
-    public var displayNameChannel: String
-    public var displayNameBroadcast: String
-    public var displayNameTemp: String
-    public var displayNameSeparator: String
+    public var displayNameUser: @Sendable (String) -> String = { "用户 \($0)" }
+    public var displayNameUnknownUser: String = "未知用户"
+    public var displayNameGroup: String = "群聊"
+    public var displayNameSystem: String = "系统通知"
+    public var displayNameAi: String = "AI 助手"
+    public var displayNameCustomer: String = "客服"
+    public var displayNameChannel: String = "频道"
+    public var displayNameBroadcast: String = "广播"
+    public var displayNameTemp: String = "临时会话"
+    public var displayNameSeparator: String = "、"
     /// names, total (the group's size, the reader included), others (total - names - 1): Chinese counts the group.
-    public var displayNameMembersMore: @Sendable (String, Int, Int) -> String
+    public var displayNameMembersMore: @Sendable (String, Int, Int) -> String = { names, total, _ in "\(names)等 \(total) 人" }
     // Plugin views, forms and their detail sheet (`PluginView`, `PluginFormView`, `PluginDetailSheetView`).
     // `{count}`, `{time}` and `{n}` are replaced by the component.
-    public var pluginViewSubmit: String
-    public var pluginViewEnded: String
-    public var pluginViewDeadlinePassed: String
-    public var pluginViewSeeAll: String
+    public var pluginViewSubmit: String = "提交"
+    public var pluginViewCopyReference: String = "复制{label}"
+    public var pluginViewEnded: String = "已结束"
+    public var pluginViewDeadlinePassed: String = "已截止"
+    public var pluginViewSeeAll: String = "查看全部（{count}）"
     /// The card's key to the detail view when no entries block offers "see all".
-    public var pluginViewDetail: String
-    public var pluginViewVotes: String
-    public var pluginViewRemaining: String
+    public var pluginViewDetail: String = "查看详情"
+    public var pluginViewVotes: String = "{count} 票"
+    public var pluginViewRemaining: String = "剩余 {time}"
     /// Date-time patterns of the time blocks: y year, M month, MMM Jan..Dec, d day, HH hour, mm minute; the rest is
     /// literal. The Year form is for an instant outside the current year.
-    public var pluginViewDateTimeFormat: String
-    public var pluginViewDateTimeYearFormat: String
-    public var pluginFormRequired: String
-    public var pluginFormTooLong: String
-    public var pluginFormOutOfRange: String
-    public var pluginFormTooFewItems: String
-    public var pluginFormTooManyItems: String
-    public var pluginFormDuplicateItem: String
-    public var pluginFormInvalid: String
-    public var pluginFileChoose: String
-    public var pluginFileSelected: String
-    public var pluginFileUploading: String
-    public var pluginFileUploaded: String
-    public var pluginFileFailed: String
-    public var pluginFileRejected: String
-    public var pluginFileReplace: String
-    public var pluginFileRemove: String
-    public var pluginFilePreview: String
+    public var pluginViewDateTimeFormat: String = "M月d日 HH:mm"
+    public var pluginViewDateTimeYearFormat: String = "y年M月d日 HH:mm"
+    public var pluginFormRequired: String = "必填"
+    public var pluginFormTooLong: String = "超出长度"
+    public var pluginFormOutOfRange: String = "超出范围"
+    public var pluginFormTooFewItems: String = "至少 {n} 项"
+    public var pluginFormTooManyItems: String = "最多 {n} 项"
+    public var pluginFormDuplicateItem: String = "不能重复"
+    public var pluginFormInvalid: String = "格式不正确"
+    public var pluginFileChoose: String = "选择文件"
+    public var pluginFileSelected: String = "等待上传完成"
+    public var pluginFileUploading: String = "上传中"
+    public var pluginFileUploaded: String = "已上传"
+    public var pluginFileFailed: String = "上传未完成，请重试或重新选择"
+    public var pluginFileRejected: String = "请选择符合格式与大小限制的文件"
+    public var pluginFileReplace: String = "更换文件"
+    public var pluginFileRemove: String = "移除文件"
+    public var pluginFilePreview: String = "预览"
     /// OpenStreetMap's credit on a static map (ODbL); the same in every language.
-    public var locationOsmAttribution: String
+    public var locationOsmAttribution: String = "© OpenStreetMap contributors"
     /// A spinner's accessible name (en: "Loading…").
-    public var loading: String
+    public var loading: String = "加载中"
     // Message surface and receipt (docs/design/message-surface-and-meta.md): `{count}` is replaced by the component.
     /// The viewer's group message with members who have not read it.
-    public var messageReadSummaryUnread: String
+    public var messageReadSummaryUnread: String = "{count} 人未读"
     /// Everyone it was sent to read it.
-    public var messageReadSummaryAllRead: String
+    public var messageReadSummaryAllRead: String = "全部已读"
     /// The retry key under a failed picture or card, and a failed row's status text.
-    public var messageSendFailedRetry: String
+    public var messageSendFailedRetry: String = "发送失败，重试"
     /// The centred notice of a deleted message.
-    public var messageDeleted: String
+    public var messageDeleted: String = "消息已删除"
     // Plugin view v2: the card's ⋯ menu, the me tag of entries and the reasons a card is unavailable.
-    public var pluginViewMore: String
-    public var pluginViewMe: String
-    public var pluginViewUnavailableDisabled: String
-    public var pluginViewUnavailableNotInstalled: String
-    public var pluginViewUnavailableNoPermission: String
-    public var pluginViewUnavailableUnsupportedPlatform: String
-    public var pluginViewUnavailableIncompatibleVersion: String
-    public var pluginViewUnavailableCatalogUnreachable: String
-    public var pluginViewUnavailableUnboundCopy: String
+    public var pluginViewMore: String = "更多操作"
+    public var pluginViewUnknownStatus: String = "未知状态"
+    public var pluginViewOffline: String = "网络不可用，显示的是上次读取的内容"
+    public var pluginViewAvailableOnline: String = "联网后可用"
+    public var pluginViewLoadFailedTitle: String = "没有读到内容"
+    public var pluginViewNoOptions: String = "暂无可选项"
+    public var pluginViewNoOptionsHelp: String = "暂时无法选择，请稍后再试"
+    public var pluginViewUploading: String = "正在上传 {done}/{total}"
+    public var pluginViewGroupCommon: String = "常用"
+    public var pluginViewGroupRecords: String = "记录与设置"
+    public var pluginViewDone: String = "完成"
+    public var pluginViewEndOfList: String = "没有更多了"
+    public var pluginViewReferences: String = "单号与凭据"
+    public var pluginViewFilterEmpty: String = "这个筛选下没有记录"
+    public var pluginViewClearFilter: String = "清除筛选"
+    public var pluginViewMe: String = "我"
+    public var pluginViewUnavailableDisabled: String = "插件已停用"
+    public var pluginViewUnavailableNotInstalled: String = "插件未安装"
+    public var pluginViewUnavailableNoPermission: String = "没有使用该插件的权限"
+    public var pluginViewUnavailableUnsupportedPlatform: String = "该插件不支持此设备"
+    public var pluginViewUnavailableIncompatibleVersion: String = "请更新应用后查看"
+    public var pluginViewUnavailableCatalogUnreachable: String = "暂时无法加载，请稍后再试"
+    public var pluginViewUnavailableUnboundCopy: String = "副本，仅供查看"
     /// Vocabulary 2: the upgrade notice, the new blocks' copy, the count and duration formats, image and document inputs.
-    public var pluginViewUnavailableUpgradeRequired: String
-    public var pluginUpgradeAction: String
-    public var pluginUpgradeNotAvailable: String
-    public var pluginUpgradeBadge: String
-    public var pluginUpgradeTitle: String
-    public var pluginUpgradeDescription: String
-    public var pluginViewQrExpired: String
-    public var pluginViewQrRefresh: String
-    public var pluginViewStepPending: String
-    public var pluginViewStepCurrent: String
-    public var pluginViewStepDone: String
-    public var pluginViewStepFailed: String
-    public var pluginViewTrendUp: String
-    public var pluginViewTrendDown: String
-    public var pluginViewTrendFlat: String
-    public var pluginViewImageUnavailable: String
-    public var pluginFormatSeconds: String
-    public var pluginFormatCountUnits: String
-    public var pluginFormChooseImage: String
-    public var pluginFormCaptureDocument: String
-    public var pluginFormDocumentFront: String
-    public var pluginFormDocumentBack: String
-    public var pluginFormDocumentHolding: String
-    public var capabilityConsentTitle: String
-    public var capabilityConsentPurpose: String
-    public var capabilityConsentAllowOnce: String
-    public var capabilityConsentAllowAlways: String
-    public var capabilityConsentDeny: String
-    public var capabilityConsentNote: String
-    public var capabilityDocumentCapture: String
-    public var capabilityPaymentConfirmation: String
-    public var capabilityLocationCoarse: String
-    public var capabilityLocationFine: String
-    public var capabilityCamera: String
-    public var capabilityMicrophone: String
-    public var capabilityRtcSession: String
-    public var capabilityGeneric: String
-    public var documentCaptureHintFront: String
-    public var documentCaptureHintBack: String
-    public var documentCaptureHintHolding: String
-    public var documentCaptureShoot: String
-    public var documentCaptureRetake: String
-    public var documentCaptureUse: String
-    public var documentCaptureFromAlbum: String
-    public var documentCaptureProcessing: String
-    public var documentCaptureCameraUnavailable: String
-    public var documentCaptureTooLarge: String
-    public var documentCaptureFailed: String
-    public var documentCaptureNotAccepted: String
-    public var paymentConfirmationTitle: String
-    public var paymentConfirmationPayee: String
-    public var paymentConfirmationItem: String
-    public var paymentConfirmationOrder: String
-    public var paymentConfirmationRequestedBy: String
-    public var paymentConfirmationExpiresIn: String
-    public var paymentConfirmationExpired: String
-    public var paymentConfirmationInvalid: String
-    public var paymentConfirmationConfirm: String
-    public var paymentConfirmationVerifying: String
-    public var pluginProtectedMediaReason: String
-    public var pluginProtectedMediaNotice: String
-    public var pluginProtectedMediaOwnNotice: String
-    public var pluginProtectedMediaView: String
-    public var pluginProtectedMediaHide: String
-    public var pluginProtectedMediaUnavailable: String
-    public var pluginProtectedMediaNotPreviewable: String
-    public var pluginLocationLocate: String
-    public var pluginLocationRelocate: String
-    public var pluginLocationClear: String
-    public var pluginLocationLocating: String
-    public var pluginLocationEmpty: String
-    public var pluginLocationCoarse: String
+    public var pluginViewUnavailableUpgradeRequired: String = "更新应用后查看"
+    public var pluginUpgradeAction: String = "去更新"
+    public var pluginUpgradeNotAvailable: String = "当前版本暂不支持，新版本发布后可用"
+    public var pluginUpgradeBadge: String = "需更新"
+    public var pluginUpgradeTitle: String = "需要更新应用"
+    public var pluginUpgradeDescription: String = "此内容需要更新到新版本后才能使用"
+    public var pluginViewQrExpired: String = "二维码已失效"
+    public var pluginViewQrRefresh: String = "刷新二维码"
+    public var pluginViewStepPending: String = "未开始"
+    public var pluginViewStepCurrent: String = "进行中"
+    public var pluginViewStepDone: String = "已完成"
+    public var pluginViewStepFailed: String = "未通过"
+    public var pluginViewTrendUp: String = "上升"
+    public var pluginViewTrendDown: String = "下降"
+    public var pluginViewTrendFlat: String = "持平"
+    public var pluginViewImageUnavailable: String = "图片无法显示"
+    public var pluginFormatSeconds: String = "{n} 秒"
+    public var pluginFormatCountUnits: String = "4:万|8:亿"
+    public var pluginFormChooseImage: String = "选择图片"
+    public var pluginFormCaptureDocument: String = "拍摄证件"
+    public var pluginFormDocumentFront: String = "证件正面"
+    public var pluginFormDocumentBack: String = "证件反面"
+    public var pluginFormDocumentHolding: String = "手持证件"
+    public var capabilityConsentTitle: String = "「{plugin}」想要使用"
+    public var capabilityConsentPurpose: String = "用途"
+    public var capabilityConsentAllowOnce: String = "仅本次允许"
+    public var capabilityConsentAllowAlways: String = "始终允许"
+    public var capabilityConsentDeny: String = "不允许"
+    public var capabilityConsentNote: String = "可以随时在设置里撤销授权"
+    public var capabilityDocumentCapture: String = "相机，用于拍摄证件"
+    public var capabilityPaymentConfirmation: String = "付款，每次付款都需你确认"
+    public var capabilityLocationCoarse: String = "你的大致位置（仅本次）"
+    public var capabilityLocationFine: String = "你的精确位置（仅本次）"
+    public var capabilityCamera: String = "相机"
+    public var capabilityMicrophone: String = "麦克风"
+    public var capabilityRtcSession: String = "语音和视频通话"
+    public var capabilityGeneric: String = "设备上的一项能力"
+    public var documentCaptureHintFront: String = "将证件人像面放入框内"
+    public var documentCaptureHintBack: String = "将证件国徽面放入框内"
+    public var documentCaptureHintHolding: String = "手持证件，人脸与证件都要清晰"
+    public var documentCaptureShoot: String = "拍摄"
+    public var documentCaptureRetake: String = "重拍"
+    public var documentCaptureUse: String = "使用照片"
+    public var documentCaptureHintGlare: String = "避免反光和遮挡"
+    public var documentSlotTapToCapture: String = "点击拍摄"
+    public var documentSlotUploadFailed: String = "上传失败，点按重试"
+    public var documentSlotUploading: String = "正在上传 {percent}%"
+    public var documentSlotCaptured: String = "已拍摄"
+    public var documentSlotCapturedRetake: String = "已拍摄，点按重拍"
+    public var documentCaptureFromAlbum: String = "相册"
+    public var documentCaptureProcessing: String = "正在处理"
+    public var documentCaptureCameraUnavailable: String = "无法使用相机，可从相册选择"
+    public var documentCaptureTooLarge: String = "照片超过 5 MB，请换一张"
+    public var documentCaptureFailed: String = "没有处理成功，请重拍"
+    public var documentCaptureFormat: String = "只支持 JPG 和 PNG"
+    public var documentCaptureNotAccepted: String = "这里不接受照片，请联系服务提供方"
+    public var paymentConfirmationTitle: String = "确认付款"
+    public var paymentConfirmationPayee: String = "收款方"
+    public var paymentConfirmationItem: String = "付款说明"
+    public var paymentConfirmationOrder: String = "订单号"
+    public var paymentConfirmationRequestedBy: String = "由「{plugin}」发起"
+    public var paymentConfirmationExpiresIn: String = "{time} 内有效"
+    public var paymentConfirmationExpired: String = "付款已过期"
+    public var paymentConfirmationInvalid: String = "订单金额无法识别，不能付款"
+    public var paymentConfirmationConfirm: String = "确认付款"
+    public var paymentConfirmationVerifying: String = "正在验证身份…"
+    public var paymentConfirmationInsufficient: String = "余额不足，还差 {amount}"
+    public var paymentConfirmationTopUp: String = "去充值"
+    public var paymentConfirmationStartAgain: String = "重新发起"
+    public var pinInputProgress: String = "{label}，已输入 {count} 位"
+    public var pluginProtectedMediaReason: String = "查看原因"
+    public var pluginProtectedMediaNotice: String = "查看受保护材料需要说明原因，操作会留下审计记录。"
+    public var pluginProtectedMediaOwnNotice: String = "仅你本人可查看，图片不会保存到设备。"
+    public var pluginProtectedMediaView: String = "查看"
+    public var pluginProtectedMediaTapToView: String = "{label}，点按查看"
+    public var pluginProtectedMediaHide: String = "隐藏"
+    public var pluginProtectedMediaUnavailable: String = "无法显示，请重试"
+    public var pluginProtectedMediaNotPreviewable: String = "此类文件不能在这里预览"
+    public var pluginLocationLocate: String = "获取位置"
+    public var pluginLocationRelocate: String = "重新获取"
+    public var pluginLocationClear: String = "清除"
+    public var pluginLocationLocating: String = "正在获取位置"
+    public var pluginLocationEmpty: String = "尚未获取位置"
+    public var pluginLocationCoarse: String = "大致位置"
     // Web bundle host (FlarePluginBundleHost): its own states, the external link confirmation, and the bridge
     // error codes' words (`plugin.bridge.<code>`, FlareStrings.pluginBridgeMessage(forKey:)).
-    public var pluginBundleOpening: String
-    public var pluginBundleUnavailable: String
-    public var pluginBundleCrashed: String
-    public var pluginBundleCrashedHint: String
-    public var pluginBundleReload: String
-    public var pluginBundleClosed: String
-    public var pluginBundleExternalTitle: String
-    public var pluginBundleExternalMessage: String
-    public var pluginBundleExternalOpen: String
-    public var pluginBundleCopied: String
-    public var pluginBridgeErrorInvalidEnvelope: String
-    public var pluginBridgeErrorUnsupportedBridge: String
-    public var pluginBridgeErrorNotReady: String
-    public var pluginBridgeErrorMethodNotFound: String
-    public var pluginBridgeErrorInvalidParams: String
-    public var pluginBridgeErrorPayloadTooLarge: String
-    public var pluginBridgeErrorPermissionDenied: String
-    public var pluginBridgeErrorRateLimited: String
-    public var pluginBridgeErrorCancelled: String
-    public var pluginBridgeErrorGestureRequired: String
-    public var pluginBridgeErrorQuotaExceeded: String
-    public var pluginBridgeErrorNotFound: String
-    public var pluginBridgeErrorUnavailable: String
-    public var pluginBridgeErrorTimeout: String
-    public var pluginBridgeErrorOperationFailed: String
-    public var pluginBridgeErrorRevoked: String
-    public var pluginBridgeErrorInternal: String
-    public var pluginLocationFine: String
-    public var pluginLocationAccuracy: String
+    public var pluginBundleOpening: String = "正在打开…"
+    public var pluginBundleUnavailable: String = "页面暂时无法打开"
+    public var pluginBundleCrashed: String = "页面意外停止"
+    public var pluginBundleCrashedHint: String = "重新加载后可以继续使用"
+    public var pluginBundleReload: String = "重新加载"
+    public var pluginBundleClosed: String = "页面已关闭"
+    public var pluginBundleExternalTitle: String = "打开外部链接"
+    public var pluginBundleExternalMessage: String = "将在浏览器中打开以下地址，请确认来源可信。"
+    public var pluginBundleExternalOpen: String = "打开"
+    public var pluginBundleCopied: String = "已复制"
+    public var pluginBridgeErrorInvalidEnvelope: String = "请求格式不正确"
+    public var pluginBridgeErrorUnsupportedBridge: String = "当前版本不支持该页面"
+    public var pluginBridgeErrorNotReady: String = "页面还没准备好"
+    public var pluginBridgeErrorMethodNotFound: String = "不支持该操作"
+    public var pluginBridgeErrorInvalidParams: String = "请求参数不正确"
+    public var pluginBridgeErrorPayloadTooLarge: String = "请求内容过大"
+    public var pluginBridgeErrorPermissionDenied: String = "没有权限执行该操作"
+    public var pluginBridgeErrorRateLimited: String = "操作太频繁，请稍后再试"
+    public var pluginBridgeErrorCancelled: String = "已取消"
+    public var pluginBridgeErrorGestureRequired: String = "请先点按页面再试"
+    public var pluginBridgeErrorQuotaExceeded: String = "存储空间已满"
+    public var pluginBridgeErrorNotFound: String = "找不到要打开的内容"
+    public var pluginBridgeErrorUnavailable: String = "暂时不可用，请稍后再试"
+    public var pluginBridgeErrorTimeout: String = "请求超时，请重试"
+    public var pluginBridgeErrorOperationFailed: String = "操作失败"
+    public var pluginBridgeErrorRevoked: String = "页面已被停用"
+    public var pluginBridgeErrorInternal: String = "出现问题，请稍后再试"
+    public var pluginLocationFine: String = "精确位置"
+    public var pluginLocationAccuracy: String = "精度约 {m} 米"
     /// The refresh key in a plugin page's header on a pointer device.
-    public var pluginPageRefresh: String
+    public var pluginPageRefresh: String = "刷新"
     /// A multiple choice's limit, leading its footer (`{n}`).
-    public var pluginViewMaxSelections: String
+    public var pluginViewMaxSelections: String = "最多选 {n} 项"
     /// The first tab of a plugin page's filter: no filter.
-    public var pluginViewAll: String
+    public var pluginViewAll: String = "全部"
     /// A plugin page with no rows (and no text of its own), or unavailable without a reason.
-    public var accountTransactions: String
-    public var accountEmpty: String
-    public var accountEmptyDescription: String
-    public var accountInformation: String
-    public var accountEntryDetails: String
-    public var accountEntryId: String
-    public var accountType: String
-    public var accountToday: String
-    public var accountYesterday: String
-    public var accountOtherEntries: String
-    public var accountShowBalance: String
-    public var accountHideBalance: String
-    public var accountBalanceHidden: String
-    public var accountDayFormat: String
-    public var accountDayYearFormat: String
-    public var pluginViewEmpty: String
+    public var accountTransactions: String = "交易记录"
+    public var accountEmpty: String = "暂无交易记录"
+    public var accountEmptyDescription: String = "收支明细会显示在这里"
+    public var accountInformation: String = "账户说明与规则"
+    public var accountOtherWallets: String = "其他钱包"
+    public var accountEntryDetails: String = "交易详情"
+    public var accountEntryId: String = "记录编号"
+    public var accountType: String = "类型"
+    public var accountToday: String = "今天"
+    public var accountYesterday: String = "昨天"
+    public var walletSetupTitle: String = "开通钱包"
+    public var walletSetupBody: String = "开通后可充值、提现、收付款和查看账单"
+    public var realnamePhotosNeeded: String = "还差 {count} 张照片"
+    public var realnamePhotosNeededOne: String = "还差 {count} 张照片"
+    public var accountOtherEntries: String = "其他记录"
+    public var accountShowBalance: String = "显示余额"
+    public var accountHideBalance: String = "隐藏余额"
+    public var accountBalanceHidden: String = "余额已隐藏"
+    public var accountDayFormat: String = "M月d日"
+    public var accountDayYearFormat: String = "y年M月d日"
+    public var pluginViewEmpty: String = "暂无记录"
+    public var pluginViewLoading: String = "正在加载"
+    public var pluginViewLoadMore: String = "加载更多"
+    public var pluginFormMoneyRange: String = "金额范围：{min}–{max} {currency}"
+    public var pluginViewStepPosition: String = "第 {index} 步，共 {count} 步"
     // Red packet v5: the card's status, kind badge and recipient, and the details page. `{name}`, `{claimed}`, `{shares}`, `{claimedMoney}`, `{totalMoney}`, `{duration}`, `{time}`, `{money}` and `{n}` are replaced by the component.
-    public var packetView: String
-    public var packetRefunded: String
-    public var packetBadgeLucky: String
-    public var packetBadgeExclusive: String
-    public var packetForRecipient: String
-    public var packetNotEligibleName: String
-    public var packetDeposited: String
-    public var packetSummarySender: String
-    public var packetSummaryCompleted: String
-    public var packetSummaryCount: String
-    public var packetRefundAt: String
-    public var packetRefundedNote: String
-    public var packetDurationSeconds: String
-    public var packetDurationMinutes: String
-    public var packetDurationHours: String
-    public var packetDurationDays: String
+    public var packetView: String = "查看红包"
+    public var packetRefunded: String = "已退回"
+    public var packetBadgeLucky: String = "拼手气"
+    public var packetBadgeLuckyShort: String = "拼"
+    public var packetBadgeExclusive: String = "专属"
+    public var packetForRecipient: String = "给 {name}"
+    public var packetNotEligibleName: String = "仅 {name} 可领取"
+    public var packetDeposited: String = "已存入钱包"
+    public var packetSummarySender: String = "已领取 {claimed}/{shares} 个，共 {claimedMoney}/{totalMoney}"
+    public var packetSummaryCompleted: String = "{shares} 个红包共 {totalMoney}，{duration}被抢光"
+    public var packetSummaryCount: String = "已领取 {claimed}/{shares} 个"
+    public var packetRefundAt: String = "未领取部分将于 {time} 退回"
+    public var packetRefundedNote: String = "已退回 {money} · {time}"
+    public var packetDurationSeconds: String = "{n} 秒"
+    public var packetDurationMinutes: String = "{n} 分钟"
+    public var packetDurationHours: String = "{n} 小时"
+    public var packetDurationDays: String = "{n} 天"
     // Call record card (CallRecordCardView)
-    public var callRecordVoice: String
-    public var callRecordVideo: String
-    public var callRecordWaitingAnswer: String
-    public var callRecordIncoming: String
-    public var callRecordGroupRinging: String
-    public var callRecordInCall: String
-    public var callRecordGroupOngoing: String
-    public var callRecordGroupInProgress: String
-    public var callRecordDuration: String
-    public var callRecordGroupEndedDuration: String
-    public var callRecordGroupEnded: String
-    public var callRecordCancelledByYou: String
-    public var callRecordCancelledByCaller: String
-    public var callRecordDeclinedByPeer: String
-    public var callRecordDeclinedByYou: String
-    public var callRecordNoAnswer: String
-    public var callRecordMissed: String
-    public var callRecordPeerBusy: String
-    public var callRecordMissedBusy: String
-    public var callRecordUnavailable: String
-    public var callRecordFailed: String
-    public var callRecordJoin: String
-    public var callRecordCallBack: String
-    public var callRecordConfirmCallBack: String
+    public var callRecordVoice: String = "语音通话"
+    public var callRecordVideo: String = "视频通话"
+    public var callRecordWaitingAnswer: String = "等待对方接听"
+    public var callRecordIncoming: String = "邀请你通话"
+    public var callRecordGroupRinging: String = "群通话呼叫中"
+    public var callRecordInCall: String = "通话中"
+    public var callRecordGroupOngoing: String = "群通话进行中 · {n} 人"
+    public var callRecordGroupInProgress: String = "群通话进行中"
+    public var callRecordDuration: String = "通话时长 {duration}"
+    public var callRecordGroupEndedDuration: String = "群通话已结束 · 时长 {duration}"
+    public var callRecordGroupEnded: String = "群通话已结束"
+    public var callRecordCancelledByYou: String = "已取消"
+    public var callRecordCancelledByCaller: String = "对方已取消"
+    public var callRecordDeclinedByPeer: String = "对方已拒绝"
+    public var callRecordDeclinedByYou: String = "已拒绝"
+    public var callRecordNoAnswer: String = "对方未接听"
+    public var callRecordMissed: String = "未接听"
+    public var callRecordPeerBusy: String = "对方忙线中"
+    public var callRecordMissedBusy: String = "忙线未接听"
+    public var callRecordUnavailable: String = "通话不可用"
+    public var callRecordFailed: String = "通话失败"
+    public var callRecordJoin: String = "加入"
+    public var callRecordCallBack: String = "回拨"
+    public var callRecordConfirmCallBack: String = "确认回拨此通话？"
     // The read list's plain tab labels (no summary count), its states and paging.
-    public var readReceiptRead: String
-    public var readReceiptUnread: String
-    public var readReceiptLoadFailed: String
-    public var readReceiptUnavailable: String
-    public var readReceiptLoadMore: String
-    public var readReceiptLoadMoreFailed: String
+    public var readReceiptRead: String = "已读"
+    public var readReceiptUnread: String = "未读"
+    public var readReceiptLoadFailed: String = "名单读取失败"
+    public var readReceiptUnavailable: String = "这条消息的已读名单不可查看"
+    public var readReceiptLoadMore: String = "加载更多"
+    public var readReceiptLoadMoreFailed: String = "加载失败，点按重试"
     /// The open sheet's notice for a refunded red packet.
-    public var packetRefundedNotice: String
+    public var packetRefundedNotice: String = "红包已退回"
     // The 我 page menu (flareMeMenuSections): built-in items and a plugin item without a title.
-    public var meMenuMoments: String
-    public var meMenuReports: String
-    public var meMenuInvite: String
-    public var meMenuSettings: String
-    public var meMenuPluginFallback: String
+    public var meMenuMoments: String = "圈子"
+    public var meMenuReports: String = "我的举报"
+    public var meMenuInvite: String = "我的邀请"
+    public var meMenuSettings: String = "设置"
+    public var meMenuPluginFallback: String = "插件"
     // Merged-forward record. `{count}`, `{title}` and `{subtitle}` are replaced by the component; the *One fields are the plural one forms (flarePlural).
-    public var forwardRecordTitle: String
-    public var forwardRecordTotal: String
-    public var forwardRecordTotalOne: String
-    public var forwardRecordMore: String
-    public var forwardRecordMoreOne: String
-    public var forwardRecordViewDetails: String
-    public var forwardRecordUnknownSender: String
-    public var forwardRecordEmpty: String
-    public var forwardRecordCountSuffix: String
-    public var forwardRecordCardLabel: String
+    public var forwardRecordTitle: String = "合并转发"
+    public var forwardRecordTotal: String = "共 {count} 条消息"
+    public var forwardRecordTotalOne: String = "共 {count} 条消息"
+    public var forwardRecordMore: String = "还有 {count} 条消息…"
+    public var forwardRecordMoreOne: String = "还有 {count} 条消息…"
+    public var forwardRecordViewDetails: String = "点击查看详情"
+    public var forwardRecordUnknownSender: String = "未知发送者"
+    public var forwardRecordEmpty: String = "暂无转发内容"
+    public var forwardRecordCountSuffix: String = "（{count} 条）"
+    public var forwardRecordCardLabel: String = "{title}，{subtitle}"
     // Plural one forms of count copy (flarePlural picks them by the locale's CLDR rule).
-    public var pluginViewVotesOne: String
-    public var myInviteCountOnlyOne: String
-    public var storageUsageFileCountOne: String
+    public var pluginViewVotesOne: String = "{count} 票"
+    public var myInviteCountOnlyOne: String = "{count} 人"
+    public var storageUsageFileCountOne: String = "{count} 个文件"
     /// The pointer menu's only item while the message's availability is still being read.
-    public var messageMenuLoading: String
+    public var messageMenuLoading: String = "正在读取…"
 
-    public var scanTitle: String
-    public var scanAlbum: String
-    public var scanPaste: String
-    public var scanTorchOn: String
-    public var scanTorchOff: String
-    public var scanChooseCode: String
-    public var scanPreparing: String
-    public var scanLive: String
-    public var scanLowLight: String
-    public var scanLocked: String
-    public var scanChoosing: String
-    public var scanPaused: String
-    public var scanImageDecoding: String
-    public var scanImageError: String
-    public var scanNoCodeInImage: String
-    public var scanNoCamera: String
-    public var scanInsecureContext: String
-    public var scanCameraBusy: String
-    public var scanCameraError: String
+    public var scanTitle: String = "扫一扫"
+    public var scanAlbum: String = "从图片识别"
+    public var scanPaste: String = "粘贴"
+    public var scanTorchOn: String = "打开手电筒"
+    public var scanTorchOff: String = "关闭手电筒"
+    public var scanChooseCode: String = "选择二维码"
+    public var scanPreparing: String = "正在准备相机…"
+    public var scanLive: String = "将二维码放入画面"
+    public var scanLowLight: String = "光线较暗，可打开手电筒"
+    public var scanLocked: String = "已识别"
+    public var scanChoosing: String = "发现多个二维码，请点选要识别的码"
+    public var scanPaused: String = "扫描已暂停"
+    public var scanImageDecoding: String = "正在识别图片…"
+    public var scanImageError: String = "图片识别失败，请重试或选择其他图片"
+    public var scanNoCodeInImage: String = "图片中没有二维码"
+    public var scanRescan: String = "重新扫描"
+    public var scanNoCamera: String = "此设备没有可用相机"
+    public var scanInsecureContext: String = "相机需要安全连接，请选择图片"
+    public var scanCameraBusy: String = "视频通话正在使用相机"
+    public var scanCameraError: String = "相机暂不可用，请重试或选择图片"
     /// Scanning for an invite code read something else.
-    public var scanNotInviteCode: String
-    public var scanResult: String
-    public var scanUpgradeRequired: String
-    public var scanSaveCode: String
-    public var scanShareCode: String
-    public var scanCodeExpired: String
+    public var scanNotInviteCode: String = "这不是邀请码，请扫描邀请二维码"
+    public var scanResult: String = "识别结果"
+    public var scanUpgradeRequired: String = "请更新应用后使用此操作"
+    public var scanSaveCode: String = "保存二维码"
+    public var scanShareCode: String = "分享二维码"
+    public var scanCodeExpired: String = "二维码已过期，请刷新"
 
-    public var scanLoginRequired: String
-    public var scanForeignCode: String
-    public var scanText: String
-    public var scanExternalLink: String
-    public var scanPending: String
-    public var scanUnknown: String
-    public var scanAllowAddByQr: String
-    public var scanOpenExternal: String
-    public var scanRetryable: String
-    public var scanContinueLogin: String
-    public var reauthFailed: String
-    public var reauthTitle: String
-    public var reauthDestination: String
-    public var reauthCode: String
-    public var reauthSendCode: String
-    public var reauthResendIn: String
-    public var reauthUnavailable: String
-    public var scanProvidedBy: String
+    public var scanLoginRequired: String = "登录后继续处理扫码结果"
+    public var scanForeignCode: String = "这是其他应用或环境的二维码"
+    public var scanText: String = "二维码内容"
+    public var scanExternalLink: String = "外部链接"
+    public var scanPending: String = "申请已提交"
+    public var scanUnknown: String = "操作结果待确认"
+    public var scanAllowAddByQr: String = "扫码添加我"
+    public var scanOpenExternal: String = "使用浏览器打开"
+    public var scanRetryable: String = "暂时无法获取扫码信息，请重试"
+    public var scanContinueLogin: String = "登录后继续"
+    public var reauthFailed: String = "验证未完成，请重试"
+    public var reauthTitle: String = "验证身份"
+    public var reauthDestination: String = "验证方式"
+    public var reauthCode: String = "验证码"
+    public var reauthSendCode: String = "发送验证码"
+    public var reauthResendIn: String = "重新发送（{seconds}秒）"
+    public var reauthUnavailable: String = "没有可用的验证方式"
+    public var scanProvidedBy: String = "由 {name} 提供"
 }
 
 private struct FlareStringsKey: EnvironmentKey {

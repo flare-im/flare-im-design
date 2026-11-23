@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { NIcon } from "naive-ui";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import FlareButton from "../general/FlareButton.vue";
+import FlareIconButton from "../general/FlareIconButton.vue";
+import FlareVoiceHoldButton from "./FlareVoiceHoldButton.vue";
+import FlareSlider from "../form/FlareSlider.vue";
 import { flareIcons } from "../../shared/icons";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
+import { canFocusFlareModalTarget } from "../../shared/useModalSurface";
 import { formatVoiceDuration, type VoiceRecorder } from "../../composables/composer/useVoiceRecorder";
 
-// Desktop voice panel of the composer: start / pause / resume / preview / send.
+// Shared voice composer: explicit tap-to-record, review, resume and send.
 // Capture state lives in the injected recorder; this panel only owns preview playback.
 const props = defineProps<{
   recorder: VoiceRecorder;
+  /** Phones offer a hold gesture; release reviews the clip before sending. */
+  holdToTalk?: boolean;
   /** A send is in flight; every control freezes until it settles. */
   submitting?: boolean;
   /** Sending is blocked by the host (offline, read-only) even though a clip exists. */
@@ -23,109 +29,123 @@ const emit = defineEmits<{
   (event: "send"): void;
   (event: "close"): void;
   (event: "previewFailed"): void;
+  (event: "previewStarted"): void;
+  (event: "tooShort"): void;
 }>();
 const { t } = useFlareI18n();
 
+const returnButton = ref<InstanceType<typeof FlareIconButton> | null>(null);
+onMounted(() => {
+  // The editor and its toolbar are hidden while voice mode is open.
+  const button = returnButton.value?.$el as HTMLButtonElement | undefined;
+  if (button && canFocusFlareModalTarget(button)) button.focus({ preventScroll: true });
+});
+
 const audio = ref<HTMLAudioElement | null>(null);
 const playing = ref(false);
+const playbackPending = ref(false);
 const playbackMs = ref(0);
+const holding = ref(false);
 const { recording, paused, requestPending, elapsedMs, preview, previewUrl, hasSession, atLimit } = props.recorder;
 
-function pausePlayback(): void { audio.value?.pause(); playing.value = false; }
+let playbackGeneration = 0;
+function pausePlayback(): void { playbackGeneration++; audio.value?.pause(); playing.value = false; playbackPending.value = false; }
 async function togglePlayback(): Promise<void> {
-  if (playing.value) { pausePlayback(); return; }
-  try { await audio.value?.play(); playing.value = true; }
-  catch { emit("previewFailed"); }
+  if (playing.value || playbackPending.value) { pausePlayback(); return; }
+  const node = audio.value;
+  if (!node || !preview.value) return;
+  const mine = ++playbackGeneration;
+  playbackPending.value = true;
+  try {
+    if (node.ended) { node.currentTime = 0; playbackMs.value = 0; }
+    await node.play();
+    if (mine !== playbackGeneration) { node.pause(); return; }
+    playing.value = true;
+    emit("previewStarted");
+  } catch { if (mine === playbackGeneration) emit("previewFailed"); }
+  finally { if (mine === playbackGeneration) playbackPending.value = false; }
 }
-function seek(event: Event): void {
+function seek(value: number): void {
   const node = audio.value;
   if (!node) return;
-  const seconds = Number((event.target as HTMLInputElement).value) / 1000;
+  const seconds = value / 1000;
   try { node.currentTime = seconds; playbackMs.value = seconds * 1000; } catch { /* Not yet seekable. */ }
 }
 watch(previewUrl, () => { pausePlayback(); playbackMs.value = 0; });
 watch(() => props.submitting, (busy) => { if (busy) pausePlayback(); });
-const shown = computed(() => formatVoiceDuration(playing.value ? playbackMs.value : elapsedMs.value));
+onBeforeUnmount(pausePlayback);
+const shown = computed(() => formatVoiceDuration(elapsedMs.value));
+const keyboardLabel = computed(() => hasSession.value || preview.value || requestPending.value
+  ? t('composer.returnKeyboard') : t('composer.returnKeyboardIdle'));
+const unavailable = computed(() => props.sendBlocked || props.submitting || requestPending.value);
+function startHold(): void { holding.value = true; emit("start"); }
+function cancelHold(): void { holding.value = false; emit("discard"); }
+function finishHold(): void {
+  holding.value = false;
+  // Releasing during the permission prompt invalidates that capture request.
+  if (requestPending.value) { emit("discard"); return; }
+  if (!recording.value) return;
+  emit("pause");
+  if (elapsedMs.value < 250) { emit("discard"); emit("tooShort"); }
+}
 </script>
 
 <template>
-  <section class="composer-voice-inline" :aria-label="t('composer.voice')">
-    <button type="button" :disabled="submitting" :title="t('composer.returnKeyboard')" :aria-label="t('composer.returnKeyboard')" @click="emit('close')"><n-icon aria-hidden="true" :component="flareIcons.keyboard" /></button>
-    <button v-if="!paused" type="button" class="voice-primary" :class="{ 'is-recording': recording }" :disabled="sendBlocked || submitting || requestPending" :aria-busy="requestPending" :title="recording ? t('composer.pauseRecording') : t('composer.startRecording')" :aria-label="recording ? t('composer.pauseRecording') : t('composer.startRecording')" @click="recording ? emit('pause') : emit('start')"><n-icon aria-hidden="true" :component="recording ? flareIcons.pause : flareIcons.mic" /></button>
-    <button v-else type="button" :disabled="!preview || submitting" :title="t('composer.previewRecording')" :aria-label="t('composer.previewRecording')" :aria-pressed="playing" @click="togglePlayback"><n-icon aria-hidden="true" :component="playing ? flareIcons.pause : flareIcons.play" /></button>
-    <div class="voice-track" :class="{ 'is-recording': recording, 'is-paused': paused }"><i v-for="n in 64" :key="n" aria-hidden="true" :style="{ height: `${6 + (n * 17 % 20)}px`, animationDelay: `${n % 7 * -.13}s` }" /><input v-if="paused && preview" type="range" min="0" :max="elapsedMs" :value="playbackMs" :disabled="submitting" :aria-label="t('composer.seekRecording')" @input="seek" /></div>
-    <time>{{ shown }}</time>
-    <button v-if="paused && hasSession" type="button" class="voice-primary" :disabled="submitting || atLimit" :title="t('composer.resumeRecording')" :aria-label="t('composer.resumeRecording')" @click="emit('resume')"><n-icon aria-hidden="true" :component="flareIcons.mic" /></button>
-    <button v-if="paused" type="button" :disabled="submitting" :title="t('composer.discardRecording')" :aria-label="t('composer.discardRecording')" @click="emit('discard')"><n-icon aria-hidden="true" :component="flareIcons.delete" /></button>
-    <button v-if="paused" type="button" class="voice-primary" :disabled="!preview || sendBlocked || submitting" :aria-busy="submitting" :title="sendLabel" :aria-label="sendLabel" @click="emit('send')"><n-icon aria-hidden="true" :component="flareIcons.send" /></button>
+  <section class="composer-voice-inline" :class="{ 'is-preview': paused }" :aria-label="t('composer.voice')">
+    <FlareIconButton ref="returnButton" size="md" :icon="flareIcons.keyboard" :disabled="submitting" :title="keyboardLabel" :ariaLabel="keyboardLabel" @click="emit('close')" />
+    <template v-if="!paused">
+      <FlareVoiceHoldButton v-if="holdToTalk && (!recording || holding)" class="voice-record"
+        :label="t('composer.holdToRecord')" :recording-label="t('composer.releaseToReview')"
+        :disabled="sendBlocked || submitting" :busy="requestPending" slide-to-cancel
+        @start="startHold" @end="finishHold" @cancel="cancelHold">
+        <template #trailing><time v-if="recording">{{ shown }}</time></template>
+      </FlareVoiceHoldButton>
+      <FlareButton v-else class="voice-record" size="md" variant="secondary"
+        :icon="recording ? flareIcons.pause : flareIcons.mic" :disabled="unavailable" :loading="requestPending"
+        :aria-label="requestPending ? t('composer.requestingMicrophone') : recording ? t('composer.pauseRecording') : t('composer.startRecording')"
+        @click="recording ? emit('pause') : emit('start')">
+        <span v-if="recording" class="voice-recording-dot" aria-hidden="true" />
+        <span>{{ requestPending ? t('composer.requestingMicrophone') : recording ? t('composer.pauseRecording') : t('composer.startRecording') }}</span>
+        <time v-if="recording">{{ shown }}</time>
+      </FlareButton>
+      <FlareIconButton v-if="hasSession || requestPending" size="md" :icon="flareIcons.delete" :disabled="submitting" :title="t('composer.discardRecording')" :ariaLabel="t('composer.discardRecording')" @click="emit('discard')" />
+    </template>
+    <template v-else>
+      <div class="voice-preview">
+        <FlareIconButton size="md" :icon="playing ? flareIcons.pause : flareIcons.play" :disabled="!preview || submitting" :title="t('composer.previewRecording')" :ariaLabel="t('composer.previewRecording')" :toggle="true" :active="playing" :aria-busy="playbackPending" @click="togglePlayback" />
+        <div class="voice-scrubber">
+          <time aria-hidden="true">{{ formatVoiceDuration(playbackMs) }} / {{ shown }}</time>
+          <FlareSlider class="voice-seek" :min="0" :max="elapsedMs" :model-value="playbackMs" :disabled="!preview || submitting" :aria-label="t('composer.seekRecording')" :aria-value-text="t('composer.voicePlaybackPosition', { current: formatVoiceDuration(playbackMs), total: shown })" @update:model-value="seek" />
+        </div>
+      </div>
+      <div class="voice-review-actions">
+        <FlareIconButton size="md" :icon="flareIcons.delete" :disabled="submitting" :title="t('composer.discardRecording')" :ariaLabel="t('composer.discardRecording')" @click="emit('discard')" />
+        <FlareIconButton v-if="hasSession" size="md" :icon="flareIcons.mic" :disabled="sendBlocked || submitting || atLimit" :title="t('composer.resumeRecording')" :ariaLabel="t('composer.resumeRecording')" @click="emit('resume')" />
+        <FlareIconButton size="md" variant="solid" :icon="flareIcons.send" :disabled="!preview || sendBlocked || submitting" :aria-busy="submitting" :title="sendLabel" :ariaLabel="sendLabel" @click="emit('send')" />
+      </div>
+    </template>
     <audio v-if="previewUrl" ref="audio" :src="previewUrl" @timeupdate="playbackMs = (audio?.currentTime ?? 0) * 1000" @ended="playing = false" @pause="playing = false" />
   </section>
 </template>
 
 <style scoped>
-/* 录音条是输入区的一行，不是浮在里面的一张卡片：它是最后一个还自带边框 / 圆角 / 底色的
-   composer 子面板（表情、「+」、@ 都已经扁平化）。高度对齐 .composer-toolbar / .composer-input-row
-   的 44px，左右内距与工具条同源，这样首尾按钮和工具条图标落在同一条竖线上。 */
 .composer-voice-inline {
-  display: flex;
-  align-items: center;
-  gap: var(--flare-size-spacing-2xs);
-  min-height: var(--flare-size-layout-touch-target);
-  width: 100%;
-  padding: 0 var(--flare-size-spacing-sm);
-  border: 0;
-  background: transparent;
+  --voice-control-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-component-icon-button-side-md));
+  display: flex; align-items: center; gap: var(--voice-control-gap); flex-wrap: nowrap;
+  min-height: var(--flare-size-layout-touch-target); width: 100%; box-sizing: border-box;
+  padding: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm);
 }
-.composer-voice-inline button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 40px;
-  width: var(--flare-size-layout-control-height-md);
-  height: var(--flare-size-layout-control-height-md);
-  padding: 0;
-  border: 0;
-  color: var(--flare-color-text-secondary);
-  background: transparent;
-  box-shadow: none;
-  cursor: pointer;
-}
-.composer-voice-inline button :deep(svg),
-.composer-voice-inline button .n-icon {
-  width: var(--flare-size-icon-size-md);
-  height: var(--flare-size-icon-size-md);
-  font-size: var(--flare-size-font-size-4xl);
-  stroke-width: 1.7;
-}
-.composer-voice-inline button:hover,
-.composer-voice-inline .voice-primary { color: var(--studio-accent, var(--flare-color-primary-text)); }
-.composer-voice-inline .is-recording { color: var(--flare-color-error-text); }
-.composer-voice-inline button:disabled { opacity: var(--flare-opacity-disabled, 0.5); cursor: default; }
-.composer-voice-inline button:focus-visible { outline: 2px solid var(--studio-focus, var(--flare-color-border-selected)); outline-offset: -2px; }
-.composer-voice-inline time { min-width: 36px; color: var(--flare-color-text-secondary); font: 12px var(--flare-component-font-family-mono); font-variant-numeric: tabular-nums; }
+.composer-voice-inline > :first-child, .voice-review-actions { flex: none; }
+.voice-record { flex: 1; min-width: 0; }
+.composer-voice-inline time { color: var(--flare-color-text-secondary); font: var(--flare-size-font-size-xs) var(--flare-component-font-family-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .composer-voice-inline audio { display: none; }
-.voice-track {
-  position: relative;
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: space-between;
-  min-width: var(--flare-size-icon-size-sm);
-  height: 28px;
-  gap: 3px;
-  overflow: hidden;
-}
-.voice-track i { flex: 1 0 2px; max-width: 3px; border-radius: var(--flare-size-radius-full, 999px); background: var(--studio-border, var(--flare-color-border-primary)); }
-.voice-track.is-paused i { background: color-mix(in srgb, var(--studio-accent, var(--flare-color-primary)) 35%, var(--studio-border, var(--flare-color-border-primary))); }
-.voice-track.is-recording i { background: var(--studio-accent, var(--flare-color-primary)); animation: composer-voice-pulse 0.7s ease-in-out infinite alternate; }
-.voice-track input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-@keyframes composer-voice-pulse { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
-@container flare-composer (max-width: 639px) {
-  .composer-voice-inline { gap: 1px; padding: 0 var(--flare-size-spacing-2xs); }
-  .composer-voice-inline button { flex-basis: 44px; width: 44px; height: 44px; }
-  .composer-voice-inline time { min-width: var(--flare-size-layout-control-height-sm); font-size: var(--flare-size-font-size-xs); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .voice-track i { animation: none !important; }
-}
+.voice-preview { display: flex; flex: 1; align-items: center; min-width: 0; gap: var(--voice-control-gap); }
+.voice-scrubber { position: relative; display: flex; flex: 1; flex-direction: column; justify-content: center; min-width: var(--flare-size-layout-touch-target); height: var(--flare-size-layout-touch-target); }
+.voice-scrubber time { position: absolute; inset: 0 0 auto; text-align: center; line-height: 1; pointer-events: none; }
+.voice-seek { width: 100%; min-width: 0; min-height: var(--flare-size-layout-touch-target); margin: 0; height: var(--flare-size-layout-touch-target); box-sizing: border-box; padding: 0; cursor: pointer; }
+.voice-review-actions { display: flex; align-items: center; gap: var(--voice-control-gap); }
+.voice-recording-dot { width: var(--flare-size-spacing-xs); height: var(--flare-size-spacing-xs); border-radius: var(--flare-size-radius-full); background: var(--flare-color-error); animation: voice-record-pulse 1s ease-in-out infinite alternate; }
+@keyframes voice-record-pulse { to { opacity: 0.35; } }
+@container flare-composer (max-width: 639px) { .composer-voice-inline { padding-inline: 0; } }
+@media (prefers-reduced-motion: reduce) { .voice-recording-dot { animation: none; } }
 </style>

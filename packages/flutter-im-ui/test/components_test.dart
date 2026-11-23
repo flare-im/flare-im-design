@@ -15,7 +15,8 @@ void main() {
       await tester.pumpWidget(
         _host(const FlareAvatar(userId: 'u1', displayName: 'Henry Ford')),
       );
-      expect(find.text('HF'), findsOneWidget);
+      // Vue `avatarInitial`: the name's first character.
+      expect(find.text('H'), findsOneWidget);
     });
 
     testWidgets('shows a presence dot when presence is set', (tester) async {
@@ -30,6 +31,24 @@ void main() {
       );
       // avatar container + presence dot container
       expect(find.byType(Container), findsNWidgets(2));
+    });
+
+    testWidgets('marks a group with a named people mark, not a presence dot', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          const FlareAvatar(
+            userId: 'g1',
+            displayName: '产品设计组',
+            presence: FlarePresence.online,
+            group: true,
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.people), findsOneWidget);
+      expect(find.bySemanticsLabel('群聊'), findsOneWidget);
+      expect(find.byType(FlarePresenceDot), findsNothing);
     });
 
     testWidgets('falls back to ? for a blank name', (tester) async {

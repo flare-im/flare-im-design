@@ -4,12 +4,14 @@ import { defineComponent, h, nextTick, reactive, type Component } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import Composer from "./EnhancedComposer.vue";
 import FlareGlyph from "../general/FlareGlyph.vue";
+import FlareDrawer from "../general/FlareDrawer.vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
+import { provideFlareVoiceRecorder, type FlareVoiceRecorderAdapter, type FlareVoiceCaptureState } from "../../composables/composer/voiceRecorder";
 
 const wrappers: ReturnType<typeof mount>[] = [];
-function setup(props: Record<string, unknown> = {}) {
+function setup(props: Record<string, unknown> = {}, recorder?: FlareVoiceRecorderAdapter) {
   const host = mount(defineComponent({
-    setup() { useFlareI18nProvider("zh-CN"); return () => h(Composer as Component, props); },
+    setup() { useFlareI18nProvider("zh-CN"); if (recorder) provideFlareVoiceRecorder(recorder); return () => h(Composer as Component, props); },
   }), { attachTo: document.body });
   wrappers.push(host);
   return host.findComponent(Composer);
@@ -20,9 +22,44 @@ async function openVoiceFromMore(wrapper: ReturnType<typeof setup>) {
   if (!voice) throw new Error("Expected the default voice action");
   await voice.trigger("click");
 }
-afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("FlareComposer interaction boundaries", () => {
+  it.each([
+    ["NotAllowedError", "麦克风权限未开启"],
+    ["NotFoundError", "未检测到麦克风"],
+    ["NotReadableError", "麦克风暂时无法使用"],
+  ])("explains %s while retaining the text draft and retry action", async (name, message) => {
+    const wrapper = setup({ modelValue: "保留文字草稿", sendVoiceHandler: vi.fn() }, {
+      isSupported: () => true,
+      open: async () => { throw new DOMException("private capture diagnostic", name); },
+    });
+    await wrapper.get('[aria-label="语音"]').trigger("click");
+    await wrapper.get('[aria-label="开始录音"]').trigger("click");
+    await flushPromises();
+    expect(wrapper.get('[role="status"]').text()).toContain(message);
+    expect(wrapper.text()).not.toContain("private capture diagnostic");
+    expect(wrapper.get('[aria-label="开始录音"]').attributes("disabled")).toBeUndefined();
+    expect(wrapper.emitted("send-voice")).toBeUndefined();
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+  });
+
+  it("does not run a delayed editor focus behind a newly opened plugin drawer", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length; });
+    const composer = setup();
+    composer.vm.focus();
+    await nextTick();
+    const overlay = mount(defineComponent({
+      setup() { useFlareI18nProvider("zh-CN"); return () => h(FlareDrawer, { open: true, title: "插件" }, () => h("input", { "aria-label": "插件标题" })); },
+    }), { attachTo: document.body });
+    wrappers.push(overlay);
+    await nextTick();
+    const field = document.querySelector<HTMLInputElement>('[aria-label="插件标题"]')!;
+    field.focus();
+    frames.splice(0).forEach(callback => callback(0));
+    expect(document.activeElement).toBe(field);
+  });
   it("keeps a mobile typed mention in the editor, and hands focus back to the toolbar for a deliberate panel switch", async () => {
     const wrapper = setup({
       formFactor: "mobile",
@@ -164,7 +201,7 @@ describe("FlareComposer interaction boundaries", () => {
     expect(tiles.map((tile) => tile.attributes("data-action-id"))).toEqual(["file", "video"]);
     expect(wrapper.findAllComponents(FlareGlyph).map((glyph) => glyph.props("icon"))).toEqual(["file", "video"]);
   });
-  it("gives both toolbar presentations the same base actions, and only expanded the inline enlarge button", () => {
+  it("adds the inline enlarge shortcut to the expanded toolbar", () => {
     // 基础动作在窄屏和宽屏是同一排：换个屏幕宽度不该少掉 @ / 图片 / 富文本三个入口。
     const base = ["表情", "@", "图片", "富文本", "更多", "发送"];
     const minimal = setup();
@@ -172,11 +209,9 @@ describe("FlareComposer interaction boundaries", () => {
     const withVoice = setup({ sendVoiceHandler: vi.fn() });
     expect(withVoice.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label")))
       .toEqual(["表情", "@", "语音", "图片", "富文本", "更多", "发送"]);
-    // expanded 只多那个「放大输入框」——窄屏上它在输入框自己的角上，不进工具条。
     const expanded = setup({ toolbarPresentation: "expanded", sendVoiceHandler: vi.fn() });
     const expandedLabels = expanded.findAll(".composer-toolbar button").map((button) => button.attributes("aria-label"));
-    expect(expandedLabels).toHaveLength(8);
-    expect(expandedLabels.slice(1)).toEqual(["表情", "@", "语音", "图片", "富文本", "更多", "发送"]);
+    expect(expandedLabels).toEqual(["展开输入", "表情", "@", "语音", "图片", "富文本", "更多", "发送"]);
     expect(minimal.find(".composer-expand").exists()).toBe(false);
     expect(expanded.find(".composer-expand").exists()).toBe(true);
   });
@@ -484,7 +519,7 @@ describe("FlareComposer interaction boundaries", () => {
     await wrapper.get('[aria-label="语音"]').trigger("click");
     expect(stopTrack).toHaveBeenCalledOnce();
     expect(wrapper.find("audio").exists()).toBe(false);
-    expect(wrapper.get("time").text()).toBe("00:00");
+    expect(wrapper.find("time").exists()).toBe(false);
     expect(wrapper.props("modelValue")).toBe("保留文字");
   });
   it("retains the finalized clip when upload fails and retries the same blob", async () => {
@@ -515,6 +550,54 @@ describe("FlareComposer interaction boundaries", () => {
     expect(send).toHaveBeenCalledTimes(2);
     expect(send.mock.calls[1][0].blob).toBe(send.mock.calls[0][0].blob);
     expect(wrapper.find("audio").exists()).toBe(false);
+  });
+  it("pauses on disconnect, preserves the voice draft and sends it after reconnect", async () => {
+    let now = 1000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:offline-draft");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    let state: FlareVoiceCaptureState = "inactive";
+    let onData: (chunk: BlobPart) => void = () => {};
+    let onStop: () => void = () => {};
+    const release = vi.fn();
+    const adapter: FlareVoiceRecorderAdapter = { isSupported: () => true, open: async () => ({
+      mimeType: "audio/webm", get state() { return state; },
+      start() { state = "recording"; }, pause() { state = "paused"; }, resume() { state = "recording"; },
+      requestData() { onData(new Blob(["recorded draft"])); },
+      stop() { state = "inactive"; onStop(); }, release,
+      onData(callback) { onData = callback; }, onStop(callback) { onStop = callback; }, onError() {}, onEnded() {},
+    }) };
+    const send = vi.fn();
+    const props = reactive({ modelValue: "keep text", sendBlocked: false, sendVoiceHandler: send });
+    const wrapper = setup(props, adapter);
+    await openVoiceFromMore(wrapper);
+    expect(wrapper.find('[aria-label="返回键盘"]').exists()).toBe(true);
+    await wrapper.get('[aria-label="开始录音"]').trigger("click"); await flushPromises();
+    now = 2500; props.sendBlocked = true; await flushPromises();
+    expect(state).toBe("paused");
+    expect(wrapper.get("audio").attributes("src")).toBe("blob:offline-draft");
+    expect(wrapper.get('.composer-voice-inline [aria-label="发送"]').attributes("disabled")).toBeDefined();
+    expect(send).not.toHaveBeenCalled();
+    props.sendBlocked = false; await nextTick();
+    await wrapper.get('.composer-voice-inline [aria-label="发送"]').trigger("click"); await flushPromises();
+    expect(send).toHaveBeenCalledOnce();
+    expect(send.mock.calls[0][0].durationMs).toBe(1500);
+    expect(wrapper.props("modelValue")).toBe("keep text");
+    expect(release).toHaveBeenCalledOnce();
+  });
+  it("keeps a recorder error visible until another action, without discarding the text", async () => {
+    vi.useFakeTimers();
+    const wrapper = setup({ modelValue: "keep draft", sendVoiceHandler: vi.fn() }, {
+      isSupported: () => false, open: vi.fn(),
+    });
+    await openVoiceFromMore(wrapper);
+    await wrapper.get('[aria-label="开始录音"]').trigger("click");
+    expect(wrapper.find('.composer-voice-error').exists()).toBe(true);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(wrapper.find('.composer-voice-error').exists()).toBe(true);
+    await wrapper.get('[aria-label="返回键盘"]').trigger("click");
+    expect(wrapper.find('.composer-voice-error').exists()).toBe(false);
+    expect(wrapper.props('modelValue')).toBe('keep draft');
   });
   it("shows the media-panel slot whenever the emoji or sticker panel is active", async () => {
     const mountWithPicker = (props: Record<string, unknown>) => {
@@ -548,6 +631,18 @@ describe("FlareComposer interaction boundaries", () => {
     props.conversationKey = "b";
     await nextTick();
     expect(wrapper.find(".composer-voice-inline").exists()).toBe(false);
+  });
+  it("moves focus into voice mode and gives it back to the voice toggle on mobile Escape", async () => {
+    const wrapper = setup({ formFactor: "mobile", sendVoiceHandler: vi.fn() });
+    const toggle = wrapper.get('[aria-label="语音"]');
+    (wrapper.get("textarea").element as HTMLTextAreaElement).focus();
+    await toggle.trigger("click");
+    const back = wrapper.get('[aria-label="返回键盘"]');
+    expect(document.activeElement).toBe(back.element);
+    await back.trigger("keydown", { key: "Escape" });
+    await nextTick();
+    expect(wrapper.find(".composer-voice-inline").exists()).toBe(false);
+    expect(document.activeElement).toBe(toggle.element);
   });
   it("shares the diagonal resize state between layouts and preserves the draft on collapse", async () => {
     const wrapper = setup({ modelValue: "展开前的草稿", targetName: "Ivy Chen", toolbarPresentation: "expanded" });

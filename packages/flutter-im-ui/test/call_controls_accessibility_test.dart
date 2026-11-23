@@ -33,7 +33,7 @@ void main() {
       expect(rect.width, greaterThanOrEqualTo(48));
     }
   });
-  testWidgets('failed call exposes recovery and keeps hangup reachable', (
+  testWidgets('failed call swaps the keys for Close and Call again', (
     tester,
   ) async {
     var recovered = 0;
@@ -52,8 +52,10 @@ void main() {
         ),
       ),
     );
+    // The control bar is gone; Close hangs up and the host's text redials.
+    expect(find.byTooltip(FlareStrings().hangUp), findsNothing);
     await tester.tap(find.text('Reconnect'));
-    await tester.tap(find.byTooltip(FlareStrings().hangUp));
+    await tester.tap(find.text(FlareStrings().close));
     expect(recovered, 1);
     expect(ended, 1);
     expect(tester.takeException(), isNull);

@@ -110,7 +110,7 @@ const layout = computed(() => {
   position: absolute;
   inset: 0;
   fill: none;
-  stroke: var(--flare-color-border-strong, #c4cbd5);
+  stroke: var(--flare-color-border-hover);
   stroke-width: 1.25;
   pointer-events: none;
 }
@@ -139,9 +139,9 @@ button.flare-relationship-tree__node {
   width: 10px;
   height: 10px;
   box-sizing: border-box;
-  border: 2px solid var(--flare-color-primary, #547ee2);
+  border: 2px solid var(--flare-color-primary);
   border-radius: 50%;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary);
 }
 .flare-relationship-tree__label {
   overflow: hidden;
@@ -149,11 +149,11 @@ button.flare-relationship-tree__node {
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 1px 3px;
-  background: var(--flare-color-bg-primary, #fff);
+  background: var(--flare-color-bg-primary);
   font-size: 12px;
 }
 .flare-relationship-tree__point--current .flare-relationship-tree__dot {
-  background: var(--flare-color-primary, #547ee2);
+  background: var(--flare-color-primary);
 }
 .flare-relationship-tree__point--current .flare-relationship-tree__label {
   font-weight: 700;

@@ -23,23 +23,29 @@ public struct FlareFilterTabOption: Identifiable, Sendable {
 /// A row of pill buttons; the selected pill is surfaced in the brand `primary` tint. Each pill keeps the size it is
 /// drawn at and sits centred in a cell at least `FlareSizes.touchTarget` square, which takes the taps.
 /// `enabled` false (what the tabs filter is loading) dims the row and disables every tab.
+/// `appearance: .quiet` draws the tabs as words with an underline under the selected one instead of pills — the
+/// Vue kit's `FlareFilterTabs appearance="quiet"`, for a filter row under a page title (the conversation list's
+/// 全部 / 未读 / @我), where a row of pills would read as a second set of buttons.
 public struct FilterTabsView: View {
+    public enum Appearance: Sendable { case pill, quiet }
     private let options: [FlareFilterTabOption]
     @Binding private var selection: String
     private let enabled: Bool
     private let onChange: ((String) -> Void)?
+    private let appearance: Appearance
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
 
     public init(options: [FlareFilterTabOption], selection: Binding<String>, enabled: Bool = true,
-                onChange: ((String) -> Void)? = nil) {
+                appearance: Appearance = .pill, onChange: ((String) -> Void)? = nil) {
         self.options = options; self._selection = selection; self.enabled = enabled; self.onChange = onChange
+        self.appearance = appearance
     }
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: FlareSizes.spacingXs + 2) {
+            HStack(spacing: appearance == .quiet ? 0 : FlareSizes.spacingXs + 2) {
                 ForEach(options) { option in
                     let active = selection == option.value
                     Button {
@@ -53,23 +59,37 @@ public struct FilterTabsView: View {
                             Text(option.label)
                                 .font(.system(size: FlareSizes.fontSizeMd, weight: active ? .semibold : .medium))
                             if flareCountBadgeDrawn(count: option.badge, more: option.badgeMore) {
-                                Text(flareCountBadgeText(count: option.badge, more: option.badgeMore))
-                                    .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 5)
-                                    .frame(minWidth: 16, minHeight: 16)
-                                    .background(Capsule().fill(colors.primary))
+                                if appearance == .quiet {
+                                    // Quiet: the count is a note, not an alarm — plain text in the tab's own colour.
+                                    Text(flareCountBadgeText(count: option.badge, more: option.badgeMore))
+                                        .font(.system(size: FlareSizes.fontSizeMd))
+                                        .opacity(0.7)
+                                } else {
+                                    Text(flareCountBadgeText(count: option.badge, more: option.badgeMore))
+                                        .font(.system(size: FlareSizes.fontSizeXs, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 5)
+                                        .frame(minWidth: 16, minHeight: 16)
+                                        .background(Capsule().fill(colors.primary))
+                                }
                             }
                         }
                         .foregroundColor(active ? colors.primaryText : colors.textSecondary)
-                        .padding(.horizontal, FlareSizes.spacingMd + 2)
-                        .padding(.vertical, FlareSizes.spacingXs + 2)
+                        .padding(.horizontal, appearance == .quiet ? FlareSizes.spacingSm : FlareSizes.spacingMd + 2)
+                        .padding(.vertical, appearance == .quiet ? FlareSizes.spacingSm : FlareSizes.spacingXs + 2)
                         .background(
-                            Capsule().fill(active ? colors.primary.opacity(0.12) : colors.bgSecondary)
+                            Capsule().fill(appearance == .quiet ? Color.clear
+                                           : active ? colors.primary.opacity(0.12) : colors.bgSecondary)
                         )
                         .overlay(
-                            Capsule().stroke(active ? colors.primary.opacity(0.26) : Color.clear, lineWidth: 1)
+                            Capsule().stroke(appearance == .pill && active ? colors.primary.opacity(0.26) : Color.clear,
+                                             lineWidth: 1)
                         )
+                        .overlay(alignment: .bottom) {
+                            if appearance == .quiet && active {
+                                Capsule().fill(colors.primary).frame(height: 2).padding(.horizontal, FlareSizes.spacingSm)
+                            }
+                        }
                         .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                         .contentShape(Rectangle())
                     }
@@ -78,7 +98,11 @@ public struct FilterTabsView: View {
                     .accessibilityAddTraits(active ? .isSelected : [])
                 }
             }
-            .padding(2)
+            .padding(appearance == .quiet ? 0 : 2)
+        }
+        // Quiet: one hairline under the whole row (Vue `border-block-end`).
+        .overlay(alignment: .bottom) {
+            if appearance == .quiet { Rectangle().fill(colors.borderSecondary).frame(height: 1) }
         }
         .opacity(enabled ? 1 : FlareOpacity.disabled)
         .animation(.easeOut(duration: 0.15), value: selection)

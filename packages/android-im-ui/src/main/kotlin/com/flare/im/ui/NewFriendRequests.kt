@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.sp
  * action button likewise exists only with its callback ([onAccept], [onReject],
  * [onWithdraw]). A request's [FriendRequest.source] is its own line under the message
  * (the same quiet style, one line with an ellipsis), never on the message's line.
+ *
+ * Each incoming request answers on its own (Vue `pending` / `errors`): while [pending] holds a request's id, the key
+ * being carried out spins and both keys take no taps — other rows stay usable. A failure the host keeps in [errors]
+ * shows as a danger line under its row, with [retryLabel] running [onRetry] once the row is no longer pending.
  */
 @Suppress("NAME_SHADOWING")
 @Composable
@@ -41,6 +45,10 @@ fun NewFriendRequests(
     onView: ((String) -> Unit)? = null,
     withdrawLabel: String? = null,
     onWithdraw: ((FriendRequest) -> Unit)? = null,
+    pending: Map<String, FriendRequestAnswer> = emptyMap(),
+    errors: Map<String, String> = emptyMap(),
+    retryLabel: String? = null,
+    onRetry: ((FriendRequest) -> Unit)? = null,
 ) {
     val strings = flareStrings()
     val emptyText = emptyText ?: strings.newFriendRequestsEmpty
@@ -54,13 +62,15 @@ fun NewFriendRequests(
     }
     LazyColumn(Modifier.fillMaxWidth()) {
         items(items, key = { it.id }) { req ->
+          val answering = pending[req.id]
+          androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth()) {
             Row(
                 Modifier.fillMaxWidth()
                     .then(if (newFriendRequestRowTappable(onView != null)) Modifier.clickable { onView?.invoke(req.id) } else Modifier)
                     .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Avatar(userId = req.id, displayName = req.name, size = FlareSizes.avatarSize)
+                Avatar(userId = req.userId ?: req.id, displayName = req.name, avatarUrl = req.avatarUrl, size = FlareSizes.avatarSize)
                 Spacer(Modifier.width(FlareSizes.spacingMd))
                 Column(Modifier.weight(1f)) {
                     Text(req.name, color = colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = FlareSizes.fontSizeLg.value.sp)
@@ -78,12 +88,14 @@ fun NewFriendRequests(
                         // 重名,重载按参数名静默选中 —— 写 `colors =` 就悄悄走了 Material 那个。
                         if (onReject != null) {
                             Button(label = declineLabel, variant = FlareButtonVariant.Quiet,
-                                size = FlareControlSize.Sm, onClick = { onReject(req) })
+                                size = FlareControlSize.Sm, disabled = answering != null,
+                                loading = answering == FriendRequestAnswer.Reject, onClick = { onReject(req) })
                         }
                         if (onReject != null && onAccept != null) Spacer(Modifier.width(FlareSizes.spacingSm))
                         if (onAccept != null) {
                             Button(label = acceptLabel, variant = FlareButtonVariant.Primary,
-                                size = FlareControlSize.Sm, onClick = { onAccept(req) })
+                                size = FlareControlSize.Sm, disabled = answering != null,
+                                loading = answering == FriendRequestAnswer.Accept, onClick = { onAccept(req) })
                         }
                     }
                     FriendRequestDirection.Outgoing -> {
@@ -97,6 +109,16 @@ fun NewFriendRequests(
                     }
                 }
             }
+            errors[req.id]?.let { message ->
+                androidx.compose.foundation.layout.Box(Modifier.padding(start = FlareSizes.spacingMd, end = FlareSizes.spacingMd, bottom = FlareSizes.spacingSm)) {
+                    StatusBanner(
+                        text = message, tone = FlareStatusTone.Danger,
+                        actionText = retryLabel?.takeIf { answering == null && onRetry != null },
+                        onAction = { onRetry?.invoke(req) },
+                    )
+                }
+            }
+          }
         }
     }
 }

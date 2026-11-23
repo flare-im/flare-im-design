@@ -29,21 +29,31 @@ void main() {
     // the host list comes shuffled.
     const ranked = [
       FlareComposerAction(
-          id: 'image', icon: 'image', kind: FlareComposerActionKind.feature, order: 30),
+        id: 'image',
+        icon: 'image',
+        kind: FlareComposerActionKind.feature,
+        order: 30,
+      ),
       FlareComposerAction(
-          id: 'plugin:flare.redpacket.send',
-          label: '红包',
-          icon: 'red-packet',
-          kind: FlareComposerActionKind.plugin,
-          order: 10),
+        id: 'plugin:flare.redpacket.send',
+        label: '红包',
+        icon: 'red-packet',
+        kind: FlareComposerActionKind.plugin,
+        order: 10,
+      ),
       FlareComposerAction(
-          id: 'file', icon: 'file', kind: FlareComposerActionKind.feature, order: 20),
+        id: 'file',
+        icon: 'file',
+        kind: FlareComposerActionKind.feature,
+        order: 20,
+      ),
       FlareComposerAction(
-          id: 'plugin:flare.vote.create',
-          label: '投票',
-          icon: 'plugin',
-          kind: FlareComposerActionKind.plugin,
-          order: 40),
+        id: 'plugin:flare.vote.create',
+        label: '投票',
+        icon: 'plugin',
+        kind: FlareComposerActionKind.plugin,
+        order: 40,
+      ),
     ];
     final resolved = resolveFlareComposerActions(
       actions: ranked,

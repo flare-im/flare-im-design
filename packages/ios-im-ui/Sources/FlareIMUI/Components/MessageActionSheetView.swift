@@ -168,57 +168,25 @@ public struct MessageActionSheetView: View {
 
     public var body: some View {
         let colors = FlareColors.of(scheme, brand: flareBrandTheme)
-        let groups = messageMenuGroups(
+        let entries = messageMenuGroups(
             messageMenuEntries(availability, strings: strings, hidden: hiddenActions, extra: actions, content: content))
+            .flatMap { $0 }
+        // Vue `buildMessageContextSheetModel`: the primary group is the quick grid, the rest one list, delete last.
+        let quick = entries.filter { $0.group == .primary }
+        let list = entries.filter { $0.group != .primary }
         // A host list is gated by canReact too: no reaction strip on a message that cannot take one.
         let strip = availability.canReact ? (reactions ?? flareQuickReactions) : []
-        VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
-            if !strip.isEmpty {
-                HStack(spacing: 0) {
-                    ForEach(strip, id: \.self) { reaction in
-                        Button { onReact?(reaction) } label: {
-                            Text(reaction).font(.system(size: FlareSizes.iconSizeLg * textScale))
-                                .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(reaction)
-                    }
-                }
-                .padding(.bottom, FlareSizes.spacingXs)
-            }
-            if groups.isEmpty && strip.isEmpty {
+        VStack(alignment: .leading, spacing: FlareSizes.spacing2sm) {
+            if !strip.isEmpty { reactionStrip(strip, colors) }
+            if entries.isEmpty && strip.isEmpty {
                 Text(emptyText ?? strings.messageActionSheetEmpty)
                     .font(.system(size: FlareSizes.fontSizeLg * textScale))
                     .foregroundColor(colors.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(FlareSizes.spacingLg)
             }
-            ForEach(Array(groups.enumerated()), id: \.offset) { _, entries in
-                VStack(spacing: 0) {
-                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                        if index > 0 { Divider().overlay(colors.borderSecondary) }
-                        let destructive = entry.group == .destructive
-                        let foreground = !entry.enabled ? colors.textTertiary : (destructive ? colors.errorText : colors.textPrimary)
-                        Button { onAction?(entry.id) } label: {
-                            HStack(spacing: FlareSizes.spacingMd) {
-                                FlareIconImage(name: entry.icon, size: FlareSizes.iconSizeMd * textScale)
-                                Text(entry.label).font(.system(size: FlareSizes.fontSizeXl * textScale))
-                                Spacer(minLength: 0)
-                            }
-                            .foregroundColor(foreground)
-                            .padding(.horizontal, FlareSizes.spacingMd)
-                            .padding(.vertical, FlareSizes.spacingSm)
-                            .frame(maxWidth: .infinity, minHeight: FlareSizes.touchTarget, alignment: .leading)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!entry.enabled)
-                        .accessibilityLabel(entry.label)
-                    }
-                }
-                .background(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).fill(colors.bgPrimary))
-                .overlay(RoundedRectangle(cornerRadius: FlareSizes.radiusLg).stroke(colors.borderPrimary))
-            }
+            if !quick.isEmpty { quickGrid(quick, colors) }
+            if !list.isEmpty { listBlock(list, colors) }
         }
         .padding(.horizontal, FlareSizes.spacingMd)
         .padding(.top, FlareSizes.spacingLg)
@@ -228,5 +196,100 @@ public struct MessageActionSheetView: View {
         .background(colors.bgSecondary.ignoresSafeArea(.container, edges: .bottom))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label ?? strings.messageActionSheetLabel)
+    }
+
+    /// One of the sheet's white blocks (Vue `.msg-ctx-sheet__block`).
+    private func block<Content: View>(_ colors: FlareColors, @ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(colors.bgPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 1, y: 1))
+    }
+
+    /// Emoji on 48pt tiles, scrolling sideways when they do not fit (Vue `__reactions`).
+    private func reactionStrip(_ strip: [String], _ colors: FlareColors) -> some View {
+        block(colors) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: FlareSizes.spacingSm) {
+                    ForEach(strip, id: \.self) { reaction in
+                        Button { onReact?(reaction) } label: {
+                            Text(reaction).font(.system(size: 28 * textScale))
+                                .frame(width: 48 * textScale, height: 48 * textScale)
+                                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(colors.bgTertiary))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(reaction)
+                    }
+                }
+                .padding(.vertical, FlareSizes.spacing2sm)
+                .padding(.horizontal, FlareSizes.spacingMd)
+            }
+        }
+    }
+
+    /// Reply, forward, recall, resend: tinted 52pt tiles with their names under them, sharing the row (Vue `__quick`).
+    private func quickGrid(_ entries: [FlareMessageMenuEntry], _ colors: FlareColors) -> some View {
+        block(colors) {
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(entries) { entry in
+                    // Vue marks recall as the danger quick action.
+                    let danger = entry.id == "recall"
+                    Button { onAction?(entry.id) } label: {
+                        VStack(spacing: FlareSizes.spacingSm) {
+                            FlareIconImage(name: entry.icon, size: FlareSizes.iconSizeLg * textScale)
+                                .foregroundColor(danger ? colors.errorText : colors.primaryText)
+                                .frame(width: 52 * textScale, height: 52 * textScale)
+                                .background(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill((danger ? colors.error : colors.primary).opacity(0.1)))
+                            Text(entry.label).font(.system(size: FlareSizes.fontSizeMd * textScale, weight: .semibold))
+                                .foregroundColor(danger ? colors.errorText : colors.textPrimary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.vertical, FlareSizes.spacingXs)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!entry.enabled)
+                    .opacity(entry.enabled ? 1 : 0.45)
+                    .accessibilityLabel(entry.label)
+                }
+            }
+            .padding(.top, FlareSizes.spacing2md)
+            .padding(.bottom, FlareSizes.spacingMd)
+            .padding(.horizontal, FlareSizes.spacingSm)
+        }
+    }
+
+    /// The other actions as rows with a 44pt tinted icon disc and a hairline between them (Vue `__list`).
+    private func listBlock(_ entries: [FlareMessageMenuEntry], _ colors: FlareColors) -> some View {
+        block(colors) {
+            VStack(spacing: 0) {
+                ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                    if index > 0 { Divider().overlay(colors.borderPrimary.opacity(0.55)) }
+                    let danger = entry.group == .destructive
+                    Button { onAction?(entry.id) } label: {
+                        HStack(spacing: FlareSizes.spacingMd) {
+                            FlareIconImage(name: entry.icon, size: FlareSizes.iconSizeMd * textScale)
+                                .foregroundColor(danger ? colors.errorText : colors.primaryText)
+                                .frame(width: FlareSizes.touchTargetMin, height: FlareSizes.touchTargetMin)
+                                .background(Circle().fill(danger ? colors.error.opacity(0.12) : colors.bgSelected))
+                            Text(entry.label).font(.system(size: FlareSizes.fontSize2xl * textScale, weight: .semibold))
+                                .foregroundColor(!entry.enabled ? colors.textTertiary : (danger ? colors.errorText : colors.textPrimary))
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.vertical, FlareSizes.spacingMd)
+                        .padding(.horizontal, FlareSizes.spacing2sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!entry.enabled)
+                    .accessibilityLabel(entry.label)
+                }
+            }
+            .padding(.vertical, FlareSizes.spacing2xs)
+            .padding(.horizontal, FlareSizes.spacingSm)
+        }
     }
 }

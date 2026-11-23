@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../tokens/flare_tokens.dart';
+import '../models/directory_data.dart';
 import 'action_icon.dart';
+import 'flare_button.dart';
 
 /// Visual tone for [FlareEmptyState].
 ///
@@ -24,9 +26,15 @@ class FlareEmptyState extends StatelessWidget {
     this.iconWidget,
     this.tone = FlareEmptyStateTone.normal,
     this.actions = const <Widget>[],
+    this.compact = false,
   });
 
   final String title;
+
+  /// The in-block empty state of a data block (R8 of
+  /// docs/plugin-experience.md): icon 32, title 14/600, description 13, a
+  /// tighter inset.
+  final bool compact;
   final String? description;
   final String? actionText;
 
@@ -65,8 +73,8 @@ class FlareEmptyState extends StatelessWidget {
     final Widget leading;
     if (loading) {
       leading = SizedBox(
-        width: 44,
-        height: 44,
+        width: compact ? 32 : FlareSizes.componentEmptyStateIconSize,
+        height: compact ? 32 : FlareSizes.componentEmptyStateIconSize,
         child: CircularProgressIndicator(
           strokeWidth: 3,
           valueColor: AlwaysStoppedAnimation<Color>(
@@ -79,13 +87,15 @@ class FlareEmptyState extends StatelessWidget {
     } else {
       leading = Icon(
         flareIconGlyph(icon),
-        size: 44,
+        size: compact ? 32 : FlareSizes.componentEmptyStateIconSize,
         color: isError ? colors.error : colors.textTertiary,
       );
     }
 
     final content = Padding(
-      padding: const EdgeInsets.all(FlareSizes.spacing2xl),
+      padding: EdgeInsets.all(
+        compact ? FlareSizes.spacingLg : FlareSizes.spacing2xl,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -96,7 +106,10 @@ class FlareEmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: isError ? colors.error : colors.textPrimary,
-              fontSize: FlareSizes.fontSize2xl,
+              fontSize: compact
+                  ? FlareSizes.fontSizeLg
+                  : FlareSizes.fontSize2xl,
+              fontWeight: compact ? FontWeight.w600 : null,
             ),
           ),
           if (description != null) ...[
@@ -111,9 +124,15 @@ class FlareEmptyState extends StatelessWidget {
               ),
             ),
           ],
+          // Vue: a small ghost key, the column's 8 gap plus 4.
           if (actionText != null) ...[
-            const SizedBox(height: FlareSizes.spacingLg),
-            OutlinedButton(onPressed: onAction, child: Text(actionText!)),
+            const SizedBox(height: FlareSizes.spacingMd),
+            FlareButton(
+              variant: FlareButtonVariant.ghost,
+              size: FlareControlSize.sm,
+              label: actionText,
+              onPressed: onAction,
+            ),
           ],
           if (actions.isNotEmpty) ...[
             const SizedBox(height: FlareSizes.spacingLg),

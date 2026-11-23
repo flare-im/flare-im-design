@@ -54,11 +54,7 @@ class FlareLocationMapSurface extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             child,
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: _Attribution(text: credit),
-            ),
+            Positioned(right: 0, bottom: 0, child: _Attribution(text: credit)),
           ],
         );
       },
@@ -83,7 +79,9 @@ class _Attribution extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) => ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: constraints.maxWidth.isFinite ? constraints.maxWidth * 0.6 : 200,
+          maxWidth: constraints.maxWidth.isFinite
+              ? constraints.maxWidth * 0.6
+              : 200,
         ),
         child: DecoratedBox(
           key: FlareLocationMapSurface.attributionKey,
@@ -94,7 +92,9 @@ class _Attribution extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: FlareSizes.spacingXs),
+            padding: const EdgeInsets.symmetric(
+              horizontal: FlareSizes.spacingXs,
+            ),
             child: Text(
               text,
               maxLines: 1,
@@ -209,7 +209,11 @@ class _PinPainter extends CustomPainter {
     final pin = Path()
       ..moveTo(14, 32)
       ..cubicTo(14, 32, 24, 22.9, 24, 14.8)
-      ..arcToPoint(const Offset(4, 14.8), radius: const Radius.circular(10), clockwise: false)
+      ..arcToPoint(
+        const Offset(4, 14.8),
+        radius: const Radius.circular(10),
+        clockwise: false,
+      )
       ..cubicTo(4, 22.9, 14, 32, 14, 32)
       ..close();
     canvas.drawPath(pin, Paint()..color = body);

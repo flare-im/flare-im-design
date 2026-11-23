@@ -1,6 +1,12 @@
 package com.flare.im.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -30,7 +36,10 @@ import kotlinx.coroutines.launch
  *
  * [selectable] turns the rows into checkboxes: a row is checked when its id is in
  * [selectedIds] and a tap runs [onToggleSelect] instead of [onSelect]. [trailing]
- * renders per-row content at the row end (see [ContactItem]).
+ * renders per-row content at the row end (see [ContactItem]). With [selectedItems] a selectable list leads with a
+ * horizontally scrolling strip of the people chosen so far (avatar, name, ✕; a tap takes the person out), named by
+ * `selectedCount`. The strip lists [selectedItems] whatever [items] holds, so a search that hides a chosen person does
+ * not hide the choice (Vue `FlareContactList` multi-select).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -48,8 +57,20 @@ fun ContactList(
      * knows — a filter, a permission, an invitation to add someone.
      */
     empty: (@Composable () -> Unit)? = null,
+    selectedItems: List<Contact> = emptyList(),
+    /** The contact shown beside the list, drawn selected (Vue `active-id`). */
+    activeId: String? = null,
 ) {
     val colors = flareColors()
+    if (selectable && selectedItems.isNotEmpty()) {
+        Column(Modifier.fillMaxSize()) {
+            ContactSelectionStrip(selectedItems, onToggleSelect)
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                ContactList(items, indexed, loading, onSelect, selectable, selectedIds, onToggleSelect, trailing, empty, activeId = activeId)
+            }
+        }
+        return
+    }
     if (items.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (loading) androidx.compose.material3.CircularProgressIndicator()
@@ -99,6 +120,7 @@ fun ContactList(
                             selected = contact.id in selectedIds,
                             onToggleSelect = onToggleSelect?.let { cb -> { cb(contact) } },
                             trailing = trailing?.let { slot -> { slot(contact) } },
+                            active = contact.id == activeId,
                         )
                     }
                 }
@@ -121,6 +143,41 @@ fun ContactList(
                         },
                     )
                 }
+            }
+        }
+    }
+}
+
+/** The chosen people over a selectable [ContactList]: a chip each (24 avatar, name up to 180, ✕); a tap unselects. */
+@Composable
+private fun ContactSelectionStrip(selected: List<Contact>, onToggleSelect: ((Contact) -> Unit)?) {
+    val colors = flareColors()
+    val label = flareStrings().selectedCount(selected.size)
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth()
+            .horizontalScroll(androidx.compose.foundation.rememberScrollState())
+            .semantics { contentDescription = label }
+            .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingXs),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(FlareSizes.spacingXs),
+    ) {
+        for (c in selected) {
+            androidx.compose.foundation.layout.Row(
+                Modifier.widthIn(max = 180.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(FlareSizes.radiusFull))
+                    .background(colors.bgSecondary)
+                    // A chosen person reads as a checked box: tapping it takes them out.
+                    .toggleable(
+                        value = true, enabled = onToggleSelect != null, role = androidx.compose.ui.semantics.Role.Checkbox,
+                        onValueChange = { onToggleSelect?.invoke(c) },
+                    )
+                    .padding(start = 2.dp, end = FlareSizes.spacingSm, top = 2.dp, bottom = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(FlareSizes.spacingXs),
+            ) {
+                Avatar(userId = c.id, displayName = c.name, size = 24.dp, avatarUrl = c.avatarUrl)
+                Text(c.name, color = colors.textPrimary, fontSize = FlareSizes.fontSizeSm.value.sp, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                FlareIcon(name = "close", size = FlareSizes.iconSizeXs, tint = colors.textTertiary)
             }
         }
     }

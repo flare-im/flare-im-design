@@ -81,7 +81,7 @@ function toggleExpanded(): void {
         @click="toggleExpanded"
       >
         <span>{{ expanded ? t("business.collapse") : t("business.expand") }}</span>
-        <n-icon aria-hidden="true" :component="expanded ? ChevronUpOutline : ChevronDownOutline" />
+        <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="expanded ? ChevronUpOutline : ChevronDownOutline" />
       </button>
       <button
         v-if="actionLabel"
@@ -92,7 +92,7 @@ function toggleExpanded(): void {
         @click="emit('action')"
       >
         <span>{{ actionLabel }}</span>
-        <n-icon aria-hidden="true" :component="ChevronForwardOutline" />
+        <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="ChevronForwardOutline" />
       </button>
     </footer>
   </section>

@@ -94,6 +94,36 @@ void main() {
     );
   });
 
+  testWidgets('phone search keeps its term when the keyboard dismisses', (tester) async {
+    _size(tester, 390);
+    addTearDown(tester.view.resetViewInsets);
+    var tapped = false;
+    await tester.pumpWidget(_shell(
+      active: 'contacts',
+      destination: (_, _) => Column(
+        children: [
+          const FlareSearchBar(dismissesKeyboardOnOutsideTap: true),
+          TextButton(onPressed: () => tapped = true, child: const Text('Outside')),
+        ],
+      ),
+    ));
+    final search = find.byType(TextField);
+    await tester.enterText(search, '1357');
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+    expect(find.byType(FlareAdaptiveNavigation), findsNothing);
+
+    await tester.tap(find.text('Outside'));
+    await tester.pump();
+    expect(tapped, isTrue);
+    expect(tester.widget<EditableText>(find.byType(EditableText)).focusNode.hasFocus, isFalse);
+    expect(find.text('1357'), findsOneWidget);
+
+    tester.view.resetViewInsets();
+    await tester.pumpAndSettle();
+    expect(find.byType(FlareAdaptiveNavigation), findsOneWidget);
+  });
+
   testWidgets('reports its resolved mode with navigation', (tester) async {
     _size(tester, 900);
     String? navigation;

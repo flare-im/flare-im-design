@@ -107,46 +107,51 @@ public struct ImagePreviewView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
 
-                // The image follows a downward swipe; past the distance it closes.
-                imageContent.offset(y: dragOffset)
-
-                if pages, let galleryIndex, let galleryCount {
-                    HStack {
-                        circleButton("chevron-left", label: strings.imagePreviewPrevious, onPrevious)
-                        Spacer()
-                        circleButton("chevron-right", label: strings.imagePreviewNext, onNext)
-                    }
-                    .padding(.horizontal)
-                    VStack {
-                        Text(verbatim: "\(galleryIndex + 1) / \(galleryCount)")
-                            .font(.system(size: FlareSizes.fontSizeLg))
-                            .foregroundColor(.white)
-                            .accessibilityLabel(strings.imagePreviewPosition(galleryIndex + 1, galleryCount))
-                            .padding(.top, FlareSizes.spacingLg + FlareSizes.spacingXs)
-                        Spacer()
-                    }
-                }
-
-                VStack {
-                    HStack {
-                        circleButton("close", label: strings.imagePreviewClose, onClose)
-                        Spacer()
-                        switch FlareMediaKey.resolve(canDownload: onDownload != nil, downloading: downloading,
-                                                     saved: saved, canReveal: onReveal != nil) {
-                        case .folder?: circleButton("folder", label: strings.showInFolder, onReveal)
-                        case .progress?: progressRing
-                        case .download?: circleButton("download", label: strings.download, onDownload)
-                        case nil: EmptyView()
+                VStack(spacing: 0) {
+                    toolbar
+                    ZStack {
+                        imageContent.offset(y: dragOffset)
+                        if pages {
+                            HStack {
+                                circleButton("chevron-left", label: strings.imagePreviewPrevious, onPrevious)
+                                Spacer()
+                                circleButton("chevron-right", label: strings.imagePreviewNext, onNext)
+                            }
+                            .padding(.horizontal)
                         }
                     }
-                    .padding()
-                    Spacer()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                 }
             }
             .simultaneousGesture(dismissDrag)
             .accessibilityElement(children: .contain)
             .accessibilityAction(.escape) { onClose?() }
         }
+    }
+
+    private var toolbar: some View {
+        ZStack {
+            HStack {
+                circleButton("close", label: strings.imagePreviewClose, onClose)
+                Spacer()
+                switch FlareMediaKey.resolve(canDownload: onDownload != nil, downloading: downloading,
+                                             saved: saved, canReveal: onReveal != nil) {
+                case .folder?: circleButton("folder", label: strings.showInFolder, onReveal)
+                case .progress?: progressRing
+                case .download?: circleButton("download", label: strings.download, onDownload)
+                case nil: EmptyView()
+                }
+            }
+            if pages, let galleryIndex, let galleryCount {
+                Text(verbatim: "\(galleryIndex + 1) / \(galleryCount)")
+                    .font(.system(size: FlareSizes.fontSizeLg))
+                    .foregroundColor(.white)
+                    .accessibilityLabel(strings.imagePreviewPosition(galleryIndex + 1, galleryCount))
+            }
+        }
+        .padding(FlareSizes.spacingSm)
+        .background(Color.black)
     }
 
     @ViewBuilder

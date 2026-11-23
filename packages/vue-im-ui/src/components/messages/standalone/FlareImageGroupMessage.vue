@@ -45,7 +45,7 @@ const label = (index: number) =>
       <div v-for="(image, index) in tiles" :key="index" class="fm-album__tile">
         <slot name="image" :image="image" :index="index">
           <img v-if="image.thumbnailSrc || image.src" :src="image.thumbnailSrc || image.src" :alt="image.alt ?? ''" loading="lazy" decoding="async" />
-          <span v-else class="fm-album__placeholder"><MsgIcon name="image" :size="22" /></span>
+          <span v-else class="fm-album__placeholder"><MsgIcon name="image" size="lg" /></span>
         </slot>
         <button type="button" class="fm-album__open" :aria-label="label(index)" @click="emit('open', index)">
           <span v-if="covered(index)" class="fm-album__more" aria-hidden="true">+{{ layout.more }}</span>

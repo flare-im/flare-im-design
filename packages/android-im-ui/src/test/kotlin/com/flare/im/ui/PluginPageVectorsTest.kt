@@ -73,6 +73,8 @@ class PluginPageVectorsTest {
                 }
                 is PluginRowsBlock -> {
                     assertEquals("list", fact.str("layout"), "$id: every kit draws a page's rows as a list")
+                    // §12.24: no icon, no records — signed amounts (the wallet's) still draw as pageRows items.
+                    assertEquals(block.icon != null, pluginRowsAreRecords(block), "$id: records only with an icon")
                     val items = fact.items("items")
                     val drawn = PluginViewFormat.rowsOnce(block.rows)
                     assertEquals(items.map { it.str("key") }, drawn.map { it.key }, "$id row keys")
@@ -86,6 +88,8 @@ class PluginPageVectorsTest {
                             mapOf("id" to action.id, "label" to action.label, "variant" to variant(action))
                         }
                         assertEquals(item["actions"], keys, "$id ${row.key} actions")
+                        // rules.rowTap: the row is its only page action's control and draws no key.
+                        assertEquals(item.str("tap"), PluginViewFormat.rowTap(block, row)?.first?.id, "$id ${row.key} tap")
                     }
                     assertEquals(fact.str("empty"), PluginViewFormat.rowsEmpty(block, s), "$id empty")
                 }
@@ -142,7 +146,9 @@ class PluginPageVectorsTest {
         val rowKey = tap.str("row") ?: return PluginActionRun(PluginViewFormat.keys(view, embedded = true).first { it.id == actionId }, PluginActionPayload.Empty, null)
         val block = rows(view)
         val row = PluginViewFormat.rowsOnce(block.rows).first { it.key == rowKey }
-        val (action, bound) = PluginViewFormat.rowActions(block, row).first { it.first.id == actionId }
+        // rules.rowTap: a row whose only action opens a page is that action's control, so the tap lands on the row.
+        val (action, bound) = PluginViewFormat.rowTap(block, row)?.also { assertEquals(actionId, it.first.id, "row ${row.key} taps") }
+            ?: PluginViewFormat.rowActions(block, row).first { it.first.id == actionId }
         return PluginActionRun(action, PluginActionPayload(row = PluginActionRow(row.key, bound.input)), null)
     }
 

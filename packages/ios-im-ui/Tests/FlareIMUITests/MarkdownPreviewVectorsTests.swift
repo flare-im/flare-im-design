@@ -25,7 +25,10 @@ final class MarkdownPreviewVectorsTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(table.cases.count, 20)
         let strings = [
             "zh-CN": FlareStrings(),
-            "en-US": FlareStrings(previewImage: "[Image]", previewImageNamed: { "[Image] \($0)" }),
+            "en-US": FlareStrings { copy in
+                copy.previewImage = "[Image]"
+                copy.previewImageNamed = { "[Image] \($0)" }
+            },
         ]
         for vector in table.cases {
             for (locale, s) in strings {

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'flare_avatar.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 import '../models/message_content.dart';
 import '../tokens/flare_strings.dart';
@@ -11,6 +14,7 @@ import 'flare_media_image.dart';
 import 'flare_icon.dart';
 import 'flare_location_map.dart';
 import 'icon_control.dart';
+import 'media_source.dart';
 import '../models/location.dart';
 
 /// Canonical content-only message bodies. MessageBubble owns chrome and metadata.
@@ -238,7 +242,12 @@ class _FlareTextMessageState extends State<FlareTextMessage> {
         style: const TextStyle(fontWeight: FontWeight.w600),
       );
     }
-    final style = TextStyle(color: c.primaryText, fontWeight: FontWeight.w500);
+    final style = TextStyle(
+      color: c.primaryText,
+      fontWeight: mention.self || mention.all
+          ? FontWeight.w600
+          : FontWeight.w500,
+    );
     if (!mention.self && !mention.all)
       return TextSpan(text: text, style: style);
     // A selectable body keeps the mention as text so it copies; the ground
@@ -476,6 +485,7 @@ class FlareVideoMessage extends StatelessWidget {
     super.key,
     this.duration,
     this.poster,
+    this.localVideoPath,
     this.alt,
     this.onPlay,
     this.width = 240,
@@ -485,6 +495,7 @@ class FlareVideoMessage extends StatelessWidget {
   /// The length as shown (`01:05`); null or empty draws no badge.
   final String? duration;
   final String? poster;
+  final String? localVideoPath;
   final String? alt;
   final VoidCallback? onPlay;
   final double width;
@@ -494,6 +505,9 @@ class FlareVideoMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = FlareColors.of(context);
     final length = duration;
+    final local = flarePlayableMediaUri(null, localPath: localVideoPath);
+    final background = ColoredBox(color: c.bgTertiary);
+    final remotePoster = _netImage(poster, placeholder: background);
     return _tap(
       onPlay,
       Semantics(
@@ -506,7 +520,15 @@ class FlareVideoMessage extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                _netImage(poster, placeholder: ColoredBox(color: c.bgTertiary)),
+                if (local == null)
+                  remotePoster
+                else
+                  _LocalVideoFrame(
+                    key: ValueKey(local),
+                    source: local,
+                    placeholder: background,
+                    fallback: remotePoster,
+                  ),
                 Center(
                   child: Container(
                     width: FlareSizes.touchTargetMin,
@@ -553,6 +575,59 @@ class FlareVideoMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Uses the player's first frame without starting playback or requesting a poster.
+class _LocalVideoFrame extends StatefulWidget {
+  const _LocalVideoFrame({
+    super.key,
+    required this.source,
+    required this.placeholder,
+    required this.fallback,
+  });
+
+  final Uri source;
+  final Widget placeholder;
+  final Widget fallback;
+
+  @override
+  State<_LocalVideoFrame> createState() => _LocalVideoFrameState();
+}
+
+class _LocalVideoFrameState extends State<_LocalVideoFrame> {
+  VideoPlayerController? _controller;
+  late final Future<void> _ready = Future<void>.sync(() {
+    final controller = flareMediaPlayerFactory(widget.source);
+    _controller = controller;
+    return controller.initialize();
+  });
+
+  @override
+  void dispose() {
+    final controller = _controller;
+    if (controller != null) unawaited(controller.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+    future: _ready,
+    builder: (_, snapshot) {
+      if (snapshot.hasError) return widget.fallback;
+      final controller = _controller;
+      if (controller == null || !controller.value.isInitialized) {
+        return widget.placeholder;
+      }
+      return FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox.fromSize(
+          size: controller.value.size,
+          child: VideoPlayer(controller),
+        ),
+      );
+    },
+  );
 }
 
 /// audio / voice — waveform + duration; emits `onPlay`.
@@ -716,7 +791,6 @@ class FlareFileMessage extends StatelessWidget {
     final sub = [
       if (size.isNotEmpty) size,
       if (ext != null && ext!.isNotEmpty) ext!,
-      if (downloading) progress else if (saved) strings.downloaded,
     ].join(' · ');
     final key = _key(
       c,

@@ -166,6 +166,7 @@ watch(
               v-if="showBack"
               class="flare-drawer__back"
               :icon="flareIcons.back"
+              variant="tinted"
               :ariaLabel="t('common.back')"
               :disabled="!dismissible"
               @click="requestBack"
@@ -337,6 +338,7 @@ watch(
   max-width: 100%;
 }
 @media (max-width: 640px) {
+  .flare-drawer { width: 100%; border-radius: 0; }
   .flare-drawer__footer:not(.flare-drawer__footer--compact) :deep(.n-button) {
     min-height: var(--flare-size-layout-touch-target);
   }

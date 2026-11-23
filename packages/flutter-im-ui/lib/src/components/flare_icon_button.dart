@@ -1,11 +1,32 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/directory_data.dart';
 import '../tokens/flare_tokens.dart';
 import 'action_icon.dart';
+import 'flare_action_menu.dart';
+import 'flare_button.dart';
 
 /// Visual weight of a [FlareIconButton].
 enum FlareIconButtonVariant { plain, tinted, solid }
+
+/// Applies the phone header's icon scale to controls inside the header.
+class FlareHeaderIconScope extends InheritedWidget {
+  const FlareHeaderIconScope({super.key, required super.child});
+
+  static bool active(BuildContext context) =>
+      phoneWidth(context) &&
+      context.dependOnInheritedWidgetOfExactType<FlareHeaderIconScope>() !=
+          null;
+
+  static bool phoneWidth(BuildContext context) =>
+      (MediaQuery.maybeSizeOf(context)?.width ?? double.infinity) <
+      FlareSizes.navigationRailMinWidth;
+
+  @override
+  bool updateShouldNotify(FlareHeaderIconScope oldWidget) => false;
+}
 
 /// A square/circular icon-only button — three [FlareIconButtonVariant]s, three
 /// [FlareControlSize]s and an [active] toggle look. Custom-built from Flare
@@ -24,7 +45,17 @@ class FlareIconButton extends StatefulWidget {
     this.tintColor,
     this.backgroundColor,
     this.customSize,
+    this.dot = false,
+    this.toggled,
   });
+
+  /// A toggle key's state for the screen reader (`aria-pressed`): null for
+  /// a plain key.
+  final bool? toggled;
+
+  /// A small attention dot on the glyph's corner (something unread behind it;
+  /// the Vue kit's `dot`). The host names it in [semanticLabel].
+  final bool dot;
 
   /// A semantic icon name from [flareIconNames]; an unknown name draws the
   /// registry fallback and warns on the debug console.
@@ -60,6 +91,20 @@ class FlareIconButton extends StatefulWidget {
 
 class _FlareIconButtonState extends State<FlareIconButton> {
   bool _hovering = false;
+  bool _pressed = false;
+
+  bool get _off => widget.disabled || widget.onPressed == null;
+
+  @override
+  void didUpdateWidget(FlareIconButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A button that turns off mid-press never hears tap-up.
+    if (_off) _pressed = false;
+  }
+
+  void _press(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
 
   double get _side =>
       widget.customSize ??
@@ -80,30 +125,50 @@ class _FlareIconButtonState extends State<FlareIconButton> {
   @override
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final glyph = FlareHeaderIconScope.phoneWidth(context)
+        ? math.max(
+            _glyph,
+            FlareHeaderIconScope.active(context)
+                ? FlareSizes.iconSizeLg
+                : FlareSizes.iconSizeMd,
+          )
+        : _glyph;
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final off = widget.disabled;
     final hover = _hovering && !off;
+    // §12.10: pressed shrinks to FlareButton.pressScale (not under reduced
+    // motion) and takes the pressed colour: primaryActive, else bgHover.
+    final pressed = _pressed && !_off;
 
     Color background = Colors.transparent;
     Color foreground = colors.textSecondary;
 
     switch (widget.variant) {
       case FlareIconButtonVariant.plain:
-        if (hover) {
-          background = colors.bgSecondary;
+        if (pressed || hover) {
+          background = pressed ? colors.bgHover : colors.bgSecondary;
           foreground = colors.textPrimary;
         }
       case FlareIconButtonVariant.tinted:
-        background = hover ? colors.bgSelected : colors.bgSecondary;
-        foreground = hover ? colors.primaryText : colors.textSecondary;
+        background = pressed
+            ? colors.bgHover
+            : hover
+            ? colors.bgSelected
+            : colors.bgSecondary;
+        foreground = pressed || hover
+            ? colors.primaryText
+            : colors.textSecondary;
       case FlareIconButtonVariant.solid:
-        background = colors.primary;
+        background = pressed
+            ? colors.primaryActive
+            : hover
+            ? colors.primaryHover
+            : colors.primary;
         foreground = Colors.white;
-        if (hover) background = colors.primaryHover;
     }
 
-    if (widget.active) {
+    // Active also while the menu this button opens is open.
+    if (widget.active || FlareActionMenu.isOpenOf(context)) {
       background = colors.bgSelected;
       foreground = colors.primaryText;
     }
@@ -117,6 +182,7 @@ class _FlareIconButtonState extends State<FlareIconButton> {
       child: Semantics(
         label: widget.semanticLabel,
         button: true,
+        toggled: widget.toggled,
         // enabled 必须写上,而且判据不能只看 disabled:onPressed 为 null 的那些同样点不动。
         // 少了它,一颗停用的图标按钮会被念成一颗普通按钮 —— 用户点下去什么也没发生,
         // 而唯一的提示是 0.45 的淡化,读屏用户看不见。文字按钮那边一直是对的
@@ -133,6 +199,9 @@ class _FlareIconButtonState extends State<FlareIconButton> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: off ? null : widget.onPressed,
+            onTapDown: _off ? null : (_) => _press(true),
+            onTapUp: _off ? null : (_) => _press(false),
+            onTapCancel: _off ? null : () => _press(false),
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 minWidth: FlareSizes.touchTarget,
@@ -144,21 +213,44 @@ class _FlareIconButtonState extends State<FlareIconButton> {
               child: Center(
                 widthFactor: 1,
                 heightFactor: 1,
-                child: AnimatedContainer(
-                  duration: reduceMotion ? Duration.zero : FlareMotion.fast,
-                  width: _side,
-                  height: _side,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: background,
-                    borderRadius: widget.square
-                        ? BorderRadius.circular(FlareSizes.radiusMd)
-                        : BorderRadius.circular(FlareSizes.radiusFull),
-                  ),
-                  child: Icon(
-                    flareIconGlyph(widget.icon),
-                    size: _glyph,
-                    color: foreground,
+                child: AnimatedScale(
+                  scale: pressed && !reduceMotion ? FlareButton.pressScale : 1,
+                  duration: FlareMotion.fast,
+                  curve: FlareMotion.fastCurve,
+                  child: AnimatedContainer(
+                    duration: reduceMotion ? Duration.zero : FlareMotion.fast,
+                    width: _side,
+                    height: _side,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: background,
+                      borderRadius: widget.square
+                          ? BorderRadius.circular(FlareSizes.radiusMd)
+                          : BorderRadius.circular(FlareSizes.radiusFull),
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                          flareIconGlyph(widget.icon),
+                          size: glyph,
+                          color: foreground,
+                        ),
+                        if (widget.dot)
+                          PositionedDirectional(
+                            top: -1,
+                            end: -1,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: colors.error,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),

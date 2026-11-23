@@ -9,6 +9,15 @@ const groups = [
 ];
 
 describe("FlareGroupList", () => {
+  it("marks the displayed group separately from hover and retains the picked id", async () => {
+    const wrapper = mount(FlareGroupList, { props: { items: groups, activeId: "g2" } });
+    expect(wrapper.findAll("[aria-current=true]").map(row => row.text())).toEqual([expect.stringContaining("Flare IM")]);
+    await wrapper.setProps({ activeId: "g1" });
+    expect(wrapper.get(".is-current").text()).toContain("设计评审组");
+    await wrapper.get(".is-current").trigger("click");
+    expect(wrapper.emitted("select")?.[0]).toEqual([groups[0]]);
+    wrapper.unmount();
+  });
   it("lists every group with its member count", () => {
     const wrapper = mount(FlareGroupList, { props: { items: groups } });
     expect(wrapper.findAll(".flare-group-list__row")).toHaveLength(2);

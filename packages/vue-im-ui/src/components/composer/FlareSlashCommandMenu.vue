@@ -31,7 +31,7 @@ const filtered = computed(() => {
 <template>
   <div class="flare-slash-menu" role="listbox" :aria-label="t('slash.title')">
     <div class="flare-slash-menu__head">
-      <n-icon aria-hidden="true" :size="13" :component="TerminalOutline" />{{ t("slash.title") }}
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="TerminalOutline" />{{ t("slash.title") }}
     </div>
     <button
       v-for="cmd in filtered"

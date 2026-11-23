@@ -286,7 +286,8 @@ fun MessageContentView(
                         else -> null
                     },
                 )
-                is FlareVideoContent -> VideoMessage(poster = content.poster, duration = videoDurationLabel(content.durationSec), onPlay = action)
+                is FlareVideoContent -> VideoMessage(poster = content.poster, duration = videoDurationLabel(content.durationSec),
+                    localVideoPath = content.localPath, onPlay = action)
                 is FlareAudioContent -> {
                     val voice = media?.voice?.takeIf { tap is FlareContentTap.PlayVoice }
                     val phase = voice?.phaseOf(voiceKey) ?: FlareVoicePhase.Idle
@@ -300,7 +301,7 @@ fun MessageContentView(
                     )
                 }
                 is FlareFileContent -> FileMessage(
-                    name = content.name, size = flareFileSize(content.sizeBytes.toLong(), strings, locale), ext = flareFileExtension(content.name),
+                    name = content.name, size = flareFileSize(content.sizeBytes, strings, locale), ext = flareFileExtension(content.name),
                     onOpen = action,
                     onDownload = onMediaDownload?.let { download -> { download(content) } },
                     downloadState = mediaState,
@@ -433,7 +434,7 @@ internal fun videoDurationLabel(seconds: Int): String = if (seconds > 0) duratio
  * A file's size in the kit's words and the kit's locale: whole bytes, else one decimal of KB, MB or GB with the locale's
  * decimal mark (`fileSizeBytes` … `fileSizeGigabytes`, "{n} KB").
  */
-internal fun flareFileSize(bytes: Long, strings: FlareStrings, locale: Locale): String {
+fun flareFileSize(bytes: Long, strings: FlareStrings, locale: Locale): String {
     if (bytes < 1024) return strings.fileSizeBytes.replace("{n}", bytes.coerceAtLeast(0).toString())
     val format = NumberFormat.getNumberInstance(locale).apply {
         minimumFractionDigits = 1

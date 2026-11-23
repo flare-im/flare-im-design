@@ -7,6 +7,7 @@ import {
   type FlareNavigationIntent,
 } from "../../shared/contracts/application";
 import { provideFlareShell } from "../../composables/useFlareShell";
+import { hasFlareModalSurface } from "../../shared/useModalSurface";
 import FlareAdaptiveNavigation from "./FlareAdaptiveNavigation.vue";
 import FlareShellDestination from "./FlareShellDestination.vue";
 
@@ -19,6 +20,10 @@ const props = withDefaults(defineProps<{
   configuration: FlareIMAppConfiguration;
   activeNavigationId: string;
   label?: string;
+  /** Frame desktop destinations and give the active mobile icon its own surface. */
+  appearance?: "default" | "workspace";
+  /** Dispatch this navigation action on Control/Command+K on pointer layouts. */
+  searchAction?: string;
 }>(), {
   label: "",
 });
@@ -40,17 +45,54 @@ defineSlots<{
 const root = ref<HTMLElement | null>(null);
 const width = ref<number>();
 let observer: ResizeObserver | undefined;
+const keyboardViewportHeight = ref<number>();
+let heightBeforeEditing = 0;
+function measureKeyboard(): void {
+  const viewport = window.visualViewport;
+  const active = document.activeElement;
+  const editing = active instanceof HTMLElement && root.value?.contains(active) &&
+    (active.isContentEditable || active.matches("textarea, input:is([type=search], [type=text], [type=email], [type=password], [type=tel], [type=url], [type=number], :not([type]))"));
+  const height = viewport?.height ?? window.innerHeight;
+  // Browser chrome also changes the visible viewport; only an editing-sized loss counts as a keyboard.
+  const unzoomed = Math.abs((viewport?.scale ?? 1) - 1) < 0.01;
+  const occluded = unzoomed && Math.max(heightBeforeEditing, window.innerHeight) - height > 100;
+  if (occluded && (editing || keyboardViewportHeight.value !== undefined)) {
+    keyboardViewportHeight.value = height;
+  } else {
+    if (!editing) heightBeforeEditing = window.innerHeight;
+    keyboardViewportHeight.value = undefined;
+  }
+}
+const measureAfterFocus = () => queueMicrotask(measureKeyboard);
+function onSearchShortcut(event: KeyboardEvent): void {
+  if (!props.searchAction || !responsiveMode.value || mobile.value || hasFlareModalSurface()) return;
+  if (event.defaultPrevented || event.isComposing || event.repeat || event.altKey || event.shiftKey) return;
+  if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return;
+  const action = props.configuration.navigationActions?.find(({ id }) => id === props.searchAction);
+  if (!action || action.disabled) return;
+  event.preventDefault();
+  emit("navigate", action.id);
+}
 function measure(): void {
   width.value = root.value?.clientWidth || undefined;
 }
 onMounted(() => {
   measure();
+  measureKeyboard();
+  window.addEventListener("resize", measureKeyboard);
+  document.addEventListener("keydown", onSearchShortcut);
+  window.visualViewport?.addEventListener("resize", measureKeyboard);
   if (typeof ResizeObserver !== "undefined" && root.value) {
     observer = new ResizeObserver(measure);
     observer.observe(root.value);
   }
 });
-onBeforeUnmount(() => observer?.disconnect());
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  window.removeEventListener("resize", measureKeyboard);
+  document.removeEventListener("keydown", onSearchShortcut);
+  window.visualViewport?.removeEventListener("resize", measureKeyboard);
+});
 
 const responsiveMode = computed<FlareApplicationResponsiveMode | undefined>(() =>
   width.value === undefined ? undefined : resolveApplicationResponsiveMode(width.value));
@@ -70,7 +112,8 @@ const depths = ref<Record<string, number>>({});
 function onDepth(id: string, depth: number): void {
   if ((depths.value[id] ?? 0) !== depth) depths.value = { ...depths.value, [id]: depth };
 }
-const navigationHidden = computed(() => mobile.value && (depths.value[props.activeNavigationId] ?? 0) > 0);
+const navigationHidden = computed(() => mobile.value &&
+  ((depths.value[props.activeNavigationId] ?? 0) > 0 || keyboardViewportHeight.value !== undefined));
 const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
 </script>
 
@@ -78,9 +121,13 @@ const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
   <section
     ref="root"
     class="flare-im-app-kit"
+    :data-appearance="appearance"
     :data-responsive-mode="responsiveMode"
     :data-navigation-hidden="navigationHidden || undefined"
     :aria-label="label || undefined"
+    :style="mobile && keyboardViewportHeight ? { maxHeight: `${keyboardViewportHeight}px` } : undefined"
+    @focusin="measureAfterFocus"
+    @focusout="measureAfterFocus"
   >
     <header v-if="mobile && $slots.appBar" class="flare-im-app-kit__app-bar"><slot name="appBar" /></header>
     <div v-if="responsiveMode && !mobile" class="flare-im-app-kit__rail">
@@ -92,6 +139,7 @@ const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
         :label="label"
         :identity="configuration.identity"
         :actions="configuration.navigationActions"
+        :appearance="appearance"
         @navigate="emit('navigate', $event)"
       />
     </div>
@@ -114,6 +162,7 @@ const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
       responsive-mode="mobile"
       presentation="bottom"
       :label="label"
+      :appearance="appearance"
       @navigate="emit('navigate', $event)"
     />
     <div class="flare-im-app-kit__overlay"><slot name="overlay" /></div>
@@ -148,6 +197,18 @@ const emitIntent = (intent: FlareNavigationIntent) => emit("intent", intent);
 .flare-im-app-kit__rail { grid-area: rail; min-height: 0; }
 .flare-im-app-kit__destinations { grid-area: destinations; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 .flare-im-app-kit__bottom { grid-area: bottom; }
+.flare-im-app-kit[data-appearance="workspace"]:not([data-responsive-mode="mobile"]) {
+  background: var(--flare-color-bg-secondary);
+}
+.flare-im-app-kit[data-appearance="workspace"]:is([data-responsive-mode="desktop"], [data-responsive-mode="wideDesktop"]) .flare-im-app-kit__destinations {
+  margin: var(--flare-size-spacing-sm) var(--flare-size-spacing-sm) var(--flare-size-spacing-sm) 0;
+  border: 1px solid var(--flare-color-border-primary);
+  border-radius: var(--flare-size-radius-xl);
+  background: var(--flare-color-bg-primary);
+}
+.flare-im-app-kit[data-appearance="workspace"] .flare-im-app-kit__bottom {
+  padding-block-start: var(--flare-size-spacing-sm);
+}
 /* The overlay region covers the shell (global search, full-pane pickers); it lets pointer events through
    wherever it has no content. */
 .flare-im-app-kit__overlay { position: absolute; inset: 0; z-index: var(--flare-z-index-overlay); pointer-events: none; }

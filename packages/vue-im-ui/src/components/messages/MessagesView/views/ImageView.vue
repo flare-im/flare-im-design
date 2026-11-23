@@ -81,6 +81,11 @@ function openPreview(): void {
   if (!fullUrl.value) return;
   previewOpen.value = true;
 }
+
+function fallbackFromLocal(url: string): void {
+  resolvedThumb.fallbackFromLocal(url);
+  resolvedFull.fallbackFromLocal(url);
+}
 </script>
 
 <template>
@@ -95,6 +100,7 @@ function openPreview(): void {
       max-width="var(--flare-component-media-image-max-width)"
       max-height="min(300px, 42vh)"
       @click="openPreview"
+      @load-error="fallbackFromLocal"
     />
     <p v-if="description" class="im-media-caption">{{ description }}</p>
     <ImagePreviewModal

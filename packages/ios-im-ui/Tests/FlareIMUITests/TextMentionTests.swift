@@ -105,7 +105,7 @@ final class TextMentionTests: XCTestCase {
         XCTAssertEqual(ann[UI.ForegroundColorAttribute.self], colors.primaryText)
         XCTAssertNil(ann[UI.BackgroundColorAttribute.self], "a mention of someone else has no ground")
         let me = try XCTUnwrap(attributed.runs.first { String(attributed[$0.range].characters) == "@me" })
-        XCTAssertEqual(me[UI.FontAttribute.self], .system(size: 15, weight: .medium))
+        XCTAssertEqual(me[UI.FontAttribute.self], .system(size: 15, weight: .semibold))
         XCTAssertEqual(me[UI.BackgroundColorAttribute.self], colors.bgSelected)
         let plain = try XCTUnwrap(attributed.runs.first { String(attributed[$0.range].characters) == " look " })
         XCTAssertNil(plain[UI.FontAttribute.self])

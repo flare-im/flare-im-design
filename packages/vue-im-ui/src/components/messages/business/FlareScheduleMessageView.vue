@@ -38,7 +38,7 @@ const rows = computed(() =>
   <div class="business-message-view business-message-view--schedule">
     <header class="business-message-view__header">
       <span class="business-message-view__icon" aria-hidden="true">
-        <n-icon aria-hidden="true" :component="CalendarOutline" />
+        <n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="CalendarOutline" />
       </span>
       <div class="business-message-view__main">
         <span class="business-message-view__kicker">{{ t("business.schedule") }}</span>

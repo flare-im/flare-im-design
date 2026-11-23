@@ -268,7 +268,10 @@ class _BackgroundDeliveryGuide extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: FlareSizes.spacingLg,
             ),
-            child: Text(strings.backgroundDeliveryExplanation, style: textStyle),
+            child: Text(
+              strings.backgroundDeliveryExplanation,
+              style: textStyle,
+            ),
           ),
           if (vendorActions.isNotEmpty)
             Padding(

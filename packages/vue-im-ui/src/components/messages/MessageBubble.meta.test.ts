@@ -43,6 +43,20 @@ function setup(
 afterEach(() => hosts.splice(0).forEach(host => host.unmount()));
 
 describe("media message metadata", () => {
+  it("keeps pin indicators with the time for compact text, media and reaction footers", () => {
+    for (const layout of ["pc", "h5"] as const) {
+      for (const content of [{ contentType: "text", text: { text: "pinned" } }, contents[0]]) {
+        for (const reactions of [undefined, [{ emoji: "👍", count: 1, selected: false }]]) {
+          const bubble = setup(content, false, layout, { pinned: true, reactions });
+          const meta = bubble.getComponent(MessageMeta);
+          expect(meta.props('pinned')).toBe(true);
+          expect(meta.find('[role="img"][aria-label="置顶消息"]').exists()).toBe(true);
+          expect(bubble.find('.message-pin-marker').exists()).toBe(false);
+          expect(bubble.findAll('.message-meta-row__pin')).toHaveLength(1);
+        }
+      }
+    }
+  });
   for (const layout of ["pc", "h5"] as const) {
     for (const self of [false, true]) {
       it.each(contents)(`keeps $contentType metadata below media in ${layout}, self=${self}`, (content) => {
@@ -111,28 +125,33 @@ describe("media message metadata", () => {
     expect(peer.find(".message-row--failed").exists()).toBe(false);
   });
 
-  it("keeps the failed glyph as the retry key inside a bubble, and inert without a listener", async () => {
+  it("shows a visible retry label on a failed text and keeps it passive without a listener", async () => {
     const onResend = vi.fn();
     const framed = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "failed" }, { onResend });
-    await framed.findComponent(MessageMeta).get("button.status-failed").trigger("click");
+    const retry = framed.findComponent(MessageMeta).get("[data-meta-retry]");
+    expect(retry.text()).toBe("发送失败，重试");
+    await retry.trigger("click");
     expect(onResend).toHaveBeenCalledWith("client-1");
     const passive = setup(contents[0], true, "pc", { status: "failed" });
     expect(passive.find("[data-meta-retry]").exists()).toBe(false);
     expect(passive.findComponent(MessageMeta).text()).toContain("发送失败");
   });
 
-  it("shows the group read summary in place of the ticks and opens the receipts", async () => {
+  it("shows group receipt ticks with accessible details", async () => {
     const onReadReceiptOpen = vi.fn();
     const summary = { readCount: 2, unreadCount: 3, total: 5 };
     const bubble = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "sent", readSummary: summary }, { onReadReceiptOpen }, { conversationKind: "group" });
     const key = bubble.get("button[data-read-summary]");
-    expect(key.text()).toBe("3 人未读");
-    expect(bubble.findComponent(MessageMeta).find(".status-sent").exists()).toBe(false);
+    expect(key.text()).toBe("");
+    expect(key.attributes("aria-label")).toContain("3 人未读");
+    expect(key.find(".status-sent").exists()).toBe(true);
     await key.trigger("click");
-    expect(onReadReceiptOpen).toHaveBeenCalledWith("client-1");
+    expect(onReadReceiptOpen).toHaveBeenCalledWith("server-1");
     const allRead = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "read", readSummary: { readCount: 5, unreadCount: 0, total: 5 } }, {}, { conversationKind: "group" });
     expect(allRead.get("[data-read-summary]").element.tagName).toBe("SPAN");
-    expect(allRead.get("[data-read-summary]").text()).toBe("全部已读");
+    expect(allRead.get("[data-read-summary]").text()).toBe("");
+    expect(allRead.get("[data-read-summary]").attributes("aria-label")).toBe("全部已读");
+    expect(allRead.get("[data-read-summary]").find(".status-read").exists()).toBe(true);
     const single = setup({ contentType: "text", text: { text: "Hello" } }, true, "pc", { status: "sent", readSummary: summary }, { onReadReceiptOpen }, { conversationKind: "single" });
     expect(single.find("[data-read-summary]").exists()).toBe(false);
   });
@@ -145,7 +164,7 @@ describe("multi-select and the row's reading unit", () => {
     expect(body.classes()).toContain("message-bubble-body--inert");
     expect(body.attributes("inert")).toBeDefined();
     await bubble.get(".message-bubble").trigger("click");
-    expect(bubble.emitted("toggle-select")).toEqual([["client-1"]]);
+    expect(bubble.emitted("toggle-select")).toEqual([["server-1"]]);
     await bubble.get(".message-select").trigger("click");
     expect(bubble.emitted("toggle-select")).toHaveLength(2);
   });

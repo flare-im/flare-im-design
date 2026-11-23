@@ -25,7 +25,7 @@ const parts = computed(() => markdown.value ? [] : splitPlainTextForEmojiDisplay
 const unknownEmoji = computed(() => parts.value.length === 1 && parts.value[0].kind === "emojiUnknown" ? parts.value[0] : null);
 const hasInlineEmoji = computed(() => parts.value.some(part => part.kind === "emoji" || part.kind === "emojiUnknown"));
 const mentionSegments = computed(() =>
-  props.mentions.length && !markdown.value && !hasInlineEmoji.value ? segmentTextByMentions(props.text, props.mentions) : [],
+  props.mentions.length && !markdown.value ? segmentTextByMentions(props.text, props.mentions) : [],
 );
 // The shared MarkdownIt instance disables raw HTML and escapes link attributes.
 const html = computed(() => renderMarkdown(props.text));
@@ -42,12 +42,12 @@ function onClick(event: MouseEvent) {
   <div class="fm-text im-text" :class="{ 'is-self': self, selectable, 'im-text--lone-emoji': loneEmoji || unknownEmoji }" @click="onClick">
     <FlareEmojiMessage v-if="loneEmoji" :load-src="loneEmoji.loadUrl" :alt="loneEmoji.key" animated />
     <span v-else-if="unknownEmoji" class="im-emoji-bracket">{{ formatEmojiPackBracket(unknownEmoji.key) }}</span>
-    <PlainTextEmojiRich v-else-if="hasInlineEmoji" :text="text" />
     <p v-else-if="mentionSegments.length" class="fm-text__plain"><template v-for="(segment, index) in mentionSegments" :key="index"><span
       v-if="segment.mention"
       class="fm-text__mention"
-      :class="{ 'is-me': segment.mention.self || segment.mention.all }"
-    >{{ segment.text }}</span><template v-else>{{ segment.text }}</template></template></p>
+      :class="{ 'is-me': segment.mention.self, 'is-all': segment.mention.all }"
+    >{{ segment.text }}</span><PlainTextEmojiRich v-else-if="hasInlineEmoji" :text="segment.text" /><template v-else>{{ segment.text }}</template></template></p>
+    <PlainTextEmojiRich v-else-if="hasInlineEmoji" :text="text" />
     <div v-else v-html="html" />
   </div>
 </template>
@@ -62,12 +62,18 @@ function onClick(event: MouseEvent) {
 .fm-text :deep(pre) { max-width: 100%; overflow-x: auto; white-space: pre; }
 .fm-text :deep(img) { max-width: 100%; }
 .fm-text__plain { margin: 0; white-space: pre-wrap; }
-/* A mention reads as a name, not a link: accent colour and weight; a mention of the reader
-   (or of everyone) also gets the selected ground so it is found at a glance. */
 .fm-text__mention { color: var(--flare-color-primary-text); font-weight: 500; }
-.fm-text__mention.is-me { padding-inline: 2px; border-radius: var(--flare-size-radius-sm); background: var(--flare-color-bg-selected); }
+.fm-text:not(.is-self) .fm-text__mention.is-all { padding-inline: 2px; border-radius: var(--flare-size-radius-sm); background: var(--flare-color-bg-selected); }
+.fm-text:not(.is-self) .fm-text__mention.is-me {
+  padding-inline: 3px;
+  border-radius: var(--flare-size-radius-sm);
+  background: var(--flare-component-mention-bg);
+  color: var(--flare-component-mention-text);
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .fm-text.is-self .fm-text__mention { color: inherit; font-weight: 600; }
-.fm-text.is-self .fm-text__mention.is-me { background: transparent; }
 .im-text--lone-emoji { display: flex; align-items: center; justify-content: center; line-height: 0; }
 .im-emoji-bracket { font-size: var(--flare-size-font-size-2xl); line-height: 1.5; }
 </style>

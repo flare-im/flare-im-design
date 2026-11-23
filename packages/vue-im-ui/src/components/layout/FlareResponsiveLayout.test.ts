@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
-import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h, type Component } from "vue";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { defineComponent, h, nextTick, ref, type Component } from "vue";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import FlareResponsiveLayout from "./FlareResponsiveLayout.vue";
 
@@ -12,6 +12,7 @@ function stubWidth(width: number): void {
   Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get() { return width; } });
 }
 afterEach(() => {
+  vi.unstubAllGlobals();
   delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
 });
 
@@ -32,6 +33,25 @@ async function mountAt(width: number, props: Record<string, unknown> = {}) {
 
 // The same rule as AppLayout (spec/application-layout-vectors.json `panes`): a 320 list beside a 360 chat.
 describe("FlareResponsiveLayout", () => {
+  it('preserves the active detail and its draft across single, dual and triple panes', async () => {
+    stubWidth(1360);
+    let resize: (entries: Array<{ contentRect: { width: number } }>) => void = () => {};
+    vi.stubGlobal('ResizeObserver', class { constructor(callback: typeof resize) { resize = callback; } observe() {} disconnect() {} });
+    let mounts = 0;
+    const Detail = defineComponent({ setup() { mounts++; const step = ref(0); return () => h('button', { onClick: () => step.value++ }, `Step ${step.value}`); } });
+    const wrapper = mount(defineComponent({ setup() { useFlareI18nProvider('zh-CN'); return () => h(FlareResponsiveLayout, { activePane: 'detail', hasDetail: true }, { list: () => 'List', chat: () => 'Chat', detail: () => h(Detail) }); } }));
+    await nextTick();
+    await wrapper.get('.flare-rl__detail button').trigger('click');
+    const button = wrapper.get('.flare-rl__detail button').element;
+    for (const width of [900, 390, 1360]) {
+      resize([{ contentRect: { width } }]);
+      await nextTick();
+      expect(wrapper.get('.flare-rl__detail button').element).toBe(button);
+      expect(wrapper.get('.flare-rl__detail button').text()).toBe('Step 1');
+    }
+    expect(mounts).toBe(1);
+    wrapper.unmount();
+  });
   it("shows one pane below a list and a usable chat, and says so", async () => {
     const wrapper = await mountAt(679, { hasDetail: true });
     expect(wrapper.get(".flare-rl").attributes("data-pane-mode")).toBe("singlePane");

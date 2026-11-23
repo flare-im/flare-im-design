@@ -28,6 +28,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -76,6 +81,10 @@ fun Input(
     /** On-screen keyboard (spec `inputmode`); ignored on a secure field. */
     inputMode: FlareInputMode = FlareInputMode.Text,
     onSubmit: (() -> Unit)? = null,
+    /** The value is wrong: the field's edge takes the error colour (the form says why under it). */
+    error: Boolean = false,
+    /** A unit drawn at the field's end in the secondary ink (a money amount's currency, 5.5). */
+    suffix: String? = null,
 ) {
     val colors = flareColors()
     // Unmasking is the person's own, momentary choice: it lives in the field and is never reported.
@@ -86,12 +95,25 @@ fun Input(
     val shape = RoundedCornerShape(FlareSizes.radiusLg)
     val showClear = clearable && value.isNotEmpty() && !disabled && !secure
     val showReveal = secure && revealable && !disabled
+    // A fine pointer keeps the size's own height (R6: 40 on a desktop-class window); touch keeps the 44 floor.
+    val floor = if (flarePlatform().capabilities.pointer == FlarePointerKind.Fine) size.visualHeight() else FlareSizes.touchTargetMin
+    val halo = colors.focusRing
     Column(Modifier.fillMaxWidth()) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = maxOf(size.visualHeight(), FlareSizes.touchTargetMin))
+            Modifier.fillMaxWidth().heightIn(min = maxOf(size.visualHeight(), floor))
+                // §12.22: focused, the 1px `borderSelected` edge carries the contrast; outside it a
+                // `component.focusRingWidth` `focusRing` halo (Vue `box-shadow: 0 0 0 2px`), kept in error too.
+                .drawBehind {
+                    if (focused && !disabled) {
+                        val width = FlareSizes.componentFocusRingWidth.toPx()
+                        val out = width / 2
+                        drawRoundRect(halo, topLeft = Offset(-out, -out), size = Size(this.size.width + width, this.size.height + width),
+                            cornerRadius = CornerRadius(FlareSizes.radiusLg.toPx() + out), style = Stroke(width))
+                    }
+                }
                 .clip(shape)
                 .background(colors.bgSecondary)
-                .border(1.dp, if (focused) colors.borderSelected else colors.borderPrimary, shape)
+                .border(1.dp, if (error) colors.error else if (focused) colors.borderSelected else colors.borderPrimary, shape)
                 .padding(start = FlareSizes.spacingMd, end = if (showClear || showReveal) 0.dp else FlareSizes.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -128,6 +150,10 @@ fun Input(
                         inner()
                     },
                 )
+            }
+            suffix?.let {
+                Text(it, color = colors.textSecondary, fontSize = FlareSizes.fontSizeLg.value.sp, maxLines = 1,
+                    modifier = Modifier.padding(start = FlareSizes.spacingSm))
             }
             if (showClear) {
                 FlareIconControl(

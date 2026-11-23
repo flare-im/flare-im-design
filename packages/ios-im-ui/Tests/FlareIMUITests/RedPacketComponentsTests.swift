@@ -154,6 +154,16 @@ final class RedPacketComponentsTests: XCTestCase {
         }
     }
 
+    /// The unopened card's copy is `redPacket.onSurface` (§12.11 token cleanup: no hard-coded white).
+    func testUnclaimedDeepRedSupportsOnSurfaceCopy() {
+        for scheme in [ColorScheme.light, ColorScheme.dark] {
+            let colors = FlareColors.of(scheme, brand: .violet)
+            for stop in RedPacketPalette.coverStops(colors, faded: false) {
+                XCTAssertGreaterThanOrEqual(RedPacketPalette.contrast(stop, colors.redPacketOnSurface), 4.5)
+            }
+        }
+    }
+
     /// Light and dark: the mix target, the ink, every faded stop, and the ink's contrast on the text stops.
     func testSpentCardsFadeAsTheSharedTableSays() throws {
         let table = try vectors().faded
@@ -608,7 +618,10 @@ final class RedPacketComponentsTests: XCTestCase {
         XCTAssertThrowsError(try view.find(text: zh.packetFieldRecipient))
         XCTAssertNoThrow(try view.find(text: zh.packetDefaultGreeting))
         XCTAssertNoThrow(try view.find(text: "¥0.00"))
-        try view.find(button: zh.packetSubmit).tap()
+        XCTAssertTrue(try view.find(button: zh.packetSubmit).isDisabled(), "§4.2: no amount, no submit")
+        let filled = try RedPacketComposerView(kinds: [.normal], kind: .normal, amount: "1", total: "¥1.00",
+                                               onSubmit: { submits += 1 }).inspect()
+        try filled.find(button: zh.packetSubmit).tap()
         XCTAssertEqual(submits, 1)
     }
 
@@ -647,7 +660,8 @@ final class RedPacketComponentsTests: XCTestCase {
             (try? $0.accessibilityLabel().string()) == self.zh.packetGreetingLabel
         })
         try field.setInput("Hi")
-        XCTAssertEqual(greetings, ["Hi"])
+        try field.setInput("一二三四五六七八九十一二三四五六七八九十一二三四五")
+        XCTAssertEqual(greetings, ["Hi", "一二三四五六七八九十一二三四五六七八九十一二三四"], "§4.2: 24 characters at most")
     }
 
     @MainActor
@@ -848,17 +862,16 @@ final class RedPacketComponentsTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.1))
     }
 
-    /// The layer is laid out deterministically for a short blessing: the envelope at its minimum height, the gap,
-    /// then the 44pt close target, centred in the window.
+    /// The layer is laid out deterministically for a short blessing: the envelope at its minimum height, centred in
+    /// the window, its close key at the top trailing corner.
     @MainActor
     func testHostedSheetClosesFromTheScrimAndTheCloseTargetButNotTheEnvelope() {
         final class Log { var events: [String] = [] }
         let size = CGSize(width: 390, height: 760)
-        let layer = FlareSizes.componentRedPacketEnvelopeMinHeight + FlareSizes.spacingXl + FlareSizes.touchTargetMin
-        let top = (size.height - layer) / 2
-        let closeCentre = CGPoint(x: size.width / 2,
-                                  y: top + FlareSizes.componentRedPacketEnvelopeMinHeight + FlareSizes.spacingXl
-                                      + FlareSizes.touchTargetMin / 2)
+        let top = (size.height - FlareSizes.componentRedPacketEnvelopeMinHeight) / 2
+        let trailing = (size.width + RedPacketOpenSheet.envelopeWidth(window: size.width)) / 2
+        let closeCentre = CGPoint(x: trailing - FlareSizes.spacingSm - FlareSizes.componentRedPacketCloseSize / 2,
+                                  y: top + FlareSizes.spacingSm + FlareSizes.componentRedPacketCloseSize / 2)
         let coinCentre = CGPoint(x: size.width / 2,
                                  y: top + FlareSizes.componentRedPacketEnvelopeMinHeight * RedPacketMetrics.flapShare)
         func sheet(_ log: Log) -> RedPacketOpenSheet {
@@ -867,9 +880,9 @@ final class RedPacketComponentsTests: XCTestCase {
         }
         let points: [(CGPoint, [String], String)] = [
             (CGPoint(x: 8, y: 8), ["close"], "the scrim"),
-            (closeCentre, ["close"], "the close ring"),
-            // The ring is drawn at 32pt; its target is 44pt.
-            (CGPoint(x: closeCentre.x + 20, y: closeCentre.y), ["close"], "beside the ring, inside its target"),
+            (closeCentre, ["close"], "the close key"),
+            // The key is drawn at 36pt; its target is 44pt.
+            (CGPoint(x: closeCentre.x, y: closeCentre.y + 20), ["close"], "below the key, inside its target"),
             (CGPoint(x: size.width / 2, y: top + 24), [], "the envelope's flap"),
             (coinCentre, ["open"], "the open button on the flap's edge"),
             (CGPoint(x: coinCentre.x, y: coinCentre.y + FlareSizes.componentRedPacketOpenButtonSize / 2 - 6),

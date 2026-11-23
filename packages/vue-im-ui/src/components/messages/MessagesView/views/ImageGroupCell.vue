@@ -34,6 +34,12 @@ const resolvedFull = useResolvedMediaUrl(fullRequest);
 const url = computed(() => resolvedThumbnail.url.value || resolvedFull.url.value);
 const alt = computed(() => readString(props.image, "description", "title"));
 
+function imageFailed(): void {
+  failed.value = true;
+  resolvedThumbnail.fallbackFromLocal(url.value);
+  resolvedFull.fallbackFromLocal(url.value);
+}
+
 watch(url, () => { failed.value = false; });
 watch(
   () => resolvedFull.url.value || resolvedThumbnail.url.value,
@@ -43,7 +49,7 @@ watch(
 </script>
 
 <template>
-  <img v-if="url && !failed" :src="url" :alt="alt" loading="lazy" decoding="async" @error="failed = true" />
+  <img v-if="url && !failed" :src="url" :alt="alt" loading="lazy" decoding="async" @error="imageFailed" />
   <span v-else class="im-image-group-cell__placeholder">
     <MsgIcon name="image" :size="22" />
     <small v-if="resolvedThumbnail.loading.value || resolvedFull.loading.value">{{ t('media.loading') }}</small>

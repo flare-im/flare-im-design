@@ -94,6 +94,45 @@ Future<void> _expectPaintedCode(
 }
 
 void main() {
+  testWidgets('QR actions use short labels on one row', (tester) async {
+    final actions = <String>[];
+    await tester.pumpWidget(
+      _host(
+        FlareQRCard(
+          name: 'Alice',
+          qrPayload: _payload,
+          onRefresh: () => actions.add('refresh'),
+          onSave: () => actions.add('save'),
+          onShare: () => actions.add('share'),
+        ),
+      ),
+    );
+
+    final refresh = find.widgetWithText(FlareButton, '刷新');
+    final save = find.widgetWithText(FlareButton, '保存');
+    final share = find.widgetWithText(FlareButton, '分享');
+    final qrRect = tester.getRect(
+      find.ancestor(of: _codePaint(), matching: find.byType(AspectRatio)),
+    );
+    final refreshRect = tester.getRect(refresh);
+    final saveRect = tester.getRect(save);
+    final shareRect = tester.getRect(share);
+    expect([
+      saveRect.center.dy,
+      shareRect.center.dy,
+    ], everyElement(closeTo(refreshRect.center.dy, 0.01)));
+    expect(refreshRect.left, closeTo(qrRect.left, 0.01));
+    expect(saveRect.center.dx, closeTo(qrRect.center.dx, 0.01));
+    expect(shareRect.right, closeTo(qrRect.right, 0.01));
+    expect(find.text('保存二维码'), findsNothing);
+    expect(find.text('分享二维码'), findsNothing);
+
+    await tester.tap(refresh);
+    await tester.tap(save);
+    await tester.tap(share);
+    expect(actions, ['refresh', 'save', 'share']);
+  });
+
   testWidgets('a payload renders a real QR code with a light quiet zone', (
     tester,
   ) async {

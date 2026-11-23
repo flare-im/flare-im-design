@@ -10,17 +10,19 @@ import 'flare_avatar.dart';
 /// Moments/CoverHeader (`FlareMomentsCoverHeader`).
 ///
 /// With a cover image the band is tall, the name and signature are white over
-/// the image's lower scrim and the avatar lifts on a soft shadow. Without one
-/// the header stays quiet: a short neutral band on the tertiary surface, no
-/// brand gradient or scrim, and the name and signature in the normal text
-/// colours. The cover is a control named [FlareStrings.changeCover] (with its
-/// 换封面 pill) only with [onEditCover], and the avatar only with [onAvatar].
+/// the image's lower scrim and the round avatar overhangs it on a ring of the
+/// page ground. Without one the header is a compact identity row on the page
+/// ground over a hairline, the name and signature in the normal text colours
+/// (Vue `.flare-moments-cover--empty`). The cover photo is a control named
+/// [FlareStrings.changeCover] only with [onEditCover] (without a photo a quiet
+/// 换封面 word ends the row), and the avatar only with [onAvatar].
 class FlareMomentsCoverHeader extends StatelessWidget {
   const FlareMomentsCoverHeader({
     super.key,
     required this.userId,
     required this.name,
     this.coverUrl,
+    this.coverImage,
     this.avatarUrl,
     this.signature,
     this.onEditCover,
@@ -30,6 +32,10 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   final String userId;
   final String name;
   final String? coverUrl;
+
+  /// A cover the host already holds (a picked local image); wins over
+  /// [coverUrl].
+  final ImageProvider? coverImage;
   final String? avatarUrl;
   final String? signature;
   final VoidCallback? onEditCover;
@@ -42,7 +48,6 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   // the overlap and the overhang only mean something with a photo under them,
   // so that left ~110 of empty band above a name glued to its bottom-right.
   static const double _emptyCoverHeight = 0;
-  static const double _avatarSize = 66;
   // How far the avatar overhangs the cover's bottom edge.
   static const double _overhang = 24;
 
@@ -50,7 +55,8 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final strings = FlareStrings.of(context);
-    final hasCover = coverUrl != null && coverUrl!.isNotEmpty;
+    final hasCover =
+        coverImage != null || (coverUrl != null && coverUrl!.isNotEmpty);
     final coverHeight = hasCover ? _coverHeight : _emptyCoverHeight;
     if (!hasCover) return _compactIdentity(context, colors, strings);
 
@@ -58,8 +64,8 @@ class FlareMomentsCoverHeader extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (hasCover) ...[
-          Image.network(
-            coverUrl!,
+          Image(
+            image: coverImage ?? NetworkImage(coverUrl!),
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => _gradient(colors),
           ),
@@ -76,15 +82,6 @@ class FlareMomentsCoverHeader extends StatelessWidget {
           ),
         ] else
           ColoredBox(color: colors.bgTertiary),
-        if (onEditCover != null)
-          Positioned(
-            right: 14,
-            top: 14,
-            child: _EditCoverPill(
-              label: strings.changeCover,
-              onImage: hasCover,
-            ),
-          ),
       ],
     );
     if (onEditCover != null) {
@@ -96,28 +93,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
       );
     }
 
-    Widget avatar = Container(
-      decoration: BoxDecoration(
-        // No white frame — a soft shadow lifts the rounded square.
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x4715131C),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: FlareAvatar(
-          userId: userId,
-          displayName: name,
-          avatarUrl: avatarUrl,
-          size: _avatarSize,
-        ),
-      ),
-    );
+    Widget avatar = _avatar(colors, 56);
     avatar = onAvatar == null
         // The name beside it already says who this is.
         ? ExcludeSemantics(child: avatar)
@@ -160,7 +136,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.right,
                             style: TextStyle(
-                              fontSize: 17,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: hasCover
                                   ? Colors.white
@@ -216,7 +192,7 @@ class FlareMomentsCoverHeader extends StatelessWidget {
   }
 
   /// The no-cover header: avatar, then name and signature, in reading order on
-  /// the tertiary surface, sized by its content. The change-cover affordance has
+  /// the page ground, sized by its content. The change-cover affordance has
   /// no photo to sit on top of, so it ends the row instead of floating over a
   /// blank band.
   Widget _compactIdentity(
@@ -224,44 +200,52 @@ class FlareMomentsCoverHeader extends StatelessWidget {
     FlareColors colors,
     FlareStrings strings,
   ) {
-    Widget avatar = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x4715131C),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: FlareAvatar(
-          userId: userId,
-          displayName: name,
-          avatarUrl: avatarUrl,
-          size: _avatarSize,
-        ),
-      ),
-    );
+    Widget avatar = _avatar(colors, 48);
     avatar = onAvatar == null
         ? ExcludeSemantics(child: avatar)
         : FlareContentControl(label: name, onTap: onAvatar!, child: avatar);
 
-    Widget? pill;
+    // Vue `.flare-moments-cover__hint`: a quiet word that ends the row.
+    Widget? hint;
     if (onEditCover != null) {
-      pill = FlareContentControl(
-        label: strings.changeCover,
-        onTap: onEditCover!,
-        child: _EditCoverPill(label: strings.changeCover, onImage: false),
+      hint = Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onEditCover,
+          borderRadius: BorderRadius.circular(FlareSizes.radiusMd),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: FlareSizes.touchTarget,
+              minHeight: FlareSizes.touchTarget,
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: FlareSizes.spacingSm,
+                  vertical: FlareSizes.spacingXs,
+                ),
+                child: Text(
+                  strings.changeCover,
+                  style: TextStyle(
+                    fontSize: FlareSizes.fontSizeSm,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       );
     }
 
-    return ColoredBox(
-      color: colors.bgTertiary,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.bgPrimary,
+        border: Border(bottom: BorderSide(color: colors.borderSecondary)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(FlareSizes.spacingMd),
+        padding: const EdgeInsets.all(FlareSizes.spacingLg),
         child: Row(
           children: [
             avatar,
@@ -276,13 +260,13 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: FlareSizes.fontSizeLg,
                       fontWeight: FontWeight.w700,
                       color: colors.textPrimary,
                     ),
                   ),
                   if (signature != null && signature!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Text(
                       signature!,
                       maxLines: 1,
@@ -296,15 +280,29 @@ class FlareMomentsCoverHeader extends StatelessWidget {
                 ],
               ),
             ),
-            if (pill != null) ...[
-              const SizedBox(width: FlareSizes.spacingSm),
-              pill,
+            if (hint != null) ...[
+              const SizedBox(width: FlareSizes.spacingMd),
+              hint,
             ],
           ],
         ),
       ),
     );
   }
+
+  /// The round avatar with a 2px ring of the page ground.
+  Widget _avatar(FlareColors colors, double size) => DecoratedBox(
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      boxShadow: [BoxShadow(color: colors.bgPrimary, spreadRadius: 2)],
+    ),
+    child: FlareAvatar(
+      userId: userId,
+      displayName: name,
+      avatarUrl: avatarUrl,
+      size: size,
+    ),
+  );
 
   /// Shown when a cover image fails to load, keeping the image look.
   Widget _gradient(FlareColors colors) {
@@ -316,43 +314,6 @@ class FlareMomentsCoverHeader extends StatelessWidget {
           colors: [colors.primaryActive, colors.primary, colors.primaryHover],
           stops: const [0.0, 0.55, 1.0],
         ),
-      ),
-    );
-  }
-}
-
-/// The 换封面 pill floated top-right of the cover, clear of the avatar: dark
-/// glass over an image, a quiet elevated chip over the neutral band.
-class _EditCoverPill extends StatelessWidget {
-  const _EditCoverPill({required this.label, required this.onImage});
-
-  final String label;
-  final bool onImage;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = FlareColors.of(context);
-    final foreground = onImage ? const Color(0xEBFFFFFF) : colors.textSecondary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-      decoration: BoxDecoration(
-        color: onImage ? const Color(0x520F0C19) : colors.bgElevated,
-        borderRadius: BorderRadius.circular(FlareSizes.radiusFull),
-        border: onImage ? null : Border.all(color: colors.borderSecondary),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.photo_camera_outlined, size: 13, color: foreground),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: FlareSizes.fontSizeSm,
-              color: foreground,
-            ),
-          ),
-        ],
       ),
     );
   }

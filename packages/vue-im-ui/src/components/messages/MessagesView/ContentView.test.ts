@@ -117,6 +117,13 @@ describe("media bodies: File / Image / Video", () => {
     expect(w.find(".fm-file").exists()).toBe(true);
     expect(w.find("button.dl").exists()).toBe(false);
   });
+  it.each([1, 5])("file → shows %s GiB in GB", async (gibibytes) => {
+    const w = await mountMedia(
+      { contentType: "file", data: { fileName: "archive.bin", fileSize: gibibytes * 1024 ** 3, url: "https://cdn.example.com/archive.bin" } },
+      { isSelf: true, mediaAction: "download" },
+    );
+    expect(w.get(".fm-file .sub").text()).toBe(`${gibibytes}.0 GB · BIN`);
+  });
   it("image → FlareImageMessage in flexible mode, GIF badge and caption", async () => {
     const w = await mountMedia({ contentType: "image", data: { url: "https://cdn.example.com/a.gif", mimeType: "image/gif", description: "动图" } });
     const img = w.get(".fm-img");

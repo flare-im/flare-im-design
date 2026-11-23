@@ -33,6 +33,13 @@ function mountPlayer(extra: Record<string, unknown>) {
 
 const downloadKey = () => document.querySelector<HTMLButtonElement>('button[aria-label="下载视频"]');
 
+it("names the dialog after the displayed video and localizes missing media", () => {
+  mountPlayer({ title: "  版本演示  ", videoSrc: "" });
+  const dialog = document.querySelector('[role="dialog"]');
+  expect(dialog?.getAttribute("aria-label")).toBe("版本演示");
+  expect(dialog?.textContent).toContain("视频暂时无法加载");
+});
+
 describe("VideoPlayerModal download key", () => {
   it("is absent when nobody handles download", () => {
     mountPlayer({});

@@ -23,6 +23,12 @@ Widget _host(
   ValueChanged<String>? reply,
   ValueChanged<String>? more,
 }) => MaterialApp(
+  // A desktop window: the kit draws the toolbar from 900 wide (Vue hides it
+  // under a 900px window); the pane inside is [width].
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(size: const Size(1400, 900)),
+    child: child!,
+  ),
   home: Scaffold(
     body: Align(
       alignment: Alignment.topCenter,

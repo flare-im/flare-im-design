@@ -3,7 +3,8 @@ import { ref } from "vue";
 import FlareButton from "../../../general/FlareButton.vue";
 import FlareIconButton from "../../../general/FlareIconButton.vue";
 import { flareIcons } from "../../../../shared/icons";
-import { useFlareI18nOptional } from "../../../../shared/i18n/useFlareI18n";
+import { useFlareI18nOptional, useFlareLocaleOptional } from "../../../../shared/i18n/useFlareI18n";
+import { flareSpokenAmount } from "../../../../shared/contracts/capability-ui";
 import {
   FLARE_PLUGIN_MASKED_VALUE,
   flarePluginHeroTone,
@@ -17,6 +18,7 @@ import {
 const props = defineProps<{ block: FlarePluginHeroBlock; busy?: boolean; busyActionId?: string }>();
 const emit = defineEmits<{ action: [action: FlarePluginAction] }>();
 const { t } = useFlareI18nOptional();
+const locale = useFlareLocaleOptional();
 // A maskable hero (a balance) starts shown; the eye hides it for this view only.
 const hidden = ref(false);
 const variantOf = (action: FlarePluginAction, index: number) =>
@@ -40,7 +42,8 @@ function run(action: FlarePluginAction): void {
         @click="hidden = !hidden"
       />
     </div>
-    <p class="flare-plugin-hero__value" :class="{ 'is-amount': block.amount }" data-hero-value="true">{{ block.maskable && hidden ? FLARE_PLUGIN_MASKED_VALUE : block.value }}</p>
+    <!-- R10 / §12.4: a hidden balance reads 「余额已隐藏」, never the dots. -->
+    <p class="flare-plugin-hero__value" :class="{ 'is-amount': block.amount }" :aria-label="block.maskable && hidden ? t('amount.hidden') : block.amount ? flareSpokenAmount(block.value, locale) : undefined" data-hero-value="true">{{ block.maskable && hidden ? FLARE_PLUGIN_MASKED_VALUE : block.value }}</p>
     <p v-if="block.subtitle" class="flare-plugin-hero__subtitle">{{ block.subtitle }}</p>
     <div v-if="block.actions?.length" class="flare-plugin-hero__actions">
       <FlareButton
@@ -69,15 +72,17 @@ function run(action: FlarePluginAction): void {
   color: var(--flare-color-text-primary);
 }
 .flare-plugin-hero.is-neutral { --flare-plugin-hero-surface: var(--flare-color-bg-secondary); --flare-plugin-hero-ink: var(--flare-color-text-primary); }
-.flare-plugin-hero.is-positive { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-success) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-success-text); }
-.flare-plugin-hero.is-warning { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-warning) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-warning-text); }
-.flare-plugin-hero.is-brand { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-primary) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-primary-text); }
+/* R10: the figure is always text.primary; a tone only tints the surface. */
+.flare-plugin-hero.is-positive { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-success) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-text-primary); }
+.flare-plugin-hero.is-warning { --flare-plugin-hero-surface: color-mix(in srgb, var(--flare-color-warning) 8%, var(--flare-color-bg-primary)); --flare-plugin-hero-ink: var(--flare-color-text-primary); }
+/* R10: an amount is never brand purple; brand draws like neutral (G-04). */
+.flare-plugin-hero.is-brand { --flare-plugin-hero-surface: var(--flare-color-bg-secondary); --flare-plugin-hero-ink: var(--flare-color-text-primary); }
 .flare-plugin-hero p { margin: 0; overflow-wrap: anywhere; }
 .flare-plugin-hero__head { display: flex; align-items: center; gap: var(--flare-size-spacing-xs); min-width: 0; }
 .flare-plugin-hero__label { font-size: var(--flare-size-font-size-md); color: var(--flare-color-text-secondary); }
 .flare-plugin-hero__value {
-  font-size: var(--flare-size-font-size-5xl);
-  font-weight: var(--flare-size-font-weight-semibold);
+  font-size: var(--flare-size-component-amount-hero-font-size);
+  font-weight: var(--flare-size-font-weight-bold);
   line-height: var(--flare-size-line-height-tight);
   font-variant-numeric: tabular-nums;
   color: var(--flare-plugin-hero-ink);

@@ -7,6 +7,7 @@ import {
   type MessageStatusState,
 } from "../../shared/contracts/message-lifecycle";
 import MessageDoubleCheckIcon from "./MessageDoubleCheckIcon.vue";
+import { flareIcons } from "../../shared/icons";
 
 const props = withDefaults(
   defineProps<{
@@ -37,40 +38,29 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
 </script>
 
 <template>
-  <div
+  <span
     class="message-status"
     :class="[`message-status--${effectiveStatus}`, `message-status--${toneClass}`]"
     role="status"
     :aria-label="stateLabel"
   >
-    <div v-if="effectiveStatus === 'pending'" class="status-pending" :title="stateLabel" aria-hidden="true">
-      <svg class="status-icon" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5" />
-        <path d="M8 4.75V8L10.25 9.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </div>
+    <span v-if="effectiveStatus === 'pending'" class="status-pending" :title="stateLabel" aria-hidden="true">
+      <component :is="flareIcons.clock" class="status-icon" />
+    </span>
 
-    <div v-else-if="effectiveStatus === 'sending'" class="status-progress" :title="stateLabel" aria-hidden="true">
+    <span v-else-if="effectiveStatus === 'sending'" class="status-progress" :title="stateLabel" aria-hidden="true">
       <svg class="status-icon rotating" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3" />
       </svg>
-    </div>
+    </span>
 
-    <div v-else-if="effectiveStatus === 'sent'" class="status-sent" :title="stateLabel" aria-hidden="true">
-      <svg class="status-icon status-one-check" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path
-          d="M12 4L6 10L4 8"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </div>
+    <span v-else-if="effectiveStatus === 'sent'" class="status-sent" :title="stateLabel" aria-hidden="true">
+      <component :is="flareIcons.check" class="status-icon status-one-check" />
+    </span>
 
-    <div v-else-if="effectiveStatus === 'read'" class="status-read" :title="stateLabel" aria-hidden="true">
+    <span v-else-if="effectiveStatus === 'read'" class="status-read" :title="stateLabel" aria-hidden="true">
       <MessageDoubleCheckIcon class="status-icon" />
-    </div>
+    </span>
 
     <button
       v-else-if="effectiveStatus === 'failed' && canResend"
@@ -80,19 +70,13 @@ const toneClass = computed(() => props.tone === "onOutgoing" ? "on-outgoing" : "
       :aria-label="resendLabel"
       @click.stop="emit('resend')"
     >
-      <svg class="status-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" />
-        <path d="M8 5V8M8 11H8.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-      </svg>
+      <component :is="flareIcons.error" class="status-icon" aria-hidden="true" />
     </button>
 
-    <div v-else-if="effectiveStatus === 'failed'" class="status-failed" :title="stateLabel" aria-hidden="true">
-      <svg class="status-icon" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" />
-        <path d="M8 5V8M8 11H8.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-      </svg>
-    </div>
-  </div>
+    <span v-else-if="effectiveStatus === 'failed'" class="status-failed" :title="stateLabel" aria-hidden="true">
+      <component :is="flareIcons.error" class="status-icon" aria-hidden="true" />
+    </span>
+  </span>
 </template>
 
 <style scoped>

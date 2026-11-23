@@ -54,11 +54,31 @@ const emit = defineEmits<{ (e: "change", value: string): void }>();
 const layoutStyle = computed<CSSProperties>(() => ({
   "--flare-filter-columns": String(Math.max(1, Math.floor(props.columns))),
 } as CSSProperties));
+const tabStop = computed(() => props.options.find((option) => option.value === active.value) ?? props.options[0]);
 
 function select(value: string): void {
   if (!props.enabled) return;
   active.value = value;
   emit("change", value);
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (!props.enabled || event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+  const { key, currentTarget } = event;
+  if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "Home" && key !== "End") return;
+  const list = currentTarget as HTMLElement;
+  const tabs = Array.from(list.querySelectorAll<HTMLButtonElement>(":scope > .flare-filter-tab"));
+  const current = tabs.indexOf(event.target as HTMLButtonElement);
+  if (current < 0) return;
+
+  const forward = (key === "ArrowRight") !== (getComputedStyle(list).direction === "rtl");
+  const next =
+    key === "Home" ? 0
+    : key === "End" ? tabs.length - 1
+    : (current + (forward ? 1 : -1) + tabs.length) % tabs.length;
+  event.preventDefault();
+  tabs[next].focus();
+  if (next !== current) select(props.options[next].value);
 }
 </script>
 
@@ -69,6 +89,7 @@ function select(value: string): void {
     :style="layoutStyle"
     role="tablist"
     :aria-label="ariaLabel ?? t('common.filters')"
+    @keydown="onKeydown"
   >
     <button
       v-for="option in options"
@@ -78,6 +99,7 @@ function select(value: string): void {
       class="flare-filter-tab"
       :class="{ 'flare-filter-tab--active': active === option.value }"
       :aria-selected="active === option.value"
+      :tabindex="option === tabStop ? 0 : -1"
       :disabled="!enabled"
       @click="select(option.value)"
     >

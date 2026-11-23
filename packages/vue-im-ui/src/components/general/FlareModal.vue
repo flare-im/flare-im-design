@@ -11,6 +11,7 @@
 import { computed, getCurrentInstance, ref, useSlots } from "vue";
 import FlareIconButton from "./FlareIconButton.vue";
 import { flareIcons } from "../../shared/icons";
+import { useFlareVisibleViewport } from "../../shared/useVisibleViewport";
 import { useFlareModalSurface } from "../../shared/useModalSurface";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 import { useFlarePlatformSafe } from "../../shared/platform/useFlarePlatform";
@@ -61,8 +62,9 @@ const compact = computed(() => platform.capabilities.value.bottomSheet);
 
 const surfaceStyle = computed(() => {
   if (props.fullscreen) return {};
-  const style: Record<string, string> = { maxHeight: props.maxHeight };
-  if (props.fill) style.height = props.maxHeight;
+  const maxHeight = visibleViewportStyle.value ? `min(${props.maxHeight}, calc(var(--flare-visible-viewport-height) - var(--flare-size-spacing-xl) * 2))` : props.maxHeight;
+  const style: Record<string, string> = { maxHeight };
+  if (props.fill) style.height = maxHeight;
   if (props.width) style["--flare-modal-width"] = props.width;
   return style;
 });
@@ -79,12 +81,13 @@ const { overlayContainer, stackIndex } = useFlareModalSurface({
   nativeBack: () => Boolean(instance?.vnode.props?.onClose),
   onRequestClose: () => emit("close"),
 });
+const { style: visibleViewportStyle } = useFlareVisibleViewport(() => props.open && (overlayContainer.value === "body" || (typeof document !== "undefined" && overlayContainer.value === document.body)));
 </script>
 
 <template>
   <Teleport :to="overlayContainer">
     <transition name="flare-modal-fade">
-      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" :class="{ 'flare-modal-scrim--fullscreen': fullscreen }" :style="{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }" @click="requestClose">
+      <div v-if="open" class="flare-overlay-scrim flare-modal-scrim" :class="{ 'flare-modal-scrim--fullscreen': fullscreen }" :style="[{ zIndex: `calc(var(--flare-z-index-modal) + ${stackIndex})` }, visibleViewportStyle]" @click="requestClose">
         <div
           ref="surfaceEl"
           class="flare-modal"

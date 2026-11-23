@@ -1,10 +1,13 @@
 // @vitest-environment happy-dom
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, type Component } from "vue";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { useFlareI18nProvider } from "../../shared/i18n/useFlareI18n";
 import type { FlareSearchResultGroup } from "../../shared/contracts";
 import FlareSearchResults from "./FlareSearchResults.vue";
+
+const hosts: ReturnType<typeof mount>[] = [];
+afterEach(() => hosts.splice(0).forEach(host => host.unmount()));
 
 function mountResults(groups: FlareSearchResultGroup[]) {
   const host = mount(defineComponent({
@@ -12,11 +15,47 @@ function mountResults(groups: FlareSearchResultGroup[]) {
       useFlareI18nProvider("en-US");
       return () => h(FlareSearchResults as Component, { groups, query: "ship" });
     },
-  }));
+  }), { attachTo: document.body });
+  hosts.push(host);
   return host.findComponent(FlareSearchResults);
 }
 
 describe("FlareSearchResults", () => {
+  it("keeps a late message match in the visible excerpt and the complete message in its accessible name", () => {
+    const subtitle = '🙂前文'.repeat(100) + 'ship the release' + '，后文'.repeat(100);
+    const results = mountResults([{ kind: 'message', label: 'Messages', items: [{ id: 'm', kind: 'message', title: 'Ivy', subtitle }] }]);
+    const row = results.get('.flare-search-row');
+    expect(row.get('.flare-search-row__sub').text()).toContain('ship');
+    expect(row.get('.flare-search-row__sub').text().length).toBeLessThan(200);
+    expect(row.get('.hit').text()).toBe('ship');
+    expect(row.attributes('aria-label')).toBe(`Ivy, ${subtitle}`);
+    expect(row.attributes('title')).toBe(subtitle);
+  });
+
+  it("moves through results and see-more, skips empty groups, and offers a route back to search", async () => {
+    const results = mountResults([
+      { kind: 'contact', label: 'Contacts', items: [], hasMore: true },
+      { kind: 'message', label: 'Messages', items: [
+        { id: 'm1', kind: 'message', title: 'One' },
+        { id: 'm2', kind: 'message', title: 'Two' },
+      ], hasMore: true },
+    ]);
+    const api = results.vm as unknown as { focusResult: (edge: 'first' | 'last') => boolean };
+    const rows = results.findAll('.flare-search-row');
+    expect(api.focusResult('first')).toBe(true);
+    expect(document.activeElement).toBe(rows[0].element);
+    await rows[0].trigger('keydown', { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(rows[1].element);
+    await rows[1].trigger('keydown', { key: 'End' });
+    expect(document.activeElement).toBe(results.findAll('.flare-search-more')[1].element);
+    await results.findAll('.flare-search-more')[1].trigger('keydown', { key: 'Home' });
+    expect(document.activeElement).toBe(rows[0].element);
+    await rows[0].trigger('keydown', { key: 'ArrowUp' });
+    expect(results.emitted('focusSearch')).toHaveLength(1);
+    await rows[0].trigger('keydown', { key: 'ArrowDown', isComposing: true });
+    expect(document.activeElement).toBe(rows[0].element);
+  });
+
   it("keeps every hit in one conversation as its own row and emits its target", async () => {
     const results = mountResults([
       { kind: "contact", label: "Contacts", items: [{ id: "ivy", kind: "contact", title: "Ivy" }] },

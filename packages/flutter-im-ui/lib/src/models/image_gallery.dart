@@ -7,6 +7,24 @@ import '../components/flare_media_image.dart' show flarePictureSource;
 import 'message_content.dart';
 import 'message_data.dart';
 
+/// Download state of a single media item. Album pages have independent keys.
+String? flareMediaDownloadStateKey(
+  FlareMessageData message,
+  FlareMessageContent content,
+) {
+  if (message.content case FlareImageGroupContent(:final images)) {
+    if (content is! FlareImageContent) return null;
+    final index = images.indexOf(content);
+    return index < 0 ? null : '${message.id}#image:$index';
+  }
+  return switch (content) {
+    FlareImageContent() ||
+    FlareVideoContent() ||
+    FlareFileContent() => message.id,
+    _ => null,
+  };
+}
+
 /// One picture of the gallery: the message it belongs to, its place in that
 /// message (an album's image index; 0 for an image message), and the picture.
 class FlareImageGalleryItem {

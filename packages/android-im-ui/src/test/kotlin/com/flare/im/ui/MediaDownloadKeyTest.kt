@@ -52,14 +52,11 @@ class MediaDownloadKeyTest {
         assertEquals(listOf("close", "reveal"), videoPlayerControls(zh, canDownload = true, downloading = false, saved = true, canReveal = true).map { it.id })
     }
 
-    @Test fun theFileCardSaysItsSizeTypeAndState() {
-        assertEquals("8.5 KB · TXT", fileMessageSubtitle(zh, "8.5 KB", "TXT", null))
-        assertEquals("8.5 KB · TXT", fileMessageSubtitle(zh, "8.5 KB", "TXT", FlareMediaDownloadState(FlareMediaDownloadStatus.Failed)))
-        assertEquals("8.5 KB · TXT · 下载中", fileMessageSubtitle(zh, "8.5 KB", "TXT", FlareMediaDownloadState(FlareMediaDownloadStatus.Downloading)))
-        assertEquals("8.5 KB · TXT · 下载中 40%", fileMessageSubtitle(zh, "8.5 KB", "TXT", FlareMediaDownloadState(FlareMediaDownloadStatus.Downloading, 40)))
-        assertEquals("8.5 KB · TXT · 已下载", fileMessageSubtitle(zh, "8.5 KB", "TXT", FlareMediaDownloadState(FlareMediaDownloadStatus.Done)))
-        assertEquals("2 MB · Downloaded", fileMessageSubtitle(en, "2 MB", null, FlareMediaDownloadState(FlareMediaDownloadStatus.Done)))
-        assertEquals("", fileMessageSubtitle(zh, "", null, null))
+    @Test fun theFileCardSubtitleContainsOnlyFileDetails() {
+        assertEquals("8.5 KB · TXT", fileMessageSubtitle("8.5 KB", "TXT"))
+        assertEquals("2 MB", fileMessageSubtitle("2 MB", null))
+        assertEquals("TXT", fileMessageSubtitle("", "TXT"))
+        assertEquals("", fileMessageSubtitle("", null))
     }
 
     @Test fun theFileTypeIsTheNamesExtension() {

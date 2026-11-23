@@ -62,20 +62,19 @@ final class ContactSurfaceTests: XCTestCase {
     }
 
     @MainActor
-    func testAStrangersPageOffersThePrimaryActionInTheRowNotTheFooter() throws {
+    func testAStrangersPageOffersPrimaryAndMessageBeforeFooterActions() throws {
         var added = 0
         let copy = FlareContactDetailLabels().resolve(s)
         let detail = FlareContactDetail(contact: stranger, onMessage: {},
                                         extraActions: [FlareDetailExtraAction(id: "report", label: "举报")],
                                         primaryActionLabel: "添加到通讯录", onPrimaryAction: { added += 1 })
         let view = try detail.inspect()
-        let row = try view.find(ViewType.HStack.self, where: { (try? $0.find(text: copy.message)) != nil })
-        XCTAssertNoThrow(try row.find(text: "添加到通讯录"), "in the action row, beside Message")
+        let buttons = try view.findAll(ButtonView.self).map { try $0.find(ViewType.Text.self).string() }
+        XCTAssertEqual(buttons, ["添加到通讯录", copy.message, "举报"],
+                       "the wrapping action group leads with Add then Message; footer actions follow")
         try view.find(button: "添加到通讯录").tap()
         XCTAssertEqual(added, 1)
         XCTAssertNoThrow(try view.find(button: copy.message), "Message is still offered")
-        XCTAssertThrowsError(try view.find(ButtonView.self, where: { (try? $0.find(text: "添加到通讯录")) != nil }),
-                             "not drawn as a footer key")
 
         let without = try FlareContactDetail(contact: stranger, onMessage: {}, primaryActionLabel: "添加到通讯录").inspect()
         XCTAssertThrowsError(try without.find(button: "添加到通讯录"), "no handler, no key")

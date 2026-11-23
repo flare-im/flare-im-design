@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../tokens/flare_strings.dart';
+import 'call_stage.dart';
+import 'flare_icon.dart';
 import 'flare_scene_panels.dart';
 import 'dart:math' as math;
 import 'flare_overlay.dart';
@@ -36,6 +39,9 @@ class FlareCallDeviceGroup {
   }
 }
 
+/// The call's device chooser (docs/plugin-experience.md §3.6): microphone,
+/// speaker and camera groups of single-choice rows on the call popover
+/// colour. A busy group's rows are disabled and its title spins.
 class FlareCallDevicePicker extends StatelessWidget {
   final List<FlareCallDeviceGroup> groups;
   final FlareCapabilityState permission;
@@ -70,35 +76,43 @@ class FlareCallDevicePicker extends StatelessWidget {
       barrierColor: Colors.transparent,
       builder: (context) {
         final size = MediaQuery.sizeOf(context);
-        final width = math.min(300.0, size.width - 24);
+        const margin = FlareSizes.spacingMd;
+        final width = math.min(
+          FlareSizes.componentCallDevicePanelWidth,
+          size.width - margin * 2,
+        );
         final left = (anchor.center.dx - width / 2).clamp(
-          12.0,
-          math.max(12.0, size.width - width - 12),
+          margin,
+          math.max(margin, size.width - width - margin),
         );
         return scopes(
           FlareTheme(
-            colors: FlareColors.dark,
+            colors: callStagePalette(anchorContext),
             child: Theme(
               data: ThemeData.dark(),
               child: Stack(
                 children: [
                   Positioned(
                     left: left.toDouble(),
-                    bottom: size.height - anchor.top + 8,
+                    bottom: size.height - anchor.top + FlareSizes.spacingSm,
                     width: width,
                     child: Material(
-                      color: FlareColors.dark.bgSecondary,
-                      borderRadius: BorderRadius.circular(12),
+                      color: FlareColors.of(anchorContext).callPopover,
+                      borderRadius: BorderRadius.circular(
+                        FlareSizes.radiusCard,
+                      ),
                       clipBehavior: Clip.antiAlias,
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
                           maxHeight: math.max(
-                            48,
-                            anchor.top - MediaQuery.paddingOf(context).top - 20,
+                            FlareSizes.touchTarget,
+                            anchor.top -
+                                MediaQuery.paddingOf(context).top -
+                                FlareSizes.spacingXl,
                           ),
                         ),
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                          padding: const EdgeInsets.all(FlareSizes.spacingMd),
                           child: Builder(builder: builder),
                         ),
                       ),
@@ -126,9 +140,13 @@ class FlareCallDevicePicker extends StatelessWidget {
           onAction: onPermissionAction,
           child: Text(permissionText),
         ),
-      for (final group in groups)
+      for (final (i, group) in groups.indexed)
         Padding(
-          padding: const EdgeInsets.only(top: FlareSizes.spacingLg),
+          padding: EdgeInsets.only(
+            top: i == 0 && permission == FlareCapabilityState.available
+                ? 0
+                : FlareSizes.spacingLg,
+          ),
           child: _group(context, group),
         ),
     ],
@@ -136,9 +154,10 @@ class FlareCallDevicePicker extends StatelessWidget {
   Widget _group(BuildContext context, FlareCallDeviceGroup group) {
     final devices = group.uniqueDevices;
     final selectedId = group.selectedId ?? 'default';
+    final colors = FlareColors.of(context);
     final labelStyle = TextStyle(
-      color: FlareColors.of(context).textSecondary,
-      fontSize: 12,
+      color: colors.callOnStageSecondary,
+      fontSize: FlareSizes.fontSizeSm,
     );
     final enabled =
         permission == FlareCapabilityState.available &&
@@ -149,30 +168,89 @@ class FlareCallDevicePicker extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(group.label, style: labelStyle),
+        Row(
+          children: [
+            Flexible(child: Text(group.label, style: labelStyle)),
+            if (group.busy) ...[
+              const SizedBox(width: FlareSizes.spacingXs),
+              SizedBox.square(
+                dimension: FlareSizes.fontSizeSm,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colors.callOnStageSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
         if (!devices.any((d) => d.id == selectedId))
           Text(
             placeholder ?? FlareStrings.of(context).callDevicePickerPlaceholder,
             style: labelStyle,
           ),
         const SizedBox(height: FlareSizes.spacingSm),
-        for (final device in devices)
-          Semantics(
-            selected: device.id == selectedId,
-            child: ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-              minVerticalPadding: 0,
-              title: Text(device.label, style: const TextStyle(fontSize: 13)),
-              trailing: device.id == selectedId
-                  ? const Icon(Icons.check, size: 18)
-                  : null,
-              enabled: enabled && !device.disabled,
-              onTap: enabled && !device.disabled
-                  ? () => onSelect?.call(group.kind, device.id)
-                  : null,
-            ),
+        // Up and Down stay inside the group (they stop at its first and
+        // last rows); Tab still moves on to the next group.
+        Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          includeSemantics: false,
+          onKeyEvent: (node, event) {
+            final key = event.logicalKey;
+            if (event is KeyUpEvent ||
+                (key != LogicalKeyboardKey.arrowUp &&
+                    key != LogicalKeyboardKey.arrowDown)) {
+              return KeyEventResult.ignored;
+            }
+            final rows = node.traversalDescendants.toList();
+            if (rows.isEmpty) return KeyEventResult.ignored;
+            final edge = key == LogicalKeyboardKey.arrowUp
+                ? rows.first
+                : rows.last;
+            return edge.hasPrimaryFocus
+                ? KeyEventResult.handled
+                : KeyEventResult.ignored;
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final device in devices)
+                Semantics(
+                  inMutuallyExclusiveGroup: true,
+                  checked: device.id == selectedId,
+                  child: ListTile(
+                    dense: true,
+                    minTileHeight: FlareSizes.touchTargetMin,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: FlareSizes.spacingSm,
+                    ),
+                    minVerticalPadding: 0,
+                    title: Text(
+                      device.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.callOnStage,
+                        fontSize: FlareSizes.fontSizeLg,
+                      ),
+                    ),
+                    trailing: device.id == selectedId
+                        ? FlareIcon(
+                            'check',
+                            size: FlareSizes.iconSizeSm,
+                            color: colors.callOnStage,
+                          )
+                        : null,
+                    enabled: enabled && !device.disabled,
+                    onTap: enabled && !device.disabled
+                        ? () => onSelect?.call(group.kind, device.id)
+                        : null,
+                  ),
+                ),
+            ],
           ),
+        ),
       ],
     );
   }

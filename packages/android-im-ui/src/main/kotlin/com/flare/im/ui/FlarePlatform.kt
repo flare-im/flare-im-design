@@ -232,6 +232,10 @@ internal fun flareReducedMotion(): Boolean {
 internal fun FlareEdgeToEdgeDialogWindow() {
     val window = (LocalView.current.parent as? DialogWindowProvider)?.window
     DisposableEffect(window) {
+        // Without it the system pans a dialog window (no scrolling view) up over the keyboard, pushing a sheet's top
+        // under the status bar; resize mode hands the keyboard to the content as an inset (the sheet's imePadding).
+        @Suppress("DEPRECATION")
+        window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         if (window != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             window.attributes = window.attributes.apply {
                 layoutInDisplayCutoutMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

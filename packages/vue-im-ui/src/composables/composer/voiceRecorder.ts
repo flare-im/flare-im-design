@@ -43,19 +43,35 @@ function preferredMimeType(): string {
   return PREFERRED_MIME_TYPES.find((candidate) => MediaRecorder.isTypeSupported(candidate)) ?? "";
 }
 
-/** Browser MediaRecorder over `getUserMedia({ audio: true })`. */
-export function createWebVoiceRecorderAdapter(): FlareVoiceRecorderAdapter {
+/** A host may supply an owned audio stream (for example a local acceptance source). */
+export interface FlareWebVoiceRecorderOptions {
+  acquire?: () => Promise<{ stream: MediaStream; release?: () => void }>;
+}
+
+/** Browser MediaRecorder over `getUserMedia({ audio: true })` or the host's owned stream. */
+export function createWebVoiceRecorderAdapter(options: FlareWebVoiceRecorderOptions = {}): FlareVoiceRecorderAdapter {
   return {
     isSupported() {
       return typeof navigator !== "undefined"
-        && Boolean(navigator.mediaDevices?.getUserMedia)
+        && Boolean(options.acquire || navigator.mediaDevices?.getUserMedia)
         && typeof MediaRecorder !== "undefined";
     },
     async open() {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = preferredMimeType();
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      const acquired = options.acquire
+        ? await options.acquire()
+        : { stream: await navigator.mediaDevices.getUserMedia({ audio: true }) };
+      const { stream } = acquired;
       let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        try { stream.getTracks().forEach(track => track.stop()); }
+        finally { acquired.release?.(); }
+      };
+      const mimeType = preferredMimeType();
+      let recorder: MediaRecorder;
+      try { recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream); }
+      catch (error) { release(); throw error; }
       const session: FlareVoiceCaptureSession = {
         get mimeType() { return recorder.mimeType || mimeType; },
         get state() { return recorder.state; },
@@ -70,11 +86,7 @@ export function createWebVoiceRecorderAdapter(): FlareVoiceRecorderAdapter {
         onEnded: (callback) => {
           stream.getTracks().forEach((track) => track.addEventListener?.("ended", callback, { once: true }));
         },
-        release: () => {
-          if (released) return;
-          released = true;
-          stream.getTracks().forEach((track) => track.stop());
-        },
+        release,
       };
       return session;
     },

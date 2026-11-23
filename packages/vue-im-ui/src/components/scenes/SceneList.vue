@@ -8,7 +8,8 @@
  * through `WorkspacePane` like every other surface and the rows are built from
  * kit parts: the settings group card, the contact-row anatomy, `FlareButton`.
  */
-import { computed } from "vue";
+import { computed, useId } from "vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import FlareButton from "../general/FlareButton.vue";
 import WorkspacePane from "../layout/WorkspacePane.vue";
 import FlareSkeleton from "../general/FlareSkeleton.vue";
@@ -23,10 +24,14 @@ const props = defineProps<{
   error?: string;
   emptyText?: string;
   retryText?: string;
+  /** Repeated row commands can be text actions; their semantic variant remains unchanged. */
+  actionAppearance?: "default" | "text";
 }>();
+const rowId = `flare-scene-${useId()}`;
 // Optional: a scene panel can be mounted on its own, and a missing provider
 // must not blank the list — the runtime locale answers instead.
 const { t } = useFlareI18nOptional();
+const screen = useScreenLayout();
 const strings = computed(() => ({
   emptyText: props.emptyText ?? t("sceneList.empty"),
   retryText: props.retryText ?? t("sceneList.retry"),
@@ -46,8 +51,8 @@ const paneState = computed<WorkspacePaneState>(() => {
 </script>
 
 <template>
-  <section class="scene-list" :aria-label="title">
-    <h3 class="scene-list__title">{{ title }}</h3>
+  <section class="scene-list" :class="{ 'is-detail': screen.detail.value }" :aria-label="title">
+    <h3 v-if="screen.title.value !== title" class="scene-list__title">{{ title }}</h3>
     <WorkspacePane
       :state="paneState"
       skeleton="conversation"
@@ -59,13 +64,13 @@ const paneState = computed<WorkspacePaneState>(() => {
       @retry="emit('reload')"
     >
       <div class="scene-list__items">
-        <article v-for="item in items" :key="item.id" class="scene-list__row">
+        <article v-for="(item, index) in items" :key="item.id" class="scene-list__row" :aria-labelledby="`${rowId}-${index}-title`">
           <div class="scene-list__body">
             <p class="scene-list__heading">
-              <strong class="scene-list__name">{{ item.title }}</strong>
+              <strong :id="`${rowId}-${index}-title`" class="scene-list__name">{{ item.title }}</strong>
               <small v-if="item.badge" class="scene-list__badge">{{ item.badge }}</small>
             </p>
-            <p class="scene-list__detail">{{ item.detail }}</p>
+            <p v-if="item.detail" :id="`${rowId}-${index}-detail`" class="scene-list__detail">{{ item.detail }}</p>
             <p v-if="item.error" class="scene-list__error" role="alert">{{ item.error }}</p>
             <FlareSkeleton v-if="item.busy" variant="text" :rows="1" :aria-label="item.title" role="status" />
           </div>
@@ -75,7 +80,9 @@ const paneState = computed<WorkspacePaneState>(() => {
               :key="a.id"
               size="sm"
               :variant="a.destructive ? 'danger' : 'secondary'"
+              :appearance="actionAppearance"
               :label="a.label"
+              :aria-describedby="[`${rowId}-${index}-title`, item.detail && `${rowId}-${index}-detail`].filter(Boolean).join(' ')"
               :disabled="item.busy || a.disabled"
               @click="emit('action', { id: item.id, action: a.id })"
             />
@@ -116,9 +123,9 @@ const paneState = computed<WorkspacePaneState>(() => {
 }
 .scene-list__row:last-child { border-bottom: none; }
 .scene-list__body { flex: 1; min-width: 0; }
-.scene-list__heading { display: flex; align-items: baseline; gap: var(--flare-size-spacing-sm); margin: 0; }
+.scene-list__heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--flare-size-spacing-xs) var(--flare-size-spacing-sm); margin: 0; }
 .scene-list__name { font-size: var(--flare-size-font-size-lg); font-weight: 500; overflow-wrap: anywhere; }
-.scene-list__badge { color: var(--flare-color-text-secondary); font-size: var(--flare-size-font-size-sm); }
+.scene-list__badge { flex: none; color: var(--flare-color-text-secondary); background: var(--flare-color-bg-secondary); border-radius: var(--flare-size-radius-sm); padding: 0 var(--flare-size-spacing-xs); font-size: var(--flare-size-font-size-sm); line-height: var(--flare-size-line-height-normal); }
 .scene-list__detail {
   margin: 2px 0 0;
   color: var(--flare-color-text-secondary);
@@ -127,4 +134,5 @@ const paneState = computed<WorkspacePaneState>(() => {
 }
 .scene-list__error { margin: 4px 0 0; color: var(--flare-color-error-text); font-size: var(--flare-size-font-size-sm); }
 .scene-list__actions { display: flex; flex-wrap: wrap; gap: var(--flare-size-spacing-sm); }
+.scene-list.is-detail .scene-list__items { max-height: none; overflow: visible; border: 1px solid var(--flare-color-border-secondary); }
 </style>

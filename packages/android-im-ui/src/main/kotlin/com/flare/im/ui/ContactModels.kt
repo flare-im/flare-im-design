@@ -31,6 +31,8 @@ data class CallParticipant(
     val cameraOff: Boolean = false,
     val speaking: Boolean = false,
     val isSelf: Boolean = false,
+    /** Invited and not answered yet (3.4): the tile shows the avatar faded and "calling…". */
+    val calling: Boolean = false,
 )
 
 /** Who sent a [FriendRequest]: someone asking the current user, or the current user asking. */
@@ -47,7 +49,12 @@ data class FriendRequest(
     val message: String? = null,
     val direction: FriendRequestDirection = FriendRequestDirection.Incoming,
     val source: String? = null,
+    /** The other person (the applicant of an incoming request, the target of an outgoing one); null when unknown. */
+    val userId: String? = null,
 )
+
+/** Which answer to an incoming request the host is carrying out ([NewFriendRequests]' `pending`). */
+enum class FriendRequestAnswer { Accept, Reject }
 
 /** A group the current user belongs to. */
 data class GroupSummary(
@@ -96,6 +103,13 @@ data class SettingsItem(
     val description: String? = null,
     /** A short warning tag before the chevron (「需更新」 on a plugin entry this build cannot open yet), read with the row. A toggle row draws none. */
     val tag: String? = null,
+    /**
+     * A count badge before the chevron (pending friend or join requests), drawn when above 0 and reading 99+ above 99
+     * (`spec/count-badge-vectors.json`), the Vue row's numeric `badge`. A toggle row draws none.
+     */
+    val count: Int? = null,
+    /** The row's action is running: a small spinner in place of its end, and no second tap. */
+    val loading: Boolean = false,
 )
 
 data class SettingsSection(
@@ -186,7 +200,12 @@ data class StickerPack(
 enum class FlareButtonVariant { Primary, Secondary, Ghost, Danger, Text, Quiet }
 enum class FlareControlSize { Sm, Md, Lg }
 enum class FlareIconButtonVariant { Plain, Tinted, Solid }
-data class FlareSelectOption(val value: String, val label: String, val disabled: Boolean = false)
+data class FlareSelectOption(
+    val value: String,
+    val label: String,
+    val disabled: Boolean = false,
+    val description: String? = null,
+)
 
 // --- Moments (圈子) social feed ---
 data class MomentAuthor(val id: String, val name: String, val avatarUrl: String? = null)

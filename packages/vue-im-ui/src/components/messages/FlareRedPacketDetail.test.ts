@@ -112,6 +112,22 @@ describe("FlareRedPacketDetail", () => {
     expect(wrapper.get("section").attributes("data-viewer-role")).toBe("sender");
   });
 
+  it("stacks the sender avatar above the title, then the greeting (§4.6)", () => {
+    const wrapper = render();
+    const sender = wrapper.get(".flare-rp-detail__sender").element;
+    // Avatar first, title under it, both inside the centred sender block; the greeting follows the block.
+    expect(sender.firstElementChild?.classList.contains("im-avatar")).toBe(true);
+    expect(sender.children[1]?.tagName).toBe("H2");
+    expect(sender.nextElementSibling?.classList.contains("flare-rp-detail__blessing")).toBe(true);
+  });
+
+  it("draws claim avatars at the 40 message avatar size, not 32", () => {
+    const claims: FlareRedPacketClaim[] = [{ id: "u1", name: "阿花", amountMinor: "62", claimedAtMs: detail.nowMs - 60_000, best: false }];
+    const avatar = render({ claims }).get(".flare-rp-detail__row .im-avatar");
+    // The box comes from --flare-size-component-message-avatar-size in CSS; the prop no longer forces 32.
+    expect(avatar.attributes("style")).not.toContain("--avatar-size: 32px");
+  });
+
   it("lists every claim with name, time and amount, and marks only the best one", () => {
     const claims: FlareRedPacketClaim[] = [
       { id: "u1", name: "阿花", amountMinor: "62", claimedAtMs: detail.nowMs - 60_000, best: false },
@@ -156,5 +172,19 @@ describe("FlareRedPacketDetail", () => {
     await back.trigger("click");
     expect(backs).toEqual([1]);
     expect(render({ onBack: () => {}, title: "Lucky packet" } as never).get(".flare-rp-detail__bar h1").text()).toBe("Lucky packet");
+  });
+
+  it("makes the deposit note a wallet row only when the host listens to deposited", async () => {
+    const claimer = detail.cases.find((c) => c.id === "claimer-open")!.details;
+    expect(render({ details: claimer }).find("[data-detail-deposited]").exists()).toBe(false);
+    const opened: number[] = [];
+    const row = render({ details: claimer, onDeposited: () => opened.push(1) } as never).get("[data-detail-deposited]");
+    expect(row.element.tagName).toBe("BUTTON");
+    expect(row.text()).toContain("已存入");
+    await row.trigger("click");
+    expect(opened).toEqual([1]);
+    // No amount for this viewer: no row, whatever the host listens to.
+    const missed = detail.cases.find((c) => c.id === "eligible-completed")!.details;
+    expect(render({ details: missed, onDeposited: () => {} } as never).find("[data-detail-deposited]").exists()).toBe(false);
   });
 });

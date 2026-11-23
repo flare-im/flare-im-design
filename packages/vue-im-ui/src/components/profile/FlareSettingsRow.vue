@@ -5,7 +5,8 @@
  * `FlareProfilePanel` so the two can't drift apart. A `value` row is read-only
  * information, not a control: it renders no button and ignores clicks.
  */
-import { computed } from "vue";
+import { computed, useId } from "vue";
+import { useScreenLayout } from "../../shared/screenLayout";
 import { NIcon } from "naive-ui";
 import { ChevronForwardOutline } from "../../shared/icon-glyphs";
 import FlareGlyph from "../general/FlareGlyph.vue";
@@ -15,7 +16,12 @@ import type { FlareSettingsItem } from "../../shared/contracts";
 import { flareCountBadgeDrawn, flareCountBadgeText } from "../../shared/contracts/count-badge";
 import { useFlareI18nOptional } from "../../shared/i18n/useFlareI18n";
 
-const props = defineProps<{ item: FlareSettingsItem }>();
+const props = defineProps<{
+  item: FlareSettingsItem;
+  /** The row's action is running: a spinner replaces the chevron and the row is busy (and not pressable). */
+  loading?: boolean;
+}>();
+const { detail } = useScreenLayout();
 const emit = defineEmits<{
   (e: "toggle", item: FlareSettingsItem, value: boolean): void;
   (e: "select", item: FlareSettingsItem): void;
@@ -25,7 +31,9 @@ const emit = defineEmits<{
  * label it squeezed the label to one character per line.
  */
 const STACK_AFTER_CHARACTERS = 16;
-const stacked = computed(() => props.item.kind !== "toggle" && Array.from(props.item.detail ?? "").length > STACK_AFTER_CHARACTERS);
+const stacked = computed(() => props.item.kind !== "toggle" && Boolean(props.item.detail) && (props.item.detailBelow || Array.from(props.item.detail ?? "").length > STACK_AFTER_CHARACTERS));
+const id = useId();
+const toggleDescription = computed(() => props.item.kind === "toggle" ? props.item.detail?.trim() : undefined);
 const readOnly = computed(() => props.item.kind === "value");
 /** Only rows that open something carry a chevron; in-place actions and values do not. */
 const chevron = computed(() => (props.item.kind ?? "navigation") === "navigation");
@@ -33,7 +41,7 @@ const { t } = useFlareI18nOptional();
 const count = computed(() => (typeof props.item.badge === "number" ? props.item.badge : undefined));
 const dot = computed(() => props.item.badge === true);
 function activate() {
-  if (props.item.disabled || readOnly.value) return;
+  if (props.item.disabled || props.loading || readOnly.value) return;
   if (props.item.kind === 'toggle') emit('toggle', props.item, !props.item.value);
   else emit('select', props.item);
 }
@@ -44,15 +52,19 @@ function activate() {
     :is="readOnly ? 'div' : 'button'"
     :type="readOnly ? undefined : 'button'"
     class="flare-settings__row"
-    :class="{ 'is-danger': item.danger, 'is-stacked': stacked, 'is-static': readOnly, 'is-current': item.current }"
+    :class="{ 'is-detail': detail, 'is-danger': item.danger, 'is-stacked': stacked, 'is-static': readOnly, 'is-current': item.current, 'has-toggle-description': !!toggleDescription, 'has-icon': !!(item.icon || $slots.icon) }"
+    :aria-labelledby="toggleDescription ? `${id}-label` : undefined"
+    :aria-describedby="toggleDescription ? `${id}-description` : undefined"
     :aria-current="item.current ? 'true' : undefined"
-    :disabled="readOnly ? undefined : item.disabled"
+    :disabled="readOnly ? undefined : item.disabled || loading"
+    :aria-busy="loading || undefined"
     :role="item.kind === 'toggle' ? 'switch' : undefined"
     :aria-checked="item.kind === 'toggle' ? !!item.value : undefined"
     @click="activate"
   >
-    <span v-if="item.icon || $slots.icon" class="flare-settings__ico"><slot name="icon"><FlareGlyph v-if="item.icon" :icon="item.icon" :size="18" /></slot></span>
-    <span class="flare-settings__label">{{ item.label }}</span>
+    <span v-if="item.icon || $slots.icon" class="flare-settings__ico"><slot name="icon"><FlareGlyph v-if="item.icon" :icon="item.icon" size="md" /></slot></span>
+    <span :id="toggleDescription ? `${id}-label` : undefined" class="flare-settings__label">{{ item.label }}</span>
+    <span v-if="toggleDescription" :id="`${id}-description`" class="flare-settings__toggle-description">{{ toggleDescription }}</span>
     <FlareSwitch
       v-if="item.kind === 'toggle'"
       size="sm"
@@ -64,22 +76,23 @@ function activate() {
       <span v-if="item.detail" class="flare-settings__detail">{{ item.detail }}</span>
       <FlareTag v-if="item.tag?.trim()" class="flare-settings__tag" :label="item.tag.trim()" tone="warning" data-settings-tag="true" />
       <span v-if="dot" class="flare-settings__dot" role="img" :aria-label="t('settingsRow.badge')" />
-      <span v-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" :size="18" :component="ChevronForwardOutline" /></span>
+      <span v-if="loading" class="flare-settings__spinner" aria-hidden="true" data-settings-spinner="true" />
+      <span v-else-if="chevron" class="flare-settings__chev"><n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="ChevronForwardOutline" /></span>
     </template>
   </component>
 </template>
 
 <style scoped>
 .flare-settings__row {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: var(--flare-size-spacing-md);
   width: 100%; min-height: var(--flare-size-layout-touch-target); border: 0; text-align: start; font: inherit;
-  padding: 12px 16px; cursor: pointer;
+  padding: var(--flare-size-spacing-md) var(--flare-size-spacing-lg); cursor: pointer;
   background: var(--flare-color-bg-primary);
+  color: var(--flare-color-text-primary);
 }
 .flare-settings__row + .flare-settings__row { border-top: 1px solid var(--flare-color-border-secondary); }
-.flare-settings__ico { font-size: 18px; width: 20px; flex-shrink: 0; display: inline-flex; }
-.flare-settings__ico :deep(svg) { width: 20px; height: 20px; }
-.flare-settings__row:disabled { opacity: .45; cursor: not-allowed; }
+.flare-settings__ico { width: var(--flare-size-icon-size-md); height: var(--flare-size-icon-size-md); flex: none; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.flare-settings__row:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
 .flare-settings__row:hover:not(:disabled):not(.is-static) { background: var(--flare-color-bg-hover); }
 .flare-settings__row.is-static { cursor: default; }
 /* 当前行:与会话行、联系人行同一套语法(底色 + 主色 + 字重),不只靠颜色。 */
@@ -101,7 +114,20 @@ function activate() {
 .flare-settings__row.is-stacked .flare-settings__badge,
 .flare-settings__row.is-stacked .flare-settings__dot,
 .flare-settings__row.is-stacked .flare-settings__tag { grid-area: badge; }
-.flare-settings__row.is-stacked .flare-settings__chev { grid-area: chev; }
+.flare-settings__spinner {
+  flex: none;
+  box-sizing: border-box;
+  width: var(--flare-size-icon-size-sm);
+  height: var(--flare-size-icon-size-sm);
+  border: 2px solid var(--flare-color-text-tertiary);
+  border-top-color: transparent;
+  border-radius: var(--flare-size-radius-full);
+  animation: flare-settings-spin 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .flare-settings__spinner { animation: none; } }
+@keyframes flare-settings-spin { to { transform: rotate(360deg); } }
+.flare-settings__row.is-stacked .flare-settings__chev,
+.flare-settings__row.is-stacked .flare-settings__spinner { grid-area: chev; }
 .flare-settings__row.is-stacked .flare-settings__detail {
   grid-area: detail;
   max-width: none;
@@ -127,5 +153,31 @@ function activate() {
   background: var(--flare-color-error);
 }
 .flare-settings__tag { flex: none; }
-.flare-settings__chev { color: var(--flare-color-text-tertiary); }
+.flare-settings__chev { display: inline-flex; align-items: center; flex: none; line-height: 1; color: var(--flare-color-text-tertiary); }
+.flare-settings__row.has-toggle-description {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "icon label control" "icon description control";
+  row-gap: var(--flare-size-spacing-xs);
+}
+.flare-settings__row.has-toggle-description:not(.has-icon) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label control" "description control";
+}
+.has-toggle-description .flare-settings__ico { grid-area: icon; align-self: start; }
+.has-toggle-description .flare-settings__label { grid-area: label; }
+/* The kit switch's own root class: a row class on it would read as a size override (visual contract SettingsRow.toggle). */
+.has-toggle-description .flare-switch { grid-area: control; }
+.flare-settings__toggle-description {
+  grid-area: description;
+  min-width: 0;
+  color: var(--flare-color-text-secondary);
+  font-size: var(--flare-size-font-size-sm);
+  line-height: var(--flare-size-line-height-normal);
+  overflow-wrap: anywhere;
+}
+.flare-settings__row.is-detail { min-height: var(--flare-size-layout-control-height-md); padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md); }
+@media (any-pointer: coarse) {
+  .flare-settings__row.is-detail { min-height: var(--flare-size-layout-touch-target); }
+}
 </style>

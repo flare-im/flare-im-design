@@ -63,8 +63,24 @@ Color toneInk(String tone) => switch (tone) {
 String? textAt(WidgetTester tester, String key) {
   final finder = find.byKey(ValueKey(key));
   if (finder.evaluate().isEmpty) return null;
-  return tester.widget<Text>(finder).data;
+  // R8: an empty rows block is a compact EmptyState titled by its text.
+  return switch (tester.widget(finder)) {
+    final FlareEmptyState empty => empty.title,
+    final widget => (widget as Text).data,
+  };
 }
+
+/// A top-level action's key: its own, or the header key where R2.3 puts a
+/// records page's first primary.
+Finder actionFinder(String id) {
+  final own = find.byKey(ValueKey('flare-plugin-action-$id'));
+  return own.evaluate().isEmpty
+      ? find.byKey(FlarePluginPage.headerActionKey)
+      : own;
+}
+
+/// A drawn amount as data: R10 writes spending with a true minus (U+2212).
+String? dataText(String? text) => text?.replaceAll('\u2212', '-');
 
 /// The row keys a rows list draws, in order.
 List<String> drawnRowKeys(WidgetTester tester) => [
@@ -82,6 +98,50 @@ List<String> drawnRowKeys(WidgetTester tester) => [
       'flare-plugin-row:'.length,
     ),
 ];
+
+/// rules.rowTap: the control a whole row is (the InkWell around its chevron,
+/// or the spinner in its place); finds nothing on a row that keeps its keys.
+Finder rowControl(String row) => find.ancestor(
+  of: find.byWidgetPredicate(
+    (w) =>
+        w.key == ValueKey('flare-plugin-row-chevron:$row') ||
+        w.key == ValueKey('flare-plugin-row-spinner:$row'),
+  ),
+  matching: find.byType(InkWell),
+);
+
+bool isRowControl(String row) => rowControl(row).evaluate().isNotEmpty;
+
+/// What a tap on {row, action} hits: the row itself when it is the action's
+/// control (rules.pageRows), else the action's key on it.
+Finder rowActionTarget(String row, String action) => isRowControl(row)
+    ? find.byKey(FlarePluginView.rowKey(row))
+    : find.byKey(FlarePluginView.rowActionKey(row, action));
+
+/// Per drawn row, each control's (spinning, enabled): its keys, or the row
+/// control (the spinner in place of its chevron).
+Map<String, List<(bool, bool)>> rowControls(WidgetTester tester) => {
+  for (final row in drawnRowKeys(tester))
+    row: isRowControl(row)
+        ? [
+            (
+              find
+                  .byKey(ValueKey('flare-plugin-row-spinner:$row'))
+                  .evaluate()
+                  .isNotEmpty,
+              tester.widget<InkWell>(rowControl(row).first).onTap != null,
+            ),
+          ]
+        : [
+            for (final button in tester.widgetList<FlareButton>(
+              find.descendant(
+                of: find.byKey(FlarePluginView.rowKey(row)),
+                matching: find.byType(FlareButton),
+              ),
+            ))
+              (button.loading, !button.disabled),
+          ],
+};
 
 /// The labels of the filter tabs of [inputId], and the selected one's label.
 (List<String>, String) tabsOf(WidgetTester tester, String inputId) {
@@ -148,7 +208,7 @@ void main() {
               title: c['title'] as String?,
               view: view,
               filters: filtersOf(c['filters']),
-              onRefresh: () {},
+              onRefresh: (_) {},
               onRetry: () {},
               onLoadMore: (_) {},
               onFilter: (_) {},
@@ -228,7 +288,7 @@ void main() {
                   );
                 }
                 expect(
-                  textAt(tester, 'flare-plugin-row-primary:$key'),
+                  dataText(textAt(tester, 'flare-plugin-row-primary:$key')),
                   item['primary'],
                 );
                 // The facts hold at the vectors' zone; the screen draws the
@@ -251,14 +311,25 @@ void main() {
                 );
                 final actions = (item['actions'] as List)
                     .cast<Map<String, dynamic>>();
+                // rules.rowTap: a row whose only action opens a page is that
+                // action's control, ending with its chevron, and draws no key.
+                final tap = item['tap'] as String?;
+                expect(isRowControl(key), tap != null, reason: '$id $key');
                 expect(
                   find.descendant(
                     of: find.byKey(FlarePluginView.rowKey(key)),
                     matching: find.byType(FlareButton),
                   ),
-                  findsNWidgets(actions.length),
+                  findsNWidgets(tap == null ? actions.length : 0),
                 );
-                for (final a in actions) {
+                if (tap != null) {
+                  expect(
+                    find.byKey(ValueKey('flare-plugin-row-chevron:$key')),
+                    findsOneWidget,
+                  );
+                  expect([for (final a in actions) a['id']], [tap]);
+                }
+                for (final a in tap == null ? actions : const []) {
                   final button = tester.widget<FlareButton>(
                     find.byKey(
                       FlarePluginView.rowActionKey(key, a['id'] as String),
@@ -268,29 +339,47 @@ void main() {
                   expect(button.variant.name, a['variant']);
                 }
               }
-              expect(textAt(tester, 'flare-plugin-rows-empty'), fact['empty']);
+              // §5.8: under a chosen filter the empty block says so (and
+              // offers to clear it).
+              final filtered = (facts['filters'] as List).cast<Map>().any(
+                (f) => f['selected'] != (f['tabs'] as List).first,
+              );
+              expect(
+                textAt(tester, 'flare-plugin-rows-empty'),
+                filtered && fact['empty'] != null
+                    ? zh.pluginViewFilterEmpty
+                    : fact['empty'],
+              );
           }
         }
 
         final actions = (facts['actions'] as List).cast<Map<String, dynamic>>();
         final declared = [...view.actions, ...view.menuActions];
+        // R2: top-level actions are drawn in their places — a key, a list
+        // row (SettingsRow under the action's key) or, for a records page's
+        // first primary, the header key — each once.
         expect(
-          find.byWidgetPredicate(
-            (w) =>
-                w is FlareButton &&
-                w.key is ValueKey<String> &&
-                (w.key! as ValueKey<String>).value.startsWith(
-                  'flare-plugin-action-',
-                ),
-          ),
-          findsNWidgets(actions.length),
+          find
+                  .byWidgetPredicate(
+                    (w) =>
+                        (w is FlareButton || w is KeyedSubtree) &&
+                        w.key is ValueKey<String> &&
+                        (w.key! as ValueKey<String>).value.startsWith(
+                          'flare-plugin-action-',
+                        ),
+                  )
+                  .evaluate()
+                  .length +
+              find.byKey(FlarePluginPage.headerActionKey).evaluate().length,
+          actions.length,
         );
         for (final a in actions) {
-          final button = tester.widget<FlareButton>(
-            find.byKey(ValueKey('flare-plugin-action-${a['id']}')),
+          final drawn = actionFinder(a['id'] as String);
+          expect(
+            find.descendant(of: drawn, matching: find.text(a['label'])),
+            findsOneWidget,
+            reason: '$id ${a['id']}',
           );
-          expect(button.label, a['label']);
-          expect(button.variant.name, a['variant']);
           final action = declared.firstWhere((d) => d.id == a['id']);
           expect(action.confirm, a['confirm']);
           expect(action.form.isNotEmpty, a['form']);
@@ -367,21 +456,6 @@ void main() {
             ),
           ),
         );
-        // The row action keys on the page, by row key.
-        Map<String, List<FlareButton>> rowKeys() {
-          final keys = <String, List<FlareButton>>{};
-          for (final row in drawnRowKeys(tester)) {
-            keys[row] = tester
-                .widgetList<FlareButton>(
-                  find.descendant(
-                    of: find.byKey(FlarePluginView.rowKey(row)),
-                    matching: find.byType(FlareButton),
-                  ),
-                )
-                .toList();
-          }
-          return keys;
-        }
 
         var seen = 0;
         for (final st in s['steps'] as List) {
@@ -392,13 +466,8 @@ void main() {
             final row = tap['row'] as String?;
             await tester.tap(
               row == null
-                  ? find.byKey(ValueKey('flare-plugin-action-${tap['action']}'))
-                  : find.byKey(
-                      FlarePluginView.rowActionKey(
-                        row,
-                        tap['action'] as String,
-                      ),
-                    ),
+                  ? actionFinder(tap['action'] as String)
+                  : rowActionTarget(row, tap['action'] as String),
             );
             await tester.pumpAndSettle();
           }
@@ -458,22 +527,22 @@ void main() {
           if (step['spinningRows'] != null) {
             expect(
               [
-                for (final MapEntry(:key, :value) in rowKeys().entries)
-                  if (value.any((button) => button.loading)) key,
+                for (final MapEntry(:key, :value) in rowControls(
+                  tester,
+                ).entries)
+                  if (value.any((control) => control.$1)) key,
               ],
               step['spinningRows'],
               reason: reason,
             );
           }
           if (step['rowKeysEnabled'] != null) {
-            final buttons = rowKeys().values.expand((keys) => keys).toList();
-            expect(buttons, isNotEmpty, reason: reason);
-            for (final button in buttons) {
-              expect(
-                button.disabled,
-                !(step['rowKeysEnabled'] as bool),
-                reason: reason,
-              );
+            final controls = rowControls(
+              tester,
+            ).values.expand((controls) => controls).toList();
+            expect(controls, isNotEmpty, reason: reason);
+            for (final control in controls) {
+              expect(control.$2, step['rowKeysEnabled'], reason: reason);
             }
           }
           final emit = step['emit'] as Map<String, dynamic>?;
@@ -532,12 +601,7 @@ void main() {
             await tester.pump();
           } else if (tap is Map) {
             await tester.tap(
-              find.byKey(
-                FlarePluginView.rowActionKey(
-                  tap['row'] as String,
-                  tap['action'] as String,
-                ),
-              ),
+              rowActionTarget(tap['row'] as String, tap['action'] as String),
             );
             await tester.pumpAndSettle();
           }
@@ -586,7 +650,7 @@ void main() {
             expect(
               [
                 for (final key in drawnRowKeys(tester))
-                  textAt(tester, 'flare-plugin-row-primary:$key'),
+                  dataText(textAt(tester, 'flare-plugin-row-primary:$key')),
               ],
               step['primaries'],
               reason: reason,
@@ -626,7 +690,7 @@ void main() {
                   filters: filters,
                   refreshing: refreshing,
                   loadingMore: loadingMore,
-                  onRefresh: () {},
+                  onRefresh: (_) {},
                   onFilter: emitted.add,
                 );
               },
@@ -776,7 +840,7 @@ void main() {
             title: '钱包',
             view: pageView('unavailable-catalog-unreachable'),
             onRetry: () => retries++,
-            onRefresh: () => refreshes++,
+            onRefresh: (_) => refreshes++,
           ),
         ),
       );
@@ -797,7 +861,7 @@ void main() {
               page: walletRef,
               title: '钱包',
               view: pageView('unavailable-disabled'),
-              onRefresh: () {},
+              onRefresh: (_) {},
             ),
           ),
         );
@@ -815,7 +879,7 @@ void main() {
             page: walletRef,
             view: wallet(),
             error: '刷新失败',
-            onRefresh: () {},
+            onRefresh: (_) {},
           ),
         ),
       );
@@ -902,7 +966,7 @@ void main() {
                 page: walletRef,
                 view: wallet(),
                 refreshing: refreshing,
-                onRefresh: () => setState(() {
+                onRefresh: (_) => setState(() {
                   refreshes++;
                   refreshing = true;
                 }),
@@ -933,7 +997,7 @@ void main() {
             FlarePluginPage(
               page: walletRef,
               view: wallet(),
-              onRefresh: () => refreshes++,
+              onRefresh: (_) => refreshes++,
             ),
           ),
         );
@@ -994,15 +1058,12 @@ void main() {
         ),
       );
       await tester.pumpWidget(page(null));
-      await tester.tap(find.byKey(FlarePluginView.rowActionKey('l2', 'open')));
+      // rules.rowTap: these rows are their "open" control.
+      await tester.tap(rowActionTarget('l2', 'open'));
       await tester.pump();
       await tester.pumpWidget(page('open'));
-      FlareButton key(String row) => tester.widget<FlareButton>(
-        find.byKey(FlarePluginView.rowActionKey(row, 'open')),
-      );
-      expect(key('l2').loading, isTrue);
-      expect(key('l1').loading, isFalse);
-      expect(key('l1').disabled, isTrue);
+      expect(rowControls(tester)['l2'], [(true, false)]);
+      expect(rowControls(tester)['l1'], [(false, false)]);
     });
   });
 }

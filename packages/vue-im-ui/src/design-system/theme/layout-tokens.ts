@@ -28,5 +28,10 @@ export const flareLayout = {
   "headerHeight": 60,
   "sessionItemHeight": 72,
   "touchTarget": 48,
-  "touchTargetMin": 44
+  "touchTargetMin": 44,
+  "conversationRowDesktopHeight": 64,
+  "conversationRowMobileHeight": 68,
+  "messageTimelinePaddingTop": 12,
+  "messageTimelinePaddingBottom": 12,
+  "readableWidth": 680
 } as const;

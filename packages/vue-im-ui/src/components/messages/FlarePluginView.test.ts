@@ -783,7 +783,7 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     expect(details).toHaveLength(1);
   });
 
-  it("keeps text actions and details in one compact footer with semantic colors", () => {
+  it("keeps real keys and details in one compact footer with semantic colors (R2.4)", () => {
     const { wrapper } = render({ view: { ...viewOf("task"), actions: [
       { id: "complete", label: "完成", style: "primary" },
       { id: "end", label: "结束", style: "danger", confirm: "确定结束？" },
@@ -792,7 +792,7 @@ describe("FlarePluginView v2 (spec/plugin-view-vectors.json)", () => {
     expect(footer.find("[data-detail-key]").exists()).toBe(true);
     expect(footer.find("[data-detail-key]").classes()).not.toContain("is-block");
     expect(footer.get('[data-action-id="complete"]').classes()).toContain("flare-button--sm");
-    expect(footer.get('[data-action-id="end"]').classes()).toContain("is-text");
+    expect(footer.get('[data-action-id="end"]').classes()).not.toContain("is-text");
     expect(footer.get('[data-action-id="end"]').classes()).toContain("flare-button--danger");
   });
 

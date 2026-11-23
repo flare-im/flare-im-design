@@ -131,10 +131,10 @@ internal fun FlareModalLayer(
         scrim = colors.scrim,
         scrimLabel = if (flareScrimAnnounced(open, showClose)) strings.close else null,
         contentAlignment = Alignment.Center,
-        enter = if (reducedMotion) EnterTransition.None
+        enter = if (reducedMotion) flareReducedEnter
         else fadeIn(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) +
             scaleIn(tween(FlareMotion.normal, easing = FlareMotion.normalEasing), initialScale = FLARE_MODAL_ENTER_SCALE),
-        exit = if (reducedMotion) ExitTransition.None
+        exit = if (reducedMotion) flareReducedExit
         else fadeOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing)) +
             scaleOut(tween(FlareMotion.normal, easing = FlareMotion.normalEasing), targetScale = FLARE_MODAL_ENTER_SCALE),
         // A floating box: the bars and the keyboard are margins around it, never padding inside it. Resolved in the

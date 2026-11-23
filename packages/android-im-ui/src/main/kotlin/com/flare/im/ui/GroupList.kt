@@ -1,5 +1,7 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +31,8 @@ fun GroupList(
     onSelect: ((GroupSummary) -> Unit)? = null,
     /** Replaces the whole empty state, so it can say what to do about there being no group. */
     empty: (@Composable () -> Unit)? = null,
+    /** The group shown beside the list, drawn selected (Vue `active-id`). */
+    activeId: String? = null,
 ) {
     val strings = flareStrings()
     val emptyText = emptyText ?: strings.noGroups
@@ -41,6 +45,7 @@ fun GroupList(
         items(items, key = { it.id }) { g ->
             Row(
                 Modifier.fillMaxWidth()
+                    .then(if (g.id == activeId) Modifier.background(colors.bgSelected) else Modifier)
                     .then(if (onSelect != null) Modifier.clickable { onSelect(g) } else Modifier)
                     .padding(horizontal = FlareSizes.spacingMd, vertical = FlareSizes.spacingSm),
                 verticalAlignment = Alignment.CenterVertically,

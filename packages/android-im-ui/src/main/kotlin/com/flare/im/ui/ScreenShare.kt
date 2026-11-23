@@ -245,7 +245,7 @@ fun ScreenShare(
                         ),
                         modifier = Modifier.defaultMinSize(minWidth = FlareSizes.touchTarget, minHeight = FlareSizes.touchTarget),
                     ) {
-                        FlareIcon("block", size = 16.dp, tint = if (busy) colors.textDisabled else colors.errorText)
+                        FlareIcon("screen-share", size = 16.dp, tint = if (busy) colors.textDisabled else colors.errorText)
                         Spacer(Modifier.width(FlareSizes.spacingXs))
                         Text(stopText, fontSize = FlareSizes.fontSizeLg.value.sp)
                     }

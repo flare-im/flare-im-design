@@ -4,7 +4,10 @@ import SwiftUI
 
 /// Skeleton placeholder — shimmering loading blocks for common layouts.
 /// Spec: General/Skeleton (`SkeletonView`).
-public enum SkeletonVariant: Sendable { case conversation, message, profile, text }
+/// `card`, `list` and `form` are the plugin page skeletons (R8): an overview card over list rows, records rows, form
+/// fields.
+/// `tile` stands in for one composer panel tile (a square over a label bar) while plugin items load.
+public enum SkeletonVariant: Sendable { case conversation, message, profile, text, card, list, form, tile }
 
 public struct SkeletonView: View {
     private let variant: SkeletonVariant
@@ -26,6 +29,10 @@ public struct SkeletonView: View {
             case .message: message(colors)
             case .profile: profile(colors)
             case .text: text(colors)
+            case .card: card(colors)
+            case .list: list(colors)
+            case .form: form(colors)
+            case .tile: tile(colors)
             }
         }
         .onAppear { if !still { animating = true } }
@@ -121,6 +128,54 @@ public struct SkeletonView: View {
                 .frame(maxWidth: .infinity)
         }
         .frame(height: height)
+    }
+
+    /// An overview card 160 high, then `rows` list rows.
+    private func card(_ colors: FlareColors) -> some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
+            block(colors, height: FlareSizes.componentSkeletonCardHeight, radius: FlareSizes.radiusCard)
+            list(colors).padding(-FlareSizes.spacingLg)
+        }
+        .padding(FlareSizes.spacingLg)
+    }
+
+    /// `rows` record rows: a 36 circle, two lines, an amount.
+    private func list(_ colors: FlareColors) -> some View {
+        VStack(spacing: FlareSizes.spacingLg) {
+            ForEach(0..<rows, id: \.self) { _ in
+                HStack(spacing: FlareSizes.spacingMd) {
+                    circle(colors, 36)
+                    VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+                        line(colors, fraction: 0.5, height: 12)
+                        line(colors, fraction: 0.3, height: 10)
+                    }
+                    block(colors, width: 56, height: 14)
+                }
+            }
+        }
+        .padding(FlareSizes.spacingLg)
+    }
+
+    /// `rows` fields: a label line over a control-high box.
+    private func form(_ colors: FlareColors) -> some View {
+        VStack(alignment: .leading, spacing: FlareSizes.spacingLg) {
+            ForEach(0..<rows, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: FlareSizes.spacingSm) {
+                    line(colors, fraction: 0.25, height: 11)
+                    block(colors, height: FlareSizes.controlHeightLg, radius: FlareSizes.radiusLg)
+                }
+            }
+        }
+        .padding(FlareSizes.spacingLg)
+    }
+
+    /// One composer panel tile: the action square and a label bar under it.
+    private func tile(_ colors: FlareColors) -> some View {
+        VStack(spacing: FlareSizes.spacingXs) {
+            block(colors, width: FlareSizes.componentComposerActionWidth, height: FlareSizes.componentComposerActionWidth,
+                  radius: FlareSizes.radiusMd)
+            block(colors, width: FlareSizes.componentComposerActionWidth * 0.7, height: FlareSizes.fontSizeXs)
+        }
     }
 
     private func text(_ colors: FlareColors) -> some View {

@@ -30,7 +30,7 @@ void main() {
     );
   });
   testWidgets(
-    'filter change hides stale results, retries the submitted criteria, fits large text',
+    'filter change dims stale results, retries the submitted criteria, fits large text',
     (tester) async {
       tester.view.physicalSize = const Size(320, 1400);
       tester.view.devicePixelRatio = 1;
@@ -84,7 +84,21 @@ void main() {
         requests.single,
         const FlareSearchCriteria(query: '11', filterId: 'file'),
       );
-      expect(find.text('旧文本结果'), findsNothing);
+      // Vue: the last results stay, dimmed, while the next search runs, so
+      // the list never blanks; the field shows it is searching.
+      expect(
+        tester
+            .widget<Opacity>(
+              find
+                  .ancestor(
+                    of: find.text('旧文本结果'),
+                    matching: find.byType(Opacity),
+                  )
+                  .first,
+            )
+            .opacity,
+        0.6,
+      );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       update(
         () => snapshot = FlareSearchSnapshot(
@@ -94,7 +108,9 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.tap(find.widgetWithText(TextButton, '搜索').last);
+      // A failed search hides the stale list and offers 重试.
+      expect(find.text('旧文本结果'), findsNothing);
+      await tester.tap(find.text(const FlareStrings().retry));
       await tester.pump();
       expect(requests.length, 2);
       expect(requests.first, requests.last);
@@ -124,7 +140,7 @@ void main() {
     },
   );
   // A search that takes a limit and returns no count can say a group is
-  // truncated (hasMore) but not by how much: the row is the plain "更多", and
+  // truncated (hasMore) but not by how much: the row is the plain "查看更多", and
   // the counted row is kept for a known total, which wins when both are given.
   testWidgets(
     'a truncated group offers a countless more row, a counted one when the total is known',
@@ -166,9 +182,9 @@ void main() {
         ),
       );
       const strings = FlareStrings();
-      expect(find.text(strings.more), findsOneWidget);
+      expect(find.text(strings.searchViewMore), findsOneWidget);
       expect(find.text(strings.viewAll(9)), findsOneWidget);
-      await tester.tap(find.text(strings.more));
+      await tester.tap(find.text(strings.searchViewMore));
       expect(viewed, [FlareSearchResultKind.contact]);
     },
   );

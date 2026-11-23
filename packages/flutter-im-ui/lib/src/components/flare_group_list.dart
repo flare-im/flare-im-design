@@ -7,7 +7,8 @@ import 'flare_avatar.dart';
 import 'flare_empty_state.dart';
 
 /// My groups — group avatar, name, member count.
-/// Spec: Contacts/GroupList (`FlareGroupList`).
+/// Spec: Contacts/GroupList (`FlareGroupList`). [activeId] marks the group a
+/// neighbouring pane is showing, as [FlareContactList.activeId] does.
 class FlareGroupList extends StatelessWidget {
   const FlareGroupList({
     super.key,
@@ -16,6 +17,7 @@ class FlareGroupList extends StatelessWidget {
     this.emptyText = '暂无群聊',
     this.empty,
     this.memberCountText,
+    this.activeId,
   });
 
   final List<FlareGroupSummary> items;
@@ -28,6 +30,7 @@ class FlareGroupList extends StatelessWidget {
 
   /// Formats the member-count subtitle (defaults to "N 名成员").
   final String Function(int count)? memberCountText;
+  final String? activeId;
 
   @override
   Widget build(BuildContext context) {
@@ -56,57 +59,68 @@ class FlareGroupList extends StatelessWidget {
         itemCount: items.length,
         itemBuilder: (context, i) {
           final g = items[i];
+          final current = activeId == g.id;
           return InkWell(
             onTap: onSelect == null ? null : () => onSelect!(g),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: FlareSizes.spacingMd,
-                vertical: FlareSizes.spacingSm,
-              ),
-              child: Row(
-                children: [
-                  FlareAvatar(
-                    userId: g.id,
-                    displayName: g.name,
-                    avatarUrl: g.avatarUrl,
-                    size: 44,
-                  ),
-                  const SizedBox(width: FlareSizes.spacingMd),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          g.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: FlareSizes.fontSizeLg,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          memberCountText?.call(g.memberCount) ??
-                              strings.memberCount(g.memberCount),
-                          style: TextStyle(
-                            color: colors.textTertiary,
-                            fontSize: FlareSizes.fontSizeSm,
-                          ),
-                        ),
-                      ],
+            // Vue `.flare-group-list__row`: no chevron; the current row is
+            // tinted with a 3px primary bar at its start.
+            child: Ink(
+              decoration: current
+                  ? BoxDecoration(
+                      color: colors.bgSelected,
+                      border: BorderDirectional(
+                        start: BorderSide(color: colors.primary, width: 3),
+                      ),
+                    )
+                  : null,
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  current ? FlareSizes.spacing2md - 3 : FlareSizes.spacing2md,
+                  FlareSizes.spacingSm,
+                  FlareSizes.spacing2md,
+                  FlareSizes.spacingSm,
+                ),
+                child: Row(
+                  children: [
+                    FlareAvatar(
+                      userId: g.id,
+                      displayName: g.name,
+                      avatarUrl: g.avatarUrl,
+                      size: 40,
                     ),
-                  ),
-                  if (onSelect != null) ...[
-                    const SizedBox(width: FlareSizes.spacingSm),
-                    Icon(
-                      Icons.chevron_right,
-                      color: colors.textTertiary,
-                      size: FlareSizes.iconSizeMd,
+                    const SizedBox(width: FlareSizes.spacingMd),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            g.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: current
+                                  ? colors.primaryText
+                                  : colors.textPrimary,
+                              fontSize: FlareSizes.fontSizeLg,
+                              fontWeight: current
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            memberCountText?.call(g.memberCount) ??
+                                strings.memberCount(g.memberCount),
+                            style: TextStyle(
+                              color: colors.textTertiary,
+                              fontSize: FlareSizes.fontSizeSm,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
             ),
           );

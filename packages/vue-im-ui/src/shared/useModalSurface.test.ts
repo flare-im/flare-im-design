@@ -14,6 +14,7 @@ import FlareBottomSheet from "../components/general/FlareBottomSheet.vue";
 import FlareCommandPalette from "../components/general/FlareCommandPalette.vue";
 import FlareModal from "../components/general/FlareModal.vue";
 import VideoPlayerModal from "../components/message-preview/VideoPlayerModal.vue";
+import { canFocusFlareModalTarget } from "./useModalSurface";
 
 let host: ReturnType<typeof mount> | undefined;
 afterEach(() => {
@@ -64,6 +65,19 @@ function mountStack(overlayContainer?: string) {
 }
 
 describe("modal surfaces share one stack", () => {
+  it("allows deferred focus only inside the topmost surface, including after a nested surface closes", async () => {
+    const { sheetOpen, videoOpen } = mountStack();
+    await nextTick();
+    const sheet = document.querySelector<HTMLElement>('[role="dialog"][aria-label="Sheet"]')!;
+    expect(canFocusFlareModalTarget(document.body)).toBe(false);
+    expect(canFocusFlareModalTarget(sheet)).toBe(false);
+    videoOpen.value = false;
+    await nextTick();
+    expect(canFocusFlareModalTarget(sheet)).toBe(true);
+    sheetOpen.value = false;
+    await nextTick();
+    expect(canFocusFlareModalTarget(document.body)).toBe(true);
+  });
   it("keeps the scroll lock while any surface is still open, then restores the prior value", async () => {
     // 宿主自己本来就锁着的情况:还回去的必须是这个值,不是空串。
     document.body.style.overflow = "auto";

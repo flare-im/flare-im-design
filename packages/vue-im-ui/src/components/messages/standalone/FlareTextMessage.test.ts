@@ -39,4 +39,15 @@ describe("canonical text body", () => {
     expect(inline.findComponent(FlareEmojiMessage).exists()).toBe(false);
     expect(inline.findComponent(FrozenStickerThumb).exists()).toBe(true);
   });
+
+  it("highlights the mention span alongside emoji without highlighting literal text", () => {
+    const wrapper = mount(FlareTextMessage, { props: {
+      text: "@林夏 [alien] 提到 @我",
+      mentions: [{ start: 0, length: 3, self: true, all: false }],
+    } });
+    expect(wrapper.findAll(".fm-text__mention")).toHaveLength(1);
+    expect(wrapper.get(".fm-text__mention.is-me").text()).toBe("@林夏");
+    expect(wrapper.findComponent(FrozenStickerThumb).exists()).toBe(true);
+    expect(wrapper.text()).toContain("提到 @我");
+  });
 });

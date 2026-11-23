@@ -87,13 +87,13 @@ class MediaDownloadStateInteractionTest {
         compose.onNodeWithContentDescription(strings.download).assertButton().assertTouchTarget().performClick()
 
         compose.runOnIdle { state = downloading }
-        // The ring stands where the key was and is not a second key; the line says the download runs.
+        // The progress ring replaces the download key.
         compose.onNodeWithContentDescription(strings.downloading).assertHasNoClickAction().assertTouchTarget()
         compose.onNodeWithContentDescription(strings.download).assertDoesNotExist()
-        compose.onNodeWithText("8.5 KB · TXT · ${strings.downloading} 40%", substring = true).assertExists()
+        compose.onNodeWithText("8.5 KB · TXT").assertExists()
 
         compose.runOnIdle { state = saved }
-        compose.onNodeWithText("8.5 KB · TXT · ${strings.downloaded}", substring = true).assertExists()
+        compose.onNodeWithText("8.5 KB · TXT").assertExists()
         compose.onNodeWithContentDescription(strings.download).assertDoesNotExist()
         compose.onNodeWithContentDescription(strings.showInFolder).assertButton().assertTouchTarget().performClick()
 

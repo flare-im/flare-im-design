@@ -2,6 +2,8 @@ package com.flare.im.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -28,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -74,6 +78,8 @@ fun AccessDiagnostics(
     onImportRecovery: ((String) -> Unit)? = null,
     /** Copy the diagnostics (`access.exportDiagnostics`, then the clipboard). */
     onExportDiagnostics: (() -> Unit)? = null,
+    compact: Boolean = false,
+    preferences: (@Composable () -> Unit)? = null,
 ) {
     val strings = flareStrings()
     val view = LocalView.current
@@ -90,24 +96,31 @@ fun AccessDiagnostics(
     LaunchedEffect(spoken) { if (spoken != null) view.announceForAccessibility(spoken) }
 
     val recovery: @Composable () -> Unit = {
-        AccessRecovery(
-            link = link,
-            onLinkChange = { link = it },
-            refreshing = refreshing,
-            refresh = refresh,
-            importing = importing,
-            import = import,
-            exporting = exporting,
-            export = export,
-            content = (status != null) to accessPoints.size,
-            onRefresh = onRefresh,
-            onImportRecovery = onImportRecovery,
-            onExportDiagnostics = onExportDiagnostics,
-        )
+        val colors = flareColors()
+        val shape = RoundedCornerShape(FlareSizes.radiusLg)
+        val frame = if (compact) Modifier.clip(shape).background(colors.bgElevated)
+            .border(1.dp, colors.borderSecondary, shape).padding(FlareSizes.spacingMd)
+        else Modifier
+        Box(Modifier.fillMaxWidth().then(frame)) {
+            AccessRecovery(
+                link = link,
+                onLinkChange = { link = it },
+                refreshing = refreshing,
+                refresh = refresh,
+                importing = importing,
+                import = import,
+                exporting = exporting,
+                export = export,
+                content = (status != null) to accessPoints.size,
+                onRefresh = onRefresh,
+                onImportRecovery = onImportRecovery,
+                onExportDiagnostics = onExportDiagnostics,
+            )
+        }
     }
     Column(
         Modifier.fillMaxWidth().semantics { contentDescription = strings.accessDiagnosticsTitle },
-        verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingXl),
+        verticalArrangement = Arrangement.spacedBy(if (compact) FlareSizes.spacingLg else FlareSizes.spacingXl),
     ) {
         if (model.notices.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingSm)) {
@@ -116,32 +129,59 @@ fun AccessDiagnostics(
                 }
             }
         }
-        if (model.state == FlareAccessDiagnosticsState.Recovering) recovery()
-        AccessCurrentLine(status, model)
-        AccessLines(model, onPin, onUnpin)
-        if (model.state != FlareAccessDiagnosticsState.Recovering) recovery()
+        preferences?.invoke()
+        val showRecoveryFirst = compact || model.state == FlareAccessDiagnosticsState.Recovering
+        if (showRecoveryFirst) recovery()
+        AccessCurrentLine(status, model, compact)
+        AccessLines(model, onPin, onUnpin, compact)
+        if (!showRecoveryFirst) recovery()
     }
 }
 
 @Composable
-private fun AccessSection(title: String, content: @Composable () -> Unit) {
+private fun AccessSection(title: String, collapsible: Boolean = false, content: @Composable () -> Unit) {
     val colors = flareColors()
-    Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+    val heading: @Composable (Modifier) -> Unit = { modifier ->
         Text(
             title,
             color = colors.textPrimary,
             fontSize = FlareTextRoles.Body.fontSize,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.semantics { heading() },
+            modifier = modifier.semantics { heading() },
         )
-        content()
+    }
+    if (collapsible) {
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        val shape = RoundedCornerShape(FlareSizes.radiusLg)
+        Column(Modifier.fillMaxWidth().clip(shape).background(colors.bgElevated).border(1.dp, colors.borderSecondary, shape)) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = FlareSizes.touchTarget)
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .padding(horizontal = FlareSizes.spacingMd),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                heading(Modifier.weight(1f))
+                FlareIcon(if (expanded) "chevron-up" else "chevron-down", size = FlareSizes.iconSizeSm, tint = colors.textSecondary)
+            }
+            if (expanded) {
+                Column(
+                    Modifier.padding(start = FlareSizes.spacingMd, end = FlareSizes.spacingMd, bottom = FlareSizes.spacingMd),
+                    verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd),
+                ) { content() }
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(FlareSizes.spacingMd)) {
+            heading(Modifier)
+            content()
+        }
     }
 }
 
 @Composable
-private fun AccessCurrentLine(status: FlareAccessStatus?, model: FlareAccessDiagnosticsModel) {
+private fun AccessCurrentLine(status: FlareAccessStatus?, model: FlareAccessDiagnosticsModel, compact: Boolean) {
     val strings = flareStrings()
-    AccessSection(strings.accessDiagnosticsCurrent) {
+    AccessSection(strings.accessDiagnosticsCurrent, collapsible = compact) {
         AccessFact(strings.accessDiagnosticsAccessPoint, status?.accessPointId)
         AccessFact(strings.accessDiagnosticsRegion, status?.regionId)
         AccessFact(strings.accessDiagnosticsProtocol, flareAccessProtocolLabel(status?.protocol))
@@ -194,10 +234,11 @@ private fun AccessLines(
     model: FlareAccessDiagnosticsModel,
     onPin: ((String) -> Unit)?,
     onUnpin: (() -> Unit)?,
+    compact: Boolean,
 ) {
     val strings = flareStrings()
     val colors = flareColors()
-    AccessSection(strings.accessDiagnosticsLines) {
+    AccessSection(strings.accessDiagnosticsLines, collapsible = compact) {
         if (model.regions.isEmpty()) {
             Text(strings.accessDiagnosticsNoLines, color = colors.textTertiary, fontSize = FlareTextRoles.Body.fontSize)
         }

@@ -25,7 +25,8 @@ const loadedDurationSeconds = ref(0);
 const playbackError = ref(false);
 
 const payloadDurationSeconds = computed(() => {
-  const ms = readNumber(payload.value, 0, "durationMs", "duration_ms", "durationMillis", "duration_millis");
+  const ms = readNumber(payload.value, 0, "durationMs", "duration_ms", "durationMillis", "duration_millis")
+    || readNumber(source.value, 0, "durationMs", "duration_ms", "durationMillis", "duration_millis");
   if (ms > 0) return Math.max(1, Math.round(ms / 1000));
   const seconds = readNumber(payload.value, 0, "durationSeconds", "duration_seconds", "duration");
   return seconds > 0 ? Math.max(1, Math.round(seconds)) : 0;
@@ -143,6 +144,7 @@ onBeforeUnmount(() => {
       preload="metadata"
       class="im-audio__player"
       @loadedmetadata="onLoadedMetadata"
+      @durationchange="onLoadedMetadata"
       @timeupdate="onTimeUpdate"
       @play="isPlaying = true"
       @pause="isPlaying = false"

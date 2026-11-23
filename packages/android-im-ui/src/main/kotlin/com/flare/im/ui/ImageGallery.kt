@@ -2,6 +2,16 @@ package com.flare.im.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
 
+/** Download state for one item, including each picture in an album. */
+fun flareMediaDownloadStateKey(message: FlareMessageData, picked: FlareMessageContent): String? {
+    val album = message.content as? FlareImageGroupContent
+    if (album != null) {
+        val index = (picked as? FlareImageContent)?.let(album.images::indexOf) ?: -1
+        return if (index >= 0) "${message.id}#image:$index" else null
+    }
+    return if (picked is FlareImageContent || picked is FlareVideoContent || picked is FlareFileContent) message.id else null
+}
+
 /*
  * A conversation's image gallery: the pictures a full-screen preview opened from a timeline pages through. The rule
  * is shared with the other three kits (`spec/image-gallery-vectors.json`).
@@ -44,6 +54,7 @@ fun flareImageGalleryStart(items: List<FlareImageGalleryItem>, messageId: String
 internal class FlareTimelineGallery(
     val items: List<FlareImageGalleryItem>,
     val reveal: ((FlareImageGalleryItem) -> Unit)? = null,
+    val stateKey: (FlareImageGalleryItem) -> String = { it.messageId },
     val download: ((FlareImageGalleryItem) -> Unit)?,
 )
 
@@ -74,7 +85,7 @@ internal fun flareImagePresentation(
         sources = items.map { it.source },
         index = start,
         onDownload = download?.let { save -> { page -> save(items[page]) } },
-        messageIds = items.map { it.messageId },
+        messageIds = items.map(gallery.stateKey),
         onReveal = if (download == null) null else reveal?.let { show -> { page -> show(items[page]) } },
     )
 }

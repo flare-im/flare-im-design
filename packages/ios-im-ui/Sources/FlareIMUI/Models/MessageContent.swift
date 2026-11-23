@@ -96,8 +96,11 @@ public struct FlareVideoContent: FlareMessageContent {
     public let url: String
     public let poster: String?
     public let durationSec: Int
-    public init(url: String, poster: String? = nil, durationSec: Int = 0) {
+    /// A host-resolved local copy, kept separate from the message's network address.
+    public let localPath: String?
+    public init(url: String, poster: String? = nil, durationSec: Int = 0, localPath: String? = nil) {
         self.url = url; self.poster = poster; self.durationSec = durationSec
+        self.localPath = localPath
     }
     public var type: String { "video" }
 }

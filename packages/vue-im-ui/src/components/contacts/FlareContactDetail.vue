@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Contact profile — hero (avatar / name / presence / star chip), an action row
+ * Contact profile — compact identity (avatar / name / presence / star), an action row
  * (message / voice / video), a 资料 settings card (Flare ID / remark /
  * description / favorite toggle), and a danger zone (block / remove). Purely
  * presentational: it renders state from props and emits intents; the host owns
@@ -16,6 +16,7 @@
  * handled, follows as a secondary key. It is not one of the footer's `extraActions`. While the host runs it,
  * `primaryActionBusy` puts a spinner in place of its icon and locks that key alone; `busy` still locks everything.
  */
+import { useScreenLayout } from "../../shared/screenLayout";
 import { computed, getCurrentInstance } from "vue";
 import { NIcon } from "naive-ui";
 import FlareButton from "../general/FlareButton.vue";
@@ -36,6 +37,7 @@ import type {
   FlareSettingsSection,
 } from "../../shared/contracts";
 
+const { detail: detailLayout } = useScreenLayout();
 const props = defineProps<{
   contact: FlareContact;
   /** Label of the page's primary action for someone who is not a contact yet; drawn with a `primaryAction` listener. */
@@ -148,38 +150,28 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
 </script>
 
 <template>
-  <div class="flare-contact-detail">
+  <div class="flare-contact-detail" :class="{ 'is-detail': detailLayout }">
     <div class="flare-contact-detail__hero">
       <FlareAvatar
         :user-id="contact.id"
         :display-name="contact.name"
         :avatar-url="contact.avatarUrl"
-        :size="76"
-        show-status
+        :size="64"
+        :show-status="Boolean(contact.presence)"
         :status="avatarStatus"
       />
-      <div class="flare-contact-detail__name">{{ contact.name }}</div>
-      <div v-if="presenceLabel" class="flare-contact-detail__presence" :class="`is-${contact.presence}`">
-        <span class="dot" />{{ presenceLabel }}
+      <div class="flare-contact-detail__identity">
+        <div class="flare-contact-detail__heading">
+          <h2 class="flare-contact-detail__name">{{ contact.name }}</h2>
+          <span v-if="starred" class="flare-contact-detail__star" :aria-label="t('contact.star')"><n-icon aria-hidden="true" :size="16" :component="flareIcons.star" /></span>
+        </div>
+        <div v-if="presenceLabel" class="flare-contact-detail__presence" :class="`is-${contact.presence}`">
+          <span class="dot" />{{ presenceLabel }}
+        </div>
+        <div v-if="contact.signature" class="flare-contact-detail__sig">{{ contact.signature }}</div>
       </div>
-      <div v-if="contact.signature" class="flare-contact-detail__sig">{{ contact.signature }}</div>
-      <span v-if="starred" class="flare-contact-detail__star"><n-icon aria-hidden="true" :size="12" :component="flareIcons.star" />{{ t("contact.star") }}</span>
     </div>
 
-    <div v-if="actions().length" class="flare-contact-detail__actions">
-      <FlareButton
-        v-for="action in actions()"
-        :key="action.id"
-        :variant="action.primary ? 'primary' : 'secondary'"
-        :icon="action.icon"
-        :label="action.label"
-        size="sm"
-        :disabled="disabled(action) && !pending(action)"
-        :data-contact-action="action.id"
-        :loading="pending(action)"
-        @click="runAction(action.id)"
-      />
-    </div>
 
     <FlareSettingsList v-if="sections().length" class="flare-contact-detail__card" :sections="sections()" @select="onSelect" @toggle="onToggle" />
 
@@ -189,7 +181,7 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
         :key="action.id"
         :label="action.label"
         :variant="action.danger ? 'danger' : 'secondary'"
-        size="sm"
+        size="lg"
         block
         :disabled="busy"
         @click="emit('extraAction', action.id)"
@@ -197,34 +189,50 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
     </div>
 
     <div v-if="handles('onBlock') || handles('onRemove')" class="flare-contact-detail__foot">
-      <FlareButton v-if="handles('onBlock')" :label="t('contact.block')" variant="secondary" size="sm" block :disabled="busy" @click="emit('block')" />
-      <FlareButton v-if="handles('onRemove')" :label="t('contact.remove')" variant="danger" size="sm" block :disabled="busy" @click="emit('remove')" />
+      <FlareButton v-if="handles('onBlock')" :label="t('contact.block')" variant="secondary" size="lg" block :disabled="busy" @click="emit('block')" />
+      <FlareButton v-if="handles('onRemove')" :label="t('contact.remove')" variant="danger" size="lg" block :disabled="busy" @click="emit('remove')" />
+    </div>
+    <div v-if="actions().length" class="flare-contact-detail__actions">
+      <FlareButton
+        v-for="action in actions()"
+        :key="action.id"
+        :variant="action.primary ? 'primary' : 'secondary'"
+        :icon="action.id === 'message' ? undefined : action.icon"
+        :label="action.label"
+        size="lg"
+        :block="action.primary && !detailLayout"
+        :disabled="disabled(action) && !pending(action)"
+        :data-contact-action="action.id"
+        :loading="pending(action)"
+        @click="runAction(action.id)"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
-.flare-contact-detail { display: flex; flex-direction: column; }
-.flare-contact-detail__hero { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px var(--flare-size-spacing-2sm); }
-.flare-contact-detail__name { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--flare-color-text-primary); }
+.flare-contact-detail { display: flex; flex-direction: column; min-height: 100%; width: 100%; max-width: var(--flare-size-layout-readable-width, 680px); margin-inline: auto; }
+.flare-contact-detail__hero { display: flex; align-items: center; gap: var(--flare-size-spacing-2md); padding: var(--flare-size-spacing-lg) var(--flare-size-spacing-md) var(--flare-size-spacing-md); }
+.flare-contact-detail__identity { display: flex; flex: 1; flex-direction: column; align-items: flex-start; gap: var(--flare-size-spacing-xs); min-width: 0; }
+.flare-contact-detail__heading { display: flex; align-items: center; gap: var(--flare-size-spacing-sm); max-width: 100%; }
+.flare-contact-detail__name { margin: 0; min-width: 0; font-size: var(--flare-size-font-size-xl); line-height: var(--flare-size-line-height-tight); font-weight: 700; letter-spacing: -0.01em; overflow-wrap: anywhere; color: var(--flare-color-text-primary); }
 .flare-contact-detail__presence { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--flare-color-text-secondary); }
 .flare-contact-detail__presence .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--flare-color-text-tertiary); }
 .flare-contact-detail__presence.is-online .dot { background: var(--flare-color-success); }
 .flare-contact-detail__presence.is-busy .dot { background: var(--flare-color-error); }
 .flare-contact-detail__presence.is-away .dot { background: var(--flare-color-warning); }
-.flare-contact-detail__sig { font-size: 13px; color: var(--flare-color-text-secondary); text-align: center; }
+.flare-contact-detail__sig { font-size: var(--flare-size-font-size-md); line-height: var(--flare-size-line-height-normal); color: var(--flare-color-text-secondary); overflow-wrap: anywhere; white-space: pre-wrap; }
 .flare-contact-detail__star {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px var(--flare-size-spacing-2sm); border-radius: 999px; font-size: 12px; font-weight: 600;
-  color: var(--flare-color-primary-text); background: var(--flare-color-bg-selected);
+  display: inline-flex; flex: none; align-items: center;
+  color: var(--flare-color-primary-text);
 }
 
 .flare-contact-detail__actions {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: var(--flare-size-spacing-2sm); padding: 6px 16px 4px;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--flare-size-spacing-2sm); position: sticky; bottom: 0; z-index: 1; margin-block-start: auto; background: var(--flare-color-bg-primary); padding: var(--flare-size-spacing-sm) var(--flare-size-spacing-md) max(var(--flare-size-spacing-sm), env(safe-area-inset-bottom));
 }
 .flare-contact-detail__actions > .flare-button {
-  height: auto; max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+  flex: 0 0 auto; max-width: 100%;
 }
 .flare-contact-detail__card { margin-top: 8px; }
 
@@ -235,6 +243,17 @@ function onToggle(item: FlareSettingsItem, value: boolean) {
    (接受 / 拒绝 / 加入黑名单)直接贴上来,两块之间一条缝都没有。 */
 .flare-contact-detail__extra:last-child { padding-block-end: var(--flare-size-spacing-md); }
 .flare-contact-detail__foot { display: flex; flex-direction: column; gap: var(--flare-size-spacing-2sm); padding: 16px; }
+.flare-contact-detail.is-detail { max-width: none; margin: 0; }
+.flare-contact-detail.is-detail .flare-contact-detail__hero { padding: 0 0 var(--flare-size-spacing-md); }
+.flare-contact-detail.is-detail .flare-contact-detail__actions {
+  position: static;
+  margin-block-start: var(--flare-size-spacing-md);
+  padding-inline: 0;
+  background: transparent;
+}
+.flare-contact-detail.is-detail .flare-contact-detail__card { margin-top: var(--flare-size-spacing-sm); }
+.flare-contact-detail.is-detail .flare-contact-detail__extra,
+.flare-contact-detail.is-detail .flare-contact-detail__foot { padding-inline: 0; }
 @media (pointer: coarse) {
   .flare-contact-detail__actions, .flare-contact-detail__extra, .flare-contact-detail__foot {
     row-gap: calc(var(--flare-size-layout-touch-target) - var(--flare-size-layout-control-height-sm));

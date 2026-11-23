@@ -82,12 +82,19 @@ enum FlareOverlayRules {
         fallback == .push && compact ? .push : .cover
     }
 
-    /// The drawer panel's width: the requested width (default ``FlareSizes/componentSheetWidth``), clamped so a
-    /// touch-target-wide strip of scrim always remains beside it.
+    /// The drawer panel's width: the whole window up to ``drawerFullWidthMax`` (Vue `@media (max-width: 640px)`),
+    /// else the requested width (default ``FlareSizes/componentSheetWidth``), clamped so a touch-target-wide strip
+    /// of scrim always remains beside it.
     static func drawerWidth(requested: CGFloat?, window: CGFloat) -> CGFloat {
+        if drawerFillsWindow(window) { return max(0, window) }
         let preferred = requested ?? FlareSizes.componentSheetWidth
         return max(0, min(preferred, window - FlareSizes.touchTarget))
     }
+
+    /// The widest window a drawer covers edge to edge, square-cornered (Vue's 640px breakpoint).
+    static let drawerFullWidthMax: CGFloat = 640
+
+    static func drawerFillsWindow(_ window: CGFloat) -> Bool { window <= drawerFullWidthMax }
 
     /// The Modal box's width: the requested width (default ``FlareSizes/componentSheetDialogWidth``), clamped to
     /// the window less an extra-large gutter on each side.

@@ -101,10 +101,16 @@ void main() {
             for (final entry in entries) {
               final row = find.byKey(ValueKey('account-entry:${entry.id}'));
               expect(entry.title, entry.row.cells[1].text);
+              // R10: spending reads with a true minus (U+2212).
               expect(
                 find.descendant(
                   of: row,
-                  matching: find.text(entry.row.cells[0].text),
+                  matching: find.text(
+                    entry.row.cells[0].text.replaceFirst(
+                      RegExp('^-'),
+                      '\u2212',
+                    ),
+                  ),
                 ),
                 findsOneWidget,
               );
@@ -119,6 +125,11 @@ void main() {
                 of: row,
                 matching: find.byType(FlareTag),
               );
+              // §5.8: the status Tag shows only when it is not 已完成.
+              if (entry.row.badge!.tone == FlarePluginTone.success) {
+                expect(badge, findsNothing);
+                continue;
+              }
               expect(
                 tester.widget<FlareTag>(badge).label,
                 entry.row.badge!.text,
@@ -152,7 +163,9 @@ void main() {
                 expect(
                   find.descendant(
                     of: find.byKey(FlarePluginView.rowKey(row.key)),
-                    matching: find.text(row.cells.first.text),
+                    matching: find.text(
+                      row.cells.first.text.replaceFirst(RegExp('^-'), '\u2212'),
+                    ),
                   ),
                   findsOneWidget,
                 );

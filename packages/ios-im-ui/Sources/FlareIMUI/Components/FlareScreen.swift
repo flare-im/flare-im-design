@@ -30,6 +30,7 @@ public struct FlareScreen<Content: View>: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.flareBrandTheme) private var flareBrandTheme
     @Environment(\.flareStrings) private var strings
+    @Environment(\.flareCompactOverlays) private var compactOverlays
 
     public init(
         title: String? = nil,
@@ -64,7 +65,7 @@ public struct FlareScreen<Content: View>: View {
                     if let onBack {
                         Button(action: onBack) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: FlareSizes.iconSizeMd, weight: .semibold))
+                                .font(.system(size: compactOverlays ? FlareSizes.iconSizeLg : FlareSizes.iconSizeMd, weight: .semibold))
                                 .foregroundColor(colors.textPrimary)
                                 .frame(minWidth: FlareSizes.touchTarget, minHeight: FlareSizes.touchTarget)
                         }
@@ -76,10 +77,13 @@ public struct FlareScreen<Content: View>: View {
                             .font(.system(size: titleSize, weight: .bold))
                             .foregroundColor(colors.textPrimary)
                             .lineLimit(1)
+                            // R11: the page title is the page's heading.
+                            .accessibilityAddTraits(.isHeader)
                     }
                     Spacer(minLength: 0)
                     if let actions { actions }
                 }
+                .environment(\.flareHeaderIcons, true)
                 .frame(minHeight: FlareSizes.touchTarget)
                 .padding(.horizontal, FlareSizes.spacingMd)
                 .padding(.vertical, FlareSizes.spacingSm)

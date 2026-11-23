@@ -65,13 +65,15 @@ final class ConversationActionSheetTests: XCTestCase {
         XCTAssertEqual(view.label(for: .delete), "Delete")
         XCTAssertEqual(view.label(for: .unmute), "取消免打扰")
         XCTAssertEqual(view.label(for: .markUnread), "标为未读")
-        XCTAssertEqual(view.label(for: .clearHistory), "清空本地记录")
+        XCTAssertEqual(view.label(for: .clearHistory), "清空聊天记录")
     }
 
     func testMarkUnreadAndClearHistoryCopyComesFromTheStringsTable() {
         let view = ConversationActionSheetView(conversation: base, capabilities: every)
-        let english = view.resolveCopy(FlareStrings(conversationActionSheetMarkUnread: "Mark as unread",
-                                                    conversationActionSheetClearHistory: "Clear local history"))
+        let english = view.resolveCopy(FlareStrings { copy in
+            copy.conversationActionSheetMarkUnread = "Mark as unread"
+            copy.conversationActionSheetClearHistory = "Clear local history"
+        })
         XCTAssertEqual(english.markUnreadText, "Mark as unread")
         XCTAssertEqual(english.clearHistoryText, "Clear local history")
         XCTAssertEqual(ConversationActionSheetView.symbol(for: .markUnread), flareIconMap["mark-unread"])

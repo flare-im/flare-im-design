@@ -61,7 +61,7 @@ function seekAt(e: MouseEvent): void {
         :aria-label="playing ? t('voicePlayer.pause') : t('voicePlayer.play')"
         @click="emit('toggle')"
       >
-        <n-icon aria-hidden="true" :size="18" :component="playing ? PauseOutline : PlayOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="playing ? PauseOutline : PlayOutline" />
         <span v-if="unplayed && !playing" class="flare-voice-player__dot" />
       </button>
 
@@ -90,7 +90,7 @@ function seekAt(e: MouseEvent): void {
       class="flare-voice-player__tr-toggle"
       @click="emit('toggleTranscript')"
     >
-      <n-icon aria-hidden="true" :size="13" :component="DocumentTextOutline" />
+      <n-icon aria-hidden="true" size="var(--flare-size-icon-size-sm)" :component="DocumentTextOutline" />
       {{ transcriptOpen ? t("voicePlayer.hideText") : t("voicePlayer.toText") }}
     </button>
     <p v-if="transcript && transcriptOpen" class="flare-voice-player__tr">{{ transcript }}</p>

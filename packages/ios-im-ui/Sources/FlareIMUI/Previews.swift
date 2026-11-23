@@ -655,7 +655,6 @@ struct FlareMessageMenu_Previews: PreviewProvider {
             perform: { _, _ in }))
     }
 }
-#endif
 
 struct FlarePluginPage_Previews: PreviewProvider {
     static var previews: some View {
@@ -676,6 +675,7 @@ struct FlarePluginPage_Previews: PreviewProvider {
                                      choices: [PluginInputChoice(value: "send", label: "发出"),
                                                PluginInputChoice(value: "claim", label: "收到")])],
                 nextCursor: "next")),
-            onBack: {}, onRefresh: {}, onLoadMore: { _ in }, onFilter: { _ in })
+            onBack: {}, onRefresh: { _ in }, onLoadMore: { _ in }, onFilter: { _ in })
     }
 }
+#endif

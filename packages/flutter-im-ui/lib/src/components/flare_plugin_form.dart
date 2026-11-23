@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/contact_picker.dart';
 import '../models/directory_data.dart';
+import '../models/plugin_layout.dart';
 import '../models/plugin_view.dart';
 import '../tokens/flare_strings.dart';
 import '../tokens/flare_tokens.dart';
@@ -21,6 +22,11 @@ import 'flare_textarea.dart';
 import 'flare_time_picker.dart';
 import 'flare_file_upload.dart';
 import 'flare_image_upload_slot.dart';
+import 'flare_document_slot.dart';
+import 'flare_pin_input.dart';
+import 'flare_plugin_view.dart' show FlarePluginPinnedBar;
+import 'flare_select.dart';
+import 'flare_status_banner.dart';
 
 /// The inputs of a plugin action (spec Form/PluginForm), put on the kit sheet
 /// by the host (or by [FlarePluginView] for a card action).
@@ -52,7 +58,12 @@ class FlarePluginForm extends StatefulWidget {
     this.onFileAction,
     this.locationStates = const {},
     this.onLocationAction,
+    this.pinSubmit = false,
   });
+
+  /// An embedded (page) form on a phone: the submit sits in a bar pinned to
+  /// the bottom of the screen (R6), drawn through the overlay.
+  final bool pinSubmit;
 
   final List<FlarePluginInput> inputs;
 
@@ -103,6 +114,7 @@ class FlarePluginForm extends StatefulWidget {
 /// The form's state. [nativeInto] lets the view run a page action's native
 /// target through the input it writes into.
 class FlarePluginFormState extends State<FlarePluginForm> {
+  final _pinned = OverlayPortalController()..show();
   final Map<String, Object?> _draft = {};
   final Set<String> _edited = {};
   final Set<String> _editedSinceErrors = {};
@@ -293,6 +305,10 @@ class FlarePluginFormState extends State<FlarePluginForm> {
   @override
   void didUpdateWidget(FlarePluginForm old) {
     super.didUpdateWidget(old);
+    // R6: the host's field errors take the reader to the first one.
+    if (!identical(old.errors, widget.errors) && widget.errors.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusFirstError());
+    }
     if (_signatureOf(widget) != _signature) _reset();
     _applyFiles();
     _applyLocations();
@@ -513,13 +529,87 @@ class FlarePluginFormState extends State<FlarePluginForm> {
     return issue == null ? null : flarePluginIssueText(issue, input, strings);
   }
 
+  /// Submits like the form's own key (a page's pinned bar runs it).
+  void submit() => _submit();
+
+  final Map<String, GlobalKey> _anchors = {};
+  GlobalKey _anchor(String id) => _anchors[id] ??= GlobalKey();
+
+  /// R6: scroll the first wrong field into view and focus its control.
+  void _focusFirstError() {
+    if (!mounted) return;
+    final strings = FlareStrings.of(context);
+    final input = _visible
+        .where((input) => _errorText(input, strings) != null)
+        .firstOrNull;
+    final anchor = input == null ? null : _anchors[input.id]?.currentContext;
+    if (anchor == null) return;
+    Scrollable.ensureVisible(
+      anchor,
+      alignment: 0.1,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
+    );
+    FocusNode? node;
+    void visit(Element element) {
+      if (node != null) return;
+      final widget = element.widget;
+      if (widget is EditableText) {
+        node = widget.focusNode;
+      } else if (widget is Focus &&
+          widget.focusNode != null &&
+          widget.focusNode!.canRequestFocus &&
+          !widget.focusNode!.skipTraversal) {
+        node = widget.focusNode;
+      } else {
+        element.visitChildren(visit);
+      }
+    }
+
+    (anchor as Element).visitChildren(visit);
+    node?.requestFocus();
+  }
+
+  /// A select without choices holds the submit back (R6).
+  bool get _noOptions => _visible.any(
+    (input) =>
+        input.kind == FlarePluginInputKind.select && input.choices.isEmpty,
+  );
+
+  /// Upload inputs holding a file, and how many of them are uploaded.
+  ({int done, int total}) get _uploads {
+    var done = 0, total = 0;
+    for (final input in _visible.where((i) => flarePluginIsUpload(i.kind))) {
+      final phase = _fileState(input).phase;
+      if (phase == FlarePluginFilePhase.empty) continue;
+      total++;
+      if (phase == FlarePluginFilePhase.uploaded) done++;
+    }
+    return (done: done, total: total);
+  }
+
+  /// Required document photos still missing (§6.3).
+  int get _photosMissing => _visible
+      .where(
+        (input) =>
+            input.kind == FlarePluginInputKind.document &&
+            input.required &&
+            _fileState(input).phase != FlarePluginFilePhase.uploaded,
+      )
+      .length;
+
   void _submit() {
-    if (widget.busy || _filesPending) return;
+    // Enter runs this too: hold back whatever holds the key back.
+    if (widget.busy || _filesPending || _noOptions || _photosMissing > 0)
+      return;
     setState(() => _attempted = true);
     if (_visible.any(
       (input) => flarePluginCheckInput(input, _draft[input.id]) != null,
-    ))
+    )) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusFirstError());
       return;
+    }
     final values = flarePluginFormValues(widget.inputs, _draft);
     for (final input in widget.inputs.where(
       (i) => i.kind == FlarePluginInputKind.password,
@@ -658,12 +748,22 @@ class FlarePluginFormState extends State<FlarePluginForm> {
   ) {
     final error = _errorText(input, strings);
     final disabled = widget.busy;
+    // R6 / §12.9: kit Input large (48) on a phone, 40 from the PC breakpoint.
+    final size =
+        (MediaQuery.maybeSizeOf(context)?.width ?? 0) >=
+            FlareSizes.appShellCompactMinWidth
+        ? FlareControlSize.md
+        : FlareControlSize.lg;
+    // R11: Enter in a single-line input submits the form, as its key does.
+    void enter(String _) => _submit();
     Widget wrap(Widget child, {bool labelled = true}) => KeyedSubtree(
       key: ValueKey('flare-plugin-input-${input.id}'),
       child: FlareFormField(
         label: labelled ? input.label : null,
+        labelColor: colors.textPrimary,
         required: input.required,
-        hint: flarePluginCounter(input, _draft[input.id]),
+        counter: flarePluginCounter(input, _draft[input.id]),
+        hint: input.help,
         error: error,
         child: child,
       ),
@@ -704,9 +804,21 @@ class FlarePluginFormState extends State<FlarePluginForm> {
             state: FlareImageUploadState.values.byName(file.phase.name),
             fileName: file.fileName,
             progress: file.progress,
-            error: file.error,
-            policyHint: hint,
-            preview: file.preview,
+            statusText:
+                file.error ??
+                switch (file.phase) {
+                  FlarePluginFilePhase.empty => hint,
+                  FlarePluginFilePhase.selected => strings.pluginFileSelected,
+                  FlarePluginFilePhase.uploading => strings.pluginFileUploading,
+                  FlarePluginFilePhase.uploaded => strings.pluginFileUploaded,
+                  FlarePluginFilePhase.failed => strings.pluginFileFailed,
+                },
+            image: input.kind != FlarePluginInputKind.file,
+            replaceLabel: strings.pluginFileReplace,
+            retryLabel: strings.retry,
+            cancelLabel: strings.cancel,
+            removeLabel: strings.pluginFileRemove,
+            previewLabel: file.preview ? strings.pluginFilePreview : null,
             previewLoading: file.previewLoading,
             disabled: disabled || widget.onFileAction == null || policy == null,
             onChoose: () =>
@@ -734,7 +846,9 @@ class FlarePluginFormState extends State<FlarePluginForm> {
           key: ValueKey('flare-plugin-input-${input.id}'),
           child: FlareFormField(
             label: input.label,
+            labelColor: colors.textPrimary,
             required: input.required,
+            hint: input.help,
             error: state?.error ?? error,
             child: ConstrainedBox(
               constraints: const BoxConstraints(
@@ -826,6 +940,36 @@ class FlarePluginFormState extends State<FlarePluginForm> {
             ),
           ),
         );
+      case FlarePluginInputKind.password
+          when input.maxLength == FlarePinInput.length:
+        // §5.10: a 6-digit payment password is six PIN cells; the last digit
+        // submits a form that has nothing else to fill.
+        // The field's error reads under the cells, which only turn red.
+        return wrap(
+          FlarePinInput(
+            value: '${_draft[input.id] ?? ''}',
+            label: input.label,
+            error: error != null,
+            disabled: disabled,
+            onChange: (v) => _set(input.id, v),
+            onComplete: (v) {
+              _set(input.id, v);
+              // §5.10: the sixth digit submits unless a required field after
+              // it still waits.
+              final after = _visible
+                  .skipWhile((other) => other.id != input.id)
+                  .skip(1);
+              if (!after.any(
+                (other) =>
+                    other.required &&
+                    flarePluginCheckInput(other, _draft[other.id]) != null,
+              )) {
+                _submit();
+              }
+            },
+          ),
+          labelled: false,
+        );
       case FlarePluginInputKind.password:
       case FlarePluginInputKind.text:
         return wrap(
@@ -834,8 +978,11 @@ class FlarePluginFormState extends State<FlarePluginForm> {
             secure: input.kind == FlarePluginInputKind.password,
             semanticLabel: input.label,
             placeholder: input.placeholder,
+            size: size,
+            error: error,
             disabled: disabled,
             onChanged: (v) => _set(input.id, v),
+            onSubmitted: enter,
           ),
         );
       case FlarePluginInputKind.money:
@@ -855,6 +1002,9 @@ class FlarePluginFormState extends State<FlarePluginForm> {
                   keyboardType: TextInputType.numberWithOptions(
                     decimal: scale > 0,
                   ),
+                  size: size,
+                  error: error,
+                  onSubmitted: enter,
                   disabled: disabled || currency == null,
                   // The locale's decimal separator is kept as "." (spec
                   // moneyInput.typed).
@@ -888,6 +1038,8 @@ class FlarePluginFormState extends State<FlarePluginForm> {
           FlareTextarea(
             value: '${_draft[input.id] ?? ''}',
             placeholder: input.placeholder,
+            semanticLabel: input.label,
+            error: error,
             maxRows: 6,
             disabled: disabled,
             onChanged: (v) => _set(input.id, v),
@@ -903,6 +1055,9 @@ class FlarePluginFormState extends State<FlarePluginForm> {
               decimal: true,
               signed: true,
             ),
+            size: size,
+            error: error,
+            onSubmitted: enter,
             disabled: disabled,
             onChanged: (v) => _set(
               input.id,
@@ -933,16 +1088,51 @@ class FlarePluginFormState extends State<FlarePluginForm> {
           labelled: false,
         );
       case FlarePluginInputKind.select:
+        // R6: ≤ 4 choices as cards, more as a select, none as a disabled
+        // select that says why.
+        final pick = flarePluginSelectControl(input.choices.length);
+        final options = [
+          for (final c in input.choices)
+            FlareSelectOption(value: c.value, label: c.label),
+        ];
+        if (pick.disabled) {
+          return KeyedSubtree(
+            key: ValueKey('flare-plugin-input-${input.id}'),
+            child: FlareFormField(
+              label: input.label,
+              labelColor: colors.textPrimary,
+              required: input.required,
+              hint: strings.pluginViewNoOptionsHelp,
+              error: error,
+              child: FlareSelect(
+                key: ValueKey('flare-plugin-select-empty-${input.id}'),
+                options: const [],
+                value: '',
+                placeholder: strings.pluginViewNoOptions,
+                title: input.label,
+                size: size,
+                disabled: true,
+              ),
+            ),
+          );
+        }
         return wrap(
-          FlareRadioGroup(
-            options: [
-              for (final c in input.choices)
-                FlareSelectOption(value: c.value, label: c.label),
-            ],
-            value: '${_draft[input.id] ?? ''}',
-            vertical: true,
-            onSelect: disabled ? null : (v) => _set(input.id, v),
-          ),
+          pick.control == FlarePluginSelectControl.cards
+              ? FlareRadioGroup(
+                  options: options,
+                  value: '${_draft[input.id] ?? ''}',
+                  optionLayout: FlareRadioOptionLayout.cards,
+                  onSelect: disabled ? null : (v) => _set(input.id, v),
+                )
+              : FlareSelect(
+                  options: options,
+                  value: '${_draft[input.id] ?? ''}',
+                  placeholder: input.placeholder ?? strings.select,
+                  title: input.label,
+                  size: size,
+                  disabled: disabled,
+                  onChanged: (v) => _set(input.id, v),
+                ),
         );
       case FlarePluginInputKind.datetime:
         final parts = _dateParts[input.id] ?? (date: '', time: '');
@@ -955,6 +1145,7 @@ class FlarePluginFormState extends State<FlarePluginForm> {
                   value: parts.date,
                   placeholder: strings.selectDate,
                   title: input.label,
+                  size: size,
                   disabled: disabled,
                   onChanged: (v) => _setDatePart(input.id, date: v),
                 ),
@@ -966,6 +1157,7 @@ class FlarePluginFormState extends State<FlarePluginForm> {
                   value: parts.time,
                   placeholder: strings.selectTime,
                   title: input.label,
+                  size: size,
                   disabled: disabled,
                   onChanged: (v) => _setDatePart(input.id, time: v),
                 ),
@@ -1060,6 +1252,94 @@ class FlarePluginFormState extends State<FlarePluginForm> {
     }
   }
 
+  /// §6.3: document inputs as capture slots, 2 per row on a phone and 3 on
+  /// PC; a slot runs the input's own file keys (the host captures).
+  // A captured slot draws the photo the host holds in the file state.
+  Widget _documentGrid(
+    List<FlarePluginInput> inputs,
+    FlareStrings strings,
+    FlareColors colors,
+  ) => LayoutBuilder(
+    builder: (context, constraints) {
+      final columns =
+          (MediaQuery.maybeSizeOf(context)?.width ?? 0) >=
+              FlareSizes.appShellCompactMinWidth
+          ? 3
+          : 2;
+      final width =
+          (constraints.maxWidth - FlareSizes.spacingMd * (columns - 1)) /
+          columns;
+      return Wrap(
+        spacing: FlareSizes.spacingMd,
+        runSpacing: FlareSizes.spacingMd,
+        children: [
+          for (final input in inputs)
+            SizedBox(
+              key: _anchor(input.id),
+              width: width,
+              child: KeyedSubtree(
+                key: ValueKey('flare-plugin-input-${input.id}'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    () {
+                      final file = _fileState(input);
+                      final ready =
+                          !widget.busy &&
+                          widget.onFileAction != null &&
+                          input.file != null;
+                      return FlareDocumentSlot(
+                        label: input.label,
+                        side: input.side ?? FlarePluginDocumentSide.front,
+                        state: switch (file.phase) {
+                          FlarePluginFilePhase.empty =>
+                            FlareDocumentSlotState.empty,
+                          FlarePluginFilePhase.selected ||
+                          FlarePluginFilePhase.uploading =>
+                            FlareDocumentSlotState.uploading,
+                          FlarePluginFilePhase.uploaded =>
+                            FlareDocumentSlotState.captured,
+                          FlarePluginFilePhase.failed =>
+                            FlareDocumentSlotState.failed,
+                        },
+                        progress: file.progress,
+                        image: file.image == null
+                            ? null
+                            : MemoryImage(file.image!),
+                        disabled: !ready,
+                        onCapture: () => _fileAction(
+                          input,
+                          file.phase == FlarePluginFilePhase.empty
+                              ? FlarePluginFileActionKind.choose
+                              : FlarePluginFileActionKind.replace,
+                        ),
+                        onRetry: () =>
+                            _fileAction(input, FlarePluginFileActionKind.retry),
+                      );
+                    }(),
+                    if (_errorText(input, strings) case final message?)
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: FlareSizes.spacingXs,
+                        ),
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: FlareTextRoles.caption.fontSize,
+                            color: colors.errorText,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
   @override
   Widget build(BuildContext context) {
     final strings = FlareStrings.of(context);
@@ -1076,16 +1356,49 @@ class FlarePluginFormState extends State<FlarePluginForm> {
             ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final drawn = <Widget>[];
+          final visible = _visible;
+          for (var i = 0; i < visible.length; i += 1) {
+            final input = visible[i];
+            if (input.kind == FlarePluginInputKind.document) {
+              // §6.3: consecutive document inputs are one grid of slots.
+              final run = [input];
+              while (i + 1 < visible.length &&
+                  visible[i + 1].kind == FlarePluginInputKind.document) {
+                run.add(visible[++i]);
+              }
+              drawn.add(_documentGrid(run, strings, colors));
+            } else {
+              drawn.add(
+                KeyedSubtree(
+                  key: _anchor(input.id),
+                  child: _field(input, strings, colors),
+                ),
+              );
+            }
+          }
           final fields = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (var i = 0; i < _visible.length; i += 1) ...[
-                if (i > 0) const SizedBox(height: FlareSizes.spacingMd),
-                _field(_visible[i], strings, colors),
+              for (var i = 0; i < drawn.length; i += 1) ...[
+                if (i > 0) const SizedBox(height: FlareSizes.spacingLg),
+                drawn[i],
               ],
             ],
           );
+          final uploads = _uploads;
+          final missing = _photosMissing;
+          final submitNote = _filesPending && uploads.total > 0
+              ? strings.pluginViewUploading
+                    .replaceAll('{done}', '${uploads.done}')
+                    .replaceAll('{total}', '${uploads.total}')
+              : missing > 0
+              ? (missing == 1
+                        ? strings.realnamePhotosNeededOne
+                        : strings.realnamePhotosNeeded)
+                    .replaceAll('{count}', '$missing')
+              : null;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -1097,43 +1410,121 @@ class FlarePluginFormState extends State<FlarePluginForm> {
                 fields,
               if (error != null && error.isNotEmpty) ...[
                 const SizedBox(height: FlareSizes.spacingMd),
+                // R6: a failure that is no field's is a danger banner.
                 Semantics(
                   liveRegion: true,
-                  child: Text(
-                    error,
-                    style: TextStyle(
-                      fontSize: FlareSizes.fontSizeSm,
-                      color: colors.errorText,
-                    ),
+                  child: FlareStatusBanner(
+                    key: const ValueKey('flare-plugin-form-error'),
+                    text: error,
+                    tone: FlareStatusTone.danger,
                   ),
                 ),
               ],
               const SizedBox(height: FlareSizes.spacingLg),
-              Row(
-                children: [
-                  if (!widget.embedded) ...[
-                    Expanded(
-                      child: FlareButton(
-                        key: const ValueKey('flare-plugin-form-cancel'),
-                        label: strings.cancel,
-                        variant: FlareButtonVariant.secondary,
-                        disabled: widget.busy,
-                        onPressed: widget.onCancel,
+              if (widget.embedded && widget.pinSubmit)
+                // R6: a phone page's form submits from a bar pinned to the
+                // bottom; the body keeps room for it.
+                OverlayPortal(
+                  controller: _pinned,
+                  overlayChildBuilder: (context) => Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: FlarePluginPinnedBar(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FlareButton(
+                            key: const ValueKey('flare-plugin-form-submit'),
+                            label:
+                                widget.submitLabel ?? strings.pluginViewSubmit,
+                            size: FlareControlSize.lg,
+                            block: true,
+                            loading: widget.busy,
+                            disabled:
+                                widget.busy ||
+                                _filesPending ||
+                                _noOptions ||
+                                missing > 0,
+                            onPressed: _submit,
+                          ),
+                          if (submitNote != null)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: FlareSizes.spacingXs,
+                              ),
+                              child: Text(
+                                submitNote,
+                                key: const ValueKey(
+                                  'flare-plugin-form-submit-note',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: FlareTextRoles.caption.fontSize,
+                                  color: colors.textSecondary,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: FlareSizes.spacingMd),
+                  ),
+                  child: SizedBox(
+                    height:
+                        FlareSizes.controlHeightLg +
+                        FlareSizes.spacingMd * 2 +
+                        FlareSizes.spacingXl +
+                        MediaQuery.paddingOf(context).bottom,
+                  ),
+                )
+              else ...[
+                Row(
+                  children: [
+                    if (!widget.embedded) ...[
+                      Expanded(
+                        child: FlareButton(
+                          key: const ValueKey('flare-plugin-form-cancel'),
+                          label: strings.cancel,
+                          variant: FlareButtonVariant.secondary,
+                          disabled: widget.busy,
+                          onPressed: widget.onCancel,
+                        ),
+                      ),
+                      const SizedBox(width: FlareSizes.spacingMd),
+                    ],
+                    Expanded(
+                      child: FlareButton(
+                        key: const ValueKey('flare-plugin-form-submit'),
+                        label: widget.submitLabel ?? strings.pluginViewSubmit,
+                        loading: widget.busy,
+                        disabled:
+                            widget.busy ||
+                            _filesPending ||
+                            _noOptions ||
+                            missing > 0,
+                        onPressed: _submit,
+                      ),
+                    ),
                   ],
-                  Expanded(
-                    child: FlareButton(
-                      key: const ValueKey('flare-plugin-form-submit'),
-                      label: widget.submitLabel ?? strings.pluginViewSubmit,
-                      loading: widget.busy,
-                      disabled: widget.busy || _filesPending,
-                      onPressed: _submit,
+                ),
+                if (submitNote != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: FlareSizes.spacingXs),
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        submitNote,
+                        key: const ValueKey('flare-plugin-form-submit-note'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: FlareTextRoles.caption.fontSize,
+                          color: colors.textSecondary,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
+              ],
             ],
           );
         },

@@ -23,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -58,13 +60,14 @@ fun FlareScreen(
     actions: (@Composable () -> Unit)? = null,
     windowInsets: WindowInsets = WindowInsets.safeDrawing,
     contentMaxWidth: Dp? = null,
+    leading: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = flareColors()
     val width = flareContentMaxWidth(contentMaxWidth)
     val columnWidth = if (width == null) Modifier else Modifier.widthIn(max = width)
     val base = if (surface == FlareScreenSurface.Surface) colors.bgPrimary else colors.bgSecondary
-    val hasHeader = title != null || onBack != null || actions != null
+    val hasHeader = title != null || onBack != null || actions != null || leading != null
     FlareNativeBackEffect(enabled = onBack != null && LocalFlareSheetHeader.current?.handlesBack != true) { onBack?.invoke() }
     // A page with a way back is not its destination's root: a shell hides its phone navigation under it.
     FlareDestinationDepth(active = onBack != null)
@@ -86,9 +89,11 @@ fun FlareScreen(
             ) {
                 if (onBack != null) {
                     IconButton(onClick = onBack, modifier = Modifier.size(FlareSizes.touchTarget)) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, flareStrings().back, tint = colors.textPrimary, modifier = Modifier.size(FlareSizes.iconSizeMd))
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, flareStrings().back, tint = colors.textPrimary,
+                            modifier = Modifier.size(if (flareCompactOverlays()) FlareSizes.iconSizeLg else FlareSizes.iconSizeMd))
                     }
                 }
+                leading?.invoke()
                 if (title != null) {
                     Text(
                         title, color = colors.textPrimary, fontSize = FlareSizes.fontSize5xl, fontWeight = FontWeight.Bold,
@@ -97,7 +102,9 @@ fun FlareScreen(
                 } else {
                     Spacer(Modifier.weight(1f))
                 }
-                actions?.invoke()
+                CompositionLocalProvider(LocalFlareHeaderIcons provides true) {
+                    actions?.invoke()
+                }
             }
             }
         }
@@ -107,11 +114,14 @@ fun FlareScreen(
                 .then(if (scroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                 .then(if (padded) Modifier.padding(FlareSizes.spacingLg) else Modifier),
         ) {
-            content()
+            CompositionLocalProvider(LocalFlareScreenTitle provides title) { content() }
         }
         }
     }
 }
+
+/** The title of the [FlareScreen] around a component, so a section heading that would repeat it can leave itself out (Vue `screen.title`). */
+internal val LocalFlareScreenTitle = staticCompositionLocalOf<String?> { null }
 
 /**
  * The height a page header occupies: [FlareScreen]'s header row is a touch-target-tall row with

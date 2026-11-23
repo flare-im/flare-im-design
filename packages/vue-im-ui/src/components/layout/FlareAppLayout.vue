@@ -25,6 +25,8 @@ const props = withDefaults(defineProps<{
   primaryWidth?: number;
   detailWidth?: number;
   label?: string;
+  /** Distinguish the conversation canvas from the surrounding list, header, and detail surfaces. */
+  appearance?: "default" | "workspace";
 }>(), {
   activePane: "content",
   hasDetail: false,
@@ -101,6 +103,11 @@ const effectiveDetailMode = computed(() => {
   if (effectivePaneMode.value === "singlePane" && props.paneMode !== "singlePane") return props.hasDetail ? "route" : "hidden";
   return requested === "inline" && !triplePaneFits.value ? "overlay" : requested;
 });
+const primaryVisible = computed(() => effectivePaneMode.value !== 'singlePane' || props.activePane === 'primary');
+const contentVisible = computed(() => effectivePaneMode.value !== 'singlePane' || (props.activePane !== 'primary' && !(props.activePane === 'detail' && props.hasDetail)));
+const detailVisible = computed(() => props.hasDetail && (effectivePaneMode.value === 'singlePane'
+  ? props.activePane === 'detail'
+  : effectiveDetailMode.value === 'overlay' || (effectiveDetailMode.value === 'inline' && effectivePaneMode.value === 'triplePane')));
 watch([effectivePaneMode, effectiveDetailMode], ([paneMode, detailMode]) => emit("layoutChange", { paneMode, detailMode }), { immediate: true });
 // One pane showing something other than the list is a page beyond the destination's root.
 useFlareDestinationDepth(() => effectivePaneMode.value === "singlePane" && Boolean(slots.primary) && props.activePane !== "primary");
@@ -118,23 +125,18 @@ const style = computed(() => ({
     :data-responsive-mode="responsiveMode"
     :data-pane-mode="effectivePaneMode"
     :data-detail-mode="effectiveDetailMode"
+    :data-appearance="appearance"
     :aria-label="label || undefined"
     :style="style"
   >
     <div v-if="$slots.navigation" class="flare-app-layout__navigation"><slot name="navigation" /></div>
 
-    <template v-if="effectivePaneMode === 'singlePane'">
-      <aside v-if="activePane === 'primary'" class="flare-app-layout__single"><slot name="primary" /></aside>
-      <aside v-else-if="activePane === 'detail' && hasDetail" class="flare-app-layout__single"><slot name="detail" /></aside>
-      <main v-else class="flare-app-layout__single"><slot name="content" /></main>
-    </template>
-    <template v-else>
-      <aside class="flare-app-layout__primary"><slot name="primary" /></aside>
-      <main class="flare-app-layout__content"><slot name="content" /></main>
-      <aside v-if="hasDetail && effectiveDetailMode === 'inline' && effectivePaneMode === 'triplePane'" class="flare-app-layout__detail"><slot name="detail" /></aside>
-    </template>
-
-    <aside v-if="hasDetail && effectiveDetailMode === 'overlay'" class="flare-app-layout__detail-overlay"><slot name="detail" /></aside>
+    <!-- Keep the list mounted beneath a phone detail so query, focus and scroll survive Back. -->
+    <aside v-show="primaryVisible" key="primary" :class="effectivePaneMode === 'singlePane' ? 'flare-app-layout__single' : 'flare-app-layout__primary'"><slot name="primary" /></aside>
+    <main v-if="contentVisible" key="content" :class="effectivePaneMode === 'singlePane' ? 'flare-app-layout__single' : 'flare-app-layout__content'"><slot name="content" /></main>
+    <!-- A routed, inline or overlay detail is the same component. Preserve its
+         page stack and draft while its presentation changes with the viewport. -->
+    <aside v-if="detailVisible" key="detail" :class="effectivePaneMode === 'singlePane' ? 'flare-app-layout__single' : effectiveDetailMode === 'overlay' ? 'flare-app-layout__detail-overlay' : 'flare-app-layout__detail'"><slot name="detail" /></aside>
     <div class="flare-app-layout__overlay"><slot name="overlay" /></div>
     <div class="flare-app-layout__floating"><slot name="floating" /></div>
     <div class="flare-app-layout__command"><slot name="command" /></div>
@@ -160,6 +162,10 @@ const style = computed(() => ({
 .flare-app-layout__content,
 .flare-app-layout__single { grid-area: content; min-width: 0; min-height: 0; overflow: hidden; }
 .flare-app-layout__detail { grid-area: detail; min-width: 0; min-height: 0; overflow: hidden; border-inline-start: 1px solid var(--flare-color-border-primary); }
+.flare-app-layout[data-appearance="workspace"] > main {
+  --flare-component-chat-window-bg: color-mix(in srgb, var(--flare-color-bg-primary) 58%, var(--flare-color-bg-secondary));
+  background: var(--flare-component-chat-window-bg);
+}
 .flare-app-layout[data-pane-mode="dualPane"] { grid-template-columns: var(--flare-app-primary-width) minmax(0, 1fr); grid-template-areas: "primary content"; }
 .flare-app-layout[data-pane-mode="triplePane"] { grid-template-columns: var(--flare-app-primary-width) minmax(var(--flare-size-layout-chat-min-width), 1fr) var(--flare-app-detail-width); grid-template-areas: "primary content detail"; }
 .flare-app-layout.has-navigation[data-responsive-mode="tablet"] { grid-template-columns: auto var(--flare-app-primary-width) minmax(0, 1fr); grid-template-areas: "navigation primary content"; }

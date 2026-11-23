@@ -36,6 +36,7 @@ export function isLocalPlaceholderMediaId(value: string): boolean {
 export function buildMediaResolveRequest(input: {
   kind: FlareMediaKind;
   messageId?: string;
+  mediaIndex?: number;
   url?: string;
   id?: string;
   localPath?: string;
@@ -54,6 +55,7 @@ export function buildMediaResolveRequest(input: {
   return {
     kind: input.kind,
     ...(input.messageId ? { messageId: input.messageId } : {}),
+    ...(input.mediaIndex === undefined ? {} : { mediaIndex: input.mediaIndex }),
     ...(url ? { url } : {}),
     ...(localPath ? { localPath } : {}),
     ...(fileId ? { fileId } : {}),

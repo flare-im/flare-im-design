@@ -14,8 +14,15 @@ class SearchResultsMoreTest {
 
     @Test fun aKnownTotalIsCountedAndAnUnknownOneIsNot() {
         assertEquals(strings.viewAll(9), flareSearchMoreText(SearchResultGroup(SearchResultKind.Contact, "联系人", listOf(item), total = 9, hasMore = true), strings))
-        assertEquals(strings.more, flareSearchMoreText(SearchResultGroup(SearchResultKind.Contact, "联系人", listOf(item), hasMore = true), strings))
+        assertEquals(strings.searchViewMore, flareSearchMoreText(SearchResultGroup(SearchResultKind.Contact, "联系人", listOf(item), hasMore = true), strings))
         // A total that is not more than what is shown counts nothing.
-        assertEquals(strings.more, flareSearchMoreText(SearchResultGroup(SearchResultKind.Contact, "联系人", listOf(item), total = 1, hasMore = true), strings))
+        assertEquals(strings.searchViewMore, flareSearchMoreText(SearchResultGroup(SearchResultKind.Contact, "联系人", listOf(item), total = 1, hasMore = true), strings))
+    }
+
+    @Test fun aLateHitInALongMessageStaysInView() {
+        val text = "a".repeat(200) + "目标" + "b".repeat(200)
+        val cut = flareSearchExcerpt(text, "目标")
+        assertEquals("…" + "a".repeat(24) + "目标" + "b".repeat(102) + "…", cut)
+        assertEquals("short 目标", flareSearchExcerpt("short 目标", "目标"))
     }
 }

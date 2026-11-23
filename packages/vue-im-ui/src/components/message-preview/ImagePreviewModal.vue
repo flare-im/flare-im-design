@@ -5,6 +5,7 @@
       ref="surfaceEl"
       class="image-preview-modal"
       role="dialog"
+      :aria-label="alt || t('mediaMessage.image')"
       aria-modal="true"
       @click.self="requestClose"
     >
@@ -76,7 +77,7 @@
             :aria-label="primaryActionTitle"
             @click="emitPrimary"
           >
-            <n-icon aria-hidden="true" :size="22" :component="primaryActionIcon" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-lg)" :component="primaryActionIcon" />
           </button>
           <button
             type="button"
@@ -85,13 +86,15 @@
             :aria-label="t('imagePreviewModal.close')"
             @click="requestClose"
           >
-            <n-icon aria-hidden="true" :size="22" :component="flareIcons.close" />
+            <n-icon aria-hidden="true" size="var(--flare-size-icon-size-lg)" :component="flareIcons.close" />
           </button>
         </div>
       </div>
 
       <div class="image-preview-modal__body" @click.stop>
-        <div v-if="!imageSrc.trim()" class="image-preview-modal__state" :role="loading ? 'status' : 'alert'">{{ loading ? loadingText : errorText }}</div>
+        <div v-if="!imageSrc.trim()" class="image-preview-modal__state" :role="loading ? 'status' : 'alert'">
+          <span>{{ loading ? strings.loading : strings.error }}</span>
+        </div>
         <div v-else class="image-preview-modal__stage" :data-image-state="imageState">
           <div v-if="downloading" class="image-preview-modal__progress" role="status" aria-live="polite">
             <span class="image-preview-modal__progress-label">{{ progressLabel }}</span>
@@ -132,10 +135,10 @@
               />
             </div>
           </div>
-          <div v-if="loading || imageState === 'loading'" class="image-preview-modal__state image-preview-modal__state--overlay" role="status" aria-live="polite">{{ loadingText }}</div>
+          <div v-if="loading || imageState === 'loading'" class="image-preview-modal__state image-preview-modal__state--overlay" role="status" aria-live="polite">{{ strings.loading }}</div>
           <div v-else-if="imageState === 'error'" class="image-preview-modal__state image-preview-modal__state--overlay" role="alert">
-            <span>{{ errorText }}</span>
-            <button type="button" class="image-preview-modal__retry" @click="retryImage">{{ retryText }}</button>
+            <span>{{ strings.error }}</span>
+            <button type="button" class="image-preview-modal__retry" @click="retryImage">{{ strings.retry }}</button>
           </div>
         </div>
       </div>
@@ -215,11 +218,14 @@ const props = withDefaults(
     progressIndeterminate: false,
     zoomMin: 0.1,
     zoomMax: 8,
-    loadingText: 'Loading…',
-    errorText: "Can't display image",
-    retryText: 'Retry',
   },
 );
+
+const strings = computed(() => ({
+  loading: props.loadingText ?? t('common.loading'),
+  error: props.errorText ?? t('mediaMessage.imageFailed'),
+  retry: props.retryText ?? t('common.retry'),
+}));
 
 const emit = defineEmits<{
   'update:show': [value: boolean];
@@ -409,6 +415,7 @@ watch(
       unlistenVisualViewport();
     }
   },
+  { immediate: true },
 );
 
 watch(
@@ -441,7 +448,7 @@ onBeforeUnmount(() => {
   z-index: var(--flare-z-index-media);
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--flare-color-media-stage);
   padding: calc(52px + env(safe-area-inset-top, 0px)) max(var(--flare-size-spacing-lg), env(safe-area-inset-right, 0px)) max(var(--flare-size-spacing-xl), env(safe-area-inset-bottom, 0px)) max(var(--flare-size-spacing-lg), env(safe-area-inset-left, 0px));
   box-sizing: border-box;
 }
@@ -471,7 +478,7 @@ onBeforeUnmount(() => {
 .image-preview-modal__position {
   font-size: var(--flare-size-font-size-md);
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--flare-color-media-on-stage);
   user-select: none;
   pointer-events: auto;
 }
@@ -548,7 +555,7 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: var(--flare-size-radius-md);
   background: transparent;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--flare-color-media-on-stage);
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -567,6 +574,26 @@ onBeforeUnmount(() => {
 .image-preview-modal__icon-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+@media (pointer: coarse), (max-width: 599px) {
+  .image-preview-modal__icon-btn {
+    min-width: var(--flare-size-layout-touch-target);
+    min-height: var(--flare-size-layout-touch-target);
+  }
+}
+
+@media (max-width: 599px) {
+  .image-preview-modal {
+    padding-top: calc(var(--flare-size-layout-touch-target) * 2 + var(--flare-size-spacing-lg) + env(safe-area-inset-top, 0px));
+  }
+  .image-preview-modal__toolbar-left {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .image-preview-modal__toolbar-right { margin-inline-start: auto; }
+  .image-preview-modal__zoom-label { min-width: 4ch; }
 }
 
 .image-preview-modal__body {
@@ -640,7 +667,7 @@ onBeforeUnmount(() => {
   display: block;
   font-size: 11px;
   line-height: 1.3;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--flare-color-media-on-stage);
   font-variant-numeric: tabular-nums;
   margin-bottom: 6px;
 }

@@ -67,7 +67,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
         :disabled="busy"
         @click="emit('close')"
       >
-        <n-icon aria-hidden="true" :size="18" :component="CloseOutline" />
+        <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="CloseOutline" />
       </button>
     </header>
 
@@ -88,7 +88,7 @@ const isSelected = (id: string): boolean => selected.value.includes(id);
         @click="toggle(tgt.id)"
       >
         <span class="flare-forward-picker__check" :class="{ 'is-on': isSelected(tgt.id) }">
-          <n-icon aria-hidden="true" v-if="isSelected(tgt.id)" :size="13" :component="CheckmarkOutline" />
+          <n-icon aria-hidden="true" v-if="isSelected(tgt.id)" size="var(--flare-size-icon-size-sm)" :component="CheckmarkOutline" />
         </span>
         <FlareAvatar :user-id="tgt.id" :display-name="tgt.name" :avatar-url="tgt.avatarUrl" :size="38" />
         <span class="flare-forward-picker__body">

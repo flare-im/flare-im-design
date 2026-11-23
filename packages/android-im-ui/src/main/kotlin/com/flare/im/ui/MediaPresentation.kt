@@ -70,7 +70,7 @@ internal fun flareContentTap(
     return when (content) {
         is FlareImageContent -> FlareContentTap.PreviewImage(flarePictureSource(content, preferThumbnail = false).src)
         is FlareImageGroupContent -> FlareContentTap.PreviewAlbumImage
-        is FlareVideoContent -> FlareContentTap.PlayVideo(content.url)
+        is FlareVideoContent -> FlareContentTap.PlayVideo(flareLocalVideoFile(content.localPath)?.path ?: content.url)
         is FlareAudioContent -> FlareContentTap.PlayVoice(content.url)
         is FlareFileContent -> FlareContentTap.OpenFile.takeIf { hasFileHandler }
         else -> null
@@ -139,6 +139,11 @@ internal fun flarePlayableMediaUrl(raw: String?): String? {
     val scheme = Regex("^([a-zA-Z][a-zA-Z0-9+.\\-]*):").find(value)?.groupValues?.get(1)?.lowercase() ?: return null
     return value.takeIf { scheme in flarePlayableMediaSchemes }
 }
+
+internal fun flareLocalVideoFile(path: String?): File? = path
+    ?.takeIf { it.startsWith("/") }
+    ?.let(::File)
+    ?.takeIf { it.isFile && it.canRead() }
 
 /** Where a message picture is drawn from: [src], and whether it is the host's local copy ([local]). */
 internal data class FlarePictureSource(val src: String, val local: Boolean)

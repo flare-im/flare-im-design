@@ -15,1066 +15,1137 @@ public extension FlareStrings {
     /// `englishFormats()` (FlareStrings+EnglishFormats.swift, checked against
     /// strings/en-formats.json).
     static var english: FlareStrings {
-        FlareStrings(
-            reauthFailed: "Verification could not finish. Try again.",
-            reauthTitle: "Verify identity",
-            reauthDestination: "Verification method",
-            reauthCode: "Verification code",
-            reauthSendCode: "Send code",
-            reauthResendIn: "Send again ({seconds}s)",
-            reauthUnavailable: "No verification method is available",
-            scanAllowAddByQr: "Allow adding me by QR code",
-            scanOpenExternal: "Open in browser",
-            scanRetryable: "Scan information is temporarily unavailable. Please retry",
-            scanContinueLogin: "Sign in to continue",
-            scanProvidedBy: "Provided by {name}",
-            scanLoginRequired: "Sign in to continue with this scan",
-            scanForeignCode: "This code belongs to another app or environment",
-            scanText: "QR code content",
-            scanExternalLink: "External link",
-            scanPending: "Request submitted",
-            scanUnknown: "The operation outcome is not yet confirmed",
-            scanTitle: "Scan QR code",
-            scanAlbum: "Choose image",
-            scanPaste: "Paste",
-            scanTorchOn: "Turn torch on",
-            scanTorchOff: "Turn torch off",
-            scanChooseCode: "Choose QR code",
-            scanPreparing: "Preparing camera…",
-            scanLive: "Place a QR code in view",
-            scanLowLight: "Low light. You can turn the torch on",
-            scanLocked: "Code detected",
-            scanChoosing: "Multiple codes detected. Choose one to continue",
-            scanPaused: "Scanning paused",
-            scanImageDecoding: "Reading image…",
-            scanImageError: "Could not read this image. Retry or choose another image",
-            scanNoCodeInImage: "No QR code found in this image",
-            scanNoCamera: "No camera is available",
-            scanInsecureContext: "Camera requires a secure connection. Choose an image instead",
-            scanCameraBusy: "A video call is using the camera",
-            scanCameraError: "Camera unavailable. Retry or choose an image",
-            scanNotInviteCode: "This is not an invite code. Scan an invite QR code.",
-            scanResult: "Scan result",
-            scanUpgradeRequired: "Update the app to use this action",
-            scanSaveCode: "Save QR code",
-            scanShareCode: "Share QR code",
-            scanCodeExpired: "This QR code expired. Refresh to continue",
-            microphone: "Microphone",
-            camera: "Camera",
-            flipCamera: "Flip",
-            speaker: "Speaker",
-            hangUp: "Hang up",
-            muted: "Muted",
-            on: "On",
-            off: "Off",
-            callWaitingAnswer: "Waiting for an answer…",
-            callCalling: "Calling…",
-            callRinging: "Ringing…",
-            callConnected: "Connected",
-            callReconnecting: "Reconnecting…",
-            callFailed: "Call failed",
-            callInProgress: "In a call",
-            send: "Send",
-            cancelReply: "Cancel reply",
-            noContacts: "No contacts yet",
-            noGroups: "No groups yet",
-            noResults: "No results",
-            noContent: "Nothing here",
-            noConversations: "No conversations",
-            close: "Close",
-            drawerLabel: "Side panel",
-            modalLabel: "Dialog",
-            delete: "Delete",
-            report: "Report",
-            manage: "Manage",
-            selectAll: "Select all",
-            retry: "Retry",
-            messagePending: "Waiting to send",
-            messageSending: "Sending",
-            messageSent: "Sent",
-            messageRead: "Read",
-            messageFailed: "Not sent",
-            messageEdited: "Edited",
-            messageReadOnce: "Can be opened once",
-            messageBurnAfterRead: "Disappears after reading",
-            messageExpired: "Expired",
-            search: "Search",
-            clearSearch: "Clear search",
-            addReaction: "Add reaction",
-            readReceipt: "Read receipts",
-            noReadersYet: "No one has read this yet",
-            everyoneHasRead: "Everyone has read this",
-            selectedSuffix: "selected",
-            forwardEach: "Forward each",
-            forwardMerged: "Forward merged",
-            messageBatchPin: "Pin",
-            messageBatchPinSelf: "Pin for me only",
-            messageBatchClear: "Clear selection",
-            messageBatchUnforwardable: "{count} messages can't be forwarded",
-            messageBatchUnforwardableOne: "{count} message can't be forwarded",
-            searchMembers: "Search members",
-            everyone: "Everyone",
-            notifyEveryone: "Notify everyone",
-            noMatchingMembers: "No matching members",
-            quickPhrases: "Quick phrases",
-            typing: "Typing…",
-            sendMessage: "Send message",
-            voiceCall: "Voice",
-            videoCall: "Video",
-            groupCall: "Group call",
-            forwardTo: "Forward to",
-            searchConversations: "Search conversations",
-            noMatchingConversations: "No matching conversations",
-            groupAnnouncement: "Announcement",
-            collapse: "Collapse",
-            expand: "Expand",
-            packetFinished: "All claimed",
-            packetTapToClaim: "Open",
-            packetBrand: "Flare red packet",
-            packetBusy: "Processing…",
-            packetUnavailable: "Unavailable",
-            packetStateClaimed: "Opened",
-            packetStateExpired: "Expired",
-            packetKindLucky: "Lucky packet",
-            packetKindNormal: "Red packet",
-            packetKindExclusive: "Exclusive packet",
-            packetKindPicker: "Packet type",
-            packetClaims: "Claims",
-            packetFromSender: { "Red packet from " + $0 },
-            packetOpenAction: "Open",
-            packetMissed: "Too late, all claimed",
-            packetExpiredNotice: "This red packet has expired",
-            packetNotEligible: "You can't open this packet",
-            packetOpenFailed: "Couldn't open it. Try again.",
-            packetViewDetails: "View claim details",
-            packetBestLuck: "Best luck",
-            packetNoClaims: "No one has opened it yet",
-            packetDetailTitle: "Red packet details",
-            packetFieldTotal: "Total",
-            packetFieldEach: "Amount each",
-            packetFieldAmount: "Amount",
-            packetFieldCount: "Quantity",
-            packetCountPlaceholder: "Enter quantity",
-            packetFieldRecipient: "Send to",
-            packetGreetingLabel: "Greeting",
-            packetDefaultGreeting: "Best wishes",
-            packetSubmit: "Put money in",
-            packetPayTitle: "Confirm payment",
-            packetPayMethod: "Pay with",
-            packetPayConfirm: "Pay",
-            packetInsufficient: "Insufficient balance",
-            commands: "Commands",
-            noMatchingCommands: "No matching commands",
-            translating: "Translating…",
-            translated: "Translated",
-            hideOriginal: "Hide original",
-            showOriginal: "Show original",
-            scanToAddMe: "Scan to add me",
-            qrCardUnavailable: "QR code unavailable",
-            cancel: "Cancel",
-            releaseToCancel: "Release to cancel",
-            createPoll: "Create poll",
-            pollQuestionHint: "Ask a question",
-            removeOption: "Remove option",
-            addOption: "Add option",
-            allowMultiple: "Allow multiple answers",
-            submitPoll: "Create poll",
-            chatBackground: "Chat background",
-            decrease: "Decrease",
-            increase: "Increase",
-            previousMonth: "Previous month",
-            nextMonth: "Next month",
-            unlike: "Unlike",
-            like: "Like",
-            comment: "Comment",
-            momentReplyTo: "Reply",
-            changeCover: "Change cover",
-            post: "Post",
-            momentTextHint: "What's on your mind…",
-            addImage: "Add photo",
-            pickLocation: "Location",
-            pickVisibility: "Who can see this",
-            more: "More",
-            hideTranscript: "Hide transcript",
-            showTranscript: "Show transcript",
-            recent: "Recent",
-            searchEmoji: "Search emoji",
-            noMatchingEmoji: "No matching emoji",
-            emptyStickerPack: "This pack has no stickers",
-            sticker: "Sticker",
-            actionImage: "Photo",
-            actionVideo: "Video",
-            actionCamera: "Camera",
-            actionFile: "File",
-            actionLocation: "Location",
-            actionCard: "Contact card",
-            actionVote: "Poll",
-            actionTask: "Task",
-            actionSchedule: "Event",
-            locationTitle: "Location",
-            locationSend: "Send",
-            locationLocateMe: "Use current location",
-            locationLocating: "Locating…",
-            locationDenied: "Location unavailable — search for a place",
-            locationSearchPlaceholder: "Search places",
-            locationNoResults: "No places found nearby",
-            locationMapUnavailable: "Map unavailable",
-            locationOpenInMaps: "Open in Maps",
-            locationCurrent: "Current location",
-            locationCardPlace: "Location",
-            contactPickerTitle: "Choose a contact",
-            contactPickerFriends: "Friends",
-            contactPickerGroupMembers: "Group members",
-            contactPickerSearch: "Search",
-            contactPickerEmpty: "No contacts",
-            contactPickerSelfSuffix: " (me)",
-            incomingVideoCall: "is video calling you",
-            incomingVoiceCall: "is calling you",
-            reject: "Reject",
-            accept: "Answer",
-            back: "Back",
-            confirm: "Confirm",
-            clear: "Clear",
-            changeAvatar: "Change avatar",
-            qrCode: "QR code",
-            play: "Play",
-            favorites: "Favorites",
-            moments: "Moments",
-            settings: "Settings",
-            permissionFeatureFallback: "this feature",
-            permissionAllow: "Allow",
-            permissionOpenSettings: "Open Settings",
-            permissionDismiss: "Got it",
-            permissionNotNow: "Not now",
-            permissionSoftAskNotificationsTitle: "Stay on top of new messages",
-            permissionSoftAskNotificationsBody: "Turn on notifications to hear about new messages when the app isn't open.",
-            permissionSoftAskNotificationsDeniedBody: "Notifications are off. In Settings, open this app's notifications and turn on Allow Notifications to hear about new messages.",
-            permissionSoftAskNotificationsAction: "Turn on notifications",
-            groupMembers: "Members",
-            groupOwner: "Owner",
-            groupAdmin: "Admin",
-            addMember: "Add member",
-            loginDevices: "Signed-in devices",
-            currentDevice: "This device",
-            filesAndMedia: "Files & media",
-            notificationSettings: "Notifications",
-            notificationDeliveryTitle: "Notifications",
-            notificationDeliveryNewMessages: "New message notifications",
-            notificationStatusOn: "On",
-            notificationStatusOff: "Off",
-            notificationStatusNotTurnedOn: "Not turned on",
-            backgroundDeliveryLabel: "Receive messages in the background",
-            backgroundDeliveryUnrestricted: "Unrestricted",
-            backgroundDeliveryOptimized: "Optimized",
-            backgroundDeliveryRestricted: "Restricted",
-            backgroundDeliveryExplanation: "When a message arrives, the app runs briefly in the background to sync it and alert you. If the system limits background activity, alerts can arrive late or not at all.",
-            backgroundDeliveryAutoStartHint: "This phone also decides which apps may start in the background. Allow this app to start automatically.",
-            backgroundDeliveryBattery: "Battery usage",
-            backgroundDeliveryAutoStart: "Auto-start settings",
-            inAppNotificationLabel: "New message",
-            inAppNotificationOpenHint: "Open the conversation",
-            inAppNotificationMention: "[Mention]",
-            inAppNotificationUrgent: "[Urgent]",
-            quietHoursTitle: "Do not disturb",
-            quietHoursLabel: "Quiet hours",
-            quietHoursStart: "Starts",
-            quietHoursEnd: "Ends",
-            quietHoursRepeat: "Repeat",
-            quietHoursAllowMentions: "Alert me when mentioned",
-            quietHoursFooter: "During quiet hours new messages arrive silently, without sound or vibration. Urgent messages still alert you.",
-            weekdayEveryDay: "Every day",
-            weekdayWeekdays: "Weekdays",
-            weekdayWeekends: "Weekends",
-            weekdayMonday: "Monday",
-            weekdayTuesday: "Tuesday",
-            weekdayWednesday: "Wednesday",
-            weekdayThursday: "Thursday",
-            weekdayFriday: "Friday",
-            weekdaySaturday: "Saturday",
-            weekdaySunday: "Sunday",
-            notificationPreviewTitle: "Notification content",
-            notificationPreviewLabel: "Preview",
-            notificationPreviewFull: "Name and message",
-            notificationPreviewSenderOnly: "Name only",
-            notificationPreviewHidden: "Hidden",
-            notificationPreviewFooter: "What notifications show on the lock screen and in banners. Hidden only says that a new message arrived.",
-            multiDeviceTitle: "Multiple devices",
-            multiDeviceLabel: "While active elsewhere",
-            multiDeviceDelay: "After a delay",
-            multiDeviceImmediate: "Immediately",
-            multiDeviceBadgeOnly: "Badge only",
-            multiDeviceFooter: "How your phone alerts you while you use another device, such as a computer. After a delay waits a moment and stays quiet if you read the message there.",
-            confirmAction: "Confirm",
-            selectDevice: "Choose a device",
-            transferQueue: "Transfers",
-            noTransfers: "No transfers",
-            retryFailedTransfers: "Retry failed transfers",
-            reload: "Reload",
-            select: "Select",
-            selectTime: "Pick a time",
-            selectDate: "Pick a date",
-            today: "Today",
-            timeRange: "Time range",
-            searchIdleHint: "Type a keyword or pick a type",
-            resend: "Send again",
-            groupPermissionMatrixTitle: "Group settings",
-            groupPermissionMatrixReadOnlyHint: "Only the owner and admins can change this",
-            groupPermissionMatrixJoinPolicy: "How people join",
-            groupPermissionMatrixJoinPolicyDescription: "Decides how others can join this group",
-            groupPermissionMatrixJoinInvite: "By invite only",
-            groupPermissionMatrixJoinApproval: "Admin approval required",
-            groupPermissionMatrixJoinOpen: "Anyone can join",
-            groupPermissionMatrixUnknownJoinPolicy: "The current join setting is unknown — pick one again",
-            groupPermissionMatrixMuteAll: "Mute everyone",
-            groupPermissionMatrixMuteAllDescription: "Only the owner and admins can post",
-            groupPermissionMatrixOnlyAdminCanAtAll: "Only admins can @everyone",
-            groupPermissionMatrixOnlyAdminCanAtAllDescription: "Limits who can use @everyone",
-            groupPermissionMatrixOnlyAdminCanPin: "Only admins can pin messages",
-            groupPermissionMatrixOnlyAdminCanPinDescription: "Limits who can pin messages in this group",
-            groupPermissionMatrixShareCardPermission: "Allow sharing the group card",
-            groupPermissionMatrixShareCardPermissionDescription: "When off, members can't share this group with others",
-            groupPermissionMatrixOn: "On",
-            groupPermissionMatrixOff: "Off",
-            groupPermissionMatrixBusy: "Saving",
-            groupPermissionMatrixDismissError: "Dismiss this error",
-            conversationBatchToolbarSelected: "Selected",
-            conversationBatchToolbarEmpty: "Select a conversation",
-            conversationBatchToolbarMarkRead: "Mark as read",
-            conversationBatchToolbarMute: "Mute",
-            conversationBatchToolbarArchive: "Archive",
-            conversationBatchToolbarCancel: "Cancel selection",
-            conversationBatchToolbarBusy: "Working",
-            conversationBatchToolbarSucceededSummary: "{n} done",
-            conversationBatchToolbarFailedSummary: "{n} failed",
-            conversationBatchToolbarRetryFailed: "Retry failed",
-            conversationBatchToolbarDismiss: "Dismiss results",
-            conversationBatchToolbarExpand: "See details",
-            conversationBatchToolbarMaxSelection: "Select up to {n}",
-            inviteCodeLabel: "Invite code",
-            inviteCodePlaceholder: "Enter an invite code",
-            inviteCodeOptional: "Optional",
-            inviteCodeChecking: "Checking invite code…",
-            inviteCodeValid: "Invite code accepted",
-            inviteCodeInviter: "Inviter: {name}",
-            inviteCodeInvalid: "Invalid invite code",
-            inviteCodeScan: "Scan an invite code",
-            myInviteTitle: "My invite",
-            myInviteCodeLabel: "My invite code",
-            myInviteCodeUnavailable: "Invite code unavailable",
-            myInviteCopy: "Copy",
-            myInviteQrHint: "Scan to sign up",
-            myInviteShare: "Share",
-            myInviteRegenerate: "Regenerate",
-            myInviteRegenerating: "Regenerating…",
-            myInviteCooldown: "You can regenerate in {time}",
-            myInviteUnitMinutes: "{n} min",
-            myInviteUnitHours: "{n} h",
-            myInviteUnitDays: "{n} d",
-            myInviteStatsTitle: "My team",
-            myInviteDirect: "Direct",
-            myInviteLevel2: "Level 2",
-            myInviteLevel3: "Level 3",
-            myInviteTotal: "Team total",
-            myInviteInviteesTitle: "People you invited",
-            myInviteInviterTitle: "Invited by",
-            myInviteNoInviter: "No inviter",
-            myInviteRelationships: "Invitation relationships",
-            myInviteNoChildren: "No invitees",
-            myInviteCollapse: "Collapse {name}",
-            myInviteExpand: "Expand {name}",
-            myInviteInviterUnavailable: "Inviter unavailable",
-            myInviteCurrentUser: "You",
-            myInviteEmpty: "No one has joined with your code yet",
-            myInviteLoadMore: "Load more",
-            myInviteLoading: "Loading invite details",
-            myInviteJoined: "Joined {date}",
-            myInviteCountOnly: "{count} people",
-            storageUsageTitle: "Storage",
-            storageUsageUnknownSize: "Unknown",
-            storageUsageAtLeast: "at least",
-            storageUsageClear: "Clear",
-            storageUsageClearing: "Clearing",
-            storageUsageTotal: "Total",
-            storageUsageDeviceFree: "Free space",
-            storageUsageReload: "Measure again",
-            storageUsageRetry: "Try again",
-            storageUsageDismissError: "Dismiss this error",
-            storageUsageLoading: "Measuring storage",
-            storageUsageEmpty: "Nothing to measure",
-            storageUsageFileCount: "{count} files",
-            memberRoleSheetMemberRole: "Member",
-            memberRoleSheetMuted: "Muted",
-            memberRoleSheetPromote: "Make admin",
-            memberRoleSheetDemote: "Remove admin",
-            memberRoleSheetMute: "Mute",
-            memberRoleSheetUnmute: "Unmute",
-            memberRoleSheetRemove: "Remove from group",
-            memberRoleSheetTransferOwner: "Transfer ownership",
-            memberRoleSheetDangerGroup: "Careful",
-            memberRoleSheetEmpty: "You don't manage this group",
-            memberRoleSheetOwnerProtected: "The owner can't be managed",
-            relationActionBarAdd: "Add friend",
-            relationActionBarAccept: "Accept",
-            relationActionBarRemove: "Remove friend",
-            relationActionBarBlock: "Block",
-            relationActionBarUnblock: "Unblock",
-            relationActionBarPending: "Waiting for a reply",
-            relationActionBarBusy: "Working",
-            relationActionBarDismissError: "Dismiss this error",
-            relationActionBarEmpty: "No actions available",
-            screenShareTitle: "Screen sharing",
-            screenShareIdle: "Not sharing",
-            screenShareRequesting: "Requesting to share",
-            screenShareSharing: "Sharing your screen",
-            screenShareViewing: "Watching a shared screen",
-            screenShareUnavailable: "Screen sharing isn't supported here",
-            screenShareSourceRow: "Sharing",
-            screenSharePresenterRow: "Presenter",
-            screenShareStart: "Share screen",
-            screenShareStop: "Stop sharing",
-            screenShareCancel: "Cancel request",
-            conversationActionSheetPin: "Pin",
-            conversationActionSheetUnpin: "Unpin",
-            conversationActionSheetMute: "Mute",
-            conversationActionSheetUnmute: "Unmute",
-            conversationActionSheetMarkRead: "Mark as read",
-            conversationActionSheetMarkUnread: "Mark as unread",
-            conversationActionSheetArchive: "Archive",
-            conversationActionSheetUnarchive: "Unarchive",
-            conversationActionSheetHide: "Hide",
-            conversationActionSheetClearHistory: "Clear local history",
-            conversationActionSheetEmpty: "No actions available",
-            messageActionSheetLabel: "Message actions",
-            messageActionSheetEmpty: "No actions available",
-            messageSpoilerReveal: "Spoiler — tap to show",
-            messageActionReply: "Reply",
-            messageActionForward: "Forward",
-            messageActionRecall: "Unsend",
-            messageActionResend: "Send again",
-            messageActionMultiSelect: "Select",
-            messageActionMark: "Mark",
-            messageActionPin: "Pin message",
-            messageActionPinSelf: "Pin for me only",
-            messageActionUnpin: "Unpin",
-            messageActionCopy: "Copy",
-            messageActionPreview: "Preview",
-            messageActionSave: "Save",
-            messageActionEdit: "Edit",
-            messageActionDelete: "Delete",
-            workspaceFrameLoading: "Loading",
-            workspaceFrameEmpty: "Nothing here",
-            workspaceFrameFailure: "Didn't load",
-            workspaceFrameRetry: "Try again",
-            conversationWorkspaceChatEmpty: "Pick a conversation to start chatting",
-            conversationWorkspaceDetailEmpty: "No details",
-            conversationWorkspaceListFailure: "Conversations didn't load",
-            conversationWorkspaceChatFailure: "Messages didn't load",
-            conversationWorkspaceDetailFailure: "Details didn't load",
-            conversationWorkspaceListLoading: "Loading conversations",
-            conversationWorkspaceChatLoading: "Loading messages",
-            conversationWorkspaceDetailLoading: "Loading details",
-            searchDateRangeFilterCustom: "Custom",
-            searchDateRangeFilterFrom: "From",
-            searchDateRangeFilterTo: "To",
-            searchDateRangeFilterUnlimited: "Any time",
-            searchDateRangeFilterInvalid: "The start date can't be after the end date",
-            composerPlaceholder: "Type a message",
-            composerReply: "Reply",
-            voiceHoldButtonLabel: "Hold to talk",
-            voiceHoldButtonRecording: "Release to send · slide up to cancel",
-            unknownUserPlaceholderUnknown: "Unknown user",
-            unknownUserPlaceholderDeactivated: "This account was deleted",
-            unknownUserPlaceholderBlocked: "This account is blocked",
-            unknownUserPlaceholderUnreachable: "This account can't be reached right now",
-            unknownUserPlaceholderId: "ID",
-            newFriendRequestsEmpty: "No new friend requests",
-            newFriendRequestsAccept: "Accept",
-            newFriendRequestsPending: "Waiting for a reply",
-            newFriendRequestsWithdraw: "Withdraw",
-            unknownMessageHint: "This version can't show this message",
-            unknownMessageUnsupported: "Unsupported message type",
-            unknownMessageDiagnostic: "Message type",
-            conversationRowDraft: "[Draft] ",
-            conversationRowMention: "[Mentioned you] ",
-            messageListEmpty: "No messages yet",
-            messageListLoadOlder: "Load earlier messages",
-            messageListLoadNewer: "Load newer messages",
-            messageRecalledSelf: "You unsent a message",
-            messageRecalledPeer: "unsent a message",
-            yesterday: "Yesterday",
-            startConversationSearchPlaceholder: "Search contacts",
-            groupDetailTitle: "Group profile",
-            groupDetailUnavailable: "Couldn't load the group profile",
-            groupDetailUnavailableHint: "Check your connection and try again.",
-            groupDetailMemberCountSuffix: " members",
-            groupDetailNotSet: "Not set",
-            groupDetailSectionInfo: "Group info",
-            groupDetailSectionMyInGroup: "My settings",
-            groupDetailSectionManage: "Group management",
-            groupDetailSectionPerms: "Group permissions",
-            groupDetailGroupName: "Group name",
-            groupDetailAnnouncementEmpty: "No announcement yet",
-            groupDetailMyNickname: "My nickname in this group",
-            groupDetailMuteNotif: "Mute notifications",
-            groupDetailPinGroup: "Pin this group",
-            groupDetailDiscoverable: "Allow this group to appear in search",
-            groupDetailJoinMode: "How people join",
-            groupDetailJoinRequests: "Join requests",
-            groupDetailMuteAll: "Mute everyone",
-            groupDetailInviteLink: "Group invite link",
-            groupDetailOnlyAdminAtAll: "Only admins can @everyone",
-            groupDetailOnlyAdminPin: "Only admins can pin messages",
-            groupDetailShareCard: "Allow sharing the group card",
-            groupDetailJoinOpen: "Anyone can join",
-            groupDetailJoinApproval: "Admin approval required",
-            groupDetailJoinInvite: "By invite only",
-            groupDetailEditName: "Edit group name",
-            groupDetailEditAnnouncement: "Edit announcement",
-            groupDetailNicknamePlaceholder: "Name shown in this group",
-            groupDetailMemberManage: "Manage members",
-            groupDetailSetAdmin: "Make admin",
-            groupDetailUnsetAdmin: "Remove admin",
-            groupDetailMute: "Mute member",
-            groupDetailUnmute: "Unmute member",
-            groupDetailTransferOwner: "Transfer ownership",
-            groupDetailTransferConfirm: "Transfer ownership to \"%@\"? You'll become a regular member, and this cannot be undone.",
-            groupDetailRequestFriend: "Add friend",
-            groupDetailRemoveMember: "Remove from group",
-            groupDetailNoRequests: "No join requests",
-            groupDetailRequestDefaultMessage: "I'd like to join this group",
-            groupDetailApprove: "Approve",
-            groupDetailInvite: "Invite members",
-            groupDetailInviteEmpty: "No contacts left to invite",
-            groupDetailInviteLinkHint: "Share the invite code and your friends can join this group.",
-            groupDetailInviteCodeTitle: "Invite code",
-            groupDetailCopyCode: "Copy invite code",
-            groupDetailCopied: "Copied",
-            groupDetailCannotGenerate: "Couldn't create an invite link",
-            groupDetailLeave: "Leave group",
-            groupDetailDissolve: "Delete group",
-            groupDetailSave: "Save",
-            groupDetailDone: "Done",
-            momentAudienceSheetPublic: "Public",
-            momentAudienceSheetPublicHint: "Anyone can see it",
-            momentAudienceSheetFriends: "Friends",
-            momentAudienceSheetFriendsHint: "Visible to your friends",
-            momentAudienceSheetPrivate: "Only me",
-            momentAudienceSheetPrivateHint: "Only you can see it",
-            momentAudienceSheetInclude: "Share with",
-            momentAudienceSheetIncludeHint: "Only the friends you pick can see it",
-            momentAudienceSheetExclude: "Hide from",
-            momentAudienceSheetExcludeHint: "The friends you pick won't see it",
-            momentAudienceSheetPick: "Pick friends",
-            momentAudienceSheetDone: "Done",
-            momentsVisibilityRuleListHideFromTitle: "Hide my moments from",
-            momentsVisibilityRuleListHideFromHint: "People on this list can't see what you post",
-            momentsVisibilityRuleListMuteTitle: "Hide their moments",
-            momentsVisibilityRuleListMuteHint: "You won't see what people on this list post",
-            momentsVisibilityRuleListEmpty: "The list is empty",
-            momentsVisibilityRuleListRemove: "Remove",
-            contactMatchListAdd: "Add",
-            contactMatchListEmpty: "None of your contacts have signed up yet",
-            announcementReadBarConfirmRead: "Got it",
-            announcementReadBarViewUnread: "See who hasn't read",
-            contactDetailInfo: "Info",
-            contactDetailFlareId: "Flare ID",
-            contactDetailRemark: "Nickname",
-            contactDetailDescription: "About",
-            contactDetailStar: "Starred friend",
-            contactDetailNotSet: "Not set",
-            contactDetailVoice: "Voice call",
-            contactDetailVideo: "Video call",
-            contactDetailBlock: "Block",
-            contactDetailRemove: "Remove friend",
-            conversationDetailsMessages: "Messages",
-            conversationDetailsMute: "Mute",
-            conversationDetailsPin: "Pin conversation",
-            conversationDetailsMarkRead: "Mark as read",
-            conversationDetailsMarkUnread: "Mark as unread",
-            conversationDetailsSync: "Sync conversation",
-            conversationDetailsArchive: "Archive conversation",
-            conversationDetailsUnarchive: "Unarchive",
-            conversationDetailsClearHistory: "Clear chat history",
-            conversationDetailsDelete: "Delete conversation",
-            profileEditorNickname: "Name",
-            profileEditorNicknamePlaceholder: "Name",
-            profileEditorBio: "Bio",
-            profileEditorBioPlaceholder: "Say a little about yourself",
-            profileEditorSave: "Save",
-            composerEmoji: "Emoji",
-            composerMention: "Mention",
-            composerVoice: "Voice",
-            composerImage: "Image",
-            composerRichText: "Rich text",
-            composerMore: "More actions",
-            composerExpandInput: "Expand input",
-            composerCollapseInput: "Collapse input",
-            composerFormatBold: "Bold",
-            composerFormatItalic: "Italic",
-            composerFormatStrike: "Strikethrough",
-            composerFormatCode: "Code",
-            composerFormatLink: "Link",
-            composerFormatHeading: "Heading",
-            composerFormatQuote: "Quote",
-            composerFormatBullet: "Bulleted list",
-            composerFormatOrdered: "Numbered list",
-            inlineVoiceComposerKeyboard: "Keyboard: discard recording",
-            inlineVoiceComposerPause: "Pause recording",
-            inlineVoiceComposerStart: "Start recording",
-            inlineVoiceComposerPreview: "Play / pause preview",
-            inlineVoiceComposerResume: "Resume recording",
-            inlineVoiceComposerDiscard: "Discard recording",
-            inlineVoiceComposerMicDenied: "Allow microphone access before recording",
-            inlineVoiceComposerSendFailed: "Couldn't send. Try again.",
-            cancelRecording: "Cancel recording",
-            sendVoice: "Send voice message",
-            pause: "Pause",
-            download: "Download",
-            showInFolder: "Show in folder",
-            downloading: "Downloading",
-            downloaded: "Downloaded",
-            imagePreviewClose: "Close preview",
-            imagePreviewPrevious: "Previous",
-            imagePreviewNext: "Next",
-            exitMultiSelect: "Exit multi-select",
-            scrollToLatest: "Jump to latest messages",
-            callMinimize: "Minimize call",
-            callPeerMuted: "Peer muted",
-            callSwitchToVideo: "Switch to video",
-            callDeviceOn: "On",
-            callDeviceOff: "Off",
-            callReturn: "Back to call",
-            conversationHeaderAddActions: "Add conversation action",
-            conversationHeaderMoreActions: "More conversation actions",
-            messageImage: "Photo",
-            messageVideo: "Video",
-            messageVoice: "Voice message",
-            voicePlaybackFailed: "Couldn't play",
-            imageLoadFailed: "Image didn't load",
-            videoLoadFailed: "Video didn't load",
-            mediaUnavailableImage: "Image isn't available right now",
-            mediaUnavailableVideo: "Video isn't available right now",
-            mediaUnavailableAudio: "Voice message isn't available right now",
-            announcementBannerDismiss: "Dismiss announcement",
-            removeImage: "Remove image",
-            momentActions: "Moment actions",
-            momentsVisibilityRuleListAdd: "Add to list",
-            myQrCode: "My QR code",
-            rating: "Rating",
-            conversationHeaderSearch: "Search messages",
-            conversationHeaderAudioCall: "Start a voice call",
-            conversationHeaderVideoCall: "Start a video call",
-            conversationHeaderAddMember: "Add members",
-            conversationHeaderShare: "Share conversation",
-            conversationHeaderDetails: "Conversation details",
-            presenceOnline: "Online",
-            presenceOffline: "Offline",
-            presenceBusy: "Busy",
-            presenceAway: "Away",
-            connectionConnecting: "Connecting…",
-            connectionSyncing: "Syncing messages…",
-            connectionSwitching: "Switching connection…",
-            connectionReconnecting: "Connection lost. Reconnecting…",
-            connectionWaitingForNetwork: "No network. Reconnects when it is back.",
-            connectionServiceUnavailable: "Service temporarily unavailable. Recovering…",
-            connectionKicked: "Signed in on another device",
-            connectionExpired: "Your sign-in has expired",
-            connectionUpgradeRequired: "Update the app to keep using it",
-            connectionTenantUnavailable: "Service suspended",
-            connectionRetry: "Retry now",
-            connectionSignIn: "Sign in again",
-            connectionUpdate: "Update now",
-            connectionDiagnose: "Diagnose",
-            connectionDevelopmentMode: "Development mode",
-            accessDiagnosticsTitle: "Network and lines",
-            accessDiagnosticsCurrent: "Current line",
-            accessDiagnosticsLines: "All lines",
-            accessDiagnosticsRecovery: "Recovery",
-            accessDiagnosticsAccessPoint: "Access point",
-            accessDiagnosticsRegion: "Region",
-            accessDiagnosticsProtocol: "Protocol",
-            accessDiagnosticsRtt: "Latency",
-            accessDiagnosticsSerial: "Manifest version",
-            accessDiagnosticsSource: "Manifest source",
-            accessDiagnosticsManifest: "Manifest status",
-            accessDiagnosticsReportedAccessPoint: "Reported by the server",
-            accessDiagnosticsRecoveryRounds: "Recovery rounds so far",
-            accessDiagnosticsManifestValid: "Valid",
-            accessDiagnosticsManifestStale: "Expired",
-            accessDiagnosticsManifestNone: "None yet",
-            accessDiagnosticsOn: "On",
-            accessDiagnosticsOff: "Off",
-            accessDiagnosticsRttGood: "Good",
-            accessDiagnosticsRttFair: "Fair",
-            accessDiagnosticsRttPoor: "Poor",
-            accessDiagnosticsSourceSeed: "Built-in seed",
-            accessDiagnosticsSourceMirror: "Mirror",
-            accessDiagnosticsSourceRecovery: "Recovery link",
-            accessDiagnosticsSourceDevelopment: "Development configuration",
-            accessDiagnosticsSourceNone: "None",
-            accessDiagnosticsStatusActive: "Available",
-            accessDiagnosticsStatusDraining: "Draining",
-            accessDiagnosticsStatusDisabled: "Disabled",
-            accessDiagnosticsStatusUnknown: "Unknown",
-            accessDiagnosticsBreakerOpen: "Circuit open",
-            accessDiagnosticsBreakerHalfOpen: "Testing",
-            accessDiagnosticsCurrentTag: "Current",
-            accessDiagnosticsPinnedTag: "Pinned",
-            accessDiagnosticsPin: "Pin",
-            accessDiagnosticsUnpin: "Unpin",
-            accessDiagnosticsNoLines: "No lines available",
-            accessDiagnosticsRefresh: "Refresh now",
-            accessDiagnosticsExport: "Copy diagnostics",
-            accessDiagnosticsImport: "Import",
-            accessDiagnosticsImportLabel: "Import a recovery link",
-            accessDiagnosticsImportPlaceholder: "Paste a flare-recover:// link",
-            accessDiagnosticsImportHint: "If the service does not come back, ask support for a recovery link.",
-            accessDiagnosticsHealthy: "Connection is healthy",
-            accessDiagnosticsNotConnected: "Not connected",
-            accessDiagnosticsAccessPointMismatch: "The server reports a different access point. The connection is not affected.",
-            accessDiagnosticsManifestStaleNotice: "The line manifest has expired. You can still connect while it updates.",
-            accessDiagnosticsRefreshAdopted: "Lines updated",
-            accessDiagnosticsRefreshUpToDate: "Lines are up to date",
-            accessDiagnosticsRefreshFailed: "Could not update the lines. Retrying automatically.",
-            accessDiagnosticsRefreshSkipped: "In development mode the lines come from the configuration.",
-            accessDiagnosticsImportAdopted: "Recovery link imported. Switching lines.",
-            accessDiagnosticsImportUnchanged: "This link was already imported.",
-            accessDiagnosticsImportRollback: "This link is older than the lines on this device.",
-            accessDiagnosticsImportExpired: "This link has expired. Ask for a new one.",
-            accessDiagnosticsImportWrongApp: "This link belongs to another app.",
-            accessDiagnosticsImportDevelopmentMode: "Recovery links are not used in development mode.",
-            accessDiagnosticsImportUntrusted: "This link could not be verified. Make sure it came from an official channel.",
-            accessDiagnosticsImportMalformed: "This link is malformed. Copy the whole link and try again.",
-            accessDiagnosticsImportRejected: "This link cannot be imported.",
-            accessDiagnosticsExportCopied: "Diagnostics copied",
-            accessDiagnosticsExportFailed: "Could not copy. Try again.",
-            updatePromptTitleAvailable: "New version available",
-            updatePromptTitleRequired: "Update required",
-            updatePromptTitleMetered: "Download on a metered network?",
-            updatePromptTitleDownloading: "Downloading update",
-            updatePromptTitleVerifying: "Verifying update",
-            updatePromptTitleReady: "Update ready",
-            updatePromptTitleInstalling: "Installing update",
-            updatePromptTitleFailed: "Update failed",
-            updatePromptVersion: "Version",
-            updatePromptNotes: "What's new",
-            updatePromptMessageRequired: "This version is no longer supported. Update to keep using the app.",
-            updatePromptMessageRequiredReadOnly: "Update to send messages. You can keep browsing what is on this device.",
-            composerReadOnlyUpdate: "Update to send messages",
-            updatePromptMessageMetered: "You are on a metered network. This download is about",
-            updatePromptMessageMeteredUnknown: "You are on a metered network. The download will use data.",
-            updatePromptMessageReady: "The new version starts after a restart. The app will not restart by itself.",
-            updatePromptFailManifestUnavailable: "Could not get the update information. Check your network and try again.",
-            updatePromptFailManifestRejected: "The update information failed verification.",
-            updatePromptFailNoArtifact: "This version has no package for this device yet.",
-            updatePromptFailInsufficientSpace: "Not enough storage. Free up some space and try again.",
-            updatePromptFailDownload: "The download failed. Check your network and try again.",
-            updatePromptFailHashMismatch: "The download failed verification. Try again.",
-            updatePromptFailInstall: "The installation failed. Try again.",
-            updatePromptFailSignatureMismatch: "The package signature does not match. Installation stopped.",
-            updatePromptFailDowngrade: "A version older than this one cannot be installed.",
-            updatePromptFailNotSkippable: "This version cannot be skipped.",
-            updatePromptFailUnknown: "The update did not finish. Try again later.",
-            updatePromptContinueDownload: "Continue download",
-            updatePromptRestart: "Restart to finish updating",
-            updatePromptRetry: "Try again",
-            updatePromptFallbackWebsite: "Download from the website",
-            updatePromptFallbackStore: "Go to the app store",
-            updatePromptLater: "Later",
-            updatePromptBackground: "Download in background",
-            updatePromptSkip: "Skip this version",
-            updatePromptContinueReadOnly: "Keep browsing",
-            progressBarLabel: "Progress",
-            progressBarLoading: "In progress",
-            versionPanelTitle: "Version information",
-            versionPanelVersion: "Version",
-            versionPanelBuild: "Build",
-            versionPanelChannel: "Channel",
-            versionPanelChannelStable: "Stable",
-            versionPanelChannelBeta: "Beta",
-            versionPanelChannelInternal: "Internal",
-            versionPanelCheck: "Check for updates",
-            versionPanelChecking: "Checking…",
-            versionPanelUpToDate: "Up to date",
-            settingsRowBadge: "New",
-            groupDetailSearchMembers: "Search members",
-            groupDetailNoMatchingMembers: "No matching members",
-            previewMessage: "[Message]",
-            previewRichText: "[Rich text]",
-            previewGif: "[GIF]",
-            previewImage: "[Image]",
-            previewVideo: "[Video]",
-            previewAudio: "[Voice]",
-            previewFile: "[File]",
-            previewLocation: "[Location]",
-            previewCard: "[Contact]",
-            previewSticker: "[Sticker]",
-            previewEmoji: "[Emoji]",
-            previewQuote: "[Quote]",
-            previewLink: "[Link]",
-            previewForward: "[Forward]",
-            previewThread: "[Thread]",
-            previewMiniProgram: "[Mini Program]",
-            previewImageGroup: "[Album]",
-            previewSystem: "[System]",
-            previewNotification: "[Notification]",
-            previewVote: "[Poll]",
-            previewTask: "[Task]",
-            previewSchedule: "[Schedule]",
-            previewAnnouncement: "[Announcement]",
-            previewCustom: "[Custom]",
-            previewPlaceholder: "[Placeholder]",
-            previewUnknown: "[Unknown]",
-            systemEventGroupCreated: "Group created",
-            systemEventGroupMemberJoined: "A new member joined the group",
-            systemEventGroupMemberRemoved: "A member was removed from the group",
-            systemEventGroupMemberLeft: "A member left the group",
-            systemEventGroupMemberMuted: "A member was muted",
-            systemEventGroupMemberUnmuted: "A member was unmuted",
-            systemEventGroupOwnerTransferred: "Group ownership was transferred",
-            systemEventGroupDissolved: "The group was dissolved",
-            systemEventGroupAnnouncementUpdated: "Group announcement updated",
-            systemEventFriendshipEstablished: "You are now friends. Say hi!",
-            systemEventGroupProfileUpdated: "Group name updated",
-            systemEventGroupMemberRolesChanged: "A member's group role was changed",
-            systemEventGroupMuted: "All members were muted",
-            systemEventGroupUnmuted: "All members were unmuted",
-            displayNameUser: { "User " + $0 },
-            displayNameUnknownUser: "Unknown user",
-            displayNameGroup: "Group chat",
-            displayNameSystem: "System notifications",
-            displayNameAi: "AI assistant",
-            displayNameCustomer: "Customer service",
-            displayNameChannel: "Channel",
-            displayNameBroadcast: "Broadcast",
-            displayNameTemp: "Temporary chat",
-            displayNameSeparator: ", ",
-            pluginViewSubmit: "Submit",
-            pluginViewEnded: "Ended",
-            pluginViewDeadlinePassed: "Closed",
-            pluginViewSeeAll: "See all ({count})",
-            pluginViewDetail: "View details",
-            pluginViewVotes: "{count} votes",
-            pluginViewRemaining: "{time} left",
-            pluginViewDateTimeFormat: "MMM d, HH:mm",
-            pluginViewDateTimeYearFormat: "MMM d, y, HH:mm",
-            pluginFormRequired: "Required",
-            pluginFormTooLong: "Too long",
-            pluginFormOutOfRange: "Out of range",
-            pluginFormTooFewItems: "At least {n}",
-            pluginFormTooManyItems: "At most {n}",
-            pluginFormDuplicateItem: "No duplicates",
-            pluginFormInvalid: "Invalid value",
-            pluginFileChoose: "Choose file",
-            pluginFileSelected: "Waiting for upload",
-            pluginFileUploading: "Uploading",
-            pluginFileUploaded: "Uploaded",
-            pluginFileFailed: "Upload is incomplete. Retry or choose another file",
-            pluginFileRejected: "Choose a file within the allowed format and size limits",
-            pluginFileReplace: "Replace",
-            pluginFileRemove: "Remove",
-            pluginFilePreview: "Preview",
-            locationOsmAttribution: "© OpenStreetMap contributors",
-            loading: "Loading…",
-            messageReadSummaryUnread: "{count} unread",
-            messageReadSummaryAllRead: "Read by all",
-            messageSendFailedRetry: "Failed to send. Retry",
-            messageDeleted: "Message deleted",
-            pluginViewMore: "More actions",
-            pluginViewMe: "Me",
-            pluginViewUnavailableDisabled: "This plugin is turned off",
-            pluginViewUnavailableNotInstalled: "This plugin is not installed",
-            pluginViewUnavailableNoPermission: "You don't have access to this plugin",
-            pluginViewUnavailableUnsupportedPlatform: "This plugin isn't available on this device",
-            pluginViewUnavailableIncompatibleVersion: "Update the app to view this",
-            pluginViewUnavailableCatalogUnreachable: "Can't load this right now",
-            pluginViewUnavailableUnboundCopy: "Copy, view only",
-            pluginViewUnavailableUpgradeRequired: "Update the app to view this",
-            pluginUpgradeAction: "Update",
-            pluginUpgradeNotAvailable: "Not supported in this version yet. It will work once a newer version is released",
-            pluginUpgradeBadge: "Update needed",
-            pluginUpgradeTitle: "Update required",
-            pluginUpgradeDescription: "This needs a newer version of the app",
-            pluginViewQrExpired: "QR code expired",
-            pluginViewQrRefresh: "Refresh QR code",
-            pluginViewStepPending: "Not started",
-            pluginViewStepCurrent: "In progress",
-            pluginViewStepDone: "Done",
-            pluginViewStepFailed: "Failed",
-            pluginViewTrendUp: "Up",
-            pluginViewTrendDown: "Down",
-            pluginViewTrendFlat: "Unchanged",
-            pluginViewImageUnavailable: "Image unavailable",
-            pluginFormatSeconds: "{n} s",
-            pluginFormatCountUnits: "3:K|6:M|9:B",
-            pluginFormChooseImage: "Choose image",
-            pluginFormCaptureDocument: "Capture document",
-            pluginFormDocumentFront: "Front",
-            pluginFormDocumentBack: "Back",
-            pluginFormDocumentHolding: "Holding the document",
-            capabilityConsentTitle: "“{plugin}” wants to use",
-            capabilityConsentPurpose: "Purpose",
-            capabilityConsentAllowOnce: "Allow once",
-            capabilityConsentAllowAlways: "Always allow",
-            capabilityConsentDeny: "Don't allow",
-            capabilityConsentNote: "You can turn this off in Settings at any time",
-            capabilityDocumentCapture: "The camera, to photograph a document",
-            capabilityPaymentConfirmation: "Payments, each confirmed by you",
-            capabilityLocationCoarse: "Your approximate location, this time only",
-            capabilityLocationFine: "Your precise location, this time only",
-            capabilityCamera: "The camera",
-            capabilityMicrophone: "The microphone",
-            capabilityRtcSession: "Voice and video calls",
-            capabilityGeneric: "A capability of this device",
-            documentCaptureHintFront: "Fit the front of the document inside the frame, sharp and without glare",
-            documentCaptureHintBack: "Fit the back of the document inside the frame, sharp and without glare",
-            documentCaptureHintHolding: "Hold the document in front of you so that your face and the document are both clear",
-            documentCaptureShoot: "Take photo",
-            documentCaptureRetake: "Retake",
-            documentCaptureUse: "Use photo",
-            documentCaptureFromAlbum: "Choose from photos",
-            documentCaptureProcessing: "Processing the photo",
-            documentCaptureCameraUnavailable: "The camera is not available. Choose a photo instead",
-            documentCaptureTooLarge: "The photo is too large. Retake it",
-            documentCaptureFailed: "The photo could not be processed. Retake it",
-            documentCaptureNotAccepted: "Photos are not accepted here. Contact the provider",
-            paymentConfirmationTitle: "Confirm payment",
-            paymentConfirmationPayee: "Payee",
-            paymentConfirmationItem: "For",
-            paymentConfirmationOrder: "Order",
-            paymentConfirmationRequestedBy: "Requested by “{plugin}”",
-            paymentConfirmationExpiresIn: "Expires in {time}",
-            paymentConfirmationExpired: "This order has expired. Start again",
-            paymentConfirmationInvalid: "The order amount cannot be read, so it cannot be paid",
-            paymentConfirmationConfirm: "Pay",
-            paymentConfirmationVerifying: "Verifying",
-            pluginProtectedMediaReason: "Reason for viewing",
-            pluginProtectedMediaNotice: "Viewing protected material needs a reason and is recorded for audit.",
-            pluginProtectedMediaOwnNotice: "Only you can see this. The picture is not saved to this device.",
-            pluginProtectedMediaView: "View",
-            pluginProtectedMediaHide: "Hide",
-            pluginProtectedMediaUnavailable: "Cannot be shown. Try again",
-            pluginProtectedMediaNotPreviewable: "This kind of file cannot be previewed here",
-            pluginLocationLocate: "Get location",
-            pluginLocationRelocate: "Locate again",
-            pluginLocationClear: "Clear",
-            pluginLocationLocating: "Getting your location",
-            pluginLocationEmpty: "No location yet",
-            pluginLocationCoarse: "Approximate location",
-            pluginBundleOpening: "Opening…",
-            pluginBundleUnavailable: "This page can't be opened right now",
-            pluginBundleCrashed: "This page stopped unexpectedly",
-            pluginBundleCrashedHint: "Reload it to carry on",
-            pluginBundleReload: "Reload",
-            pluginBundleClosed: "This page has been closed",
-            pluginBundleExternalTitle: "Open external link",
-            pluginBundleExternalMessage: "This address will open in your browser. Make sure you trust it.",
-            pluginBundleExternalOpen: "Open",
-            pluginBundleCopied: "Copied",
-            pluginBridgeErrorInvalidEnvelope: "The request is malformed",
-            pluginBridgeErrorUnsupportedBridge: "This version can't run this page",
-            pluginBridgeErrorNotReady: "The page isn't ready yet",
-            pluginBridgeErrorMethodNotFound: "This action isn't supported",
-            pluginBridgeErrorInvalidParams: "The request has invalid values",
-            pluginBridgeErrorPayloadTooLarge: "The request is too large",
-            pluginBridgeErrorPermissionDenied: "This action isn't allowed",
-            pluginBridgeErrorRateLimited: "Too many requests. Try again shortly",
-            pluginBridgeErrorCancelled: "Cancelled",
-            pluginBridgeErrorGestureRequired: "Tap the page, then try again",
-            pluginBridgeErrorQuotaExceeded: "Storage is full",
-            pluginBridgeErrorNotFound: "Couldn't find what was asked for",
-            pluginBridgeErrorUnavailable: "Not available right now. Try again later",
-            pluginBridgeErrorTimeout: "The request timed out. Try again",
-            pluginBridgeErrorOperationFailed: "The action failed",
-            pluginBridgeErrorRevoked: "This page has been turned off",
-            pluginBridgeErrorInternal: "Something went wrong. Try again later",
-            pluginLocationFine: "Precise location",
-            pluginLocationAccuracy: "Accurate to about {m} m",
-            pluginPageRefresh: "Refresh",
-            pluginViewMaxSelections: "Choose up to {n}",
-            pluginViewAll: "All",
-            accountTransactions: "Transactions",
-            accountEmpty: "No transactions yet",
-            accountEmptyDescription: "Account entries will appear here",
-            accountInformation: "Account information and rules",
-            accountEntryDetails: "Transaction details",
-            accountEntryId: "Record ID",
-            accountType: "Type",
-            accountToday: "Today",
-            accountYesterday: "Yesterday",
-            accountOtherEntries: "Other entries",
-            accountShowBalance: "Show balance",
-            accountHideBalance: "Hide balance",
-            accountBalanceHidden: "Balance hidden",
-            accountDayFormat: "MMM d",
-            accountDayYearFormat: "MMM d, y",
-            pluginViewEmpty: "No data yet",
-            packetView: "View",
-            packetRefunded: "Returned",
-            packetBadgeLucky: "Lucky",
-            packetBadgeExclusive: "Exclusive",
-            packetForRecipient: "For {name}",
-            packetNotEligibleName: "Only {name} can open this",
-            packetDeposited: "Saved to your wallet",
-            packetSummarySender: "{claimed}/{shares} opened, {claimedMoney}/{totalMoney}",
-            packetSummaryCompleted: "{shares} packets, {totalMoney}, all claimed in {duration}",
-            packetSummaryCount: "{claimed}/{shares} opened",
-            packetRefundAt: "The rest returns at {time}",
-            packetRefundedNote: "Returned {money} · {time}",
-            packetDurationSeconds: "{n}s",
-            packetDurationMinutes: "{n} min",
-            packetDurationHours: "{n} h",
-            packetDurationDays: "{n} d",
-            callRecordVoice: "Voice call",
-            callRecordVideo: "Video call",
-            callRecordWaitingAnswer: "Waiting for answer",
-            callRecordIncoming: "Calling you",
-            callRecordGroupRinging: "Group call ringing",
-            callRecordInCall: "In call",
-            callRecordGroupOngoing: "Group call · {n} joined",
-            callRecordGroupInProgress: "Group call in progress",
-            callRecordDuration: "Duration {duration}",
-            callRecordGroupEndedDuration: "Group call ended · {duration}",
-            callRecordGroupEnded: "Group call ended",
-            callRecordCancelledByYou: "Cancelled",
-            callRecordCancelledByCaller: "Caller cancelled",
-            callRecordDeclinedByPeer: "Declined",
-            callRecordDeclinedByYou: "You declined",
-            callRecordNoAnswer: "No answer",
-            callRecordMissed: "Missed call",
-            callRecordPeerBusy: "Busy",
-            callRecordMissedBusy: "Missed (busy)",
-            callRecordUnavailable: "Calls unavailable",
-            callRecordFailed: "Call failed",
-            callRecordJoin: "Join",
-            callRecordCallBack: "Call back",
-            callRecordConfirmCallBack: "Call back now?",
-            readReceiptRead: "Read",
-            readReceiptUnread: "Unread",
-            readReceiptLoadFailed: "Couldn't load the list",
-            readReceiptUnavailable: "This message's read list isn't available",
-            readReceiptLoadMore: "Load more",
-            readReceiptLoadMoreFailed: "Couldn't load more. Tap to retry",
-            packetRefundedNotice: "This red packet has been refunded",
-            meMenuMoments: "Moments",
-            meMenuReports: "My reports",
-            meMenuInvite: "My invites",
-            meMenuSettings: "Settings",
-            meMenuPluginFallback: "Plugin",
-            forwardRecordTitle: "Merged forward",
-            forwardRecordTotal: "{count} messages in total",
-            forwardRecordTotalOne: "{count} message in total",
-            forwardRecordMore: "{count} more messages…",
-            forwardRecordMoreOne: "{count} more message…",
-            forwardRecordViewDetails: "View details",
-            forwardRecordUnknownSender: "Unknown sender",
-            forwardRecordEmpty: "No forwarded content",
-            forwardRecordCountSuffix: " · {count}",
-            forwardRecordCardLabel: "{title}, {subtitle}",
-            pluginViewVotesOne: "{count} vote",
-            myInviteCountOnlyOne: "{count} person",
-            storageUsageFileCountOne: "{count} file",
-            messageMenuLoading: "Loading…"
-        ).englishFormats()
+        FlareStrings { copy in
+            copy.accept = "Answer"
+            copy.accessDiagnosticsAccessPoint = "Access point"
+            copy.accessDiagnosticsAccessPointMismatch = "The server reports a different access point. The connection is not affected."
+            copy.accessDiagnosticsBreakerHalfOpen = "Testing"
+            copy.accessDiagnosticsBreakerOpen = "Circuit open"
+            copy.accessDiagnosticsCurrent = "Current line"
+            copy.accessDiagnosticsCurrentTag = "Current"
+            copy.accessDiagnosticsExport = "Copy diagnostics"
+            copy.accessDiagnosticsExportCopied = "Diagnostics copied"
+            copy.accessDiagnosticsExportFailed = "Could not copy. Try again."
+            copy.accessDiagnosticsHealthy = "Connection is healthy"
+            copy.accessDiagnosticsImport = "Import"
+            copy.accessDiagnosticsImportAdopted = "Recovery link imported. Switching lines."
+            copy.accessDiagnosticsImportDevelopmentMode = "Recovery links are not used in development mode."
+            copy.accessDiagnosticsImportExpired = "This link has expired. Ask for a new one."
+            copy.accessDiagnosticsImportHint = "If the service does not come back, ask support for a recovery link."
+            copy.accessDiagnosticsImportLabel = "Import a recovery link"
+            copy.accessDiagnosticsImportMalformed = "This link is malformed. Copy the whole link and try again."
+            copy.accessDiagnosticsImportPlaceholder = "Paste a flare-recover:// link"
+            copy.accessDiagnosticsImportRejected = "This link cannot be imported."
+            copy.accessDiagnosticsImportRollback = "This link is older than the lines on this device."
+            copy.accessDiagnosticsImportUnchanged = "This link was already imported."
+            copy.accessDiagnosticsImportUntrusted = "This link could not be verified. Make sure it came from an official channel."
+            copy.accessDiagnosticsImportWrongApp = "This link belongs to another app."
+            copy.accessDiagnosticsLines = "All lines"
+            copy.accessDiagnosticsManifest = "Manifest status"
+            copy.accessDiagnosticsManifestNone = "None yet"
+            copy.accessDiagnosticsManifestStale = "Expired"
+            copy.accessDiagnosticsManifestStaleNotice = "The line manifest has expired. You can still connect while it updates."
+            copy.accessDiagnosticsManifestValid = "Valid"
+            copy.accessDiagnosticsNoLines = "No lines available"
+            copy.accessDiagnosticsNotConnected = "Not connected"
+            copy.accessDiagnosticsOff = "Off"
+            copy.accessDiagnosticsOn = "On"
+            copy.accessDiagnosticsPin = "Pin"
+            copy.accessDiagnosticsPinnedTag = "Pinned"
+            copy.accessDiagnosticsProtocol = "Protocol"
+            copy.accessDiagnosticsRecovery = "Recovery"
+            copy.accessDiagnosticsRecoveryRounds = "Recovery rounds so far"
+            copy.accessDiagnosticsRefresh = "Refresh now"
+            copy.accessDiagnosticsRefreshAdopted = "Lines updated"
+            copy.accessDiagnosticsRefreshFailed = "Could not update the lines. Retrying automatically."
+            copy.accessDiagnosticsRefreshSkipped = "In development mode the lines come from the configuration."
+            copy.accessDiagnosticsRefreshUpToDate = "Lines are up to date"
+            copy.accessDiagnosticsRegion = "Region"
+            copy.accessDiagnosticsReportedAccessPoint = "Reported by the server"
+            copy.accessDiagnosticsRtt = "Latency"
+            copy.accessDiagnosticsRttFair = "Fair"
+            copy.accessDiagnosticsRttGood = "Good"
+            copy.accessDiagnosticsRttPoor = "Poor"
+            copy.accessDiagnosticsSerial = "Manifest version"
+            copy.accessDiagnosticsSource = "Manifest source"
+            copy.accessDiagnosticsSourceDevelopment = "Development configuration"
+            copy.accessDiagnosticsSourceMirror = "Mirror"
+            copy.accessDiagnosticsSourceNone = "None"
+            copy.accessDiagnosticsSourceRecovery = "Recovery link"
+            copy.accessDiagnosticsSourceSeed = "Built-in seed"
+            copy.accessDiagnosticsStatusActive = "Available"
+            copy.accessDiagnosticsStatusDisabled = "Disabled"
+            copy.accessDiagnosticsStatusDraining = "Draining"
+            copy.accessDiagnosticsStatusUnknown = "Unknown"
+            copy.accessDiagnosticsTitle = "Network and lines"
+            copy.accessDiagnosticsUnpin = "Unpin"
+            copy.accountBalanceHidden = "Balance hidden"
+            copy.accountDayFormat = "MMM d"
+            copy.accountDayYearFormat = "MMM d, y"
+            copy.accountEmpty = "No transactions yet"
+            copy.accountEmptyDescription = "Account entries will appear here"
+            copy.accountEntryDetails = "Transaction details"
+            copy.accountEntryId = "Record ID"
+            copy.accountHideBalance = "Hide balance"
+            copy.accountInformation = "Account information and rules"
+            copy.accountOtherEntries = "Other entries"
+            copy.accountOtherWallets = "Other wallets"
+            copy.accountShowBalance = "Show balance"
+            copy.accountToday = "Today"
+            copy.accountTransactions = "Transactions"
+            copy.accountType = "Type"
+            copy.accountYesterday = "Yesterday"
+            copy.actionCamera = "Camera"
+            copy.actionCard = "Contact card"
+            copy.actionFile = "File"
+            copy.actionImage = "Photo"
+            copy.actionLocation = "Location"
+            copy.actionSchedule = "Event"
+            copy.actionTask = "Task"
+            copy.actionVideo = "Video"
+            copy.actionVote = "Poll"
+            copy.activityListUnreadSuffix = ", unread"
+            copy.addImage = "Add photo"
+            copy.addMember = "Add member"
+            copy.addOption = "Add option"
+            copy.addReaction = "Add reaction"
+            copy.allowMultiple = "Allow multiple answers"
+            copy.announcementBannerDismiss = "Dismiss announcement"
+            copy.announcementReadBarConfirmRead = "Got it"
+            copy.announcementReadBarViewUnread = "See who hasn't read"
+            copy.back = "Back"
+            copy.backgroundDeliveryAutoStart = "Auto-start settings"
+            copy.backgroundDeliveryAutoStartHint = "This phone also decides which apps may start in the background. Allow this app to start automatically."
+            copy.backgroundDeliveryBattery = "Battery usage"
+            copy.backgroundDeliveryExplanation = "When a message arrives, the app runs briefly in the background to sync it and alert you. If the system limits background activity, alerts can arrive late or not at all."
+            copy.backgroundDeliveryLabel = "Receive messages in the background"
+            copy.backgroundDeliveryOptimized = "Optimized"
+            copy.backgroundDeliveryRestricted = "Restricted"
+            copy.backgroundDeliveryUnrestricted = "Unrestricted"
+            copy.callAnswerAudio = "Answer with audio"
+            copy.callCalling = "Calling…"
+            copy.callCollapse = "Collapse"
+            copy.callConnected = "Connected"
+            copy.callDecline = "Decline"
+            copy.callDeviceOff = "Off"
+            copy.callDeviceOn = "On"
+            copy.callDockWaiting = "Waiting"
+            copy.callEncrypted = "End-to-end encrypted"
+            copy.callEnded = "Call ended · {duration}"
+            copy.callExpand = "Expand"
+            copy.callFailed = "Call failed"
+            copy.callInProgress = "In a call"
+            copy.callInterrupted = "Call dropped"
+            copy.callMaxParticipants = "Up to {count} people per call"
+            copy.callMinimize = "Minimize"
+            copy.callPeerMuted = "Peer muted"
+            copy.callReconnecting = "Reconnecting…"
+            copy.callReconnectingShort = "Reconnecting"
+            copy.callRecordCallBack = "Call back"
+            copy.callRecordCancelledByCaller = "Caller cancelled"
+            copy.callRecordCancelledByYou = "Cancelled"
+            copy.callRecordConfirmCallBack = "Call back now?"
+            copy.callRecordDeclinedByPeer = "Declined"
+            copy.callRecordDeclinedByYou = "You declined"
+            copy.callRecordDuration = "Duration {duration}"
+            copy.callRecordFailed = "Call failed"
+            copy.callRecordGroupEnded = "Group call ended"
+            copy.callRecordGroupEndedDuration = "Group call ended · {duration}"
+            copy.callRecordGroupInProgress = "Group call in progress"
+            copy.callRecordGroupOngoing = "Group call · {n} joined"
+            copy.callRecordGroupRinging = "Group call ringing"
+            copy.callRecordInCall = "In call"
+            copy.callRecordIncoming = "Calling you"
+            copy.callRecordJoin = "Join"
+            copy.callRecordMissed = "Missed call"
+            copy.callRecordMissedBusy = "Missed (busy)"
+            copy.callRecordNoAnswer = "No answer"
+            copy.callRecordPeerBusy = "Busy"
+            copy.callRecordUnavailable = "Calls unavailable"
+            copy.callRecordVideo = "Video call"
+            copy.callRecordVoice = "Voice call"
+            copy.callRecordWaitingAnswer = "Waiting for answer"
+            copy.callRedial = "Call again"
+            copy.callReturn = "Return to call"
+            copy.callRinging = "Ringing…"
+            copy.callSwapVideo = "Swap video"
+            copy.callSwitchToVideo = "Switch to video"
+            copy.callWaitingAnswer = "Waiting for them to accept…"
+            copy.callYou = "You"
+            copy.camera = "Camera"
+            copy.cancel = "Cancel"
+            copy.cancelRecording = "Cancel recording"
+            copy.cancelReply = "Cancel reply"
+            copy.capabilityCamera = "The camera"
+            copy.capabilityConsentAllowAlways = "Always allow"
+            copy.capabilityConsentAllowOnce = "Allow once"
+            copy.capabilityConsentDeny = "Don't allow"
+            copy.capabilityConsentNote = "You can turn this off in Settings at any time"
+            copy.capabilityConsentPurpose = "Purpose"
+            copy.capabilityConsentTitle = "“{plugin}” wants to use"
+            copy.capabilityDocumentCapture = "The camera, to photograph a document"
+            copy.capabilityGeneric = "A capability of this device"
+            copy.capabilityLocationCoarse = "Your approximate location, this time only"
+            copy.capabilityLocationFine = "Your precise location, this time only"
+            copy.capabilityMicrophone = "The microphone"
+            copy.capabilityPaymentConfirmation = "Payments, each confirmed by you"
+            copy.capabilityRtcSession = "Voice and video calls"
+            copy.changeAvatar = "Change avatar"
+            copy.changeCover = "Change cover"
+            copy.chatBackground = "Chat background"
+            copy.clear = "Clear"
+            copy.clearSearch = "Clear search"
+            copy.close = "Close"
+            copy.collapse = "Collapse"
+            copy.commands = "Commands"
+            copy.comment = "Comment"
+            copy.composerAttachmentPreview = "Send attachments"
+            copy.composerCollapseInput = "Collapse input"
+            copy.composerEmoji = "Emoji"
+            copy.composerExpandInput = "Expand input"
+            copy.composerFormatBold = "Bold"
+            copy.composerFormatBullet = "Bulleted list"
+            copy.composerFormatCode = "Code"
+            copy.composerFormatHeading = "Heading"
+            copy.composerFormatItalic = "Italic"
+            copy.composerFormatLink = "Link"
+            copy.composerFormatOrdered = "Numbered list"
+            copy.composerFormatQuote = "Quote"
+            copy.composerFormatStrike = "Strikethrough"
+            copy.composerImage = "Image"
+            copy.composerMention = "Mention"
+            copy.composerMore = "More actions"
+            copy.composerPlaceholder = "Type a message"
+            copy.composerReadOnlyUpdate = "Update to send messages"
+            copy.composerReply = "Reply"
+            copy.composerRichText = "Rich text"
+            copy.composerVoice = "Voice"
+            copy.confirm = "Confirm"
+            copy.confirmAction = "Confirm"
+            copy.connectionConnecting = "Connecting…"
+            copy.connectionDevelopmentMode = "Development mode"
+            copy.connectionDiagnose = "Diagnose"
+            copy.connectionExpired = "Your sign-in has expired"
+            copy.connectionKicked = "Signed in on another device"
+            copy.connectionReconnecting = "Connection lost. Reconnecting…"
+            copy.connectionRetry = "Retry now"
+            copy.connectionServiceUnavailable = "Service temporarily unavailable. Recovering…"
+            copy.connectionSignIn = "Sign in again"
+            copy.connectionSwitching = "Switching connection…"
+            copy.connectionSyncing = "Syncing messages…"
+            copy.connectionTenantUnavailable = "Service suspended"
+            copy.connectionUpdate = "Update now"
+            copy.connectionUpgradeRequired = "Update the app to keep using it"
+            copy.connectionWaitingForNetwork = "No network. Reconnects when it is back."
+            copy.contactDetailBlock = "Block"
+            copy.contactDetailDescription = "About"
+            copy.contactDetailFlareId = "Flare ID"
+            copy.contactDetailInfo = "Info"
+            copy.contactDetailNotSet = "Not set"
+            copy.contactDetailRemark = "Nickname"
+            copy.contactDetailRemove = "Remove friend"
+            copy.contactDetailStar = "Starred friend"
+            copy.contactDetailVideo = "Video call"
+            copy.contactDetailVoice = "Voice call"
+            copy.contactIndex = "Contact index"
+            copy.contactJumpTo = "Jump to {letter}"
+            copy.contactMatchListAdd = "Add"
+            copy.contactMatchListEmpty = "None of your contacts have signed up yet"
+            copy.contactPickerEmpty = "No contacts"
+            copy.contactPickerFriends = "Friends"
+            copy.contactPickerGroupMembers = "Group members"
+            copy.contactPickerSearch = "Search"
+            copy.contactPickerSelfSuffix = " (me)"
+            copy.contactPickerTitle = "Choose a contact"
+            copy.conversationActionSheetArchive = "Archive"
+            copy.conversationActionSheetClearHistory = "Clear local history"
+            copy.conversationActionSheetEmpty = "No actions available"
+            copy.conversationActionSheetHide = "Hide"
+            copy.conversationActionSheetMarkRead = "Mark as read"
+            copy.conversationActionSheetMarkUnread = "Mark as unread"
+            copy.conversationActionSheetMute = "Mute"
+            copy.conversationActionSheetPin = "Pin"
+            copy.conversationActionSheetUnarchive = "Unarchive"
+            copy.conversationActionSheetUnmute = "Unmute"
+            copy.conversationActionSheetUnpin = "Unpin"
+            copy.conversationBatchToolbarArchive = "Archive"
+            copy.conversationBatchToolbarBusy = "Working"
+            copy.conversationBatchToolbarCancel = "Cancel selection"
+            copy.conversationBatchToolbarDismiss = "Dismiss results"
+            copy.conversationBatchToolbarEmpty = "Select a conversation"
+            copy.conversationBatchToolbarExpand = "See details"
+            copy.conversationBatchToolbarFailedSummary = "{n} failed"
+            copy.conversationBatchToolbarMarkRead = "Mark as read"
+            copy.conversationBatchToolbarMaxSelection = "Select up to {n}"
+            copy.conversationBatchToolbarMute = "Mute"
+            copy.conversationBatchToolbarRetryFailed = "Retry failed"
+            copy.conversationBatchToolbarSelected = "Selected"
+            copy.conversationBatchToolbarSucceededSummary = "{n} done"
+            copy.conversationDetailsArchive = "Archive conversation"
+            copy.conversationDetailsClearHistory = "Clear chat history"
+            copy.conversationDetailsDelete = "Delete conversation"
+            copy.conversationDetailsMarkRead = "Mark as read"
+            copy.conversationDetailsMarkUnread = "Mark as unread"
+            copy.conversationDetailsMessages = "Messages"
+            copy.conversationDetailsMute = "Mute"
+            copy.conversationDetailsPin = "Pin conversation"
+            copy.conversationDetailsSync = "Sync conversation"
+            copy.conversationDetailsUnarchive = "Unarchive"
+            copy.conversationHeaderAddActions = "Add conversation action"
+            copy.conversationHeaderAddMember = "Add members"
+            copy.conversationHeaderAudioCall = "Start a voice call"
+            copy.conversationHeaderDetails = "Conversation details"
+            copy.conversationHeaderMoreActions = "More conversation actions"
+            copy.conversationHeaderSearch = "Search messages"
+            copy.conversationHeaderShare = "Share conversation"
+            copy.conversationHeaderVideoCall = "Start a video call"
+            copy.conversationRowDraft = "[Draft] "
+            copy.conversationRowMention = "[Mentioned you] "
+            copy.conversationWorkspaceChatEmpty = "Pick a conversation to start chatting"
+            copy.conversationWorkspaceChatFailure = "Messages didn't load"
+            copy.conversationWorkspaceChatLoading = "Loading messages"
+            copy.conversationWorkspaceDetailEmpty = "No details"
+            copy.conversationWorkspaceDetailFailure = "Details didn't load"
+            copy.conversationWorkspaceDetailLoading = "Loading details"
+            copy.conversationWorkspaceListFailure = "Conversations didn't load"
+            copy.conversationWorkspaceListLoading = "Loading conversations"
+            copy.createPoll = "Create poll"
+            copy.currentDevice = "This device"
+            copy.decrease = "Decrease"
+            copy.delete = "Delete"
+            copy.displayNameAi = "AI assistant"
+            copy.displayNameBroadcast = "Broadcast"
+            copy.displayNameChannel = "Channel"
+            copy.displayNameCustomer = "Customer service"
+            copy.displayNameGroup = "Group chat"
+            copy.displayNameSeparator = ", "
+            copy.displayNameSystem = "System notifications"
+            copy.displayNameTemp = "Temporary chat"
+            copy.displayNameUnknownUser = "Unknown user"
+            copy.displayNameUser = { "User " + $0 }
+            copy.documentCaptureCameraUnavailable = "Camera unavailable — choose from album"
+            copy.documentCaptureFailed = "Couldn't process it. Retake it"
+            copy.documentCaptureFormat = "Only JPG and PNG"
+            copy.documentCaptureFromAlbum = "Album"
+            copy.documentCaptureHintBack = "Fit the back of your ID in the frame"
+            copy.documentCaptureHintFront = "Fit the photo side of your ID in the frame"
+            copy.documentCaptureHintGlare = "Avoid glare and cover nothing"
+            copy.documentCaptureHintHolding = "Hold your ID next to your face, both in focus"
+            copy.documentCaptureNotAccepted = "Photos are not accepted here. Contact the provider"
+            copy.documentCaptureProcessing = "Processing"
+            copy.documentCaptureRetake = "Retake"
+            copy.documentCaptureShoot = "Take photo"
+            copy.documentCaptureTooLarge = "Photo is over 5 MB"
+            copy.documentCaptureUse = "Use photo"
+            copy.documentSlotCaptured = "Captured"
+            copy.documentSlotCapturedRetake = "Captured, tap to retake"
+            copy.documentSlotTapToCapture = "Tap to take a photo"
+            copy.documentSlotUploadFailed = "Upload failed. Tap to try again"
+            copy.documentSlotUploading = "Uploading {percent}%"
+            copy.download = "Download"
+            copy.downloaded = "Downloaded"
+            copy.downloading = "Downloading"
+            copy.drawerLabel = "Side panel"
+            copy.emptyStickerPack = "This pack has no stickers"
+            copy.everyone = "Everyone"
+            copy.everyoneHasRead = "Everyone has read this"
+            copy.exitMultiSelect = "Exit multi-select"
+            copy.expand = "Expand"
+            copy.favorites = "Favorites"
+            copy.filesAndMedia = "Files & media"
+            copy.flipCamera = "Flip"
+            copy.forwardEach = "Forward each"
+            copy.forwardMerged = "Forward merged"
+            copy.forwardRecordCardLabel = "{title}, {subtitle}"
+            copy.forwardRecordCountSuffix = " · {count}"
+            copy.forwardRecordEmpty = "No forwarded content"
+            copy.forwardRecordMore = "{count} more messages…"
+            copy.forwardRecordMoreOne = "{count} more message…"
+            copy.forwardRecordTitle = "Merged forward"
+            copy.forwardRecordTotal = "{count} messages in total"
+            copy.forwardRecordTotalOne = "{count} message in total"
+            copy.forwardRecordUnknownSender = "Unknown sender"
+            copy.forwardRecordViewDetails = "View details"
+            copy.forwardTo = "Forward to"
+            copy.groupAdmin = "Admin"
+            copy.groupAnnouncement = "Announcement"
+            copy.groupCall = "Group call"
+            copy.groupDetailAnnouncementEmpty = "No announcement yet"
+            copy.groupDetailApprove = "Approve"
+            copy.groupDetailCannotGenerate = "Couldn't create an invite link"
+            copy.groupDetailCopied = "Copied"
+            copy.groupDetailCopyCode = "Copy invite code"
+            copy.groupDetailDiscoverable = "Allow this group to appear in search"
+            copy.groupDetailDissolve = "Delete group"
+            copy.groupDetailDone = "Done"
+            copy.groupDetailEditAnnouncement = "Edit announcement"
+            copy.groupDetailEditName = "Edit group name"
+            copy.groupDetailGroupName = "Group name"
+            copy.groupDetailInvite = "Invite members"
+            copy.groupDetailInviteCodeTitle = "Invite code"
+            copy.groupDetailInviteEmpty = "No contacts left to invite"
+            copy.groupDetailInviteLink = "Group invite link"
+            copy.groupDetailInviteLinkHint = "Share the invite code and your friends can join this group."
+            copy.groupDetailJoinApproval = "Admin approval required"
+            copy.groupDetailJoinInvite = "By invite only"
+            copy.groupDetailJoinMode = "How people join"
+            copy.groupDetailJoinOpen = "Anyone can join"
+            copy.groupDetailJoinRequests = "Join requests"
+            copy.groupDetailLeave = "Leave group"
+            copy.groupDetailMemberCountSuffix = " members"
+            copy.groupDetailMemberManage = "Manage members"
+            copy.groupDetailMute = "Mute member"
+            copy.groupDetailMuteAll = "Mute everyone"
+            copy.groupDetailMuteNotif = "Mute notifications"
+            copy.groupDetailMyNickname = "My nickname in this group"
+            copy.groupDetailNicknamePlaceholder = "Name shown in this group"
+            copy.groupDetailNoMatchingMembers = "No matching members"
+            copy.groupDetailNoRequests = "No join requests"
+            copy.groupDetailNotSet = "Not set"
+            copy.groupDetailOnlyAdminAtAll = "Only admins can @everyone"
+            copy.groupDetailOnlyAdminPin = "Only admins can pin messages"
+            copy.groupDetailPinGroup = "Pin this group"
+            copy.groupDetailRemoveMember = "Remove from group"
+            copy.groupDetailRequestDefaultMessage = "I'd like to join this group"
+            copy.groupDetailRequestFriend = "Add friend"
+            copy.groupDetailSave = "Save"
+            copy.groupDetailSearchMembers = "Search members"
+            copy.groupDetailSectionInfo = "Group info"
+            copy.groupDetailSectionManage = "Group management"
+            copy.groupDetailSectionMyInGroup = "My settings"
+            copy.groupDetailSectionPerms = "Group permissions"
+            copy.groupDetailSetAdmin = "Make admin"
+            copy.groupDetailShareCard = "Allow sharing the group card"
+            copy.groupDetailTitle = "Group profile"
+            copy.groupDetailTransferConfirm = "Transfer ownership to \"%@\"? You'll become a regular member, and this cannot be undone."
+            copy.groupDetailTransferOwner = "Transfer ownership"
+            copy.groupDetailUnavailable = "Couldn't load the group profile"
+            copy.groupDetailUnavailableHint = "Check your connection and try again."
+            copy.groupDetailUnmute = "Unmute member"
+            copy.groupDetailUnsetAdmin = "Remove admin"
+            copy.groupMembers = "Members"
+            copy.groupOwner = "Owner"
+            copy.groupPermissionMatrixBusy = "Saving"
+            copy.groupPermissionMatrixDismissError = "Dismiss this error"
+            copy.groupPermissionMatrixJoinApproval = "Admin approval required"
+            copy.groupPermissionMatrixJoinInvite = "By invite only"
+            copy.groupPermissionMatrixJoinOpen = "Anyone can join"
+            copy.groupPermissionMatrixJoinPolicy = "How people join"
+            copy.groupPermissionMatrixJoinPolicyDescription = "Decides how others can join this group"
+            copy.groupPermissionMatrixMuteAll = "Mute everyone"
+            copy.groupPermissionMatrixMuteAllDescription = "Only the owner and admins can post"
+            copy.groupPermissionMatrixOff = "Off"
+            copy.groupPermissionMatrixOn = "On"
+            copy.groupPermissionMatrixOnlyAdminCanAtAll = "Only admins can @everyone"
+            copy.groupPermissionMatrixOnlyAdminCanAtAllDescription = "Limits who can use @everyone"
+            copy.groupPermissionMatrixOnlyAdminCanPin = "Only admins can pin messages"
+            copy.groupPermissionMatrixOnlyAdminCanPinDescription = "Limits who can pin messages in this group"
+            copy.groupPermissionMatrixReadOnlyHint = "Only the owner and admins can change this"
+            copy.groupPermissionMatrixShareCardPermission = "Allow sharing the group card"
+            copy.groupPermissionMatrixShareCardPermissionDescription = "When off, members can't share this group with others"
+            copy.groupPermissionMatrixTitle = "Group settings"
+            copy.groupPermissionMatrixUnknownJoinPolicy = "The current join setting is unknown — pick one again"
+            copy.hangUp = "Hang up"
+            copy.hideOriginal = "Hide original"
+            copy.hideTranscript = "Hide transcript"
+            copy.imageLoadFailed = "Image didn't load"
+            copy.imagePreviewClose = "Close preview"
+            copy.imagePreviewNext = "Next"
+            copy.imagePreviewPrevious = "Previous"
+            copy.inAppNotificationLabel = "New message"
+            copy.inAppNotificationMention = "[Mention]"
+            copy.inAppNotificationOpenHint = "Open the conversation"
+            copy.inAppNotificationUrgent = "[Urgent]"
+            copy.incomingVideoCall = "Invites you to a video call"
+            copy.incomingVoiceCall = "Invites you to a voice call"
+            copy.increase = "Increase"
+            copy.inlineVoiceComposerDiscard = "Discard recording"
+            copy.inlineVoiceComposerKeyboard = "Keyboard: discard recording"
+            copy.inlineVoiceComposerMicDenied = "Allow microphone access before recording"
+            copy.inlineVoiceComposerPause = "Pause recording"
+            copy.inlineVoiceComposerPreview = "Play / pause preview"
+            copy.inlineVoiceComposerResume = "Resume recording"
+            copy.inlineVoiceComposerSendFailed = "Couldn't send. Try again."
+            copy.inlineVoiceComposerStart = "Start recording"
+            copy.inviteCodeChecking = "Checking invite code…"
+            copy.inviteCodeInvalid = "Invalid invite code"
+            copy.inviteCodeInviter = "Inviter: {name}"
+            copy.inviteCodeLabel = "Invite code"
+            copy.inviteCodeOptional = "Optional"
+            copy.inviteCodePlaceholder = "Enter an invite code"
+            copy.inviteCodeScan = "Scan an invite code"
+            copy.inviteCodeValid = "Invite code accepted"
+            copy.like = "Like"
+            copy.loading = "Loading…"
+            copy.locationCardPlace = "Location"
+            copy.locationCurrent = "Current location"
+            copy.locationDenied = "Location unavailable — search for a place"
+            copy.locationLocateMe = "Use current location"
+            copy.locationLocating = "Locating…"
+            copy.locationMapUnavailable = "Map unavailable"
+            copy.locationNoResults = "No places found nearby"
+            copy.locationOpenInMaps = "Open in Maps"
+            copy.locationOsmAttribution = "© OpenStreetMap contributors"
+            copy.locationSearchPlaceholder = "Search places"
+            copy.locationSend = "Send"
+            copy.locationTitle = "Location"
+            copy.loginDevices = "Signed-in devices"
+            copy.manage = "Manage"
+            copy.meMenuInvite = "My invites"
+            copy.meMenuMoments = "Moments"
+            copy.meMenuPluginFallback = "Plugin"
+            copy.meMenuReports = "My reports"
+            copy.meMenuSettings = "Settings"
+            copy.mediaUnavailableAudio = "Voice message isn't available right now"
+            copy.mediaUnavailableImage = "Image isn't available right now"
+            copy.mediaUnavailableVideo = "Video isn't available right now"
+            copy.memberRoleSheetDangerGroup = "Careful"
+            copy.memberRoleSheetDemote = "Remove admin"
+            copy.memberRoleSheetEmpty = "You don't manage this group"
+            copy.memberRoleSheetMemberRole = "Member"
+            copy.memberRoleSheetMute = "Mute"
+            copy.memberRoleSheetMuted = "Muted"
+            copy.memberRoleSheetOwnerProtected = "The owner can't be managed"
+            copy.memberRoleSheetPromote = "Make admin"
+            copy.memberRoleSheetRemove = "Remove from group"
+            copy.memberRoleSheetTransferOwner = "Transfer ownership"
+            copy.memberRoleSheetUnmute = "Unmute"
+            copy.messageActionCopy = "Copy"
+            copy.messageActionDelete = "Delete"
+            copy.messageActionEdit = "Edit"
+            copy.messageActionForward = "Forward"
+            copy.messageActionMark = "Mark"
+            copy.messageActionMultiSelect = "Select"
+            copy.messageActionPin = "Pin message"
+            copy.messageActionPinSelf = "Pin for me only"
+            copy.messageActionPreview = "Preview"
+            copy.messageActionRecall = "Unsend"
+            copy.messageActionReply = "Reply"
+            copy.messageActionResend = "Send again"
+            copy.messageActionSave = "Save"
+            copy.messageActionSheetEmpty = "No actions available"
+            copy.messageActionSheetLabel = "Message actions"
+            copy.messageActionUnpin = "Unpin"
+            copy.messageBatchClear = "Clear selection"
+            copy.messageBatchPin = "Pin"
+            copy.messageBatchPinSelf = "Pin for me only"
+            copy.messageBatchUnforwardable = "{count} messages can't be forwarded"
+            copy.messageBatchUnforwardableOne = "{count} message can't be forwarded"
+            copy.messageBurnAfterRead = "Disappears after reading"
+            copy.messageDeleted = "Message deleted"
+            copy.messageEdited = "Edited"
+            copy.messageExpired = "Expired"
+            copy.messageFailed = "Not sent"
+            copy.messageImage = "Photo"
+            copy.messageListEmpty = "No messages yet"
+            copy.messageListLoadNewer = "Load newer messages"
+            copy.messageListLoadOlder = "Load earlier messages"
+            copy.messageMenuLoading = "Loading…"
+            copy.messagePending = "Waiting to send"
+            copy.messageRead = "Read"
+            copy.messageReadOnce = "Can be opened once"
+            copy.messageReadSummaryAllRead = "Read by all"
+            copy.messageReadSummaryUnread = "{count} unread"
+            copy.messageRecalledPeer = "unsent a message"
+            copy.messageRecalledSelf = "You unsent a message"
+            copy.messageSendFailedRetry = "Failed to send. Retry"
+            copy.messageSending = "Sending"
+            copy.messageSent = "Sent"
+            copy.messageSpoilerReveal = "Spoiler — tap to show"
+            copy.messageVideo = "Video"
+            copy.messageVoice = "Voice message"
+            copy.microphone = "Microphone"
+            copy.modalLabel = "Dialog"
+            copy.momentActions = "Moment actions"
+            copy.momentAudienceSheetDone = "Done"
+            copy.momentAudienceSheetExclude = "Hide from"
+            copy.momentAudienceSheetExcludeHint = "The friends you pick won't see it"
+            copy.momentAudienceSheetFriends = "Friends"
+            copy.momentAudienceSheetFriendsHint = "Visible to your friends"
+            copy.momentAudienceSheetInclude = "Share with"
+            copy.momentAudienceSheetIncludeHint = "Only the friends you pick can see it"
+            copy.momentAudienceSheetPick = "Pick friends"
+            copy.momentAudienceSheetPrivate = "Only me"
+            copy.momentAudienceSheetPrivateHint = "Only you can see it"
+            copy.momentAudienceSheetPublic = "Public"
+            copy.momentAudienceSheetPublicHint = "Anyone can see it"
+            copy.momentReplyTo = "Reply"
+            copy.momentTextHint = "What's on your mind…"
+            copy.moments = "Moments"
+            copy.momentsVisibilityRuleListAdd = "Add to list"
+            copy.momentsVisibilityRuleListEmpty = "The list is empty"
+            copy.momentsVisibilityRuleListHideFromHint = "People on this list can't see what you post"
+            copy.momentsVisibilityRuleListHideFromTitle = "Hide my moments from"
+            copy.momentsVisibilityRuleListMuteHint = "You won't see what people on this list post"
+            copy.momentsVisibilityRuleListMuteTitle = "Hide their moments"
+            copy.momentsVisibilityRuleListRemove = "Remove"
+            copy.more = "More"
+            copy.multiDeviceBadgeOnly = "Badge only"
+            copy.multiDeviceDelay = "After a delay"
+            copy.multiDeviceFooter = "How your phone alerts you while you use another device, such as a computer. After a delay waits a moment and stays quiet if you read the message there."
+            copy.multiDeviceImmediate = "Immediately"
+            copy.multiDeviceLabel = "While active elsewhere"
+            copy.multiDeviceTitle = "Multiple devices"
+            copy.muted = "Muted"
+            copy.myInviteCodeLabel = "My invite code"
+            copy.myInviteCodeUnavailable = "Invite code unavailable"
+            copy.myInviteCollapse = "Collapse {name}"
+            copy.myInviteCooldown = "You can regenerate in {time}"
+            copy.myInviteCopy = "Copy"
+            copy.myInviteCountOnly = "{count} people"
+            copy.myInviteCountOnlyOne = "{count} person"
+            copy.myInviteCurrentUser = "You"
+            copy.myInviteDirect = "Direct"
+            copy.myInviteEmpty = "No one has joined with your code yet"
+            copy.myInviteExpand = "Expand {name}"
+            copy.myInviteInviteesTitle = "People you invited"
+            copy.myInviteInviterTitle = "Invited by"
+            copy.myInviteInviterUnavailable = "Inviter unavailable"
+            copy.myInviteJoined = "Joined {date}"
+            copy.myInviteLevel2 = "Level 2"
+            copy.myInviteLevel3 = "Level 3"
+            copy.myInviteLoadMore = "Load more"
+            copy.myInviteLoading = "Loading invite details"
+            copy.myInviteNoChildren = "No invitees"
+            copy.myInviteNoInviter = "No inviter"
+            copy.myInviteQrHint = "Scan to sign up"
+            copy.myInviteRegenerate = "Regenerate"
+            copy.myInviteRegenerating = "Regenerating…"
+            copy.myInviteRelationships = "Invitation relationships"
+            copy.myInviteShare = "Share"
+            copy.myInviteStatsTitle = "My team"
+            copy.myInviteTitle = "My invite"
+            copy.myInviteTotal = "Team total"
+            copy.myInviteUnitDays = "{n} d"
+            copy.myInviteUnitHours = "{n} h"
+            copy.myInviteUnitMinutes = "{n} min"
+            copy.myQrCode = "My QR code"
+            copy.newFriendRequestsAccept = "Accept"
+            copy.newFriendRequestsEmpty = "No new friend requests"
+            copy.newFriendRequestsPending = "Waiting for a reply"
+            copy.newFriendRequestsWithdraw = "Withdraw"
+            copy.nextMonth = "Next month"
+            copy.noContacts = "No contacts yet"
+            copy.noContent = "Nothing here"
+            copy.noConversations = "No conversations"
+            copy.noGroups = "No groups yet"
+            copy.noMatchingCommands = "No matching commands"
+            copy.noMatchingConversations = "No matching conversations"
+            copy.noMatchingEmoji = "No matching emoji"
+            copy.noMatchingMembers = "No matching members"
+            copy.noReadersYet = "No one has read this yet"
+            copy.noResults = "No results"
+            copy.noTransfers = "No transfers"
+            copy.notificationDeliveryNewMessages = "New message notifications"
+            copy.notificationDeliveryTitle = "Notifications"
+            copy.notificationPreviewFooter = "What notifications show on the lock screen and in banners. Hidden only says that a new message arrived."
+            copy.notificationPreviewFull = "Name and message"
+            copy.notificationPreviewHidden = "Hidden"
+            copy.notificationPreviewLabel = "Preview"
+            copy.notificationPreviewSenderOnly = "Name only"
+            copy.notificationPreviewTitle = "Notification content"
+            copy.notificationSettings = "Notifications"
+            copy.notificationStatusNotTurnedOn = "Not turned on"
+            copy.notificationStatusOff = "Off"
+            copy.notificationStatusOn = "On"
+            copy.notifyEveryone = "Notify everyone"
+            copy.off = "Off"
+            copy.on = "On"
+            copy.packetBadgeExclusive = "Exclusive"
+            copy.packetBadgeLucky = "Lucky"
+            copy.packetBadgeLuckyShort = "Lucky"
+            copy.packetBestLuck = "Best luck"
+            copy.packetBrand = "Flare red packet"
+            copy.packetBusy = "Processing…"
+            copy.packetChooseRecipient = "Choose who gets it"
+            copy.packetClaimPendingReview = "The packet is in your wallet; check the original operation below."
+            copy.packetClaims = "Claims"
+            copy.packetCountLimit = "Up to {n} packets can be sent"
+            copy.packetCountPlaceholder = "Enter quantity"
+            copy.packetCountUnit = ""
+            copy.packetDefaultGreeting = "Best wishes"
+            copy.packetDeposited = "Saved to your wallet"
+            copy.packetDetailTitle = "Red packet details"
+            copy.packetDurationDays = "{n} d"
+            copy.packetDurationHours = "{n} h"
+            copy.packetDurationMinutes = "{n} min"
+            copy.packetDurationSeconds = "{n}s"
+            copy.packetExpiredNotice = "This red packet has expired"
+            copy.packetFieldAmount = "Amount"
+            copy.packetFieldCount = "Quantity"
+            copy.packetFieldEach = "Amount each"
+            copy.packetFieldRecipient = "Send to"
+            copy.packetFieldTotal = "Total"
+            copy.packetFinished = "All claimed"
+            copy.packetForRecipient = "For {name}"
+            copy.packetFromSender = { "Red packet from " + $0 }
+            copy.packetGreetingLabel = "Greeting"
+            copy.packetGroupMembers = "{count} people in this group"
+            copy.packetInsufficient = "Insufficient balance"
+            copy.packetKindExclusive = "Exclusive packet"
+            copy.packetKindLucky = "Lucky packet"
+            copy.packetKindNormal = "Red packet"
+            copy.packetKindPicker = "Packet type"
+            copy.packetMissed = "Too late, all claimed"
+            copy.packetNoClaims = "No one has opened it yet"
+            copy.packetNotEligible = "You can't open this packet"
+            copy.packetNotEligibleName = "Only {name} can open this"
+            copy.packetOpenAction = "Open"
+            copy.packetOpenFailed = "Couldn't open it. Try again."
+            copy.packetPayConfirm = "Pay"
+            copy.packetPayMethod = "Pay with"
+            copy.packetPayTitle = "Confirm payment"
+            copy.packetRefundAt = "The rest returns at {time}"
+            copy.packetRefundNotice = "Unclaimed money returns after 24 hours"
+            copy.packetRefunded = "Returned"
+            copy.packetRefundedNote = "Returned {money} · {time}"
+            copy.packetRefundedNotice = "Returned to sender"
+            copy.packetSend = "Send"
+            copy.packetStateClaimed = "Opened"
+            copy.packetStateExpired = "Expired"
+            copy.packetSubmit = "Put money in"
+            copy.packetSummaryCompleted = "{shares} packets, {totalMoney}, all claimed in {duration}"
+            copy.packetSummaryCount = "{claimed}/{shares} opened"
+            copy.packetSummarySender = "{claimed}/{shares} opened, {claimedMoney}/{totalMoney}"
+            copy.packetTapToClaim = "Open"
+            copy.packetUnavailable = "Unavailable"
+            copy.packetView = "View"
+            copy.packetViewDetails = "View claim details"
+            copy.packetViewResult = "View result"
+            copy.pause = "Pause"
+            copy.paymentConfirmationConfirm = "Pay"
+            copy.paymentConfirmationExpired = "Payment expired"
+            copy.paymentConfirmationExpiresIn = "Valid for {time}"
+            copy.paymentConfirmationInsufficient = "Not enough balance — {amount} short"
+            copy.paymentConfirmationInvalid = "The order amount cannot be read, so it cannot be paid"
+            copy.paymentConfirmationItem = "For"
+            copy.paymentConfirmationOrder = "Order"
+            copy.paymentConfirmationPayee = "Payee"
+            copy.paymentConfirmationRequestedBy = "Requested by “{plugin}”"
+            copy.paymentConfirmationStartAgain = "Start again"
+            copy.paymentConfirmationTitle = "Confirm payment"
+            copy.paymentConfirmationTopUp = "Top up"
+            copy.paymentConfirmationVerifying = "Verifying…"
+            copy.permissionAllow = "Allow"
+            copy.permissionDismiss = "Got it"
+            copy.permissionFeatureFallback = "this feature"
+            copy.permissionNotNow = "Not now"
+            copy.permissionOpenSettings = "Open Settings"
+            copy.permissionSoftAskNotificationsAction = "Turn on notifications"
+            copy.permissionSoftAskNotificationsBody = "Turn on notifications to hear about new messages when the app isn't open."
+            copy.permissionSoftAskNotificationsDeniedBody = "Notifications are off. In Settings, open this app's notifications and turn on Allow Notifications to hear about new messages."
+            copy.permissionSoftAskNotificationsTitle = "Stay on top of new messages"
+            copy.pickLocation = "Location"
+            copy.pickVisibility = "Who can see this"
+            copy.pinInputProgress = "{label}, {count} of 6 digits entered"
+            copy.play = "Play"
+            copy.pluginBridgeErrorCancelled = "Cancelled"
+            copy.pluginBridgeErrorGestureRequired = "Tap the page, then try again"
+            copy.pluginBridgeErrorInternal = "Something went wrong. Try again later"
+            copy.pluginBridgeErrorInvalidEnvelope = "The request is malformed"
+            copy.pluginBridgeErrorInvalidParams = "The request has invalid values"
+            copy.pluginBridgeErrorMethodNotFound = "This action isn't supported"
+            copy.pluginBridgeErrorNotFound = "Couldn't find what was asked for"
+            copy.pluginBridgeErrorNotReady = "The page isn't ready yet"
+            copy.pluginBridgeErrorOperationFailed = "The action failed"
+            copy.pluginBridgeErrorPayloadTooLarge = "The request is too large"
+            copy.pluginBridgeErrorPermissionDenied = "This action isn't allowed"
+            copy.pluginBridgeErrorQuotaExceeded = "Storage is full"
+            copy.pluginBridgeErrorRateLimited = "Too many requests. Try again shortly"
+            copy.pluginBridgeErrorRevoked = "This page has been turned off"
+            copy.pluginBridgeErrorTimeout = "The request timed out. Try again"
+            copy.pluginBridgeErrorUnavailable = "Not available right now. Try again later"
+            copy.pluginBridgeErrorUnsupportedBridge = "This version can't run this page"
+            copy.pluginBundleClosed = "This page has been closed"
+            copy.pluginBundleCopied = "Copied"
+            copy.pluginBundleCrashed = "This page stopped unexpectedly"
+            copy.pluginBundleCrashedHint = "Reload it to carry on"
+            copy.pluginBundleExternalMessage = "This address will open in your browser. Make sure you trust it."
+            copy.pluginBundleExternalOpen = "Open"
+            copy.pluginBundleExternalTitle = "Open external link"
+            copy.pluginBundleOpening = "Opening…"
+            copy.pluginBundleReload = "Reload"
+            copy.pluginBundleUnavailable = "This page can't be opened right now"
+            copy.pluginFileChoose = "Choose file"
+            copy.pluginFileFailed = "Upload is incomplete. Retry or choose another file"
+            copy.pluginFilePreview = "Preview"
+            copy.pluginFileRejected = "Choose a file within the allowed format and size limits"
+            copy.pluginFileRemove = "Remove"
+            copy.pluginFileReplace = "Replace"
+            copy.pluginFileSelected = "Waiting for upload"
+            copy.pluginFileUploaded = "Uploaded"
+            copy.pluginFileUploading = "Uploading"
+            copy.pluginFormCaptureDocument = "Capture document"
+            copy.pluginFormChooseImage = "Choose image"
+            copy.pluginFormDocumentBack = "Back"
+            copy.pluginFormDocumentFront = "Front"
+            copy.pluginFormDocumentHolding = "Holding the document"
+            copy.pluginFormDuplicateItem = "No duplicates"
+            copy.pluginFormInvalid = "Invalid value"
+            copy.pluginFormMoneyRange = "Amount range: {min}–{max} {currency}"
+            copy.pluginFormOutOfRange = "Out of range"
+            copy.pluginFormRequired = "Required"
+            copy.pluginFormTooFewItems = "At least {n}"
+            copy.pluginFormTooLong = "Too long"
+            copy.pluginFormTooManyItems = "At most {n}"
+            copy.pluginFormatCountUnits = "3:K|6:M|9:B"
+            copy.pluginFormatSeconds = "{n} s"
+            copy.pluginLocationAccuracy = "Accurate to about {m} m"
+            copy.pluginLocationClear = "Clear"
+            copy.pluginLocationCoarse = "Approximate location"
+            copy.pluginLocationEmpty = "No location yet"
+            copy.pluginLocationFine = "Precise location"
+            copy.pluginLocationLocate = "Get location"
+            copy.pluginLocationLocating = "Getting your location"
+            copy.pluginLocationRelocate = "Locate again"
+            copy.pluginPageRefresh = "Refresh"
+            copy.pluginProtectedMediaHide = "Hide"
+            copy.pluginProtectedMediaNotPreviewable = "This kind of file cannot be previewed here"
+            copy.pluginProtectedMediaNotice = "Viewing protected material needs a reason and is recorded for audit."
+            copy.pluginProtectedMediaOwnNotice = "Only you can see this. The picture is not saved to this device."
+            copy.pluginProtectedMediaReason = "Reason for viewing"
+            copy.pluginProtectedMediaTapToView = "{label}, tap to view"
+            copy.pluginProtectedMediaUnavailable = "Cannot be shown. Try again"
+            copy.pluginProtectedMediaView = "View"
+            copy.pluginUpgradeAction = "Update"
+            copy.pluginUpgradeBadge = "Update needed"
+            copy.pluginUpgradeDescription = "This needs a newer version of the app"
+            copy.pluginUpgradeNotAvailable = "Not supported in this version yet. It will work once a newer version is released"
+            copy.pluginUpgradeTitle = "Update required"
+            copy.pluginViewAll = "All"
+            copy.pluginViewAvailableOnline = "Available when you're online"
+            copy.pluginViewClearFilter = "Clear filter"
+            copy.pluginViewCopyReference = "Copy {label}"
+            copy.pluginViewDateTimeFormat = "MMM d, HH:mm"
+            copy.pluginViewDateTimeYearFormat = "MMM d, y, HH:mm"
+            copy.pluginViewDeadlinePassed = "Closed"
+            copy.pluginViewDetail = "View details"
+            copy.pluginViewDone = "Done"
+            copy.pluginViewEmpty = "No records yet"
+            copy.pluginViewEndOfList = "That's everything"
+            copy.pluginViewEnded = "Ended"
+            copy.pluginViewFilterEmpty = "Nothing matches this filter"
+            copy.pluginViewGroupCommon = "Common"
+            copy.pluginViewGroupRecords = "Records & settings"
+            copy.pluginViewImageUnavailable = "Image unavailable"
+            copy.pluginViewLoadFailedTitle = "Couldn't load this page"
+            copy.pluginViewLoadMore = "Load more"
+            copy.pluginViewLoading = "Loading"
+            copy.pluginViewMaxSelections = "Choose up to {n}"
+            copy.pluginViewMe = "Me"
+            copy.pluginViewMore = "More actions"
+            copy.pluginViewNoOptions = "No options available"
+            copy.pluginViewNoOptionsHelp = "Nothing to choose right now. Try again later."
+            copy.pluginViewOffline = "You're offline. Showing what was loaded last."
+            copy.pluginViewQrExpired = "QR code expired"
+            copy.pluginViewQrRefresh = "Refresh QR code"
+            copy.pluginViewReferences = "References"
+            copy.pluginViewRemaining = "{time} left"
+            copy.pluginViewSeeAll = "See all ({count})"
+            copy.pluginViewStepCurrent = "In progress"
+            copy.pluginViewStepDone = "Done"
+            copy.pluginViewStepFailed = "Failed"
+            copy.pluginViewStepPending = "Not started"
+            copy.pluginViewStepPosition = "Step {index} of {count}"
+            copy.pluginViewSubmit = "Submit"
+            copy.pluginViewTrendDown = "Down"
+            copy.pluginViewTrendFlat = "Unchanged"
+            copy.pluginViewTrendUp = "Up"
+            copy.pluginViewUnavailableCatalogUnreachable = "Can't load this right now"
+            copy.pluginViewUnavailableDisabled = "This plugin is turned off"
+            copy.pluginViewUnavailableIncompatibleVersion = "Update the app to view this"
+            copy.pluginViewUnavailableNoPermission = "You don't have access to this plugin"
+            copy.pluginViewUnavailableNotInstalled = "This plugin is not installed"
+            copy.pluginViewUnavailableUnboundCopy = "Copy, view only"
+            copy.pluginViewUnavailableUnsupportedPlatform = "This plugin isn't available on this device"
+            copy.pluginViewUnavailableUpgradeRequired = "Update the app to view this"
+            copy.pluginViewUnknownStatus = "Unknown status"
+            copy.pluginViewUploading = "Uploading {done}/{total}"
+            copy.pluginViewVotes = "{count} votes"
+            copy.pluginViewVotesOne = "{count} vote"
+            copy.pollQuestionHint = "Ask a question"
+            copy.post = "Post"
+            copy.presenceAway = "Away"
+            copy.presenceBusy = "Busy"
+            copy.presenceOffline = "Offline"
+            copy.presenceOnline = "Online"
+            copy.previewAnnouncement = "[Announcement]"
+            copy.previewAudio = "[Voice]"
+            copy.previewCard = "[Contact]"
+            copy.previewCustom = "[Custom]"
+            copy.previewEmoji = "[Emoji]"
+            copy.previewFile = "[File]"
+            copy.previewForward = "[Forward]"
+            copy.previewGif = "[GIF]"
+            copy.previewImage = "[Image]"
+            copy.previewImageGroup = "[Album]"
+            copy.previewLink = "[Link]"
+            copy.previewLocation = "[Location]"
+            copy.previewMessage = "[Message]"
+            copy.previewMiniProgram = "[Mini Program]"
+            copy.previewNotification = "[Notification]"
+            copy.previewPlaceholder = "[Placeholder]"
+            copy.previewQuote = "[Quote]"
+            copy.previewRichText = "[Rich text]"
+            copy.previewSchedule = "[Schedule]"
+            copy.previewSticker = "[Sticker]"
+            copy.previewSystem = "[System]"
+            copy.previewTask = "[Task]"
+            copy.previewThread = "[Thread]"
+            copy.previewUnknown = "[Unknown]"
+            copy.previewVideo = "[Video]"
+            copy.previewVote = "[Poll]"
+            copy.previousMonth = "Previous month"
+            copy.profileEditorBio = "Bio"
+            copy.profileEditorBioPlaceholder = "Say a little about yourself"
+            copy.profileEditorNickname = "Name"
+            copy.profileEditorNicknamePlaceholder = "Name"
+            copy.profileEditorSave = "Save"
+            copy.profileEditorUnsaved = "Unsaved changes"
+            copy.progressBarLabel = "Progress"
+            copy.progressBarLoading = "In progress"
+            copy.qrCardUnavailable = "QR code unavailable"
+            copy.qrCode = "QR code"
+            copy.quickPhrases = "Quick phrases"
+            copy.quietHoursAllowMentions = "Alert me when mentioned"
+            copy.quietHoursEnd = "Ends"
+            copy.quietHoursFooter = "During quiet hours new messages arrive silently, without sound or vibration. Urgent messages still alert you."
+            copy.quietHoursLabel = "Quiet hours"
+            copy.quietHoursRepeat = "Repeat"
+            copy.quietHoursStart = "Starts"
+            copy.quietHoursTitle = "Do not disturb"
+            copy.rating = "Rating"
+            copy.readReceipt = "Read receipts"
+            copy.readReceiptLoadFailed = "Couldn't load the list"
+            copy.readReceiptLoadMore = "Load more"
+            copy.readReceiptLoadMoreFailed = "Couldn't load more. Tap to retry"
+            copy.readReceiptRead = "Read"
+            copy.readReceiptUnavailable = "This message's read list isn't available"
+            copy.readReceiptUnread = "Unread"
+            copy.realnamePhotosNeeded = "{count} more photos needed"
+            copy.realnamePhotosNeededOne = "{count} more photo needed"
+            copy.reauthCode = "Verification code"
+            copy.reauthDestination = "Verification method"
+            copy.reauthFailed = "Verification could not finish. Try again."
+            copy.reauthResendIn = "Send again ({seconds}s)"
+            copy.reauthSendCode = "Send code"
+            copy.reauthTitle = "Verify identity"
+            copy.reauthUnavailable = "No verification method is available"
+            copy.recent = "Recent"
+            copy.recentSearchesClear = "Clear"
+            copy.recentSearchesClearLabel = "Clear recent searches"
+            copy.recentSearchesTitle = "Recent searches"
+            copy.reject = "Reject"
+            copy.relationActionBarAccept = "Accept"
+            copy.relationActionBarAdd = "Add friend"
+            copy.relationActionBarBlock = "Block"
+            copy.relationActionBarBusy = "Working"
+            copy.relationActionBarDismissError = "Dismiss this error"
+            copy.relationActionBarEmpty = "No actions available"
+            copy.relationActionBarPending = "Waiting for a reply"
+            copy.relationActionBarRemove = "Remove friend"
+            copy.relationActionBarUnblock = "Unblock"
+            copy.releaseToCancel = "Release to cancel"
+            copy.reload = "Reload"
+            copy.removeImage = "Remove image"
+            copy.removeOption = "Remove option"
+            copy.report = "Report"
+            copy.resend = "Send again"
+            copy.retry = "Retry"
+            copy.retryFailedTransfers = "Retry failed transfers"
+            copy.scanAlbum = "Choose image"
+            copy.scanAllowAddByQr = "Allow adding me by QR code"
+            copy.scanCameraBusy = "A video call is using the camera"
+            copy.scanCameraError = "Camera unavailable. Retry or choose an image"
+            copy.scanChooseCode = "Choose QR code"
+            copy.scanChoosing = "Multiple codes detected. Choose one to continue"
+            copy.scanCodeExpired = "This QR code expired. Refresh to continue"
+            copy.scanContinueLogin = "Sign in to continue"
+            copy.scanExternalLink = "External link"
+            copy.scanForeignCode = "This code belongs to another app or environment"
+            copy.scanImageDecoding = "Reading image…"
+            copy.scanImageError = "Could not read this image. Retry or choose another image"
+            copy.scanInsecureContext = "Camera requires a secure connection. Choose an image instead"
+            copy.scanLive = "Place a QR code in view"
+            copy.scanLocked = "Code detected"
+            copy.scanLoginRequired = "Sign in to continue with this scan"
+            copy.scanLowLight = "Low light. You can turn the torch on"
+            copy.scanNoCamera = "No camera is available"
+            copy.scanNoCodeInImage = "No QR code found in this image"
+            copy.scanNotInviteCode = "This is not an invite code. Scan an invite QR code."
+            copy.scanOpenExternal = "Open in browser"
+            copy.scanPaste = "Paste"
+            copy.scanPaused = "Scanning paused"
+            copy.scanPending = "Request submitted"
+            copy.scanPreparing = "Preparing camera…"
+            copy.scanProvidedBy = "Provided by {name}"
+            copy.scanRescan = "Scan again"
+            copy.scanResult = "Scan result"
+            copy.scanRetryable = "Scan information is temporarily unavailable. Please retry"
+            copy.scanSaveCode = "Save QR code"
+            copy.scanShareCode = "Share QR code"
+            copy.scanText = "QR code content"
+            copy.scanTitle = "Scan QR code"
+            copy.scanToAddMe = "Scan to add me"
+            copy.scanTorchOff = "Turn torch off"
+            copy.scanTorchOn = "Turn torch on"
+            copy.scanUnknown = "The operation outcome is not yet confirmed"
+            copy.scanUpgradeRequired = "Update the app to use this action"
+            copy.screenShareCancel = "Cancel request"
+            copy.screenShareIdle = "Not sharing"
+            copy.screenSharePresenterRow = "Presenter"
+            copy.screenShareRequesting = "Requesting to share"
+            copy.screenShareSharing = "Sharing your screen"
+            copy.screenShareSourceRow = "Sharing"
+            copy.screenShareStart = "Share screen"
+            copy.screenShareStop = "Stop sharing"
+            copy.screenShareTitle = "Screen sharing"
+            copy.screenShareUnavailable = "Screen sharing isn't supported here"
+            copy.screenShareViewing = "Watching a shared screen"
+            copy.scrollToLatest = "Jump to latest messages"
+            copy.search = "Search"
+            copy.searchConversations = "Search conversations"
+            copy.searchDateRangeFilterCustom = "Custom"
+            copy.searchDateRangeFilterFrom = "From"
+            copy.searchDateRangeFilterInvalid = "The start date can't be after the end date"
+            copy.searchDateRangeFilterTo = "To"
+            copy.searchDateRangeFilterUnlimited = "Any time"
+            copy.searchEmoji = "Search emoji"
+            copy.searchEmpty = "No results found"
+            copy.searchEmptyHint = "Try a different keyword"
+            copy.searchIdleHint = "Type a keyword or pick a type"
+            copy.searchMembers = "Search members"
+            copy.searchSearching = "Searching…"
+            copy.searchViewMore = "See more"
+            copy.select = "Select"
+            copy.selectAll = "Select all"
+            copy.selectDate = "Pick a date"
+            copy.selectDevice = "Choose a device"
+            copy.selectTime = "Pick a time"
+            copy.selectedSuffix = "selected"
+            copy.send = "Send"
+            copy.sendMessage = "Send message"
+            copy.sendVoice = "Send voice message"
+            copy.settings = "Settings"
+            copy.settingsRowBadge = "New"
+            copy.showInFolder = "Show in folder"
+            copy.showOriginal = "Show original"
+            copy.showTranscript = "Show transcript"
+            copy.speaker = "Speaker"
+            copy.startConversationSearchPlaceholder = "Search contacts"
+            copy.sticker = "Sticker"
+            copy.storageUsageAtLeast = "at least"
+            copy.storageUsageClear = "Clear"
+            copy.storageUsageClearing = "Clearing"
+            copy.storageUsageDeviceFree = "Free space"
+            copy.storageUsageDismissError = "Dismiss this error"
+            copy.storageUsageEmpty = "Nothing to measure"
+            copy.storageUsageFileCount = "{count} files"
+            copy.storageUsageFileCountOne = "{count} file"
+            copy.storageUsageLoading = "Measuring storage"
+            copy.storageUsageReload = "Measure again"
+            copy.storageUsageRetry = "Try again"
+            copy.storageUsageTitle = "Storage"
+            copy.storageUsageTotal = "Total"
+            copy.storageUsageUnknownSize = "Unknown"
+            copy.submitPoll = "Create poll"
+            copy.systemEventFriendshipEstablished = "You are now friends. Say hi!"
+            copy.systemEventGroupAnnouncementUpdated = "Group announcement updated"
+            copy.systemEventGroupCreated = "Group created"
+            copy.systemEventGroupDissolved = "The group was dissolved"
+            copy.systemEventGroupMemberJoined = "A new member joined the group"
+            copy.systemEventGroupMemberLeft = "A member left the group"
+            copy.systemEventGroupMemberMuted = "A member was muted"
+            copy.systemEventGroupMemberRemoved = "A member was removed from the group"
+            copy.systemEventGroupMemberRolesChanged = "A member's group role was changed"
+            copy.systemEventGroupMemberUnmuted = "A member was unmuted"
+            copy.systemEventGroupMuted = "All members were muted"
+            copy.systemEventGroupOwnerTransferred = "Group ownership was transferred"
+            copy.systemEventGroupProfileUpdated = "Group name updated"
+            copy.systemEventGroupUnmuted = "All members were unmuted"
+            copy.timeRange = "Time range"
+            copy.today = "Today"
+            copy.transferQueue = "Transfers"
+            copy.translated = "Translated"
+            copy.translating = "Translating…"
+            copy.typing = "Typing…"
+            copy.unknownMessageDiagnostic = "Message type"
+            copy.unknownMessageHint = "This version can't show this message"
+            copy.unknownMessageUnsupported = "Unsupported message type"
+            copy.unknownUserPlaceholderBlocked = "This account is blocked"
+            copy.unknownUserPlaceholderDeactivated = "This account was deleted"
+            copy.unknownUserPlaceholderId = "ID"
+            copy.unknownUserPlaceholderUnknown = "Unknown user"
+            copy.unknownUserPlaceholderUnreachable = "This account can't be reached right now"
+            copy.unlike = "Unlike"
+            copy.updatePromptBackground = "Download in background"
+            copy.updatePromptContinueDownload = "Continue download"
+            copy.updatePromptContinueReadOnly = "Keep browsing"
+            copy.updatePromptFailDowngrade = "A version older than this one cannot be installed."
+            copy.updatePromptFailDownload = "The download failed. Check your network and try again."
+            copy.updatePromptFailHashMismatch = "The download failed verification. Try again."
+            copy.updatePromptFailInstall = "The installation failed. Try again."
+            copy.updatePromptFailInsufficientSpace = "Not enough storage. Free up some space and try again."
+            copy.updatePromptFailManifestRejected = "The update information failed verification."
+            copy.updatePromptFailManifestUnavailable = "Could not get the update information. Check your network and try again."
+            copy.updatePromptFailNoArtifact = "This version has no package for this device yet."
+            copy.updatePromptFailNotSkippable = "This version cannot be skipped."
+            copy.updatePromptFailSignatureMismatch = "The package signature does not match. Installation stopped."
+            copy.updatePromptFailUnknown = "The update did not finish. Try again later."
+            copy.updatePromptFallbackStore = "Go to the app store"
+            copy.updatePromptFallbackWebsite = "Download from the website"
+            copy.updatePromptLater = "Later"
+            copy.updatePromptMessageMetered = "You are on a metered network. This download is about"
+            copy.updatePromptMessageMeteredUnknown = "You are on a metered network. The download will use data."
+            copy.updatePromptMessageReady = "The new version starts after a restart. The app will not restart by itself."
+            copy.updatePromptMessageRequired = "This version is no longer supported. Update to keep using the app."
+            copy.updatePromptMessageRequiredReadOnly = "Update to send messages. You can keep browsing what is on this device."
+            copy.updatePromptNotes = "What's new"
+            copy.updatePromptRestart = "Restart to finish updating"
+            copy.updatePromptRetry = "Try again"
+            copy.updatePromptSkip = "Skip this version"
+            copy.updatePromptTitleAvailable = "New version available"
+            copy.updatePromptTitleDownloading = "Downloading update"
+            copy.updatePromptTitleFailed = "Update failed"
+            copy.updatePromptTitleInstalling = "Installing update"
+            copy.updatePromptTitleMetered = "Download on a metered network?"
+            copy.updatePromptTitleReady = "Update ready"
+            copy.updatePromptTitleRequired = "Update required"
+            copy.updatePromptTitleVerifying = "Verifying update"
+            copy.updatePromptVersion = "Version"
+            copy.versionPanelBuild = "Build"
+            copy.versionPanelChannel = "Channel"
+            copy.versionPanelChannelBeta = "Beta"
+            copy.versionPanelChannelInternal = "Internal"
+            copy.versionPanelChannelStable = "Stable"
+            copy.versionPanelCheck = "Check for updates"
+            copy.versionPanelChecking = "Checking…"
+            copy.versionPanelTitle = "Version information"
+            copy.versionPanelUpToDate = "Up to date"
+            copy.versionPanelVersion = "Version"
+            copy.videoCall = "Video"
+            copy.videoLoadFailed = "Video didn't load"
+            copy.voiceCall = "Voice"
+            copy.voiceHoldButtonLabel = "Hold to talk"
+            copy.voiceHoldButtonRecording = "Release to send · slide up to cancel"
+            copy.voicePlaybackFailed = "Couldn't play"
+            copy.walletSetupBody = "Top up, withdraw, pay and see your bills once it's set up"
+            copy.walletSetupTitle = "Set up your wallet"
+            copy.weekdayEveryDay = "Every day"
+            copy.weekdayFriday = "Friday"
+            copy.weekdayMonday = "Monday"
+            copy.weekdaySaturday = "Saturday"
+            copy.weekdaySunday = "Sunday"
+            copy.weekdayThursday = "Thursday"
+            copy.weekdayTuesday = "Tuesday"
+            copy.weekdayWednesday = "Wednesday"
+            copy.weekdayWeekdays = "Weekdays"
+            copy.weekdayWeekends = "Weekends"
+            copy.workspaceFrameEmpty = "Nothing here"
+            copy.workspaceFrameFailure = "Didn't load"
+            copy.workspaceFrameLoading = "Loading"
+            copy.workspaceFrameRetry = "Try again"
+            copy.yesterday = "Yesterday"
+        }.englishFormats()
     }
 }

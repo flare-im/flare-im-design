@@ -71,15 +71,28 @@ extension PluginJSONValue: ExpressibleByNilLiteral, ExpressibleByBooleanLiteral,
 public struct PluginViewField: Codable, Equatable, Sendable {
     public let label: String; public let value: String
     public let format: PluginValueFormat?
-    public init(label: String, value: String, format: PluginValueFormat? = nil) {
-        self.label = label; self.value = value; self.format = format
+    /// The tone its value label declares (`{label, tone}` values, an enum format): the value draws as a Tag (R3).
+    public let tone: PluginTone?
+    /// The plugin declared values and this one is not among them: the kit draws the unknown status, never `value`.
+    public let unmapped: Bool
+    public init(label: String, value: String, format: PluginValueFormat? = nil, tone: PluginTone? = nil,
+                unmapped: Bool = false) {
+        self.label = label; self.value = value; self.format = format; self.tone = tone; self.unmapped = unmapped
     }
-    private enum CodingKeys: String, CodingKey { case label, value, format }
+    private enum CodingKeys: String, CodingKey { case label, value, format, tone, unmapped }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         label = try c.decode(String.self, forKey: .label)
         value = c.lenient(String.self, .value) ?? ""
         format = c.lenient(PluginValueFormat.self, .format)
+        tone = c.lenient(PluginTone.self, .tone)
+        unmapped = c.lenient(Bool.self, .unmapped) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(label, forKey: .label); try c.encode(value, forKey: .value)
+        try c.encodeIfPresent(format, forKey: .format); try c.encodeIfPresent(tone, forKey: .tone)
+        if unmapped { try c.encode(unmapped, forKey: .unmapped) }
     }
 }
 
@@ -99,14 +112,21 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
     public let form: [String]?
     /// Where the action goes, as the view gives it.
     public let target: PluginActionTarget?
+    /// The page list card it joins (`common` or `records`, R2.1); nil: the untitled card.
+    public let group: String?
+    /// A kit icon name for its list row's leading slot.
+    public let icon: String?
+    /// Why it cannot run now (R2.5): the key is disabled and says so under it.
+    public let disabledReason: String?
 
     public init(id: String, label: String, style: PluginActionStyle? = nil, confirm: String? = nil, form: [String]? = nil,
-                target: PluginActionTarget? = nil) {
+                target: PluginActionTarget? = nil, group: String? = nil, icon: String? = nil,
+                disabledReason: String? = nil) {
         self.id = id; self.label = label; self.style = style; self.confirm = confirm; self.form = form
-        self.target = target
+        self.target = target; self.group = group; self.icon = icon; self.disabledReason = disabledReason
     }
 
-    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form, target }
+    private enum CodingKeys: String, CodingKey { case id, label, style, confirm, form, target, group, icon, disabledReason }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -116,6 +136,9 @@ public struct PluginViewAction: Codable, Equatable, Identifiable, Sendable {
         confirm = c.lenient(String.self, .confirm)
         form = c.lenient([String].self, .form)
         target = c.lenient(PluginActionTarget.self, .target)
+        group = c.lenient(String.self, .group)
+        icon = c.lenient(String.self, .icon)
+        disabledReason = c.lenient(String.self, .disabledReason).flatMap { $0.isEmpty ? nil : $0 }
     }
 }
 
@@ -147,7 +170,9 @@ public struct PluginActionTarget: Codable, Equatable, Hashable, Sendable {
 public enum PluginTone: String, Codable, Sendable {
     case neutral, info, success, warning, danger
     public init(from decoder: Decoder) throws {
-        self = PluginTone(rawValue: (try? decoder.singleValueContainer().decode(String.self)) ?? "") ?? .neutral
+        let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
+        // brand draws info; a tone from a newer protocol draws neutral (R3).
+        self = raw == "brand" ? .info : PluginTone(rawValue: raw) ?? .neutral
     }
 }
 
@@ -250,12 +275,22 @@ public struct PluginChoicesBlock: Codable, Equatable, Sendable {
 public struct PluginBadge: Codable, Equatable, Sendable {
     public let text: String
     public let tone: PluginTone
-    public init(text: String, tone: PluginTone = .neutral) { self.text = text; self.tone = tone }
-    private enum CodingKeys: String, CodingKey { case text, tone }
+    /// Not among the plugin's declared values: drawn as the unknown status (R3).
+    public let unmapped: Bool
+    public init(text: String, tone: PluginTone = .neutral, unmapped: Bool = false) {
+        self.text = text; self.tone = tone; self.unmapped = unmapped
+    }
+    private enum CodingKeys: String, CodingKey { case text, tone, unmapped }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         text = c.lenient(String.self, .text) ?? ""
         tone = c.lenient(PluginTone.self, .tone) ?? .neutral
+        unmapped = c.lenient(Bool.self, .unmapped) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(text, forKey: .text); try c.encode(tone, forKey: .tone)
+        if unmapped { try c.encode(unmapped, forKey: .unmapped) }
     }
 }
 
@@ -366,15 +401,51 @@ public struct PluginStatusBlock: Codable, Equatable, Sendable {
     public let label: String?
     public let text: String
     public let tone: PluginTone
-    public init(label: String? = nil, text: String, tone: PluginTone = .neutral) {
-        self.label = label; self.text = text; self.tone = tone
+    /// Not among the plugin's declared values: drawn as the unknown status (R3).
+    public let unmapped: Bool
+    public init(label: String? = nil, text: String, tone: PluginTone = .neutral, unmapped: Bool = false) {
+        self.label = label; self.text = text; self.tone = tone; self.unmapped = unmapped
     }
-    private enum CodingKeys: String, CodingKey { case label, text, tone }
+    private enum CodingKeys: String, CodingKey { case label, text, tone, unmapped }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         label = c.lenient(String.self, .label)
         text = try c.decode(String.self, forKey: .text)
         tone = c.lenient(PluginTone.self, .tone) ?? .neutral
+        unmapped = c.lenient(Bool.self, .unmapped) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(label, forKey: .label); try c.encode(text, forKey: .text); try c.encode(tone, forKey: .tone)
+        if unmapped { try c.encode(unmapped, forKey: .unmapped) }
+    }
+}
+
+/// `result`: how a money action, a submission or a send ended (R7) — the state, its label and tone as the plugin's
+/// values give them, the amount and a line of description. ``FlareResultView`` draws it.
+public struct PluginResultBlock: Codable, Equatable, Sendable {
+    public let state: String
+    public let title: String
+    public let tone: PluginTone
+    public let unmapped: Bool
+    public let amount: String?
+    public let format: PluginValueFormat?
+    public let description: String?
+    public init(state: String, title: String, tone: PluginTone = .neutral, unmapped: Bool = false, amount: String? = nil,
+                format: PluginValueFormat? = nil, description: String? = nil) {
+        self.state = state; self.title = title; self.tone = tone; self.unmapped = unmapped; self.amount = amount
+        self.format = format; self.description = description
+    }
+    private enum CodingKeys: String, CodingKey { case state, title, tone, unmapped, amount, format, description }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        state = c.lenient(String.self, .state) ?? ""
+        title = c.lenient(String.self, .title) ?? state
+        tone = c.lenient(PluginTone.self, .tone) ?? .neutral
+        unmapped = c.lenient(Bool.self, .unmapped) ?? false
+        amount = c.lenient(String.self, .amount)
+        format = c.lenient(PluginValueFormat.self, .format)
+        description = c.lenient(String.self, .description)
     }
 }
 
@@ -457,15 +528,28 @@ public struct PluginRowCell: Codable, Equatable, Sendable {
     public let text: String
     public let timeMs: Int64?
     public let format: PluginValueFormat?
-    public init(text: String, timeMs: Int64? = nil, format: PluginValueFormat? = nil) {
-        self.text = text; self.timeMs = timeMs; self.format = format
+    /// The tone its column's value label declares: the cell draws as a Tag (R3).
+    public let tone: PluginTone?
+    /// Not among the column's declared values: drawn as the unknown status.
+    public let unmapped: Bool
+    public init(text: String, timeMs: Int64? = nil, format: PluginValueFormat? = nil, tone: PluginTone? = nil,
+                unmapped: Bool = false) {
+        self.text = text; self.timeMs = timeMs; self.format = format; self.tone = tone; self.unmapped = unmapped
     }
-    private enum CodingKeys: String, CodingKey { case text, timeMs, format }
+    private enum CodingKeys: String, CodingKey { case text, timeMs, format, tone, unmapped }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         text = c.lenient(String.self, .text) ?? ""
         timeMs = flarePluginInstant(c.lenient(Double.self, .timeMs))
         format = c.lenient(PluginValueFormat.self, .format)
+        tone = c.lenient(PluginTone.self, .tone)
+        unmapped = c.lenient(Bool.self, .unmapped) ?? false
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(text, forKey: .text); try c.encodeIfPresent(timeMs, forKey: .timeMs)
+        try c.encodeIfPresent(format, forKey: .format); try c.encodeIfPresent(tone, forKey: .tone)
+        if unmapped { try c.encode(unmapped, forKey: .unmapped) }
     }
 }
 
@@ -512,12 +596,14 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
     public let filters: [String]?
     /// Day headings over the rows by the first time column (`flarePluginRowDayHeadings`).
     public let groupByDay: Bool
+    /// A kit icon name: the rows draw as records, the 5.8 ledger line led by this icon (spec rules.rowsIcon).
+    public let icon: String?
     public init(columns: [PluginRowsColumn], rows: [PluginRow], actions: [PluginViewAction] = [],
-                emptyText: String? = nil, filters: [String]? = nil, groupByDay: Bool = false) {
+                emptyText: String? = nil, filters: [String]? = nil, groupByDay: Bool = false, icon: String? = nil) {
         self.columns = columns; self.rows = rows; self.actions = actions; self.emptyText = emptyText
-        self.filters = filters; self.groupByDay = groupByDay
+        self.filters = filters; self.groupByDay = groupByDay; self.icon = icon
     }
-    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters, groupByDay }
+    private enum CodingKeys: String, CodingKey { case columns, rows, actions, emptyText, filters, groupByDay, icon }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         columns = c.lenient([PluginRowsColumn].self, .columns) ?? []
@@ -526,6 +612,7 @@ public struct PluginRowsBlock: Codable, Equatable, Sendable {
         emptyText = c.lenient(String.self, .emptyText)
         filters = c.lenient([String].self, .filters)
         groupByDay = c.lenient(Bool.self, .groupByDay) ?? false
+        icon = c.lenient(String.self, .icon).flatMap { $0.isEmpty ? nil : $0 }
     }
 }
 
@@ -552,6 +639,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
     case banner(PluginBannerBlock)
     case timeline(PluginTimelineBlock)
     case protectedMedia(PluginProtectedMediaBlock)
+    case result(PluginResultBlock)
 
     public var kind: String {
         switch self {
@@ -576,6 +664,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .banner: return "banner"
         case .timeline: return "timeline"
         case .protectedMedia: return "protected-media"
+        case .result: return "result"
         }
     }
 
@@ -605,6 +694,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case "banner": self = .banner(try PluginBannerBlock(from: decoder))
         case "timeline": self = .timeline(try PluginTimelineBlock(from: decoder))
         case "protected-media": self = .protectedMedia(try PluginProtectedMediaBlock(from: decoder))
+        case "result": self = .result(try PluginResultBlock(from: decoder))
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "block kind \(kind)"))
         }
@@ -635,6 +725,7 @@ public enum PluginBlock: Codable, Equatable, Sendable {
         case .banner(let block): try block.encode(to: encoder)
         case .timeline(let block): try block.encode(to: encoder)
         case .protectedMedia(let block): try block.encode(to: encoder)
+        case .result(let block): try block.encode(to: encoder)
         }
     }
 }
@@ -711,19 +802,23 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
     /// location only: how precise a fix it takes.
     public let precision: PluginLocationPrecision?
     public let showWhen: PluginInputCondition?
+    /// R6: the help under the field (already translated); nil draws none.
+    public let help: String?
 
     public init(id: String, kind: PluginInputKind, label: String, required: Bool = false, placeholder: String? = nil,
                 maxLength: Int? = nil, min: Double? = nil, max: Double? = nil, defaultValue: PluginJSONValue? = nil,
                 choices: [PluginInputChoice]? = nil, file: PluginFileInput? = nil, money: PluginMoneyRules? = nil,
                 side: PluginDocumentSide? = nil, showWhen: PluginInputCondition? = nil,
-                precision: PluginLocationPrecision? = nil) {
+                precision: PluginLocationPrecision? = nil, help: String? = nil) {
         self.id = id; self.kind = kind; self.label = label; self.required = required; self.placeholder = placeholder
         self.maxLength = maxLength; self.min = min; self.max = max; self.defaultValue = defaultValue; self.choices = choices
         self.file = file; self.money = money; self.side = side; self.showWhen = showWhen; self.precision = precision
+        self.help = help
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, kind, label, required, placeholder, maxLength, min, max, choices, file, money, side, showWhen, precision
+        case help
         case defaultValue = "default"
     }
 
@@ -744,6 +839,7 @@ public struct PluginInput: Codable, Equatable, Identifiable, Sendable {
         side = try c.decodeIfPresent(PluginDocumentSide.self, forKey: .side)
         precision = try c.decodeIfPresent(PluginLocationPrecision.self, forKey: .precision)
         showWhen = try c.decodeIfPresent(PluginInputCondition.self, forKey: .showWhen)
+        help = c.lenient(String.self, .help).flatMap { $0.isEmpty ? nil : $0 }
         if kind.isUpload && file?.valid != true {
             throw DecodingError.dataCorruptedError(forKey: .file, in: c, debugDescription: "Invalid file policy")
         }
@@ -826,17 +922,23 @@ public struct PluginPageViewModel: Codable, Equatable, Sendable {
     public let view: PluginViewModel
     /// Passed back as is by every action run on the page; the kit reads nothing in it.
     public let data: PluginJSONValue?
+    /// The page's sibling pages (§4.7, spec rules.pageTabs): 2 to 4 tabs, the shown page selected.
+    public let tabs: [PluginPageTab]
 
-    public init(view: PluginViewModel, data: PluginJSONValue? = nil, refreshMs: Int? = nil) { self.view = view; self.data = data; self.refreshMs = refreshMs }
+    public init(view: PluginViewModel, data: PluginJSONValue? = nil, refreshMs: Int? = nil, tabs: [PluginPageTab] = []) {
+        self.view = view; self.data = data; self.refreshMs = refreshMs; self.tabs = tabs
+    }
 
     public subscript<T>(dynamicMember keyPath: KeyPath<PluginViewModel, T>) -> T { view[keyPath: keyPath] }
 
-    private enum CodingKeys: String, CodingKey { case data, refreshMs }
+    private enum CodingKeys: String, CodingKey { case data, refreshMs, tabs }
 
     public init(from decoder: Decoder) throws {
         view = try PluginViewModel(from: decoder)
-        refreshMs = try decoder.container(keyedBy: CodingKeys.self).lenient(Int.self, .refreshMs)
-        data = try decoder.container(keyedBy: CodingKeys.self).lenient(PluginJSONValue.self, .data)
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        refreshMs = c.lenient(Int.self, .refreshMs)
+        data = c.lenient(PluginJSONValue.self, .data)
+        tabs = (c.lenient([PluginLossy<PluginPageTab>].self, .tabs) ?? []).compactMap(\.value)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -844,6 +946,24 @@ public struct PluginPageViewModel: Codable, Equatable, Sendable {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encodeIfPresent(data, forKey: .data)
         try c.encodeIfPresent(refreshMs, forKey: .refreshMs)
+        if !tabs.isEmpty { try c.encode(tabs, forKey: .tabs) }
+    }
+}
+
+/// One sibling page a page offers as a tab (`tabs[]`): its page id, its label and whether it is the one shown.
+public struct PluginPageTab: Codable, Equatable, Hashable, Sendable {
+    public let page: String
+    public let label: String
+    public let selected: Bool
+    public init(page: String, label: String, selected: Bool = false) {
+        self.page = page; self.label = label; self.selected = selected
+    }
+    private enum CodingKeys: String, CodingKey { case page, label, selected }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        page = try c.decode(String.self, forKey: .page)
+        label = c.lenient(String.self, .label) ?? ""
+        selected = c.lenient(Bool.self, .selected) ?? false
     }
 }
 

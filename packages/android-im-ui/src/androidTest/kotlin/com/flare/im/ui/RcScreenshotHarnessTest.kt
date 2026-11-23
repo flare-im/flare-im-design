@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
@@ -51,21 +52,22 @@ class RcScreenshotHarnessTest {
     @Test fun largeTextComponents() = capture("rc-components-large-text", dark = false, fontScale = 2f)
 
     /** The vocabulary 2 plugin blocks and the upgrade notice (spec/plugin-view-vectors.json → blocks2, upgradeNotice). */
-    @Test fun pluginBlocksLight() = capture("plugin-blocks2-light", listOf("Open tasks", "Update the app to view this")) {
+    @Test fun pluginBlocksLight() = capture("plugin-blocks2-light", listOf("Open tasks", "Update the app to view this"), scroll = true) {
         PluginBlocksFixture(dark = false)
     }
 
-    @Test fun pluginBlocksDark() = capture("plugin-blocks2-dark", listOf("Open tasks", "Update the app to view this")) {
+    @Test fun pluginBlocksDark() = capture("plugin-blocks2-dark", listOf("Open tasks", "Update the app to view this"), scroll = true) {
         PluginBlocksFixture(dark = true)
     }
 
     private fun capture(name: String, dark: Boolean, fontScale: Float) =
         capture(name, listOf("Continue", "A stable outgoing message with a readable delivery state.")) { RcComponentsFixture(dark, fontScale) }
 
-    private fun capture(name: String, shown: List<String>, content: @Composable () -> Unit) {
+    /** [scroll]: the fixture is taller than a phone screen, so each shown text is scrolled to before it is checked. */
+    private fun capture(name: String, shown: List<String>, scroll: Boolean = false, content: @Composable () -> Unit) {
         compose.setContent { content() }
         compose.waitForIdle()
-        shown.forEach { compose.onNodeWithText(it).assertIsDisplayed() }
+        shown.forEach { text -> compose.onNodeWithText(text).let { if (scroll) it.performScrollTo() else it }.assertIsDisplayed() }
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val screen = instrumentation.uiAutomation.takeScreenshot()
         val visibleFrame = Rect()

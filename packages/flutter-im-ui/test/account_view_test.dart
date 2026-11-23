@@ -132,8 +132,18 @@ void main() {
     );
     await tester.tap(eye);
     await tester.pumpAndSettle();
-    for (final element in find.byWidgetPredicate((w) => w is FlareButton && w.appearance == FlareButtonAppearance.text).evaluate()) {
-      expect(tester.getSize(find.byWidget(element.widget)).height, greaterThanOrEqualTo(FlareSizes.touchTarget));
+    for (final element
+        in find
+            .byWidgetPredicate(
+              (w) =>
+                  w is FlareButton &&
+                  w.appearance == FlareButtonAppearance.text,
+            )
+            .evaluate()) {
+      expect(
+        tester.getSize(find.byWidget(element.widget)).height,
+        greaterThanOrEqualTo(FlareSizes.touchTarget),
+      );
     }
     expect(find.text('¥1,288.66'), findsNothing);
     expect(find.text('¥68.00'), findsNothing);

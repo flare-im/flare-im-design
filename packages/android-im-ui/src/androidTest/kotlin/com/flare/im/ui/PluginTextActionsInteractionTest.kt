@@ -39,7 +39,10 @@ class PluginTextActionsInteractionTest {
         assertTrue(kotlin.math.abs((join.top.value + join.bottom.value - detail.top.value - detail.bottom.value) / 2) < 1f)
         assertTrue(join.right <= end.left && end.right <= detail.left)
         // Dp conversion of pixel bounds can round 48 to 47.99999.
-        for (rect in listOf(join, end, detail)) { assertTrue("touch height: $rect", (rect.bottom - rect.top).value + 0.001f >= 48f); assertTrue("touch width: $rect", (rect.right - rect.left).value + 0.001f >= 48f) }
+        for (rect in listOf(join, end, detail)) assertTrue("touch width: $rect", (rect.right - rect.left).value + 0.001f >= 48f)
+        assertTrue("touch height: $detail", (detail.bottom - detail.top).value + 0.001f >= 48f)
+        // The card footer's action keys are sm (32 high, docs/plugin-experience.md R2 card footer); their touch area is 48.
+        for (label in listOf("参与接龙", "结束接龙")) compose.onNodeWithText(label).assertTouchHeightIsEqualTo(FlareSizes.touchTarget)
         capture("plugin-card-light.png")
         compose.onNodeWithText("参与接龙").performClick()
         compose.onNodeWithText("查看详情").performClick()

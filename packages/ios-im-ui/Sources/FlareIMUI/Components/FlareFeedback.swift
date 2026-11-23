@@ -44,6 +44,11 @@ public struct FlarePromptOptions {
     public let allowsEmpty: Bool
     public let confirmText: String?
     public let cancelText: String?
+    /// The input's field label and the line under it (Vue `FlareFormField` label / hint); nil draws none.
+    public let label: String?
+    public let hint: String?
+    /// Confirm's label once a submit failed (Vue forms switch to "Retry"); nil keeps `confirmText`.
+    public let retryText: String?
     /// Runs with the value (trimmed) after the user confirms, with the dialog busy. A thrown error keeps
     /// the dialog open with the draft and the error's `localizedDescription`; confirming again retries.
     public let submit: (@MainActor (String) async throws -> Void)?
@@ -51,10 +56,12 @@ public struct FlarePromptOptions {
     public init(title: String, message: String? = nil, initialValue: String = "", placeholder: String? = nil,
                 maxLength: Int? = nil, multiline: Bool = false, allowsEmpty: Bool = false,
                 confirmText: String? = nil, cancelText: String? = nil,
+                label: String? = nil, hint: String? = nil, retryText: String? = nil,
                 submit: (@MainActor (String) async throws -> Void)? = nil) {
         self.title = title; self.message = message; self.initialValue = initialValue
         self.placeholder = placeholder; self.maxLength = maxLength; self.multiline = multiline
         self.allowsEmpty = allowsEmpty; self.confirmText = confirmText; self.cancelText = cancelText
+        self.label = label; self.hint = hint; self.retryText = retryText
         self.submit = submit
     }
 }
@@ -624,14 +631,16 @@ struct FlarePromptForm: View {
 
     var body: some View {
         let options = request.options
-        FormSheetView(title: options.title, confirmLabel: options.confirmText ?? strings.confirm,
+        let confirm = options.confirmText ?? strings.confirm
+        FormSheetView(title: options.title,
+                      confirmLabel: request.error == nil ? confirm : options.retryText ?? confirm,
                       cancelLabel: options.cancelText ?? strings.cancel, busy: request.busy,
                       confirmEnabled: request.canConfirm, onConfirm: onConfirm, onClose: onCancel) {
             if let message = options.message, !message.isEmpty {
                 Text(message).font(.system(size: FlareSizes.fontSizeMd))
                     .foregroundColor(FlareColors.of(scheme, brand: brand).textSecondary)
             }
-            FormFieldView(error: request.error) {
+            FormFieldView(label: options.label, hint: options.hint, error: request.error) {
                 InputView(text: Binding(get: { request.value }, set: onChange),
                           placeholder: options.placeholder ?? "", multiline: options.multiline,
                           maxLength: options.maxLength, onSubmit: options.multiline ? nil : onConfirm)

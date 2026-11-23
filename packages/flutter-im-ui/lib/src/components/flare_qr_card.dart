@@ -48,7 +48,11 @@ class FlareQRCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FlareColors.of(context);
     final s = FlareStrings.of(context);
-    final displayPayload = ['ready', 'offline'].contains(phase) && (refreshInMs == null || refreshInMs! > 0) ? qrPayload : null;
+    final displayPayload =
+        ['ready', 'offline'].contains(phase) &&
+            (refreshInMs == null || refreshInMs! > 0)
+        ? qrPayload
+        : null;
     return Container(
       width: 240,
       padding: const EdgeInsets.all(18),
@@ -111,23 +115,75 @@ class FlareQRCard extends StatelessWidget {
           ),
           const SizedBox(height: FlareSizes.spacingLg),
           FlareQrCodeFrame(payload: displayPayload, name: name, hint: hint),
-          Wrap(spacing: FlareSizes.spacingSm, children: [
-            if (!['loading', 'refreshing'].contains(phase) && onRefresh != null) FlareButton(label: displayPayload == null ? s.retry : s.pluginPageRefresh, variant: FlareButtonVariant.quiet, onPressed: onRefresh),
-            if (displayPayload != null && onSave != null) FlareButton(label: s.scanSaveCode, variant: FlareButtonVariant.quiet, onPressed: onSave),
-            if (displayPayload != null && onShare != null) FlareButton(label: s.scanShareCode, variant: FlareButtonVariant.quiet, onPressed: onShare),
-          ]),
+          Row(
+            children: [
+              _QrCardAction(
+                alignment: AlignmentDirectional.centerStart,
+                label: displayPayload == null ? s.retry : s.pluginPageRefresh,
+                onPressed: ['loading', 'refreshing'].contains(phase)
+                    ? null
+                    : onRefresh,
+              ),
+              _QrCardAction(
+                alignment: AlignmentDirectional.center,
+                label: s.messageActionSave,
+                onPressed: displayPayload == null ? null : onSave,
+              ),
+              _QrCardAction(
+                alignment: AlignmentDirectional.centerEnd,
+                label: s.myInviteShare,
+                onPressed: displayPayload == null ? null : onShare,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
+class _QrCardAction extends StatelessWidget {
+  const _QrCardAction({
+    required this.alignment,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final AlignmentDirectional alignment;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: Align(
+      alignment: alignment,
+      child: onPressed == null
+          ? null
+          : FlareButton(
+              label: label,
+              variant: FlareButtonVariant.quiet,
+              size: FlareControlSize.sm,
+              appearance: FlareButtonAppearance.text,
+              onPressed: onPressed,
+            ),
+    ),
+  );
+}
+
 /// Public matrix surface reused by host-bound plugin QR presentations.
 class FlareQrMatrix extends StatelessWidget {
-  const FlareQrMatrix({super.key, required this.payload, required this.label, this.size = 240});
+  const FlareQrMatrix({
+    super.key,
+    required this.payload,
+    required this.label,
+    this.size = 240,
+  });
   final String? payload;
   final String label;
   final double size;
   @override
-  Widget build(BuildContext context) => ConstrainedBox(constraints: BoxConstraints(maxWidth: size), child: FlareQrCodeFrame(payload: payload, name: label, hint: null));
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: size),
+    child: FlareQrCodeFrame(payload: payload, name: label, hint: null),
+  );
 }

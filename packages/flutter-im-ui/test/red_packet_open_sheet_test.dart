@@ -84,20 +84,25 @@ void main() {
     expect(settled.transform.storage[0], closeTo(1, 0.0001));
   });
 
-  testWidgets('reduced motion shows progress in words instead of flipping', (
+  testWidgets('reduced motion spins on the coin instead of flipping it', (
     tester,
   ) async {
     await tester.pumpWidget(
       host(sheet(state: FlareRedPacketOpenState.opening), reduceMotion: true),
     );
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('处理中…'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: coin,
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('開'), findsNothing);
     final transform = tester.widget<Transform>(
       find.ancestor(of: coin, matching: find.byType(Transform)).first,
     );
     expect(transform.transform.storage[0], closeTo(1, 0.0001));
-    expect(tester.hasRunningAnimations, isFalse);
   });
 
   for (final entry in [
@@ -144,7 +149,8 @@ void main() {
           strings: flareStringsEnglish,
         ),
       );
-      expect(find.text('This red packet has been refunded'), findsOneWidget);
+      // §4.5 copy.
+      expect(find.text('Returned to sender'), findsOneWidget);
       expect(coin, findsNothing);
       await tester.pumpWidget(
         host(sheet(state: FlareRedPacketOpenState.refunded, message: '已退回钱包')),
@@ -182,13 +188,36 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(host(sheet(state: FlareRedPacketOpenState.error)));
-    expect(find.text('领取失败，请重试'), findsOneWidget);
-    final error = tester.widget<Text>(find.text('领取失败，请重试'));
+    // §4.5 copy.
+    expect(find.text('没有领到，请重试'), findsOneWidget);
+    final error = tester.widget<Text>(find.text('没有领到，请重试'));
     expect(error.maxLines, 3);
     expect(error.style!.height, FlareSizes.lineHeightNormal);
     expect(find.text('恭喜发财，大吉大利'), findsOneWidget);
     await tester.tap(coin);
     expect(events, ['open']);
+  });
+
+  testWidgets('reviewOnError: the error key reads 查看结果 and views details', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        FlareRedPacketOpenSheet(
+          senderName: '小明',
+          blessing: '恭喜发财，大吉大利',
+          state: FlareRedPacketOpenState.error,
+          reviewOnError: true,
+          onOpen: () => events.add('open'),
+          onViewDetails: () => events.add('viewDetails'),
+          onClose: () => events.add('close'),
+        ),
+      ),
+    );
+    expect(coin, findsNothing);
+    expect(find.text('查看领取详情'), findsNothing);
+    await tester.tap(find.text('查看结果'));
+    expect(events, ['viewDetails']);
   });
 
   testWidgets('scrim, close control and Escape close; the envelope does not', (
@@ -202,6 +231,54 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     expect(events, ['close', 'close', 'close']);
   });
+
+  testWidgets('the 36 close key sits in the envelope top trailing corner', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(sheet()));
+    final close = find.byType(FlareIconButton);
+    expect(
+      tester.widget<FlareIconButton>(close).customSize,
+      FlareSizes.componentRedPacketCloseSize,
+    );
+    expect(tester.widget<FlareIconButton>(close).semanticLabel, '关闭');
+    expect(tester.getSize(close).height, greaterThanOrEqualTo(48));
+    final title = find.text('小明的红包');
+    expect(tester.getCenter(close).dy, lessThan(tester.getCenter(title).dy));
+    expect(tester.getCenter(close).dx, greaterThan(tester.getCenter(title).dx));
+    expect(tester.getCenter(close).dy, lessThan(tester.getCenter(coin).dy));
+  });
+
+  testWidgets('nothing closes it while it opens', (tester) async {
+    await tester.pumpWidget(
+      host(sheet(state: FlareRedPacketOpenState.opening), reduceMotion: true),
+    );
+    await tester.tapAt(const Offset(8, 8));
+    await tester.tap(find.byType(FlareIconButton), warnIfMissed: false);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    expect(events, isEmpty);
+    expect(
+      tester.widget<FlareIconButton>(find.byType(FlareIconButton)).disabled,
+      isTrue,
+    );
+  });
+
+  testWidgets(
+    '§4.5 type: 56 sender, 15/600 title, 20/600 blessing on two lines',
+    (tester) async {
+      await tester.pumpWidget(host(sheet()));
+      expect(
+        tester.widget<FlareAvatar>(find.byType(FlareAvatar)).size,
+        FlareSizes.componentRedPacketDetailAvatarSize,
+      );
+      final title = tester.widget<Text>(find.text('小明的红包'));
+      expect(title.style!.fontSize, FlareSizes.fontSizeXl);
+      expect(title.style!.fontWeight, FontWeight.w600);
+      final blessing = tester.widget<Text>(find.text('恭喜发财，大吉大利'));
+      expect(blessing.style!.fontSize, FlareSizes.fontSize4xl);
+      expect(blessing.maxLines, 2);
+    },
+  );
 
   testWidgets('show() puts it on a route; back and Escape go through onClose', (
     tester,
@@ -304,4 +381,14 @@ void main() {
       expect(envelope.right, lessThanOrEqualTo(width));
     });
   }
+
+  testWidgets('§4.5 Enter or Space on the focused 開 opens it', (tester) async {
+    await tester.pumpWidget(host(sheet()));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+    expect(events, ['open', 'open']);
+  });
 }

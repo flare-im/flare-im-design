@@ -346,7 +346,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text(_labels.name));
+    // The pencil beside the title renames (Vue: the name is written once).
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is FlareIconButton && w.semanticLabel == _labels.editName,
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(FlareBottomSheet), findsOneWidget);
     await tester.enterText(

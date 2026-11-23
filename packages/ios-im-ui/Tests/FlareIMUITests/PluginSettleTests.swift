@@ -228,16 +228,16 @@ final class PluginSettleTests: XCTestCase {
                                     nextCursor: "c2")
         var asked: [String] = []
         try PluginDetailSheetView(view: paged, onLoadMore: { asked.append($0) }).inspect()
-            .find(button: s.myInviteLoadMore).tap()
+            .find(button: s.pluginViewLoadMore).tap()
         XCTAssertEqual(asked, ["c2"])
 
         let loading = try PluginDetailSheetView(view: paged, loadingMore: true, onLoadMore: { asked.append($0) })
-            .inspect().find(button: s.myInviteLoadMore)
+            .inspect().find(button: s.pluginViewLoadMore)
         XCTAssertTrue(loading.isDisabled())
         XCTAssertNoThrow(try loading.labelView().find(ViewType.ProgressView.self), "it spins")
 
         let last = PluginViewModel(available: true, title: "接龙", blocks: [.note(PluginNoteBlock(text: "n"))])
         XCTAssertThrowsError(try PluginDetailSheetView(view: last, onLoadMore: { asked.append($0) }).inspect()
-            .find(button: s.myInviteLoadMore), "no cursor, no key")
+            .find(button: s.pluginViewLoadMore), "no cursor, no key")
     }
 }

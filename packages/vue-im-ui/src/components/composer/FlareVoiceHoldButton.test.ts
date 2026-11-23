@@ -27,11 +27,11 @@ describe("FlareVoiceHoldButton", () => {
   it("says it is recording while held, and goes back when released", async () => {
     const wrapper = render();
     const button = wrapper.find("button");
-    await button.trigger("pointerdown");
+    await button.trigger("pointerdown", { isPrimary: true, pointerId: 1, clientY: 200 });
     expect(wrapper.text()).toBe("松开发送");
     expect(button.classes()).toContain("pressing");
 
-    await button.trigger("pointerup");
+    await button.trigger("pointerup", { pointerId: 1 });
     expect(wrapper.text()).toBe("按住说话");
     expect(button.classes()).not.toContain("pressing");
   });
@@ -39,8 +39,8 @@ describe("FlareVoiceHoldButton", () => {
   it("reports start then end for a hold that finishes on the key", async () => {
     const wrapper = render();
     const button = wrapper.find("button");
-    await button.trigger("pointerdown");
-    await button.trigger("pointerup");
+    await button.trigger("pointerdown", { isPrimary: true, pointerId: 1, clientY: 200 });
+    await button.trigger("pointerup", { pointerId: 1 });
     expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("start")).toHaveLength(1);
     expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("end")).toHaveLength(1);
     expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("cancel")).toBeUndefined();
@@ -49,7 +49,7 @@ describe("FlareVoiceHoldButton", () => {
   it("cancels instead of sending when the pointer leaves the key", async () => {
     const wrapper = render();
     const button = wrapper.find("button");
-    await button.trigger("pointerdown");
+    await button.trigger("pointerdown", { isPrimary: true, pointerId: 1, clientY: 200 });
     await button.trigger("pointerleave");
     const emitted = wrapper.findComponent(FlareVoiceHoldButton).emitted();
     expect(emitted.cancel).toHaveLength(1);
@@ -59,10 +59,54 @@ describe("FlareVoiceHoldButton", () => {
   it("ignores a release or a leave that follows no hold", async () => {
     const wrapper = render();
     const button = wrapper.find("button");
-    await button.trigger("pointerup");
+    await button.trigger("pointerup", { pointerId: 1 });
     await button.trigger("pointerleave");
     const emitted = wrapper.findComponent(FlareVoiceHoldButton).emitted();
     expect(emitted.end).toBeUndefined();
     expect(emitted.cancel).toBeUndefined();
   });
+});
+
+
+it("does not finish a primary hold when a second pointer is released", async () => {
+  const wrapper = render(); const button = wrapper.get("button");
+  await button.trigger("pointerdown", {isPrimary:true,pointerId:1,clientY:200});
+  await button.trigger("pointerup", {pointerId:2});
+  expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("end")).toBeUndefined();
+  await button.trigger("pointerup", {pointerId:1});
+  expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("end")).toHaveLength(1);
+  wrapper.unmount();
+});
+it("cancels an upward swipe, and supports keyboard hold and Escape", async () => {
+  const wrapper = render({ slideToCancel: true }); const button = wrapper.get("button");
+  await button.trigger("pointerdown", {isPrimary:true,pointerId:1,clientY:200});
+  await button.trigger("pointermove", {pointerId:1,clientY:140});
+  expect(button.text()).toBe("松开取消");
+  await button.trigger("pointerup", {pointerId:1});
+  const component=wrapper.findComponent(FlareVoiceHoldButton);
+  expect(component.emitted("cancel")).toHaveLength(1);
+  expect(component.emitted("end")).toBeUndefined();
+  await button.trigger("keydown",{key:" "});
+  await button.trigger("keydown",{key:"Escape"});
+  await button.trigger("keyup",{key:" "});
+  expect(component.emitted("cancel")).toHaveLength(2);
+  expect(component.emitted("end")).toBeUndefined();
+  wrapper.unmount();
+});
+it("releases an unfinished hold when the component is removed", async () => {
+  const wrapper=render();const component=wrapper.findComponent(FlareVoiceHoldButton);
+  await wrapper.get("button").trigger("keydown",{key:"Enter"});
+  wrapper.unmount();
+  expect(component.emitted("cancel")).toHaveLength(1);
+  expect(component.emitted("end")).toBeUndefined();
+});
+
+it("keeps the legacy leave-to-cancel mode until sliding is explicitly enabled", async () => {
+  const wrapper = render(); const button = wrapper.get("button");
+  await button.trigger("pointerdown", { isPrimary: true, pointerId: 1, clientY: 200 });
+  await button.trigger("pointermove", { pointerId: 1, clientY: 140 });
+  await button.trigger("pointerup", { pointerId: 1 });
+  expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("end")).toHaveLength(1);
+  expect(wrapper.findComponent(FlareVoiceHoldButton).emitted("cancel")).toBeUndefined();
+  wrapper.unmount();
 });

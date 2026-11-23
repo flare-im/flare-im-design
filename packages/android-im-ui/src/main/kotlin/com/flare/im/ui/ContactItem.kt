@@ -1,5 +1,7 @@
 package com.flare.im.ui
 
+import androidx.compose.foundation.background
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Text
@@ -16,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,10 +43,13 @@ fun ContactItem(
     selected: Boolean = false,
     onToggleSelect: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+    /** The row whose details are shown beside the list (Vue `active-id`): drawn selected. */
+    active: Boolean = false,
 ) {
     val colors = flareColors()
     Row(
         Modifier.fillMaxWidth()
+            .then(if (active) Modifier.background(colors.bgSelected).semantics { this.selected = true } else Modifier)
             .then(
                 when {
                     selectable -> Modifier
@@ -57,7 +64,8 @@ fun ContactItem(
     ) {
         if (selectable) {
             // Only the picture of the row's state: the row itself is the checkbox.
-            Box(Modifier.clearAndSetSemantics {}) { Checkbox(value = selected) }
+            // Drawn at its own 20 dp, not its 48 dp touch box: the row is the target, as on Vue.
+            Box(Modifier.size(FlareSizes.iconSizeMd).clearAndSetSemantics {}) { Checkbox(value = selected) }
             Spacer(Modifier.width(FlareSizes.spacingMd))
         }
         Avatar(userId = item.id, displayName = item.name, size = 40.dp,

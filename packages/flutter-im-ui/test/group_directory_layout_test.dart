@@ -36,7 +36,8 @@ void main() {
         tester.element(find.text('Groups')),
       ).style.merge(title.style);
       expect(style.decoration, TextDecoration.none);
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      // Vue `FlareGroupList`: a row is the whole control, with no chevron.
+      expect(find.byIcon(Icons.chevron_right), findsNothing);
       expect(
         tester.getSize(find.byType(FlareGroupList)).width,
         lessThanOrEqualTo(FlareSizes.directoryContentMaxWidth),

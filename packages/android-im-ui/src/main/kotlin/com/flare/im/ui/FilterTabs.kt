@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
@@ -26,6 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -48,7 +52,8 @@ data class FlareFilterTabOption(val value: String, val label: String, val badge:
  * Each option is a tab that reads its selected state; [label] names the tab list for screen readers (what it filters).
  * [enabled] false keeps the tabs in place, dimmed, and takes no taps — while the list behind them reloads.
  * A pill keeps the size it is drawn at and sits centred in a cell at least [FlareSizes.touchTarget] square that takes
- * the taps; the press shows on the pill.
+ * the taps; the press shows on the pill. [quiet] draws the Vue kit's `appearance="quiet"`: text with an underline under
+ * the selected one, no capsules (a list's own filters, where capsules would shout over the rows).
  */
 @Composable
 fun FilterTabs(
@@ -57,16 +62,22 @@ fun FilterTabs(
     onSelect: (String) -> Unit,
     enabled: Boolean = true,
     label: String? = null,
+    quiet: Boolean = false,
 ) {
     val colors = flareColors()
     Row(
         modifier = Modifier
+            // Quiet: a full-width hairline under the row, the selected tab's underline sitting on it (Vue `--quiet`).
+            .then(if (quiet) Modifier.fillMaxWidth().drawBehind {
+                val y = size.height - 0.5.dp.toPx()
+                drawLine(colors.borderSecondary, Offset(0f, y), Offset(size.width, y), 1.dp.toPx())
+            } else Modifier)
             .horizontalScroll(rememberScrollState())
             .flareDimmed(if (enabled) 1f else FlareOpacity.disabled)
             .selectableGroup()
             .then(if (label != null) Modifier.semantics { contentDescription = label } else Modifier)
-            .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(FlareSizes.spacing2xs),
+            .padding(if (quiet) 0.dp else 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (quiet) 0.dp else FlareSizes.spacing2xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (option in options) key(option.value) {
@@ -82,10 +93,13 @@ fun FilterTabs(
                         enabled = enabled,
                         role = Role.Tab,
                     ) { onSelect(option.value) },
-                contentAlignment = Alignment.Center,
+                contentAlignment = if (quiet) Alignment.BottomCenter else Alignment.Center,
             ) {
                 Row(
-                    modifier = Modifier
+                    modifier = (if (quiet) Modifier.drawBehind {
+                        val inset = FlareSizes.spacingSm.toPx()
+                        if (active) drawRect(colors.primary, topLeft = Offset(inset, size.height - 2.dp.toPx()), size = Size(size.width - 2 * inset, 2.dp.toPx()))
+                    } else Modifier
                         .clip(RoundedCornerShape(FlareSizes.radiusFull))
                         .background(
                             if (active) colors.primary.copy(alpha = 0.12f) else colors.bgSecondary,
@@ -94,9 +108,9 @@ fun FilterTabs(
                             1.dp,
                             if (active) colors.primary.copy(alpha = 0.26f) else Color.Transparent,
                             RoundedCornerShape(FlareSizes.radiusFull),
-                        )
+                        ))
                         .indication(interaction, LocalIndication.current)
-                        .padding(horizontal = FlareSizes.spacing2md, vertical = FlareSizes.spacing2xs),
+                        .padding(horizontal = if (quiet) FlareSizes.spacingSm else FlareSizes.spacing2md, vertical = if (quiet) FlareSizes.spacingSm else FlareSizes.spacing2xs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -105,7 +119,16 @@ fun FilterTabs(
                         fontSize = FlareSizes.fontSizeMd.value.sp,
                         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
                     )
-                    if (flareCountBadgeDrawn(option.badge, option.badgeMore)) {
+                    // Quiet: the count is a side note in the tab's own colour, not a badge (Vue `--quiet .__badge`).
+                    if (quiet && flareCountBadgeDrawn(option.badge, option.badgeMore)) {
+                        Spacer(Modifier.width(FlareSizes.spacingXs))
+                        Text(
+                            flareCountBadgeText(option.badge, option.badgeMore),
+                            color = if (active) colors.primaryText else colors.textSecondary,
+                            fontSize = FlareSizes.fontSizeXs.value.sp,
+                            modifier = Modifier.flareDimmed(0.7f),
+                        )
+                    } else if (flareCountBadgeDrawn(option.badge, option.badgeMore)) {
                         Spacer(Modifier.width(FlareSizes.spacingXs))
                         Box(
                             modifier = Modifier

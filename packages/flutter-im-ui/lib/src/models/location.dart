@@ -80,8 +80,7 @@ class FlareLocationPlace {
       Object.hash(id, title, address, latitude, longitude, distanceM);
 
   @override
-  String toString() =>
-      'FlareLocationPlace($id, $title, $latitude, $longitude)';
+  String toString() => 'FlareLocationPlace($id, $title, $latitude, $longitude)';
 
   /// A place as the social SDK's geo search hands it (`GeoPlace`: `id`,
   /// `title`, `address`, `lat`, `lng`, `distanceM`;
@@ -222,7 +221,9 @@ FlareLocationCardLines flareLocationCardLines({
 String formatFlareLocationCoordinate(double value) {
   var text = value.toStringAsFixed(6);
   if (text.contains('.')) {
-    text = text.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+    text = text
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
   }
   return text == '-0' ? '0' : text;
 }
@@ -271,7 +272,8 @@ FlareLocationMapLinks? flareLocationMapLinks({
             '#map=$flareLocationOsmZoom/$lat/$lng';
   return FlareLocationMapLinks(
     web: web,
-    apple: 'http://maps.apple.com/?ll=$lat,$lng&q=${name.isEmpty ? '$lat,$lng' : name}',
+    apple:
+        'http://maps.apple.com/?ll=$lat,$lng&q=${name.isEmpty ? '$lat,$lng' : name}',
     geo: 'geo:$lat,$lng?q=$lat,$lng${name.isEmpty ? '' : '($name)'}',
   );
 }

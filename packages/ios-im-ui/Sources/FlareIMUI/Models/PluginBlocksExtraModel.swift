@@ -11,8 +11,9 @@ import Foundation
 /// What a value's format adds to its plain text (`ResolvedUiFormat`). A surface that does not know a format draws the
 /// plain text; the kit rewrites only `count` (compact) and `duration` (the viewer's words), see ``PluginFormatRules``.
 public enum PluginValueFormat: Codable, Equatable, Sendable {
-    /// Minor units as sent; `scale` absent: still minor units, the host may scale them by `assetId`.
-    case money(minor: String, scale: Int?, assetId: String?)
+    /// Minor units as sent; `scale` absent: still minor units, the host may scale them by `assetId`. `currency`: the
+    /// code the amount is in (R10), when the format names one.
+    case money(minor: String, scale: Int?, assetId: String?, currency: String? = nil)
     case enumeration(raw: String)
     case person(userId: String)
     /// `labelled` false: the value is the bare id.
@@ -26,7 +27,7 @@ public enum PluginValueFormat: Codable, Equatable, Sendable {
     case bytes(Double)
 
     private enum CodingKeys: String, CodingKey {
-        case kind, minor, scale, assetId, raw, userId, id, labelled, atMs, percent, decimals, ms, count, bytes
+        case kind, minor, scale, assetId, currency, raw, userId, id, labelled, atMs, percent, decimals, ms, count, bytes
     }
 
     public var kind: String {
@@ -55,7 +56,7 @@ public enum PluginValueFormat: Codable, Equatable, Sendable {
         switch kind {
         case "money":
             self = .money(minor: try need(String.self, .minor), scale: c.lenient(Int.self, .scale),
-                          assetId: c.lenient(String.self, .assetId))
+                          assetId: c.lenient(String.self, .assetId), currency: c.lenient(String.self, .currency))
         case "enum": self = .enumeration(raw: try need(String.self, .raw))
         case "person": self = .person(userId: try need(String.self, .userId))
         case "reference":
@@ -79,10 +80,11 @@ public enum PluginValueFormat: Codable, Equatable, Sendable {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(kind, forKey: .kind)
         switch self {
-        case let .money(minor, scale, assetId):
+        case let .money(minor, scale, assetId, currency):
             try c.encode(minor, forKey: .minor)
             try c.encodeIfPresent(scale, forKey: .scale)
             try c.encodeIfPresent(assetId, forKey: .assetId)
+            try c.encodeIfPresent(currency, forKey: .currency)
         case .enumeration(let raw): try c.encode(raw, forKey: .raw)
         case .person(let userId): try c.encode(userId, forKey: .userId)
         case let .reference(id, labelled):
@@ -100,7 +102,8 @@ public enum PluginValueFormat: Codable, Equatable, Sendable {
 }
 
 /// The words a formatted value is drawn with (spec formats2): `count` compact in the viewer's units ("1.2万"),
-/// `duration` in the viewer's units ("2 小时 5 分钟"); every other format draws the plain text the core wrote.
+/// `duration` in the viewer's units ("2 小时 5 分钟"), `money` with its currency and scale by the payment amount
+/// formatter ("¥1,234.56", "1,234 LABPOINT"); every other format draws the plain text the core wrote.
 enum PluginFormatRules {
     static func text(_ value: String, _ format: PluginValueFormat?, _ strings: FlareStrings) -> String {
         switch format {
@@ -108,9 +111,22 @@ enum PluginFormatRules {
             return count.isFinite ? compactCount(count, units: strings.pluginFormatCountUnits) : value
         case .duration(let ms)?:
             return ms.isFinite ? durationText(ms, strings) : value
+        case .money?:
+            return money(value, format)
         default:
             return value
         }
+    }
+
+    /// R10: a money value with its currency and scale through the payment amount formatter ("¥1,234.56",
+    /// "1,234 LABPOINT"), a leading minus, or the explicit plus of money in, kept in front ("+¥5.00"); any other value
+    /// as sent.
+    static func money(_ value: String, _ format: PluginValueFormat?) -> String {
+        // The text is already the decimal at its scale.
+        guard case .money(_, _?, _, let currency?)? = format else { return value }
+        let sign = value.hasPrefix("-") || value.hasPrefix("+") ? String(value.prefix(1)) : ""
+        return FlarePaymentRules.amountText(String(value.dropFirst(sign.count)), currency: currency)
+            .map { sign + $0 } ?? value
     }
 
     /// The compact units of `units` ("4:万|8:亿": exponent and suffix pairs), largest first; malformed pairs skipped.

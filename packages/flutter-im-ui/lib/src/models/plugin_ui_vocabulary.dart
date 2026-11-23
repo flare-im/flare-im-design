@@ -6,7 +6,7 @@
 /// engine and this kit read.
 // ignore: constant_identifier_names
 const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
-  'version': 2,
+  'version': 3,
   'blocks': <String>[
     'banner',
     'chart',
@@ -21,6 +21,7 @@ const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
     'progress',
     'protected-media',
     'qr',
+    'result',
     'rows',
     'section',
     'stats',
@@ -75,6 +76,10 @@ const Map<String, Object> PLUGIN_UI_VOCABULARY = <String, Object>{
   ],
   'renderers': <String>[
     'redPacket.card',
+    'redPacket.compose',
+    'redPacket.detail',
+    'redPacket.review',
+    'status.card',
   ],
   'kinds': <String>[
     'account-entry',

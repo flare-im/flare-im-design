@@ -30,6 +30,8 @@ import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 const props = withDefaults(defineProps<{
   /** The system notification permission; null until it has been read. */
   status: NotificationStatus | null;
+  /** Platform-specific wording when the permission was denied externally. */
+  statusLabel?: string;
   /** What the battery settings let the app do; leave it out where the platform has no such setting. */
   background?: BackgroundDelivery | null;
   /** Auto-start pages of the phone maker, offered in the background guide. */
@@ -57,6 +59,7 @@ watch(() => props.background, (background) => { if (!background) guideOpen.value
 const VENDOR_PREFIX = "vendor:";
 
 const statusText = computed(() => {
+  if (props.statusLabel) return props.statusLabel;
   switch (props.status) {
     case "on": return t("notificationDeliverySettings.on");
     case "off": return t("notificationDeliverySettings.off");

@@ -57,7 +57,12 @@ enum PluginVectors {
                 XCTAssertEqual(key.action.label, keyFact["label"]?.stringValue, "\(label) \(key.action.id) label")
                 XCTAssertEqual(variant(key.action), keyFact["variant"]?.stringValue, "\(label) \(key.action.id) variant")
             }
-            shown += [row.badge?.text, lines.primary, lines.secondary].compactMap { $0 } + keys.map(\.action.label)
+            // rules.rowTap: an item with `tap` is one control running that action and draws no key; one without
+            // draws its actions as keys.
+            let tap = PluginViewFormat.rowTap(block, row)
+            XCTAssertEqual(tap?.action.id, item["tap"]?.stringValue, "\(label) tap")
+            let drawn = tap == nil ? keys : []
+            shown += [row.badge?.text, lines.primary, lines.secondary].compactMap { $0 } + drawn.map(\.action.label)
         }
         let empty = rows.isEmpty ? (block.emptyText.flatMap { $0.isEmpty ? nil : $0 } ?? strings.pluginViewEmpty) : nil
         XCTAssertEqual(empty, fact["empty"]?.stringValue, "\(id) empty")

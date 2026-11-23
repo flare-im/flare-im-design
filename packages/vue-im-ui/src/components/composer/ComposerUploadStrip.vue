@@ -28,17 +28,17 @@ const { t } = useFlareI18n();
       :class="`composer-upload-item--${item.state ?? 'uploading'}`"
     >
       <img v-if="item.thumbnailUrl" :src="item.thumbnailUrl" alt="" />
-      <span v-else class="composer-upload-item__preview" aria-hidden="true"><n-icon aria-hidden="true" :component="DocumentAttachOutline" /></span>
+      <span v-else class="composer-upload-item__preview" aria-hidden="true"><n-icon size="var(--flare-size-icon-size-md)" aria-hidden="true" :component="DocumentAttachOutline" /></span>
       <span class="composer-upload-item__body">
         <strong>{{ item.name }}</strong>
         <span>{{ item.state === 'failed' ? t('composer.uploadFailed') : item.state === 'ready' ? t('composer.uploadReady') : t('composer.uploading') }}</span>
         <progress v-if="item.state !== 'ready'" max="1" :value="item.progress" :aria-label="item.name" />
       </span>
       <button v-if="item.state === 'failed'" type="button" :disabled="blocked" :title="t('composer.retryUpload')" :aria-label="t('composer.retryUpload')" @click="emit('retry', item.id)">
-        <n-icon aria-hidden="true" :component="RefreshOutline" />
+        <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="RefreshOutline" />
       </button>
       <button type="button" :disabled="blocked" :title="t('composer.removeUpload')" :aria-label="t('composer.removeUpload')" @click="emit('remove', item.id)">
-        <n-icon aria-hidden="true" :component="CloseOutline" />
+        <n-icon size="var(--flare-size-icon-size-sm)" aria-hidden="true" :component="CloseOutline" />
       </button>
     </article>
   </section>
