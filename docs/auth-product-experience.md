@@ -25,6 +25,14 @@ is 20 on phones and 24 on desktop. Registration and large
 text can scroll. The keyboard must leave the active field and primary action
 reachable. No fixed footer may cover fields.
 
+Vue hosts can set `appearance="split"` for the responsive Web and Tauri layout.
+The desktop brand pane pairs the product story with a decorative linked-message
+motif. At compact widths a wordmark precedes the single-column form. The form
+keeps its 420-pixel width cap and scrolls when the available height is too short.
+When the host changes the task title, the shell focuses the heading so keyboard
+and screen-reader users can reorient. The heading stays outside the regular Tab
+order.
+
 ## Shared measurements
 
 `tokens/tokens.json` generates all platform values:

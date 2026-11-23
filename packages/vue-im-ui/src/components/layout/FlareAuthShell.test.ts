@@ -43,8 +43,33 @@ describe("FlareAuthShell", () => {
     expect(host.get(".flare-auth-shell__eyebrow").text()).toBe("账号入口");
     expect(host.get(".flare-auth-shell__footer").text()).toContain("沟通空间");
     expect(host.get(".flare-auth-shell__utility button").text()).toBe("语言");
-    expect(host.get(".flare-auth-shell__art").attributes("aria-hidden")).toBe("true");
     expect(host.get(".flare-auth-shell__panel").attributes("aria-labelledby")).toBe(host.get("h1").attributes("id"));
     expect(host.findAll("h1")).toHaveLength(1);
+  });
+
+  it("omits empty supporting text and story", () => {
+    host = mount(FlareAuthShell, { props: { product: "Flare", title: "登录" } });
+    expect(host.find(".flare-auth-shell__story").exists()).toBe(false);
+    expect(host.find(".flare-auth-shell__subtitle").exists()).toBe(false);
+  });
+
+  it("adds the decorative motif and moves focus to the new task heading in split mode", async () => {
+    host = mount(FlareAuthShell, {
+      attachTo: document.body,
+      props: { product: "Flare IM", title: "登录" },
+    });
+
+    expect(host.find(".flare-auth-shell__motif").exists()).toBe(false);
+    expect(host.get("h1").attributes("tabindex")).toBeUndefined();
+
+    await host.setProps({ appearance: "split" });
+    expect(host.classes()).toContain("flare-auth-shell--split");
+    expect(host.get(".flare-auth-shell__motif").attributes("aria-hidden")).toBe("true");
+    expect(host.get("h1").attributes("tabindex")).toBe("-1");
+
+    await host.setProps({ title: "创建账号" });
+    const heading = host.get("h1");
+    expect(heading.text()).toBe("创建账号");
+    expect(document.activeElement).toBe(heading.element);
   });
 });
