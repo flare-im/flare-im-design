@@ -242,7 +242,7 @@
 | 承载 | `<iframe sandbox="allow-scripts allow-forms">`，不透明源 | 每页一个 WKWebView，非持久数据存储 | 每页一个 WebView | 平台视图：Android 复用 `FlarePluginBundleView`，iOS 复用 `FlarePluginBundleHostViewController` |
 | 源 | Web 为部署的沙箱域；Tauri 为 `flare-plugin://{插件键}` | `flare-plugin://{插件键}` | `https://{插件键}.plugin.flare.invalid` | 同所在平台 |
 | 桥 | `postMessage`，只收本 iframe 的消息 | `WKScriptMessageHandlerWithReply` `flareBridge` + `window.__flareBridgeDeliver` | `addWebMessageListener` `flareBridge`，JSON 文本 | 同所在平台 |
-| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android、iOS 分别同原生（Flutter 示例应用最低 iOS 16） |
+| 运行时下限（不到就不报 `bundleRuntime`） | Chromium 111、Firefox 115、Safari 16 | iOS 16 | Android System WebView 111 且支持 `WEB_MESSAGE_LISTENER` | Android 同原生，iOS 16，macOS 13 |
 
 - **何时打开**：页面先读声明式页面（`plugin_page`）；回答带 `bundle: true`（宿主报了 `bundleRuntime`、目录为这一页选中 Web 包变体、包已下发、桥版本够）时才切到 Web 包宿主，打不开或被撤回时留在已读到的声明式页面。卡片详情与「+」表单直接先试 Web 包。
 - **媒体**：`media.read` 由宿主经桥回 `data:` 地址（最大 4 MiB），插件 Web SDK 在包内转成 `blob:` 地址。
@@ -300,9 +300,9 @@ iOS 的宿主在 `PluginBundleHost.swift`，分三层：不依赖 SwiftUI 的控
 
 Flutter 的宿主是联邦插件 `flare_plugin_bundle_host`，放在 `packages/flutter-im-ui/packages/flare_plugin_bundle_host/` 下，和 Kit 同属一个 pub workspace（`flutter-im-ui/pubspec.yaml` 的 `workspace`）。它不写自己的 WebView，也不用 `webview_flutter`（D-14）：Android、iOS 两个实现包把上面两节的原生宿主以平台视图嵌进来，源、拦截、桥、隔离、生命周期都和原生应用一样。
 
-- **三个包**：`flare_plugin_bundle_host`（Dart：组件、引擎端口、运行时、事件分发、预取）；`flare_plugin_bundle_host_android`（默认实现，包 `FlarePluginBundleView`，依赖 `com.flare.im:im-ui-compose`）；`flare_plugin_bundle_host_ios`（包 `FlarePluginBundleHostViewController`，依赖 `FlareIMUI`，只支持 Swift Package Manager，iOS 16 起）。iOS 实现不是默认实现：Kit 的 iOS 包要求 iOS 16，应用的最低版本到 iOS 16 后自己把它加进依赖；没加时 iOS 上不报运行时，全部走声明式变体（D-17）。Flutter 示例应用已升到 iOS 16 并加了 iOS 实现，iOS 上也打开 Web 包。
+- `flare_plugin_bundle_host` 提供 Dart 组件、引擎端口、运行时探测、事件分发和预取。`flare_plugin_bundle_host_android` 是 Android 默认实现，嵌入 Compose 的 `FlarePluginBundleView`。`flare_plugin_bundle_host_ios` 提供 Apple 实现，通过 Swift Package Manager 依赖 `FlareIMUI`。支持 iOS 16 或 macOS 13 的应用可直接添加依赖，分别使用 UIKit 和 AppKit 平台视图。
 - **引擎调用**：原生宿主的引擎调用经 `flare_plugin_bundle_host` 通道回到 Dart（`engine`，`{route, payload}`，载荷是 JSON 文本），由应用装上的引擎执行：`FlarePluginBundleBindings.install((route, payload) => …)`，应用转给核心 SDK 的 `capability.<路由>`，`{payload}`。只放行六个 `plugin_bundle_*` 路由；拒绝时把 `sdk.plugin_bundle.<原因>` 的原因作为错误码交回原生宿主，原生宿主据此回落。
-- **运行时**：`FlarePluginBundleRuntime.profile()` 是宿主资料的 `bundleRuntime`。Android 8 及以上、WebView 111+ 且支持 web message listener 才有；iOS 16 及以上且应用加了 iOS 实现才有；Web、桌面和没有原生实现时为 null。Android 实现在 API 26 以下不加载 Kit（Kit 库声明 26，应用清单用 `tools:overrideLibrary="com.flare.im.ui"` 保留更低的最低版本）。
+- `FlarePluginBundleRuntime.profile()` 提供宿主资料中的 `bundleRuntime`。Android 需要 Android 8、System WebView 111 或更高版本，并支持 Web Message Listener。iOS 16 和 macOS 13 需要注册 Apple 实现。Web、Windows、Linux 返回 null。Android 实现在 API 26 以下不加载 Kit，应用清单用 `tools:overrideLibrary="com.flare.im.ui"` 保留更低的最低版本。
 - **引擎事件**：应用把事件 7004 的载荷交给 `FlarePluginBundleEvents.dispatch(payload)`，原生宿主按会话转给页面（Android `FlarePluginBundleEvents.dispatch`，iOS `FlarePluginBundleEvents.receive`）。
 - **组件**：`FlarePluginBundleHost(request:, title:, onFallback:, onClose:, onBack:, onNavigate:, onOpenExternal:, onHeightChange:, gestureRecognizers:)`。page 呈现时自带 `FlareScreen` 页框（标题先用 `title`，Web 包 `ui.setTitle` 后用它的）；detail、composerForm 不画页框，由所在弹层做框。平台视图默认认领全部手势。没有原生宿主的平台上立即 `onFallback('unsupported')`。
 - **谁来画**：Android 上打开中、崩溃（重新加载）两个状态和宿主请求由 Dart 用 Flutter Kit 画：`ui.toast` 用 `FlareToast`，`ui.confirm` 和外链确认用 `FlareDangerConfirm`（标题 ≤64、说明 ≤512、按钮 ≤16），确认后的 https 外链由原生宿主交给系统浏览器（D-13），`clipboard.write` 写系统剪贴板并提示「已复制」，`ui.setTitle`、`ui.navigate`、`ui.resize`、`ui.close` 交给对应回调。iOS 上状态与这些请求由原生宿主用 SwiftUI Kit 画，跳转、关闭、回落和标题交回 Dart；iOS 宿主的配色跟随 Flutter 应用的主题，而不是系统外观。

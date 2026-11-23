@@ -1,9 +1,8 @@
 name: flare_plugin_bundle_host_ios
 description: >-
-  iOS implementation of flare_plugin_bundle_host: the SwiftUI kit's plugin web
-  bundle host (FlarePluginBundleHostViewController, FlareIMUI) in a platform
-  view. Swift Package Manager only, iOS 16 and later; an app adds it when its
-  deployment target is iOS 16 or later.
+  Apple implementation of flare_plugin_bundle_host using the SwiftUI kit's
+  WebKit host in Flutter platform views. Swift Package Manager only, iOS 16
+  and macOS 13 or later.
 version: 0.1.0
 publish_to: none
 repository: https://github.com/flare-im/flare-im-design
@@ -23,3 +22,7 @@ flutter:
     platforms:
       ios:
         pluginClass: FlarePluginBundleHostPlugin
+        sharedDarwinSource: true
+      macos:
+        pluginClass: FlarePluginBundleHostPlugin
+        sharedDarwinSource: true

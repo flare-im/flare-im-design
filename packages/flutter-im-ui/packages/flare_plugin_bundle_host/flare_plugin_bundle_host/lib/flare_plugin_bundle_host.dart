@@ -1,4 +1,4 @@
-/// The plugin web bundle host (L3) for Flutter: the Android and iOS kits'
+/// The plugin web bundle host (L3) for Flutter: the Android and Apple kits'
 /// native hosts in a platform view, their engine calls carried to the app's
 /// core SDK over a method channel.
 ///

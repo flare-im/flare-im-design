@@ -164,12 +164,13 @@ class _FlarePluginBundleHostState extends State<FlarePluginBundleHost>
 
   bool get _android => defaultTargetPlatform == TargetPlatform.android;
   bool get _ios => defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _macos => defaultTargetPlatform == TargetPlatform.macOS;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (kIsWeb || (!_android && !_ios)) {
+    if (kIsWeb || (!_android && !_ios && !_macos)) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _fallback('unsupported'),
       );
@@ -477,11 +478,19 @@ class _FlarePluginBundleHostState extends State<FlarePluginBundleHost>
         gestureRecognizers: gestures,
       );
     }
+    if (_macos && !kIsWeb) {
+      return AppKitView(
+        viewType: flarePluginBundleViewType,
+        creationParams: params,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _created,
+      );
+    }
     return const SizedBox.shrink();
   }
 
   Widget? _stateLayer(FlareStrings strings, FlareColors colors) {
-    // The iOS host draws its own states.
+    // Apple hosts draw their own states.
     if (!_android) return null;
     return switch (_phase) {
       FlarePluginBundlePhase.ready => null,

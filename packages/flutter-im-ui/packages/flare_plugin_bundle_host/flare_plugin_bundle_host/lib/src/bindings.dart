@@ -114,10 +114,9 @@ abstract final class FlarePluginBundleBindings {
 /// reports it (`bundleRuntime`).
 abstract final class FlarePluginBundleRuntime {
   /// `{bridge, engine, engineMajor}`; null when no native host is registered
-  /// (web, desktop, an iOS app without `flare_plugin_bundle_host_ios`) or the
-  /// device is below the floor (Android System WebView 111 and Android 8, iOS
-  /// 16; D-17). The profile then carries no runtime and Core never selects a
-  /// bundle.
+  /// (web, Windows, Linux, or an Apple app without
+  /// `flare_plugin_bundle_host_ios`) or the device is below the supported floor
+  /// (Android 8 with System WebView 111, iOS 16, macOS 13).
   static Future<Map<String, Object?>?> profile() async {
     if (kIsWeb) return null;
     try {
@@ -157,7 +156,7 @@ abstract final class FlarePluginBundleRuntime {
 /// [signedIn] once the user is known (sign-in, a restored session, a switch to
 /// another account) and [signedOut] when the session ends. On Android each user
 /// gets a WebView profile of their own (or a per-origin wipe where profiles are
-/// not supported), and another user's storage is deleted at [signedIn]; on iOS
+/// not supported), and another user's storage is deleted at [signedIn]; on Apple
 /// every page already runs in a store that ends with it, so both are no-ops.
 abstract final class FlarePluginBundleStorage {
   /// [scope] signed in: a stable key of the user (deployment, tenant and user

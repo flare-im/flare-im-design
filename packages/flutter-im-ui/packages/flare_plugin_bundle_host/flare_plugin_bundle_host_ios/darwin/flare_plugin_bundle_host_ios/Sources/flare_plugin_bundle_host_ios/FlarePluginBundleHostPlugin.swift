@@ -1,11 +1,17 @@
 import Combine
 import FlareIMUI
-import Flutter
 import Network
+#if os(iOS)
+import Flutter
 import UIKit
+#elseif os(macOS)
+import AppKit
+import FlutterMacOS
+import SwiftUI
+#endif
 
-// The iOS side of flare_plugin_bundle_host: the SwiftUI kit's FlarePluginBundleHostViewController in a Flutter
-// platform view. The kit host does the sandbox (its own WKWebView, the `flare-plugin://` scheme handler, a
+// The Apple side of flare_plugin_bundle_host: the SwiftUI kit's host in a Flutter platform view.
+// The kit host does the sandbox (its own WKWebView, the `flare-plugin://` scheme handler, a
 // non-persistent store), the bridge, the lifecycle and the drawing of the host requests (toast, confirm, the external
 // link confirmation, the copy); its engine calls (FlarePluginBundleCalls) go back to Dart over the
 // `flare_plugin_bundle_host` channel, where the app's core SDK runs them. What only the app can do (navigate, close, fall
@@ -13,6 +19,15 @@ import UIKit
 
 let bundleChannelName = "flare_plugin_bundle_host"
 let bundleViewType = "flare_plugin_bundle_host/view"
+
+private var bundleRuntime: [String: Any]? {
+    #if os(macOS)
+    // Ventura ships WebKit with Safari 16.1. Advertise the supported baseline.
+    return FlarePluginBundleRuntime.profile(osMajor: FlarePluginBundleRuntime.minimumMajor)
+    #else
+    return FlarePluginBundleRuntime.current
+    #endif
+}
 
 public final class FlarePluginBundleHostPlugin: NSObject, FlutterPlugin {
     private let channel: FlutterMethodChannel
@@ -22,16 +37,21 @@ public final class FlarePluginBundleHostPlugin: NSObject, FlutterPlugin {
     }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: bundleChannelName, binaryMessenger: registrar.messenger())
+        #if os(macOS)
+        let messenger = registrar.messenger
+        #else
+        let messenger = registrar.messenger()
+        #endif
+        let channel = FlutterMethodChannel(name: bundleChannelName, binaryMessenger: messenger)
         let plugin = FlarePluginBundleHostPlugin(channel: channel)
         registrar.addMethodCallDelegate(plugin, channel: channel)
-        registrar.register(BundleViewFactory(messenger: registrar.messenger(), engine: channel), withId: bundleViewType)
+        registrar.register(BundleViewFactory(messenger: messenger, engine: channel), withId: bundleViewType)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "runtime":
-            result(FlarePluginBundleRuntime.current.flatMap(bundleJSONText))
+            result(bundleRuntime.flatMap(bundleJSONText))
         case "event":
             let payload = (call.arguments as? [String: Any])?["payload"] as? String
             Task { @MainActor in
@@ -148,17 +168,33 @@ final class BundleViewFactory: NSObject, FlutterPlatformViewFactory {
         self.engine = engine
     }
 
+    #if os(iOS)
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        let channel = FlutterMethodChannel(name: "\(bundleViewType)/view_\(viewId)", binaryMessenger: messenger)
+        makeView(frame: frame, id: viewId, arguments: args)
+    }
+    #elseif os(macOS)
+    func create(withViewIdentifier viewId: Int64, arguments args: Any?) -> NSView {
+        makeView(frame: .zero, id: viewId, arguments: args)
+    }
+    #endif
+
+    private func makeView(frame: CGRect, id: Int64, arguments args: Any?) -> BundlePlatformView {
+        let channel = FlutterMethodChannel(name: "\(bundleViewType)/view_\(id)", binaryMessenger: messenger)
         let params = args as? [String: Any] ?? [:]
         return MainActor.assumeIsolated {
             BundlePlatformView(frame: frame, channel: channel, engine: engine, params: params)
         }
     }
 
+    #if os(iOS)
     func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
         FlutterStandardMessageCodec.sharedInstance()
     }
+    #elseif os(macOS)
+    func createArgsCodec() -> (FlutterMessageCodec & NSObjectProtocol)? {
+        FlutterStandardMessageCodec.sharedInstance()
+    }
+    #endif
 }
 
 /// The engine's routes, run by Dart: `engine` `{route, payload}` with the payload as JSON text; Dart answers the
@@ -182,53 +218,49 @@ func bundleCalls(_ engine: FlutterMethodChannel) -> FlarePluginBundleCalls {
     }
 }
 
-/// The view Flutter places: it adopts the kit host's view controller once it is in a window.
-final class BundleContainerView: UIView {
-    var onWindow: ((UIWindow?) -> Void)?
-
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        onWindow?(window)
-    }
-}
+#if os(iOS)
+typealias BundleNativeView = UIView
+#elseif os(macOS)
+typealias BundleNativeView = NSView
+#endif
 
 @MainActor
-final class BundlePlatformView: NSObject, FlutterPlatformView {
-    private let container: BundleContainerView
+final class BundlePlatformView: BundleNativeView {
     private let channel: FlutterMethodChannel
-    private let page: FlarePluginBundleHostViewController?
-    private let controller: FlarePluginBundleHostController?
+    private var controller: FlarePluginBundleHostController?
     private var titleWatch: AnyCancellable?
+    #if os(iOS)
+    private var page: FlarePluginBundleHostViewController?
+    #endif
 
     /// The last state for the widget's `attach` (a fallback before its handler was set would be lost).
     private var lastState: [String: Any] = ["state": "opening"]
 
     init(frame: CGRect, channel: FlutterMethodChannel, engine: FlutterMethodChannel, params: [String: Any]) {
-        container = BundleContainerView(frame: frame)
-        container.backgroundColor = .clear
         self.channel = channel
-        guard FlarePluginBundleRuntime.current != nil,
-              let request = bundleOpenRequest(params["request"] as? String) else {
-            page = nil
-            controller = nil
-            super.init()
+        super.init(frame: frame)
+        channel.setMethodCallHandler { [weak self] call, result in
+            MainActor.assumeIsolated { self?.handle(call, result: result) ?? result(FlutterMethodNotImplemented) }
+        }
+        guard bundleRuntime != nil, let request = bundleOpenRequest(params["request"] as? String) else {
             lastState = ["state": "fallback", "reason": "unsupported"]
-            channel.setMethodCallHandler { [weak self] call, result in
-                MainActor.assumeIsolated { self?.handle(call, result: result) ?? result(FlutterMethodNotImplemented) }
-            }
             return
         }
         let navigable = params["navigable"] as? Bool ?? false
         let controller = FlarePluginBundleHostController(request: request, calls: bundleCalls(engine))
         let strings = (params["english"] as? Bool ?? false) ? FlareStrings.english : FlareStrings()
-        // No header of its own: the Flutter widget draws the page frame. The host draws its states and requests.
-        page = FlarePluginBundleHostViewController(controller: controller, strings: strings)
         self.controller = controller
-        super.init()
-        // The SwiftUI host reads its colour scheme from the traits: follow the Flutter app's theme, not the system's.
-        let dark = params["dark"] as? Bool ?? false
-        page?.overrideUserInterfaceStyle = dark ? .dark : .light
-        controller.setTheme(dark: dark)
+        #if os(iOS)
+        let page = FlarePluginBundleHostViewController(controller: controller, strings: strings)
+        self.page = page
+        backgroundColor = .clear
+        let hosted: UIView = page.view
+        #elseif os(macOS)
+        let hosted = NSHostingView(rootView: FlarePluginBundleHost(controller: controller)
+            .flareStrings(strings)
+            .flareFeedbackHost(FlareFeedback()))
+        #endif
+        setDark(params["dark"] as? Bool ?? false)
         controller.actions = FlarePluginBundleHostActions(
             navigate: { [weak self] target in
                 self?.channel.invokeMethod("navigate", arguments: ["params": bundleJSONText(bundleNavigationParams(target)) ?? "{}"])
@@ -249,23 +281,17 @@ final class BundlePlatformView: NSObject, FlutterPlatformView {
             guard let title, !title.isEmpty else { return }
             self?.channel.invokeMethod("title", arguments: ["title": title])
         }
-        if let page {
-            page.view.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview(page.view)
-            NSLayoutConstraint.activate([
-                page.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                page.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                page.view.topAnchor.constraint(equalTo: container.topAnchor),
-                page.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            ])
-        }
-        container.onWindow = { [weak self] window in
-            MainActor.assumeIsolated { self?.adopt(in: window) }
-        }
-        channel.setMethodCallHandler { [weak self] call, result in
-            MainActor.assumeIsolated { self?.handle(call, result: result) ?? result(FlutterMethodNotImplemented) }
-        }
+        hosted.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(hosted)
+        NSLayoutConstraint.activate([
+            hosted.leadingAnchor.constraint(equalTo: leadingAnchor),
+            hosted.trailingAnchor.constraint(equalTo: trailingAnchor),
+            hosted.topAnchor.constraint(equalTo: topAnchor),
+            hosted.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
     }
+
+    required init?(coder: NSCoder) { nil }
 
     deinit {
         channel.setMethodCallHandler(nil)
@@ -275,12 +301,10 @@ final class BundlePlatformView: NSObject, FlutterPlatformView {
         }
     }
 
-    nonisolated func view() -> UIView {
-        MainActor.assumeIsolated { container }
-    }
-
+    #if os(iOS)
     /// Makes the kit host a child of the Flutter view controller, so its SwiftUI content gets appearance calls.
-    private func adopt(in window: UIWindow?) {
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
         guard let page else { return }
         if window == nil {
             if page.parent != nil {
@@ -289,9 +313,19 @@ final class BundlePlatformView: NSObject, FlutterPlatformView {
             }
             return
         }
-        guard page.parent == nil, let parent = container.nearestViewController else { return }
+        guard page.parent == nil, let parent = nearestViewController else { return }
         parent.addChild(page)
         page.didMove(toParent: parent)
+    }
+    #endif
+
+    private func setDark(_ dark: Bool) {
+        #if os(iOS)
+        page?.overrideUserInterfaceStyle = dark ? .dark : .light
+        #elseif os(macOS)
+        appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        #endif
+        controller?.setTheme(dark: dark)
     }
 
     private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -300,9 +334,7 @@ final class BundlePlatformView: NSObject, FlutterPlatformView {
         case "attach":
             result(lastState)
         case "setDark":
-            let dark = args["dark"] as? Bool ?? false
-            page?.overrideUserInterfaceStyle = dark ? .dark : .light
-            controller?.setTheme(dark: dark)
+            setDark(args["dark"] as? Bool ?? false)
             result(nil)
         case "setLocale":
             if let locale = args["locale"] as? String, !locale.isEmpty { controller?.setLocale(locale) }
@@ -311,12 +343,20 @@ final class BundlePlatformView: NSObject, FlutterPlatformView {
             if let controller { Task { await controller.reload() } }
             result(nil)
         case "pause", "resume":
+            #if os(macOS)
+            controller?.setVisible(call.method == "resume" && window != nil)
+            #endif
             // The controller follows the app's foreground itself.
             result(nil)
         default:
             result(FlutterMethodNotImplemented)
         }
     }
+}
+
+#if os(iOS)
+extension BundlePlatformView: FlutterPlatformView {
+    nonisolated func view() -> UIView { self }
 }
 
 private extension UIView {
@@ -329,3 +369,4 @@ private extension UIView {
         return nil
     }
 }
+#endif
