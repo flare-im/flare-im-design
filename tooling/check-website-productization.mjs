@@ -77,6 +77,23 @@ for (const label of ["General Components", "IM Components", "Data Display", "Gro
 if (!read("website/general/index.md").includes('<ComponentGallery scope="general-ui" />')) errors.push("General UI landing page lacks scoped catalog");
 if (!read("website/im/index.md").includes('<ComponentGallery scope="im-ui" />')) errors.push("IM UI landing page lacks scoped catalog");
 
+// Navigation and search must describe the same product areas; a family is not a message subtype.
+for (const category of catalog.categories) {
+  if (!catalog.categoryLabels?.[category]?.zh || !catalog.categoryLabels?.[category]?.en) errors.push("missing localized category: " + category);
+}
+const families = {
+  RedPacket: ["RedPacketComposer", "RedPacketCard", "RedPacketOpenSheet", "RedPacketDetail"],
+  Account: ["AccountView", "PaymentConfirmation", "DocumentCapture"],
+  Plugin: ["CapabilityConsent", "PluginBundleHost", "PluginView", "PluginForm", "PluginDetailSheet", "PluginPage", "PluginUpgradeNotice"],
+};
+for (const [category, names] of Object.entries(families)) {
+  for (const name of names) if (catalog.components.find((component) => component.name === name)?.category !== category) errors.push(name + ": incorrect product category");
+}
+for (const prefix of ["website/", "website/en/"]) {
+  for (const path of ["red-packet/index.md", "guide/component-map.md"]) if (!existsSync(join(root, prefix, path))) errors.push("missing component discovery guide: " + prefix + path);
+  if (!read(prefix + "red-packet/index.md").includes('<ComponentGallery category="RedPacket" />')) errors.push("red packet guide lacks scoped catalog: " + prefix);
+}
+
 for (const capability of [
   "supportsConfiguration", "supportsCustomActions", "supportsCustomContent", "supportsSlots",
   "supportsCapabilities", "supportsDensity", "supportsResponsive",

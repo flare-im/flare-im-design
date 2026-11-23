@@ -31,6 +31,8 @@ const streams = new Set(["ivy", "leo", "me"]);
         :camera-on="cameraOn"
         can-start-video
         @toggle-mute="muted = !muted"
+        @minimize="() => undefined"
+        @add-member="() => undefined"
         @toggle-camera="cameraOn = !cameraOn"
         @start-video="mode = 'video'"
       >

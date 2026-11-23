@@ -19,7 +19,10 @@ function check(path, required, forbidden) {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${path}`);
   if (!ok) failures++;
 }
-for (const page of ['profile_center_screen', 'moments_screen', 'base_shell']) {
+// The profile centre hands whole surfaces to the kit (profile panel, settings sections), so like the
+// social action host it has no standalone button; guard the composites instead.
+check(`${social}/flare-social-flutter-app/lib/screens/profile_center_screen.dart`, [/FlareProfilePanel\(/, /FlareSettingsSection\(/, /package:flare_im_ui/], /\b(?:FilledButton|OutlinedButton|TextButton|TextField|AlertDialog)\s*[.(]/);
+for (const page of ['moments_screen', 'base_shell']) {
   check(`${social}/flare-social-flutter-app/lib/screens/${page}.dart`, [/FlareButton\(/, /package:flare_im_ui/], /\b(?:FilledButton|OutlinedButton|TextButton|TextField|AlertDialog)\s*[.(]/);
 }
 // The social action host now delegates whole contact/group/request/search surfaces to the kit, so
@@ -31,9 +34,12 @@ check(`${social}/flare-social-flutter-app/lib/screens/social_action_screens.dart
   /FlareNewFriendRequests\(/,
   /package:flare_im_ui/,
 ], /\b(?:FilledButton|OutlinedButton|TextButton|TextField|AlertDialog)\s*[.(]/);
-for (const page of ['chat/ContactChatSettingsPanel', 'chat/GroupChatSettingsPanel', 'settings/AppSettingsDrawer']) {
-  // Settings rows come from the kit, either one row at a time or as a whole settings list.
-  check(`${social}/flare-social-tauri-app/src/components/${page}.vue`, [/FlareSettingsRow|FlareSettingsList/, /@flare-im\/vue-ui/], /SettingsToggleRow|SettingsMenuItem|settings-toggle-row|settings-menu-item/);
+// The Tauri app compiles the web app's pages (its own src holds only host overrides), so the web
+// entries below guard both; the obsolete list at the end keeps it from growing pages of its own again.
+// Settings rows come from the kit, either one row at a time or as a whole settings list.
+check(`${social}/flare-social-web-app/src/components/SettingsPanel.vue`, [/FlareSettingsRow|FlareSettingsList/, /@flare-im\/vue-ui/], /SettingsToggleRow|SettingsMenuItem|settings-toggle-row|settings-menu-item/);
+for (const [panel, kit] of [['ContactDetailPanel', /<FlareContactDetail/], ['GroupDetailPanel', /<FlareGroupDetail/]]) {
+  check(`${social}/flare-social-web-app/src/components/${panel}.vue`, [kit, /@flare-im\/vue-ui/], /SettingsToggleRow|SettingsMenuItem|settings-toggle-row|settings-menu-item/);
 }
 for (const page of ['FriendActionScreens', 'MomentsScreen']) {
   // A kit dialog surface: the FormDialog component, or the dialog presenter that replaced it for
@@ -41,12 +47,14 @@ for (const page of ['FriendActionScreens', 'MomentsScreen']) {
   check(`${social}/flare-social-android-app/app/src/main/kotlin/com/flare/social/app/${page}.kt`, [/com\.flare\.im\.ui\.(?:FormDialog|LocalFlareDialog)/], /\b(?:AlertDialog|TextButton|OutlinedTextField)\s*\(/);
 }
 check(`${social}/flare-social-ios-app/Sources/FlareSocialApp/AuthView.swift`, [/InputView\(/, /FormFieldView\(/, /ButtonView\(/], /\b(?:TextField|SecureField|glassInput|fieldBackground)\s*\(/);
-for (const app of ['web', 'tauri']) {
+for (const app of ['web']) {
   check(`${social}/flare-social-${app}-app/src/components/ContactDetailPanel.vue`, [/FlareFormSheet/, /@flare-im\/vue-ui/], /contact-detail-panel__sheet-actions|<FlareBottomSheet/);
 }
 // Same rule as Android's: the form sheet component, or the kit presenter that replaced it for a
 // single prompt (`FlareFeedback.prompt`) with the kit's own sheet.
-check(`${social}/flare-social-ios-app/Sources/FlareSocialApp/FriendActionViews.swift`, [/FormSheetView\(|FlareFeedback\.prompt|flareBottomSheet/, /InputView\(/], /TextEditor\(/);
+// Add/join pages use the kit search control; request messages use the kit prompt.
+// Requiring a spare InputView would reward redundant fields after that migration.
+check(`${social}/flare-social-ios-app/Sources/FlareSocialApp/FriendActionViews.swift`, [/FormSheetView\(|FlareFeedback\.prompt|flareBottomSheet/, /SearchBarView\(/], /\b(?:TextField|SecureField|TextEditor)\s*\(/);
 // FR-114: a message row answers to two ids — the one the list draws it with and the core's id for
 // it — and locating a quoted message depends on the app filling the second one. Nothing else would
 // catch its removal: the natives have no unit test target over their SDK adapters, and every gate
@@ -66,7 +74,6 @@ for (const [app, file] of [
 // takes the kit's other form of the same trip, the one that opens a window around the message.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/components/ChatArea.vue', /flareLocateMessage(?:Around)?\(/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /flareLocateMessage(?:Around)?\(/],
   ['flare-social-flutter-app', 'lib/screens/chat_screen.dart', /flareLocateMessage(?:Around)?\(/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/ChatView.swift', /FlareLocate\.run(?:Around)?\(/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/ChatScreen.kt', /flareLocateMessage(?:Around)?\(/],
@@ -94,7 +101,6 @@ for (const [app, file, wired] of [
 // is missing.
 for (const [app, file, wired, forbidden] of [
   ['flare-social-web-app', 'src/components/ChatArea.vue', /new FlareTypingSignal\(/, /TYPING_IDLE_MS|TYPING_IDLE_STOP_MS/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /new FlareTypingSignal\(/, /TYPING_IDLE_MS|TYPING_IDLE_STOP_MS/],
   ['flare-social-flutter-app', 'lib/screens/chat_screen.dart', /FlareTypingSignal\(\)/, /_reportedTyping/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /FlareTypingSignal\(\)/, /$^/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /FlareTypingSignal\(\)/, /class TypingReporter/],
@@ -109,7 +115,6 @@ for (const [app, file, wired, forbidden] of [
 // (`FlareTypingRoster`), and an app that grows its own expiry timer passes every other gate.
 for (const [app, file, wired, forbidden] of [
   ['flare-social-web-app', 'src/social/store.ts', /new FlareTypingRoster\(/, /TYPING_TTL_MS|function reduceTyping/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /new FlareTypingRoster\(/, /TYPING_EXPIRE_MS|typingExpireTimers/],
   ['flare-social-flutter-app', 'lib/viewmodels/conversation_signals.dart', /FlareTypingRoster\(/, /$^/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /FlareTypingRoster\(/, /$^/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /FlareTypingRoster\(/, /$^/],
@@ -134,7 +139,6 @@ for (const [app, file, wired] of [
 // never called it. The kit has drawn the dot on four platforms for rounds; nothing fed it.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/social/store.ts', /refreshPresenceFor\(/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /syncPresenceSubscriptions\(/],
   ['flare-social-flutter-app', 'lib/sdk/base_social_client.dart', /presence\.batchGet\(/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /sdk\.presence\.batchGet\(/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /sdk\.presence\.batchGet\(/],
@@ -147,7 +151,6 @@ for (const [app, file, wired] of [
 // what "unknown" looks like. Reading a failed lookup as 离线 puts a false state in front of a reader.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/social/store.ts', /presenceByUser\.get\(/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /presenceByPeerForRows/],
   ['flare-social-flutter-app', 'lib/screens/base_shell.dart', /presence: c\.isGroup \? null : _signals\.presenceOf\(/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/ConversationsView.swift', /presence: session\.presenceFor\(/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/ConversationsScreen.kt', /session\.presenceFor\(/],
@@ -161,7 +164,6 @@ for (const [app, file, wired] of [
 // The rule is the kit's now (`FlareDraftAutosave`) and the store is the core for all five.
 for (const [app, file, wired, forbidden] of [
   ['flare-social-web-app', 'src/components/ChatArea.vue', /new FlareDraftAutosave\(/, /DRAFT_SAVE_DELAY_MS/],
-  ['flare-social-tauri-app', 'src/host/chat/composables/useSessionDrafts.ts', /new FlareDraftAutosave\(/, /DRAFT_SAVE_DEBOUNCE_MS|SessionDraftsToStorage/],
   ['flare-social-flutter-app', 'lib/viewmodels/conversation_signals.dart', /FlareDraftAutosave\(\)/, /$^/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /FlareDraftAutosave\(\)/, /$^/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /FlareDraftAutosave\(\)/, /$^/],
@@ -173,7 +175,6 @@ for (const [app, file, wired, forbidden] of [
 // of the five were: the core op has existed since the beginning and only the web app ever called it.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/social/sdk.ts', /conversations\.updateDraft\(/],
-  ['flare-social-tauri-app', 'src/host/chat/composables/useSessionDrafts.ts', /social\.conversations\.updateDraft\(/],
   ['flare-social-flutter-app', 'lib/sdk/base_social_client.dart', /conversations\.updateDraft\(/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /sdk\.conversations\.updateDraft\(/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /sdk\.conversations\.updateDraft\(/],
@@ -187,7 +188,6 @@ for (const [app, file, wired] of [
 // subscribed and read when the list loaded and when a chat opened, and a reconnect is neither.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/social/store.ts', /new FlareConnectionRefresh\(/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /new FlareConnectionRefresh\(/],
   ['flare-social-flutter-app', 'lib/screens/base_shell.dart', /FlareConnectionRefresh\(\)/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/SocialSession.swift', /FlareConnectionRefresh\(\)/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/SocialSession.kt', /FlareConnectionRefresh\(\)/],
@@ -201,7 +201,6 @@ for (const [app, file, wired] of [
 // someone typing.
 for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/components/ChatArea.vue', /@user-input="onUserInput"/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /@user-input="onComposerUserInput"/],
   ['flare-social-flutter-app', 'lib/screens/chat_screen.dart', /onTyping: _onTyping/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/ChatView.swift', /onUserInput: \{/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/ChatScreen.kt', /onUserInput = \{/],
@@ -220,21 +219,22 @@ for (const [app, file, wired] of [
   ['flare-social-web-app', 'src/components/ContactsTab.vue', /<FlareScreen/],
   ['flare-social-web-app', 'src/components/MomentsTab.vue', /<FlareScreen/],
   ['flare-social-web-app', 'src/components/MeTab.vue', /<FlareScreen/],
-  ['flare-social-tauri-app', 'src/views/Main.vue', /#destination="\{ id \}"/],
-  ['flare-social-tauri-app', 'src/components/chat/ChatPanel.vue', /@layout-change="onWorkspaceLayout"/],
   ['flare-social-flutter-app', 'lib/screens/base_shell.dart', /destinationBuilder: _destination/],
-  ['flare-social-ios-app', 'Sources/FlareSocialApp/MainShell.swift', /IMAppKitView\(groups: groups, activeID: tab, onNavigate:/],
+  ['flare-social-ios-app', 'Sources/FlareSocialApp/MainShell.swift', /IMAppKitView\(groups: groups, activeID: [^\n]+\n?\s*onNavigate:/],
   ['flare-social-ios-app', 'Sources/FlareSocialApp/ConversationsView.swift', /\.flareDestinationDepth\(!path\.isEmpty\)/],
   ['flare-social-android-app', 'app/src/main/kotlin/com/flare/social/app/FlareSocialApp.kt', /onNavigate = \{ tab = it \},\s*\) \{ id ->/],
 ]) {
-  check(`${social}/${app}/${file}`, [wired], shellWork);
+  // A tab may cache its own pushed sub-pages (DM-02.6: each contacts sub-list keeps its query and scroll);
+  // keeping the tabs themselves is the shell's, so <KeepAlive> stays forbidden outside the tab files.
+  check(`${social}/${app}/${file}`, [wired], /Tab\.vue$/.test(file) ? new RegExp(shellWork.source.replace('|<KeepAlive', '')) : shellWork);
 }
 
 for (const path of [
   `${social}/flare-social-web-app/src/host/responsive.ts`,
+  // The Tauri app's own page tree, replaced by the web app's pages.
+  `${social}/flare-social-tauri-app/src/components`,
+  `${social}/flare-social-tauri-app/src/views`,
   `${social}/flare-social-tauri-app/src/utils/responsiveMode.ts`,
-  `${social}/flare-social-tauri-app/src/components/settings/SettingsToggleRow.vue`,
-  `${social}/flare-social-tauri-app/src/components/settings/SettingsMenuItem.vue`,
   `${social}/flare-social-android-app/app/src/main/kotlin/com/flare/social/app/UiHelpers.kt`,
   // 应用自带的嵌套导航抽屉已由 kit 的 FlareDrawer.show / showAdaptive 取代。
   `${social}/flare-social-flutter-app/lib/host/detail_drawer.dart`,

@@ -57,7 +57,8 @@
         "android": {
           "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Input.kt",
           "require": [
-            "maxOf\\(size\\.visualHeight\\(\\), FlareSizes\\.touchTargetMin\\)",
+            "FlarePointerKind\\.Fine\\) size\\.visualHeight\\(\\) else FlareSizes\\.touchTargetMin",
+            "maxOf\\(size\\.visualHeight\\(\\), floor\\)",
             "minSize = FlareSizes\\.touchTargetMin"
           ]
         },
@@ -225,8 +226,8 @@
     },
     {
       "id": "MessageBubble.padding",
-      "why": "气泡是全 app 出现频率最高的组件;四端内距不同,同一条消息的高度就不同。",
-      "token": "sizes.component.bubblePaddingX / bubblePaddingY",
+      "why": "横向使用共同 token；Web 聊天采用已确认的紧凑密度（8px 垂直），原生标准密度保留 bubblePaddingY（9px），均由 canonical tokens 管理。",
+      "token": "sizes.component.bubblePaddingX / bubblePaddingY / messageBubblePaddingBlockCompact",
       "platforms": {
         "ios": {
           "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/MessageBubbleView.swift",
@@ -265,7 +266,7 @@
           "file": "packages/vue-im-ui/src/design-system/styles/chat/message-bubble.css",
           "require": [
             "--flare-size-component-bubble-padding-x",
-            "--flare-size-component-bubble-padding-y"
+            "--flare-size-component-message-bubble-padding-block-compact"
           ],
           "forbid": [
             "padding: var\\(--flare-size-spacing-sm\\) 11px"
@@ -313,8 +314,8 @@
     },
     {
       "id": "ConversationRow.paddingX",
-      "why": "三端都是 spacingSm(8);Vue 曾是 10px。",
-      "token": "sizes.spacing.sm",
+      "why": "原生名单保留 spacingSm；Web 使用已确认的桌面 spacingMd 与手机 spacingLg 横距，避免将响应式信息密度误报为裸值漂移。",
+      "token": "sizes.spacing.sm / md / lg (platform density)",
       "platforms": {
         "ios": {
           "file": "packages/ios-im-ui/Sources/FlareIMUI/Components/ConversationRowView.swift",
@@ -337,7 +338,8 @@
         "vue": {
           "file": "packages/vue-im-ui/src/components/conversation/FlareConversationRow.vue",
           "require": [
-            "--flare-size-spacing-sm"
+            "padding: var\\(--flare-size-spacing-2sm\\) var\\(--flare-size-spacing-md\\)",
+            "padding: var\\(--flare-size-spacing-md\\) var\\(--flare-size-spacing-lg\\)"
           ],
           "forbid": [
             "padding: 10px;"
@@ -493,7 +495,7 @@
     },
     {
       "id": "ConversationRow.metaWidth",
-      "why": "尾列(时间+未读角标)三端固定 60,Vue 是 minmax(7ch/6ch) —— 两种尺寸模型:ch 随字号和字体变,60 不变。",
+      "why": "尾部时间占用不超过共同的 conversationRowMetaWidth；原生固定尾列，Web 同行排列并额外按窄屏可用宽度收缩，保持现有紧凑消息布局。",
       "token": "sizes.component.conversationRowMetaWidth",
       "platforms": {
         "ios": {
@@ -517,7 +519,7 @@
         "flutter": {
           "file": "packages/flutter-im-ui/lib/src/components/flare_conversation_row.dart",
           "require": [
-            "FlareSizes.componentConversationRowMetaWidth"
+            "FlareSizes\\s*\\.componentConversationRowMetaWidth"
           ],
           "forbid": [
             "width: 60,"
@@ -548,7 +550,10 @@
         "android": {
           "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ApplicationComposition.kt",
           "require": [
-            "indicatorColor = Color.Transparent"
+            "activeId\\) colors\\.primaryText else colors\\.textSecondary"
+          ],
+          "forbid": [
+            "NavigationBarItem\\("
           ]
         },
         "flutter": {
@@ -613,8 +618,9 @@
         "android": {
           "file": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/ApplicationComposition.kt",
           "require": [
-            "selectedIconColor = colors.primaryText",
-            "unselectedTextColor = colors.textSecondary"
+            "val tint = if \\(item\\.id == activeId\\) colors\\.primaryText else colors\\.textSecondary",
+            "LocalContentColor provides tint",
+            "Text\\(item\\.label, color = tint"
           ]
         },
         "flutter": {

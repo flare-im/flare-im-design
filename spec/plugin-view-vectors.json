@@ -31,16 +31,32 @@
     "badge": "entries items and rows may carry badge {text, tone}: the plugin's valueLabels, already translated (an unmapped value arrives as its raw text with tone neutral). Drawn as the kit tag: the tone's *Text ink on a 6% tint of the tone in the primary surface (neutral: secondary text on the tertiary background), caption size, one line, never a control. Tones are PluginTone (neutral, info, success, warning, danger); any other tone draws neutral. Entries: after the name and the me tag, before the text (order: number, avatar, name, me, badge, text). Rows on a page: leading the item's first line, before the first cell. Rows in a Vue table: leading the first cell. No badge: nothing is drawn and no gap is left. Screen readers read the badge as part of the item, in drawing order. Facts: view entries-badges, pageViews.",
     "maxSelections": "choices.maxSelections (present only on a multiple choice, 1..=option count) caps the draft. While the draft holds maxSelections options or more, every option outside the draft is disabled (not tappable, aria-disabled, drawn at the disabled opacity) and the ones in the draft stay tappable, so unticking one re-enables the rest. The submit rule is unchanged (the draft is non-empty and differs from the selection) plus the draft must be within the cap: a view whose selection is already above the cap (the plugin lowered it) starts disabled-but-shrinkable and its submit stays disabled until the draft is within the cap. While the block can be chosen (block.action present and not closed) the hint pluginViewMaxSelections (\"最多选 {n} 项\" / \"Choose up to {n}\") leads the footer, before pluginViewEnded. A single choice, or a block without maxSelections: no cap and no hint. The same in a card and in an embedded view (detail sheet, page). Steps in `maxSelections`.",
     "page": "PluginPage draws one plugin page (a page contribution, such as a wallet): the core SDK's pluginPage result is the view, a detail-shaped view plus `data` (what the page was resolved against). The host also passes the page reference {pluginId, page}. Heading: view.title, else the host's title (an unavailable page has an empty title, so the host's title stays). States: loading (no view, and loading or no error) → the spinner; error (no view, error, not loading) → the host's text and the retry key (retry); unavailable (view.available false) → the kit empty state titled with the reason's copy (`unavailableReasons`; pluginViewEmpty when the view names no reason), plus the retry key (retry) only for catalog_unreachable, and no refresh, filters, load more or actions; loaded → filters (rules.pageFilters), then the view drawn by PluginView embedded (fields, blocks, actions and menu actions as keys, rows as a list), then load more; a refresh that failed (error while a view shows) is a danger banner above it. Every action run on the page — a view action, a menu action, a choices submit or a row action, after its confirm and form — emits action(id, payload) with payload {page: the host's page reference, data: view.data when the view has it, row: {key, input} for a row action, selection for a choices submit, formValues when a form was collected}: the request invokePageAction takes, so the host passes it through and handles the outcome (a page target opens the next page with the outcome's payload as its arguments). busyActionId, actionError, formErrors, members and settleToken work as on PluginDetailSheet. Facts in pageViews and pageActions.",
-    "pageRows": "A rows block on a page draws as a list on every kit (no table, no column labels): one item per row in order and at most once per key — a key already drawn is skipped and the first stays (the core SDK appends pages without repeating keys; the kit guarantees it because list identity needs unique keys). An item: the first line is the badge (rules.badge) then the first cell; the second line is the other cells in column order, time columns formatted as in `time` (device zone; facts hold at utcOffsetMinutes), blank cells skipped, joined with \" · \", and absent when nothing is left; the row's actions are compact keys at the item's end (the block action's label; style, confirm and form apply) and emit the page action with row {key, input}. While busyActionId names a row action only the key of the row that ran it spins; the same action's keys on the other rows (and every other key) are disabled without spinning. The kit remembers that row from the action it sent; an action the kit did not send spins no row key. No rows: emptyText, else pluginViewEmpty. A page's rows have no load more of their own (rows.nextCursor is absent: rows page with the page). Facts in pageViews.",
+    "pageRows": "A rows block on a page draws as a list on every kit (no table, no column labels): one item per row in order and at most once per key — a key already drawn is skipped and the first stays (the core SDK appends pages without repeating keys; the kit guarantees it because list identity needs unique keys). An item: the first line is the badge (rules.badge) then the first cell; the second line is the other cells in column order, time columns formatted as in `time` (device zone; facts hold at utcOffsetMinutes), blank cells skipped, joined with \" · \", and absent when nothing is left; the row's actions are compact keys at the item's end (except a row whose only action opens a page, rules.rowTap: the row itself is that action's control, so it draws no key; expect.items[].tap names that action, its actions still list it, and a pageActions tap on {row, action} taps the row) (the block action's label; style, confirm and form apply) and emit the page action with row {key, input}. While busyActionId names a row action only the key of the row that ran it spins; the same action's keys on the other rows (and every other key) are disabled without spinning. The kit remembers that row from the action it sent; an action the kit did not send spins no row key. No rows: emptyText, else pluginViewEmpty. A page's rows have no load more of their own (rows.nextCursor is absent: rows page with the page). Facts in pageViews.",
     "pagePaging": "A non-blank view.nextCursor shows the page's full-width load-more key under the view (Vue pluginView.loadMore, natives myInviteLoadMore) with the asked-once rule of rules.detail (`detailPaging`): loadMore(cursor), spinning and disabled while loadingMore or while the asked cursor is still view.nextCursor. Besides loadingMore ending, settleToken changing and actionError becoming non-empty, the end of a refresh (refreshing true → false) also forgets the asked cursor: a refresh reads the first page again and may bring the same cursor back, which would otherwise spin for good. The host asks the core SDK for the next page with previous = the shown view and passes back the merged view: the new rows and entries follow the shown ones (a row whose key is shown is dropped), and data stays the first page's. The kit merges nothing and keeps nothing between views except the asked cursor. Steps in `pagePaging`.",
     "pageFilters": "A page whose view has a rows block shows its select filters above the view: the inputs flarePluginFilterInputs(view) returns (the rows block's filters, every input when absent) whose kind is select, in input order; other kinds are not page filters. Each is a kit FilterTabs row named by the input's label: pluginViewAll first, then the input's choices in order. The selected tab is the host's filters[input.id] when it is one of the choices, else all; the host owns it (props filters). Choosing another tab emits filter(values): the host's filters with that input set to the choice's value, or without it for all; choosing the selected tab emits nothing. The host then reads the first page with those filters (a refresh: it sets refreshing until the view arrives) and passes back the view and the filters. The tabs are disabled while refreshing or loadingMore. No rows block, or no select filter: no filter row. Steps in `pageFilters`.",
-    "formats2": "Vocabulary 2 formats. count: the text is written compact with the copy's units (pluginFormatCountUnits, `exponent:suffix` pairs): the largest unit the count reaches, one decimal cut (never rounded up), a trailing .0 dropped; below every unit, the count. duration: whole seconds; under a minute the seconds alone, else the largest non-zero unit and the next one when it is not zero (myInviteUnitDays/Hours/Minutes, pluginFormatSeconds). percent and bytes keep the text the core SDK wrote; an unknown format keeps the text.",
+    "formats2": "Vocabulary 2 formats. count: the text is written compact with the copy's units (pluginFormatCountUnits, `exponent:suffix` pairs): the largest unit the count reaches, one decimal cut (never rounded up), a trailing .0 dropped; below every unit, the count. duration: whole seconds; under a minute the seconds alone, else the largest non-zero unit and the next one when it is not zero (myInviteUnitDays/Hours/Minutes, pluginFormatSeconds). money (R10): with a currency and a known scale (the format's scale, or the scale the host knows for its asset) the amount is written by the kit's payment amount formatter, the one the payment confirmation uses (the currency's symbol in front where it has one, else the code after the number; the integer part grouped by three, the fraction as written), a leading minus, or the explicit plus a ledger line marks money in with, kept in front of it (a rows list draws the minus as U+2212, rules.rowsIcon); without a currency, or while the scale is unknown, the text as sent. percent and bytes keep the text the core SDK wrote; an unknown format keeps the text.",
     "blocks2": "Vocabulary 2 blocks. section: a heading (label, a fold key) followed by its children; a section without a label is never folded; children of a folded section are not drawn; a child kind the kit does not know is skipped like a top-level one. stats: MetricTile figures, the value through its format, the trend as text with its direction (anything else flat). chart: bar, line or donut from kit colours; nothing to draw → emptyText or pluginViewEmpty; a donut's slices are the positive values' shares in point order. image: the declared aspect (unknown → square); the host resolves the asset or file id. qr: expired once expiresAtMs ≤ now; an expired code with refreshOperation offers pluginViewQrRefresh (the host re-reads). hero: one lead figure; its actions run like the view's. steps: the state as sent when it is one of pending, current, done, failed, else pending. banner: tone info, success, warning or danger (anything else info) with an owned action. timeline: time as the time block writes it, title, detail, status tag; no item → emptyText or pluginViewEmpty.",
     "moneyInput": "A money input's draft is the amount as typed. Before the check and submit it is normalized (spaces gone, leading zeros of the whole part dropped, a leading . gets a 0, a trailing . goes). Empty: required when required, else absent. Not a decimal of at most `scale` fraction digits (2 by default) or no currency: invalidType. Below min or above max (decimal order): outOfRange. Submitted as {amount, currency} with the input's currency.",
     "upgradeNotice": "unavailableReason upgrade_required draws the upgrade notice instead of the reason line: update when update.plugin_upgrade_status says available and the host passes onUpdate (the key pluginUpgradeAction); notAvailable when it says not available (pluginUpgradeNotAvailable, no key); description otherwise (pluginViewUnavailableUpgradeRequired, no key). The entry mark is pluginUpgradeBadge; the page variant's heading is the view's title, else pluginUpgradeTitle, and its text pluginUpgradeDescription or pluginUpgradeNotAvailable.",
     "rowsGroupByDay": "A page rows block with groupByDay true puts a day heading before the first row of each day, by the row's first time column (its cell timeMs) in the device zone (facts hold at utcOffsetMinutes): today's rows read accountToday (今天 / Today), yesterday's accountYesterday (昨天 / Yesterday), older ones the date — the kit's dateTime pattern without its time (the year only outside the current one, dateTimeYear). Consecutive rows of one day share a heading; a row without a time starts no heading and joins none. Without groupByDay, or without a time column, no headings. Facts in rowDays.",
     "entryTime": "An entry with timeMs (entries.timePath) draws its time after the text, formatted as in `time` (device zone), in the tertiary text colour; an entry without it draws none.",
-    "heroMask": "A hero with maskable true draws an eye toggle beside its label (accountHideBalance / accountShowBalance as its accessible name, pressed while hidden). It starts shown; while hidden the value reads •••• and nothing else changes. A hero without maskable has no toggle."
+    "heroMask": "A hero with maskable true draws an eye toggle beside its label (accountHideBalance / accountShowBalance as its accessible name, pressed while hidden). It starts shown; while hidden the value reads •••• and nothing else changes. A hero without maskable has no toggle.",
+    "actionRoles": "R2 of docs/plugin-experience.md. Top-level actions are view.actions then view.menuActions on an embedded view; actions a block owns and block actions (rules.blockBoundInputs) are not top-level. Role: style danger → danger; style primary → primary; a page target without form → destination; anything else (operation, native, a form) → command. Archetype: card when the view is not embedded; overview when it has a hero or stats block (top level or inside a section) and at least 4 destinations; task when the page shows an inline form, or has no rows, entries or timeline block and at most 3 top-level actions of which at least one is primary; records otherwise. Places — overview: the first 2 primaries then the first 2 commands → quick (a key row at the bottom of the overview card: phone equal widths 48 high, PC natural width ≥ component.actionMinWidth, 40 high); the remaining primaries and commands and every destination → list, in declared order (rows; only destinations end with chevron-right); danger → danger. task: the first primary → bar (phone: a bottom bar pinned over the safe area, full-width 48 key; PC: leads the action row after the body); the next primaries and commands, at most 2 → barSecondary (phone: quiet keys above the primary; PC: secondary keys after it); the rest and every destination → more; danger → danger. records: the first primary → header (PC secondary sm key, phone header text key); the other primaries and the commands → commands (a secondary key row after the body); destinations → more; danger → danger. card: primaries first, then the rest in declared order; the first 3 → footer (primary solid sm, others secondary sm), the rest → menu after view.menuActions. list, more and danger are kit list cards (SettingsList / SettingsRow, text color.text.primary whatever the role; an action icon draws in the leading slot, no icon leaves no gap). When any list item declares group the list is two titled cards, common then records (pluginView.groupCommon / pluginView.groupRecords; an item without group joins common); otherwise one untitled card. more has the title pluginView.moreActions. danger is one last card, a row per action, color.error, centred, no chevron, always through DangerConfirm. The inline text-key layout is not used on pages. A command or destination that declares group is always a list item (overview: the list card of its group; task and records: more), never quick, barSecondary or commands; primary and danger keep their places. Facts: actionRoles (expect.places lists ids in drawing order per place; a place it leaves out is empty; expect.roles and expect.chevron, when present, check those actions only).",
+    "statusValues": "R3 of docs/plugin-experience.md. The core marks what a plugin's value labels decided: a resolved field and a row cell carry tone when their label declares one ({label, tone} values, or an enum format), a status block, a badge, a timeline status and a result carry it always; any of them carries unmapped: true when the value falls outside the plugin's enumeration (for fields and columns a values map with at least one toned label, as a plain-words map may name only some values of free text; for status blocks, badges, timeline statuses and results any declared map), the text then being the raw value, for old kits. The kit draws: unmapped → the kit Tag with pluginView.unknownStatus and tone neutral, never the raw text, and a development build warns once per plugin id, page, path and raw value; a tone → the kit Tag (tones neutral, info, success, warning, danger; brand draws info; anything else neutral); no tone → the text as it is. In a records row the status Tag sits under the amount, in a card head right of the title. Facts: statusValues.",
+    "references": "R3 of docs/plugin-experience.md. Fields whose format is reference (fund orders, source orders, payment proofs, external ids) leave the main fields and go, in order, into one folded group titled pluginView.references after them, each row ending with a copy key (accessible name: copy plus the field label). No reference field: no group. Facts: references.",
+    "blockBoundInputs": "R6.1 of docs/plugin-experience.md. Bound inputs are the inputName of every protected-media and choices block (top level or in a section). A bound input is never drawn as a form field. An action whose form lists bound inputs only is a block action: the block runs it (an item tap, a choices submit), it is not a top-level action and it never makes the page form inline; an action with a mixed form collects the unbound inputs only. Facts: blockBoundInputs.",
+    "cardHeader": "R5 of docs/plugin-experience.md. Card head: icon 20, the title taking the remaining width on one line (ellipsis), then the view-details key (pluginViewDetail, fontSize.md, color.text.secondary, chevron-right 16, target ≥ 44, spacing.sm after the title) and the more key (IconButton sm, more, pluginView.more, spacing.xs after details). With footer actions the details key moves to the footer end. Facts: cardHeader.",
+    "refreshKey": "R1 of docs/plugin-experience.md. The header refresh key (and pull to refresh) shows only on a data page: a loaded, available view with a rows, entries, stats, hero, timeline or people block (top level or in a section), a status block, or at least one field — unless its archetype (rules.actionRoles) is task, it has a result block, or it has a presentation renderer other than account. Refreshing draws a 2-high color.primary bar under the header (static half bar under reduced motion) and keeps the body. Facts: refreshKey.",
+    "accountDerivation": "R12 of docs/plugin-experience.md. PluginPage appearance: document → document; account → account (as before: renderer account, or fields and a rows block); absent → account exactly when the view's presentation renderer is account, or it has no presentation and has a section holding a hero with amount and maskable true and no hero actions, and exactly one rows block with at least 2 columns; document otherwise. Hosts never choose it by plugin id. Facts: accountDerivation.",
+    "formPlacement": "R6 of docs/plugin-experience.md. An action form with at most 4 drawn fields (block-bound inputs excluded) and none of kind file, document, image or members opens as a sheet (phone BottomSheet, PC dialog of component.sheetDialogWidth); otherwise, or when it is the page's inline form, it is a page form (phone: bottom action bar; PC: a column of component.formColumnWidth at the start). A select with at most 4 choices draws segmented choice cards (48 high, selected border color.border.selected + check), more as Select; no choices → a disabled Select with pluginView.noOptions as placeholder, pluginView.noOptionsHelp under it (inputs carry no help text), and submit disabled. The counter shows only with maxLength ≤ 200 and a non-empty value. While an upload runs submit is disabled and reads pluginView.uploading under it. Facts: formPlacement, formCounter, selectOptions.",
+    "actionDedupe": "R9 of docs/plugin-experience.md. Of the actions visible at once with the same label only the first (top-level actions in drawing order) is drawn; a development build warns. Facts: actionDedupe.",
+    "result": "R7 of docs/plugin-experience.md. A result block {kind: result, state, title, tone, unmapped?, amount?, format?, description?} draws FlareResultView at the top of the page: icon by tone (success → success, info → clock, warning → warning, danger → error, neutral → info) in a component.resultIconSize circle of the tone at opacity.tintWeak; title (pluginView.unknownStatus when unmapped); amount through its format (R10) with component.amountHeroFontSize; description; the view's fields as the DescriptionList; the done key (pluginView.done) emits done; the view's actions follow as secondary keys. A page with a result block has no refresh key and no other archetype places. While state is pending the page emits refresh(timer) every 3000 ms for at most 60000 ms after the first pending view, and stops at any other state. The title and description are announced politely once per state. Facts: result.",
+    "pageStates": "R8 of docs/plugin-experience.md. First load: nothing for 300 ms, then the archetype skeleton (overview: one 160-high card and 3 list rows; records: 6 rows; task: 4 fields; unknown before a view: records); accessible name pluginView.loading. Load failure with no view: a full-page EmptyState, icon error, title pluginView.loadFailedTitle, the host's text, key pluginView.retry. An empty data block: a compact EmptyState (icon clock, title emptyText else pluginViewEmpty) with the page's create action (the first primary) under it. Offline with a view: a warning StatusBanner pluginView.offline under the header, every action disabled (not hidden) and pluginView.availableOnline under the primary. An action failure: a dismissible danger StatusBanner at the top with the host's text. Facts: pageStates.",
+    "statusCard": "6.1 of docs/plugin-experience.md. presentation.renderer status.card draws the status card (tone icon 48, the status field's text as title, the first text or note as the description, the steps block across, the first primary as its key); without the renderer, a view whose first block is a steps block and that has a field with a tone draws the same card (structure fallback). The banner and note the card replaces are not drawn again. Facts: statusCard.",
+    "actionDisabled": "R2.5 of docs/plugin-experience.md. The core resolves an action's disabledWhen against the data after its hiddenWhen: a hidden action is not in the view at all; while a disabledWhen condition holds the action is in the view with disabledReason (already translated); when none holds it carries no disabledReason and is enabled. A kit draws an action with disabledReason in the place and role it would have anyway (rules.actionRoles), disabled (not hidden; tapping it runs nothing, no confirm or form), with the reason under the key in textRole.caption. Facts: actionDisabled (declared and data are the plugin's action and the data the core resolved actions from; expect.drawn lists the drawn ids in order, expect.disabled the disabled ids, expect.captions the caption under each disabled id).",
+    "pageTabs": "4.7 of docs/plugin-experience.md. A page view's tabs (2..=4 {page, label, selected}, resolved from the page contribution's tabs, sibling pages of one plugin) draw as the kit SegmentedControl (role tablist, each segment a tab with its selected state; touch target layout.touchTarget) at the top of the page body, full content width, under the header and above banners, filters and blocks; the selected segment is the tab with selected true. Choosing an unselected tab emits tab(page); the host replaces the shown page on its stack with that page (same plugin, same arguments and conversation, no new back step) and reads it. Choosing the selected tab emits nothing. Until that page has a view (loading, or a failed first load) the kit keeps drawing the tabs it last drew, with that page selected and every segment still choosable. An unavailable view, or fewer than 2 tabs, draws no control. Facts: pageTabs.",
+    "rowsIcon": "4.7 and R2.3 of docs/plugin-experience.md. A page rows block with icon (a kit icon name) draws each row as a record, the 5.8 ledger line: the icon in the 36 circle a ledger line leads with (a name the kit does not know falls back to the ledger glyph by the value's sign), the second cell as the title (fontSize.xl 15, color.text.primary, one line) with the badge after it, under it the other cells but the first and the toned or unmapped ones, joined with \" · \" (time cells formatted as in time; fontSize.sm 12, color.text.tertiary; absent when empty), and at the end the first cell as the value (fontSize.2xl 16, semibold, tabular figures; a leading + reads color.successText, a leading hyphen is written U+2212) with the toned cells as Tags under it (R3). A cell with a person format reads as the person's name (the host's resolveUser, the fallback name until it answers), never the user id, in every page list. No rows: the compact EmptyState with the block's icon and its emptyText (pluginView.empty when none). Without icon a rows block draws as rules.pageRows says. Facts: rowsIcon.",
+    "rowTap": "R2.3 of docs/plugin-experience.md. A row of a page rows block (a record, rules.rowsIcon, or a list item, rules.pageRows) whose only row action targets a page and opens no form (style not danger) draws no key: the whole row is one control (a button for screen readers, its name the row's lines) that ends with chevron-right 16 (R2.1), and a tap runs that action with the row's key and input, as its key would. Busy works as on a key (rules.pageRows): while that action runs, the row that ran it shows the spinner in place of its chevron and every row control is disabled. A row with more than one action, or whose action is anything else (an operation, a native target, a form, danger), keeps its keys and is not a control; a row without actions is neither. Facts: rowTap (expect.rows in order: tap is the action a tap runs, or null; keys the row action keys drawn, in order; chevron whether the row ends with chevron-right)."
   },
   "users": {
     "u_alice01": {
@@ -3284,8 +3300,8 @@
         "single": false
       },
       "counters": {
-        "title": "0/10",
-        "body": "0/20"
+        "title": null,
+        "body": null
       }
     },
     "cases": [
@@ -4485,7 +4501,8 @@
                     "label": "查看",
                     "variant": "secondary"
                   }
-                ]
+                ],
+                "tap": "open"
               },
               {
                 "key": "l2",
@@ -4501,7 +4518,8 @@
                     "label": "查看",
                     "variant": "secondary"
                   }
-                ]
+                ],
+                "tap": "open"
               },
               {
                 "key": "l3",
@@ -4683,7 +4701,7 @@
             "kind": "rows",
             "layout": "list",
             "items": [],
-            "empty": "暂无数据"
+            "empty": "暂无记录"
           }
         ],
         "actions": [
@@ -4890,7 +4908,8 @@
                     "label": "查看",
                     "variant": "secondary"
                   }
-                ]
+                ],
+                "tap": "open"
               },
               {
                 "key": "l2",
@@ -4906,7 +4925,8 @@
                     "label": "查看",
                     "variant": "secondary"
                   }
-                ]
+                ],
+                "tap": "open"
               }
             ],
             "empty": null
@@ -5296,7 +5316,7 @@
         "filters": [],
         "loadMore": false,
         "refresh": false,
-        "empty": "暂无数据",
+        "empty": "暂无记录",
         "retry": false
       }
     }
@@ -6590,6 +6610,81 @@
       },
       {
         "format": {
+          "kind": "money",
+          "minor": "123456",
+          "scale": 2,
+          "currency": "CNY"
+        },
+        "text": "1234.56",
+        "zh": "¥1,234.56",
+        "en": "¥1,234.56"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "1234",
+          "scale": 0,
+          "currency": "LABPOINT"
+        },
+        "text": "1234",
+        "zh": "1,234 LABPOINT",
+        "en": "1,234 LABPOINT"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "-500",
+          "scale": 2,
+          "currency": "CNY"
+        },
+        "text": "-5.00",
+        "zh": "-¥5.00",
+        "en": "-¥5.00"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "+500",
+          "scale": 2,
+          "currency": "CNY"
+        },
+        "text": "+5.00",
+        "zh": "+¥5.00",
+        "en": "+¥5.00"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "+3",
+          "scale": 0,
+          "currency": "LABPOINT"
+        },
+        "text": "+3",
+        "zh": "+3 LABPOINT",
+        "en": "+3 LABPOINT"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "123456",
+          "scale": 2
+        },
+        "text": "1234.56",
+        "zh": "1234.56",
+        "en": "1234.56"
+      },
+      {
+        "format": {
+          "kind": "money",
+          "minor": "123456",
+          "currency": "CNY"
+        },
+        "text": "123456",
+        "zh": "123456",
+        "en": "123456"
+      },
+      {
+        "format": {
           "kind": "newer",
           "value": 1
         },
@@ -7248,5 +7343,4190 @@
       null,
       "Jan 2, 2025"
     ]
-  }
+  },
+  "actionRoles": [
+    {
+      "name": "wallet home: two primaries in the overview card, grouped destinations",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          },
+          {
+            "id": "withdraw",
+            "label": "withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.withdraw"
+            }
+          },
+          {
+            "id": "history",
+            "label": "history",
+            "target": {
+              "kind": "page",
+              "page": "p.history"
+            },
+            "group": "common",
+            "icon": "clock"
+          },
+          {
+            "id": "payout_profiles",
+            "label": "payout_profiles",
+            "target": {
+              "kind": "page",
+              "page": "p.payout_profiles"
+            },
+            "group": "common",
+            "icon": "card"
+          },
+          {
+            "id": "recharge_history",
+            "label": "recharge_history",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge_history"
+            },
+            "group": "records",
+            "icon": "add"
+          },
+          {
+            "id": "withdraw_history",
+            "label": "withdraw_history",
+            "target": {
+              "kind": "page",
+              "page": "p.withdraw_history"
+            },
+            "group": "records",
+            "icon": "download"
+          },
+          {
+            "id": "openings",
+            "label": "openings",
+            "target": {
+              "kind": "page",
+              "page": "p.openings"
+            },
+            "group": "records",
+            "icon": "clock"
+          },
+          {
+            "id": "security",
+            "label": "security",
+            "target": {
+              "kind": "page",
+              "page": "p.security"
+            },
+            "group": "records",
+            "icon": "lock"
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "overview",
+        "places": {
+          "quick": [
+            "recharge",
+            "withdraw"
+          ],
+          "list": [
+            {
+              "group": "common",
+              "ids": [
+                "history",
+                "payout_profiles"
+              ]
+            },
+            {
+              "group": "records",
+              "ids": [
+                "recharge_history",
+                "withdraw_history",
+                "openings",
+                "security"
+              ]
+            }
+          ],
+          "danger": []
+        },
+        "roles": {
+          "recharge": "primary",
+          "withdraw": "primary",
+          "history": "destination",
+          "security": "destination"
+        }
+      }
+    },
+    {
+      "name": "overview overflow: the third primary and third command join the list in declared order without chevron",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          },
+          {
+            "id": "withdraw",
+            "label": "withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.withdraw"
+            }
+          },
+          {
+            "id": "transfer",
+            "label": "transfer",
+            "target": {
+              "kind": "operation",
+              "operation": "transfer"
+            },
+            "form": [
+              "amount"
+            ]
+          },
+          {
+            "id": "bills",
+            "label": "bills",
+            "target": {
+              "kind": "page",
+              "page": "p.bills"
+            }
+          },
+          {
+            "id": "pay",
+            "label": "pay",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.pay"
+            }
+          },
+          {
+            "id": "collect",
+            "label": "collect",
+            "target": {
+              "kind": "operation",
+              "operation": "collect"
+            }
+          },
+          {
+            "id": "exchange",
+            "label": "exchange",
+            "target": {
+              "kind": "operation",
+              "operation": "exchange"
+            },
+            "form": [
+              "amount"
+            ]
+          },
+          {
+            "id": "limits",
+            "label": "limits",
+            "target": {
+              "kind": "page",
+              "page": "p.limits"
+            }
+          },
+          {
+            "id": "cards",
+            "label": "cards",
+            "target": {
+              "kind": "page",
+              "page": "p.cards"
+            }
+          },
+          {
+            "id": "lots",
+            "label": "lots",
+            "target": {
+              "kind": "page",
+              "page": "p.lots"
+            }
+          },
+          {
+            "id": "default",
+            "label": "default",
+            "target": {
+              "kind": "operation",
+              "operation": "default"
+            }
+          },
+          {
+            "id": "close",
+            "label": "close",
+            "style": "danger",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "overview",
+        "places": {
+          "quick": [
+            "recharge",
+            "withdraw",
+            "transfer",
+            "collect"
+          ],
+          "list": [
+            {
+              "group": null,
+              "ids": [
+                "bills",
+                "pay",
+                "exchange",
+                "limits",
+                "cards",
+                "lots",
+                "default"
+              ]
+            }
+          ],
+          "danger": [
+            "close"
+          ]
+        },
+        "chevron": [
+          "bills",
+          "limits",
+          "cards",
+          "lots"
+        ],
+        "roles": {
+          "pay": "primary",
+          "default": "command",
+          "close": "danger"
+        }
+      }
+    },
+    {
+      "name": "a grouped command is a list item, not a quick key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          },
+          {
+            "id": "withdraw",
+            "label": "withdraw",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.withdraw"
+            }
+          },
+          {
+            "id": "transfer",
+            "label": "transfer",
+            "target": {
+              "kind": "page",
+              "page": "p.transfer"
+            },
+            "group": "common",
+            "icon": "send"
+          },
+          {
+            "id": "collect",
+            "label": "collect",
+            "target": {
+              "kind": "page",
+              "page": "p.collect"
+            },
+            "group": "common",
+            "icon": "qr"
+          },
+          {
+            "id": "history",
+            "label": "history",
+            "target": {
+              "kind": "page",
+              "page": "p.history"
+            },
+            "group": "common",
+            "icon": "clock"
+          },
+          {
+            "id": "security",
+            "label": "security",
+            "target": {
+              "kind": "page",
+              "page": "p.security"
+            },
+            "group": "records",
+            "icon": "lock"
+          },
+          {
+            "id": "default",
+            "label": "default",
+            "target": {
+              "kind": "operation",
+              "operation": "default"
+            },
+            "group": "records"
+          },
+          {
+            "id": "close",
+            "label": "close",
+            "style": "danger",
+            "target": {
+              "kind": "operation",
+              "operation": "close"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "overview",
+        "places": {
+          "quick": [
+            "recharge",
+            "withdraw"
+          ],
+          "list": [
+            {
+              "group": "common",
+              "ids": [
+                "transfer",
+                "collect",
+                "history"
+              ]
+            },
+            {
+              "group": "records",
+              "ids": [
+                "security",
+                "default"
+              ]
+            }
+          ],
+          "danger": [
+            "close"
+          ]
+        },
+        "chevron": [
+          "transfer",
+          "collect",
+          "history",
+          "security"
+        ],
+        "roles": {
+          "default": "command"
+        }
+      }
+    },
+    {
+      "name": "fewer than 4 destinations is not an overview",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          },
+          {
+            "id": "a",
+            "label": "a",
+            "target": {
+              "kind": "page",
+              "page": "p.a"
+            }
+          },
+          {
+            "id": "b",
+            "label": "b",
+            "target": {
+              "kind": "page",
+              "page": "p.b"
+            }
+          },
+          {
+            "id": "c",
+            "label": "c",
+            "target": {
+              "kind": "page",
+              "page": "p.c"
+            }
+          },
+          {
+            "id": "d",
+            "label": "d",
+            "target": {
+              "kind": "operation",
+              "operation": "d"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "records",
+        "places": {
+          "header": [
+            "recharge"
+          ],
+          "commands": [
+            "d"
+          ],
+          "more": [
+            "a",
+            "b",
+            "c"
+          ],
+          "danger": []
+        }
+      }
+    },
+    {
+      "name": "confirm page: primary in the bar, cancel quiet, the destination under more",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [
+          {
+            "label": "扣款",
+            "value": "¥99.00"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "fields",
+            "fields": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "confirm",
+            "label": "confirm",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "confirm"
+            }
+          },
+          {
+            "id": "cancel",
+            "label": "cancel",
+            "target": {
+              "kind": "operation",
+              "operation": "cancel"
+            }
+          },
+          {
+            "id": "recovery",
+            "label": "recovery",
+            "target": {
+              "kind": "page",
+              "page": "p.recovery"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "task",
+        "places": {
+          "bar": [
+            "confirm"
+          ],
+          "barSecondary": [
+            "cancel"
+          ],
+          "more": [
+            "recovery"
+          ],
+          "danger": []
+        }
+      }
+    },
+    {
+      "name": "inline form page is a task whatever its action count",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "inlineFormActionId": "submit",
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "…"
+          }
+        ],
+        "actions": [
+          {
+            "id": "submit",
+            "label": "submit",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "submit"
+            },
+            "form": [
+              "name",
+              "idNumber"
+            ]
+          },
+          {
+            "id": "help",
+            "label": "help",
+            "target": {
+              "kind": "page",
+              "page": "p.help"
+            }
+          },
+          {
+            "id": "history",
+            "label": "history",
+            "target": {
+              "kind": "page",
+              "page": "p.history"
+            }
+          },
+          {
+            "id": "faq",
+            "label": "faq",
+            "target": {
+              "kind": "page",
+              "page": "p.faq"
+            }
+          },
+          {
+            "id": "draft",
+            "label": "draft",
+            "target": {
+              "kind": "operation",
+              "operation": "draft"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "task",
+        "places": {
+          "bar": [
+            "submit"
+          ],
+          "barSecondary": [
+            "draft"
+          ],
+          "more": [
+            "help",
+            "history",
+            "faq"
+          ],
+          "danger": []
+        }
+      }
+    },
+    {
+      "name": "records page: the primary goes to the header, a rows page is never a task",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "add",
+            "label": "add",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.add"
+            }
+          },
+          {
+            "id": "export",
+            "label": "export",
+            "target": {
+              "kind": "operation",
+              "operation": "export"
+            }
+          },
+          {
+            "id": "help",
+            "label": "help",
+            "target": {
+              "kind": "page",
+              "page": "p.help"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "records",
+        "places": {
+          "header": [
+            "add"
+          ],
+          "commands": [
+            "export"
+          ],
+          "more": [
+            "help"
+          ],
+          "danger": []
+        }
+      }
+    },
+    {
+      "name": "detail page without a primary: commands after the body, danger last",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": true,
+      "view": {
+        "fields": [
+          {
+            "label": "单号",
+            "value": "x"
+          }
+        ],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "copy",
+            "label": "copy",
+            "target": {
+              "kind": "operation",
+              "operation": "copy"
+            }
+          },
+          {
+            "id": "original",
+            "label": "original",
+            "target": {
+              "kind": "page",
+              "page": "p.original"
+            }
+          },
+          {
+            "id": "void",
+            "label": "void",
+            "style": "danger",
+            "target": {
+              "kind": "operation",
+              "operation": "void"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "records",
+        "places": {
+          "commands": [
+            "copy"
+          ],
+          "more": [
+            "original"
+          ],
+          "danger": [
+            "void"
+          ]
+        }
+      }
+    },
+    {
+      "name": "message card: primaries first, three keys, the rest after the menu actions",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "embedded": false,
+      "view": {
+        "fields": [],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "a",
+            "label": "a",
+            "target": {
+              "kind": "operation",
+              "operation": "a"
+            }
+          },
+          {
+            "id": "b",
+            "label": "b",
+            "target": {
+              "kind": "page",
+              "page": "p.b"
+            }
+          },
+          {
+            "id": "go",
+            "label": "go",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "go"
+            }
+          },
+          {
+            "id": "c",
+            "label": "c",
+            "target": {
+              "kind": "operation",
+              "operation": "c"
+            }
+          },
+          {
+            "id": "d",
+            "label": "d",
+            "target": {
+              "kind": "page",
+              "page": "p.d"
+            }
+          }
+        ],
+        "menuActions": [
+          {
+            "id": "report",
+            "label": "report",
+            "target": {
+              "kind": "operation",
+              "operation": "report"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "archetype": "card",
+        "places": {
+          "footer": [
+            "go",
+            "a",
+            "b"
+          ],
+          "menu": [
+            "report",
+            "c",
+            "d"
+          ]
+        }
+      }
+    }
+  ],
+  "statusValues": [
+    {
+      "name": "field with a toned label draws a Tag",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "field",
+      "item": {
+        "label": "状态",
+        "value": "已完成",
+        "tone": "success"
+      },
+      "expect": {
+        "draw": "tag",
+        "text": "已完成",
+        "tone": "success"
+      }
+    },
+    {
+      "name": "field with a string label stays text",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "field",
+      "item": {
+        "label": "类型",
+        "value": "充值"
+      },
+      "expect": {
+        "draw": "text",
+        "text": "充值"
+      }
+    },
+    {
+      "name": "field value outside its declared values reads unknown, never raw",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "field",
+      "item": {
+        "label": "状态",
+        "value": "prepared",
+        "tone": "neutral",
+        "unmapped": true
+      },
+      "expect": {
+        "draw": "tag",
+        "unknown": true,
+        "tone": "neutral",
+        "warn": true
+      }
+    },
+    {
+      "name": "free text without values stays text",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "field",
+      "item": {
+        "label": "备注",
+        "value": "午饭"
+      },
+      "expect": {
+        "draw": "text",
+        "text": "午饭"
+      }
+    },
+    {
+      "name": "row cell with a tone draws a Tag",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "cell",
+      "item": {
+        "text": "待审核",
+        "tone": "info"
+      },
+      "expect": {
+        "draw": "tag",
+        "text": "待审核",
+        "tone": "info"
+      }
+    },
+    {
+      "name": "row cell unmapped reads unknown",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "cell",
+      "item": {
+        "text": "weird",
+        "tone": "neutral",
+        "unmapped": true
+      },
+      "expect": {
+        "draw": "tag",
+        "unknown": true,
+        "tone": "neutral",
+        "warn": true
+      }
+    },
+    {
+      "name": "status block unmapped reads unknown",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "status",
+      "item": {
+        "kind": "status",
+        "label": "开户状态",
+        "text": "frozen_x",
+        "tone": "neutral",
+        "unmapped": true
+      },
+      "expect": {
+        "draw": "tag",
+        "unknown": true,
+        "tone": "neutral",
+        "warn": true
+      }
+    },
+    {
+      "name": "badge brand tone draws info",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "badge",
+      "item": {
+        "text": "入账",
+        "tone": "brand"
+      },
+      "expect": {
+        "draw": "tag",
+        "text": "入账",
+        "tone": "info"
+      }
+    },
+    {
+      "name": "badge with a tone from a newer protocol draws neutral",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "badge",
+      "item": {
+        "text": "新",
+        "tone": "sparkle"
+      },
+      "expect": {
+        "draw": "tag",
+        "text": "新",
+        "tone": "neutral"
+      }
+    },
+    {
+      "name": "timeline status unmapped reads unknown",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "where": "badge",
+      "item": {
+        "text": "x",
+        "tone": "neutral",
+        "unmapped": true
+      },
+      "expect": {
+        "draw": "tag",
+        "unknown": true,
+        "tone": "neutral",
+        "warn": true
+      }
+    }
+  ],
+  "references": [
+    {
+      "name": "reference fields fold under References after the others",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "fields": [
+        {
+          "label": "金额",
+          "value": "¥99.00",
+          "format": {
+            "kind": "money",
+            "minor": "9900",
+            "scale": 2
+          }
+        },
+        {
+          "label": "资金单",
+          "value": "fo_123",
+          "format": {
+            "kind": "reference",
+            "id": "fo_123",
+            "labelled": false
+          }
+        },
+        {
+          "label": "状态",
+          "value": "已完成",
+          "tone": "success"
+        },
+        {
+          "label": "付款凭证",
+          "value": "proof_9",
+          "format": {
+            "kind": "reference",
+            "id": "proof_9",
+            "labelled": false
+          }
+        }
+      ],
+      "expect": {
+        "main": [
+          "金额",
+          "状态"
+        ],
+        "references": [
+          "资金单",
+          "付款凭证"
+        ]
+      }
+    },
+    {
+      "name": "no reference field: no group",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "fields": [
+        {
+          "label": "金额",
+          "value": "¥1.00"
+        }
+      ],
+      "expect": {
+        "main": [
+          "金额"
+        ],
+        "references": []
+      }
+    }
+  ],
+  "blockBoundInputs": [
+    {
+      "name": "realname status: the material input is bound, view material is a block action",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "状态",
+            "value": "未实名认证",
+            "tone": "neutral"
+          }
+        ],
+        "inputs": [
+          {
+            "id": "materialId",
+            "kind": "text",
+            "label": "材料"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "protected-media",
+            "items": [],
+            "inputName": "materialId",
+            "urlPath": "/url"
+          }
+        ],
+        "actions": [
+          {
+            "id": "viewMaterial",
+            "label": "viewMaterial",
+            "target": {
+              "kind": "operation",
+              "operation": "viewMaterial"
+            },
+            "form": [
+              "materialId"
+            ]
+          },
+          {
+            "id": "apply",
+            "label": "apply",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.apply"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "formFields": [],
+        "topLevel": [
+          "apply"
+        ],
+        "blockActions": [
+          "viewMaterial"
+        ],
+        "inlineFormActionId": null
+      }
+    },
+    {
+      "name": "a mixed form keeps its unbound inputs only",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [],
+        "inputs": [
+          {
+            "id": "selection",
+            "kind": "options",
+            "label": "选项"
+          },
+          {
+            "id": "note",
+            "kind": "text",
+            "label": "备注"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "choices",
+                "options": [],
+                "multiple": false,
+                "voted": false,
+                "closed": false,
+                "showResults": false,
+                "inputName": "selection"
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "vote",
+            "label": "vote",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "vote"
+            },
+            "form": [
+              "selection",
+              "note"
+            ]
+          }
+        ]
+      },
+      "expect": {
+        "formFields": [
+          "note"
+        ],
+        "topLevel": [
+          "vote"
+        ],
+        "blockActions": [],
+        "inlineFormActionId": "vote"
+      }
+    }
+  ],
+  "cardHeader": [
+    {
+      "name": "details in the head",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "detail": true,
+      "footerActions": 0,
+      "menuActions": 1,
+      "expect": {
+        "order": [
+          "icon",
+          "title",
+          "detail",
+          "more"
+        ],
+        "titleFills": true
+      }
+    },
+    {
+      "name": "details move to the footer end with footer actions",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "detail": true,
+      "footerActions": 2,
+      "menuActions": 0,
+      "expect": {
+        "order": [
+          "icon",
+          "title"
+        ],
+        "titleFills": true,
+        "detailInFooter": true
+      }
+    },
+    {
+      "name": "no details, no menu",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "detail": false,
+      "footerActions": 1,
+      "menuActions": 0,
+      "expect": {
+        "order": [
+          "icon",
+          "title"
+        ],
+        "titleFills": true,
+        "detailInFooter": false
+      }
+    }
+  ],
+  "refreshKey": [
+    {
+      "name": "overview page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "records page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": []
+      },
+      "expect": true
+    },
+    {
+      "name": "detail page with fields only",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "金额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [],
+        "actions": []
+      },
+      "expect": true
+    },
+    {
+      "name": "confirm page (task)",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "扣款",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "confirm",
+            "label": "confirm",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "confirm"
+            }
+          },
+          {
+            "id": "cancel",
+            "label": "cancel",
+            "target": {
+              "kind": "operation",
+              "operation": "cancel"
+            }
+          }
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "form page (inline form)",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inlineFormActionId": "submit",
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "note",
+            "text": "…"
+          }
+        ],
+        "actions": [
+          {
+            "id": "submit",
+            "label": "submit",
+            "style": "primary",
+            "target": {
+              "kind": "operation",
+              "operation": "submit"
+            },
+            "form": [
+              "name"
+            ]
+          }
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "result page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "金额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "result",
+            "state": "completed",
+            "title": "转账成功",
+            "tone": "success"
+          }
+        ],
+        "actions": []
+      },
+      "expect": false
+    },
+    {
+      "name": "text-only page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "text",
+            "text": "说明"
+          }
+        ],
+        "actions": []
+      },
+      "expect": false
+    },
+    {
+      "name": "custom presentation",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "presentation": {
+          "renderer": "redPacket.review",
+          "props": {},
+          "actions": {}
+        },
+        "fields": [
+          {
+            "label": "金额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [],
+        "actions": []
+      },
+      "expect": false
+    }
+  ],
+  "accountDerivation": [
+    {
+      "name": "wallet structure derives account",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": "account"
+    },
+    {
+      "name": "explicit document turns it off",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": "document",
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": "document"
+    },
+    {
+      "name": "two rows blocks stay a document",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": "document"
+    },
+    {
+      "name": "a hero that cannot be hidden stays a document",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1.00",
+                "amount": true,
+                "tone": "neutral"
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": "document"
+    },
+    {
+      "name": "a hero with its own actions stays a document",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral",
+                "actions": [
+                  {
+                    "id": "x",
+                    "label": "x",
+                    "target": {
+                      "kind": "operation",
+                      "operation": "x"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": "document"
+    },
+    {
+      "name": "presentation account derives account",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "presentation": {
+          "renderer": "account",
+          "props": {},
+          "actions": {}
+        },
+        "fields": [
+          {
+            "label": "余额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": []
+      },
+      "expect": "account"
+    },
+    {
+      "name": "another presentation is not an account",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "appearance": null,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "section",
+            "label": "",
+            "blocks": [
+              {
+                "kind": "hero",
+                "value": "¥1,000.00",
+                "amount": true,
+                "maskable": true,
+                "tone": "neutral"
+              },
+              {
+                "kind": "stats",
+                "items": []
+              }
+            ]
+          },
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ],
+        "presentation": {
+          "renderer": "qr",
+          "props": {},
+          "actions": {}
+        }
+      },
+      "expect": "document"
+    }
+  ],
+  "formPlacement": [
+    {
+      "name": "three text fields: sheet",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "text",
+        "text",
+        "money"
+      ],
+      "inline": false,
+      "expect": "sheet"
+    },
+    {
+      "name": "four fields: sheet",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "text",
+        "select",
+        "number",
+        "textarea"
+      ],
+      "inline": false,
+      "expect": "sheet"
+    },
+    {
+      "name": "five fields: page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "text",
+        "text",
+        "text",
+        "text",
+        "text"
+      ],
+      "inline": false,
+      "expect": "page"
+    },
+    {
+      "name": "a file field: page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "text",
+        "file"
+      ],
+      "inline": false,
+      "expect": "page"
+    },
+    {
+      "name": "a document field: page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "document"
+      ],
+      "inline": false,
+      "expect": "page"
+    },
+    {
+      "name": "members: page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "members"
+      ],
+      "inline": false,
+      "expect": "page"
+    },
+    {
+      "name": "the page's inline form: page",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "inputs": [
+        "text"
+      ],
+      "inline": true,
+      "expect": "page"
+    }
+  ],
+  "formCounter": [
+    {
+      "name": "empty value: no counter",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "maxLength": 100,
+      "length": 0,
+      "expect": false
+    },
+    {
+      "name": "typed value: counter",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "maxLength": 100,
+      "length": 3,
+      "expect": true
+    },
+    {
+      "name": "long limit: no counter",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "maxLength": 500,
+      "length": 3,
+      "expect": false
+    },
+    {
+      "name": "no limit: no counter",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "maxLength": null,
+      "length": 3,
+      "expect": false
+    },
+    {
+      "name": "limit 200 counts",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "maxLength": 200,
+      "length": 1,
+      "expect": true
+    }
+  ],
+  "selectOptions": [
+    {
+      "name": "three choices: cards",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "choices": 3,
+      "help": null,
+      "expect": {
+        "control": "cards",
+        "disabled": false,
+        "submitDisabled": false
+      }
+    },
+    {
+      "name": "four choices: cards",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "choices": 4,
+      "help": null,
+      "expect": {
+        "control": "cards",
+        "disabled": false,
+        "submitDisabled": false
+      }
+    },
+    {
+      "name": "five choices: select",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "choices": 5,
+      "help": null,
+      "expect": {
+        "control": "select",
+        "disabled": false,
+        "submitDisabled": false
+      }
+    }
+  ],
+  "actionDedupe": [
+    {
+      "name": "same label drawn once",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "actions": [
+        {
+          "id": "a",
+          "label": "提交审核",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "a"
+          }
+        },
+        {
+          "id": "b",
+          "label": "提交审核",
+          "target": {
+            "kind": "operation",
+            "operation": "b"
+          }
+        },
+        {
+          "id": "c",
+          "label": "查看",
+          "target": {
+            "kind": "page",
+            "page": "p.c"
+          }
+        },
+        {
+          "id": "d",
+          "label": "提交审核",
+          "target": {
+            "kind": "operation",
+            "operation": "d"
+          }
+        }
+      ],
+      "expect": {
+        "drawn": [
+          "a",
+          "c"
+        ],
+        "warn": true
+      }
+    },
+    {
+      "name": "distinct labels all drawn",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "actions": [
+        {
+          "id": "a",
+          "label": "充值",
+          "target": {
+            "kind": "page",
+            "page": "p.a"
+          }
+        },
+        {
+          "id": "b",
+          "label": "提现",
+          "target": {
+            "kind": "page",
+            "page": "p.b"
+          }
+        }
+      ],
+      "expect": {
+        "drawn": [
+          "a",
+          "b"
+        ],
+        "warn": false
+      }
+    }
+  ],
+  "result": [
+    {
+      "name": "completed transfer",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "completed",
+        "title": "转账成功",
+        "tone": "success",
+        "amount": "¥99.00",
+        "format": {
+          "kind": "money",
+          "minor": "9900",
+          "scale": 2
+        },
+        "description": "已转入对方钱包"
+      },
+      "expect": {
+        "icon": "success",
+        "tone": "success",
+        "title": "转账成功",
+        "amount": "¥99.00",
+        "description": "已转入对方钱包",
+        "poll": false,
+        "announce": "转账成功 已转入对方钱包"
+      }
+    },
+    {
+      "name": "pending polls every 3 s",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "pending",
+        "title": "处理中",
+        "tone": "info"
+      },
+      "expect": {
+        "icon": "clock",
+        "tone": "info",
+        "title": "处理中",
+        "poll": true,
+        "pollMs": 3000,
+        "pollForMs": 60000,
+        "announce": "处理中"
+      }
+    },
+    {
+      "name": "awaiting confirmation is info without polling",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "prepared",
+        "title": "待确认",
+        "tone": "info"
+      },
+      "expect": {
+        "icon": "clock",
+        "tone": "info",
+        "title": "待确认",
+        "poll": false,
+        "announce": "待确认"
+      }
+    },
+    {
+      "name": "rejected",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "rejected",
+        "title": "未成功",
+        "tone": "danger",
+        "description": "余额不足"
+      },
+      "expect": {
+        "icon": "error",
+        "tone": "danger",
+        "title": "未成功",
+        "description": "余额不足",
+        "poll": false,
+        "announce": "未成功 余额不足"
+      }
+    },
+    {
+      "name": "unknown outcome",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "unknown",
+        "title": "结果待确认",
+        "tone": "warning"
+      },
+      "expect": {
+        "icon": "warning",
+        "tone": "warning",
+        "title": "结果待确认",
+        "poll": false,
+        "announce": "结果待确认"
+      }
+    },
+    {
+      "name": "an unmapped state reads unknown status, neutral",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "result",
+        "state": "weird",
+        "title": "weird",
+        "tone": "neutral",
+        "unmapped": true
+      },
+      "expect": {
+        "icon": "info",
+        "tone": "neutral",
+        "unknown": true,
+        "poll": false,
+        "warn": true
+      }
+    }
+  ],
+  "pageStates": [
+    {
+      "name": "first 300 ms draw nothing",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": true,
+      "elapsedMs": 200,
+      "view": null,
+      "expect": {
+        "state": "blank"
+      }
+    },
+    {
+      "name": "then the records skeleton before any view",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": true,
+      "elapsedMs": 400,
+      "view": null,
+      "expect": {
+        "state": "skeleton",
+        "skeleton": "records",
+        "rows": 6
+      }
+    },
+    {
+      "name": "load failure without a view",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": false,
+      "error": "网络错误",
+      "view": null,
+      "expect": {
+        "state": "error",
+        "icon": "error",
+        "title": "pluginView.loadFailedTitle",
+        "description": "网络错误",
+        "action": "pluginView.retry"
+      }
+    },
+    {
+      "name": "offline keeps the view and disables actions",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": false,
+      "offline": true,
+      "view": {
+        "fields": [
+          {
+            "label": "余额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "recharge",
+            "label": "recharge",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.recharge"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "state": "loaded",
+        "banner": {
+          "tone": "warning",
+          "text": "pluginView.offline"
+        },
+        "actionsDisabled": true,
+        "primaryCaption": "pluginView.availableOnline"
+      }
+    },
+    {
+      "name": "an empty rows block offers the create action",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": false,
+      "view": {
+        "fields": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "history",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              }
+            ],
+            "rows": [],
+            "actions": [],
+            "emptyText": "暂无收款方式"
+          }
+        ],
+        "actions": [
+          {
+            "id": "add",
+            "label": "add",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.add"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "state": "loaded",
+        "blockEmpty": {
+          "icon": "clock",
+          "title": "暂无收款方式",
+          "action": "add"
+        }
+      }
+    },
+    {
+      "name": "action failure banner",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "loading": false,
+      "actionError": "余额不足",
+      "view": {
+        "fields": [
+          {
+            "label": "余额",
+            "value": "¥1.00"
+          }
+        ],
+        "blocks": [],
+        "actions": []
+      },
+      "expect": {
+        "state": "loaded",
+        "banner": {
+          "tone": "danger",
+          "text": "余额不足",
+          "dismissible": true
+        }
+      }
+    }
+  ],
+  "statusCard": [
+    {
+      "name": "explicit status.card renderer",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "presentation": {
+          "renderer": "status.card",
+          "props": {},
+          "actions": {}
+        },
+        "fields": [
+          {
+            "label": "状态",
+            "value": "未实名认证",
+            "tone": "neutral"
+          }
+        ],
+        "blocks": [],
+        "actions": [
+          {
+            "id": "apply",
+            "label": "apply",
+            "style": "primary",
+            "target": {
+              "kind": "page",
+              "page": "p.apply"
+            }
+          }
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "steps first plus a toned field",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "状态",
+            "value": "审核中",
+            "tone": "info"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "steps",
+            "items": [
+              {
+                "label": "填写资料",
+                "state": "done"
+              }
+            ]
+          }
+        ],
+        "actions": []
+      },
+      "expect": true
+    },
+    {
+      "name": "steps without a toned field is not a card",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "view": {
+        "fields": [
+          {
+            "label": "姓名",
+            "value": "林*"
+          }
+        ],
+        "blocks": [
+          {
+            "kind": "steps",
+            "items": []
+          }
+        ],
+        "actions": []
+      },
+      "expect": false
+    }
+  ],
+  "actionDisabled": [
+    {
+      "name": "the condition holds: drawn disabled with its reason under it",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "declared": [
+        {
+          "id": "pay",
+          "label": "确认并支付",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "pay"
+          },
+          "hiddenWhen": [
+            {
+              "path": "/closed",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledWhen": [
+            {
+              "path": "/balanceLow",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledReason": "余额不足"
+        },
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          }
+        }
+      ],
+      "data": {
+        "closed": false,
+        "balanceLow": true
+      },
+      "actions": [
+        {
+          "id": "pay",
+          "label": "确认并支付",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "pay"
+          },
+          "input": {},
+          "disabledReason": "余额不足"
+        },
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          },
+          "input": {}
+        }
+      ],
+      "expect": {
+        "drawn": [
+          "pay",
+          "history"
+        ],
+        "disabled": [
+          "pay"
+        ],
+        "captions": {
+          "pay": "余额不足"
+        }
+      }
+    },
+    {
+      "name": "the condition does not hold: enabled, no caption",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "declared": [
+        {
+          "id": "pay",
+          "label": "确认并支付",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "pay"
+          },
+          "hiddenWhen": [
+            {
+              "path": "/closed",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledWhen": [
+            {
+              "path": "/balanceLow",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledReason": "余额不足"
+        },
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          }
+        }
+      ],
+      "data": {
+        "closed": false,
+        "balanceLow": false
+      },
+      "actions": [
+        {
+          "id": "pay",
+          "label": "确认并支付",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "pay"
+          },
+          "input": {}
+        },
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          },
+          "input": {}
+        }
+      ],
+      "expect": {
+        "drawn": [
+          "pay",
+          "history"
+        ],
+        "disabled": [],
+        "captions": {}
+      }
+    },
+    {
+      "name": "hidden goes first: a hidden action is not drawn, disabled or not",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "declared": [
+        {
+          "id": "pay",
+          "label": "确认并支付",
+          "style": "primary",
+          "target": {
+            "kind": "operation",
+            "operation": "pay"
+          },
+          "hiddenWhen": [
+            {
+              "path": "/closed",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledWhen": [
+            {
+              "path": "/balanceLow",
+              "anyOf": [
+                "true"
+              ]
+            }
+          ],
+          "disabledReason": "余额不足"
+        },
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          }
+        }
+      ],
+      "data": {
+        "closed": true,
+        "balanceLow": true
+      },
+      "actions": [
+        {
+          "id": "history",
+          "label": "交易记录",
+          "target": {
+            "kind": "page",
+            "page": "p.history"
+          },
+          "input": {}
+        }
+      ],
+      "expect": {
+        "drawn": [
+          "history"
+        ],
+        "disabled": [],
+        "captions": {}
+      }
+    }
+  ],
+  "pageTabs": [
+    {
+      "name": "sibling pages: a tablist at the top, the shown page selected",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.page.received"
+      },
+      "view": {
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.ui.received",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "发红包的人",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              },
+              {
+                "label": "状态",
+                "format": "text"
+              }
+            ],
+            "rows": [],
+            "actions": [],
+            "emptyText": "还没有红包记录",
+            "icon": "red-packet"
+          }
+        ],
+        "tabs": [
+          {
+            "page": "flare.redpacket.page.received",
+            "label": "收到的",
+            "selected": true
+          },
+          {
+            "page": "flare.redpacket.page.sent",
+            "label": "发出的",
+            "selected": false
+          }
+        ]
+      },
+      "choose": 1,
+      "expect": {
+        "tabs": [
+          "收到的",
+          "发出的"
+        ],
+        "selected": 0,
+        "emitted": "flare.redpacket.page.sent"
+      }
+    },
+    {
+      "name": "choosing the selected tab emits nothing",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.page.received"
+      },
+      "view": {
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.ui.received",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "发红包的人",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              },
+              {
+                "label": "状态",
+                "format": "text"
+              }
+            ],
+            "rows": [],
+            "actions": [],
+            "emptyText": "还没有红包记录",
+            "icon": "red-packet"
+          }
+        ],
+        "tabs": [
+          {
+            "page": "flare.redpacket.page.received",
+            "label": "收到的",
+            "selected": true
+          },
+          {
+            "page": "flare.redpacket.page.sent",
+            "label": "发出的",
+            "selected": false
+          }
+        ]
+      },
+      "choose": 0,
+      "expect": {
+        "tabs": [
+          "收到的",
+          "发出的"
+        ],
+        "selected": 0,
+        "emitted": null
+      }
+    },
+    {
+      "name": "while the chosen page loads the tabs stay, that page selected",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "previous": {
+        "fields": [],
+        "actions": [],
+        "blocks": [
+          {
+            "kind": "rows",
+            "source": "flare.redpacket.ui.received",
+            "columns": [
+              {
+                "label": "金额",
+                "format": "text"
+              },
+              {
+                "label": "发红包的人",
+                "format": "text"
+              },
+              {
+                "label": "时间",
+                "format": "time"
+              },
+              {
+                "label": "状态",
+                "format": "text"
+              }
+            ],
+            "rows": [],
+            "actions": [],
+            "emptyText": "还没有红包记录",
+            "icon": "red-packet"
+          }
+        ],
+        "tabs": [
+          {
+            "page": "flare.redpacket.page.received",
+            "label": "收到的",
+            "selected": true
+          },
+          {
+            "page": "flare.redpacket.page.sent",
+            "label": "发出的",
+            "selected": false
+          }
+        ]
+      },
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.page.sent"
+      },
+      "view": null,
+      "loading": true,
+      "expect": {
+        "tabs": [
+          "收到的",
+          "发出的"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "no tabs, one tab, or an unavailable view: no control",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "page": {
+        "pluginId": "flare.redpacket",
+        "page": "flare.redpacket.page.received"
+      },
+      "views": [
+        {
+          "fields": [],
+          "actions": [],
+          "blocks": [
+            {
+              "kind": "rows",
+              "source": "flare.redpacket.ui.received",
+              "columns": [
+                {
+                  "label": "金额",
+                  "format": "text"
+                },
+                {
+                  "label": "发红包的人",
+                  "format": "text"
+                },
+                {
+                  "label": "时间",
+                  "format": "time"
+                },
+                {
+                  "label": "状态",
+                  "format": "text"
+                }
+              ],
+              "rows": [],
+              "actions": [],
+              "emptyText": "还没有红包记录",
+              "icon": "red-packet"
+            }
+          ]
+        },
+        {
+          "fields": [],
+          "actions": [],
+          "blocks": [
+            {
+              "kind": "rows",
+              "source": "flare.redpacket.ui.received",
+              "columns": [
+                {
+                  "label": "金额",
+                  "format": "text"
+                },
+                {
+                  "label": "发红包的人",
+                  "format": "text"
+                },
+                {
+                  "label": "时间",
+                  "format": "time"
+                },
+                {
+                  "label": "状态",
+                  "format": "text"
+                }
+              ],
+              "rows": [],
+              "actions": [],
+              "emptyText": "还没有红包记录",
+              "icon": "red-packet"
+            }
+          ],
+          "tabs": [
+            {
+              "page": "flare.redpacket.page.received",
+              "label": "收到的",
+              "selected": true
+            }
+          ]
+        },
+        {
+          "available": false,
+          "title": "",
+          "fields": [],
+          "actions": [],
+          "tabs": [
+            {
+              "page": "flare.redpacket.page.received",
+              "label": "收到的",
+              "selected": true
+            },
+            {
+              "page": "flare.redpacket.page.sent",
+              "label": "发出的",
+              "selected": false
+            }
+          ]
+        }
+      ],
+      "expect": {
+        "tabs": null
+      }
+    }
+  ],
+  "rowsIcon": [
+    {
+      "name": "a received record: the sender's name titles it, the amount ends it with its status under",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.redpacket.ui.received",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "发红包的人",
+            "format": "text"
+          },
+          {
+            "label": "祝福语",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "p1",
+            "cells": [
+              {
+                "text": "2.96"
+              },
+              {
+                "text": "u_alice01",
+                "format": {
+                  "kind": "person",
+                  "userId": "u_alice01"
+                }
+              },
+              {
+                "text": "恭喜发财"
+              },
+              {
+                "text": "未领完",
+                "tone": "info"
+              }
+            ],
+            "actions": []
+          }
+        ],
+        "actions": [],
+        "emptyText": "还没有红包记录",
+        "icon": "red-packet"
+      },
+      "expect": {
+        "rows": [
+          {
+            "icon": "red-packet",
+            "title": "Alice",
+            "line": "恭喜发财",
+            "value": "2.96",
+            "tags": [
+              {
+                "text": "未领完",
+                "tone": "info"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a sent record: its kind titles it, no line when the rest is blank",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.redpacket.ui.received",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "发红包的人",
+            "format": "text"
+          },
+          {
+            "label": "祝福语",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "p2",
+            "cells": [
+              {
+                "text": "8.88"
+              },
+              {
+                "text": "拼手气红包"
+              },
+              {
+                "text": ""
+              },
+              {
+                "text": "已过期",
+                "tone": "warning"
+              }
+            ],
+            "actions": []
+          }
+        ],
+        "actions": [],
+        "emptyText": "还没有红包记录",
+        "icon": "red-packet"
+      },
+      "expect": {
+        "rows": [
+          {
+            "icon": "red-packet",
+            "title": "拼手气红包",
+            "line": null,
+            "value": "8.88",
+            "tags": [
+              {
+                "text": "已过期",
+                "tone": "warning"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a person cell reads as the fallback name until the host answers",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.redpacket.ui.received",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "发红包的人",
+            "format": "text"
+          },
+          {
+            "label": "祝福语",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "p3",
+            "cells": [
+              {
+                "text": "1.00"
+              },
+              {
+                "text": "u_dave9876",
+                "format": {
+                  "kind": "person",
+                  "userId": "u_dave9876"
+                }
+              },
+              {
+                "text": ""
+              },
+              {
+                "text": "已领完",
+                "tone": "neutral"
+              }
+            ],
+            "actions": []
+          }
+        ],
+        "actions": [],
+        "emptyText": "还没有红包记录",
+        "icon": "red-packet"
+      },
+      "expect": {
+        "rows": [
+          {
+            "icon": "red-packet",
+            "title": "9876",
+            "line": null,
+            "value": "1.00",
+            "tags": [
+              {
+                "text": "已领完",
+                "tone": "neutral"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "no rows: the block's icon and empty text",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.redpacket.ui.received",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "发红包的人",
+            "format": "text"
+          },
+          {
+            "label": "祝福语",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [],
+        "actions": [],
+        "emptyText": "还没有红包记录",
+        "icon": "red-packet"
+      },
+      "expect": {
+        "empty": {
+          "icon": "red-packet",
+          "title": "还没有红包记录"
+        }
+      }
+    },
+    {
+      "name": "without icon the rows are not records",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.redpacket.ui.received",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "发红包的人",
+            "format": "text"
+          },
+          {
+            "label": "祝福语",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "p4",
+            "cells": [
+              {
+                "text": "2.96"
+              },
+              {
+                "text": "Bob"
+              },
+              {
+                "text": ""
+              },
+              {
+                "text": "未领完",
+                "tone": "info"
+              }
+            ],
+            "actions": []
+          }
+        ],
+        "actions": [],
+        "emptyText": "还没有红包记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "icon": null
+          }
+        ]
+      }
+    }
+  ],
+  "rowTap": [
+    {
+      "name": "a ledger record whose only action opens a page is one control",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "说明",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "t1",
+            "cells": [
+              {
+                "text": "+5.00"
+              },
+              {
+                "text": "收款"
+              }
+            ],
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "entryId": "t1"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "detail",
+            "label": "交易详情",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.transaction"
+            }
+          }
+        ],
+        "emptyText": "暂无记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "t1",
+            "tap": "detail",
+            "keys": [],
+            "chevron": true
+          }
+        ],
+        "emit": {
+          "actionId": "detail",
+          "rowKey": "t1",
+          "input": {
+            "entryId": "t1"
+          }
+        }
+      }
+    },
+    {
+      "name": "a history list item (no icon, no sign) whose only action opens a page is one control",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "证件类型",
+            "format": "text"
+          },
+          {
+            "label": "状态",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "a1",
+            "cells": [
+              {
+                "text": "身份证"
+              },
+              {
+                "text": "审核中",
+                "tone": "info"
+              }
+            ],
+            "actions": [
+              {
+                "id": "open",
+                "input": {
+                  "applicationId": "a1"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "open",
+            "label": "申请详情",
+            "target": {
+              "kind": "page",
+              "page": "flare.realname.page.application"
+            }
+          }
+        ],
+        "emptyText": "暂无记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "a1",
+            "tap": "open",
+            "keys": [],
+            "chevron": true
+          }
+        ],
+        "emit": {
+          "actionId": "open",
+          "rowKey": "a1",
+          "input": {
+            "applicationId": "a1"
+          }
+        }
+      }
+    },
+    {
+      "name": "a red packet record with an icon is one control; a row without actions is not",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "红包",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "p1",
+            "cells": [
+              {
+                "text": "¥2.96"
+              },
+              {
+                "text": "拼手气红包"
+              }
+            ],
+            "actions": [
+              {
+                "id": "packet",
+                "input": {
+                  "packetId": "p1"
+                }
+              }
+            ]
+          },
+          {
+            "key": "p2",
+            "cells": [
+              {
+                "text": "¥1.00"
+              },
+              {
+                "text": "普通红包"
+              }
+            ],
+            "actions": []
+          }
+        ],
+        "actions": [
+          {
+            "id": "packet",
+            "label": "查看",
+            "target": {
+              "kind": "page",
+              "page": "flare.redpacket.page.packet"
+            }
+          }
+        ],
+        "emptyText": "暂无记录",
+        "icon": "red-packet"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "p1",
+            "tap": "packet",
+            "keys": [],
+            "chevron": true
+          },
+          {
+            "key": "p2",
+            "tap": null,
+            "keys": [],
+            "chevron": false
+          }
+        ],
+        "emit": {
+          "actionId": "packet",
+          "rowKey": "p1",
+          "input": {
+            "packetId": "p1"
+          }
+        }
+      }
+    },
+    {
+      "name": "two actions keep their keys",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "说明",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "t2",
+            "cells": [
+              {
+                "text": "-5.00"
+              },
+              {
+                "text": "付款"
+              }
+            ],
+            "actions": [
+              {
+                "id": "detail",
+                "input": {
+                  "entryId": "t2"
+                }
+              },
+              {
+                "id": "cancel",
+                "input": {
+                  "entryId": "t2"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "detail",
+            "label": "交易详情",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.transaction"
+            }
+          },
+          {
+            "id": "cancel",
+            "label": "撤销",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.cancel"
+            }
+          }
+        ],
+        "emptyText": "暂无记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "t2",
+            "tap": null,
+            "keys": [
+              "detail",
+              "cancel"
+            ],
+            "chevron": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "a single operation keeps its key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "说明",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "t3",
+            "cells": [
+              {
+                "text": "5.00"
+              },
+              {
+                "text": "待确认"
+              }
+            ],
+            "actions": [
+              {
+                "id": "accept",
+                "input": {
+                  "entryId": "t3"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "accept",
+            "label": "确认收款",
+            "target": {
+              "kind": "operation",
+              "operation": "flare.wallet.accept"
+            }
+          }
+        ],
+        "emptyText": "暂无记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "t3",
+            "tap": null,
+            "keys": [
+              "accept"
+            ],
+            "chevron": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "a page action that opens a form, or a danger one, keeps its key",
+      "platforms": [
+        "vue",
+        "flutter",
+        "ios",
+        "compose"
+      ],
+      "block": {
+        "kind": "rows",
+        "source": "flare.wallet.ui.history",
+        "columns": [
+          {
+            "label": "金额",
+            "format": "text"
+          },
+          {
+            "label": "说明",
+            "format": "text"
+          }
+        ],
+        "rows": [
+          {
+            "key": "t4",
+            "cells": [
+              {
+                "text": "5.00"
+              },
+              {
+                "text": "备注"
+              }
+            ],
+            "actions": [
+              {
+                "id": "note",
+                "input": {
+                  "entryId": "t4"
+                }
+              }
+            ]
+          },
+          {
+            "key": "t5",
+            "cells": [
+              {
+                "text": "5.00"
+              },
+              {
+                "text": "删除"
+              }
+            ],
+            "actions": [
+              {
+                "id": "remove",
+                "input": {
+                  "entryId": "t5"
+                }
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "id": "note",
+            "label": "写备注",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.note"
+            },
+            "form": [
+              "note"
+            ]
+          },
+          {
+            "id": "remove",
+            "label": "删除记录",
+            "style": "danger",
+            "target": {
+              "kind": "page",
+              "page": "flare.wallet.page.remove"
+            }
+          }
+        ],
+        "emptyText": "暂无记录"
+      },
+      "expect": {
+        "rows": [
+          {
+            "key": "t4",
+            "tap": null,
+            "keys": [
+              "note"
+            ],
+            "chevron": false
+          },
+          {
+            "key": "t5",
+            "tap": null,
+            "keys": [
+              "remove"
+            ],
+            "chevron": false
+          }
+        ]
+      }
+    }
+  ]
 }

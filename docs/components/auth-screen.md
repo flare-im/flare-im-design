@@ -18,6 +18,11 @@ precedes the single task heading. Short windows, large text, registration and
 software keyboards keep fields and the primary action reachable by scrolling.
 Both themes and both languages share the same semantic hierarchy.
 
+Vue `FlareInviteCodeField` accepts `notice` for unavailable pre-checks.
+It renders an advisory update while the host retains control of submission.
+For field wrappers, `FlareFormField` uses `hint-tone="warning"` to present
+the advisory and uses an error to set the control's invalid state.
+
 Focused Vue `AuthScreen.test.ts` checks the field, submission guards, loading,
 identity retention and unique accessible references. The browser login-surface
 suite covers narrow/short/desktop layouts, keyboard flow and both themes.

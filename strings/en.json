@@ -647,6 +647,15 @@
       "ios"
     ]
   },
+  "accountOtherWallets": {
+    "en": "Other wallets",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "其他钱包"
+  },
   "accountOtherEntries": {
     "en": "Other entries",
     "zh": "其他记录",
@@ -700,6 +709,43 @@
       "flutter",
       "ios"
     ]
+  },
+  "walletSetupTitle": {
+    "en": "Set up your wallet",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开通钱包"
+  },
+  "walletSetupBody": {
+    "en": "Top up, withdraw, pay and see your bills once it's set up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "开通后可充值、提现、收付款和查看账单"
+  },
+  "realnamePhotosNeeded": {
+    "en": "{count} more photos needed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "还差 {count} 张照片"
+  },
+  "realnamePhotosNeededOne": {
+    "en": "{count} more photo needed",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "pluralOf": "realnamePhotosNeeded",
+    "zh": "还差 {count} 张照片"
   },
   "actionAnnouncement": {
     "en": "Announcement",
@@ -824,6 +870,20 @@
     ],
     "zh": "投票"
   },
+  "activityListUnreadSuffix": {
+    "en": ", unread",
+    "kits": [
+      "ios"
+    ],
+    "zh": "，未读"
+  },
+  "activityUnreadSuffix": {
+    "en": ", unread",
+    "kits": [
+      "android"
+    ],
+    "zh": "，未读"
+  },
   "addImage": {
     "en": "Add photo",
     "kits": [
@@ -917,7 +977,16 @@
       "flutter",
       "ios"
     ],
-    "zh": "呼叫中…"
+    "zh": "正在呼叫…"
+  },
+  "callSwapVideo": {
+    "en": "Swap video",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "互换画面"
   },
   "callConnected": {
     "en": "Connected",
@@ -966,13 +1035,31 @@
     "zh": "通话中"
   },
   "callMinimize": {
-    "en": "Minimize call",
+    "en": "Minimize",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "收起通话"
+    "zh": "最小化"
+  },
+  "callExpand": {
+    "en": "Expand",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "展开"
+  },
+  "callCollapse": {
+    "en": "Collapse",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "收起"
   },
   "callPeerMuted": {
     "en": "Peer muted",
@@ -990,10 +1077,19 @@
       "flutter",
       "ios"
     ],
-    "zh": "正在恢复通话…"
+    "zh": "网络不稳定，正在重连…"
+  },
+  "callReconnectingShort": {
+    "en": "Reconnecting",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在重连"
   },
   "callReturn": {
-    "en": "Back to call",
+    "en": "Return to call",
     "kits": [
       "android",
       "flutter",
@@ -1008,7 +1104,7 @@
       "flutter",
       "ios"
     ],
-    "zh": "响铃中…"
+    "zh": "对方响铃中…"
   },
   "callSwitchToVideo": {
     "en": "Switch to video",
@@ -1020,13 +1116,94 @@
     "zh": "切换到视频"
   },
   "callWaitingAnswer": {
-    "en": "Waiting for an answer…",
+    "en": "Waiting for them to accept…",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "等待接听…"
+    "zh": "等待对方接受邀请…"
+  },
+  "callDockWaiting": {
+    "en": "Waiting",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "等待接听"
+  },
+  "callEnded": {
+    "en": "Call ended · {duration}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话已结束 · {duration}"
+  },
+  "callAnswerAudio": {
+    "en": "Answer with audio",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "语音接听"
+  },
+  "callDecline": {
+    "en": "Decline",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拒接"
+  },
+  "callEncrypted": {
+    "en": "End-to-end encrypted",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "端到端加密"
+  },
+  "callYou": {
+    "en": "You",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "我"
+  },
+  "callRedial": {
+    "en": "Call again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重拨"
+  },
+  "callMaxParticipants": {
+    "en": "Up to {count} people per call",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "最多 {count} 人同时通话"
+  },
+  "callInterrupted": {
+    "en": "Call dropped",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "通话中断"
   },
   "camera": {
     "en": "Camera",
@@ -1078,7 +1255,7 @@
       "flutter",
       "ios"
     ],
-    "zh": "更换封面"
+    "zh": "换封面"
   },
   "chatBackground": {
     "en": "Chat background",
@@ -1148,12 +1325,44 @@
     ],
     "zh": "评论"
   },
+  "composerAttachmentPreview": {
+    "en": "Send attachments",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发送附件"
+  },
+  "composerImageCaption": {
+    "en": "Add an image caption",
+    "kits": ["flutter"],
+    "zh": "添加图片说明"
+  },
+  "composerImagePreview": {
+    "en": "Send images",
+    "kits": ["flutter"],
+    "zh": "发送图片"
+  },
+  "composerVideoCaption": {
+    "en": "Add a video caption",
+    "kits": ["flutter"],
+    "zh": "添加视频说明"
+  },
   "composerBold": {
     "en": "Bold",
     "kits": [
       "flutter"
     ],
     "zh": "粗体"
+  },
+  "composerCancelEdit": {
+    "en": "Cancel edit",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "取消编辑"
   },
   "composerCode": {
     "en": "Code",
@@ -1169,6 +1378,22 @@
       "ios"
     ],
     "zh": "缩小输入框"
+  },
+  "composerEditingMessage": {
+    "en": "Editing message",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "编辑消息"
+  },
+  "composerEditingPlaceholder": {
+    "en": "Edit this message",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "编辑这条消息"
   },
   "composerEmoji": {
     "en": "Emoji",
@@ -1212,6 +1437,20 @@
     ],
     "zh": "代码"
   },
+  "composerFormatCodeBlock": {
+    "en": "Code block",
+    "kits": [
+      "android"
+    ],
+    "zh": "代码块"
+  },
+  "composerFormatDivider": {
+    "en": "Divider",
+    "kits": [
+      "android"
+    ],
+    "zh": "分割线"
+  },
   "composerFormatHeading": {
     "en": "Heading",
     "kits": [
@@ -1219,6 +1458,27 @@
       "ios"
     ],
     "zh": "标题"
+  },
+  "composerFormatHeadingNumbered": {
+    "en": "Heading {level}",
+    "kits": [
+      "android"
+    ],
+    "zh": "标题 {level}"
+  },
+  "composerFormatImage": {
+    "en": "Image",
+    "kits": [
+      "android"
+    ],
+    "zh": "图片"
+  },
+  "composerFormatInlineCode": {
+    "en": "Inline code",
+    "kits": [
+      "android"
+    ],
+    "zh": "行内代码"
   },
   "composerFormatItalic": {
     "en": "Italic",
@@ -1244,6 +1504,13 @@
     ],
     "zh": "有序列表"
   },
+  "composerFormatParagraph": {
+    "en": "Paragraph",
+    "kits": [
+      "android"
+    ],
+    "zh": "正文"
+  },
   "composerFormatQuote": {
     "en": "Quote",
     "kits": [
@@ -1259,6 +1526,27 @@
       "ios"
     ],
     "zh": "删除线"
+  },
+  "composerFormatTextStyle": {
+    "en": "Text style",
+    "kits": [
+      "android"
+    ],
+    "zh": "文本样式"
+  },
+  "composerFormatToolbar": {
+    "en": "Text formatting",
+    "kits": [
+      "android"
+    ],
+    "zh": "文本格式"
+  },
+  "composerFormatUnderline": {
+    "en": "Underline",
+    "kits": [
+      "android"
+    ],
+    "zh": "下划线"
   },
   "composerHeading": {
     "en": "Heading",
@@ -1360,6 +1648,63 @@
       "ios"
     ],
     "zh": "富文本"
+  },
+  "composerSampleBold": {
+    "en": "Bold",
+    "kits": [
+      "android"
+    ],
+    "zh": "粗体"
+  },
+  "composerSampleCode": {
+    "en": "code",
+    "kits": [
+      "android"
+    ],
+    "zh": "代码"
+  },
+  "composerSampleImage": {
+    "en": "Image description",
+    "kits": [
+      "android"
+    ],
+    "zh": "图片描述"
+  },
+  "composerSampleItalic": {
+    "en": "Italic",
+    "kits": [
+      "android"
+    ],
+    "zh": "斜体"
+  },
+  "composerSampleLink": {
+    "en": "Link",
+    "kits": [
+      "android"
+    ],
+    "zh": "链接"
+  },
+  "composerSampleStrike": {
+    "en": "Strikethrough",
+    "kits": [
+      "android"
+    ],
+    "zh": "删除线"
+  },
+  "composerSampleUnderline": {
+    "en": "Underline",
+    "kits": [
+      "android"
+    ],
+    "zh": "下划线"
+  },
+  "composerSaveEdit": {
+    "en": "Save edit",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "保存编辑"
   },
   "composerStrike": {
     "en": "Strikethrough",
@@ -1646,6 +1991,20 @@
     ],
     "zh": "语音通话"
   },
+  "contactIndex": {
+    "en": "Contact index",
+    "kits": [
+      "ios"
+    ],
+    "zh": "联系人索引"
+  },
+  "contactJumpTo": {
+    "en": "Jump to {letter}",
+    "kits": [
+      "ios"
+    ],
+    "zh": "跳到 {letter}"
+  },
   "contactMatchListAdd": {
     "en": "Add",
     "kits": [
@@ -1680,7 +2039,7 @@
       "flutter",
       "ios"
     ],
-    "zh": "清空本地记录"
+    "zh": "清空聊天记录"
   },
   "conversationActionSheetEmpty": {
     "en": "No actions available",
@@ -2171,6 +2530,20 @@
     ],
     "zh": "删除"
   },
+  "deviceSessionsEmpty": {
+    "en": "No other devices",
+    "kits": [
+      "android"
+    ],
+    "zh": "暂无其他设备"
+  },
+  "deviceSessionsHint": {
+    "en": "Manage signed-in devices. Sign out any device you do not recognize.",
+    "kits": [
+      "android"
+    ],
+    "zh": "管理已登录的设备。不认识的设备可以下线。"
+  },
   "download": {
     "en": "Download",
     "kits": [
@@ -2220,6 +2593,13 @@
       "flutter"
     ],
     "zh": "暂无表情"
+  },
+  "emojiStickerPickerAll": {
+    "en": "All emoji",
+    "kits": [
+      "android"
+    ],
+    "zh": "所有表情"
   },
   "emojiStickerPickerEmoji": {
     "en": "Emoji",
@@ -2826,6 +3206,13 @@
     ],
     "zh": "我的群昵称"
   },
+  "groupDetailMyRemarkName": {
+    "en": "Group remark",
+    "kits": [
+      "android"
+    ],
+    "zh": "群备注"
+  },
   "groupDetailName": {
     "en": "Group name",
     "kits": [
@@ -2910,6 +3297,13 @@
       "ios"
     ],
     "zh": "置顶该群"
+  },
+  "groupDetailRemarkPlaceholder": {
+    "en": "Only visible to you. Leave blank to clear.",
+    "kits": [
+      "android"
+    ],
+    "zh": "仅自己可见，留空清除"
   },
   "groupDetailRequestFriend": {
     "en": "Add friend",
@@ -3349,22 +3743,22 @@
     "zh": "上一张"
   },
   "incomingVideoCall": {
-    "en": "is video calling you",
+    "en": "Invites you to a video call",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "邀请你进行视频通话"
+    "zh": "邀请你视频通话"
   },
   "incomingVoiceCall": {
-    "en": "is calling you",
+    "en": "Invites you to a voice call",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "邀请你进行语音通话"
+    "zh": "邀请你语音通话"
   },
   "increase": {
     "en": "Increase",
@@ -3597,6 +3991,27 @@
       "ios"
     ],
     "zh": "赞"
+  },
+  "listRefreshPull": {
+    "en": "Pull to refresh",
+    "kits": [
+      "android"
+    ],
+    "zh": "下拉刷新"
+  },
+  "listRefreshRefreshing": {
+    "en": "Refreshing",
+    "kits": [
+      "android"
+    ],
+    "zh": "正在刷新"
+  },
+  "listRefreshRelease": {
+    "en": "Release to refresh",
+    "kits": [
+      "android"
+    ],
+    "zh": "松开刷新"
   },
   "loading": {
     "en": "Loading…",
@@ -4289,6 +4704,38 @@
       "ios"
     ],
     "zh": "所有人可见"
+  },
+  "momentCommentsTitle": {
+    "en": "Comments",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "评论"
+  },
+  "momentDetailTitle": {
+    "en": "Post details",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "动态详情"
+  },
+  "momentLocatedComment": {
+    "en": "Located comment",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "已定位评论"
+  },
+  "momentNoComments": {
+    "en": "No comments yet",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "还没有评论"
   },
   "momentReplyTo": {
     "en": "Reply",
@@ -5075,6 +5522,49 @@
     ],
     "zh": "自启动管理"
   },
+  "profileEditorUnsaved": {
+    "en": "Unsaved changes",
+    "kits": [
+      "android",
+      "ios"
+    ],
+    "zh": "未保存修改"
+  },
+  "profilePanelMenuIncomplete": {
+    "en": "Some entries could not be loaded. Try again.",
+    "kits": [
+      "android",
+      "flutter"
+    ],
+    "zh": "部分入口暂时未能加载，请重试。"
+  },
+  "recentSearchesClear": {
+    "en": "Clear",
+    "kits": [
+      "flutter",
+      "ios",
+      "android"
+    ],
+    "zh": "清除"
+  },
+  "recentSearchesClearLabel": {
+    "en": "Clear recent searches",
+    "kits": [
+      "flutter",
+      "ios",
+      "android"
+    ],
+    "zh": "清除最近搜索"
+  },
+  "recentSearchesTitle": {
+    "en": "Recent searches",
+    "kits": [
+      "flutter",
+      "ios",
+      "android"
+    ],
+    "zh": "最近搜索"
+  },
   "residentConnectionLabel": {
     "en": "Stay connected in the background",
     "kits": [
@@ -5201,6 +5691,55 @@
       "ios"
     ],
     "zh": "勿扰时段内新消息静默送达，不响铃也不振动；加急消息仍会提醒。"
+  },
+  "scanRescan": {
+    "en": "Scan again",
+    "zh": "重新扫描",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ]
+  },
+  "searchEmpty": {
+    "en": "No results found",
+    "kits": [
+      "ios",
+      "android"
+    ],
+    "zh": "没有找到相关结果"
+  },
+  "searchEmptyHint": {
+    "en": "Try a different keyword",
+    "kits": [
+      "ios",
+      "android"
+    ],
+    "zh": "换个关键词试试"
+  },
+  "searchPanelSearching": {
+    "en": "Searching…",
+    "kits": [
+      "flutter"
+    ],
+    "zh": "正在搜索…"
+  },
+  "searchSearching": {
+    "en": "Searching…",
+    "kits": [
+      "ios",
+      "android"
+    ],
+    "zh": "正在搜索…"
+  },
+  "searchViewMore": {
+    "en": "See more",
+    "kits": [
+      "ios",
+      "android",
+      "flutter"
+    ],
+    "zh": "查看更多"
   },
   "weekdayEveryDay": {
     "en": "Every day",
@@ -7253,7 +7792,7 @@
   },
   "packetOpenFailed": {
     "en": "Couldn't open it. Try again.",
-    "zh": "领取失败，请重试",
+    "zh": "没有领到，请重试",
     "kits": [
       "android",
       "flutter",
@@ -7268,6 +7807,78 @@
       "flutter",
       "ios"
     ]
+  },
+  "packetViewResult": {
+    "en": "View result",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "查看结果"
+  },
+  "packetRefundNotice": {
+    "en": "Unclaimed money returns after 24 hours",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未领取的红包将于 24 小时后退回"
+  },
+  "packetGroupMembers": {
+    "en": "{count} people in this group",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "本群共 {count} 人"
+  },
+  "packetCountLimit": {
+    "en": "Up to {n} packets can be sent",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "最多可发 {n} 个红包"
+  },
+  "packetClaimPendingReview": {
+    "en": "The packet is in your wallet; check the original operation below.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "红包已存入钱包；原操作仍待确认，可在下方查看。"
+  },
+  "packetCountUnit": {
+    "en": "",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "个"
+  },
+  "packetChooseRecipient": {
+    "en": "Choose who gets it",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "请选择发给谁"
+  },
+  "packetSend": {
+    "en": "Send",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "发红包"
   },
   "packetBestLuck": {
     "en": "Best luck",
@@ -7449,6 +8060,15 @@
     ],
     "zh": "拼手气"
   },
+  "packetBadgeLuckyShort": {
+    "en": "Lucky",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "拼"
+  },
   "packetBadgeExclusive": {
     "en": "Exclusive",
     "kits": [
@@ -7531,7 +8151,7 @@
     "zh": "已退回 {money} · {time}"
   },
   "packetRefundedNotice": {
-    "en": "This red packet has been refunded",
+    "en": "Returned to sender",
     "kits": [
       "android",
       "flutter",
@@ -7728,6 +8348,15 @@
     ],
     "zh": "提交"
   },
+  "pluginViewCopyReference": {
+    "en": "Copy {label}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "复制{label}"
+  },
   "pluginViewEnded": {
     "en": "Ended",
     "kits": [
@@ -7791,6 +8420,132 @@
       "ios"
     ],
     "zh": "更多操作"
+  },
+  "pluginViewUnknownStatus": {
+    "en": "Unknown status",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "未知状态"
+  },
+  "pluginViewOffline": {
+    "en": "You're offline. Showing what was loaded last.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "网络不可用，显示的是上次读取的内容"
+  },
+  "pluginViewAvailableOnline": {
+    "en": "Available when you're online",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "联网后可用"
+  },
+  "pluginViewLoadFailedTitle": {
+    "en": "Couldn't load this page",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有读到内容"
+  },
+  "pluginViewNoOptions": {
+    "en": "No options available",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂无可选项"
+  },
+  "pluginViewNoOptionsHelp": {
+    "en": "Nothing to choose right now. Try again later.",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "暂时无法选择，请稍后再试"
+  },
+  "pluginViewUploading": {
+    "en": "Uploading {done}/{total}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在上传 {done}/{total}"
+  },
+  "pluginViewGroupCommon": {
+    "en": "Common",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "常用"
+  },
+  "pluginViewGroupRecords": {
+    "en": "Records & settings",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "记录与设置"
+  },
+  "pluginViewDone": {
+    "en": "Done",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "完成"
+  },
+  "pluginViewEndOfList": {
+    "en": "That's everything",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "没有更多了"
+  },
+  "pluginViewReferences": {
+    "en": "References",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "单号与凭据"
+  },
+  "pluginViewFilterEmpty": {
+    "en": "Nothing matches this filter",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "这个筛选下没有记录"
+  },
+  "pluginViewClearFilter": {
+    "en": "Clear filter",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "清除筛选"
   },
   "pluginViewMe": {
     "en": "Me",
@@ -7883,13 +8638,49 @@
     "zh": "全部"
   },
   "pluginViewEmpty": {
-    "en": "No data yet",
+    "en": "No records yet",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "暂无数据"
+    "zh": "暂无记录"
+  },
+  "pluginViewLoading": {
+    "en": "Loading",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在加载"
+  },
+  "pluginViewLoadMore": {
+    "en": "Load more",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "加载更多"
+  },
+  "pluginFormMoneyRange": {
+    "en": "Amount range: {min}–{max} {currency}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "金额范围：{min}–{max} {currency}"
+  },
+  "pluginViewStepPosition": {
+    "en": "Step {index} of {count}",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "第 {index} 步，共 {count} 步"
   },
   "pluginViewUnavailableUpgradeRequired": {
     "en": "Update the app to view this",
@@ -8225,31 +9016,31 @@
     "zh": "设备上的一项能力"
   },
   "documentCaptureHintFront": {
-    "en": "Fit the front of the document inside the frame, sharp and without glare",
+    "en": "Fit the photo side of your ID in the frame",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "将证件正面放入框内，保持清晰、避免反光"
+    "zh": "将证件人像面放入框内"
   },
   "documentCaptureHintBack": {
-    "en": "Fit the back of the document inside the frame, sharp and without glare",
+    "en": "Fit the back of your ID in the frame",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "将证件反面放入框内，保持清晰、避免反光"
+    "zh": "将证件国徽面放入框内"
   },
   "documentCaptureHintHolding": {
-    "en": "Hold the document in front of you so that your face and the document are both clear",
+    "en": "Hold your ID next to your face, both in focus",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "手持证件放在胸前，脸和证件都要清晰"
+    "zh": "手持证件，人脸与证件都要清晰"
   },
   "documentCaptureShoot": {
     "en": "Take photo",
@@ -8278,50 +9069,113 @@
     ],
     "zh": "使用照片"
   },
-  "documentCaptureFromAlbum": {
-    "en": "Choose from photos",
+  "documentCaptureHintGlare": {
+    "en": "Avoid glare and cover nothing",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "从相册选择"
+    "zh": "避免反光和遮挡"
+  },
+  "documentSlotTapToCapture": {
+    "en": "Tap to take a photo",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "点击拍摄"
+  },
+  "documentSlotUploadFailed": {
+    "en": "Upload failed. Tap to try again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "上传失败，点按重试"
+  },
+  "documentSlotUploading": {
+    "en": "Uploading {percent}%",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "正在上传 {percent}%"
+  },
+  "documentSlotCaptured": {
+    "en": "Captured",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已拍摄"
+  },
+  "documentSlotCapturedRetake": {
+    "en": "Captured, tap to retake",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "已拍摄，点按重拍"
+  },
+  "documentCaptureFromAlbum": {
+    "en": "Album",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "相册"
   },
   "documentCaptureProcessing": {
-    "en": "Processing the photo",
+    "en": "Processing",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "正在处理照片"
+    "zh": "正在处理"
   },
   "documentCaptureCameraUnavailable": {
-    "en": "The camera is not available. Choose a photo instead",
+    "en": "Camera unavailable — choose from album",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "相机不可用，可从相册选择"
+    "zh": "无法使用相机，可从相册选择"
   },
   "documentCaptureTooLarge": {
-    "en": "The photo is too large. Retake it",
+    "en": "Photo is over 5 MB",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "照片太大，请重拍"
+    "zh": "照片超过 5 MB，请换一张"
   },
   "documentCaptureFailed": {
-    "en": "The photo could not be processed. Retake it",
+    "en": "Couldn't process it. Retake it",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "照片无法处理，请重拍"
+    "zh": "没有处理成功，请重拍"
+  },
+  "documentCaptureFormat": {
+    "en": "Only JPG and PNG",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "只支持 JPG 和 PNG"
   },
   "documentCaptureNotAccepted": {
     "en": "Photos are not accepted here. Contact the provider",
@@ -8378,22 +9232,22 @@
     "zh": "由「{plugin}」发起"
   },
   "paymentConfirmationExpiresIn": {
-    "en": "Expires in {time}",
+    "en": "Valid for {time}",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "{time} 后失效"
+    "zh": "{time} 内有效"
   },
   "paymentConfirmationExpired": {
-    "en": "This order has expired. Start again",
+    "en": "Payment expired",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "订单已失效，请重新发起"
+    "zh": "付款已过期"
   },
   "paymentConfirmationInvalid": {
     "en": "The order amount cannot be read, so it cannot be paid",
@@ -8414,13 +9268,49 @@
     "zh": "确认付款"
   },
   "paymentConfirmationVerifying": {
-    "en": "Verifying",
+    "en": "Verifying…",
     "kits": [
       "android",
       "flutter",
       "ios"
     ],
-    "zh": "正在验证身份"
+    "zh": "正在验证身份…"
+  },
+  "paymentConfirmationInsufficient": {
+    "en": "Not enough balance — {amount} short",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "余额不足，还差 {amount}"
+  },
+  "paymentConfirmationTopUp": {
+    "en": "Top up",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "去充值"
+  },
+  "paymentConfirmationStartAgain": {
+    "en": "Start again",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "重新发起"
+  },
+  "pinInputProgress": {
+    "en": "{label}, {count} of 6 digits entered",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{label}，已输入 {count} 位"
   },
   "pluginProtectedMediaReason": {
     "en": "Reason for viewing",
@@ -8457,6 +9347,15 @@
       "ios"
     ],
     "zh": "查看"
+  },
+  "pluginProtectedMediaTapToView": {
+    "en": "{label}, tap to view",
+    "kits": [
+      "android",
+      "flutter",
+      "ios"
+    ],
+    "zh": "{label}，点按查看"
   },
   "pluginProtectedMediaHide": {
     "en": "Hide",

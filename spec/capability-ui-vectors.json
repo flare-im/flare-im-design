@@ -95,7 +95,7 @@
     ]
   },
   "paymentAmount": {
-    "$comment": "The order's amount as the confirmation draws it: the currency's symbol (or the code after the number), the integer part grouped by three with commas, the fraction exactly as the order wrote it. Never parsed as a float. An amount that is not a plain non-negative decimal (at most 18 fraction digits) draws nothing and cannot be confirmed (null).",
+    "$comment": "The order's amount as the confirmation draws it, and every red packet amount (R10, red-packet-vectors amount.money): the currency's symbol (or, for a code with no symbol, the number, a space and the code: \"3 LABPOINT\"), the integer part grouped by three with commas, the fraction exactly as the order wrote it. Never parsed as a float. An amount that is not a plain non-negative decimal (at most 18 fraction digits) draws nothing and cannot be confirmed (null).",
     "cases": [
       {
         "amount": "5.00",
@@ -146,6 +146,16 @@
         "amount": "8",
         "currency": "XYZ",
         "text": "8 XYZ"
+      },
+      {
+        "amount": "3",
+        "currency": "LABPOINT",
+        "text": "3 LABPOINT"
+      },
+      {
+        "amount": "12500.5",
+        "currency": "LABPOINT",
+        "text": "12,500.5 LABPOINT"
       },
       {
         "amount": "1e5",
@@ -210,15 +220,15 @@
     ]
   },
   "documentFrame": {
-    "$comment": "The viewfinder frame's width over height per side: an ID-1 card (85.6 × 54 mm) for front and back, a 3:4 portrait for holding the document beside the face.",
+    "$comment": "The viewfinder frame's width over height per side: an ID-1 card (85.60 × 53.98 mm, tokens component.documentFrameRatio) for front and back, a 3:4 portrait for holding the document beside the face.",
     "cases": [
       {
         "side": "front",
-        "aspect": 1.585
+        "aspect": 1.586
       },
       {
         "side": "back",
-        "aspect": 1.585
+        "aspect": 1.586
       },
       {
         "side": "holding",

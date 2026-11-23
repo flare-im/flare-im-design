@@ -7,6 +7,9 @@ const spec = JSON.parse(readFileSync(specPath, "utf8"));
 
 const generalComposite = new Set([
   "CapabilityBoundary",
+  "FileUpload",
+  "ImageUploadSlot",
+  "MediaUpload",
   "ConfigProvider",
   "DangerConfirm",
   "DatePicker",
@@ -18,6 +21,7 @@ const generalComposite = new Set([
 ]);
 const generalCategories = new Set([
   "General",
+  "DataDisplay",
   "Layout",
   "Navigation",
   "Form",

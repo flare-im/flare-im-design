@@ -205,7 +205,7 @@ title: Data Types
 
 > One row in a settings section.
 
-**Used by: **[SettingsRow](/en/components/settings-row)
+**Used by: **[ProfilePanel](/en/components/profile-panel) · [SettingsRow](/en/components/settings-row)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -215,9 +215,12 @@ title: Data Types
 | `kind` | [`FlareSettingKind`](/en/reference/data-types#setting-kind) |  | Row kind: navigation opens a page or picker (chevron), toggle is a switch, action runs in place (no chevron), value is read-only information and not a control. |
 | `value` | `boolean` |  | Toggle state (for `kind: "toggle"`). |
 | `detail` | `string` |  | Trailing detail text: the current value of a navigation row, or the information of a value row. Long text stacks under the label. |
-| `badge` | `boolean \| number` |  | `true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; the native kits take a boolean. A toggle row draws neither. |
+| `badge` | `boolean \| number` |  | `true` draws a red dot before the chevron, read out with the row: something here is new (an update waiting in About). Vue also takes a number, the existing red count badge; Flutter writes the count as `badgeCount` and `badgeMore`; iOS and Compose take a boolean. A toggle row draws neither. |
 | `description` | `string` |  | Compose only: a line under the label that says what the row does (a switch's consequence), in the secondary text colour on up to three lines; read with the row. |
 | `tag` | `string` |  | A short warning tag before the chevron ("Update needed" on a plugin entry this build cannot open yet). It is words, read with the row; a toggle row draws none. |
+| `badgeCount` | `number` |  | The red count badge, drawn in the dot's place by the shared count-badge rule (spec/count-badge-vectors.json). |
+| `badgeMore` | `boolean` |  | There are more than `badgeCount`: the badge reads 99+. |
+| `current` | `boolean` |  | The row is the one shown in the neighbouring pane: selected background, read as selected. |
 
 ### SettingsSection {#settings-section}
 
@@ -225,7 +228,7 @@ title: Data Types
 
 > A titled group of settings rows.
 
-**Used by: **[SettingsList](/en/components/settings-list)
+**Used by: **[ProfilePanel](/en/components/profile-panel) · [SettingsList](/en/components/settings-list)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -246,6 +249,7 @@ title: Data Types
 | `id` | `string` | ✓ | Conversation id. |
 | `displayName` | `string` |  | Conversation title. |
 | `avatarUrl` | `string` |  | Conversation avatar URL. |
+| `kind` | `'single' \| 'group' \| 'channel' \| 'ai' \| 'system'` |  | What the conversation is; 'group' puts the group mark on the row's avatar. |
 | `updatedAt` | `number \| string` |  | Last-activity timestamp for ordering/time display. |
 | `unreadCount` | `number` |  | Unread badge count. |
 | `lastMessagePreview` | `string` |  | Rendered last-message preview text. |
@@ -738,7 +742,7 @@ title: Data Types
 
 > One problem with a submitted value (UiFormError).
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
+**Used by: **[RedPacketPage](/en/components/red-packet-page) · [PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -762,7 +766,7 @@ title: Data Types
 
 > A candidate for a members input.
 
-**Used by: **[PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
+**Used by: **[RedPacketPage](/en/components/red-packet-page) · [PluginView](/en/components/plugin-view) · [PluginForm](/en/components/plugin-form) · [PluginDetailSheet](/en/components/plugin-detail-sheet) · [PluginPage](/en/components/plugin-page) · [AccountView](/en/components/account-view)
 
 | Name | Type | Req. | Description |
 |---|---|:---:|---|
@@ -1152,6 +1156,41 @@ title: Data Types
 | `label` | `string` | ✓ | Already masked display label. |
 | `detail` | `string` |  | Optional display hint. |
 
+### ActivityItem {#activity-item}
+
+`FlareActivityItem`
+
+> One row of an ActivityList: a notification about the viewer, all host-owned.
+
+**Used by: **[ActivityList](/en/components/activity-list)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Stable row id, handed back on select; also seeds the avatar colour. |
+| `title` | `string` | ✓ | What happened, already worded ("林夏赞了你的动态"); its initials stand in for a missing avatar. |
+| `description` | `string` |  | A second line: the comment, the moment's text. |
+| `time` | `string` |  | The time, formatted by the host. |
+| `avatarUrl` | `string` |  | The actor's avatar. |
+| `unread` | `boolean` |  | Draws the unread dot and a semibold title. |
+
+### MediaUploadItem {#media-upload-item}
+
+`FlareMediaUploadItem`
+
+> Host-owned upload item with stable identity for recovery.
+
+**Used by: **[MediaUpload](/en/components/media-upload)
+
+| Name | Type | Req. | Description |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | Stable item identity, never the array index. |
+| `name` | `string` | ✓ | File name or accessible display name. |
+| `state` | `FlareUploadState` | ✓ | Host-provided upload state. |
+| `statusText` | `string` | ✓ | Item status or recoverable error. |
+| `previewUrl` | `string` |  | Image URL whose lifetime the host owns. |
+| `progress` | `number` |  | Progress from 0–100; omitted for indeterminate progress. |
+| `disabled` | `boolean` |  | Locks only this item while other selections and recovery remain available. |
+
 ## Enums / unions
 
 ### MessageGroupPosition {#message-group-position}
@@ -1329,6 +1368,8 @@ title: Data Types
 `FlarePluginTone`
 
 > Semantic colour of a status, note or people group; drawn with the *Text tokens.
+
+**Used by: **[ResultView](/en/components/result-view)
 
 `neutral` · `info` · `success` · `warning` · `danger`
 

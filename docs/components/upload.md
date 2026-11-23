@@ -109,3 +109,36 @@ grants, access checks, expiry and retries remain with the SDK/host.
 - SwiftUI: `FlareImageUploadState`, `ImageUploadSlotView(title:state:statusText:actionText:retryText:preview:onChoose:onRetry:)`
 
 Only static syntax checks were performed for these new native slots in this change. Product screenshots, UI builds, light/dark, keyboard and assistive-technology behavior require the next native acceptance run.
+
+## Batch upload grid (SwiftUI)
+
+`MediaUploadView` is the SwiftUI counterpart of Vue `FlareMediaUpload`: several
+picked pictures or files with their upload state, for a nine-picture moment or the
+pictures and file confirmed before a chat send. It is presentation only. The host
+picks, keeps the bytes, uploads, orders `items` (`FlareMediaUploadItem`: id, name,
+`FlareMediaUploadState` `selected | uploading | uploaded | failed`, optional 0–1
+progress, optional host status text, optional local `thumbnail` `Image`, per-item
+`disabled`) and handles the intents it reports by item id.
+
+- `.images`: a three-column grid of square tiles, at most
+  `componentMediaImageMaxWidth` wide. Uploading
+  tiles show the percentage (or the status) and a bar; a failed tile has a red
+  border and retry (a warning glyph without `onRetry`).
+- `.files`: one row per file with its name, status, progress, retry and remove.
+- The optional `title` heads the items with the count `n / maxCount` at its end; the
+  optional `hint` sits under it.
+- Each action is offered only when the host handles it: remove (`onRemove`) on any
+  item that is not uploading, retry (`onRetry`) on a failed item, preview
+  (`onPreview`) on a tile with a thumbnail. `disabled` (the host is busy) locks every
+  action; an item's `disabled` locks only that item. There is no cancel.
+- The add tile (`onAdd`) is hidden while an item uploads and at `maxCount`; without
+  `onAdd` the grid is a review.
+- Default status words are the plugin file strings (`pluginFileSelected`,
+  `pluginFileUploading`, `pluginFileUploaded`, `pluginFileFailed`); actions read
+  `pluginFileRemove`, `retry` and `pluginFilePreview` with the item name.
+
+`MomentComposerView(imageUpload:)` places such a grid where the composer's own
+image grid would be. The preview is the host's: compose the shared
+`ImagePreviewView` over its local pictures.
+
+- SwiftUI: `MediaUploadView(title:hint:items:layout:maxCount:disabled:onAdd:onRemove:onRetry:onPreview:)`

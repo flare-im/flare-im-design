@@ -51,8 +51,9 @@ const platformStatusLabel = (support) => ({
   partial: t("部分支持", "Partial"),
   "not-applicable": "N/A",
 }[support] ?? "N/A");
+const uploadFamily = new Set(["FileUpload", "ImageUploadSlot", "MediaUpload", "TransferProgress", "TransferQueue"]);
 const related = computed(() => spec.components
-  .filter((component) => component.category === entry.value?.category && component.name !== props.name)
+  .filter((component) => (uploadFamily.has(props.name) ? uploadFamily.has(component.name) : component.category === entry.value?.category) && component.name !== props.name)
   .slice(0, 6));
 const navigationComponents = computed(() => catalog.components.filter((component) => component.status !== "internal"));
 const navigationIndex = computed(() => navigationComponents.value.findIndex((component) => component.name === props.name));
@@ -71,7 +72,7 @@ const responsive = computed(() => {
 });
 const tokenNames = computed(() => {
   const names = ["--flare-color-bg-primary", "--flare-color-text-primary", "--flare-color-border-primary", "--flare-color-focus-ring", "--flare-size-layout-touch-target"];
-  if (entry.value?.category === "Message") names.push("--flare-color-message-incoming-background", "--flare-color-message-outgoing-background", "--flare-color-message-status-read");
+  if (["Message", "MessageContent"].includes(entry.value?.category)) names.push("--flare-color-message-incoming-background", "--flare-color-message-outgoing-background", "--flare-color-message-status-read");
   if (["Layout", "Patterns", "Workspaces", "AppKit"].includes(entry.value?.category)) names.push("--flare-size-layout-primary-pane-default-width", "--flare-size-layout-detail-pane-default-width");
   return names;
 });
@@ -129,6 +130,11 @@ async function copyCode() {
 <template>
   <article v-if="entry" class="reference">
     <p class="reference__lead">{{ summary }}</p>
+    <p v-if="entry.category === 'RedPacket'" class="reference__family">
+      <a :href="(en ? '/en' : '') + '/red-packet/'">{{ t('红包组件使用指南', 'Red packet guide') }}</a>
+      <span>{{ t('发送 → 消息卡片 → 领取 → 详情', 'Compose → Message card → Open → Details') }}</span>
+    </p>
+    <p v-if="uploadFamily.has(name)" class="reference__family"><a :href="(en ? '/en' : '') + '/uploads/'">{{ t('上传与传输指南', 'Upload and transfer guide') }}</a><span>{{ t('单文件 · 图片 · 拖拽 · 文件队列 · 图片组', 'File · Image · Drop zone · Queue · Image group') }}</span></p>
     <dl class="reference__meta" aria-label="Component metadata">
       <div><dt>{{ t("状态", "Status") }}</dt><dd :data-status="status">{{ status }}</dd></div>
       <div><dt>{{ t("包", "Package") }}</dt><dd><code>{{ packageNames.join(" · ") }}</code></dd></div>
@@ -268,6 +274,7 @@ async function copyCode() {
 </template>
 
 <style scoped>
+.reference__family { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--vp-c-text-2); }
 .reference { margin-top: 10px; }
 .reference section { margin-top: 34px; }
 .reference__lead { margin-top: 14px; color: var(--vp-c-text-1); font-size: 17px; line-height: 1.65; }

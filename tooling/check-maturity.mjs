@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { duplicatePlatformProps } from "../spec/platform-contracts.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), "utf8"));
@@ -54,7 +55,7 @@ const booleanFamilies = [
 ];
 for (const component of spec.components) {
   const props = new Set((component.props ?? []).map((prop) => prop.name));
-  if (props.size !== (component.props ?? []).length) errors.push(`${component.name}: duplicate prop`);
+  for (const key of duplicatePlatformProps(component)) errors.push(`${component.name}: duplicate prop ${key}`);
   if (new Set(component.events ?? []).size !== (component.events ?? []).length) errors.push(`${component.name}: duplicate event`);
   for (const family of booleanFamilies) {
     const overlap = family.filter((name) => props.has(name));

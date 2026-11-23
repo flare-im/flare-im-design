@@ -73,12 +73,14 @@
 import { FlareIcon } from "@flare-im/vue-ui";
 </script>
 <template>
-  <FlareIcon name="send" :size="22" />
-  <FlareIcon name="recall" :size="20" />
+  <FlareIcon name="send" size="md" />
+  <FlareIcon name="recall" size="md" />
 </template>
 ```
 
-- `name` 的类型是 `FlareIconName`，拼错会被 TS 拦下；`size` 默认 20，颜色继承 `currentColor`。
+- `name` 的类型是 `FlareIconName`，拼错会被 TS 拦下；Web 的 `size` 默认 `md`（20px），
+  可选 `sm` / `md` / `lg` / `xl`（16 / 20 / 24 / 32px），跟随组件库 CSS tokens。
+  数字尺寸保留给媒体覆盖层，颜色继承 `currentColor`。
 - `flareIconNames`（`@flare-im/vue-ui/components`）可遍历全集，登记在 `spec/public-api-exceptions.json#companionExports`。
 
 **组件的 `icon?: string` 属性走 `FlareGlyph`**：`FlareEmptyState`、设置行、`FlareProfilePanel` 行、应用壳导航项等接受开放 `icon` 字符串的组件内部用 `<FlareGlyph :icon="...">` 渲染。传语义名出线性图标；传 emoji 或单个字符时按文字渲染并对读屏隐藏；传不认识的英文词时什么都不画，开发模式下在控制台警告（原来会把单词当文字画出来）。

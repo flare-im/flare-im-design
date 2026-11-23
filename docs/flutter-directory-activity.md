@@ -30,4 +30,15 @@ Flutter为本轮范围，Vue/SwiftUI/Compose对应卡片已核对，未自动改
 2026-10-19补充：仅圈子feed视觉组件与页面选择已窄更新原Alice App，1360×932桌面及391×932手机宽度的
 明暗真实界面、更多动作、发布及可见范围弹层已电脑检查。目录/活动业务增量不随本次发布；手机宽度不等于真机。
 原会话/业务数据、FFI、原生Runner、entitlements和原bundle完整备份保留；见
-[运行验收§8.14](/Users/hg/workspace/flare/flare-im/flare-deploy/docs/flutter-console-full-acceptance-2026-10-18.md)。
+[运行验收§8.14](../../flare-deploy/docs/flutter-console-full-acceptance-2026-10-18.md)。
+
+## 圈子对齐 Vue（2026-11-18）
+
+Flutter 圈子组件以 Vue kit 为准收敛（社交 app 的 web 对齐，清单见 `flare-social-examples/docs/web-parity/flutter.md` DM-15..18）：
+
+- `FlareMomentCard`：动作只画宿主接了的（取代上文「未提供的回调为禁用态」）；一个都没有就不画「···」。展开的动作横排在键左侧、盖住时间，Esc 收起、焦点回到键。正文超过 280 字或 6 行折叠；评论超过 3 行（detail 5 行）折叠。`FlareMomentPresentation.detail` 给单独打开的一条动态用：正文不折叠，「评论 N」小标题与空评论说明，`focusCommentId` 标出并滚到那条评论。
+- `FlareMomentComposer layout: page`：抽屉或整页里的发布页；`submitError` 横幅、就地编辑位置、`imagesSlot` 放 `FlareMediaUpload`。
+- 新组件 `FlareMediaUpload`（图片网格上传位，宿主管选择、上传与预览）与 `FlareCommentComposer`（动态详情底部的评论框）。
+- `FlareActivityList` 的 `compact`、`disabled` 与空态说明/动作；`FlareIconButton.dot`；`FlareMomentsCoverHeader.coverImage`。
+
+本轮只写代码，未跑分析与测试；kit 里断言旧「禁用态」的两个测试已改为新规则。

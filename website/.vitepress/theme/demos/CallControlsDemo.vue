@@ -36,11 +36,11 @@ const startVideoCount = ref(0);
   gap: 20px;
   padding: 24px 16px;
   border-radius: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--flare-color-primary) 20%, #18181b), #101012 58%);
+  background: linear-gradient(180deg, var(--flare-color-call-stage-tint), transparent 40%), var(--flare-color-call-stage);
 }
 .note {
   margin: 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--flare-color-call-on-stage-secondary);
 }
 </style>

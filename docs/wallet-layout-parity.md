@@ -29,7 +29,7 @@ In the initial layout refinement, the standard wallet exporter synchronized the 
 | --- | --- |
 | Rust wallet contract | 19 focused tests and generated-artifact consistency passed; action input, guard and continuation structures preserved. |
 | Vue | 177 account/page/action/form tests, typecheck, and compilation of all 269 SFCs passed. |
-| Browser | 44 resolved views plus the multiple-wallet case across 320, 390 and 1360 widths in light/dark: six matrices passed. Inline submit reachability, wallet grid, masking and section order checked. Original screenshots saved under `.local/wallet-flow-refinement/vue/`. |
+| Browser | 44 resolved views plus the multiple-wallet case across 320, 390 and 1360 widths in light/dark: six matrices passed. Inline submit reachability, wallet grid, masking and section order checked. Original screenshots saved under `artifacts/local-qa/previous-local/wallet-flow-refinement/vue/`. |
 | Flutter | 37 account/wallet/inline tests and 24 existing action checks passed. An additional dynamic eligibility-loss/restore regression passed while preserving the external SDK busy lock. Analysis passed. |
 | SwiftUI | 60 related tests passed; the final header/icon refresh passed another 13 account/snapshot checks. Snapshots render the production SwiftUI components on macOS, rather than an iOS simulator session. |
 | Compose | 37 related JVM tests and 12 emulator interactions passed, including wallet bindings, inline data entry, repeat-submit locks, error retention/reset and password/confirmation fallback. |
@@ -43,7 +43,7 @@ One repository-wide check remains unrelated to these wallet changes: `check-plat
 
 ## Local previews
 
-- Vue/Flutter originals: `flare-im-design/.local/wallet-flow-refinement/`.
+- Vue/Flutter originals: `flare-im-design/artifacts/local-qa/previous-local/wallet-flow-refinement/`.
 - SwiftUI/Compose originals: workspace `.local/wallet-flow-refinement/ios/` and `android/`.
 - Shared declarations and behavior: [plugin-components.md](plugin-components.md#钱包与资金流程的-account-布局).
 - Canonical display data: [wallet-flow-vectors.json](../spec/wallet-flow-vectors.json) (plain blocks, Wallet 0.6.0). The account-renderer samples this page measured are kept as [wallet-flow-account-vectors.json](../spec/wallet-flow-account-vectors.json) for the `FlareAccountView` tests.

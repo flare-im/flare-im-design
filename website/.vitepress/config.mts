@@ -14,58 +14,67 @@ const slug = (name: string) =>
   name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
 const catLabel = (cat: string, loc: "zh" | "en") =>
-  spec.categoryLabels?.[cat]?.[loc] ?? cat;
+  spec.categoryLabels?.[cat]?.[loc] ?? ({
+    "Data Display": { zh: "数据展示", en: "Data Display" },
+    "Group": { zh: "群组", en: "Groups" },
+    "Message Content": { zh: "消息内容", en: "Message content" },
+  } as Record<string, { zh: string; en: string }>)[cat]?.[loc] ?? cat;
 
 const byCat: Record<string, { name: string; category: string }[]> = {};
 for (const c of spec.components) (byCat[c.category] ??= []).push(c);
 
 const layers = JSON.parse(readFileSync(join(here, "../../spec/component-layers.json"), "utf8")).components;
-const dataDisplayNames = new Set(["Avatar", "Icon", "Rating", "MetricTile", "ChartCard", "DataTable", "PermissionTree", "DescriptionList", "CodeBlock", "Tag"]);
-const mediaPreviewNames = new Set(["ImagePreviewModal", "VideoPlayerModal", "MarkdownPreview"]);
-const groupNames = new Set([
-  "GroupDetail", "GroupList", "GroupMemberGrid", "GroupPermissionMatrix", "MemberRoleSheet", "MemberPanel",
-]);
-
 const sidebarItems = (names: string[], prefix: string) => names.map((name) => ({ text: name, link: `${prefix}/components/${slug(name)}` }));
 const namesWhere = (predicate: (component: any) => boolean) => spec.components.filter(predicate).map((component: any) => component.name);
 
 /** Productized component sidebar. Categories are presentation IA; architecture remains spec-owned. */
 const componentSidebar = (loc: "zh" | "en", prefix: string) => {
   const general = [
-    ["General", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "General" && !dataDisplayNames.has(c.name))],
+    ["General", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "General")],
     ["Layout", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Layout")],
     ["Navigation", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Navigation")],
-    ["Form", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Form" && !dataDisplayNames.has(c.name))],
-    ["Data Display", namesWhere((c) => dataDisplayNames.has(c.name))],
+    ["Form", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Form")],
+    ["DataDisplay", namesWhere((c) => c.category === "DataDisplay")],
     ["Feedback", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Feedback")],
     ["Overlay", namesWhere((c) => layers[c.name] === "general-ui" && c.category === "Overlay")],
-    ["Media", namesWhere((c) => mediaPreviewNames.has(c.name))],
+    ["Media", namesWhere((c) => ["ImagePreviewModal", "VideoPlayerModal", "MarkdownPreview"].includes(c.name) || (layers[c.name] === "general-ui" && c.category === "Media"))],
   ];
   const im = [
     ["Conversation", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Conversation")],
     ["Message", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Message")],
+    ["MessageContent", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "MessageContent")],
     ["Composer", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Composer")],
-    ["Media", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Media" && !mediaPreviewNames.has(c.name))],
-    ["Contacts", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Contacts" && !groupNames.has(c.name))],
-    ["Group", namesWhere((c) => groupNames.has(c.name))],
+    ["Media", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Media" && !["ImagePreviewModal", "VideoPlayerModal", "MarkdownPreview"].includes(c.name))],
+    ["Contacts", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Contacts")],
+    ["Group", namesWhere((c) => c.category === "Group")],
     ["Call", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Call")],
     ["Profile", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Profile")],
     ["Moments", namesWhere((c) => layers[c.name] === "im-ui" && c.category === "Moments")],
+    ["RedPacket", ["RedPacketComposer", "RedPacketCard", "RedPacketOpenSheet", "RedPacketDetail"]],
+    ["Account", namesWhere((c) => c.category === "Account")],
+    ["Plugin", namesWhere((c) => c.category === "Plugin")],
   ];
   const group = (text: string, sections: (string | string[])[][]) => ({
     text,
     collapsed: false,
-    items: sections.map(([section, names]) => ({ text: section as string, collapsed: true, items: sidebarItems(names as string[], prefix) })),
+    items: sections.filter(([, names]) => names.length).map(([section, names]) => ({
+      text: catLabel(section as string, loc), collapsed: true,
+      items: [
+        ...(section === "Media" ? [{ text: loc === "zh" ? "上传与传输指南" : "Upload guide", link: `${prefix}/uploads/` }] : []),
+        ...(section === "RedPacket" ? [{ text: loc === "zh" ? "红包使用指南" : "Red packet guide", link: `${prefix}/red-packet/` }] : []),
+        ...sidebarItems(names as string[], prefix),
+      ],
+    })),
   });
   return [
-    { text: "Foundations", collapsed: true, items: [
+    { text: loc === "zh" ? "设计基础" : "Foundations", collapsed: true, items: [
       { text: loc === "zh" ? "设计基础" : "Overview", link: `${prefix}/foundations/` },
       { text: "Token Explorer", link: `${prefix}/foundations/token-explorer` },
       { text: "Accessibility", link: `${prefix}/guide/accessibility` },
     ] },
     group(loc === "zh" ? "通用组件" : "General Components", general),
     group(loc === "zh" ? "IM 组件" : "IM Components", im),
-    { text: "Patterns", collapsed: true, items: sidebarItems(namesWhere((c) => layers[c.name] === "patterns"), prefix) },
+    { text: loc === "zh" ? "组合模式" : "Patterns", collapsed: true, items: sidebarItems(namesWhere((c) => layers[c.name] === "patterns"), prefix) },
     { text: "App Kit", collapsed: true, items: sidebarItems(namesWhere((c) => ["workspaces", "appkit"].includes(layers[c.name])), prefix) },
     { text: loc === "zh" ? "平台" : "Platforms", collapsed: true, items: [
       { text: "Vue", link: `${prefix}/platforms/vue` },
@@ -81,7 +90,7 @@ const routeItems = (prefix: string, items: [string, string][]) =>
 
 const zhSections = {
   guide: routeItems("", [
-    ["介绍", "/guide/introduction"], ["快速开始", "/guide/getting-started"],
+    ["介绍", "/guide/introduction"], ["组件选型", "/guide/component-map"], ["快速开始", "/guide/getting-started"],
     ["安装", "/guide/install"], ["主题", "/guide/theming"], ["暗色模式", "/guide/dark-mode"],
     ["响应式", "/guide/responsive"], ["可访问性", "/guide/accessibility"], ["组件契约", "/guide/spec"],
   ]),
@@ -117,7 +126,7 @@ const zhSections = {
 
 const enSections = {
   guide: routeItems("/en", [
-    ["Introduction", "/guide/introduction"], ["Getting started", "/guide/getting-started"],
+    ["Introduction", "/guide/introduction"], ["Choosing components", "/guide/component-map"], ["Getting started", "/guide/getting-started"],
     ["Installation", "/guide/install"], ["Theming", "/guide/theming"], ["Dark mode", "/guide/dark-mode"],
     ["Responsive", "/guide/responsive"], ["Accessibility", "/guide/accessibility"], ["Component contract", "/guide/spec"],
   ]),
@@ -233,7 +242,7 @@ export default defineConfig({
                 ...zhSections.guide,
               ],
             },
-            { text: "Foundations", collapsed: true, items: zhSections.foundations },
+            { text: "设计基础", collapsed: true, items: zhSections.foundations },
             { text: "Customization", collapsed: true, items: zhSections.customization },
           ],
           "/foundations/": [{ text: "Foundations", items: zhSections.foundations }],
@@ -255,6 +264,8 @@ export default defineConfig({
           "/resources/": [{ text: "Resources", items: zhSections.resources }],
           "/customization/": [{ text: "Customization", items: zhSections.customization }],
           "/examples": [{ text: "Examples", items: [{ text: "组件与 SDK 示例", link: "/examples" }] }],
+          "/uploads/": componentSidebar("zh", ""),
+          "/red-packet/": componentSidebar("zh", ""),
           "/components/": [
             {
               text: "总览",
@@ -330,6 +341,8 @@ export default defineConfig({
           "/en/resources/": [{ text: "Resources", items: enSections.resources }],
           "/en/customization/": [{ text: "Customization", items: enSections.customization }],
           "/en/examples": [{ text: "Examples", items: [{ text: "Component and SDK examples", link: "/en/examples" }] }],
+          "/en/uploads/": componentSidebar("en", "/en"),
+          "/en/red-packet/": componentSidebar("en", "/en"),
           "/en/components/": [
             {
               text: "Overview",

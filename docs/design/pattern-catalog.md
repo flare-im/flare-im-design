@@ -21,7 +21,7 @@ Each pattern names the problem, the rules, the kit API on each platform, the sta
 - Conversation rows: no menu without `capabilities`, and then the browser's own context menu is left alone.
 - Host actions such as report: Vue `actions` on `FlareMessageList` (`FlareMessageActionExtension` with an `available` rule per message) plus an `@action` listener; ordinary actions sit before Delete and destructive ones after it.
 - Composer: the voice tile and microphone appear only with a voice handler.
-- Group detail: the message button appears only when the host opens the chat; the announcement read bar offers "view unread" only with a handler; rows the viewer can edit carry a chevron, the rest read as values.
+- Group detail: a published announcement opens the full text. The editor remains available to members with permission. The message button appears only when the host opens the chat, and the announcement read bar offers "view unread" only with a handler.
 - Contact detail: message, voice and video, the editable remark and description rows, the star switch, block and remove each appear only with their handler, so a stranger's profile shows no friend-only actions (Vue; natives in Batch 4).
 - Moments: the author, likers and comment rows are buttons only when the host handles selecting them; otherwise they are text.
 - Timeline polls and tasks: an option is a control only with `vote`, a task's checkbox only with `taskToggle`, and neither while the list is selecting (Round 9, four kits).
@@ -108,6 +108,7 @@ Every presenter keeps the same queue, durations, close control and polite announ
 - The bubble appears on the next frame. Status goes sending, then sent or read; a failed send is never shown as read.
 - Receipts are projected from core state: proto status 4 is failed; status 1 without a conversation sequence is sending; read comes from `isRead`.
 - A failed message offers retry when the host wires resend. Retry re-sends the stored message with the same client id, so the row stays in place.
+- In Vue, an outgoing bubble with a visible failed status shows a text action with `@resend`, or a status label if the host supplies no retry handler.
 - A send that fails before the message exists gives the composer text back, unless the user has already started typing again.
 
 **API.** `status` or `lifecycle` on the message model (four kits). Resend: Vue `@resend`, Compose `onResend`. Composer text: Vue `v-model`, Flutter `controller`.
@@ -242,6 +243,8 @@ Three components, one rule each:
 
 **Used by.** Web inbox and global search, iOS conversation list, Android conversations.
 
+In Vue, `FlareIMAppKit.searchAction` points to the host's global search navigation action. Control or Command+K sends it on tablet and desktop, outside modal layers. Expose the binding on the search entry with `aria-keyshortcuts`.
+
 ## 17. Small menus
 
 **Problem.** "New", "more" and context menus were built four ways: naive-ui dropdowns inside the Vue kit with options that were plain divs and a focus that never moved, a bottom sheet with settings rows in Tauri, a Material dropdown in the Android app and a hand-written SwiftUI `Menu` in iOS. One of them silently dropped every pick (FR-071).
@@ -283,6 +286,7 @@ Three components, one rule each:
 - Development mode wears a 开发模式 badge in every phase.
 - The notice sits above every tab, not inside one pane. A cold start whose SDK cannot load keeps the stored session; only a session the SDK rejects is cleared.
 - The network and line diagnostics page is the kit's `AccessDiagnostics`: the host passes `access.getStatus` and `access.listAccessPoints` as they arrive and runs the actions; the page's state, the latency grades and what each result says are shared (`spec/access-diagnostics-vectors.json`). Recovering moves the recovery tools to the top. The entry lives in settings; a login page shows it only while the service is unavailable.
+- Vue `FlareAccessDiagnostics` with `compact` shows recovery first and groups the current and available lines into collapsed disclosures.
 
 - Updating is the kit's `UpdatePrompt`, `ProgressBar` and `VersionPanel`: the host passes `update://state` as it arrives and runs the actions; the phases, the words and which buttons exist are shared (`spec/update-prompt-vectors.json`). A forced prompt has no close button, no later and no skip, and offers 继续浏览 only when read-only browsing is allowed; a download can go to the background unless forced; a finished download asks for a restart and never restarts by itself; a failure offers 重试 and the website or the app store. The prompt is a bottom sheet, a modal or a page over the whole window, all of them the kit's own surfaces.
 
@@ -296,11 +300,12 @@ Three components, one rule each:
 - Typing "@" at the start of a word, or the mention tool, opens the member picker with the roster; the picked person replaces the "@" as `@<display name> `.
 - The picker keeps focus in its search field: the first match is highlighted, arrows move it, Enter picks it, the Enter that commits an IME composition is ignored, Escape closes.
 - The core resolves mentions from the text against the conversation roster; apps do not build mention entities. Display names must be the roster names the core knows.
-- Mentions of the reader and of everyone are tinted in bubbles.
+- Vue highlights direct mentions in plain text bubbles, including text with inline emoji, with the current theme color and heavier text. Mentions of everyone use the selected surface color.
+- The Vue conversation row places a separate mention badge alongside the unread count when the core reports a mention. The badge stays visible when the preview shows a draft, a send failure, or a newer message. Both the badge and direct mention text use the same theme tokens.
 
 **API.** Vue `FlareMentionPicker` inside `FlareComposer` (`mentionCandidates`); Flutter, iOS and Compose composer `mentionCandidates` with their pickers; `textMentionSpans` and the native span converters for display.
 
-**Known gap.** The core keeps a mention only where the literal `@<userId>` appears, so people mentioned by name get no span and no @me (SDK gap S14); mentions do not work end to end until it is fixed.
+The core records the original nickname span with the resolved user ID. Offsets use Unicode scalar values and travel with the text content.
 
 ## 21. Reading width on wide panes
 
@@ -308,7 +313,7 @@ Three components, one rule each:
 - Profile, settings and feed pages keep their header and content in a centred column on wide panes; the page background still fills the pane.
 - Lists that drive a detail pane use list and detail panes instead of a wide column.
 
-**API.** Vue `FlareScreen` `readable` (`--flare-component-screen-reading-width`, 720 px).
+**API.** Vue `FlareScreen` `readable` (`--flare-component-screen-reading-width`, 720 px). Vue `FlareMessageList` also accepts `readable` for a centered timeline (`--flare-size-layout-message-timeline-content-max-width`, 920 px).
 
 **Used by.** Web 我, 圈子, 设置 and 通讯录 pages.
 
@@ -339,12 +344,17 @@ Three components, one rule each:
 
 **Used by.** Web settings and me pages, Tauri chat settings panels, the kit's contact and group detail. The three native kits follow in Batch 5.
 
+Use `FlareSettingsList surface="flush"` for directory shortcuts above a full-width contact list. Each destination occupies its own row with a label, optional count and navigation affordance.
+
+When the account overview and its navigation appear side by side, use `FlareProfilePanel` with `show-identity="false"` on the navigation panel. The overview owns the avatar and account summary.
+
 ## 24. Search is a palette, not a takeover
 
 **Rules.**
 - On pointer devices global search opens as a centred panel over the app: the app stays visible behind a scrim, Escape and the scrim close it, and the field takes focus.
 - On phones search is a full page with its own back control.
 - A failed source says so and offers a retry; partial failures keep the results that did arrive under a warning.
+- Vue `FlareSearchPanel` uses the panel's own width to place the date range on a second row at 440 px and below, including desktop side panes.
 
 **API.** Vue `FlareModal` (`width`, `max-height`, `fill`, `:scrollable="false"`) on wide layouts and `FlareScreen` on phones, decided by the platform `bottomSheet` capability; `FlareSearchBar` and `FlareSearchResults`, or the composed `FlareSearchPanel` with `layout="page"`. Flutter `FlareModal` / page, iOS `flareModal` / page, Compose `Modal` / page.
 
@@ -494,6 +504,10 @@ Three components, one rule each:
 **API.** Vue `FlareIMAppKit` `destination` slot and `useFlareDestinationDepth`; Flutter `destinationBuilder`, `FlareShellScope`, `FlareDestinationDepth`; SwiftUI `IMAppKitView(destination:)`, `.flareDestinationDepth(_:)`, `flareDestinationActive`, `flareDestinationPresentation`; Compose `IMAppKit(destination)` and `FlareDestinationDepth(active)`. `check-ui-reuse` refuses an app that brings back its own measurement, keep-alive or tab-bar formula.
 
 **Used by.** All five reference apps.
+
+In Vue, `appearance="workspace"` frames the desktop destination area and gives the mobile navigation icon a selected surface. The same option on `FlareAppLayout` sets the conversation canvas and on `FlareConversationListContainer` aligns its top accessories. Social Web uses the shared theme tokens, with the original Violet palette as its default.
+
+Use `FlareScreen header-appearance="destination"` or `FlareScreenHeader appearance="destination"` for top-level pages with a `#leading` avatar and `#actions`. The host supplies the identity, routes the avatar to its profile, and restores the originating destination when the user returns.
 
 **Replaces.** `responsiveMode` passed by the host, nine IMAppKit parameters, a resize listener per app and four tab-bar formulas (FR-095).
 

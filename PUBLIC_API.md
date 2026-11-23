@@ -2,6 +2,13 @@
 
 This repository is in the `2.0.0-rc.1` development phase. It documents the current supported surface, not a compatibility facade for earlier RC layouts.
 
+SwiftUI localization uses `FlareStrings { copy in ... }` for typed overrides. The
+2.0 RC replaces the oversized named-argument constructor; `FlareStrings()`,
+`.english`, writable fields, formatters and key paths retain their behavior.
+See the [migration note](docs/release/migration/2.0-rc-to-2.0.md#swiftui-localization-initialization)
+and [SwiftUI guide](website/platforms/swiftui.md). Other platforms keep their
+existing localization APIs.
+
 ## Sources Of Truth
 
 - `spec/components.json` defines component names, props, states, events, and platform symbols.
@@ -86,6 +93,15 @@ SwiftUI roles expose `font(scaledBy:)` for Dynamic Type. A host can pass an `@Sc
 The server clock is public on all four kits, over `spec/server-clock-vectors.json`: Vue `setFlareServerClockOffset` / `flareServerClockOffset` / `flareServerNowMs` / `flareServerNow` on `./utils`, and `FlareServerClock` (`setOffsetMs`, `offsetMs`, `nowMs()`, `now`) on the three native kits. The host hands in the core SDK's estimate; the kit never measures it.
 
 The six built-in brands and both appearance modes are public. Custom themes are supported through semantic color overrides on every platform. Components consume semantic/component tokens and do not expose raw palette dependencies as contract.
+
+## Native capability values
+
+SwiftUI hosts can construct `FlareCapturedDocument(fileName:contentType:bytes:)` and
+`PluginLocationAction(action:inputId:input:formValues:)` through public initializers.
+The document's `json` keeps the engine's file envelope (byte values as integers);
+the host remains responsible for answering the capability request. These value
+constructors also let app integration tests exercise the public boundary without
+importing Kit internals.
 
 ## Change Rules
 

@@ -274,6 +274,7 @@ for (const c of spec.components) {
   // 登记在案的例外:不是漂移,是 web 侧真实多出来的能力。
   const ENUM_EXCEPTIONS = {
     FlareBrandTheme: "vue 的是 `FlareThemeName | FlareCustomTheme`,额外接一个自定义主题对象;原生三端只收内置那六个",
+    FlareRedPacketField: "vue 的 errorField 是 `FlareRedPacketField | \"form\"`;原生三端没有联合类型,把 form 并进枚举(focusField 收到 form 不移焦点)",
   };
   const walkFiles = (dir, ext) => {
     const out = [];

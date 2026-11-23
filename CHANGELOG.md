@@ -6,6 +6,18 @@ This is the target Stable release, not a published version. Package metadata rem
 
 ### Design System And Packages
 
+- **Vue plugin details and long forms:** optional page presentation uses the shared responsive drawer and screen; page forms keep a scrolling body and persistent submit footer. Loaded details survive read failures and refreshes, with a separate next-page error and repeatable retry signal. Empty documents have an explicit empty state, sole settings forms open directly, service navigation is separated from direct commands, and narrow record rows place actions below their content. Contact search distinguishes no matches from an empty directory. Native UI is unchanged.
+
+- **Web Social parity with Flutter: the kit pieces the Vue app was drawing itself** (Vue kit, contract; Flutter already had them).
+  - New `UnreadBadge` (Vue / Flutter `FlareUnreadBadge`: `count`, `dot`, `quiet`, `maxCount`, and on Vue `more`, read through `flareCountBadgeText`) and `ActivityList` (Vue / Flutter `FlareActivityList` with `FlareActivityItem`: `items`, `emptyText`, `select` only while bound, a `footer` slot).
+  - Vue `useFlareLoadMoreWhenVisible(target, onVisible, { rootMargin = "400px", enabled, root })`: Flutter's "next page 400px before the end" through an IntersectionObserver; it does nothing without one.
+  - Vue `MessageList`: `openFile(messageId)` when a file card's body is opened (the download and folder keys stay `mediaAction`), and touch swipe to reply (`swipeReply`, `flareSwipeReplyGesture` over `spec/swipe-reply-vectors.json`, rows on `touch-action: pan-y`); with only `swipeReply` bound the menu's Reply raises it too, as on Flutter.
+  - Vue `MomentCard` offers like and comment only while `like` / `comment` are bound and hides ··· when nothing is behind it; `MomentActionPopover` gains `canLike` / `canComment` (default true).
+  - Vue `Composer` serves the `camera` intent itself through `pickImages({ camera: true })` (web adapter: `capture="environment"`); the photo arrives as `files-drop`.
+  - Vue `ConversationListContainer`: pull to refresh on touch and a refresh key on pointer devices (`refresh`, `refreshing`); the contract's Flutter-only `onRefresh` prop is now the `refresh` event on Vue and Flutter.
+  - Vue `ProfilePanel` draws each section's `title` above its card (and its `footer` under it) in the settings list's section style, as Flutter and Compose do; a titled card is a group named by its title.
+  - Vue `Avatar` is a button when the host binds `@click` (Flutter's `onTap`): named by `ariaLabel` or the person, keyboard reachable, with a touch-target hit area; without a listener it is unchanged.
+
 - **Message list: an incoming message stands off the chat canvas on every kit** (tokens and all four kits).
   - The native kits laid the timeline on `bg.secondary` (#F7F8FA), where the incoming bubble (#F1F2F5) read at 1.05:1 and a run of messages from one sender looked like one block. All four kits now lay it on `bg.primary`, as Vue already did (`--flare-component-chat-window-bg`), and `message.incoming.background` is a step darker: #ECEEF2 light, #2E323C dark (1.16:1 and 1.22:1 on the canvas). `spec/message-surface-vectors.json` `palette.canvas` names the canvas and the minimum, 1.15:1, which the native kits check in every brand and mode and the web bubble gate measures in the page.
   - The incoming bubble's shadow is the small shadow token (`shadows.sm`) on all four kits; SwiftUI drew a hand-written blur, Compose a 2dp elevation and Flutter none.

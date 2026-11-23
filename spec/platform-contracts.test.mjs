@@ -14,3 +14,18 @@ test("N/A cannot conceal incomplete, contradictory or unknown implementation bin
   assert.equal(platformContractIssues({ notApplicablePlatforms: { flutter: "skip", unknown: reason } }, platforms).errors.length, 2);
   assert.deepEqual(platformContractIssues({}, platforms).missing, platforms);
 });
+
+// The Icon size is a semantic size on Vue and numeric on the native kits.
+test("platform-scoped prop variants permit disjoint implementations and reject overlapping declarations", async () => {
+  const { duplicatePlatformProps } = await import("./platform-contracts.mjs");
+  const platforms = { vue: {}, flutter: {} };
+  assert.deepEqual(duplicatePlatformProps({ platforms, props: [
+    { name: "size", platforms: ["vue"] }, { name: "size", platforms: ["flutter"] },
+  ] }), []);
+  assert.deepEqual(duplicatePlatformProps({ platforms, props: [
+    { name: "size" }, { name: "size", platforms: ["vue"] },
+  ] }), ["vue:size"]);
+  assert.deepEqual(duplicatePlatformProps({ platforms, props: [
+    { name: "size" }, { name: "size" },
+  ] }), ["vue:size", "flutter:size"]);
+});

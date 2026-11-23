@@ -23,6 +23,26 @@ ButtonView(label: "New message", action: startConversation)
 
 复杂组件使用 defaults + capabilities + host configuration；普通组件保持少量受控 props。
 
+## 本地化文案
+
+`FlareStrings()` 使用默认中文，`.english` 使用英文预设；在根 View 调用 `.flareStrings(...)`。局部覆盖使用类型安全的配置闭包，也可修改英文预设的副本。字段和格式化闭包保持可写，副本之间互不影响。2.0 RC 移除超长命名参数初始化器，改用下列写法；不要直接构造 `FlareStringsTable`。
+
+~~~swift
+let copy = FlareStrings { strings in
+    strings.send = "Send"
+    strings.readTab = { "Read (\($0))" }
+}
+ContentView().flareStrings(copy)
+
+var brandedEnglish = FlareStrings.english
+brandedEnglish.send = "Send securely"
+ContentView().flareStrings(brandedEnglish)
+~~~
+
+## 生成与验证
+
+修改默认中文时编辑 `FlareStringsTable` 中对应字段；英文在 `strings/en.json`，格式化规则在 `strings/en-formats.json`。运行 `npm run generate`、`npm run check:strings` 与 `npm run check:generated`。在 macOS 运行 `cd packages/ios-im-ui && swift test`，确保真实编译与完整原生测试通过。
+
 ## Callbacks / Events
 
 所有副作用通过 callback、event 或 intent 返回宿主；失败与离线状态保留恢复路径。

@@ -96,6 +96,7 @@
     "MarkdownPreview": "im-ui",
     "SearchBar": "general-ui",
     "Input": "general-ui",
+    "PinInput": "general-ui",
     "InviteCodeField": "general-ui",
     "EmptyState": "general-ui",
     "StatusBanner": "general-ui",
@@ -104,6 +105,8 @@
     "UpdatePrompt": "im-ui",
     "ProgressBar": "general-ui",
     "FilterTabs": "general-ui",
+    "UnreadBadge": "general-ui",
+    "ActivityList": "general-ui",
     "ContactList": "im-ui",
     "ContactItem": "im-ui",
     "ContactDetail": "im-ui",
@@ -140,6 +143,7 @@
     "RedPacketCard": "im-ui",
     "RedPacketOpenSheet": "im-ui",
     "RedPacketDetail": "im-ui",
+    "RedPacketPage": "im-ui",
     "RedPacketComposer": "im-ui",
     "PaymentConfirmation": "im-ui",
     "CapabilityConsent": "im-ui",
@@ -239,8 +243,15 @@
     "CodeBlock": "general-ui",
     "Tag": "general-ui",
     "UserIdentity": "general-ui",
-    "ImageUploadSlot": "im-ui",
-    "FileUpload": "im-ui",
-    "ReauthSheet": "general-ui"
+    "ImageUploadSlot": "general-ui",
+    "FileUpload": "general-ui",
+    "ReauthSheet": "general-ui",
+    "MediaUpload": "general-ui",
+    "CommentComposer": "im-ui",
+    "ResultView": "im-ui",
+    "DocumentSlot": "im-ui",
+    "RedPacketReview": "im-ui",
+    "CallSurface": "im-ui",
+    "RedPacketArch": "im-ui"
   }
 }

@@ -7,7 +7,9 @@ import DemoStage from "./DemoStage.vue";
 const open = ref(false);
 const busy = ref(false);
 const order = ref(null);
-function show(seconds) {
+const shortfall = ref(undefined);
+function show(seconds, missing) {
+  shortfall.value = missing;
   order.value = { orderId: "rp-20261113-0042", amount: "88.80", currency: "CNY", payee: "钱包", title: "红包", expiresAtMs: Date.now() + seconds * 1000 };
   open.value = true;
 }
@@ -24,6 +26,7 @@ function confirm() {
     <div class="row">
       <FlareButton label="确认付款" @click="show(120)" />
       <FlareButton label="即将失效" variant="secondary" @click="show(5)" />
+      <FlareButton label="余额不足" variant="secondary" @click="show(120, '¥6.64')" />
     </div>
     <FlarePaymentConfirmation
       v-if="order"
@@ -31,7 +34,9 @@ function confirm() {
       :order="order"
       plugin-name="红包"
       :busy="busy"
+      :shortfall="shortfall"
       @confirm="confirm"
+      @top-up="open = false"
       @cancel="open = false"
     />
   </DemoStage>

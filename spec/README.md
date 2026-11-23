@@ -48,39 +48,51 @@ Top-level tables shared by every component:
 <!-- CATALOG:START -->
 ## Component catalog
 
-**196 components / 17 categories** (source in [`components.json`](./components.json);
+**207 components / 23 categories** (source in [`components.json`](./components.json);
 props/events extracted and calibrated from the `@flare-im/vue-ui` source).
 
 > This section is generated from the contract by `gen-readme-catalog.mjs`; do not edit by hand — a hand-written catalog rots as the contract grows.
 
-- **Message** — 49
-  `AccountView` · `AnnouncementBanner` · `CapabilityConsent` · `ContactMessage` · `ConversationHeader` · `DatePill` · `DocumentCapture` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageGroupMessage` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `MessageMeta` · `MessageStatus` · `PaymentConfirmation` · `PinnedMessageBar` · `PluginBundleHost` · `PluginDetailSheet` · `PluginForm` · `PluginPage` · `PluginUpgradeNotice` · `PluginView` · `ReactionSummary` · `ReadReceiptSheet` · `RedPacketCard` · `RedPacketComposer` · `RedPacketDetail` · `RedPacketOpenSheet` · `RichTextMessage` · `ScrollToLatest` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `TranslationView` · `TypingIndicator` · `UnknownMessage` · `UnreadDivider` · `VideoMessage` · `VoiceMessage` · `VoicePlayer` · `VoteMessage`
+- **Message** — 18
+  `AnnouncementBanner` · `ConversationHeader` · `DatePill` · `MessageActionSheet` · `MessageBatchToolbar` · `MessageBubble` · `MessageContentView` · `MessageList` · `MessageMeta` · `MessageStatus` · `PinnedMessageBar` · `ReactionSummary` · `ReadReceiptSheet` · `ScrollToLatest` · `TranslationView` · `TypingIndicator` · `UnreadDivider` · `VoicePlayer`
 - **Composer** — 17
   `Composer` · `ComposerActionPanel` · `ComposerMediaPreview` · `ComposerReplyStrip` · `ComposerSendButton` · `ContactPicker` · `EmojiPicker` · `EmojiStickerPicker` · `LocationPicker` · `MentionPicker` · `PollComposer` · `QuickPhrases` · `RichMarkdownInput` · `SlashCommandMenu` · `StickerPanel` · `VoiceHoldButton` · `VoiceRecordingBar`
 - **Form** — 17
-  `Checkbox` · `DatePicker` · `FilterBar` · `FormField` · `Input` · `InviteCodeField` · `RadioGroup` · `Rating` · `ReauthSheet` · `SchemaForm` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
-- **General** — 15
-  `Avatar` · `BrandLogo` · `Button` · `ChartCard` · `CodeBlock` · `ConfigProvider` · `DataTable` · `DescriptionList` · `Icon` · `IconButton` · `MetricTile` · `PermissionTree` · `QRMatrix` · `Tag` · `UserIdentity`
+  `Checkbox` · `DatePicker` · `FilterBar` · `FormField` · `Input` · `InviteCodeField` · `PinInput` · `RadioGroup` · `ReauthSheet` · `SchemaForm` · `SearchDateRangeFilter` · `Select` · `Slider` · `Stepper` · `Switch` · `Textarea` · `TimePicker`
+- **Message content** — 17
+  `ContactMessage` · `EmojiMessage` · `FileMessage` · `ImageGrid` · `ImageGroupMessage` · `ImageMessage` · `LinkCardMessage` · `LocationMessage` · `RichTextMessage` · `StickerMessage` · `SystemMessage` · `TaskMessage` · `TextMessage` · `UnknownMessage` · `VideoMessage` · `VoiceMessage` · `VoteMessage`
 - **Feedback** — 14
   `AccessDiagnostics` · `AnnouncementReadBar` · `CapabilityBoundary` · `ConnectionNotice` · `EmptyState` · `InAppNotificationBanner` · `InAppNotificationHost` · `PermissionPrompt` · `ProgressBar` · `SearchResults` · `Skeleton` · `StatusBanner` · `Toast` · `UpdatePrompt`
-- **Contacts** — 13
-  `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
 - **Profile** — 13
   `DeviceSessions` · `MyInvitePanel` · `NotificationAlertSettings` · `NotificationDeliverySettings` · `NotificationPreferences` · `ProfileCard` · `ProfileEditor` · `ProfilePanel` · `QRCard` · `SettingsList` · `SettingsRow` · `StorageUsage` · `VersionPanel`
+- **Data Display** — 10
+  `Avatar` · `ChartCard` · `CodeBlock` · `DataTable` · `DescriptionList` · `Icon` · `MetricTile` · `PermissionTree` · `Rating` · `Tag`
+- **Call** — 9
+  `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallSurface` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
 - **Layout** — 9
   `AppLayout` · `AuthShell` · `ChatWorkspace` · `ConversationWorkspace` · `DesktopAppShell` · `MobileAppShell` · `ResponsiveLayout` · `Screen` · `ScreenHeader`
-- **Call** — 8
-  `CallControls` · `CallDevicePicker` · `CallDock` · `CallRecordCard` · `CallView` · `GroupCallView` · `IncomingCall` · `ScreenShare`
+- **Media & uploads** — 9
+  `FileUpload` · `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `MediaUpload` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
+- **Moments** — 9
+  `CommentComposer` · `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
 - **Conversation** — 8
   `ChatWallpaperPicker` · `ConversationActionSheet` · `ConversationBatchToolbar` · `ConversationDetails` · `ConversationList` · `ConversationRow` · `ForwardPicker` · `StartConversationDialog`
-- **Media** — 8
-  `FileUpload` · `ImagePreviewModal` · `ImageUploadSlot` · `MarkdownPreview` · `MediaCenter` · `TransferProgress` · `TransferQueue` · `VideoPlayerModal`
-- **Moments** — 8
-  `CommentThread` · `MomentActionPopover` · `MomentAudienceSheet` · `MomentCard` · `MomentComposer` · `MomentsCoverHeader` · `MomentsVisibilityRuleList` · `TopicChip`
-- **Overlay** — 7
+- **General** — 8
+  `ActivityList` · `BrandLogo` · `Button` · `ConfigProvider` · `IconButton` · `QRMatrix` · `UnreadBadge` · `UserIdentity`
+- **Plugin interfaces** — 8
+  `CapabilityConsent` · `PluginBundleHost` · `PluginDetailSheet` · `PluginForm` · `PluginPage` · `PluginUpgradeNotice` · `PluginView` · `ResultView`
+- **Contacts** — 7
+  `ContactDetail` · `ContactItem` · `ContactList` · `ContactMatchList` · `NewFriendRequests` · `RelationActionBar` · `UnknownUserPlaceholder`
+- **Overlays** — 7
   `ActionMenu` · `BottomSheet` · `DangerConfirm` · `Drawer` · `FormSheet` · `Modal` · `SearchPanel`
+- **Red packets** — 7
+  `RedPacketArch` · `RedPacketCard` · `RedPacketComposer` · `RedPacketDetail` · `RedPacketOpenSheet` · `RedPacketPage` · `RedPacketReview`
+- **Groups** — 6
+  `GroupDetail` · `GroupList` · `GroupMemberGrid` · `GroupPermissionMatrix` · `MemberPanel` · `MemberRoleSheet`
 - **Navigation** — 6
   `AdaptiveNavigation` · `CommandPalette` · `FilterTabs` · `RecentSearches` · `SearchBar` · `SegmentedControl`
+- **Accounts & verification** — 4
+  `AccountView` · `DocumentCapture` · `DocumentSlot` · `PaymentConfirmation`
 - **Patterns** — 2
   `ConversationListContainer` · `FriendListContainer`
 - **AppKit** — 1

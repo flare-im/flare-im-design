@@ -15,7 +15,7 @@ const root = join(here, "..");
 const baselinePath = join(here, "hardcoded-strings-baseline.json");
 
 const TARGETS = {
-  vue: { dir: "packages/vue-im-ui/src/components", ext: [".vue", ".ts"], skip: [/\.test\.ts$/, /i18n\//] },
+  vue: { dir: "packages/vue-im-ui/src/components", ext: [".vue", ".ts"], skip: [/\.test\.ts$/, /\.fixture\.ts$/, /i18n\//] }, // a fixture is test data (server-sent plugin copy), not kit copy
   flutter: { dir: "packages/flutter-im-ui/lib/src", ext: [".dart"], skip: [/flare_strings\.dart$/] },
   ios: { dir: "packages/ios-im-ui/Sources/FlareIMUI", ext: [".swift"], skip: [/FlareStrings\.swift$/, /Previews\.swift$/] },
   compose: { dir: "packages/android-im-ui/src/main/kotlin", ext: [".kt"], skip: [/FlareStrings\.kt$/, /Previews?\.kt$/] },

@@ -136,17 +136,23 @@ function flutterApp(name) {
 // ── SwiftUI: removed symbols from the duplication register ───────────────────
 const register = JSON.parse(readFileSync(join(root, "spec/duplication-register.json"), "utf8"));
 const removedIos = new Set((register.entries ?? register).flatMap((entry) => entry.removed?.ios ?? []));
-function iosApp(name) {
+function iosApp(name, sourceRoot = appsRoot) {
+  const appDir = join(sourceRoot, name);
   let files = 0;
-  for (const file of walk(join(appsRoot, name, "Sources"), [".swift"])) {
+  for (const file of [...walk(join(appDir, "Sources"), [".swift"]), ...walk(join(appDir, "Tests"), [".swift"])]) {
     files++;
     const source = stripComments(readFileSync(file, "utf8"));
     for (const symbol of removedIos) {
       const match = new RegExp(`\\b${symbol}\\b`).exec(source);
-      if (match) errors.push(`${name}/${relative(join(appsRoot, name), file)}:${lineOf(source, match.index)}: ${symbol} was removed from FlareIMUI (spec/duplication-register.json)`);
+      if (match) errors.push(`${name}/${relative(appDir, file)}:${lineOf(source, match.index)}: ${symbol} was removed from FlareIMUI (spec/duplication-register.json)`);
+    }
+    // Swift 6.3 cannot compile the old thousand-default-argument constructor.
+    // Check test consumers too: they compile separately from the app target.
+    for (const match of source.matchAll(/\bFlareStrings\s*\(\s*[A-Za-z_]\w*\s*:/g)) {
+      errors.push(`${name}/${relative(appDir, file)}:${lineOf(source, match.index)}: use FlareStrings { copy in ... } or copy FlareStrings.english; named-argument initialization was removed`);
     }
   }
-  summary.push(`${name}: ${files} Swift files free of ${removedIos.size} removed symbols`);
+  summary.push(`${name}: ${files} Swift files free of ${removedIos.size} removed symbols and legacy FlareStrings initializers`);
 }
 
 vueApp("flare-social-web-app");
@@ -154,6 +160,8 @@ vueApp("flare-social-tauri-app");
 composeApp("flare-social-android-app");
 flutterApp("flare-social-flutter-app");
 iosApp("flare-social-ios-app");
+const coreAppsRoot = resolve(root, process.env.FLARE_CORE_REFERENCE_APPS ?? "../flare-core-examples/apps");
+if (existsSync(join(coreAppsRoot, "flare-core-ios-app"))) iosApp("flare-core-ios-app", coreAppsRoot);
 
 if (errors.length) {
   console.error("reference app consumers failed — migrate the app in the same change as the kit, or keep the symbol:");

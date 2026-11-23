@@ -31,5 +31,164 @@
       "interaction": true,
       "expect": false
     }
+  ],
+  "$comment": "R4 of docs/plugin-experience.md. pluginRefresh: whether a page may refresh now. afterAction: the kit emits refresh(action) once an action it ran settles with no error and no formErrors while the page is visible (a cancelled confirm or form never settles). afterReturn: what the host does when control comes back to a page. doneTarget (R4.2): done on the top page pops to the nearest page below it whose archetype is overview or records, and refreshes it with reason return; with none below, the host closes its plugin page stack. stack lists archetypes bottom to top; target is the index to land on, null to close.",
+  "afterAction": [
+    {
+      "name": "operation settled cleanly",
+      "settle": "ok",
+      "visible": true,
+      "expect": {
+        "refresh": true,
+        "reason": "action"
+      }
+    },
+    {
+      "name": "settled with an error",
+      "settle": "error",
+      "visible": true,
+      "expect": {
+        "refresh": false
+      }
+    },
+    {
+      "name": "settled with form errors",
+      "settle": "formErrors",
+      "visible": true,
+      "expect": {
+        "refresh": false
+      }
+    },
+    {
+      "name": "cancelled before invoking",
+      "settle": "cancelled",
+      "visible": true,
+      "expect": {
+        "refresh": false
+      }
+    },
+    {
+      "name": "settled while another page covers it",
+      "settle": "ok",
+      "visible": false,
+      "expect": {
+        "refresh": false
+      }
+    }
+  ],
+  "afterReturn": [
+    {
+      "name": "the next page pops back to this one",
+      "event": "pop",
+      "expect": {
+        "refresh": true,
+        "reason": "return",
+        "page": "self"
+      }
+    },
+    {
+      "name": "done on a result page pops to the page that started the flow",
+      "event": "done",
+      "origin": true,
+      "expect": {
+        "refresh": true,
+        "reason": "return",
+        "page": "origin"
+      }
+    },
+    {
+      "name": "done with no originating page closes",
+      "event": "done",
+      "origin": false,
+      "expect": {
+        "refresh": false,
+        "page": "close"
+      }
+    },
+    {
+      "name": "an action that sent a message card closes the page",
+      "event": "messageCard",
+      "expect": {
+        "refresh": false,
+        "page": "close"
+      }
+    }
+  ],
+  "doneTarget": [
+    {
+      "name": "overview → task → result: back to the overview",
+      "stack": [
+        "overview",
+        "task",
+        "result"
+      ],
+      "expect": {
+        "target": 0
+      }
+    },
+    {
+      "name": "overview → result: back to the overview",
+      "stack": [
+        "overview",
+        "result"
+      ],
+      "expect": {
+        "target": 0
+      }
+    },
+    {
+      "name": "records → task → result: back to the records page",
+      "stack": [
+        "records",
+        "task",
+        "result"
+      ],
+      "expect": {
+        "target": 0
+      }
+    },
+    {
+      "name": "the nearest data page wins",
+      "stack": [
+        "overview",
+        "records",
+        "task",
+        "result"
+      ],
+      "expect": {
+        "target": 1
+      }
+    },
+    {
+      "name": "several task pages are passed over",
+      "stack": [
+        "overview",
+        "task",
+        "task",
+        "result"
+      ],
+      "expect": {
+        "target": 0
+      }
+    },
+    {
+      "name": "no data page below closes the plugin pages",
+      "stack": [
+        "task",
+        "result"
+      ],
+      "expect": {
+        "target": null
+      }
+    },
+    {
+      "name": "a lone result page closes",
+      "stack": [
+        "result"
+      ],
+      "expect": {
+        "target": null
+      }
+    }
   ]
 }

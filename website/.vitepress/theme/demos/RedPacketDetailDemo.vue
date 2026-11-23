@@ -1,10 +1,14 @@
 <script setup>
-import { computed } from "vue";
-import { FlareRedPacketDetail } from "@flare-im/vue-ui/components";
+import { computed, ref, watch } from "vue";
+import { FlareRedPacketDetail, FlareSegmentedControl } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
 // 详情是普通页面的正文；宿主把它放进 FlareScreen。服务端按查看者裁剪：只有发送人拿到总额，本人金额只给本人，
 // 非指定人什么金额都没有。Kit 只画给到的字段，金额按 currencyExponent 格式化。
 const props = defineProps({ previewState: { type: String, default: "sender" } });
+const stateKeys = ["sender", "claimer", "eligible", "ineligible", "empty"];
+const selected = ref(Math.max(0, stateKeys.indexOf(props.previewState)));
+watch(() => props.previewState, (value) => { selected.value = Math.max(0, stateKeys.indexOf(value)); });
+const state = computed(() => stateKeys[selected.value]);
 const now = Date.now();
 const base = { kind: "lucky", greeting: "恭喜发财，大吉大利", currency: "CNY", currencyExponent: 2, shareCount: 3, createdAtMs: now - 60_000, expiresAtMs: now + 86_400_000 };
 const views = {
@@ -14,20 +18,22 @@ const views = {
   ineligible: { ...base, kind: "exclusive", shareCount: 1, viewerRole: "ineligible", status: "open", claimedCount: 0, claimsListed: false },
   empty: { ...base, viewerRole: "sender", status: "open", totalMinor: "210", claimedMinor: "0", claimedCount: 0, claimsListed: true },
 };
-const details = computed(() => views[props.previewState] ?? views.sender);
-const claims = computed(() => (props.previewState === "empty" ? [] : [
+const details = computed(() => views[state.value] ?? views.sender);
+const claims = computed(() => (state.value === "empty" ? [] : [
   { id: "u1", name: "阿花", amountMinor: "62", claimedAtMs: now - 50_000, best: false },
   { id: "u2", name: "大壮", amountMinor: "88", claimedAtMs: now - 40_000, best: true },
   { id: "u3", name: "小红", amountMinor: "60", claimedAtMs: now - 20_000, best: false },
-]));
+].slice(0, details.value.claimedCount)));
 </script>
 <template>
   <DemoStage>
+    <FlareSegmentedControl v-model="selected" class="states" aria-label="详情场景" :options="['已发出', '已领取', '已领完', '不可领取', '暂无领取']" />
     <div class="frame">
       <FlareRedPacketDetail sender-name="小明" :details="details" designated-name="Bob" :claims="claims" @back="() => {}" />
     </div>
   </DemoStage>
 </template>
 <style scoped>
-.frame { max-width: 390px; border: 1px solid var(--flare-color-border-primary); border-radius: 14px; overflow: hidden; }
+.states { display: flex; width: 100%; max-width: calc(var(--flare-size-layout-touch-target-min) * 12); margin: 0 auto var(--flare-size-spacing-md); box-sizing: border-box; }
+.frame { width: 100%; max-width: calc(var(--flare-size-layout-touch-target-min) * 12); margin-inline: auto; border: 1px solid var(--flare-color-border-primary); border-radius: var(--flare-size-radius-card); overflow: hidden; }
 </style>

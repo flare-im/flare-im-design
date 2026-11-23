@@ -1,19 +1,24 @@
 <script setup>
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import { FlareButton, FlareRedPacketOpenSheet } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
 // 宿主把服务端结论换成 state：点「開」进入 opening 并调 claim，这里用定时器模拟结果。
 const open = ref(false);
 const state = ref("ready");
 const message = ref("");
+let timer;
+onBeforeUnmount(() => clearTimeout(timer));
 function show(next) {
+  clearTimeout(timer);
   state.value = next;
-  message.value = next === "notEligible" ? "仅 TA 可领取" : "";
+  message.value = next === "notEligible" ? "仅 TA 可领取" : next === "error" ? "网络暂时不可用，请重试" : "";
   open.value = true;
 }
 function claim() {
+  clearTimeout(timer);
+  message.value = "";
   state.value = "opening";
-  setTimeout(() => {
+  timer = setTimeout(() => {
     state.value = "finished";
   }, 1500);
 }
@@ -25,6 +30,7 @@ function claim() {
       <FlareButton label="已领完" variant="secondary" @click="show('finished')" />
       <FlareButton label="已过期" variant="secondary" @click="show('expired')" />
       <FlareButton label="已退回" variant="secondary" @click="show('refunded')" />
+      <FlareButton label="领取失败" variant="secondary" @click="show('error')" />
       <FlareButton label="专属他人" variant="secondary" @click="show('notEligible')" />
     </div>
     <FlareRedPacketOpenSheet
@@ -41,5 +47,5 @@ function claim() {
   </DemoStage>
 </template>
 <style scoped>
-.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: var(--flare-size-spacing-sm); }
 </style>

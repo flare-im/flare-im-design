@@ -205,7 +205,7 @@ title: 数据类型
 
 > 设置分组中的一行。
 
-**被使用于：**[SettingsRow](/components/settings-row)
+**被使用于：**[ProfilePanel](/components/profile-panel) · [SettingsRow](/components/settings-row)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -215,9 +215,12 @@ title: 数据类型
 | `kind` | [`FlareSettingKind`](/reference/data-types#setting-kind) |  | 行类型：navigation 打开页面或选择器（带箭头），toggle 是开关，action 原地执行（无箭头），value 是只读信息、不是控件。 |
 | `value` | `boolean` |  | 开关状态（`kind: "toggle"` 时）。 |
 | `detail` | `string` |  | 尾部详情文本：navigation 行的当前值，或 value 行的信息。过长时换到标签下方。 |
-| `badge` | `boolean \| number` |  | `true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；原生三端只收布尔值。开关行不画。 |
+| `badge` | `boolean \| number` |  | `true` 在箭头左侧画红点，读屏随行读出：这里有新内容（比如「关于」里有更新）。Vue 同时接受数字，也就是已有的红色计数角标；Flutter 用 `badgeCount` 和 `badgeMore` 写数量；iOS 与 Compose 只收布尔值。开关行不画。 |
 | `description` | `string` |  | 仅 Compose：标签下方说明这一行做什么的一行字（开关的后果），次要文字色，最多三行；与这一行一起朗读。 |
 | `tag` | `string` |  | 箭头左侧的简短警示标签（当前构建还打不开的插件入口上的「需更新」）。是文字，读屏随行读出；开关行不画。 |
+| `badgeCount` | `number` |  | 红色计数角标，按共用的计数角标规则画在红点的位置（spec/count-badge-vectors.json）。 |
+| `badgeMore` | `boolean` |  | 实际数量多于 `badgeCount`：角标显示 99+。 |
+| `current` | `boolean` |  | 这一行就是旁边窗格正在显示的那一项：选中底色，读屏读作已选中。 |
 
 ### SettingsSection {#settings-section}
 
@@ -225,7 +228,7 @@ title: 数据类型
 
 > 带标题的设置分组。
 
-**被使用于：**[SettingsList](/components/settings-list)
+**被使用于：**[ProfilePanel](/components/profile-panel) · [SettingsList](/components/settings-list)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -246,6 +249,7 @@ title: 数据类型
 | `id` | `string` | ✓ | 会话 id。 |
 | `displayName` | `string` |  | 会话标题。 |
 | `avatarUrl` | `string` |  | 会话头像 URL。 |
+| `kind` | `'single' \| 'group' \| 'channel' \| 'ai' \| 'system'` |  | 会话类型；'group' 时行头像画群标记。 |
 | `updatedAt` | `number \| string` |  | 最后活跃时间，用于排序/时间显示。 |
 | `unreadCount` | `number` |  | 未读徽标数。 |
 | `lastMessagePreview` | `string` |  | 已渲染的最后一条消息预览文本。 |
@@ -738,7 +742,7 @@ title: 数据类型
 
 > 提交值的一个问题（UiFormError）。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
+**被使用于：**[RedPacketPage](/components/red-packet-page) · [PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -762,7 +766,7 @@ title: 数据类型
 
 > members 输入的候选成员。
 
-**被使用于：**[PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
+**被使用于：**[RedPacketPage](/components/red-packet-page) · [PluginView](/components/plugin-view) · [PluginForm](/components/plugin-form) · [PluginDetailSheet](/components/plugin-detail-sheet) · [PluginPage](/components/plugin-page) · [AccountView](/components/account-view)
 
 | 名称 | 类型 | 必填 | 说明 |
 |---|---|:---:|---|
@@ -1152,6 +1156,41 @@ title: 数据类型
 | `label` | `string` | ✓ | 已脱敏展示文字。 |
 | `detail` | `string` |  | 可选展示提示。 |
 
+### ActivityItem {#activity-item}
+
+`FlareActivityItem`
+
+> ActivityList 的一行：一条与我相关的通知，全部由宿主持有。
+
+**被使用于：**[ActivityList](/components/activity-list)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 稳定的行标识，选择时原样交回；也决定头像底色。 |
+| `title` | `string` | ✓ | 发生了什么，已组织好的文字（「林夏赞了你的动态」）；没有头像时取其首字。 |
+| `description` | `string` |  | 第二行：评论内容、动态正文。 |
+| `time` | `string` |  | 时间，由宿主格式化。 |
+| `avatarUrl` | `string` |  | 触发者的头像。 |
+| `unread` | `boolean` |  | 画未读圆点，标题半粗。 |
+
+### MediaUploadItem {#media-upload-item}
+
+`FlareMediaUploadItem`
+
+> 宿主持有的上传项；稳定 ID 用于单项恢复。
+
+**被使用于：**[MediaUpload](/components/media-upload)
+
+| 名称 | 类型 | 必填 | 说明 |
+|---|---|:---:|---|
+| `id` | `string` | ✓ | 稳定项目 ID，不用数组下标替代。 |
+| `name` | `string` | ✓ | 原始文件名或可访问显示名称。 |
+| `state` | `FlareUploadState` | ✓ | 宿主提供的上传状态。 |
+| `statusText` | `string` | ✓ | 单项状态或可恢复错误。 |
+| `previewUrl` | `string` |  | 宿主管理生命周期的图片 URL。 |
+| `progress` | `number` |  | 0–100 的进度；省略表示不确定进度。 |
+| `disabled` | `boolean` |  | 只锁定此项操作，其他选择和恢复动作仍可用。 |
+
 ## 枚举 / 联合类型
 
 ### MessageGroupPosition {#message-group-position}
@@ -1329,6 +1368,8 @@ title: 数据类型
 `FlarePluginTone`
 
 > 状态、提示和人员分组的语义色，用 *Text 系列令牌着色。
+
+**被使用于：**[ResultView](/components/result-view)
 
 `neutral` · `info` · `success` · `warning` · `danger`
 

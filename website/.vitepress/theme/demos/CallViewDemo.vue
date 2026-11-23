@@ -11,15 +11,15 @@ const ended = ref(0);
 <template>
   <DemoStage>
   <section class="call-recovery-demo">
-    <label>通话状态 <select v-model="state" aria-label="通话状态"><option v-for="value in ['calling','ringing','connected','reconnecting','failed']" :key="value">{{ value }}</option></select></label>
+    <label>通话状态 <select v-model="state" aria-label="通话状态"><option v-for="value in ['calling','ringing','connected','reconnecting','failed','ended']" :key="value">{{ value }}</option></select></label>
     <label>模式 <select v-model="mode" aria-label="模式"><option value="video">video</option><option value="audio">audio</option></select></label>
     <label><input v-model="peerMuted" type="checkbox"> 对方已静音</label>
     <label><input v-model="peerSpeaking" type="checkbox"> 对方在说话</label>
     <p>本地状态演示，不建立 RTC 通话。挂断 {{ ended }} 次</p>
     <div class="stage">
-      <FlareCallView peer-name="Ivy Chen" :mode="mode" :state="state" duration-label="03:24" :camera-on="true"
+      <FlareCallView peer-name="Ivy Chen" :mode="mode" :state="state" duration-label="03:24" :camera-on="true" encrypted
         :peer-muted="peerMuted" :peer-speaking="peerSpeaking" can-start-video @start-video="mode = 'video'"
-        :status-detail="state === 'reconnecting' ? '网络不稳定，正在恢复媒体连接' : undefined" recovery-text="重新连接" @recover="state = 'reconnecting'" @hangup="ended++">
+        :status-detail="state === 'reconnecting' ? '网络不稳定，正在恢复媒体连接' : undefined" @recover="state = 'reconnecting'" @close="state = 'connected'" @hangup="ended++" @minimize="() => undefined">
         <template #localVideo>
           <div class="self-preview" role="img" aria-label="本端画面" />
         </template>

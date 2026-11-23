@@ -266,6 +266,20 @@
       "Web 包",
       "插件网页",
       "沙箱页面"
+    ],
+    "MediaUpload": [
+      "upload",
+      "drag and drop",
+      "drop zone",
+      "image group",
+      "nine image grid",
+      "上传",
+      "多文件",
+      "拖拽上传",
+      "图片上传",
+      "九宫格",
+      "朋友圈",
+      "ImageGroup"
     ]
   },
   "overrides": {
@@ -273,6 +287,11 @@
       "scope": "platform-specific"
     },
     "ImageUploadSlot": {
+      "status": "experimental",
+      "since": "2.0.0-rc.1"
+    },
+    "MediaUpload": {
+      "scope": "platform-specific",
       "status": "experimental",
       "since": "2.0.0-rc.1"
     }
@@ -332,7 +351,13 @@
       "AccountView",
       "QRCard",
       "QRMatrix",
-      "ReauthSheet"
+      "ReauthSheet",
+      "RedPacketComposer",
+      "RedPacketOpenSheet",
+      "RedPacketDetail",
+      "FileUpload",
+      "ImageUploadSlot",
+      "MediaUpload"
     ],
     "workspace": [
       "AppLayout",

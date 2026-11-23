@@ -3,7 +3,7 @@
  * Generates the English `FlareStrings` preset for the three native kits from
  * `strings/en.json`, the single source — the same shape as `tokens/build.mjs`.
  *
- * Why this exists: the native kits' `FlareStrings` are ~500-field structs whose
+ * Why this exists: the native kits' `FlareStrings` are large typed tables whose
  * defaults are Chinese, designed to be overridden by the host. No second
  * language shipped, so a host had nothing to switch *to* and a language setting
  * could not do anything. The Vue kit is fully bilingual, but its message tree is
@@ -48,10 +48,9 @@ for (const [field, entry] of Object.entries(source)) {
 /**
  * Fields this kit declares.
  *
- * Swift requires named arguments in the order the initialiser declares them, so
- * the iOS list is read out of `FlareStrings.swift` rather than sorted — sorting
- * it alphabetically does not compile. Kotlin's builder and Dart's named
- * parameters do not care, so those stay sorted for a stable diff.
+ * Swift and Kotlin configure typed tables; Dart uses named parameters. All three
+ * can use a stable sorted order. Verify Swift fields against the actual table,
+ * including formatter closures, rather than an oversized initializer signature.
  */
 function fieldsFor(kit) {
   const declared = Object.keys(source).filter((f) => source[f].kits.includes(kit));
@@ -60,15 +59,14 @@ function fieldsFor(kit) {
     join(root, "packages/ios-im-ui/Sources/FlareIMUI/Tokens/FlareStrings.swift"),
     "utf8",
   );
-  const init = swift.slice(swift.indexOf("public init("));
-  // A field that appends its argument (`appendArgumentKits`) is a `(String) -> String` closure on iOS.
-  const order = [...init.matchAll(/^        (\w+): (?:String|@escaping @Sendable \(String\) -> String) = /gm)]
+  const table = swift.slice(swift.indexOf("public struct FlareStringsTable"));
+  const order = [...table.matchAll(/^    public var (\w+): /gm)]
     .map((m) => m[1]);
   const known = new Set(declared);
-  const ordered = order.filter((f) => known.has(f));
+  const ordered = order.filter((f) => known.has(f)).sort();
   const missing = declared.filter((f) => !order.includes(f));
   if (missing.length) {
-    throw new Error(`ios: not in FlareStrings.init — ${missing.join(", ")}`);
+    throw new Error(`ios: not in FlareStringsTable — ${missing.join(", ")}`);
   }
   return ordered;
 }
@@ -81,7 +79,7 @@ function stringFieldsFor(kit) {
   const read = (path) => readFileSync(join(root, path), "utf8");
   const fields = (text, pattern) => [...text.matchAll(pattern)].map((m) => m[1]);
   if (kit === "ios") {
-    return fields(read("packages/ios-im-ui/Sources/FlareIMUI/Tokens/FlareStrings.swift"), /^    public var (\w+): String$/gm);
+    return fields(read("packages/ios-im-ui/Sources/FlareIMUI/Tokens/FlareStrings.swift"), /^    public var (\w+): String = /gm);
   }
   if (kit === "android") {
     const kotlin = read("packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareStrings.kt");
@@ -116,8 +114,8 @@ const targets = [
     path: join(root, "packages/ios-im-ui/Sources/FlareIMUI/Tokens/FlareStrings+English.swift"),
     render(fields) {
       const args = fields.map((f) => source[f].appendArgumentKits?.includes("ios")
-        ? `            ${f}: { ${swiftLiteral(source[f].en)} + $0 }`
-        : `            ${f}: ${swiftLiteral(source[f].en)}`).join(",\n");
+        ? `            copy.${f} = { ${swiftLiteral(source[f].en)} + $0 }`
+        : `            copy.${f} = ${swiftLiteral(source[f].en)}`).join("\n");
       return `${BANNER}
 
 import Foundation
@@ -135,9 +133,9 @@ public extension FlareStrings {
     /// \`englishFormats()\` (FlareStrings+EnglishFormats.swift, checked against
     /// strings/en-formats.json).
     static var english: FlareStrings {
-        FlareStrings(
+        FlareStrings { copy in
 ${args}
-        ).englishFormats()
+        }.englishFormats()
     }
 }
 `;

@@ -130,7 +130,7 @@ provide(previewContextKey, { viewport, presentation });
 .component-preview__context-bar > span:last-child { display: grid; gap: 1px; }
 .component-preview__context-bar strong { color: var(--flare-color-text-primary); font-size: 13px; }
 .component-preview__context-bar small { color: var(--flare-color-text-tertiary); font-size: 11px; }
-.component-preview__live { display: grid; align-content: center; min-height: 298px; padding: 14px; box-sizing: border-box; background: var(--flare-color-bg-secondary); }
+.component-preview__live { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; min-height: 298px; padding: 14px; box-sizing: border-box; background: var(--flare-color-bg-secondary); }
 .component-preview__viewport.is-chat-footer .component-preview__live { align-content: end; }
 .component-preview__viewport.is-chat .component-preview__live { background: var(--flare-color-bg-tertiary); }
 .component-preview__viewport.is-list .component-preview__live { align-content: start; }

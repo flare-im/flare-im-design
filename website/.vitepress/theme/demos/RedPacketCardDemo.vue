@@ -26,5 +26,5 @@ const state = ref("unopened");
   </DemoStage>
 </template>
 <style scoped>
-.stack { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; padding: 24px; border-radius: 14px; background: var(--flare-color-bg-secondary); }
+.stack { min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; padding: 24px; border-radius: 14px; background: var(--flare-color-bg-secondary); }
 </style>

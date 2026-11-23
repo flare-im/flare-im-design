@@ -1,10 +1,11 @@
 <script setup>
-import { reactive } from "vue";
-import { FlareMomentCard } from "@flare-im/vue-ui/components";
+import { reactive, ref } from "vue";
+import { FlareButton, FlareMomentCard } from "@flare-im/vue-ui/components";
 import DemoStage from "./DemoStage.vue";
 const sw = (a, b) => "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${a}'/><stop offset='1' stop-color='${b}'/></linearGradient></defs><rect width='120' height='120' fill='url(%23g)'/></svg>`.replace(/#/g, "%23"));
 const imgs = [["#a78bfa", "#7c3aed"], ["#fca5a5", "#ef4444"], ["#93c5fd", "#2563eb"], ["#6ee7b7", "#059669"], ["#fcd34d", "#d97706"]].map(([a, b]) => ({ url: sw(a, b) }));
+const detail = ref(false);
 const state = reactive({
   feed: [
     {
@@ -37,9 +38,10 @@ function toggleLike(m) {
 <template>
   <DemoStage>
     <div class="feed">
+      <FlareButton size="sm" variant="secondary" :label="detail ? '切换卡片' : '切换详情'" @click="detail = !detail" />
       <!-- The second card is your own, so it offers 删除 — the widest the popover ever gets. -->
       <FlareMomentCard
-        v-for="m in state.feed" :key="m.id" :moment="m" :can-delete="m.id === '2'"
+        v-for="m in state.feed" :key="m.id" :moment="m" :appearance="detail ? 'detail' : 'card'" :can-delete="m.id === '2'"
         @like="toggleLike(m)" @comment="() => {}" @open-image="() => {}" @delete="() => {}"
       />
     </div>

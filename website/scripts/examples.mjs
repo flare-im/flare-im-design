@@ -561,6 +561,24 @@ ProgressBarView(indeterminate: true, label: "Verifying")`,
   onResend = ::resend,
 )`,
     },
+    {
+      title: { en: "Opening files and swiping to reply", zh: "打开文件与侧滑回复" },
+      description: { en: "Bind `open-file` and the body of a file card becomes a key that hands the host the message id (the download and folder keys stay `media-action`). Bind `swipe-reply` and a touch drag towards the trailing edge past 56 starts a reply, with the same rule as the native kits (spec/swipe-reply-vectors.json); the menu's Reply raises the same intent. Leave a listener out and the gesture or the key does not exist.", zh: "绑定 `open-file` 后，文件卡片主体成为一个键，把消息 ID 交给宿主（下载键与文件夹键仍是 `media-action`）。绑定 `swipe-reply` 后，触摸向尾边拖过 56 开始回复，规则与原生三端相同（spec/swipe-reply-vectors.json）；消息菜单的「回复」是同一个意图。不绑定监听，就没有这个手势或这个键。" },
+      vue: `<FlareMessageList
+  :messages="messages"
+  :current-user-id="me.id"
+  @open-file="(id) => openFile(messageById(id))"
+  @media-action="saveOrReveal"
+  @swipe-reply="startReply"
+  @reply="startReply"
+/>`,
+      flutter: `FlareMessageList(
+  messages: timeline,
+  currentUserId: me.id,
+  onOpenFile: (message, file) => openFile(file),
+  onSwipeReply: (message) => startReply(message.id),
+)`,
+    },
     { title: { en: "Direct Chat", zh: "单聊" }, description: { en: "Incoming identity is supplied by the conversation context; repeated sender labels stay hidden.", zh: "接收方身份由会话上下文提供，不重复显示发送者名称。" } },
     { title: { en: "Group Chat", zh: "群聊" }, description: { en: "The first incoming row in a run shows sender identity; outgoing rows remain compact by default.", zh: "连续消息组的首条接收消息显示发送者身份；发送方默认保持紧凑。" } },
     { title: { en: "Grouped Messages", zh: "连续消息" }, description: { en: "Sender, five-minute gap, message type, and system boundaries derive single/first/middle/last once in the timeline.", zh: "时间线统一根据发送者、五分钟间隔、消息类型和系统边界计算 single/first/middle/last。" } },
@@ -1004,6 +1022,39 @@ FlareComposerActionPanel(actions = myActions, onAction = ::pick)`,
       description: { en: "The host formats the text and decides what may be shown; the block keeps it exactly as written, scrolls inside its own box and copies the whole text.", zh: "文本由宿主格式化，能展示什么也由宿主决定；代码块原样保留文本、在自己的框里滚动，并复制全文。" },
       vue: `<FlareCodeBlock language="JSON" :code="JSON.stringify(detail, null, 2)" @copy="(copied) => toast(copied ? t('common.copied') : t('common.copyFailed'))" />
 <FlareCodeBlock language="TypeScript" :label="t('quickStart.init')" :code="initSnippet" wrap />`,
+    },
+  ],
+
+  UnreadBadge: [
+    {
+      title: { en: "A tab's unread count, a muted row, a new-item dot", zh: "标签的未读数、免打扰的行、新内容圆点" },
+      description: { en: "Pass the count the host keeps; above 99 it reads 99+ like every other count badge in the kit. `more` says the server counted only one page (Vue). `quiet` is the silenced conversation's look; `dot` marks something new with no number while the count is 0.", zh: "传入宿主持有的计数；超过 99 写 99+，与 Kit 里其他角标一致。`more` 表示服务端只数了一页（Vue）。`quiet` 是免打扰会话的样式；`dot` 在计数为 0 时用不带数字的圆点表示有新内容。" },
+      vue: `<FlareUnreadBadge :count="moments.unreadTotal" :more="moments.unreadMore" />
+<FlareUnreadBadge :count="row.unread" quiet />
+<FlareUnreadBadge :count="0" dot />`,
+      flutter: `FlareUnreadBadge(count: moments.unreadTotal)
+FlareUnreadBadge(count: row.unread, quiet: true)
+const FlareUnreadBadge(count: 0, dot: true)`,
+    },
+  ],
+
+  ActivityList: [
+    {
+      title: { en: "Moments notifications, with paging in the footer", zh: "圈子互动通知，页脚里翻页" },
+      description: { en: "Map the SDK's activity page to rows; the list keeps no read state. Bind `select` to open what a row is about (and mark it read); without it the rows are text. The footer holds a sentinel that `useFlareLoadMoreWhenVisible` watches, so the next page is asked for 400px before the end.", zh: "把 SDK 返回的互动通知页映射成行；列表不记已读。绑定 `select` 打开该行对应的内容（并标记已读）；不绑定时行只是文字。页脚放一个哨兵，由 `useFlareLoadMoreWhenVisible` 监视，离底部 400px 时请求下一页。" },
+      vue: `<FlareActivityList :items="rows" :empty-text="t('moments.activityEmpty')" @select="openActivity">
+  <template #footer><div ref="sentinel" /></template>
+</FlareActivityList>
+
+// script setup
+const sentinel = ref(null);
+useFlareLoadMoreWhenVisible(sentinel, loadNextPage, { enabled: () => hasMore.value && !loading.value });`,
+      flutter: `FlareActivityList(
+  items: rows,
+  emptyText: strings.activityEmpty,
+  onSelect: openActivity,
+  footer: hasMore ? const FlareSkeleton() : null,
+)`,
     },
   ],
 

@@ -17,3 +17,17 @@ export function platformContractIssues(component, platforms) {
   }
   return { errors, missing };
 }
+
+/** Prop names may repeat only when their platform scopes do not overlap. */
+export function duplicatePlatformProps(component) {
+  const seen = new Set(), duplicates = new Set();
+  const platforms = Object.keys(component.platforms ?? {});
+  for (const prop of component.props ?? []) {
+    for (const platform of prop.platforms ?? platforms) {
+      const key = `${platform}:${prop.name}`;
+      if (seen.has(key)) duplicates.add(key);
+      seen.add(key);
+    }
+  }
+  return [...duplicates];
+}

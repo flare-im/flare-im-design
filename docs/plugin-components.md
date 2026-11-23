@@ -2,6 +2,14 @@
 
 插件只提交数据与动作 ID。SDK 持有授权目录、参数绑定、会话隔离和业务分发；应用组合页面、回调与平台 Bridge；Kit 负责呈现及无障碍交互。不要把钱包、网络、权限判断或插件脚本放进组件库。
 
+## Web 详情与编辑流程
+
+Vue `FlarePluginDetailSheet.presentation="page"` 使用响应式 Drawer 与 Screen：PC 为侧栏，手机占满页面。默认 `sheet` 保持兼容。已有详情在刷新和读取失败时继续显示，并给出状态与重试；下一页失败单独传 `paginationError`，每次读取结束递增 `pagingToken`，相同游标和相同错误也能继续重试。动作失败仍使用 `actionError`，不得用读侧信号结算命令。
+
+`FlarePluginView.formPresentation="page"` 将动作表单放入完整编辑页，正文滚动、提交区固定，校验失败保留草稿。`FlarePluginPage` 自动使用此模式；只有一个符合内嵌条件的表单且没有其他内容时，直接显示表单。密码和确认流程保留原有保护。至少四个导航／表单入口使用服务列表，直接命令另行分组；窄记录列表把操作放在正文下方。无字段、块、动作或专用呈现的页面显示明确空态。
+
+These presentation and read-recovery additions are Vue-only. Existing native presentation is unchanged. Hosts fetch and merge records; the kit preserves loaded content and draft values, emits retry intents, and never retries a financial command automatically. `formPresentation` and detail `presentation` both default to `sheet`; `PluginPage` opts action forms into `page`. Read-side `pagingToken` is independent of action `settleToken`.
+
 ## 四端组件
 
 | 用途 | Vue / Web / Tauri | SwiftUI | Compose | Flutter |

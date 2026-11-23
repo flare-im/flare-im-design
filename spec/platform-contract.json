@@ -72,10 +72,10 @@
       "zh": "打开平台文件选择器。空选择记为 CANCELLED，绝不返回空成功。"
     },
     "pickImages": {
-      "input": "{ multiple?: boolean, video?: boolean }",
+      "input": "{ multiple?: boolean, video?: boolean, camera?: boolean }",
       "output": "PickedFile[]",
-      "en": "Open the platform photo / video picker.",
-      "zh": "打开平台相册 / 视频选择器。"
+      "en": "Open the platform photo / video picker. `camera` (Vue so far) takes one new photo instead: the web adapter's image input with capture=\"environment\"; the native kits' options do not carry it yet and their hosts take photos themselves.",
+      "zh": "打开平台相册 / 视频选择器。`camera`（目前仅 Vue）改为拍一张新照片：Web 适配器用带 capture=\"environment\" 的图片输入框；原生 Kit 的选项还没有这一项，由宿主自己拍照。"
     },
     "share": {
       "input": "{ title?, text?, url?, files? }",

@@ -1,7 +1,7 @@
 {
-  "$comment": "The plugin UI vocabulary the design kits render (flare-plugin-protocol UiVocabulary). Hosts pass each kit's PLUGIN_UI_VOCABULARY to the engine through plugin.set_host_profile (kitVocabulary); the engine intersects it with its own vocabulary and the host's native allowlist. `vocabulary` is what every kit renders; `kits.<kit>.omit` lists names a kit does not render yet, so it never reports them. Generated into each kit by spec/build-plugin-ui-vocabulary.mjs; `--check` fails when a generated file is out of date. Add a name here only once every kit not omitting it renders it.",
+  "$comment": "The plugin UI vocabulary the design kits render (flare-plugin-protocol UiVocabulary). Hosts pass each kit's PLUGIN_UI_VOCABULARY to the engine through plugin.set_host_profile (kitVocabulary); the engine intersects it with its own vocabulary and the host's native allowlist. `vocabulary` is what every kit renders; `kits.<kit>.omit` lists names a kit does not render yet, so it never reports them. Generated into each kit by spec/build-plugin-ui-vocabulary.mjs; `--check` fails when a generated file is out of date. Add a name here only once every kit not omitting it renders it. Additive fields need no name here: a resolved field or row cell may carry tone and unmapped (from {label, tone} values), a status block, badge or timeline status unmapped, an action group (common | records) and icon (a kit icon name), a page view's tabs and a rows block's icon; a kit that ignores them draws as before (docs/plugin-experience.md R2, R3, 4.7). A kit line removes its omit entry once it renders the name.",
   "vocabulary": {
-    "version": 2,
+    "version": 3,
     "blocks": [
       "text",
       "fields",
@@ -23,7 +23,8 @@
       "hero",
       "steps",
       "banner",
-      "timeline"
+      "timeline",
+      "result"
     ],
     "inputs": [
       "text",
@@ -52,7 +53,11 @@
       "count",
       "bytes"
     ],
-    "actions": ["operation", "page", "native"],
+    "actions": [
+      "operation",
+      "page",
+      "native"
+    ],
     "native": [
       "selectImage",
       "selectFile",
@@ -64,7 +69,13 @@
       "paymentConfirmation",
       "locationOnce"
     ],
-    "renderers": ["redPacket.card"],
+    "renderers": [
+      "redPacket.card",
+      "redPacket.compose",
+      "redPacket.detail",
+      "redPacket.review",
+      "status.card"
+    ],
     "kinds": [
       "message-content",
       "message-action",
@@ -76,9 +87,9 @@
     ]
   },
   "kits": {
-    "vue": { "omit": {} },
-    "flutter": { "omit": {} },
-    "android": { "omit": {} },
-    "ios": { "omit": {} }
+    "vue": {},
+    "flutter": {},
+    "android": {},
+    "ios": {}
   }
 }

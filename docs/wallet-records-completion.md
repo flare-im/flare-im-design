@@ -50,8 +50,8 @@ No backend deployment, live account mutation, live payment, recharge or withdraw
 
 ## Local previews
 
-- Vue: `flare-im-design/.local/wallet-records/vue/` (96 phone/desktop, light/dark captures, including explicitly synthetic overflow probes).
-- Flutter: `flare-im-design/.local/wallet-flow-refinement/flutter/flutter-record-*.png`.
+- Vue: `flare-im-design/artifacts/local-qa/previous-local/wallet-records/vue/` (96 phone/desktop, light/dark captures, including explicitly synthetic overflow probes).
+- Flutter: `flare-im-design/artifacts/local-qa/previous-local/wallet-flow-refinement/flutter/flutter-record-*.png`.
 - SwiftUI: workspace `.local/wallet-records/ios/`.
 - Compose: workspace `.local/wallet-records/android/`.
 

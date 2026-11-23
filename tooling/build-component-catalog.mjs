@@ -172,6 +172,7 @@ const components = spec.components.map((component) => {
   const aliases = [
     ...(metadata.aliases?.[component.name] ?? []),
     component.category,
+    ...Object.values(spec.categoryLabels?.[component.category] ?? {}),
     ...component.states,
     ...component.events,
   ];
@@ -230,6 +231,7 @@ const catalog = {
   schemaVersion: 2,
   version: spec.version,
   categories: spec.categories,
+  categoryLabels: spec.categoryLabels,
   generatedFrom: [
     "spec/components.json",
     "spec/component-layers.json",

@@ -1289,6 +1289,32 @@
       }
     },
     {
+      "name": "PinInput",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlarePinInput",
+          "sourcePath": "packages/vue-im-ui/src/components/form/FlarePinInput.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlarePinInput",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_pin_input.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlarePinInput",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlarePinInput.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "PinInputView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/PinInputView.swift"
+        }
+      }
+    },
+    {
       "name": "InviteCodeField",
       "status": "stable",
       "platforms": {
@@ -1493,6 +1519,38 @@
           "package": "FlareIMUI",
           "symbol": "FilterTabsView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FilterTabsView.swift"
+        }
+      }
+    },
+    {
+      "name": "UnreadBadge",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareUnreadBadge",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareUnreadBadge.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareUnreadBadge",
+          "sourcePath": "packages/flutter-im-ui/lib/src/primitives/flare_unread_badge.dart"
+        }
+      }
+    },
+    {
+      "name": "ActivityList",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareActivityList",
+          "sourcePath": "packages/vue-im-ui/src/components/general/FlareActivityList.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareActivityList",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_activity_list.dart"
         }
       }
     },
@@ -2429,6 +2487,32 @@
           "package": "FlareIMUI",
           "symbol": "RedPacketDetailView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketDetailView.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketPage",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketPage",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketPage.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketPage",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_page.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketPage",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketPage.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketPageView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketPageView.swift"
         }
       }
     },
@@ -3932,6 +4016,11 @@
           "package": "@flare-im/vue-ui",
           "symbol": "FlareRecentSearches",
           "sourcePath": "packages/vue-im-ui/src/components/general/FlareRecentSearches.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRecentSearches",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_recent_searches.dart"
         }
       }
     },
@@ -4890,6 +4979,158 @@
           "package": "FlareIMUI",
           "symbol": "ReauthSheetView",
           "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/ReauthSheetView.swift"
+        }
+      }
+    },
+    {
+      "name": "MediaUpload",
+      "status": "experimental",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareMediaUpload",
+          "sourcePath": "packages/vue-im-ui/src/components/media/FlareMediaUpload.vue"
+        }
+      }
+    },
+    {
+      "name": "CommentComposer",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCommentComposer",
+          "sourcePath": "packages/vue-im-ui/src/components/moments/FlareCommentComposer.vue"
+        }
+      }
+    },
+    {
+      "name": "ResultView",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareResultView",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareResultView.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareResultView",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_result_view.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareResultView",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareResultView.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareResultView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareResultView.swift"
+        }
+      }
+    },
+    {
+      "name": "DocumentSlot",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareDocumentSlot",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareDocumentSlot.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareDocumentSlot",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_document_slot.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "FlareDocumentSlot",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/FlareDocumentSlot.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "FlareDocumentSlot",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/FlareDocumentSlot.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketReview",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketReview",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/FlareRedPacketReview.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketReview",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_red_packet_review.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketReview",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketReview.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketReviewView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketReviewView.swift"
+        }
+      }
+    },
+    {
+      "name": "CallSurface",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareCallSurface",
+          "sourcePath": "packages/vue-im-ui/src/components/call/FlareCallSurface.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareCallSurface",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/flare_call_surface.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "CallSurface",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/CallSurface.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "CallSurfaceView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/CallSurfaceView.swift"
+        }
+      }
+    },
+    {
+      "name": "RedPacketArch",
+      "status": "stable",
+      "platforms": {
+        "vue": {
+          "package": "@flare-im/vue-ui",
+          "symbol": "FlareRedPacketArch",
+          "sourcePath": "packages/vue-im-ui/src/components/messages/RedPacketArch.vue"
+        },
+        "flutter": {
+          "package": "flare_im_ui",
+          "symbol": "FlareRedPacketArch",
+          "sourcePath": "packages/flutter-im-ui/lib/src/components/red_packet_arch.dart"
+        },
+        "compose": {
+          "package": "com.flare.im:im-ui-compose",
+          "symbol": "RedPacketArch",
+          "sourcePath": "packages/android-im-ui/src/main/kotlin/com/flare/im/ui/RedPacketReview.kt"
+        },
+        "ios": {
+          "package": "FlareIMUI",
+          "symbol": "RedPacketArchView",
+          "sourcePath": "packages/ios-im-ui/Sources/FlareIMUI/Components/RedPacketArchView.swift"
         }
       }
     }

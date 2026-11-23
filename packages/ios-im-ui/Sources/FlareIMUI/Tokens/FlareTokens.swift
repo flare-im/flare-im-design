@@ -72,11 +72,13 @@ public extension View {
 
 private struct FlareThemeScheme: ViewModifier {
     let mode: FlareThemeMode
-    @Environment(\.colorScheme) private var inheritedScheme
 
     func body(content: Content) -> some View {
-        // A stable modifier keeps the existing NavigationStack when the scheme changes.
-        content.environment(\.colorScheme, mode.colorScheme ?? inheritedScheme)
+        switch mode {
+        case .system: content
+        case .light: content.environment(\.colorScheme, .light)
+        case .dark: content.environment(\.colorScheme, .dark)
+        }
     }
 }
 

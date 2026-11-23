@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { FlarePaymentConfirmation, FlareRedPacketComposer, FlareSegmentedControl, FlareStatusBanner } from "@flare-im/vue-ui/components";
+import { FlarePaymentConfirmation, FlareRedPacketComposer, FlareSegmentedControl, FlareSelect, FlareStatusBanner } from "@flare-im/vue-ui/components";
 import { flareRedPacketAmountMinor, flareRedPacketMoney } from "@flare-im/vue-ui";
 import DemoStage from "./DemoStage.vue";
 // 群聊默认拼手气；单聊只给 normal，表单不显示种类和个数，金额标签为「金额」。
@@ -17,6 +17,8 @@ const amount = ref("");
 const count = ref(0);
 const greeting = ref("");
 const paying = ref(false);
+const recipient = ref("");
+const recipients = [{ value: "ivy", label: "林夏" }, { value: "su", label: "苏晚晴" }, { value: "zhou", label: "周屿" }];
 // 宿主用整数最小单位算总额，不经浮点。
 const total = computed(() => {
   const perShare = kind.value === "normal" && kinds.value.length > 1;
@@ -28,8 +30,10 @@ const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额�
 </script>
 <template>
   <DemoStage>
-    <FlareSegmentedControl v-model="conversation" class="switch" :options="['群聊', '单聊', '待核对']" />
-    <FlareSegmentedControl v-model="currencyIndex" class="switch" :options="CURRENCIES.map((c) => c.code)" />
+    <div class="controls">
+      <FlareSegmentedControl v-model="conversation" class="switch" aria-label="会话场景" :options="['群聊', '单聊', '待核对']" />
+      <FlareSegmentedControl v-model="currencyIndex" class="switch" aria-label="币种" :options="CURRENCIES.map((c) => c.code)" />
+    </div>
     <div class="frame">
       <FlareStatusBanner v-if="locked" text="上一个红包的结果还在核对，完成前不能再发。" tone="warning" />
       <FlareRedPacketComposer
@@ -45,7 +49,7 @@ const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额�
         @submit="paying = true"
       >
         <template #recipient>
-          <span class="pick">选择成员</span>
+          <FlareSelect v-model="recipient" :options="recipients" title="指定领取人" placeholder="选择成员" size="sm" />
         </template>
       </FlareRedPacketComposer>
     </div>
@@ -59,7 +63,9 @@ const error = computed(() => (Number(amount.value) > 200 ? "单个红包金额�
   </DemoStage>
 </template>
 <style scoped>
-.switch { margin-bottom: 12px; }
-.frame { max-width: 390px; border-radius: 14px; background: var(--flare-color-bg-secondary); }
-.pick { color: var(--flare-color-text-tertiary); font-size: var(--flare-size-font-size-xl); }
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--flare-size-spacing-sm); margin: 0 auto var(--flare-size-spacing-md); max-width: calc(var(--flare-size-layout-touch-target-min) * 12); }
+.switch { width: 100%; box-sizing: border-box; }
+.frame { width: 100%; max-width: calc(var(--flare-size-layout-touch-target-min) * 12); margin-inline: auto; border-radius: var(--flare-size-radius-card); background: var(--flare-color-bg-secondary); }
+@media (max-width: 400px) { .controls { grid-template-columns: minmax(0, 1fr); } }
+
 </style>

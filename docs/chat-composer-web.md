@@ -42,7 +42,11 @@
 </FlareComposer>
 ```
 
-组件沿用受控草稿、现有 markdown 编辑器及 `send/build` 事件；宿主仍负责 SDK、持久化草稿、附件上传和发送失败恢复。图片入口发出 `build('image')`，Web 宿主直接打开原生文件选择器，再进入现有附件预览/上传链路。
+组件沿用受控草稿及 `send/build` 事件。视频从「+」附件菜单选择。平台文件选择器、输入框拖放与粘贴都通过 `files-drop` 返回文件。
+
+用 `useFlareComposerAttachments({ maxImages, send })` 将 `files-drop` 接到 `select`，再将 `previewProps` 和 `previewEvents` 分别通过 `v-bind` 和 `v-on` 绑定到 `FlareComposerMediaPreview`。组件库管理预览、可选说明、提交前失败重试和本地预览资源。宿主的 `send` 回调负责 SDK 发送，消息已进入时间线（包括可在气泡上重试的失败消息）时返回 `true`。切换会话时调用 `reset` 清除上一会话的附件。
+
+为 `FlareMessageList` 启用 `file-drop-enabled`，并将它的 `files-drop` 接到同一确认流程，可从桌面把本地文件拖到消息区。宿主通过 `file-drop-blocked` 传入离线或只读状态，多选期间会暂停接收文件。
 
 ## 可扩展配置
 
@@ -67,6 +71,12 @@
 状态由宿主真实权限和连接数据提供，组件不猜测禁言权限。本次 Web 应用接入已有连接状态；群禁言等状态通过 readOnly/statusHint 契约供后续真实群权限数据接入。
 
 ## 录音
+
+手机 shell 使用共享 `FlareVoiceHoldButton`：按住录音，松手进入试听，明确点击发送才投递。`slideToCancel` 开启时上滑 48px 后松手取消；Escape、失焦、禁用和卸载均取消。桌面继续使用开始、暂停和试听按钮，保留键盘操作。视觉控件保持紧凑，按住区和试听进度条仍提供 48px 触控区。
+
+`VoiceRecordingPayload.durationMs` 必须交给 SDK 的音频内容构建器，保留到 `audio.source.durationMs`；不要仅把 Blob 当普通文件发送而丢弃时长。共享音频消息同时读取标准 source 与兼容 payload 时长，响应容器 durationchange。手机语音下载保留在长按菜单，避免悬浮下载遮住波形和时长。
+
+默认录音器仍访问真实麦克风。`createWebVoiceRecorderAdapter({ acquire })` 可选注入媒体流，返回 `{ stream, release? }`；适配器停止轨道并且只调用一次 release。仅本地开发验收可使用合成音频流，不能据此声称真实麦克风硬件已验收。
 
 点击麦克风打开面板，开始/停止、试听、删除、明确发送。最长 65 秒；短于 250ms 不发送。关闭时取消正在录制的内容；已完成试听内容在同会话面板切换中保留。取消待授权请求后若系统才返回媒体流，立即停止其轨道。卸载释放流、计时器和对象 URL。`sendVoiceHandler` 拒绝时保留预览供重试；SDK 接受后的投递失败继续由消息气泡处理。发送语音保留文字草稿。
 

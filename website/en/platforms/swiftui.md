@@ -23,6 +23,26 @@ The host owns state and passes it explicitly. Components do not duplicate SDK da
 
 Complex components use defaults + capabilities + host configuration; focused primitives keep a small controlled API.
 
+## Localized copy
+
+`FlareStrings()` uses the Chinese defaults; `.english` selects the English preset. Install copy once with `.flareStrings(...)` on the root view. Customize through a typed configuration closure, or mutate a copy of the English preset. Both strings and formatters remain writable with copy-on-write isolation. The 2.0 RC replaces the oversized named-argument initializer with the form below; do not construct `FlareStringsTable` directly.
+
+~~~swift
+let copy = FlareStrings { strings in
+    strings.send = "Send"
+    strings.readTab = { "Read (\($0))" }
+}
+ContentView().flareStrings(copy)
+
+var brandedEnglish = FlareStrings.english
+brandedEnglish.send = "Send securely"
+ContentView().flareStrings(brandedEnglish)
+~~~
+
+## Generation and validation
+
+Edit Chinese defaults on the corresponding `FlareStringsTable` properties, English text in `strings/en.json`, and formatter rules in `strings/en-formats.json`. Run `npm run generate`, `npm run check:strings`, and `npm run check:generated`. On macOS, run `cd packages/ios-im-ui && swift test` to validate real compilation and the full native suite.
+
 ## Callbacks / Events
 
 Every side effect returns through callbacks, events, or intents; failure and offline states retain recovery.

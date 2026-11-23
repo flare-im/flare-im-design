@@ -6,6 +6,16 @@
 
 ### 设计系统与跨端组件
 
+- **Web 社交应用对齐 Flutter：Vue 应用原先自己画的部件进 Kit**（Vue Kit 与契约；Flutter 已有）。
+  - 新增 `UnreadBadge`（Vue / Flutter `FlareUnreadBadge`：`count`、`dot`、`quiet`、`maxCount`，Vue 另有 `more`，文字走 `flareCountBadgeText`）与 `ActivityList`（Vue / Flutter `FlareActivityList` 与 `FlareActivityItem`：`items`、`emptyText`，绑定时才有 `select`，`footer` 插槽）。
+  - Vue `useFlareLoadMoreWhenVisible(target, onVisible, { rootMargin = "400px", enabled, root })`：用 IntersectionObserver 实现 Flutter 的「离底 400px 读下一页」；没有 IntersectionObserver 时什么都不做。
+  - Vue `MessageList`：打开文件卡片主体时发出 `openFile(messageId)`（下载键与文件夹键仍是 `mediaAction`）；触摸侧滑回复（`swipeReply`，`flareSwipeReplyGesture` 读 `spec/swipe-reply-vectors.json`，行带 `touch-action: pan-y`）；只绑定 `swipeReply` 时菜单的「回复」也发出它，与 Flutter 一致。
+  - Vue `MomentCard` 只有绑定 `like` / `comment` 时才提供点赞与评论，「···」后面什么都没有时不画；`MomentActionPopover` 新增 `canLike` / `canComment`（默认 true）。
+  - Vue `Composer` 自己处理 `camera` 意图：`pickImages({ camera: true })`（Web 适配器为 `capture="environment"`），照片经 `files-drop` 交给宿主。
+  - Vue `ConversationListContainer`：触摸下拉刷新、指针设备有刷新键（`refresh`、`refreshing`）；契约里仅 Flutter 的 `onRefresh` prop 改为 Vue 与 Flutter 共有的 `refresh` 事件。
+  - Vue `ProfilePanel` 用设置列表的分组样式把每个分组的 `title` 画在卡片上方（`footer` 画在下方），与 Flutter、Compose 一致；有标题的卡片是以标题命名的组。
+  - Vue `Avatar` 在宿主绑定 `@click` 时是按钮（对应 Flutter 的 `onTap`）：以 `ariaLabel` 或这个人命名、键盘可达、命中区达到触达区；不绑定时不变。
+
 - **消息列表：对方的消息在四端都和聊天底色分得开**（Token 与四端 Kit）。
   - 原生三端的时间线铺的是 `bg.secondary`（#F7F8FA），对方气泡（#F1F2F5）在上面只有 1.05:1，同一个人连发的几条连成一片。四端现在都铺 `bg.primary`，和 Vue 原本一样（`--flare-component-chat-window-bg`）；`message.incoming.background` 加深一档：亮色 #ECEEF2、暗色 #2E323C（在底色上 1.16:1 与 1.22:1）。`spec/message-surface-vectors.json` 的 `palette.canvas` 写明底色和下限 1.15:1，原生三端按每个品牌、两种模式检查，网页端的气泡门禁在页面里实测。
   - 对方气泡的阴影四端都引用小阴影 token（`shadows.sm`）；原先 SwiftUI 是手写的晕影、Compose 是 2dp 投影、Flutter 没有。

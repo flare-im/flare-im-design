@@ -10,7 +10,7 @@ Two searches, one pattern. Global search finds contacts, groups and messages fro
 | Search entry in a list header (opens search) | `FlareSearchBar` with `read-only` and `@activate` | `FlareSearchBar(readOnly: true, onActivate:)` | `SearchBarView(readOnly: true, onActivate:)` | `SearchBar(readOnly = true, onActivate =)` |
 | Grouped results (contacts, groups, messages) | `FlareSearchResults` | `FlareSearchResults` | `SearchResultsView` | `SearchResults` |
 | Query, filters, time ranges and result states | `FlareSearchPanel` | `FlareSearchPanel` | `SearchPanelView` | `SearchPanel` |
-| Recent searches (idle state) | `FlareRecentSearches` | — | — | — |
+| Recent searches (idle state) | `FlareRecentSearches` | `FlareRecentSearches` | `RecentSearchesView` + `flareRememberSearch` | `RecentSearches` + `flareRememberSearch` |
 | Page | `FlareScreen` | `FlareScreen` | `FlareScreen` | `FlareScreen` |
 
 ## Global search (Vue)

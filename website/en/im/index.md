@@ -10,7 +10,7 @@ Foundation → General UI → IM UI → Product. IM UI may compose General UI bu
 
 ## Models
 
-Read [Message lifecycle](/en/im/message-lifecycle), [Message status](/en/im/message-status), and [Message content](/en/im/message-content), then browse Conversation, Message, Composer, Media, Contacts, Group, Call, Profile, and Moments.
+Read [Message lifecycle](/en/im/message-lifecycle), [Message status](/en/im/message-status), and [Message content](/en/im/message-content), then browse Conversation, Message, Message content, Composer, Media, Contacts, Groups, Call, Profile, and Moments. Red packets, Accounts & verification, and Plugin interfaces have dedicated categories; start with [Choosing components](/en/guide/component-map).
 
 ## Workspaces
 

@@ -10,7 +10,7 @@ Foundation → General UI → IM UI → Product。IM UI 可组合 General UI，�
 
 ## 模型
 
-先读[消息生命周期](/im/message-lifecycle)、[消息状态](/im/message-status)和[消息内容](/im/message-content)，再按 Conversation、Message、Composer、Media、Contacts、Group、Call、Profile 与 Moments 浏览。
+先读[消息生命周期](/im/message-lifecycle)、[消息状态](/im/message-status)和[消息内容](/im/message-content)，再按会话、消息、消息内容、输入、媒体、通讯录、群组、通话、个人中心与圈子浏览。红包、账户与认证、插件界面独立分类，选择前可读[组件选型指南](/guide/component-map)。
 
 ## 工作区
 

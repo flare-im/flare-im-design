@@ -133,8 +133,7 @@
     "test": "packages/vue-im-ui/src/utils/markdown.security.test.ts",
     "allowedRawHtml": [
       "packages/vue-im-ui/src/components/messages/standalone/FlareTextMessage.vue",
-      "packages/vue-im-ui/src/components/message-preview/MarkdownPreview.vue",
-      "packages/vue-im-ui/src/components/messages/standalone/MsgIcon.vue"
+      "packages/vue-im-ui/src/components/message-preview/MarkdownPreview.vue"
     ],
     "allowedRawHtmlWhy": {
       "FlareTextMessage.vue": "Message text through renderMarkdown.",

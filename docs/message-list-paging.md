@@ -33,7 +33,7 @@
 
 - 错误为 null、空串或全空白都算没有错误。
 - 「宿主接这个意图」：Vue 监听了对应事件，原生端传了对应回调。没有监听的一端不画按钮，也不自动请求。
-- 按钮文字：往旧沿用 `loadOlderText` / `messageListLoadOlder`；往新是 `messageListLoadNewer`（加载更新的消息 / Load newer messages），Vue 为 `chat.loadNewer`，加载中的文字是 `chat.loadingNewer`。
+- 往旧的按钮允许宿主提供 `loadOlderText`。Vue 默认使用 `chat.loadOlder`（查看更早的消息），请求期间使用 `chat.loadingOlder`。原生端默认使用 `messageListLoadOlder`。往新的按钮使用 `messageListLoadNewer`，Vue 对应 `chat.loadNewer`，请求期间使用 `chat.loadingNewer`。
 - Vue 到达历史起点时短暂出现的「没有更多消息了」提示不在这张表里，规则不变。
 
 改前三个原生端在「正在加载且有错误」时同时画错误与转圈，Vue 只画转圈；现在四端都只画转圈。

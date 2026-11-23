@@ -7,6 +7,20 @@
 - IM payload text remains application data and is never translated by the kit.
 - Dates, times, plurals, and locale-aware formatting remain host responsibilities.
 
+## SwiftUI construction
+
+The 2.0 RC uses `FlareStrings { copy in ... }` for typed overrides. Default construction
+(`FlareStrings()`), `.english`, writable properties, key paths and copy-on-write
+isolation remain available. The former initializer exceeded a thousand default
+arguments and crashed Swift 6.3 during SIL lowering; a fixed-size configuration
+signature and an explicit table initializer avoid both default-argument expansion
+and synthesis of another oversized memberwise initializer.
+
+Default Chinese copy is declared once on `FlareStringsTable` properties. The English
+and resource-key generators read those declarations; they do not infer fields from
+an initializer. See the [SwiftUI guide](../website/platforms/swiftui.md) and
+[migration note](release/migration/2.0-rc-to-2.0.md#swiftui-localization-initialization).
+
 ## RTL status
 
 `RTL_NOT_SUPPORTED_FOR_2_0_STABLE`. The implementations generally use logical

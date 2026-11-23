@@ -24,7 +24,8 @@ requireText("packages/vue-im-ui/src/components/general/FlareSearchBar.vue", [
   ":focus-visible", "prefers-reduced-motion",
 ]);
 requireText("packages/vue-im-ui/src/components/general/FlareButton.vue", [":focus-visible", "prefers-reduced-motion", ':aria-busy="loading"']);
-requireText("packages/flutter-im-ui/lib/src/components/flare_button.dart", ["disableAnimations", "Duration.zero"]);
+// `MediaQuery.maybeDisableAnimationsOf` is the aspect form of `.disableAnimations` (rebuilds on that flag only).
+requireText("packages/flutter-im-ui/lib/src/components/flare_button.dart", ["DisableAnimationsOf", "Duration.zero"]);
 requireText("packages/flutter-im-ui/lib/src/components/flare_search_bar.dart", ["focusNode", "disableAnimations", "Semantics("]);
 requireText("packages/flutter-im-ui/lib/src/components/flare_rich_markdown_input.dart", ["FlareRichMarkdownLabels", "widget.labels.bold"]);
 requireText("packages/android-im-ui/src/main/kotlin/com/flare/im/ui/Controls.kt", ["role = Role.Tab", "onClickLabel = label", "selected = active"]);
@@ -171,12 +172,12 @@ for (const file of styleFiles(vueRoot)) {
       // one violet would fight the semantic tint.
       if (/\bcurrentColor\b/.test(value)) continue;
       if (/\bwhite\b|#fff/i.test(value) && FOCUS_OUTLINE_ON_MEDIA.has(rel)) continue;
-      if (/\bHighlight\b|\bMark\b/.test(value)) continue; // forced-colors system colours
+      if (/\b(?:Highlight|Mark|CanvasText)\b/.test(value)) continue; // forced-colors system colours
       errors.push(`${rel}: focus outline with a literal colour (${value}) — use var(--flare-color-border-selected)`);
       continue;
     }
     for (const name of vars) {
-      if (FOCUS_OUTLINE_VARS.has(name)) continue;
+      if (FOCUS_OUTLINE_VARS.has(name) || name.startsWith("--flare-size-")) continue; // a width token is not the colour
       errors.push(`${rel}: outline colour ${name} is not a solid focus token — WCAG 2.4.11 needs 3:1, and only var(--flare-color-border-selected) clears it in every theme (outline: ${value})`);
     }
   }
@@ -234,7 +235,9 @@ for (const directory of NATIVE_FOCUS_ROOTS) {
       if (text.includes("colors.borderSelected")) nativeFocusCount += 1;
       if (text.includes("colors.primary"))
         errors.push(`${rel}: focus indicator uses colors.primary — it fails 3:1 in every dark theme; use colors.borderSelected (${text.slice(0, 90)})`);
-      if (text.includes("colors.focusRing") && !NATIVE_FOCUS_GLOW_ALLOWED.has(text))
+      // `.flareFocusHalo` is the iOS input glow drawn outside the field's 1px borderSelected border (§12.22).
+      const glowHelper = text.startsWith(".flareFocusHalo(") && text.includes("color: colors.focusRing");
+      if (text.includes("colors.focusRing") && !NATIVE_FOCUS_GLOW_ALLOWED.has(text) && !glowHelper)
         errors.push(`${rel}: focus indicator uses colors.focusRing — that token is the glow, not the ring; use colors.borderSelected (${text.slice(0, 90)})`);
     }
   }

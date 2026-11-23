@@ -79,6 +79,7 @@ function onCopy(_kitId: string, copied: boolean) {
         :conversation-type="convKind"
         :messages="messages"
         :current-user-id="uid"
+        tinted-outgoing
         :loading-older="loadingOlder"
         :has-older="hasOlder"
         :unread-from-id="unreadFromId ?? undefined"
@@ -106,6 +107,8 @@ function onCopy(_kitId: string, copied: boolean) {
 ```
 
 ## Message model
+
+The Web reference enables `tintedOutgoing` for a quieter conversation. The Vue timeline uses the theme's canvas, text and receipt colors for the tinted outgoing surface. Apps that rely on the standard outgoing palette can keep the default.
 
 The timeline renders what the app maps. Map every core message once:
 

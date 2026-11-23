@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "How the four kits write a count badge: a navigation item's count badge, a filter tab's badge and (Vue) a settings row's badge. A badge takes a count and `more`, which says there are more than the count (the server had more than the one page it counted) and is false when left out. The text is flareCountBadgeText(count, more): 99+ when `more` or when the count is above 99, else the count, with a missing or negative count written 0. A filter tab and a settings row draw their badge only when flareCountBadgeDrawn(count, more): a count above 0, or `more`. A navigation item draws the badge the host hands it. A host that still hands a count above 99 for `more` reads 99+ as before.",
+  "note": "How the four kits write a count badge: a navigation item's count badge, a filter tab's badge and (Vue and Flutter) a settings row's badge. A badge takes a count and `more`, which says there are more than the count (the server had more than the one page it counted) and is false when left out. The text is flareCountBadgeText(count, more): 99+ when `more` or when the count is above 99, else the count, with a missing or negative count written 0. A filter tab and a settings row draw their badge only when flareCountBadgeDrawn(count, more): a count above 0, or `more`. A navigation item draws the badge the host hands it. A host that still hands a count above 99 for `more` reads 99+ as before.",
   "cap": 99,
   "overflow": "99+",
   "cases": [
