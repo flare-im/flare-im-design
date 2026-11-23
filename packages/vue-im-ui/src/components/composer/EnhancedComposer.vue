@@ -811,6 +811,7 @@ const mobilePanels = computed(() => props.formFactor
   ? props.formFactor === "mobile"
   : (viewport?.isMobile.value ?? !isWide.value) ||
     (typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches));
+const phoneToolbar = computed(() => mobilePanels.value && !isWide.value);
 let widthObserver: ResizeObserver | undefined;
 watch(root, (element) => {
   widthObserver?.disconnect();
@@ -868,6 +869,7 @@ onBeforeUnmount(() => {
       'composer--uploading': hasUploading,
       'composer--more-open': resolvedActivePanel === 'more',
       'composer--wide': isWide,
+      'composer--phone': phoneToolbar,
       'composer--panels-above': !mobilePanels,
       'composer--toolbar-expanded': expandedToolbar,
     }"
@@ -1015,11 +1017,11 @@ onBeforeUnmount(() => {
           </template>
         </n-button>
         <n-button v-if="emojiToolAvailable" circle quaternary :title="t('composer.emoji')" :aria-label="t('composer.emoji')" :class="{ 'is-selected': resolvedActivePanel === 'emoji' }" :disabled="editingBlocked" @click="toggle('emoji')">
-          <template #icon><n-icon aria-hidden="true" :size="20" :component="HappyOutline" /></template>
+          <template #icon><n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="HappyOutline" /></template>
         </n-button>
         <div v-if="mentionToolAvailable" class="composer-mention-anchor">
           <n-button circle quaternary :title="t('composer.mention')" :aria-label="t('composer.mention')" :class="{ 'is-selected': mentionMenuOpen }" :aria-expanded="mentionMenuOpen" :disabled="editingBlocked" @click="openMentionPicker">
-            <template #icon><n-icon aria-hidden="true" :size="20" :component="AtOutline" /></template>
+            <template #icon><n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="AtOutline" /></template>
           </n-button>
         </div>
         <n-button
@@ -1033,21 +1035,22 @@ onBeforeUnmount(() => {
           :disabled="editingBlocked || sendBlocked || sending"
           @click="openVoicePanel"
         >
-          <template #icon><n-icon aria-hidden="true" :size="20" :component="MicOutline" /></template>
+          <template #icon><n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="MicOutline" /></template>
         </n-button>
         <n-button v-if="imageToolAvailable" circle quaternary class="composer-toolbar__image" :title="t('composer.image')" :aria-label="t('composer.image')" :disabled="editingBlocked" @click="build('image')">
-          <template #icon><n-icon aria-hidden="true" :size="20" :component="ImageOutline" /></template>
+          <template #icon><n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="ImageOutline" /></template>
         </n-button>
         <n-button v-if="richTextToolAvailable" circle quaternary class="composer-toolbar__rich" :title="t('composer.richText')" :aria-label="t('composer.richText')" :class="{ 'is-selected': richActive }" :disabled="editingBlocked" @click="toggleRichMode">
-          <template #icon><n-icon aria-hidden="true" :size="20" :component="TextOutline" /></template>
+          <template #icon><n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="TextOutline" /></template>
         </n-button>
         <n-button v-if="moreAvailable" circle quaternary :title="t('composer.more')" :aria-label="t('composer.more')" :class="{ 'is-selected': resolvedActivePanel === 'more' }" :aria-expanded="resolvedActivePanel === 'more'" :disabled="editingBlocked" @click="toggle('more')">
           <template #icon>
-            <n-icon aria-hidden="true" :size="20" :component="resolvedActivePanel === 'more' ? CloseOutline : AddOutline" />
+            <n-icon aria-hidden="true" size="var(--studio-action-glyph)" :component="resolvedActivePanel === 'more' ? CloseOutline : AddOutline" />
           </template>
         </n-button>
         <FlareComposerSendButton
           class="composer-toolbar__send"
+          :glyph-size="phoneToolbar ? 'lg' : 'md'"
           :active="canSend && !sending"
           :label="sendTitle"
           :title="sendTitle"

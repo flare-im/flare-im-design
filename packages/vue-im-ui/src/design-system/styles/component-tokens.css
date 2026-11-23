@@ -1,3 +1,9 @@
+.flare-phone-header-actions {
+  --flare-header-action-target: var(--flare-size-layout-touch-target);
+  --flare-header-action-glyph: var(--flare-size-icon-size-lg);
+  --flare-header-labelled-action-glyph: var(--flare-size-icon-size-md);
+}
+
 :root {
   --flare-component-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Inter, "Segoe UI", sans-serif;
   /* Code / technical text (raw payloads, slash commands, elapsed time). Was

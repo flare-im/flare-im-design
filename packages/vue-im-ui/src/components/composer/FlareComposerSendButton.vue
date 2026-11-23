@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import FlareIcon from "../general/FlareIcon.vue";
 import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 // Send — a paper plane, and nothing else. Emits `send` only when active;
 // `label` is the accessible label.
@@ -9,7 +10,7 @@ import { useFlareI18n } from "../../shared/i18n/useFlareI18n";
 // — so it is drawn the same way, and only colour says which one sends: the
 // brand at rest against the row, faded while there is nothing to send. That is
 // also what EnhancedComposer's own send key does, and the two must not drift.
-const props = defineProps<{ active: boolean; label?: string }>();
+const props = defineProps<{ active: boolean; label?: string; glyphSize?: "md" | "lg" }>();
 const { t } = useFlareI18n();
 const strings = computed(() => ({
   label: props.label ?? t("composerSendButton.label"),
@@ -22,10 +23,7 @@ function click() {
 
 <template>
   <button class="flare-send" :class="{ active }" :disabled="!active" @click="click" :aria-label="strings.label">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M4.5 19.5 21 12 4.5 4.5v6l8.5 1.5-8.5 1.5z" />
-    </svg>
+    <FlareIcon name="send" :size="glyphSize ?? 'md'" />
   </button>
 </template>
 

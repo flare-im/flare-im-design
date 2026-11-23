@@ -17,6 +17,7 @@
  */
 import { computed, getCurrentInstance, ref, useSlots } from "vue";
 import { NIcon } from "naive-ui";
+import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 import { ArrowBackOutline } from "../../shared/icon-glyphs";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
 import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
@@ -53,6 +54,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ (e: "back"): void }>();
 const { t } = useFlareI18nOptional();
+const { isH5 } = useFlareAdaptiveSafe();
 const instance = getCurrentInstance();
 const root = ref<HTMLElement | null>(null);
 // 返回先退这一页之内最上面的上下文层(多选),再才是离开这一页;范围就是这张 screen 自己,
@@ -88,10 +90,10 @@ const contentWidth = computed(() => typeof props.contentMaxWidth === "number" &&
           :aria-label="t('common.back')"
           @click="goBack"
         >
-          <n-icon aria-hidden="true" size="var(--flare-size-icon-size-md)" :component="ArrowBackOutline" />
+          <n-icon aria-hidden="true" :size="isH5 ? 'var(--flare-size-icon-size-lg)' : 'var(--flare-size-icon-size-md)'" :component="ArrowBackOutline" />
         </button>
         <h1 v-if="title" class="flare-screen__title">{{ title }}</h1>
-        <div class="flare-screen__actions"><slot name="actions" /></div>
+        <div class="flare-screen__actions" :class="{ 'flare-phone-header-actions': isH5 }"><slot name="actions" /></div>
       </slot>
     </header>
 

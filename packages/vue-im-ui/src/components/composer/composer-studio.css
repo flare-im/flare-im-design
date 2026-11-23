@@ -244,6 +244,8 @@
 }
 
 .composer-studio.composer .composer-toolbar {
+  --studio-action-height: var(--flare-size-component-composer-action-height);
+  --studio-action-glyph: var(--flare-size-icon-size-md);
   position: relative;
   display: flex;
   grid-column: 1;
@@ -251,13 +253,17 @@
   justify-content: space-between;
   min-width: 0;
   width: 100%;
-  min-height: var(--flare-size-component-composer-action-height);
+  min-height: var(--studio-action-height);
   gap: 0;
   padding: 0 var(--flare-size-spacing-sm);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+.composer-studio.composer--phone .composer-toolbar {
+  --studio-action-height: var(--flare-size-layout-touch-target-min);
+  --studio-action-glyph: var(--flare-size-icon-size-lg);
 }
 
 .composer-studio.composer .composer-format-strip::after,
@@ -313,10 +319,8 @@
   width: var(--flare-size-component-composer-action-width) !important;
   min-width: var(--flare-size-component-composer-action-width) !important;
   max-width: var(--flare-size-component-composer-action-width);
-  /* 高度读 token(40),不再各写一个 44:四端动作键同一个尺寸。min-height 要跟着写,
-     否则 accessibility.css 粗指针下的 44 地板会盖过 height 把整行撑回去。 */
-  height: var(--flare-size-component-composer-action-height) !important;
-  min-height: var(--flare-size-component-composer-action-height) !important;
+  height: var(--studio-action-height) !important;
+  min-height: var(--studio-action-height) !important;
   margin: 0;
   padding: 0;
   border: 0;
@@ -327,13 +331,13 @@
   transform: none;
 }
 
-/* 键画 40 高,手指要的 44 由这层不可见的伪元素补齐(上下各 2px)。 */
+/* Compact desktop controls still extend to the minimum hit height. */
 .composer-studio.composer .composer-toolbar > .n-button::after,
 .composer-studio.composer .composer-toolbar .composer-mention-anchor > .n-button::after,
 .composer-studio.composer .composer-toolbar > .composer-toolbar__send::after {
   content: "";
   position: absolute;
-  inset: calc((var(--flare-size-component-composer-action-height) - var(--flare-size-layout-touch-target-min)) / 2) 0;
+  inset: calc((var(--studio-action-height) - var(--flare-size-layout-touch-target-min)) / 2) 0;
 }
 
 .composer-studio.composer .composer-toolbar > .composer-expand {
@@ -364,8 +368,8 @@
 }
 
 .composer-studio .composer-toolbar :deep(svg:not(.composer-resize-icon)) {
-  width: var(--flare-size-icon-size-md);
-  height: var(--flare-size-icon-size-md);
+  width: var(--studio-action-glyph);
+  height: var(--studio-action-glyph);
   stroke-width: 1.7;
 }
 

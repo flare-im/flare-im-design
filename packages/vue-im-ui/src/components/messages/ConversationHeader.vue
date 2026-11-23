@@ -23,6 +23,7 @@ import FlareActionMenu from "../general/FlareActionMenu.vue";
 import type { FlareActionItem } from "../../shared/contracts/action-menu";
 import { useFlareNativeBack } from "../../shared/platform/useFlareNativeBack";
 import { dismissTopFlareContextualLayer } from "../../shared/useContextualLayer";
+import { useFlareAdaptiveSafe } from "../../composables/useAdaptiveMode";
 
 type HeaderAction = FlareConversationHeaderAction;
 
@@ -41,6 +42,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useFlareI18n();
+const { isH5 } = useFlareAdaptiveSafe();
+const glyphSize = computed(() => isH5.value ? "lg" : "md");
 const instance = getCurrentInstance();
 const rootRef = ref<HTMLElement | null>(null);
 // 返回先退这一页里最上面的上下文层(多选),第二下才离开会话 —— 主流 IM 选择态下头部的前导
@@ -208,7 +211,7 @@ onBeforeUnmount(() => observer?.disconnect());
   <header
     ref="rootRef"
     class="flare-conversation-header"
-    :class="{ 'flare-conversation-header--compact': compact }"
+    :class="{ 'flare-conversation-header--compact': compact, 'flare-conversation-header--phone': isH5 }"
     :aria-label="label || identity.accessibilityLabel || identity.title"
   >
     <button
@@ -219,7 +222,7 @@ onBeforeUnmount(() => observer?.disconnect());
       :aria-label="t('common.back')"
       @click="back"
     >
-      <FlareIcon name="back" :size="20" />
+      <FlareIcon name="back" :size="glyphSize" />
     </button>
 
     <div class="flare-conversation-header__identity">
@@ -296,7 +299,7 @@ onBeforeUnmount(() => observer?.disconnect());
           @click="selectAction(action.id, primaryActions)"
         >
           <slot name="action-icon" :action="action">
-            <FlareIcon :name="iconName(action)" :size="20" />
+            <FlareIcon :name="iconName(action)" :size="glyphSize" />
           </slot>
           <span v-if="action.badge" class="flare-conversation-header__badge">{{ action.badge }}</span>
           <span v-else-if="action.dot" class="flare-conversation-header__dot" aria-hidden="true" />
@@ -316,7 +319,7 @@ onBeforeUnmount(() => observer?.disconnect());
           :aria-label="t('conversationHeader.addActions')"
           data-header-menu="add"
         >
-          <FlareIcon name="add" :size="21" />
+          <FlareIcon name="add" :size="glyphSize" />
         </button>
       </FlareActionMenu>
 
@@ -332,7 +335,7 @@ onBeforeUnmount(() => observer?.disconnect());
         :data-header-action="soleOverflowAction.id"
         @click="selectAction(soleOverflowAction.id, overflowActions)"
       >
-        <FlareIcon name="more" :size="21" />
+        <FlareIcon name="more" :size="glyphSize" />
         <span v-if="soleOverflowAction.badge" class="flare-conversation-header__badge">{{ soleOverflowAction.badge }}</span>
         <span v-else-if="soleOverflowAction.dot" class="flare-conversation-header__dot" aria-hidden="true" />
       </button>
@@ -349,7 +352,7 @@ onBeforeUnmount(() => observer?.disconnect());
           :aria-label="moreMenuLabel"
           data-header-menu="more"
         >
-          <FlareIcon name="more" :size="21" />
+          <FlareIcon name="more" :size="glyphSize" />
           <span v-if="moreMenuDot" class="flare-conversation-header__dot" aria-hidden="true" />
         </button>
       </FlareActionMenu>
@@ -468,8 +471,8 @@ onBeforeUnmount(() => observer?.disconnect());
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
+  width: var(--flare-size-layout-touch-target);
+  height: var(--flare-size-layout-touch-target);
   padding: 0;
   border: 0;
   border-radius: var(--flare-size-radius-md);
@@ -479,9 +482,11 @@ onBeforeUnmount(() => observer?.disconnect());
   transition: color var(--flare-transition-fast), background-color var(--flare-transition-fast);
 }
 
-.flare-conversation-header__icon-button:hover:not(:disabled) {
-  color: var(--flare-color-primary-text);
-  background: var(--flare-color-bg-hover);
+@media (hover: hover) {
+  .flare-conversation-header__icon-button:hover:not(:disabled) {
+    color: var(--flare-color-primary-text);
+    background: var(--flare-color-bg-hover);
+  }
 }
 
 .flare-conversation-header__icon-button.is-pressed {
@@ -531,8 +536,8 @@ onBeforeUnmount(() => observer?.disconnect());
   padding-inline: var(--flare-size-spacing-sm);
 }
 
-.flare-conversation-header--compact .flare-conversation-header__icon-button {
-  width: 44px;
-  height: 44px;
+.flare-conversation-header--compact:not(.flare-conversation-header--phone) .flare-conversation-header__icon-button {
+  width: var(--flare-size-layout-touch-target-min);
+  height: var(--flare-size-layout-touch-target-min);
 }
 </style>

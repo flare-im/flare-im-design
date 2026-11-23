@@ -11,7 +11,8 @@ Every component that exposes an event is interactive and declares `role`, `label
 A finger hits an area, not a border box, so the rule is about the **hit area**, not the drawn control:
 
 - On a coarse pointer every interactive target has a hit area of at least **44 by 44** logical pixels (`--flare-size-layout-touch-target-min`). The floor is applied once, in `design-system/styles/accessibility.css`, under `@media (pointer: coarse)`; a control that is deliberately smaller on desktop scopes its own height to `@media (pointer: fine)`.
-- `--flare-size-layout-touch-target` (48) stays the size of the primary touch rows the layout is built on — list rows, sheet actions, the composer's own keys. It is the design target, not the floor.
+- `--flare-size-layout-touch-target` (48) stays the size of the primary touch controls the layout is built on — list rows, sheet actions, and header buttons. It is the design target, not the floor.
+- In the Vue phone layout, the screen and chat headers use 24 px glyphs in 48 × 48 px icon buttons. The composer reserves 44 × 44 px for each 24 px tool glyph. Bottom navigation already uses 24 px glyphs with a 48 px minimum target. Utility icon buttons outside headers use a 44 px minimum target and a 20 px minimum glyph.
 - A text field is tapped through the box that focuses it, so the field's wrapper is what has to clear the floor.
 - The `touchTarget` block each component carries in `spec/components.json` records that 48 design target. The 44 floor is the enforced minimum and is checked by test, not declared per component.
 

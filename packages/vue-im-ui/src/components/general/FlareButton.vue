@@ -73,7 +73,9 @@ const rsize = computed(() => props.size ?? config.size.value);
 .flare-button.is-block { width: 100%; }
 .flare-button:active:not(:disabled) { transform: scale(0.98); }
 .flare-button:disabled { opacity: var(--flare-opacity-disabled); cursor: not-allowed; }
-.flare-button__icon { font-size: 1.1em; }
+.flare-button__icon { flex: none; font-size: var(--flare-size-icon-size-md); }
+.flare-button--sm .flare-button__icon { font-size: var(--flare-header-labelled-action-glyph, var(--flare-size-icon-size-sm)); }
+.flare-button--lg .flare-button__icon { font-size: var(--flare-size-icon-size-lg); }
 
 /* sizes
    每个尺寸都要显式写 min-height:accessibility.css 在 (pointer: coarse) 下给 :where(button)
