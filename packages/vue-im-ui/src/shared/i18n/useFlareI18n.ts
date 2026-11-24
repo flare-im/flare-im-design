@@ -7,7 +7,7 @@ import {
   type InjectionKey,
   type Ref,
 } from "vue";
-import { enUS, dateEnUS, zhCN, dateZhCN } from "naive-ui";
+import { enUS, dateEnUS, jaJP, dateJaJP, zhCN, dateZhCN } from "naive-ui";
 import {
   FLARE_DEFAULT_LOCALE,
   flareMessages,
@@ -72,7 +72,7 @@ function hasMessage(locale: FlareLocale, key: string): boolean {
   return typeof cursor === "string" || isFlarePluralMessage(cursor);
 }
 
-export function useFlareI18nProvider(initialLocale?: FlareLocale): FlareI18nContext {
+export function useFlareI18nProvider(initialLocale?: FlareLocale, { persist = true } = {}): FlareI18nContext {
   // A provider nested under another one — FlareUiProvider mounted inside a host
   // that already set the language — inherits it. Minting a fresh context here
   // would silently reset the host's locale to the stored default, and the host
@@ -80,14 +80,13 @@ export function useFlareI18nProvider(initialLocale?: FlareLocale): FlareI18nCont
   const inherited = inject(flareI18nKey, null);
   if (initialLocale === undefined && inherited) return inherited;
 
-  const resolved = initialLocale ?? readStoredLocale();
+  const resolved = initialLocale ?? (persist ? readStoredLocale() : FLARE_DEFAULT_LOCALE);
   const locale = ref<FlareLocale>(resolved);
   setFlareRuntimeLocale(resolved);
 
-  // Naive UI ships its own locale packs; zh* keeps zhCN, everything else gets enUS.
-  const isZh = computed(() => locale.value.toLowerCase().startsWith("zh"));
-  const naiveLocale = computed(() => (isZh.value ? zhCN : enUS));
-  const naiveDateLocale = computed(() => (isZh.value ? dateZhCN : dateEnUS));
+  const language = computed(() => locale.value.toLowerCase().split(/[-_]/)[0]);
+  const naiveLocale = computed(() => language.value === "zh" ? zhCN : language.value === "ja" ? jaJP : enUS);
+  const naiveDateLocale = computed(() => language.value === "zh" ? dateZhCN : language.value === "ja" ? dateJaJP : dateEnUS);
   const direction = computed(() => flareTextDirection(locale.value));
 
   function t(key: string, params?: Record<string, string | number>): string {
@@ -101,7 +100,7 @@ export function useFlareI18nProvider(initialLocale?: FlareLocale): FlareI18nCont
   function setLocale(next: FlareLocale): void {
     locale.value = next;
     setFlareRuntimeLocale(next);
-    if (typeof localStorage !== "undefined") {
+    if (persist && typeof localStorage !== "undefined") {
       localStorage.setItem(STORAGE_KEY, next);
     }
     applyDocumentLocale(next);

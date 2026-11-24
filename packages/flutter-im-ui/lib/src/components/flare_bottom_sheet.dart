@@ -18,6 +18,9 @@ enum FlareSheetPresentation {
   /// is handed to a centered FlareModal. Resolved once when the sheet opens.
   auto,
 
+  /// Like [auto], but switches surfaces while open. For stateless content.
+  responsive,
+
   /// Always a bottom sheet.
   sheet,
 }
@@ -61,6 +64,7 @@ class FlareBottomSheet extends StatelessWidget {
     this.presentation = FlareSheetPresentation.auto,
     this.fill = false,
     this.showClose = false,
+    this.inset = false,
     required this.child,
   });
 
@@ -89,6 +93,9 @@ class FlareBottomSheet extends StatelessWidget {
   /// A close control in the corner when handed to a FlareModal (the Vue kit's
   /// `show-close`, a modal-only control); a sheet keeps its handle and scrim.
   final bool showClose;
+
+  /// Leave a small margin around the phone sheet and round all four corners.
+  final bool inset;
   final Widget child;
 
   /// The child draws its own header: in fill mode the title is not drawn.
@@ -100,7 +107,8 @@ class FlareBottomSheet extends StatelessWidget {
   ///
   /// [presentation] [FlareSheetPresentation.auto] (the default) is resolved
   /// here, once: a bottom sheet on the phone form factor, a centered FlareModal
-  /// elsewhere; it stays that way until the sheet closes.
+  /// elsewhere; it stays that way until the sheet closes. Use
+  /// [FlareSheetPresentation.responsive] for prompts that can switch live.
   ///
   /// [dismissible] false blocks the scrim, drag, Escape and back for the whole
   /// life of the sheet. [busy] locks it live while an operation owns it: while
@@ -141,30 +149,32 @@ class FlareBottomSheet extends StatelessWidget {
     FlareSheetPresentation presentation = FlareSheetPresentation.auto,
     bool fill = false,
     bool showClose = false,
+    bool inset = false,
     Listenable? listenable,
     double? dialogWidth,
     required WidgetBuilder builder,
   }) {
+    final responsive = presentation == FlareSheetPresentation.responsive;
     final asModal =
-        presentation == FlareSheetPresentation.auto &&
+        presentation != FlareSheetPresentation.sheet &&
         !flareCapabilitiesOf(context).bottomSheet;
-    final resolved = asModal
-        ? FlareSheetPresentation.auto
-        : FlareSheetPresentation.sheet;
     Widget content(BuildContext inner) => FlareBottomSheet(
       title: titleBuilder?.call(inner) ?? title,
       titleHidden: titleHidden,
       maxHeight: maxHeight,
-      presentation: resolved,
       fill: fill,
       showClose: showClose,
+      inset: inset,
       // The sheet inspects the content itself for an owned header in fill mode.
       child: fill ? builder(inner) : Builder(builder: builder),
     );
     final still = flareReduceMotion(context);
     Widget frame(BuildContext routeContext) {
-      final resolution = FlareSheetResolution(
-        asModal: asModal,
+      final currentModal = responsive
+          ? !flareCapabilitiesOf(routeContext).bottomSheet
+          : asModal;
+      Widget resolution = FlareSheetResolution(
+        asModal: currentModal,
         dismissible: dismissible,
         busy: busy,
         child: listenable == null
@@ -174,17 +184,44 @@ class FlareBottomSheet extends StatelessWidget {
                 builder: (inner, _) => content(inner),
               ),
       );
+      if (responsive && !currentModal) {
+        if (dismissible && busy == null) {
+          resolution = Dismissible(
+            key: const ValueKey(FlareSheetPresentation.responsive),
+            direction: DismissDirection.down,
+            resizeDuration: null,
+            onDismissed: (_) => Navigator.of(routeContext).pop(),
+            child: resolution,
+          );
+        }
+        resolution = Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: FlareSizes.bubbleMaxWidth,
+            ),
+            child: resolution,
+          ),
+        );
+      }
       // §12.10: reduced motion drops the route's slide, not the arrival.
       return still ? _FadeIn(child: resolution) : resolution;
     }
 
-    if (asModal) {
+    // Keep one route across resize so the choice resolves once, on dismissal.
+    if (asModal || responsive) {
       return FlareModal.show<T>(
         context,
         dismissible: dismissible,
         framed: false,
         width: dialogWidth,
-        builder: frame,
+        builder: responsive
+            ? (routeContext) => _PopGuard(
+                dismissible: dismissible,
+                busy: busy,
+                child: Builder(builder: frame),
+              )
+            : frame,
       );
     }
     final scopes = flareOverlayScopes(context);
@@ -283,7 +320,7 @@ class FlareBottomSheet extends StatelessWidget {
     final resolution = FlareSheetResolution.maybeOf(context);
     final asModal =
         resolution?.asModal ??
-        (presentation == FlareSheetPresentation.auto &&
+        (presentation != FlareSheetPresentation.sheet &&
             !flareCapabilitiesOf(context).bottomSheet);
     if (!asModal) return _sheet(context);
     final busy = resolution?.busy;
@@ -325,9 +362,11 @@ class FlareBottomSheet extends StatelessWidget {
     Widget frame = DecoratedBox(
       decoration: BoxDecoration(
         color: colors.bgPrimary,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(FlareSizes.radius2xl),
-        ),
+        borderRadius: inset
+            ? const BorderRadius.all(Radius.circular(FlareSizes.radius2xl))
+            : const BorderRadius.vertical(
+                top: Radius.circular(FlareSizes.radius2xl),
+              ),
       ),
       child: SafeArea(
         top: false,
@@ -398,8 +437,14 @@ class FlareBottomSheet extends StatelessWidget {
         child: frame,
       );
     }
+    final margin = inset ? FlareSizes.spacingSm : 0.0;
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        margin,
+        0,
+        margin,
+        MediaQuery.viewInsetsOf(context).bottom + margin,
+      ),
       child: frame,
     );
   }

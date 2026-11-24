@@ -52,6 +52,19 @@ const errorOf = (wrapper: ReturnType<typeof render>["wrapper"], id: string) => {
 };
 
 describe("FlarePluginForm (spec/plugin-view-vectors.json → form)", () => {
+  it("keeps draft values when labels and choice captions change with the locale", async () => {
+    const title = { id: "title", kind: "text", label: "Title", placeholder: "Title" };
+    const visibility = { id: "visibility", kind: "select", label: "Visibility", choices: [{ value: "all", label: "Everyone" }] };
+    const { wrapper, state, submits } = render({ inputs: [title, visibility], values: { visibility: "all" } });
+    await field(wrapper, "title").get("input").setValue("Planning");
+    state.inputs = [{ ...title, label: "件名", placeholder: "予定の件名" }, { ...visibility, choices: [{ value: "all", label: "全員" }] }];
+    await flushPromises();
+    expect(field(wrapper, "title").get("input").attributes("placeholder")).toBe("予定の件名");
+    expect(field(wrapper, "visibility").text()).toContain("全員");
+    await wrapper.get("form").trigger("submit");
+    expect(submits).toEqual([{ title: "Planning", visibility: "all" }]);
+  });
+
   it("updates sibling validation immediately and blocks submission until corrected", async () => {
     const { wrapper, submits } = render({
       inputs: [{ id: "amount", kind: "text", label: "总额" }, { id: "limit", kind: "text", label: "单笔上限" }],

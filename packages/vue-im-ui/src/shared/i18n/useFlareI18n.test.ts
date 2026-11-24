@@ -25,6 +25,23 @@ describe("readStoredLocale", () => {
     view.unmount();
   });
 
+  it("applies a host locale to the plugin without overwriting the app preference", () => {
+    localStorage.setItem("flare-web-locale", "en-US");
+    let i18n: FlareI18nContext | undefined;
+    const view = mount(defineComponent({
+      setup() {
+        i18n = useFlareI18nProvider("zh-CN", { persist: false });
+        return () => h("div");
+      },
+    }));
+    i18n?.setLocale("ja-JP");
+    expect(i18n?.locale.value).toBe("ja-JP");
+    expect(i18n?.naiveDateLocale.value.name).toBe("ja-JP");
+    expect(document.documentElement.lang).toBe("ja-JP");
+    expect(readStoredLocale()).toBe("en-US");
+    view.unmount();
+  });
+
   it("honours a tag only the host registered, and reads blank as the default", () => {
     localStorage.setItem("flare-web-locale", " fr-FR ");
     expect(readStoredLocale()).toBe("fr-FR");

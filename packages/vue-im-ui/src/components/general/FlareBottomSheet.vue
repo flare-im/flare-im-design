@@ -51,6 +51,10 @@ const props = withDefaults(
      * 之后也收不到宿主那边设的值。全局搜索的 720px 弹窗宽度就这么静默失效过。
      */
     dialogWidth?: string;
+    /** Leave a small margin around the phone sheet so all four corners are visible. */
+    inset?: boolean;
+    /** Let stateless content switch surfaces on resize while open. */
+    adaptWhileOpen?: boolean;
     presentation?: FlareSheetPresentation;
   }>(),
   { maxHeight: "72vh", dismissible: true, showClose: false, presentation: "auto", titleHidden: false, fill: false },
@@ -68,11 +72,12 @@ function resolvePresentation(): "sheet" | "dialog" {
 // auto 在打开的那一刻判定一次,关掉之前不变:开着时跨过断点(或壳层切了形态)若换成另一支,
 // 插槽会被重挂载 —— 输入框里的字、滚动位置、选择器的搜索词都会丢,出场动画也会重播。
 // 同步 watch:在这一次渲染之前就换好,打开那一帧画的就是新判定的那一支。
-const resolvedPresentation = ref(resolvePresentation());
+const openingPresentation = ref(resolvePresentation());
+const resolvedPresentation = computed(() => props.adaptWhileOpen ? resolvePresentation() : openingPresentation.value);
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) resolvedPresentation.value = resolvePresentation();
+    if (isOpen) openingPresentation.value = resolvePresentation();
   },
   { flush: "sync" },
 );
@@ -128,7 +133,7 @@ const { style: visibleViewportStyle } = useFlareVisibleViewport(() => props.open
         <div
           ref="sheetEl"
           class="flare-sheet"
-          :class="{ 'flare-sheet--fill': fill }"
+          :class="{ 'flare-sheet--fill': fill, 'flare-sheet--inset': inset }"
           :style="sheetStyle"
           role="dialog"
           :aria-label="title"
@@ -178,6 +183,10 @@ const { style: visibleViewportStyle } = useFlareVisibleViewport(() => props.open
      影响:它撑不出去,这一层永远不会出现第二根滚动条。 */
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+.flare-sheet--inset {
+  margin: 0 var(--flare-size-spacing-sm) var(--flare-size-spacing-sm);
+  border-radius: var(--flare-size-radius-2xl);
 }
 /* 定高模式:内容自己滚,这一层不再滚;内容撑满剩下的高度。 */
 .flare-sheet--fill { overflow: hidden; }

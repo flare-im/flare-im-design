@@ -72,7 +72,8 @@ const dismissText = computed(() => props.dismissText ?? (props.softAsk ? t("perm
 const actions = () => permissionActions(props.state, {
   hasRequest: hasListener('onRequest'), hasOpenSettings: hasListener('onOpenSettings'), hasDismiss: hasListener('onDismiss'), busy: props.busy,
 });
-const buttonSize = computed(() => (props.compact && !sheet.value ? 'sm' : 'md'));
+const notificationSheet = computed(() => sheet.value && ownSoftAsk.value);
+const buttonSize = computed(() => notificationSheet.value ? 'lg' : props.compact && !sheet.value ? 'sm' : 'md');
 
 /** The inline presentation: the prompt itself, with no surface around it. */
 const InlineSurface: FunctionalComponent = (_, { slots }) => slots.default?.();
@@ -80,7 +81,14 @@ InlineSurface.inheritAttrs = false;
 const surface = computed(() => (sheet.value ? FlareBottomSheet : InlineSurface));
 // The prompt draws its own heading, so the sheet keeps the title as its accessible name only.
 const surfaceProps = computed(() => (sheet.value
-  ? { open: props.open && shows.value, title: title.value, titleHidden: true, dismissible: !props.busy && hasListener('onDismiss') }
+  ? {
+      open: props.open && shows.value,
+      title: title.value,
+      titleHidden: true,
+      inset: notificationSheet.value,
+      adaptWhileOpen: notificationSheet.value,
+      dismissible: !props.busy && hasListener('onDismiss'),
+    }
   : {}));
 function onSurfaceClose() { if (!props.busy && hasListener('onDismiss')) emit('dismiss'); }
 // On a sheet the surface owns Escape (and closes as a dismiss); handling it here too would dismiss twice.
@@ -139,7 +147,7 @@ function onEscape() { if (!sheet.value && !props.busy && hasListener('onDismiss'
         <FlareButton
           v-if="actions().dismiss"
           :label="dismissText"
-          :variant="softAsk ? 'quiet' : 'secondary'"
+          :variant="softAsk && !notificationSheet ? 'quiet' : 'secondary'"
           :size="buttonSize"
           :block="sheet"
           :disabled="busy"

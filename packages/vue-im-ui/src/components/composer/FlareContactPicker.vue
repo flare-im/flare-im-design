@@ -36,6 +36,8 @@ const props = withDefaults(
     sending?: boolean;
     loading?: boolean;
     error?: string;
+    moreLabel?: string;
+    loadingMore?: boolean;
   }>(),
   { searchable: true, multiple: false, title: undefined, caption: undefined, sending: false, loading: false },
 );
@@ -45,6 +47,7 @@ const emit = defineEmits<{
   /** A host listener opts into remote matching instead of local filtering. */
   (e: "search", query: string): void;
   (e: "retry"): void;
+  (e: "more"): void;
 }>();
 const instance = getCurrentInstance();
 const remoteSearch = () => Boolean(instance?.vnode.props?.onSearch);
@@ -227,6 +230,9 @@ function confirm(): void {
         <div v-if="bottomSpacer" :style="{ height: `${bottomSpacer}px` }" aria-hidden="true" />
       </template>
     </div>
+    <FlareButton v-if="moreLabel && !loading && !error" :loading="loadingMore" @click="emit('more')">
+      {{ moreLabel }}
+    </FlareButton>
   </section>
 </template>
 

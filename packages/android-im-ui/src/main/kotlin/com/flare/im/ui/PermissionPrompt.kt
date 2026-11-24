@@ -319,6 +319,7 @@ fun PermissionPrompt(
             title = resolvedTitle,
             titleHidden = true,
             dismissible = !busy && onDismiss != null,
+            inset = softAsk && kind == FlarePermissionKind.Notifications,
         ) {
             val finish = LocalFlareOverlayFinish.current
             val choose: (PermissionSheetChoice) -> Unit = { choice ->

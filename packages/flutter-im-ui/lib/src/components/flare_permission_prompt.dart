@@ -381,12 +381,18 @@ class FlarePermissionPrompt extends StatelessWidget {
             featureLabel: featureLabel,
             strings: strings,
           );
+    final notificationInvite =
+        softAsk && kind == FlarePermissionKind.notifications;
     final choice = await FlareBottomSheet.show<FlarePermissionChoice>(
       context,
       title: title ?? copy.title,
       // The prompt draws its own heading; the sheet keeps the title as its
       // accessible name only.
       titleHidden: true,
+      inset: notificationInvite,
+      presentation: notificationInvite
+          ? FlareSheetPresentation.responsive
+          : FlareSheetPresentation.auto,
       builder: (sheet) => _FlarePermissionSheetBody(
         kind: kind,
         state: state,

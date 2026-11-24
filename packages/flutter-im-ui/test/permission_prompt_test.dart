@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flare_im_ui/src/components/flare_button.dart';
 import 'package:flare_im_ui/src/components/flare_icon.dart';
+import 'package:flare_im_ui/src/components/flare_modal.dart';
 import 'package:flare_im_ui/src/components/flare_permission_prompt.dart';
 
 void main() {
@@ -232,35 +233,51 @@ void main() {
     expect(find.text('以后再说'), findsNothing);
   });
 
-  testWidgets('show asks in the kit sheet and hands back the choice', (
-    tester,
-  ) async {
-    FlarePermissionChoice? choice;
-    var shown = false;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => TextButton(
-            onPressed: () async {
-              choice = await FlarePermissionPrompt.show(
-                context,
-                kind: FlarePermissionKind.notifications,
-                state: FlarePermissionState.undetermined,
-                softAsk: true,
-              );
-              shown = true;
-            },
-            child: const Text('ask'),
+  testWidgets(
+    'the notification invite adapts while open and returns one choice',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.reset);
+      FlarePermissionChoice? choice;
+      var shown = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                choice = await FlarePermissionPrompt.show(
+                  context,
+                  kind: FlarePermissionKind.notifications,
+                  state: FlarePermissionState.undetermined,
+                  softAsk: true,
+                );
+                shown = true;
+              },
+              child: const Text('ask'),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('ask'));
-    await tester.pumpAndSettle();
-    expect(find.text('及时收到新消息'), findsWidgets);
-    await tester.tap(find.text('开启通知'));
-    await tester.pumpAndSettle();
-    expect(shown, isTrue);
-    expect(choice, FlarePermissionChoice.request);
-  });
+      );
+      await tester.tap(find.text('ask'));
+      await tester.pumpAndSettle();
+      expect(find.text('及时收到新消息'), findsWidgets);
+      expect(find.byType(FlareModal), findsNothing);
+
+      tester.view.physicalSize = const Size(600, 844);
+      await tester.pumpAndSettle();
+      expect(find.byType(FlareModal), findsOneWidget);
+      expect(shown, isFalse);
+
+      tester.view.physicalSize = const Size(599, 844);
+      await tester.pumpAndSettle();
+      expect(find.byType(FlareModal), findsNothing);
+      expect(shown, isFalse);
+
+      await tester.tap(find.text('开启通知'));
+      await tester.pumpAndSettle();
+      expect(shown, isTrue);
+      expect(choice, FlarePermissionChoice.request);
+    },
+  );
 }

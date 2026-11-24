@@ -20,3 +20,4 @@ export {
 export { useFlareI18n, useFlareI18nProvider, listI18nKeys, flareTextDirection, readStoredLocale, type FlareI18nContext } from "./useFlareI18n";
 export { applyFlareResourceOverlay, type FlareResourceOverlayResult } from "./applyFlareResourceOverlay";
 export type { FlareResourcePack } from "../../utils/resourceOverlay";
+export { registerFlarePluginJapanese } from "./plugin-ja-JP";

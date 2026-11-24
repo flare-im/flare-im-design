@@ -70,7 +70,18 @@ describe("FlarePermissionPrompt", () => {
     setup({ kind: "notifications", state: "undetermined", softAsk: true, presentation: "sheet", onRequest: vi.fn(), onDismiss });
     const sheet = document.body.querySelector('[data-flare-presentation="sheet"]');
     expect(sheet?.querySelector(".flare-permission-prompt--sheet")).not.toBeNull();
+    expect(sheet?.classList.contains("flare-sheet--inset")).toBe(true);
     (document.body.querySelector(".flare-sheet-scrim") as HTMLElement).click();
     expect(onDismiss).toHaveBeenCalledOnce();
+  });
+
+  it("uses a centered dialog for the same notification prompt on desktop", () => {
+    const onRequest = vi.fn();
+    setup({ kind: "notifications", state: "undetermined", softAsk: true, presentation: "sheet", onRequest }, "zh-CN", false);
+    const dialog = document.body.querySelector('[data-flare-presentation="dialog"]');
+    expect(dialog?.getAttribute("aria-label")).toBe("及时收到新消息");
+    expect(document.body.querySelector('[data-flare-presentation="sheet"]')).toBeNull();
+    dialog?.querySelector("button")?.click();
+    expect(onRequest).toHaveBeenCalledOnce();
   });
 });

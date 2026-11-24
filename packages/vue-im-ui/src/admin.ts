@@ -127,6 +127,7 @@ export type {
   FlarePluginViewModel,
 } from "./shared/contracts/plugin-ui";
 export { flarePluginFilterInputs } from "./shared/contracts/plugin-ui";
+export { registerFlareAdminJapanese } from "./shared/i18n/admin-ja-JP";
 
 export type {
   SchemaSelection,

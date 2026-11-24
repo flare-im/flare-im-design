@@ -85,6 +85,11 @@ const props = withDefaults(
     membersLoading?: boolean;
     membersRevision?: number;
     membersError?: string;
+    membersMax?: number;
+    membersMoreLabel?: string;
+    membersLoadingMore?: boolean;
+    onMembersOpen?: () => void;
+    onMembersMore?: () => void;
     onMemberSearch?: (query: string) => void;
     onMembersRetry?: () => void;
     fileStates?: Record<string, FlarePluginFileState>;
@@ -264,7 +269,7 @@ function applyLocationFixes(): void {
 watch(() => props.locationStates, applyLocationFixes, { deep: true });
 const dateParts = reactive<Record<string, { date: string; time: string }>>({});
 const pad2 = (n: number) => String(n).padStart(2, "0");
-/** A new form (other inputs or initial values, compared by content): start over from them. */
+/** A new form (other input rules or initial values): start over from them. */
 function reset(): void {
   if (fileScope.value) for (const input of props.inputs) if (flarePluginIsUpload(input.kind)) fileAction(input, "invalidate");
   fileScope.value = flarePluginNewFileScope();
@@ -310,7 +315,10 @@ function reset(): void {
 watch(
   () =>
     JSON.stringify([
-      props.inputs,
+      props.inputs.map(({ label: _label, placeholder: _placeholder, help: _help, choices, ...input }) => ({
+        ...input,
+        choices: choices?.map(choice => choice.value),
+      })),
       props.values ?? null,
       props.baselineValues ?? null,
     ]),
@@ -557,7 +565,13 @@ watch(() => props.membersRevision ?? 0, () => {
   chosenMembers.value = {};
   for (const input of props.inputs) if (input.kind === "members") set(input.id, []);
 });
-watch(picking, input => { if (input) { pickingRevision = props.membersRevision ?? 0; props.onMemberSearch?.(""); } });
+watch(picking, input => {
+  if (input) {
+    pickingRevision = props.membersRevision ?? 0;
+    props.onMembersOpen?.();
+    props.onMemberSearch?.("");
+  }
+});
 const memberEntries = computed<FlareContactPickerEntry[]>(() =>
   props.members.map((m) => ({
     userId: m.userId,
@@ -776,13 +790,16 @@ defineExpose({ submit, nativeInto });
       ]"
       :multiple="flarePluginMaxItems(picking) !== 1"
       :initial-selected="initialMembers"
-      :max-selected="flarePluginMaxItems(picking)"
+      :max-selected="Math.min(flarePluginMaxItems(picking), membersMax ?? Infinity)"
       :loading="membersLoading"
       :error="membersError"
+      :more-label="membersMoreLabel"
+      :loading-more="membersLoadingMore"
       :onSearch="onMemberSearch"
       :onRetry="onMembersRetry"
       :title="picking.label"
       @select="pickMembers"
+      @more="onMembersMore?.()"
       @cancel="picking = null"
     />
   </FlareBottomSheet>

@@ -90,6 +90,7 @@ fun BottomSheet(
     dismissible: Boolean = true,
     presentation: FlareSheetPresentation = FlareSheetPresentation.Auto,
     fill: Boolean = false,
+    inset: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val strings = flareStrings()
@@ -124,6 +125,9 @@ fun BottomSheet(
     }
 
     val colors = flareColors()
+    val corners = if (inset) RoundedCornerShape(FlareSizes.radius2xl)
+        else RoundedCornerShape(topStart = FlareSizes.radius2xl, topEnd = FlareSizes.radius2xl)
+    val margin = if (inset) FlareSizes.spacingSm else 0.dp
     val reducedMotion = flareReducedMotion()
     FlareOverlayScaffold(
         kind = FlareOverlaySurfaceKind.Sheet,
@@ -149,10 +153,11 @@ fun BottomSheet(
         Column(
             // The web sheet's 640 cap, which the bubble width token carries.
             modifier.fillMaxWidth().widthIn(max = FlareSizes.bubbleMaxWidth)
+                .padding(start = margin, end = margin, bottom = margin)
                 // The surface runs under the navigation bar / keyboard, so its cap includes that inset; filled, it
                 // takes the whole cap.
                 .then(if (fill) Modifier.height(cap + bottom) else Modifier.heightIn(max = cap + bottom))
-                .clip(RoundedCornerShape(topStart = FlareSizes.radius2xl, topEnd = FlareSizes.radius2xl))
+                .clip(corners)
                 .background(colors.bgPrimary)
                 // A tap on the sheet itself never reaches the scrim behind it.
                 .pointerInput(Unit) { detectTapGestures {} }
